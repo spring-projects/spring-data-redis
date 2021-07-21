@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.domain.geo.GeoReference;
-import org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -37,6 +36,8 @@ import org.springframework.data.redis.connection.ReactiveGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
@@ -320,7 +321,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notEmpty(members, "Members must not be null or empty!");
 		Assert.noNullElements(members, "Members must not contain null elements!");
 
-		return template.createMono(connection -> Flux.fromArray(members) //
+		return template.doCreateMono(connection -> Flux.fromArray(members) //
 				.map(this::rawValue) //
 				.collectList() //
 				.flatMap(serialized -> connection.zSetCommands().zRem(rawKey(key), serialized)));
@@ -335,10 +336,10 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#search(K, RedisGeoCommands.GeoReference, GeoShape, GeoSearchCommandArgs)
 	 */
@@ -350,11 +351,11 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(reference, "GeoReference must not be null!");
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return template.createFlux(connection -> connection.geoCommands()
+		return template.doCreateFlux(connection -> connection.geoCommands()
 				.geoSearch(rawKey(key), rawReference, geoPredicate, args).map(this::readGeoResult));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#searchAndStore(K, K, RedisGeoCommands.GeoReference, GeoShape, GeoSearchStoreCommandArgs)
 	 */
@@ -366,7 +367,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(reference, "GeoReference must not be null!");
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return template.createMono(connection -> connection.geoCommands().geoSearchStore(rawKey(destKey), rawKey(key),
+		return template.doCreateMono(connection -> connection.geoCommands().geoSearchStore(rawKey(destKey), rawKey(key),
 				rawReference, geoPredicate, args));
 	}
 
@@ -374,14 +375,14 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.geoCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.geoCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveGeoCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createFlux(connection -> function.apply(connection.geoCommands()));
+		return template.doCreateFlux(connection -> function.apply(connection.geoCommands()));
 	}
 
 	@SuppressWarnings("unchecked")

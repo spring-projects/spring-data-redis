@@ -508,21 +508,21 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveSetCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.setCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.setCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveSetCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createFlux(connection -> function.apply(connection.setCommands()));
+		return template.doCreateFlux(connection -> function.apply(connection.setCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {

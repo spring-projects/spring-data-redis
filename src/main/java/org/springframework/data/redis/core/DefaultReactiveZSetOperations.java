@@ -120,7 +120,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createMono(connection -> connection.zIncrBy(rawKey(key), delta, rawValue(value)));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMember(K)
 	 */
@@ -132,7 +132,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createMono(connection -> connection.zRandMember(rawKey(key))).map(this::readValue);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#distinctRandomMembers(K, long)
 	 */
@@ -145,7 +145,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createFlux(connection -> connection.zRandMember(rawKey(key), count)).map(this::readValue);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMembers(K, long)
 	 */
@@ -158,7 +158,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createFlux(connection -> connection.zRandMember(rawKey(key), -count)).map(this::readValue);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMemberWithScore(K)
 	 */
@@ -170,7 +170,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createMono(connection -> connection.zRandMemberWithScore(rawKey(key))).map(this::readTypedTuple);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#distinctRandomMembersWithScore(K, long)
 	 */
@@ -183,7 +183,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createFlux(connection -> connection.zRandMemberWithScore(rawKey(key), count)).map(this::readTypedTuple);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#randomMembersWithScore(K, long)
 	 */
@@ -576,7 +576,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createMono(connection -> connection.zRemRangeByScore(rawKey(key), range));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#difference(K, Collection)
 	 */
@@ -592,7 +592,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMapMany(connection::zDiff).map(this::readValue));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#differenceWithScores(K, Collection)
 	 */
@@ -608,7 +608,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMapMany(connection::zDiffWithScores).map(this::readTypedTuple));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#differenceAndStore(K, Collection, K)
 	 */
@@ -626,7 +626,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersect(K, Collection)
 	 */
@@ -642,7 +642,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMapMany(connection::zInter).map(this::readValue));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectWithScores(K, Collection)
 	 */
@@ -658,7 +658,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMapMany(connection::zInterWithScores).map(this::readTypedTuple));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#intersectWithScores(K, Collection, Aggregate, Weights)
 	 */
@@ -714,7 +714,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized, weights, aggregate)));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#union(K, Collection)
 	 */
@@ -730,7 +730,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMapMany(connection::zUnion).map(this::readValue));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionWithScores(K, Collection)
 	 */
@@ -746,7 +746,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 				.flatMapMany(connection::zUnionWithScores).map(this::readTypedTuple));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#unionWithScores(K, Collection, Aggregate, Weights)
 	 */
@@ -877,21 +877,21 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveZSetCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.zSetCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.zSetCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveZSetCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createFlux(connection -> function.apply(connection.zSetCommands()));
+		return template.doCreateFlux(connection -> function.apply(connection.zSetCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {

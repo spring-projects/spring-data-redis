@@ -244,7 +244,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.numberCommands().incr(rawKey(key)));
+		return template.doCreateMono(connection -> connection.numberCommands().incr(rawKey(key)));
 	}
 
 	/* (non-Javadoc)
@@ -255,7 +255,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+		return template.doCreateMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
 	}
 
 	/* (non-Javadoc)
@@ -266,7 +266,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+		return template.doCreateMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
 	}
 
 	/* (non-Javadoc)
@@ -277,7 +277,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.numberCommands().decr(rawKey(key)));
+		return template.doCreateMono(connection -> connection.numberCommands().decr(rawKey(key)));
 	}
 
 	/* (non-Javadoc)
@@ -288,7 +288,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.numberCommands().decrBy(rawKey(key), delta));
+		return template.doCreateMono(connection -> connection.numberCommands().decrBy(rawKey(key), delta));
 	}
 
 	/* (non-Javadoc)
@@ -380,14 +380,14 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveStringCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.stringCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.stringCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {
