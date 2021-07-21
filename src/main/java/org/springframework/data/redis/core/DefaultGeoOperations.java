@@ -61,7 +61,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawKey = rawKey(key);
 		byte[] rawMember = rawValue(member);
 
-		return execute(connection -> connection.geoAdd(rawKey, point, rawMember), true);
+		return execute(connection -> connection.geoAdd(rawKey, point, rawMember));
 	}
 
 	/*
@@ -88,7 +88,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 			rawMemberCoordinateMap.put(rawMember, memberCoordinateMap.get(member));
 		}
 
-		return execute(connection -> connection.geoAdd(rawKey, rawMemberCoordinateMap), true);
+		return execute(connection -> connection.geoAdd(rawKey, rawMemberCoordinateMap));
 	}
 
 	/*
@@ -117,7 +117,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawMember1 = rawValue(member1);
 		byte[] rawMember2 = rawValue(member2);
 
-		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2), true);
+		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2));
 	}
 
 	/*
@@ -131,7 +131,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawMember1 = rawValue(member1);
 		byte[] rawMember2 = rawValue(member2);
 
-		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2, metric), true);
+		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2, metric));
 	}
 
 	/*
@@ -144,7 +144,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawKey = rawKey(key);
 		byte[][] rawMembers = rawValues(members);
 
-		return execute(connection -> connection.geoHash(rawKey, rawMembers), true);
+		return execute(connection -> connection.geoHash(rawKey, rawMembers));
 	}
 
 	/*
@@ -156,7 +156,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawKey = rawKey(key);
 		byte[][] rawMembers = rawValues(members);
 
-		return execute(connection -> connection.geoPos(rawKey, rawMembers), true);
+		return execute(connection -> connection.geoPos(rawKey, rawMembers));
 	}
 
 	/*
@@ -168,7 +168,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 
 		byte[] rawKey = rawKey(key);
 
-		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadius(rawKey, within), true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadius(rawKey, within));
 
 		return deserializeGeoResults(raw);
 	}
@@ -182,7 +182,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 
 		byte[] rawKey = rawKey(key);
 
-		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadius(rawKey, within, args), true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadius(rawKey, within, args));
 
 		return deserializeGeoResults(raw);
 	}
@@ -196,8 +196,8 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawMember = rawValue(member);
-		GeoResults<GeoLocation<byte[]>> raw = execute(connection -> connection.geoRadiusByMember(rawKey, rawMember, radius),
-				true);
+		GeoResults<GeoLocation<byte[]>> raw = execute(
+				connection -> connection.geoRadiusByMember(rawKey, rawMember, radius));
 
 		return deserializeGeoResults(raw);
 	}
@@ -213,7 +213,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawMember = rawValue(member);
 
 		GeoResults<GeoLocation<byte[]>> raw = execute(
-				connection -> connection.geoRadiusByMember(rawKey, rawMember, distance), true);
+				connection -> connection.geoRadiusByMember(rawKey, rawMember, distance));
 
 		return deserializeGeoResults(raw);
 	}
@@ -229,7 +229,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawMember = rawValue(member);
 
 		GeoResults<GeoLocation<byte[]>> raw = execute(
-				connection -> connection.geoRadiusByMember(rawKey, rawMember, distance, param), true);
+				connection -> connection.geoRadiusByMember(rawKey, rawMember, distance, param));
 
 		return deserializeGeoResults(raw);
 	}
@@ -243,10 +243,10 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawMembers = rawValues(members);
-		return execute(connection -> connection.zRem(rawKey, rawMembers), true);
+		return execute(connection -> connection.zRem(rawKey, rawMembers));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
 	 */
@@ -258,12 +258,12 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		GeoReference<byte[]> rawMember = getGeoReference(reference);
 
 		GeoResults<GeoLocation<byte[]>> raw = execute(
-				connection -> connection.geoSearch(rawKey, rawMember, geoPredicate, args), true);
+				connection -> connection.geoSearch(rawKey, rawMember, geoPredicate, args));
 
 		return deserializeGeoResults(raw);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.GeoOperations#searchAndStore(java.lang.Object, java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
 	 */
@@ -275,7 +275,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		byte[] rawDestKey = rawKey(destKey);
 		GeoReference<byte[]> rawMember = getGeoReference(reference);
 
-		return execute(connection -> connection.geoSearchStore(rawDestKey, rawKey, rawMember, geoPredicate, args), true);
+		return execute(connection -> connection.geoSearchStore(rawDestKey, rawKey, rawMember, geoPredicate, args));
 	}
 
 	@SuppressWarnings("unchecked")

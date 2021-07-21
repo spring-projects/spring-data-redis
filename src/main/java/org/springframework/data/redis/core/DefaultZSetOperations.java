@@ -57,7 +57,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.zAdd(rawKey, score, rawValue), true);
+		return execute(connection -> connection.zAdd(rawKey, score, rawValue));
 	}
 
 	/*
@@ -81,7 +81,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.zAdd(rawKey, score, rawValue, args), true);
+		return execute(connection -> connection.zAdd(rawKey, score, rawValue, args));
 	}
 
 	/*
@@ -93,7 +93,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		Set<Tuple> rawValues = rawTupleValues(tuples);
-		return execute(connection -> connection.zAdd(rawKey, rawValues), true);
+		return execute(connection -> connection.zAdd(rawKey, rawValues));
 	}
 
 	/*
@@ -117,7 +117,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		Set<Tuple> rawValues = rawTupleValues(tuples);
-		return execute(connection -> connection.zAdd(rawKey, rawValues, args), true);
+		return execute(connection -> connection.zAdd(rawKey, rawValues, args));
 	}
 
 	/*
@@ -129,7 +129,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.zIncrBy(rawKey, delta, rawValue), true);
+		return execute(connection -> connection.zIncrBy(rawKey, delta, rawValue));
 	}
 
 	/*
@@ -141,7 +141,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 
-		return deserializeValue(execute(connection -> connection.zRandMember(rawKey), true));
+		return deserializeValue(execute(connection -> connection.zRandMember(rawKey)));
 	}
 
 	/*
@@ -155,7 +155,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 
-		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count), true);
+		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count));
 		return result != null ? deserializeValues(new LinkedHashSet<>(result)) : null;
 	}
 
@@ -170,7 +170,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 
-		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count), true);
+		List<byte[]> result = execute(connection -> connection.zRandMember(rawKey, count));
 		return deserializeValues(result);
 	}
 
@@ -183,7 +183,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 
-		return deserializeTuple(execute(connection -> connection.zRandMemberWithScore(rawKey), true));
+		return deserializeTuple(execute(connection -> connection.zRandMemberWithScore(rawKey)));
 	}
 
 	/*
@@ -197,7 +197,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 
-		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count), true);
+		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count));
 		return result != null ? deserializeTupleValues(new LinkedHashSet<>(result)) : null;
 	}
 
@@ -212,7 +212,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 
-		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count), true);
+		List<Tuple> result = execute(connection -> connection.zRandMemberWithScore(rawKey, count));
 		return result != null ? deserializeTupleValues(result) : null;
 	}
 
@@ -224,7 +224,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> range(K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRange(rawKey, start, end), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRange(rawKey, start, end));
 
 		return deserializeValues(rawValues);
 	}
@@ -237,7 +237,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> reverseRange(K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRevRange(rawKey, start, end), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRange(rawKey, start, end));
 
 		return deserializeValues(rawValues);
 	}
@@ -250,7 +250,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> rangeWithScores(K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection -> connection.zRangeWithScores(rawKey, start, end), true);
+		Set<Tuple> rawValues = execute(connection -> connection.zRangeWithScores(rawKey, start, end));
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -263,7 +263,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeWithScores(rawKey, start, end), true);
+		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeWithScores(rawKey, start, end));
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -276,7 +276,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> rangeByLex(K key, Range range, Limit limit) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRangeByLex(rawKey, range, limit), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByLex(rawKey, range, limit));
 
 		return deserializeValues(rawValues);
 	}
@@ -289,7 +289,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> reverseRangeByLex(K key, Range range, Limit limit) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByLex(rawKey, range, limit), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByLex(rawKey, range, limit));
 
 		return deserializeValues(rawValues);
 	}
@@ -302,7 +302,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> rangeByScore(K key, double min, double max) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRangeByScore(rawKey, min, max), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByScore(rawKey, min, max));
 
 		return deserializeValues(rawValues);
 	}
@@ -315,7 +315,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> rangeByScore(K key, double min, double max, long offset, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count));
 
 		return deserializeValues(rawValues);
 	}
@@ -328,7 +328,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> reverseRangeByScore(K key, double min, double max) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByScore(rawKey, min, max), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByScore(rawKey, min, max));
 
 		return deserializeValues(rawValues);
 	}
@@ -341,7 +341,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> reverseRangeByScore(K key, double min, double max, long offset, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByScore(rawKey, min, max, offset, count), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByScore(rawKey, min, max, offset, count));
 
 		return deserializeValues(rawValues);
 	}
@@ -354,7 +354,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection -> connection.zRangeByScoreWithScores(rawKey, min, max), true);
+		Set<Tuple> rawValues = execute(connection -> connection.zRangeByScoreWithScores(rawKey, min, max));
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -367,8 +367,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max, long offset, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection -> connection.zRangeByScoreWithScores(rawKey, min, max, offset, count),
-				true);
+		Set<Tuple> rawValues = execute(connection -> connection.zRangeByScoreWithScores(rawKey, min, max, offset, count));
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -381,7 +380,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max), true);
+		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max));
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -394,8 +393,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max, offset, count),
-				true);
+		Set<Tuple> rawValues = execute(
+				connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max, offset, count));
 
 		return deserializeTupleValues(rawValues);
 	}
@@ -413,7 +412,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> {
 			Long zRank = connection.zRank(rawKey, rawValue);
 			return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
-		}, true);
+		});
 	}
 
 	/*
@@ -429,7 +428,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> {
 			Long zRank = connection.zRevRank(rawKey, rawValue);
 			return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
-		}, true);
+		});
 	}
 
 	/*
@@ -442,7 +441,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
 
-		return execute(connection -> connection.zRem(rawKey, rawValues), true);
+		return execute(connection -> connection.zRem(rawKey, rawValues));
 	}
 
 	/*
@@ -453,7 +452,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Long removeRange(K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zRemRange(rawKey, start, end), true);
+		return execute(connection -> connection.zRemRange(rawKey, start, end));
 	}
 
 	/*
@@ -464,7 +463,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Long removeRangeByLex(K key, Range range) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zRemRangeByLex(rawKey, range), true);
+		return execute(connection -> connection.zRemRangeByLex(rawKey, range));
 	}
 
 	/*
@@ -475,7 +474,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Long removeRangeByScore(K key, double min, double max) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zRemRangeByScore(rawKey, min, max), true);
+		return execute(connection -> connection.zRemRangeByScore(rawKey, min, max));
 	}
 
 	/*
@@ -487,7 +486,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(o);
-		return execute(connection -> connection.zScore(rawKey, rawValue), true);
+		return execute(connection -> connection.zScore(rawKey, rawValue));
 	}
 
 	/*
@@ -499,7 +498,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(o);
-		return execute(connection -> connection.zMScore(rawKey, rawValues), true);
+		return execute(connection -> connection.zMScore(rawKey, rawValues));
 	}
 
 	/*
@@ -510,7 +509,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Long count(K key, double min, double max) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zCount(rawKey, min, max), true);
+		return execute(connection -> connection.zCount(rawKey, min, max));
 	}
 
 	/*
@@ -521,7 +520,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Long lexCount(K key, Range range) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zLexCount(rawKey, range), true);
+		return execute(connection -> connection.zLexCount(rawKey, range));
 	}
 
 	/*
@@ -533,7 +532,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public TypedTuple<V> popMin(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeTuple(execute(connection -> connection.zPopMin(rawKey), true));
+		return deserializeTuple(execute(connection -> connection.zPopMin(rawKey)));
 	}
 
 	/*
@@ -545,7 +544,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> popMin(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> result = execute(connection -> connection.zPopMin(rawKey, count), true);
+		Set<Tuple> result = execute(connection -> connection.zPopMin(rawKey, count));
 		return deserializeTupleValues(new LinkedHashSet<> (result));
 	}
 
@@ -558,7 +557,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public TypedTuple<V> popMin(K key, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeTuple(execute(connection -> connection.bZPopMin(rawKey, timeout, unit), true));
+		return deserializeTuple(execute(connection -> connection.bZPopMin(rawKey, timeout, unit)));
 	}
 
 	/*
@@ -570,7 +569,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public TypedTuple<V> popMax(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeTuple(execute(connection -> connection.zPopMax(rawKey), true));
+		return deserializeTuple(execute(connection -> connection.zPopMax(rawKey)));
 	}
 
 	/*
@@ -582,7 +581,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> popMax(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> result =execute(connection -> connection.zPopMax(rawKey, count), true);
+		Set<Tuple> result = execute(connection -> connection.zPopMax(rawKey, count));
 		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
@@ -595,7 +594,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public TypedTuple<V> popMax(K key, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeTuple(execute(connection -> connection.bZPopMax(rawKey, timeout, unit), true));
+		return deserializeTuple(execute(connection -> connection.bZPopMax(rawKey, timeout, unit)));
 	}
 
 	/*
@@ -615,7 +614,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Long zCard(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zCard(rawKey), true);
+		return execute(connection -> connection.zCard(rawKey));
 	}
 
 	/*
@@ -626,7 +625,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> difference(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<byte[]> rawValues = execute(connection -> connection.zDiff(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zDiff(rawKeys));
 		return deserializeValues(rawValues);
 	}
 
@@ -638,7 +637,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<Tuple> result = execute(connection -> connection.zDiffWithScores(rawKeys), true);
+		Set<Tuple> result = execute(connection -> connection.zDiffWithScores(rawKeys));
 		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
@@ -652,7 +651,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.zDiffStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.zDiffStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -663,7 +662,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> intersect(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<byte[]> rawValues = execute(connection -> connection.zInter(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zInter(rawKeys));
 		return deserializeValues(rawValues);
 	}
 
@@ -675,7 +674,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<Tuple> result = execute(connection -> connection.zInterWithScores(rawKeys), true);
+		Set<Tuple> result = execute(connection -> connection.zInterWithScores(rawKeys));
 		return deserializeTupleValues(result);
 	}
 
@@ -687,7 +686,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<Tuple> result = execute(connection -> connection.zInterWithScores(aggregate, weights, rawKeys), true);
+		Set<Tuple> result = execute(connection -> connection.zInterWithScores(aggregate, weights, rawKeys));
 		return deserializeTupleValues(result);
 	}
 
@@ -710,7 +709,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -723,7 +722,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys), true);
+		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys));
 	}
 
 	/*
@@ -734,7 +733,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<V> union(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<byte[]> rawValues = execute(connection -> connection.zUnion(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.zUnion(rawKeys));
 		return deserializeValues(rawValues);
 	}
 
@@ -746,7 +745,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<Tuple> result =  execute(connection -> connection.zUnionWithScores(rawKeys), true);
+		Set<Tuple> result = execute(connection -> connection.zUnionWithScores(rawKeys));
 		return deserializeTupleValues(result);
 	}
 
@@ -758,7 +757,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<Tuple> result = execute(connection -> connection.zUnionWithScores(aggregate, weights, rawKeys), true);
+		Set<Tuple> result = execute(connection -> connection.zUnionWithScores(aggregate, weights, rawKeys));
 		return deserializeTupleValues(
 				result);
 	}
@@ -782,7 +781,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.zUnionStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.zUnionStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -795,7 +794,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.zUnionStore(rawDestKey, aggregate, weights, rawKeys), true);
+		return execute(connection -> connection.zUnionStore(rawDestKey, aggregate, weights, rawKeys));
 	}
 
 	/*
@@ -814,14 +813,14 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<byte[]> rangeByScore(K key, String min, String max) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zRangeByScore(rawKey, min, max), true);
+		return execute(connection -> connection.zRangeByScore(rawKey, min, max));
 	}
 
 	public Set<byte[]> rangeByScore(K key, String min, String max, long offset, long count) {
 
 		byte[] rawKey = rawKey(key);
 
-		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count), true);
+		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count));
 	}
 
 }

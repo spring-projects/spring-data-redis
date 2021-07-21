@@ -57,7 +57,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.get(rawKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -74,7 +74,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getDel(rawKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -91,7 +91,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getEx(rawKey, Expiration.from(timeout, unit));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -108,7 +108,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getEx(rawKey, Expiration.from(timeout));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -125,7 +125,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getEx(rawKey, Expiration.persistent());
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -142,7 +142,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getSet(rawKey, rawValue);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -153,7 +153,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Long increment(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.incr(rawKey), true);
+		return execute(connection -> connection.incr(rawKey));
 	}
 
 	/*
@@ -164,7 +164,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Long increment(K key, long delta) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.incrBy(rawKey, delta), true);
+		return execute(connection -> connection.incrBy(rawKey, delta));
 	}
 
 	/*
@@ -175,7 +175,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Double increment(K key, double delta) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.incrBy(rawKey, delta), true);
+		return execute(connection -> connection.incrBy(rawKey, delta));
 	}
 
 	/*
@@ -186,7 +186,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Long decrement(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.decr(rawKey), true);
+		return execute(connection -> connection.decr(rawKey));
 	}
 
 	/*
@@ -197,7 +197,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Long decrement(K key, long delta) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.decrBy(rawKey, delta), true);
+		return execute(connection -> connection.decrBy(rawKey, delta));
 	}
 
 	/*
@@ -213,7 +213,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> {
 			Long result = connection.append(rawKey, rawString);
 			return (result != null) ? result.intValue() : null;
-		}, true);
+		});
 	}
 
 	/*
@@ -223,7 +223,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	@Override
 	public String get(K key, long start, long end) {
 		byte[] rawKey = rawKey(key);
-		byte[] rawReturn = execute(connection -> connection.getRange(rawKey, start, end), true);
+		byte[] rawReturn = execute(connection -> connection.getRange(rawKey, start, end));
 
 		return deserializeString(rawReturn);
 	}
@@ -246,7 +246,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			rawKeys[counter++] = rawKey(hashKey);
 		}
 
-		List<byte[]> rawValues = execute(connection -> connection.mGet(rawKeys), true);
+		List<byte[]> rawValues = execute(connection -> connection.mGet(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -271,7 +271,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		execute(connection -> {
 			connection.mSet(rawKeys);
 			return null;
-		}, true);
+		});
 	}
 
 	/*
@@ -291,7 +291,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
 		}
 
-		return execute(connection -> connection.mSetNX(rawKeys), true);
+		return execute(connection -> connection.mSetNX(rawKeys));
 	}
 
 	/*
@@ -309,7 +309,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 				connection.set(rawKey, rawValue);
 				return null;
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -350,7 +350,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 				return !failed;
 			}
 
-		}, true);
+		});
 	}
 
 	/*
@@ -362,7 +362,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.setNX(rawKey, rawValue), true);
+		return execute(connection -> connection.setNX(rawKey, rawValue));
 	}
 
 	/*
@@ -376,7 +376,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawValue = rawValue(value);
 
 		Expiration expiration = Expiration.from(timeout, unit);
-		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifAbsent()), true);
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifAbsent()));
 	}
 
 	/*
@@ -390,7 +390,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
 
-		return execute(connection -> connection.set(rawKey, rawValue, Expiration.persistent(), SetOption.ifPresent()), true);
+		return execute(connection -> connection.set(rawKey, rawValue, Expiration.persistent(), SetOption.ifPresent()));
 	}
 
 	/*
@@ -405,7 +405,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawValue = rawValue(value);
 
 		Expiration expiration = Expiration.from(timeout, unit);
-		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()), true);
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
 	}
 
 	/*
@@ -421,7 +421,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		execute(connection -> {
 			connection.setRange(rawKey, rawValue, offset);
 			return null;
-		}, true);
+		});
 	}
 
 	/*
@@ -432,7 +432,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Long size(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.strLen(rawKey), true);
+		return execute(connection -> connection.strLen(rawKey));
 	}
 
 	/*
@@ -443,7 +443,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Boolean setBit(K key, long offset, boolean value) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.setBit(rawKey, offset, value), true);
+		return execute(connection -> connection.setBit(rawKey, offset, value));
 	}
 
 	/*
@@ -454,7 +454,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public Boolean getBit(K key, long offset) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.getBit(rawKey, offset), true);
+		return execute(connection -> connection.getBit(rawKey, offset));
 	}
 
 	/*
@@ -465,6 +465,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public List<Long> bitField(K key, final BitFieldSubCommands subCommands) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.bitField(rawKey, subCommands), true);
+		return execute(connection -> connection.bitField(rawKey, subCommands));
 	}
 }

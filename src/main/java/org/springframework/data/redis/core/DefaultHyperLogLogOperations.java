@@ -38,7 +38,7 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
-		return execute(connection -> connection.pfAdd(rawKey, rawValues), true);
+		return execute(connection -> connection.pfAdd(rawKey, rawValues));
 	}
 
 	/*
@@ -49,7 +49,7 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 	public Long size(K... keys) {
 
 		byte[][] rawKeys = rawKeys(Arrays.asList(keys));
-		return execute(connection -> connection.pfCount(rawKeys), true);
+		return execute(connection -> connection.pfCount(rawKeys));
 	}
 
 	/*
@@ -65,7 +65,7 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 
 			connection.pfMerge(rawDestinationKey, rawSourceKeys);
 			return connection.pfCount(rawDestinationKey);
-		}, true);
+		});
 	}
 
 	/*
