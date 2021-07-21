@@ -119,7 +119,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public Long acknowledge(K key, String group, String... recordIds) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xAck(rawKey, group, recordIds), true);
+		return execute(connection -> connection.xAck(rawKey, group, recordIds));
 	}
 
 	/*
@@ -137,7 +137,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 		ByteRecord binaryRecord = input.serialize(keySerializer(), hashKeySerializer(), hashValueSerializer());
 
-		return execute(connection -> connection.xAdd(binaryRecord), true);
+		return execute(connection -> connection.xAdd(binaryRecord));
 	}
 
 	/*
@@ -148,7 +148,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public Long delete(K key, RecordId... recordIds) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xDel(rawKey, recordIds), true);
+		return execute(connection -> connection.xDel(rawKey, recordIds));
 	}
 
 	/*
@@ -159,7 +159,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public String createGroup(K key, ReadOffset readOffset, String group) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true), true);
+		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true));
 	}
 
 	/*
@@ -170,7 +170,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public Boolean deleteConsumer(K key, Consumer consumer) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xGroupDelConsumer(rawKey, consumer), true);
+		return execute(connection -> connection.xGroupDelConsumer(rawKey, consumer));
 	}
 
 	/*
@@ -181,7 +181,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public Boolean destroyGroup(K key, String group) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xGroupDestroy(rawKey, group), true);
+		return execute(connection -> connection.xGroupDestroy(rawKey, group));
 	}
 
 	/*
@@ -192,7 +192,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public XInfoStream info(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xInfo(rawKey), true);
+		return execute(connection -> connection.xInfo(rawKey));
 	}
 
 	/*
@@ -203,7 +203,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public XInfoConsumers consumers(K key, String group) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xInfoConsumers(rawKey, group), true);
+		return execute(connection -> connection.xInfoConsumers(rawKey, group));
 	}
 
 	/*
@@ -214,7 +214,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public XInfoGroups groups(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xInfoGroups(rawKey), true);
+		return execute(connection -> connection.xInfoGroups(rawKey));
 	}
 
 	/*
@@ -225,7 +225,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public PendingMessages pending(K key, String group, Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xPending(rawKey, group, range, count), true);
+		return execute(connection -> connection.xPending(rawKey, group, range, count));
 	}
 
 	/*
@@ -236,7 +236,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xPending(rawKey, consumer, range, count), true);
+		return execute(connection -> connection.xPending(rawKey, consumer, range, count));
 	}
 
 	/*
@@ -247,7 +247,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public PendingMessagesSummary pending(K key, String group) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xPending(rawKey, group), true);
+		return execute(connection -> connection.xPending(rawKey, group));
 	}
 
 	/*
@@ -258,7 +258,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public Long size(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xLen(rawKey), true);
+		return execute(connection -> connection.xLen(rawKey));
 	}
 
 	/*
@@ -275,7 +275,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 			List<ByteRecord> inRedis(RedisConnection connection) {
 				return connection.xRange(rawKey(key), range, limit);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -292,7 +292,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 			List<ByteRecord> inRedis(RedisConnection connection) {
 				return connection.xRead(readOptions, rawStreamOffsets(streams));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -309,7 +309,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 			List<ByteRecord> inRedis(RedisConnection connection) {
 				return connection.xReadGroup(consumer, readOptions, rawStreamOffsets(streams));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -326,20 +326,20 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 			List<ByteRecord> inRedis(RedisConnection connection) {
 				return connection.xRevRange(rawKey(key), range, limit);
 			}
-		}, true);
+		});
 	}
 
 	@Override
 	public Long trim(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xTrim(rawKey, count), true);
+		return execute(connection -> connection.xTrim(rawKey, count));
 	}
 
 	@Override
 	public Long trim(K key, long count, boolean approximateTrimming) {
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xTrim(rawKey, count, approximateTrimming), true);
+		return execute(connection -> connection.xTrim(rawKey, count, approximateTrimming));
 	}
 
 	@Override

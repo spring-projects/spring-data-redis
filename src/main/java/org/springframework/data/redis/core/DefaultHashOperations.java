@@ -52,7 +52,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
-		byte[] rawHashValue = execute(connection -> connection.hGet(rawKey, rawHashKey), true);
+		byte[] rawHashValue = execute(connection -> connection.hGet(rawKey, rawHashKey));
 
 		return (HV) rawHashValue != null ? deserializeHashValue(rawHashValue) : null;
 	}
@@ -66,7 +66,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
-		return execute(connection -> connection.hExists(rawKey, rawHashKey), true);
+		return execute(connection -> connection.hExists(rawKey, rawHashKey));
 	}
 
 	/*
@@ -78,7 +78,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
-		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta), true);
+		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta));
 	}
 
 	/*
@@ -90,10 +90,10 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
-		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta), true);
+		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.HashOperations#randomField(java.lang.Object)
 	 */
@@ -102,10 +102,10 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public HK randomKey(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return deserializeHashKey(execute(connection -> connection.hRandField(rawKey), true));
+		return deserializeHashKey(execute(connection -> connection.hRandField(rawKey)));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.HashOperations#randomValue(java.lang.Object)
 	 */
@@ -114,12 +114,12 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public Entry<HK, HV> randomEntry(K key) {
 
 		byte[] rawKey = rawKey(key);
-		Entry<byte[], byte[]> rawEntry = execute(connection -> connection.hRandFieldWithValues(rawKey), true);
+		Entry<byte[], byte[]> rawEntry = execute(connection -> connection.hRandFieldWithValues(rawKey));
 		return rawEntry == null ? null
 				: Converters.entryOf(deserializeHashKey(rawEntry.getKey()), deserializeHashValue(rawEntry.getValue()));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.HashOperations#randomFields(java.lang.Object, long)
 	 */
@@ -128,11 +128,11 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public List<HK> randomKeys(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		List<byte[]> rawValues = execute(connection -> connection.hRandField(rawKey, count), true);
+		List<byte[]> rawValues = execute(connection -> connection.hRandField(rawKey, count));
 		return deserializeHashKeys(rawValues);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.HashOperations#randomValues(java.lang.Object, long)
 	 */
@@ -142,8 +142,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		Assert.isTrue(count > 0, "Count must not be negative");
 		byte[] rawKey = rawKey(key);
-		List<Entry<byte[], byte[]>> rawEntries = execute(connection -> connection.hRandFieldWithValues(rawKey, count),
-				true);
+		List<Entry<byte[], byte[]>> rawEntries = execute(connection -> connection.hRandFieldWithValues(rawKey, count));
 
 		if (rawEntries == null) {
 			return null;
@@ -162,7 +161,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public Set<HK> keys(K key) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.hKeys(rawKey), true);
+		Set<byte[]> rawValues = execute(connection -> connection.hKeys(rawKey));
 
 		return rawValues != null ? deserializeHashKeys(rawValues) : Collections.emptySet();
 	}
@@ -175,7 +174,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public Long size(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.hLen(rawKey), true);
+		return execute(connection -> connection.hLen(rawKey));
 	}
 
 	/*
@@ -188,7 +187,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
-		return execute(connection -> connection.hStrLen(rawKey, rawHashKey), true);
+		return execute(connection -> connection.hStrLen(rawKey, rawHashKey));
 	}
 
 	/*
@@ -213,7 +212,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		execute(connection -> {
 			connection.hMSet(rawKey, hashes);
 			return null;
-		}, true);
+		});
 	}
 
 	/*
@@ -235,7 +234,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 
-		List<byte[]> rawValues = execute(connection -> connection.hMGet(rawKey, rawHashKeys), true);
+		List<byte[]> rawValues = execute(connection -> connection.hMGet(rawKey, rawHashKeys));
 
 		return deserializeHashValues(rawValues);
 	}
@@ -254,7 +253,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		execute(connection -> {
 			connection.hSet(rawKey, rawHashKey, rawHashValue);
 			return null;
-		}, true);
+		});
 	}
 
 	/*
@@ -268,7 +267,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawHashKey = rawHashKey(hashKey);
 		byte[] rawHashValue = rawHashValue(value);
 
-		return execute(connection -> connection.hSetNX(rawKey, rawHashKey, rawHashValue), true);
+		return execute(connection -> connection.hSetNX(rawKey, rawHashKey, rawHashValue));
 	}
 
 	/*
@@ -279,7 +278,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public List<HV> values(K key) {
 
 		byte[] rawKey = rawKey(key);
-		List<byte[]> rawValues = execute(connection -> connection.hVals(rawKey), true);
+		List<byte[]> rawValues = execute(connection -> connection.hVals(rawKey));
 
 		return rawValues != null ? deserializeHashValues(rawValues) : Collections.emptyList();
 	}
@@ -294,7 +293,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(hashKeys);
 
-		return execute(connection -> connection.hDel(rawKey, rawHashKeys), true);
+		return execute(connection -> connection.hDel(rawKey, rawHashKeys));
 	}
 
 	/*
@@ -305,7 +304,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public Map<HK, HV> entries(K key) {
 
 		byte[] rawKey = rawKey(key);
-		Map<byte[], byte[]> entries = execute(connection -> connection.hGetAll(rawKey), true);
+		Map<byte[], byte[]> entries = execute(connection -> connection.hGetAll(rawKey));
 
 		return entries != null ? deserializeHashMap(entries) : Collections.emptyMap();
 	}

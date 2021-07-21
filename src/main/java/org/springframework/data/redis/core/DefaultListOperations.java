@@ -52,7 +52,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.lIndex(rawKey, index);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -64,7 +64,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.lPos(rawKey, rawValue), true);
+		return execute(connection -> connection.lPos(rawKey, rawValue));
 	}
 
 	/*
@@ -80,7 +80,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 			List<Long> indexes = connection.lPos(rawKey, rawValue, -1, null);
 			return CollectionUtils.firstElement(indexes);
-		}, true);
+		});
 	}
 
 	/*
@@ -96,7 +96,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.lPop(rawKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -106,7 +106,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public List<V> leftPop(K key, long count) {
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> deserializeValues(connection.lPop(rawKey, count)), true);
+		return execute(connection -> deserializeValues(connection.lPop(rawKey, count)));
 	}
 
 	/*
@@ -124,7 +124,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				List<byte[]> lPop = connection.bLPop(tm, rawKey);
 				return (CollectionUtils.isEmpty(lPop) ? null : lPop.get(1));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -136,7 +136,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.lPush(rawKey, rawValue), true);
+		return execute(connection -> connection.lPush(rawKey, rawValue));
 	}
 
 	/*
@@ -148,7 +148,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
-		return execute(connection -> connection.lPush(rawKey, rawValues), true);
+		return execute(connection -> connection.lPush(rawKey, rawValues));
 	}
 
 	/*
@@ -161,7 +161,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
 
-		return execute(connection -> connection.lPush(rawKey, rawValues), true);
+		return execute(connection -> connection.lPush(rawKey, rawValues));
 	}
 
 	/*
@@ -173,7 +173,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.lPushX(rawKey, rawValue), true);
+		return execute(connection -> connection.lPushX(rawKey, rawValue));
 	}
 
 	/*
@@ -186,7 +186,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		byte[] rawKey = rawKey(key);
 		byte[] rawPivot = rawValue(pivot);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.lInsert(rawKey, Position.BEFORE, rawPivot, rawValue), true);
+		return execute(connection -> connection.lInsert(rawKey, Position.BEFORE, rawPivot, rawValue));
 	}
 
 	/*
@@ -197,7 +197,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	public Long size(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.lLen(rawKey), true);
+		return execute(connection -> connection.lLen(rawKey));
 	}
 
 	/*
@@ -208,7 +208,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	public List<V> range(K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> deserializeValues(connection.lRange(rawKey, start, end)), true);
+		return execute(connection -> deserializeValues(connection.lRange(rawKey, start, end)));
 	}
 
 	/*
@@ -220,7 +220,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.lRem(rawKey, count, rawValue), true);
+		return execute(connection -> connection.lRem(rawKey, count, rawValue));
 	}
 
 	/*
@@ -236,7 +236,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.rPop(rawKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -246,7 +246,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public List<V> rightPop(K key, long count) {
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> deserializeValues(connection.rPop(rawKey, count)), true);
+		return execute(connection -> deserializeValues(connection.rPop(rawKey, count)));
 	}
 
 	/*
@@ -265,7 +265,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				List<byte[]> bRPop = connection.bRPop(tm, rawKey);
 				return (CollectionUtils.isEmpty(bRPop) ? null : bRPop.get(1));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -277,7 +277,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.rPush(rawKey, rawValue), true);
+		return execute(connection -> connection.rPush(rawKey, rawValue));
 	}
 
 	/*
@@ -289,7 +289,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
-		return execute(connection -> connection.rPush(rawKey, rawValues), true);
+		return execute(connection -> connection.rPush(rawKey, rawValues));
 	}
 
 	/*
@@ -301,7 +301,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
-		return execute(connection -> connection.rPush(rawKey, rawValues), true);
+		return execute(connection -> connection.rPush(rawKey, rawValues));
 	}
 
 	/*
@@ -313,7 +313,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.rPushX(rawKey, rawValue), true);
+		return execute(connection -> connection.rPushX(rawKey, rawValue));
 	}
 
 	/*
@@ -326,7 +326,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		byte[] rawKey = rawKey(key);
 		byte[] rawPivot = rawValue(pivot);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.lInsert(rawKey, Position.AFTER, rawPivot, rawValue), true);
+		return execute(connection -> connection.lInsert(rawKey, Position.AFTER, rawPivot, rawValue));
 	}
 
 	/*
@@ -343,7 +343,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.rPopLPush(rawSourceKey, rawDestKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -361,10 +361,10 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.bRPopLPush(tm, rawSourceKey, rawDestKey);
 			}
-		}, true);
+		});
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ListOperations#move(java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction)
 	 */
@@ -378,10 +378,10 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.lMove(rawSourceKey, rawDestKey, from, to);
 			}
-		}, true);
+		});
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ListOperations#move(java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
 	 */
@@ -395,7 +395,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.bLMove(rawSourceKey, rawDestKey, from, to, TimeoutUtils.toDoubleSeconds(timeout, unit));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -413,7 +413,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				connection.lSet(rawKey, index, rawValue);
 				return null;
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -430,6 +430,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 				connection.lTrim(rawKey, start, end);
 				return null;
 			}
-		}, true);
+		});
 	}
 }

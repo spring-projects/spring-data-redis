@@ -49,7 +49,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues((Object[]) values);
-		return execute(connection -> connection.sAdd(rawKey, rawValues), true);
+		return execute(connection -> connection.sAdd(rawKey, rawValues));
 	}
 
 	/*
@@ -69,7 +69,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> difference(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -82,7 +82,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> difference(Collection<K> keys) {
 
 		byte[][] rawKeys = rawKeys(keys);
-		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sDiff(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -106,7 +106,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -119,7 +119,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[][] rawKeys = rawKeys(keys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -139,7 +139,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> intersect(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -152,7 +152,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> intersect(Collection<K> keys) {
 
 		byte[][] rawKeys = rawKeys(keys);
-		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sInter(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -176,7 +176,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -189,7 +189,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[][] rawKeys = rawKeys(keys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -202,7 +202,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(o);
 
-		return execute(connection -> connection.sIsMember(rawKey, rawValue), true);
+		return execute(connection -> connection.sIsMember(rawKey, rawValue));
 	}
 
 	/*
@@ -230,7 +230,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			}
 
 			return isMember;
-		}, true);
+		});
 	}
 
 	/*
@@ -241,7 +241,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> members(K key) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.sMembers(rawKey), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sMembers(rawKey));
 
 		return deserializeValues(rawValues);
 	}
@@ -257,7 +257,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[] rawDestKey = rawKey(destKey);
 		byte[] rawValue = rawValue(value);
 
-		return execute(connection -> connection.sMove(rawKey, rawDestKey, rawValue), true);
+		return execute(connection -> connection.sMove(rawKey, rawDestKey, rawValue));
 	}
 
 	/*
@@ -273,7 +273,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.sRandMember(rawKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -287,7 +287,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(
-				(RedisCallback<Set<byte[]>>) connection -> new HashSet<>(connection.sRandMember(rawKey, count)), true);
+				(RedisCallback<Set<byte[]>>) connection -> new HashSet<>(connection.sRandMember(rawKey, count)));
 
 		return deserializeValues(rawValues);
 	}
@@ -303,7 +303,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 				"Use a positive number for count. " + "This method is already allowing duplicate elements.");
 
 		byte[] rawKey = rawKey(key);
-		List<byte[]> rawValues = execute(connection -> connection.sRandMember(rawKey, -count), true);
+		List<byte[]> rawValues = execute(connection -> connection.sRandMember(rawKey, -count));
 
 		return deserializeValues(rawValues);
 	}
@@ -317,7 +317,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
-		return execute(connection -> connection.sRem(rawKey, rawValues), true);
+		return execute(connection -> connection.sRem(rawKey, rawValues));
 	}
 
 	/*
@@ -333,7 +333,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.sPop(rawKey);
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -344,7 +344,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public List<V> pop(K key, long count) {
 
 		byte[] rawKey = rawKey(key);
-		List<byte[]> rawValues = execute(connection -> connection.sPop(rawKey, count), true);
+		List<byte[]> rawValues = execute(connection -> connection.sPop(rawKey, count));
 
 		return deserializeValues(rawValues);
 	}
@@ -357,7 +357,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Long size(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.sCard(rawKey), true);
+		return execute(connection -> connection.sCard(rawKey));
 	}
 
 	/*
@@ -377,7 +377,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> union(K key, Collection<K> otherKeys) {
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
-		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -390,7 +390,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Set<V> union(Collection<K> keys) {
 
 		byte[][] rawKeys = rawKeys(keys);
-		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys), true);
+		Set<byte[]> rawValues = execute(connection -> connection.sUnion(rawKeys));
 
 		return deserializeValues(rawValues);
 	}
@@ -414,7 +414,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys));
 	}
 
 	/*
@@ -427,7 +427,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[][] rawKeys = rawKeys(keys);
 		byte[] rawDestKey = rawKey(destKey);
 
-		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys), true);
+		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys));
 	}
 
 	/*

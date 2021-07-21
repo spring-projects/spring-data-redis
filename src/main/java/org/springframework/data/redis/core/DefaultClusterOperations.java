@@ -59,7 +59,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(connection -> deserializeKeys(connection.keys(node, rawKey(pattern))));
+		return doInCluster(connection -> deserializeKeys(connection.keys(node, rawKey(pattern))));
 	}
 
 	/*
@@ -71,7 +71,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(connection -> deserializeKey(connection.randomKey(node)));
+		return doInCluster(connection -> deserializeKey(connection.randomKey(node)));
 	}
 
 	/*
@@ -83,7 +83,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(connection -> connection.ping(node));
+		return doInCluster(connection -> connection.ping(node));
 	}
 
 	/*
@@ -95,7 +95,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.clusterAddSlots(node, slots);
 			return null;
 		});
@@ -123,7 +123,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.bgReWriteAof(node);
 			return null;
 		});
@@ -138,7 +138,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.bgSave(node);
 			return null;
 		});
@@ -153,7 +153,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.clusterMeet(node);
 			return null;
 		});
@@ -168,7 +168,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.clusterForget(node);
 			return null;
 		});
@@ -183,7 +183,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.flushDb(node);
 			return null;
 		});
@@ -198,7 +198,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return execute(connection -> connection.clusterGetSlaves(node));
+		return doInCluster(connection -> connection.clusterGetSlaves(node));
 	}
 
 	/*
@@ -210,7 +210,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.save(node);
 			return null;
 		});
@@ -225,7 +225,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.shutdown(node);
 			return null;
 		});
@@ -241,7 +241,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		Assert.notNull(source, "Source node must not be null.");
 		Assert.notNull(target, "Target node must not be null.");
 
-		execute((RedisClusterCallback<Void>) connection -> {
+		doInCluster((RedisClusterCallback<Void>) connection -> {
 
 			connection.clusterSetSlot(target, slot, AddSlots.IMPORTING);
 			connection.clusterSetSlot(source, slot, AddSlots.MIGRATING);
@@ -262,16 +262,13 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	 * @return execution result. Can be {@literal null}.
 	 */
 	@Nullable
-	public <T> T execute(RedisClusterCallback<T> callback) {
+	<T> T doInCluster(RedisClusterCallback<T> callback) {
 
 		Assert.notNull(callback, "ClusterCallback must not be null!");
 
-		RedisClusterConnection connection = template.getConnectionFactory().getClusterConnection();
-
-		try {
+		try (RedisClusterConnection connection = template.getConnectionFactory().getClusterConnection()) {
 			return callback.doInRedis(connection);
-		} finally {
-			connection.close();
 		}
 	}
+
 }
