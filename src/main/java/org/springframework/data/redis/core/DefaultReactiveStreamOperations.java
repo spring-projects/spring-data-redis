@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.convert.Converters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,10 +27,12 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -372,14 +373,14 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.streamCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.streamCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveStreamCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createFlux(connection -> function.apply(connection.streamCommands()));
+		return template.doCreateFlux(connection -> function.apply(connection.streamCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {

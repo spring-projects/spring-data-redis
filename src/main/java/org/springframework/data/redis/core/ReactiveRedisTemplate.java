@@ -174,6 +174,21 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	/**
+	 * Internal variant of {@link #createFlux(ReactiveRedisCallback)} bypassing proxy creation. Create a reusable Flux for
+	 * a {@link ReactiveRedisCallback}. Callback is executed within a connection context. The connection is released
+	 * outside the callback.
+	 *
+	 * @param callback must not be {@literal null}
+	 * @return a {@link Flux} wrapping the {@link ReactiveRedisCallback}.
+	 */
+	<T> Flux<T> doCreateFlux(ReactiveRedisCallback<T> callback) {
+
+		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
+
+		return Flux.from(doInConnection(callback, true));
+	}
+
+	/**
 	 * Create a reusable Mono for a {@link ReactiveRedisCallback}. Callback is executed within a connection context. The
 	 * connection is released outside the callback.
 	 *
@@ -185,6 +200,21 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
 
 		return Mono.from(doInConnection(callback, exposeConnection));
+	}
+
+	/**
+	 * Internal variant of {@link #createMono(ReactiveRedisCallback)} bypassing proxy creation. Create a reusable Mono for
+	 * a {@link ReactiveRedisCallback}. Callback is executed within a connection context. The connection is released
+	 * outside the callback.
+	 *
+	 * @param callback must not be {@literal null}
+	 * @return a {@link Mono} wrapping the {@link ReactiveRedisCallback}.
+	 */
+	<T> Mono<T> doCreateMono(ReactiveRedisCallback<T> callback) {
+
+		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
+
+		return Mono.from(doInConnection(callback, true));
 	}
 
 	/**
@@ -225,7 +255,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.hasText(destination, "Destination channel must not be empty!");
 		Assert.notNull(message, "Message must not be null!");
 
-		return createMono(connection -> connection.pubSubCommands().publish(
+		return doCreateMono(connection -> connection.pubSubCommands().publish(
 				getSerializationContext().getStringSerializationPair().write(destination),
 				getSerializationContext().getValueSerializationPair().write(message)));
 	}
@@ -274,7 +304,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(sourceKey, "Source key must not be null!");
 		Assert.notNull(targetKey, "Target key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().copy(rawKey(sourceKey), rawKey(targetKey), replace));
+		return doCreateMono(connection -> connection.keyCommands().copy(rawKey(sourceKey), rawKey(targetKey), replace));
 	}
 
 	/*
@@ -286,7 +316,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().exists(rawKey(key)));
+		return doCreateMono(connection -> connection.keyCommands().exists(rawKey(key)));
 	}
 
 	/*
@@ -298,7 +328,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().type(rawKey(key)));
+		return doCreateMono(connection -> connection.keyCommands().type(rawKey(key)));
 	}
 
 	/*
@@ -310,7 +340,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		return createFlux(connection -> connection.keyCommands().keys(rawKey(pattern))) //
+		return doCreateFlux(connection -> connection.keyCommands().keys(rawKey(pattern))) //
 				.flatMap(Flux::fromIterable) //
 				.map(this::readKey);
 	}
@@ -324,7 +354,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(options, "ScanOptions must not be null!");
 
-		return createFlux(connection -> connection.keyCommands().scan(options)) //
+		return doCreateFlux(connection -> connection.keyCommands().scan(options)) //
 				.map(this::readKey);
 	}
 
@@ -334,7 +364,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	@Override
 	public Mono<K> randomKey() {
-		return createMono(connection -> connection.keyCommands().randomKey()).map(this::readKey);
+		return doCreateMono(connection -> connection.keyCommands().randomKey()).map(this::readKey);
 	}
 
 	/*
@@ -347,7 +377,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(oldKey, "Old key must not be null!");
 		Assert.notNull(newKey, "New Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().rename(rawKey(oldKey), rawKey(newKey)));
+		return doCreateMono(connection -> connection.keyCommands().rename(rawKey(oldKey), rawKey(newKey)));
 	}
 
 	/*
@@ -360,7 +390,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(oldKey, "Old key must not be null!");
 		Assert.notNull(newKey, "New Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().renameNX(rawKey(oldKey), rawKey(newKey)));
+		return doCreateMono(connection -> connection.keyCommands().renameNX(rawKey(oldKey), rawKey(newKey)));
 	}
 
 	/*
@@ -376,11 +406,11 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (keys.length == 1) {
-			return createMono(connection -> connection.keyCommands().del(rawKey(keys[0])));
+			return doCreateMono(connection -> connection.keyCommands().del(rawKey(keys[0])));
 		}
 
 		Mono<List<ByteBuffer>> listOfKeys = Flux.fromArray(keys).map(this::rawKey).collectList();
-		return createMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mDel(rawKeys)));
+		return doCreateMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mDel(rawKeys)));
 	}
 
 	/*
@@ -392,7 +422,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createFlux(connection -> connection.keyCommands() //
+		return doCreateFlux(connection -> connection.keyCommands() //
 				.mDel(Flux.from(keys).map(this::rawKey).buffer(128)) //
 				.map(CommandResponse::getOutput)) //
 						.collect(Collectors.summingLong(value -> value));
@@ -411,11 +441,11 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
 		if (keys.length == 1) {
-			return createMono(connection -> connection.keyCommands().unlink(rawKey(keys[0])));
+			return doCreateMono(connection -> connection.keyCommands().unlink(rawKey(keys[0])));
 		}
 
 		Mono<List<ByteBuffer>> listOfKeys = Flux.fromArray(keys).map(this::rawKey).collectList();
-		return createMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mUnlink(rawKeys)));
+		return doCreateMono(connection -> listOfKeys.flatMap(rawKeys -> connection.keyCommands().mUnlink(rawKeys)));
 	}
 
 	/*
@@ -427,7 +457,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return createFlux(connection -> connection.keyCommands() //
+		return doCreateFlux(connection -> connection.keyCommands() //
 				.mUnlink(Flux.from(keys).map(this::rawKey).buffer(128)) //
 				.map(CommandResponse::getOutput)) //
 						.collect(Collectors.summingLong(value -> value));
@@ -444,11 +474,11 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(timeout, "Timeout must not be null!");
 
 		if (timeout.getNano() == 0) {
-			return createMono(connection -> connection.keyCommands() //
+			return doCreateMono(connection -> connection.keyCommands() //
 					.expire(rawKey(key), timeout));
 		}
 
-		return createMono(connection -> connection.keyCommands().pExpire(rawKey(key), timeout));
+		return doCreateMono(connection -> connection.keyCommands().pExpire(rawKey(key), timeout));
 	}
 
 	/*
@@ -462,11 +492,11 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(expireAt, "Expire at must not be null!");
 
 		if (expireAt.getNano() == 0) {
-			return createMono(connection -> connection.keyCommands() //
+			return doCreateMono(connection -> connection.keyCommands() //
 					.expireAt(rawKey(key), expireAt));
 		}
 
-		return createMono(connection -> connection.keyCommands().pExpireAt(rawKey(key), expireAt));
+		return doCreateMono(connection -> connection.keyCommands().pExpireAt(rawKey(key), expireAt));
 	}
 
 	/*
@@ -478,7 +508,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().persist(rawKey(key)));
+		return doCreateMono(connection -> connection.keyCommands().persist(rawKey(key)));
 	}
 
 	/*
@@ -490,7 +520,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().pTtl(rawKey(key)).flatMap(expiry -> {
+		return doCreateMono(connection -> connection.keyCommands().pTtl(rawKey(key)).flatMap(expiry -> {
 
 			if (expiry == -1) {
 				return Mono.just(Duration.ZERO);
@@ -513,7 +543,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
+		return doCreateMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
 	}
 
 	// -------------------------------------------------------------------------

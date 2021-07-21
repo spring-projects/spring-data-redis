@@ -200,7 +200,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveListOperations#move(K, Direction, K, Direction)
 	 */
@@ -216,7 +216,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				connection -> connection.lMove(rawKey(sourceKey), rawKey(destinationKey), from, to).map(this::readValue));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveListOperations#move(K, Direction, K, Direction, Duration)
 	 */
@@ -378,21 +378,21 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveListCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.listCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.listCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveListCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createFlux(connection -> function.apply(connection.listCommands()));
+		return template.doCreateFlux(connection -> function.apply(connection.listCommands()));
 	}
 
 	private boolean isZeroOrGreater1Second(Duration timeout) {

@@ -103,14 +103,14 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveHyperLogLogCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.hyperLogLogCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.hyperLogLogCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {

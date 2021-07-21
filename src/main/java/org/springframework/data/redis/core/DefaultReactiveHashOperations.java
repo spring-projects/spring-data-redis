@@ -15,20 +15,20 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.convert.Converters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.ReactiveHashCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
@@ -125,7 +125,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(hashKey, "Hash key must not be null!");
 
-		return template.createMono(connection -> connection //
+		return template.doCreateMono(connection -> connection //
 				.numberCommands() //
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
@@ -140,7 +140,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(hashKey, "Hash key must not be null!");
 
-		return template.createMono(connection -> connection //
+		return template.doCreateMono(connection -> connection //
 				.numberCommands() //
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
@@ -154,7 +154,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection //
+		return template.doCreateMono(connection -> connection //
 				.hashCommands().hRandField(rawKey(key))).map(this::readHashKey);
 	}
 
@@ -167,7 +167,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection //
+		return template.doCreateMono(connection -> connection //
 				.hashCommands().hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
 	}
 
@@ -180,7 +180,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createFlux(connection -> connection //
+		return template.doCreateFlux(connection -> connection //
 				.hashCommands().hRandField(rawKey(key), count)).map(this::readHashKey);
 	}
 
@@ -193,7 +193,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createFlux(connection -> connection //
+		return template.doCreateFlux(connection -> connection //
 				.hashCommands().hRandFieldWithValues(rawKey(key), count)).map(this::deserializeHashEntry);
 	}
 
@@ -314,21 +314,21 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveHashCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createMono(connection -> function.apply(connection.hashCommands()));
+		return template.doCreateMono(connection -> function.apply(connection.hashCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveHashCommands, Publisher<T>> function) {
 
 		Assert.notNull(function, "Function must not be null!");
 
-		return template.createFlux(connection -> function.apply(connection.hashCommands()));
+		return template.doCreateFlux(connection -> function.apply(connection.hashCommands()));
 	}
 
 	private ByteBuffer rawKey(H key) {
