@@ -63,6 +63,23 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	<T> Flux<T> execute(ReactiveRedisCallback<T> action);
 
+	/**
+	 * Executes the given action within a Redis session using the same
+	 * {@link org.springframework.data.redis.connection.ReactiveRedisConnection}. Application exceptions thrown by the
+	 * action object get propagated to the caller (can only be unchecked) whenever possible. Redis exceptions are
+	 * transformed into appropriate DAO ones. Allows for returning a result object, that is a domain object or a
+	 * collection of domain objects. Performs automatic serialization/deserialization for the given objects to and from
+	 * binary data suitable for the Redis storage. Note: Callback code is not supposed to handle transactions itself! Use
+	 * an appropriate transaction manager. Generally, callback code must not touch any Connection lifecycle methods, like
+	 * close, to let the template do its work.
+	 *
+	 * @param <T> return type
+	 * @param action callback object that specifies the Redis action
+	 * @return a result object returned by the action or {@link Flux#empty()}.
+	 * @since 2.6
+	 */
+	<T> Flux<T> executeInSession(ReactiveRedisSessionCallback<K, V, T> action);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Pub/Sub
 	// -------------------------------------------------------------------------

@@ -50,11 +50,30 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 		every { operations.execute(any<ReactiveRedisCallback<*>>()) } returns Flux.just("foo")
 
 		runBlocking {
-			assertThat(operations.executeAsFlow { flow { emit("foo")} }.toList()).contains("foo")
+			assertThat(operations.executeAsFlow { flow { emit("foo") } }
+				.toList()).contains("foo")
 		}
 
 		verify {
 			operations.execute(any<ReactiveRedisCallback<*>>())
+		}
+	}
+
+	@Test // GH-2110
+	fun `executeInSession with calllback`() {
+
+		val operations = mockk<ReactiveRedisOperations<String, String>>()
+		every { operations.executeInSession(any<ReactiveRedisSessionCallback<String, String, *>>()) } returns Flux.just(
+			"foo"
+		)
+
+		runBlocking {
+			assertThat(operations.executeInSessionAsFlow { flow { emit("foo") } }
+				.toList()).contains("foo")
+		}
+
+		verify {
+			operations.executeInSession(any<ReactiveRedisSessionCallback<String, String, *>>())
 		}
 	}
 
@@ -63,7 +82,13 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 
 		val script = RedisScript.of<String>("foo")
 		val operations = mockk<ReactiveRedisOperations<String, String>>()
-		every { operations.execute(any<RedisScript<*>>(), any(), any()) } returns Flux.just("foo")
+		every {
+			operations.execute(
+				any<RedisScript<*>>(),
+				any(),
+				any()
+			)
+		} returns Flux.just("foo")
 
 		runBlocking {
 			assertThat(operations.executeAsFlow(script).toList()).contains("foo")

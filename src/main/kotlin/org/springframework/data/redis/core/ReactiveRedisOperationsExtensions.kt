@@ -22,7 +22,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.redis.connection.DataType
 import org.springframework.data.redis.connection.ReactiveRedisConnection
-import org.springframework.data.redis.connection.ReactiveSubscription.*
+import org.springframework.data.redis.connection.ReactiveSubscription.Message
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.data.redis.listener.Topic
 import org.springframework.data.redis.serializer.RedisElementReader
@@ -36,8 +36,20 @@ import java.time.Instant
  * @author Sebastien Deleuze
  * @since 2.2
  */
-fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(action: (ReactiveRedisConnection) -> Flow<T>): Flow<T> =
-		execute { action(it).asPublisher() }.asFlow()
+fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(action: (ReactiveRedisConnection) -> Flow<T>): Flow<T> {
+	return execute { action(it).asPublisher() }.asFlow()
+}
+
+/**
+ * Coroutines variant of [ReactiveRedisOperations.execute].
+ *
+ * @author Mark Paluch
+ * @since 2.6
+ */
+fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeInSessionAsFlow(
+	action: (ReactiveRedisOperations<K, V>) -> Flow<T>
+): Flow<T> =
+	executeInSession { action(it).asPublisher() }.asFlow()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.execute].
@@ -45,8 +57,12 @@ fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(acti
  * @author Sebastien Deleuze
  * @since 2.2
  */
-fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(script: RedisScript<T>, keys: List<K> = emptyList(), args: List<*> = emptyList<Any>()): Flow<T> =
-		execute(script, keys, args).asFlow()
+fun <K : Any, V : Any, T : Any> ReactiveRedisOperations<K, V>.executeAsFlow(
+	script: RedisScript<T>,
+	keys: List<K> = emptyList(),
+	args: List<*> = emptyList<Any>()
+): Flow<T> =
+	execute(script, keys, args).asFlow()
 
 /**
  * Coroutines variant of [ReactiveRedisOperations.execute].

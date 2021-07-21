@@ -151,6 +151,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return Flux.from(doInConnection(action, exposeConnection));
 	}
 
+	@Override
+	public <T> Flux<T> executeInSession(ReactiveRedisSessionCallback<K, V, T> action) {
+
+		Assert.notNull(action, "Callback object must not be null");
+		return Flux
+				.from(doInConnection(connection -> action.doWithOperations(withConnection(connection)), exposeConnection));
+	}
+
 	/**
 	 * Create a reusable Flux for a {@link ReactiveRedisCallback}. Callback is executed within a connection context. The
 	 * connection is released outside the callback.
@@ -188,7 +196,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
 	 * @return object returned by the action
 	 */
-	private <T> Publisher<T> doInConnection(ReactiveRedisCallback<T> action, boolean exposeConnection) {
+	<T> Publisher<T> doInConnection(ReactiveRedisCallback<T> action, boolean exposeConnection) {
 
 		Assert.notNull(action, "Callback object must not be null");
 
@@ -740,6 +748,31 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public RedisSerializationContext<K, V> getSerializationContext() {
 		return serializationContext;
+	}
+
+	private ReactiveRedisOperations<K, V> withConnection(ReactiveRedisConnection connection) {
+		return new BoundConnectionRedisTemplate(connection, connectionFactory, serializationContext);
+	}
+
+	class BoundConnectionRedisTemplate extends ReactiveRedisTemplate<K, V> {
+
+		private final ReactiveRedisConnection connection;
+
+		public BoundConnectionRedisTemplate(ReactiveRedisConnection connection,
+				ReactiveRedisConnectionFactory connectionFactory, RedisSerializationContext<K, V> serializationContext) {
+			super(connectionFactory, serializationContext, true);
+			this.connection = connection;
+		}
+
+		@Override
+		<T> Publisher<T> doInConnection(ReactiveRedisCallback<T> action, boolean exposeConnection) {
+
+			Assert.notNull(action, "Callback object must not be null");
+
+			ReactiveRedisConnection connToUse = ReactiveRedisTemplate.this.preProcessConnection(connection, true);
+			Publisher<T> result = action.doInRedis(connToUse);
+			return ReactiveRedisTemplate.this.postProcessResult(result, connToUse, true);
+		}
 	}
 
 	private ByteBuffer rawKey(K key) {
