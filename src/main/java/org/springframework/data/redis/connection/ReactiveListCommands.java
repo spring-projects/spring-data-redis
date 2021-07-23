@@ -1288,7 +1288,7 @@ public interface ReactiveListCommands {
 
 			Assert.notNull(timeout, "Timeout must not be null!");
 
-			return blockingFor(timeout.toMillis(), TimeUnit.MICROSECONDS);
+			return blockingFor(timeout.toMillis(), TimeUnit.MILLISECONDS);
 		}
 
 		/**
