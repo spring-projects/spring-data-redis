@@ -307,6 +307,7 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bLPop(int timeout, TimeUnit unit, byte[]... keys) {
 
+		Assert.notNull(unit, "TimeUnit must not be null!");
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
@@ -337,6 +338,7 @@ class JedisListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bRPop(int timeout, TimeUnit unit, byte[]... keys) {
 
+		Assert.notNull(unit, "TimeUnit must not be null!");
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
@@ -370,6 +372,8 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	private static byte[][] bXPopArgs(int timeout, TimeUnit unit, byte[]... keys) {
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
 		byte[][] args = new byte[keys.length + 1][];
 		System.arraycopy(keys, 0, args, 0, keys.length);
 

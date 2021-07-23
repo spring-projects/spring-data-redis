@@ -424,6 +424,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bRPop(int timeout, TimeUnit unit, byte[]... keys) {
 
+		Assert.notNull(unit, "TimeUnit must not be null!");
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
