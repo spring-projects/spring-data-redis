@@ -64,7 +64,26 @@ public abstract class TimeoutUtils {
 	 */
 	public static long toSeconds(long timeout, TimeUnit unit) {
 		return roundUpIfNecessary(timeout, unit.toSeconds(timeout));
+	}
 
+	/**
+	 * Converts the given timeout to seconds with a fraction of seconds.
+	 *
+	 * @param timeout The timeout to convert
+	 * @param unit The timeout's unit
+	 * @return The converted timeout
+	 * @since 2.6
+	 */
+	public static double toDoubleSeconds(long timeout, TimeUnit unit) {
+
+		switch (unit) {
+			case MILLISECONDS:
+			case MICROSECONDS:
+			case NANOSECONDS:
+				return unit.toMillis(timeout) / 1000d;
+			default:
+				return unit.toSeconds(timeout);
+		}
 	}
 
 	/**

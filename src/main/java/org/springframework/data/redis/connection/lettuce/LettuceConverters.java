@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
+import static org.springframework.data.redis.domain.geo.GeoReference.*;
+
 import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
@@ -33,40 +36,35 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
-import org.springframework.data.redis.connection.DefaultTuple;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.BoxShape;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
+import org.springframework.data.redis.domain.geo.RadiusShape;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -83,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Ninad Divadkar
  * @author dengliming
+ * @author Chris Bono
  */
 public abstract class LettuceConverters extends Converters {
 
@@ -247,7 +246,8 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	public static Tuple toTuple(@Nullable ScoredValue<byte[]> source) {
-		return source != null ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore())) : null;
+		return source != null && source.hasValue() ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+				: null;
 	}
 
 	public static String toString(@Nullable byte[] source) {
@@ -532,6 +532,82 @@ public abstract class LettuceConverters extends Converters {
 		return builder.build();
 	}
 
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisStandaloneConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis connection info
+	 * @return a {@link RedisStandaloneConfiguration} representing the connection information in the Redis URI.
+	 * @since 2.5.3
+	 */
+	static RedisStandaloneConfiguration createRedisStandaloneConfiguration(RedisURI redisURI) {
+
+		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
+		standaloneConfiguration.setHostName(redisURI.getHost());
+		standaloneConfiguration.setPort(redisURI.getPort());
+		standaloneConfiguration.setDatabase(redisURI.getDatabase());
+
+		applyAuthentication(redisURI, standaloneConfiguration);
+
+		return standaloneConfiguration;
+	}
+
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisSocketConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis connection info using a local unix domain socket
+	 * @return a {@link RedisSocketConfiguration} representing the connection information in the Redis URI.
+	 * @since 2.5.3
+	 */
+	static RedisSocketConfiguration createRedisSocketConfiguration(RedisURI redisURI) {
+
+		RedisSocketConfiguration socketConfiguration = new RedisSocketConfiguration();
+		socketConfiguration.setSocket(redisURI.getSocket());
+		socketConfiguration.setDatabase(redisURI.getDatabase());
+
+		applyAuthentication(redisURI, socketConfiguration);
+
+		return socketConfiguration;
+	}
+
+	/**
+	 * Converts a {@link RedisURI} to its corresponding {@link RedisSentinelConfiguration}.
+	 *
+	 * @param redisURI the uri containing the Redis Sentinel connection info
+	 * @return a {@link RedisSentinelConfiguration} representing the Redis Sentinel information in the Redis URI.
+	 * @since 2.5.3
+	 */
+	static RedisSentinelConfiguration createRedisSentinelConfiguration(RedisURI redisURI) {
+
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
+		if (!ObjectUtils.isEmpty(redisURI.getSentinelMasterId())) {
+			sentinelConfiguration.setMaster(redisURI.getSentinelMasterId());
+		}
+		sentinelConfiguration.setDatabase(redisURI.getDatabase());
+
+		for (RedisURI sentinelNodeRedisUri : redisURI.getSentinels()) {
+			RedisNode sentinelNode = new RedisNode(sentinelNodeRedisUri.getHost(), sentinelNodeRedisUri.getPort());
+			if (sentinelNodeRedisUri.getPassword() != null) {
+				sentinelConfiguration.setSentinelPassword(sentinelNodeRedisUri.getPassword());
+			}
+			sentinelConfiguration.addSentinel(sentinelNode);
+		}
+
+		applyAuthentication(redisURI, sentinelConfiguration);
+
+		return sentinelConfiguration;
+	}
+
+	private static void applyAuthentication(RedisURI redisURI, RedisConfiguration.WithAuthentication redisConfiguration) {
+
+		if (StringUtils.hasText(redisURI.getUsername())) {
+			redisConfiguration.setUsername(redisURI.getUsername());
+		}
+
+		if (redisURI.getPassword() != null) {
+			redisConfiguration.setPassword(redisURI.getPassword());
+		}
+	}
+
 	public static byte[] toBytes(@Nullable String source) {
 		if (source == null) {
 			return null;
@@ -699,11 +775,19 @@ public abstract class LettuceConverters extends Converters {
 			} else if (!expiration.isPersistent()) {
 
 				switch (expiration.getTimeUnit()) {
-					case SECONDS:
-						args.ex(expiration.getExpirationTime());
+					case MILLISECONDS:
+						if (expiration.isUnixTimestamp()) {
+							args.pxAt(expiration.getConverted(TimeUnit.MILLISECONDS));
+						} else {
+							args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+						}
 						break;
 					default:
-						args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+						if (expiration.isUnixTimestamp()) {
+							args.exAt(expiration.getConverted(TimeUnit.SECONDS));
+						} else {
+							args.ex(expiration.getConverted(TimeUnit.SECONDS));
+						}
 						break;
 				}
 			}
@@ -723,6 +807,36 @@ public abstract class LettuceConverters extends Converters {
 			}
 		}
 		return args;
+	}
+
+	/**
+	 * Convert {@link Expiration} to {@link GetExArgs}.
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 */
+	static GetExArgs toGetExArgs(@Nullable Expiration expiration) {
+
+		GetExArgs args = new GetExArgs();
+
+		if (expiration == null) {
+			return args;
+		}
+
+		if (expiration.isPersistent()) {
+			return args.persist();
+		}
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			if (expiration.isUnixTimestamp()) {
+				return args.pxAt(expiration.getExpirationTime());
+			}
+			return args.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ? args.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	static Converter<List<byte[]>, Long> toTimeConverter(TimeUnit timeUnit) {
@@ -759,18 +873,27 @@ public abstract class LettuceConverters extends Converters {
 	 * @since 1.8
 	 */
 	public static GeoArgs toGeoArgs(GeoRadiusCommandArgs args) {
+		return toGeoArgs((GeoCommandArgs) args);
+	}
+
+	/**
+	 * Convert {@link GeoCommandArgs} into {@link GeoArgs}.
+	 *
+	 * @param args
+	 * @return
+	 * @since 2.6
+	 */
+	public static GeoArgs toGeoArgs(GeoCommandArgs args) {
 
 		GeoArgs geoArgs = new GeoArgs();
 
 		if (args.hasFlags()) {
-			for (GeoRadiusCommandArgs.Flag flag : args.getFlags()) {
-				switch (flag) {
-					case WITHCOORD:
-						geoArgs.withCoordinates();
-						break;
-					case WITHDIST:
-						geoArgs.withDistance();
-						break;
+			for (GeoCommandArgs.GeoCommandFlag flag : args.getFlags()) {
+				if(flag.equals(GeoRadiusCommandArgs.Flag.WITHCOORD)) {
+					geoArgs.withCoordinates();
+				}
+				else if(flag.equals(GeoRadiusCommandArgs.Flag.WITHDIST)) {
+					geoArgs.withDistance();
 				}
 			}
 		}
@@ -787,8 +910,9 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		if (args.hasLimit()) {
-			geoArgs.withCount(args.getLimit());
+			geoArgs.withCount(args.getLimit(), args.getFlags().contains(GeoRadiusCommandArgs.Flag.ANY));
 		}
+
 		return geoArgs;
 	}
 
@@ -866,7 +990,7 @@ public abstract class LettuceConverters extends Converters {
 			return null;
 		}
 
-		ScanArgs scanArgs = new ScanArgs();
+		KeyScanArgs scanArgs = new KeyScanArgs();
 
 		byte[] pattern = options.getBytePattern();
 		if (pattern != null) {
@@ -875,6 +999,10 @@ public abstract class LettuceConverters extends Converters {
 
 		if (options.getCount() != null) {
 			scanArgs.limit(options.getCount());
+		}
+
+		if (options instanceof KeyScanOptions) {
+			scanArgs.type(((KeyScanOptions) options).getType());
 		}
 
 		return scanArgs;
@@ -984,6 +1112,56 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	static long getUpperBoundIndex(org.springframework.data.domain.Range<Long> range) {
 		return getUpperBound(range).orElse(INDEXED_RANGE_END);
+	}
+
+	static LMoveArgs toLmoveArgs(Enum<?> from, Enum<?> to) {
+
+		if (from.name().equals(Direction.LEFT.name())) {
+			if (to.name().equals(Direction.LEFT.name())) {
+				return LMoveArgs.Builder.leftLeft();
+			}
+			return LMoveArgs.Builder.leftRight();
+		}
+
+		if (to.name().equals(Direction.LEFT.name())) {
+			return LMoveArgs.Builder.rightLeft();
+		}
+		return LMoveArgs.Builder.rightRight();
+	}
+
+	static GeoSearch.GeoPredicate toGeoPredicate(GeoShape predicate) {
+
+		if (predicate instanceof RadiusShape) {
+
+			Distance radius = ((RadiusShape) predicate).getRadius();
+
+			return GeoSearch.byRadius(radius.getValue(), toGeoArgsUnit(radius.getMetric()));
+		}
+
+		if (predicate instanceof BoxShape) {
+
+			BoxShape boxPredicate = (BoxShape) predicate;
+			BoundingBox boundingBox = boxPredicate.getBoundingBox();
+			return GeoSearch.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
+					toGeoArgsUnit(boxPredicate.getMetric()));
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoPredicate", predicate));
+	}
+
+	static <T> GeoSearch.GeoRef<T> toGeoRef(GeoReference<T> reference) {
+
+		if (reference instanceof GeoReference.GeoMemberReference) {
+			return GeoSearch.fromMember(((GeoMemberReference<T>) reference).getMember());
+		}
+
+		if (reference instanceof GeoReference.GeoCoordinateReference) {
+
+			GeoCoordinateReference<?> coordinates = (GeoCoordinateReference<?>) reference;
+			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoRef", reference));
 	}
 
 	/**

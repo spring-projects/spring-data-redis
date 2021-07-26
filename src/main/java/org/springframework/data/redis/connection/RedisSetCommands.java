@@ -109,6 +109,39 @@ public interface RedisSetCommands {
 	Boolean sIsMember(byte[] key, byte[] value);
 
 	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	@Nullable
+	List<Boolean> sMIsMember(byte[] key, byte[]... values);
+
+	/**
+	 * Diff all sets for given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	@Nullable
+	Set<byte[]> sDiff(byte[]... keys);
+
+	/**
+	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	@Nullable
+	Long sDiffStore(byte[] destKey, byte[]... keys);
+
+	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
 	 *
 	 * @param keys must not be {@literal null}.
@@ -150,26 +183,6 @@ public interface RedisSetCommands {
 	@Nullable
 	Long sUnionStore(byte[] destKey, byte[]... keys);
 
-	/**
-	 * Diff all sets for given {@code keys}.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
-	 */
-	@Nullable
-	Set<byte[]> sDiff(byte[]... keys);
-
-	/**
-	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
-	 *
-	 * @param destKey must not be {@literal null}.
-	 * @param keys must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
-	 */
-	@Nullable
-	Long sDiffStore(byte[] destKey, byte[]... keys);
 
 	/**
 	 * Get all elements of set at {@code key}.

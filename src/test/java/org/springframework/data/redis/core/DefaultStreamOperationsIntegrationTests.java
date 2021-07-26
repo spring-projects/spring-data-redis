@@ -34,18 +34,10 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.ObjectRecord;
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisStanalone;
@@ -198,6 +190,28 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(message.getId()).isEqualTo(messageId1);
 	}
 
+	@ParameterizedRedisTest // GH-2044
+	@EnabledOnRedisVersion("6.2")
+	void exclusiveRangeShouldReportMessages() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		List<MapRecord<K, HK, HV>> messages = streamOps.range(key,
+				Range.from(Bound.exclusive(messageId1.getValue())).to(Bound.inclusive(messageId2.getValue())));
+
+		assertThat(messages).hasSize(1).extracting(Record::getId).contains(messageId2);
+
+		messages = streamOps.range(key,
+				Range.from(Bound.inclusive(messageId1.getValue())).to(Bound.exclusive(messageId2.getValue())));
+
+		assertThat(messages).hasSize(1).extracting(Record::getId).contains(messageId1);
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-864
 	void reverseRangeShouldReportMessages() {
 
@@ -211,6 +225,29 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		List<MapRecord<K, HK, HV>> messages = streamOps.reverseRange(key, Range.unbounded());
 
 		assertThat(messages).hasSize(2).extracting("id").containsSequence(messageId2, messageId1);
+	}
+
+	@ParameterizedRedisTest // GH-2044
+	@EnabledOnRedisVersion("6.2")
+	void exclusiveReverseRangeShouldReportMessages() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId3 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		List<MapRecord<K, HK, HV>> messages = streamOps.reverseRange(key,
+				Range.from(Bound.exclusive(messageId1.getValue())).to(Bound.inclusive(messageId3.getValue())));
+
+		assertThat(messages).hasSize(2).extracting(Record::getId).containsSequence(messageId3, messageId2);
+
+		messages = streamOps.reverseRange(key,
+				Range.from(Bound.inclusive(messageId1.getValue())).to(Bound.exclusive(messageId3.getValue())));
+
+		assertThat(messages).hasSize(2).extracting(Record::getId).containsSequence(messageId2, messageId1);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-864

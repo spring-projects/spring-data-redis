@@ -18,16 +18,7 @@ package org.springframework.data.redis.connection.convert;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -459,6 +450,20 @@ abstract public class Converters {
 		}
 
 		return source;
+	}
+
+	/**
+	 * Create an {@link Map.Entry} from {@code key} and {@code value}.
+	 *
+	 * @param key
+	 * @param value
+	 * @param <K>
+	 * @param <V>
+	 * @return
+	 * @since 2.6
+	 */
+	public static <K, V> Map.Entry<K, V> entryOf(K key, V value) {
+		return new AbstractMap.SimpleImmutableEntry<>(key, value);
 	}
 
 	/**

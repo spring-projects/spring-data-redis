@@ -20,12 +20,14 @@ import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -125,6 +127,67 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke().just(BinaryJedis::hgetAll, MultiKeyPipelineBase::hgetAll, key);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] hRandField(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(BinaryJedis::hrandfield, MultiKeyPipelineBase::hrandfield, key);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[])
+	 */
+	@Nullable
+	@Override
+	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.from(BinaryJedis::hrandfieldWithValues, MultiKeyPipelineBase::hrandfieldWithValues, key, 1L)
+				.get(it -> it.isEmpty() ? null : it.entrySet().iterator().next());
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<byte[]> hRandField(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(BinaryJedis::hrandfield, MultiKeyPipelineBase::hrandfield, key, count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.from(BinaryJedis::hrandfieldWithValues, MultiKeyPipelineBase::hrandfieldWithValues, key, count).get(it -> {
+
+					List<Entry<byte[], byte[]>> entries = new ArrayList<>(it.size());
+					it.forEach((k, v) -> entries.add(Converters.entryOf(k, v)));
+
+					return entries;
+				});
 	}
 
 	/*
@@ -280,4 +343,5 @@ class JedisHashCommands implements RedisHashCommands {
 	private boolean isQueueing() {
 		return connection.isQueueing();
 	}
+
 }

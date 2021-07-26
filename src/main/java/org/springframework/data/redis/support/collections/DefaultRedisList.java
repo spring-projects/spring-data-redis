@@ -24,9 +24,11 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation for {@link RedisList}. Suitable for not just lists, but also queues (FIFO ordering) or stacks
@@ -36,6 +38,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
@@ -64,6 +67,18 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 */
 	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
 		this(operations.boundListOps(key));
+	}
+
+	/**
+	 * Constructs a new {@link DefaultRedisList} instance.
+	 *
+	 * @param key Redis key of this list.
+	 * @param operations {@link RedisOperations} for the value type of this list.
+	 * @param maxSize
+	 * @since 2.6
+	 */
+	public DefaultRedisList(String key, RedisOperations<String, E> operations, int maxSize) {
+		this(operations.boundListOps(key), maxSize);
 	}
 
 	/**
@@ -102,6 +117,78 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisList#moveFirstTo(org.springframework.data.redis.support.collections.RedisList, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public E moveFirstTo(RedisList<E> destination, RedisListCommands.Direction destinationPosition) {
+
+		Assert.notNull(destination, "Destination must not be null");
+		Assert.notNull(destinationPosition, "Destination position must not be null");
+
+		E result = listOps.move(RedisListCommands.Direction.first(), destination.getKey(), destinationPosition);
+		potentiallyCap(destination);
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisList#moveFirstTo(org.springframework.data.redis.support.collections.RedisList, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public E moveFirstTo(RedisList<E> destination, RedisListCommands.Direction destinationPosition, long timeout,
+			TimeUnit unit) {
+
+		Assert.notNull(destination, "Destination must not be null");
+		Assert.notNull(destinationPosition, "Destination position must not be null");
+		Assert.notNull(unit, "TimeUnit must not be null");
+
+		E result = listOps.move(RedisListCommands.Direction.first(), destination.getKey(), destinationPosition, timeout,
+				unit);
+		potentiallyCap(destination);
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisList#moveLastTo(org.springframework.data.redis.support.collections.RedisList, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public E moveLastTo(RedisList<E> destination, RedisListCommands.Direction destinationPosition) {
+
+		Assert.notNull(destination, "Destination must not be null");
+		Assert.notNull(destinationPosition, "Destination position must not be null");
+
+		E result = listOps.move(RedisListCommands.Direction.last(), destination.getKey(), destinationPosition);
+		potentiallyCap(destination);
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisList#moveLastTo(org.springframework.data.redis.support.collections.RedisList, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public E moveLastTo(RedisList<E> destination, RedisListCommands.Direction destinationPosition, long timeout,
+			TimeUnit unit) {
+
+		Assert.notNull(destination, "Destination must not be null");
+		Assert.notNull(destinationPosition, "Destination position must not be null");
+		Assert.notNull(unit, "TimeUnit must not be null");
+
+		E result = listOps.move(RedisListCommands.Direction.last(), destination.getKey(), destinationPosition, timeout,
+				unit);
+		potentiallyCap(destination);
+		return result;
+	}
+
+	private void potentiallyCap(RedisList<E> destination) {
+		if (destination instanceof DefaultRedisList) {
+			((DefaultRedisList<Object>) destination).cap();
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisList#range(long, long)
 	 */
 	@Override
@@ -115,6 +202,16 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 */
 	@Override
 	public RedisList<E> trim(int start, int end) {
+		listOps.trim(start, end);
+		return this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisList#trim(long, long)
+	 */
+	@Override
+	public RedisList<E> trim(long start, long end) {
 		listOps.trim(start, end);
 		return this;
 	}

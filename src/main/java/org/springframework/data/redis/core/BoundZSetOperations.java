@@ -15,8 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -25,6 +29,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
@@ -49,7 +54,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean add(V value, double score);
 
 	/**
-	 * Add {@code value} to a sorted set at {@code key} if it does not already exists.
+	 * Add {@code value} to a sorted set at the bound key if it does not already exists.
 	 *
 	 * @param score the score.
 	 * @param value the value.
@@ -71,7 +76,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Long add(Set<TypedTuple<V>> tuples);
 
 	/**
-	 * Add {@code tuples} to a sorted set at {@code key} if it does not already exists.
+	 * Add {@code tuples} to a sorted set at the bound key if it does not already exists.
 	 *
 	 * @param tuples must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -101,6 +106,73 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Double incrementScore(V value, double delta);
+
+	/**
+	 * Get random element from set at the bound key.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	V randomMember();
+
+	/**
+	 * Get {@code count} distinct random elements from set at the bound key.
+	 *
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<V> distinctRandomMembers(long count);
+
+	/**
+	 * Get {@code count} random elements from set at the bound key.
+	 *
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<V> randomMembers(long count);
+
+	/**
+	 * Get random element with its score from set at the bound key.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	TypedTuple<V> randomMemberWithScore();
+
+	/**
+	 * Get {@code count} distinct random elements with their score from set at the bound key.
+	 *
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> distinctRandomMembersWithScore(long count);
+
+	/**
+	 * Get {@code count} random elements with their score from set at the bound key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<TypedTuple<V>> randomMembersWithScore(long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
@@ -235,6 +307,112 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Long lexCount(Range range);
 
 	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at the bound key.
+	 *
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMin();
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at the bound key.
+	 *
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<TypedTuple<V>> popMin(long count);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMin(long timeout, TimeUnit unit);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	default TypedTuple<V> popMin(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return popMin(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at the bound key.
+	 *
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMax();
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at the bound key.
+	 *
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<TypedTuple<V>> popMax(long count);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	TypedTuple<V> popMax(long timeout, TimeUnit unit);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at the bound key. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @throws IllegalArgumentException if the timeout is {@literal null} or negative.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	default TypedTuple<V> popMax(Duration timeout) {
+
+		Assert.notNull(timeout, "Timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
+
+		return popMax(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Returns the number of elements of the sorted set stored with given the bound key.
 	 *
 	 * @see #zCard()
@@ -263,6 +441,17 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Double score(Object o);
+
+	/**
+	 * Get the scores of elements with {@code values} from sorted set with key the bound key.
+	 *
+	 * @param o the values.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	List<Double> score(Object... o);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with the bound key.
@@ -300,41 +489,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
 	 *
-	 * @param otherKey must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	@Nullable
-	Long unionAndStore(K otherKey, K destKey);
-
-	/**
-	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	@Nullable
-	Long unionAndStore(Collection<K> otherKeys, K destKey);
-
-	/**
-	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @param aggregate must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 */
-	@Nullable
-	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
-
-	/**
-	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
 	 * @param otherKeys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @param aggregate must not be {@literal null}.
@@ -345,6 +499,141 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	default Set<V> difference(K otherKey) {
+		return difference(Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(Collection<K> otherKeys);
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> differenceWithScores(K otherKey) {
+		return differenceWithScores(Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> differenceWithScores(Collection<K> otherKeys);
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	@Nullable
+	default Long differenceAndStore(K otherKey, K destKey) {
+		return differenceAndStore(Collections.singleton(otherKey), destKey);
+	}
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	@Nullable
+	Long differenceAndStore(Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	default Set<V> intersect(K otherKey) {
+		return intersect(Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<V> intersect(Collection<K> otherKeys);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> intersectWithScores(K otherKey) {
+		return intersectWithScores(Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> intersectWithScores(Collection<K> otherKeys);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> intersectWithScores(Collection<K> otherKeys, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKey} and store result in destination {@code destKey}.
@@ -394,6 +683,116 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	@Nullable
 	Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<V> union(K otherKey) {
+		return union(Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<V> union(Collection<K> otherKeys);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> unionWithScores(K otherKey) {
+		return unionWithScores(Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys);
+
+	/**
+	 * Union sorted sets at the bound key and {@code otherKeys}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate) {
+		return unionWithScores(otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate, Weights weights);
+
+	/**
+	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(K otherKey, K destKey);
+
+	/**
+	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
 
 	/**
 	 * Iterate over elements in zset at the bound key. <br />

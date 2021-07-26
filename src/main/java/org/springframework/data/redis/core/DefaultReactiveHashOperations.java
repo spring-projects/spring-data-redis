@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.convert.Converters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -142,6 +143,58 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		return template.createMono(connection -> connection //
 				.numberCommands() //
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomField(H)
+	 */
+	@Override
+	public Mono<HK> randomKey(H key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection //
+				.hashCommands().hRandField(rawKey(key))).map(this::readHashKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomValue(H)
+	 */
+	@Override
+	public Mono<Map.Entry<HK, HV>> randomEntry(H key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection //
+				.hashCommands().hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomFields(H, long)
+	 */
+	@Override
+	public Flux<HK> randomKeys(H key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createFlux(connection -> connection //
+				.hashCommands().hRandField(rawKey(key), count)).map(this::readHashKey);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#randomValues(H, long)
+	 */
+	@Override
+	public Flux<Map.Entry<HK, HV>> randomEntries(H key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createFlux(connection -> connection //
+				.hashCommands().hRandFieldWithValues(rawKey(key), count)).map(this::deserializeHashEntry);
 	}
 
 	/*
@@ -301,8 +354,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	private Map.Entry<HK, HV> deserializeHashEntry(Map.Entry<ByteBuffer, ByteBuffer> source) {
-		return Collections.singletonMap(readHashKey(source.getKey()), readHashValue(source.getValue())).entrySet()
-				.iterator().next();
+		return Converters.entryOf(readHashKey(source.getKey()), readHashValue(source.getValue()));
 	}
 
 	private List<HV> deserializeHashValues(List<ByteBuffer> source) {

@@ -18,20 +18,25 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.Range;
 import io.lettuce.core.ScanStream;
 import io.lettuce.core.ScoredValue;
+import io.lettuce.core.Value;
 import io.lettuce.core.ZAddArgs;
 import io.lettuce.core.ZStoreArgs;
+import org.springframework.data.redis.core.TimeoutUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -156,6 +161,39 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMember(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZRandMemberCommand, Flux<ByteBuffer>>> zRandMember(
+			Publisher<ZRandMemberCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return new CommandResponse<>(command, cmd.zrandmember(command.getKey(), command.getCount()));
+		}));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMemberWithScore(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZRandMemberCommand, Flux<Tuple>>> zRandMemberWithScore(
+			Publisher<ZRandMemberCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			return new CommandResponse<>(command, cmd.zrandmemberWithScores(command.getKey(), command.getCount())
+					.map(this::toTuple));
+		}));
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRank(org.reactivestreams.Publisher)
@@ -196,22 +234,18 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 				if (command.isWithScores()) {
 
-					result = cmd.zrangeWithScores(command.getKey(), start, stop)
-							.map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
+					result = cmd.zrangeWithScores(command.getKey(), start, stop).map(this::toTuple);
 				} else {
 
-					result = cmd.zrange(command.getKey(), start, stop)
-							.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+					result = cmd.zrange(command.getKey(), start, stop).map(value -> toTuple(value, Double.NaN));
 				}
 			} else {
 				if (command.isWithScores()) {
 
-					result = cmd.zrevrangeWithScores(command.getKey(), start, stop)
-							.map(sc -> new DefaultTuple(getBytes(sc), sc.getScore()));
+					result = cmd.zrevrangeWithScores(command.getKey(), start, stop).map(this::toTuple);
 				} else {
 
-					result = cmd.zrevrange(command.getKey(), start, stop)
-							.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+					result = cmd.zrevrange(command.getKey(), start, stop).map(value -> toTuple(value, Double.NaN));
 				}
 			}
 
@@ -243,22 +277,20 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				if (command.isWithScores()) {
 
 					if (!isLimited) {
-						result = cmd.zrangebyscoreWithScores(command.getKey(), range)
-								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+						result = cmd.zrangebyscoreWithScores(command.getKey(), range).map(this::toTuple);
 					} else {
 						result = cmd
 								.zrangebyscoreWithScores(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+								.map(this::toTuple);
 					}
 				} else {
 
 					if (!isLimited) {
-						result = cmd.zrangebyscore(command.getKey(), range)
-								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+						result = cmd.zrangebyscore(command.getKey(), range).map(value -> toTuple(value, Double.NaN));
 					} else {
 
 						result = cmd.zrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+								.map(value -> toTuple(value, Double.NaN));
 					}
 				}
 			} else {
@@ -268,24 +300,20 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				if (command.isWithScores()) {
 
 					if (!isLimited) {
-						result = cmd.zrevrangebyscoreWithScores(command.getKey(), range)
-								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+						result = cmd.zrevrangebyscoreWithScores(command.getKey(), range).map(this::toTuple);
 					} else {
 
-						result = cmd
-								.zrevrangebyscoreWithScores(command.getKey(), range,
-										LettuceConverters.toLimit(command.getLimit().get()))
-								.map(sc -> new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore()));
+						result = cmd.zrevrangebyscoreWithScores(command.getKey(), range,
+								LettuceConverters.toLimit(command.getLimit().get())).map(this::toTuple);
 					}
 				} else {
 
 					if (!isLimited) {
-						result = cmd.zrevrangebyscore(command.getKey(), range)
-								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+						result = cmd.zrevrangebyscore(command.getKey(), range).map(value -> toTuple(value, Double.NaN));
 					} else {
 
 						result = cmd.zrevrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(value -> new DefaultTuple(ByteUtils.getBytes(value), Double.NaN));
+								.map(value -> toTuple(value, Double.NaN));
 					}
 				}
 			}
@@ -307,7 +335,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getOptions(), "ScanOptions must not be null!");
 
 			Flux<Tuple> result = ScanStream.zscan(cmd, command.getKey(), LettuceConverters.toScanArgs(command.getOptions()))
-					.map(it -> new DefaultTuple(ByteUtils.getBytes(it.getValue()), it.getScore()));
+					.map(this::toTuple);
 
 			return Mono.just(new CommandResponse<>(command, result));
 		}));
@@ -352,6 +380,63 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zPop(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZPopCommand, Flux<Tuple>>> zPop(Publisher<ZPopCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+
+			Flux<ScoredValue<ByteBuffer>> result;
+			if (command.getCount() > 1) {
+				result = command.getDirection() == PopDirection.MIN ? cmd.zpopmin(command.getKey(), command.getCount())
+						: cmd.zpopmax(command.getKey(), command.getCount());
+			} else {
+				result = (command.getDirection() == PopDirection.MIN ? cmd.zpopmin(command.getKey())
+						: cmd.zpopmax(command.getKey())).flux();
+			}
+
+			return new CommandResponse<>(command, result.filter(Value::hasValue).map(this::toTuple));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#bZPop(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<BZPopCommand, Flux<Tuple>>> bZPop(Publisher<BZPopCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
+
+			if(command.getTimeUnit() == TimeUnit.MILLISECONDS) {
+
+				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout(), command.getTimeUnit());
+
+				Mono<ScoredValue<ByteBuffer>> result = (command.getDirection() == PopDirection.MIN
+						? cmd.bzpopmin(timeout, command.getKey())
+						: cmd.bzpopmax(timeout, command.getKey())).filter(Value::hasValue).map(Value::getValue);
+
+				return new CommandResponse<>(command, result.filter(Value::hasValue).map(this::toTuple).flux());
+			}
+
+			long timeout = command.getTimeUnit().toSeconds(command.getTimeout());
+
+			Mono<ScoredValue<ByteBuffer>> result = (command.getDirection() == PopDirection.MIN
+					? cmd.bzpopmin(timeout, command.getKey())
+					: cmd.bzpopmax(timeout, command.getKey())).filter(Value::hasValue).map(Value::getValue);
+
+			return new CommandResponse<>(command, result.filter(Value::hasValue).map(this::toTuple).flux());
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zCard(org.reactivestreams.Publisher)
 	 */
 	@Override
@@ -378,6 +463,23 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getValue(), "Value must not be null!");
 
 			return cmd.zscore(command.getKey(), command.getValue()).map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zMScore(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<MultiValueResponse<ZMScoreCommand, Double>> zMScore(Publisher<ZMScoreCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getValues(), "Values must not be null!");
+
+			return cmd.zmscore(command.getKey(), command.getValues().toArray(new ByteBuffer[0]))
+					.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 
@@ -442,10 +544,184 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zDiff(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZDiffCommand, Flux<ByteBuffer>>> zDiff(Publisher<? extends ZDiffCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notEmpty(command.getKeys(), "Keys must not be null or empty!");
+
+			ByteBuffer[] sourceKeys = command.getKeys().toArray(new ByteBuffer[0]);
+			return new CommandResponse<>(command, cmd.zdiff(sourceKeys));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zDiffWithScores(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZDiffCommand, Flux<Tuple>>> zDiffWithScores(Publisher<? extends ZDiffCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notEmpty(command.getKeys(), "Keys must not be null or empty!");
+
+			ByteBuffer[] sourceKeys = command.getKeys().toArray(new ByteBuffer[0]);
+			return new CommandResponse<>(command, cmd.zdiffWithScores(sourceKeys).map(this::toTuple));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zDiffStore(Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<ZDiffStoreCommand, Long>> zDiffStore(Publisher<ZDiffStoreCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Destination key must not be null!");
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
+
+			ByteBuffer[] sourceKeys = command.getSourceKeys().toArray(new ByteBuffer[0]);
+			return cmd.zdiffstore(command.getKey(), sourceKeys).map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInter(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zInter(
+			Publisher<? extends ZAggregateCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
+
+			ZStoreArgs args = null;
+			if (command.getAggregateFunction().isPresent() || !command.getWeights().isEmpty()) {
+				args = zStoreArgs(command.getAggregateFunction().isPresent() ? command.getAggregateFunction().get() : null,
+						command.getWeights());
+			}
+
+			ByteBuffer[] sourceKeys = command.getSourceKeys().toArray(new ByteBuffer[0]);
+			Flux<ByteBuffer> result = args != null ? cmd.zinter(args, sourceKeys) : cmd.zinter(sourceKeys);
+			return new CommandResponse<>(command, result);
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInterWithScores(Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZAggregateCommand, Flux<Tuple>>> zInterWithScores(
+			Publisher<? extends ZAggregateCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
+
+			ZStoreArgs args = null;
+			if (command.getAggregateFunction().isPresent() || !command.getWeights().isEmpty()) {
+				args = zStoreArgs(command.getAggregateFunction().isPresent() ? command.getAggregateFunction().get() : null,
+						command.getWeights());
+			}
+
+			ByteBuffer[] sourceKeys = command.getSourceKeys().toArray(new ByteBuffer[0]);
+			Flux<ScoredValue<ByteBuffer>> result = args != null ? cmd.zinterWithScores(args, sourceKeys)
+					: cmd.zinterWithScores(sourceKeys);
+			return new CommandResponse<>(command, result.map(this::toTuple));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInterStore(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zInterStore(
+			Publisher<? extends ZAggregateStoreCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Destination key must not be null!");
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
+
+			ZStoreArgs args = null;
+			if (command.getAggregateFunction().isPresent() || !command.getWeights().isEmpty()) {
+				args = zStoreArgs(command.getAggregateFunction().isPresent() ? command.getAggregateFunction().get() : null,
+						command.getWeights());
+			}
+
+			ByteBuffer[] sourceKeys = command.getSourceKeys().toArray(new ByteBuffer[0]);
+			Mono<Long> result = args != null ? cmd.zinterstore(command.getKey(), args, sourceKeys)
+					: cmd.zinterstore(command.getKey(), sourceKeys);
+			return result.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zUnion(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zUnion(
+			Publisher<? extends ZAggregateCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
+
+			ZStoreArgs args = null;
+			if (command.getAggregateFunction().isPresent() || !command.getWeights().isEmpty()) {
+				args = zStoreArgs(command.getAggregateFunction().isPresent() ? command.getAggregateFunction().get() : null,
+						command.getWeights());
+			}
+
+			ByteBuffer[] sourceKeys = command.getSourceKeys().stream().toArray(ByteBuffer[]::new);
+			Flux<ByteBuffer> result = args != null ? cmd.zunion(args, sourceKeys) : cmd.zunion(sourceKeys);
+			return new CommandResponse<>(command, result);
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zUnion(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<CommandResponse<ZAggregateCommand, Flux<Tuple>>> zUnionWithScores(
+			Publisher<? extends ZAggregateCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).map(command -> {
+
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
+
+			ZStoreArgs args = null;
+			if (command.getAggregateFunction().isPresent() || !command.getWeights().isEmpty()) {
+				args = zStoreArgs(command.getAggregateFunction().isPresent() ? command.getAggregateFunction().get() : null,
+						command.getWeights());
+			}
+
+			ByteBuffer[] sourceKeys = command.getSourceKeys().stream().toArray(ByteBuffer[]::new);
+			Flux<ScoredValue<ByteBuffer>> result = args != null ? cmd.zunionWithScores(args, sourceKeys)
+					: cmd.zunionWithScores(sourceKeys);
+			return new CommandResponse<>(command, result.map(this::toTuple));
+		}));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zUnionStore(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(Publisher<ZUnionStoreCommand> commands) {
+	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zUnionStore(
+			Publisher<? extends ZAggregateStoreCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
@@ -461,31 +737,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			ByteBuffer[] sourceKeys = command.getSourceKeys().stream().toArray(ByteBuffer[]::new);
 			Mono<Long> result = args != null ? cmd.zunionstore(command.getKey(), args, sourceKeys)
 					: cmd.zunionstore(command.getKey(), sourceKeys);
-			return result.map(value -> new NumericResponse<>(command, value));
-		}));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInterStore(org.reactivestreams.Publisher)
-	 */
-	@Override
-	public Flux<NumericResponse<ZInterStoreCommand, Long>> zInterStore(Publisher<ZInterStoreCommand> commands) {
-
-		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
-
-			Assert.notNull(command.getKey(), "Destination key must not be null!");
-			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty!");
-
-			ZStoreArgs args = null;
-			if (command.getAggregateFunction().isPresent() || !command.getWeights().isEmpty()) {
-				args = zStoreArgs(command.getAggregateFunction().isPresent() ? command.getAggregateFunction().get() : null,
-						command.getWeights());
-			}
-
-			ByteBuffer[] sourceKeys = command.getSourceKeys().stream().toArray(ByteBuffer[]::new);
-			Mono<Long> result = args != null ? cmd.zinterstore(command.getKey(), args, sourceKeys)
-					: cmd.zinterstore(command.getKey(), sourceKeys);
 			return result.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -549,8 +800,12 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		return args;
 	}
 
-	private static byte[] getBytes(ScoredValue<ByteBuffer> scoredValue) {
-		return scoredValue.optional().map(ByteUtils::getBytes).orElse(new byte[0]);
+	private Tuple toTuple(ScoredValue<ByteBuffer> scoredValue) {
+		return scoredValue.map(it -> new DefaultTuple(ByteUtils.getBytes(it), scoredValue.getScore())).getValue();
+	}
+
+	private Tuple toTuple(ByteBuffer value, double score) {
+		return new DefaultTuple(ByteUtils.getBytes(value), score);
 	}
 
 	protected LettuceReactiveRedisConnection getConnection() {

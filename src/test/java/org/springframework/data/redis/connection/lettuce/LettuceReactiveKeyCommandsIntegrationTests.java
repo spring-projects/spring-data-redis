@@ -35,8 +35,10 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -111,6 +113,30 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.verifyComplete();
 
 		connection.keyCommands().scan(ScanOptions.scanOptions().count(2).match("key*").build()).as(StepVerifier::create) //
+				.expectNextCount(3) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2089
+	@EnabledOnRedisVersion("6.0")
+	void scanWithType() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		nativeCommands.lpush(KEY_2, VALUE_2);
+		nativeCommands.sadd(KEY_3, VALUE_3);
+
+		connection.keyCommands().scan(KeyScanOptions.scanOptions(DataType.STRING).build()) //
+				.as(StepVerifier::create) //
+				.expectNext(KEY_1_BBUFFER) //
+				.verifyComplete();
+
+		connection.keyCommands().scan(KeyScanOptions.scanOptions(DataType.SET).build()) //
+				.as(StepVerifier::create) //
+				.expectNext(KEY_3_BBUFFER) //
+				.verifyComplete();
+
+		connection.keyCommands().scan(KeyScanOptions.scanOptions(DataType.NONE).build()) //
+				.as(StepVerifier::create) //
 				.expectNextCount(3) //
 				.verifyComplete();
 	}

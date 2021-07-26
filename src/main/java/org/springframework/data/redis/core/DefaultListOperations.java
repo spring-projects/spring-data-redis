@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.util.CollectionUtils;
 
@@ -359,6 +360,40 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			@Override
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.bRPopLPush(tm, rawSourceKey, rawDestKey);
+			}
+		}, true);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#move(java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public V move(K sourceKey, Direction from, K destinationKey, Direction to) {
+
+		byte[] rawDestKey = rawKey(destinationKey);
+		return execute(new ValueDeserializingRedisCallback(sourceKey) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
+				return connection.lMove(rawSourceKey, rawDestKey, from, to);
+			}
+		}, true);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#move(java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public V move(K sourceKey, Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit) {
+
+		byte[] rawDestKey = rawKey(destinationKey);
+		return execute(new ValueDeserializingRedisCallback(sourceKey) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
+				return connection.bLMove(rawSourceKey, rawDestKey, from, to, TimeoutUtils.toDoubleSeconds(timeout, unit));
 			}
 		}, true);
 	}

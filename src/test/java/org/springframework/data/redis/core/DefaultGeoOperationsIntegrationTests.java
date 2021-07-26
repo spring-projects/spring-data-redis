@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
@@ -32,8 +33,12 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -428,5 +433,154 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_PALERMO, member1);
 
 		assertThat(geoOperations.remove(key, member1)).isEqualTo(1L);
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchWithinShouldReturnMembers() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.search(key,
+				GeoReference.fromCoordinate(POINT_PALERMO), new Distance(150, KILOMETERS),
+				newGeoSearchArgs().includeCoordinates().sortAscending());
+
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
+
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_ARIGENTO.getX(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchByMemberShouldReturnResults() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.search(key, GeoReference.fromMember(member1),
+				new Distance(150, KILOMETERS),
+				newGeoSearchArgs().includeCoordinates().sortAscending());
+
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
+
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_ARIGENTO.getX(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchByPointWithinBoundingBoxShouldReturnMembers() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.search(key,
+				GeoReference.fromCoordinate(POINT_PALERMO),
+				new BoundingBox(180, 180, KILOMETERS),
+				newGeoSearchArgs().includeCoordinates().sortAscending());
+
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
+
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_ARIGENTO.getX(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchByMemberWithinBoundingBoxShouldReturnMembers() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.search(key, GeoReference.fromMember(member1),
+				new BoundingBox(180, 180, KILOMETERS),
+				newGeoSearchArgs().includeCoordinates().sortAscending());
+
+		assertThat(result.getContent()).hasSize(2);
+		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY()).isCloseTo(POINT_PALERMO.getY(), offset(0.05));
+		assertThat(result.getContent().get(0).getContent().getName()).isEqualTo(member1);
+
+		assertThat(result.getContent().get(1).getContent().getPoint().getX()).isCloseTo(POINT_ARIGENTO.getX(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY()).isCloseTo(POINT_ARIGENTO.getY(),
+				offset(0.05));
+		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCHSTORE")
+	void geoSearchAndStoreWithinShouldReturnMembers() {
+
+		assumeThat(redisTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1);
+		geoOperations.add(key, POINT_CATANIA, member2);
+		geoOperations.add(key, POINT_ARIGENTO, member3);
+
+		Long result = geoOperations.searchAndStore(key, destKey,
+				GeoReference.fromCoordinate(POINT_PALERMO), new Distance(150, KILOMETERS),
+				RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().sortAscending());
+
+		assertThat(result).isEqualTo(2);
+		assertThat(redisTemplate.boundZSetOps(destKey).size()).isEqualTo(2);
 	}
 }

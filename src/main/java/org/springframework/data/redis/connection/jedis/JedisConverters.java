@@ -23,6 +23,7 @@ import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.util.SafeEncoder;
@@ -430,15 +431,48 @@ public abstract class JedisConverters extends Converters {
 			return paramsToUse.keepttl();
 		}
 
-		if (!expiration.isPersistent()) {
-			if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-				return paramsToUse.px(expiration.getExpirationTime());
-			}
-
-			return paramsToUse.ex((int) expiration.getExpirationTime());
+		if (expiration.isPersistent()) {
+			return paramsToUse;
 		}
 
-		return params;
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime()) : paramsToUse.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS)) : paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
+	}
+
+	/**
+	 * Converts a given {@link Expiration} to the according {@code GETEX} command argument depending on
+	 * {@link Expiration#isUnixTimestamp()}.
+	 * <dl>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX|PXAT}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX|EXAT}</dd>
+	 * </dl>
+	 *
+	 * @param expiration must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 */
+	static GetExParams toGetExParams(Expiration expiration) {
+
+		GetExParams params = new GetExParams();
+
+		if (expiration.isPersistent()) {
+			return params.persist();
+		}
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			if (expiration.isUnixTimestamp()) {
+				return params.pxAt(expiration.getExpirationTime());
+			}
+			return params.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: params.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	/**
@@ -722,6 +756,26 @@ public abstract class JedisConverters extends Converters {
 		}
 
 		return param;
+	}
+
+	/**
+	 * Convert a timeout to seconds using {@code double} representation including fraction of seconds.
+	 *
+	 * @param timeout
+	 * @param unit
+	 * @return
+	 * @since 2.6
+	 */
+	static double toSeconds(long timeout, TimeUnit unit) {
+
+		switch (unit) {
+			case MILLISECONDS:
+			case MICROSECONDS:
+			case NANOSECONDS:
+				return unit.toMillis(timeout) / 1000d;
+			default:
+				return unit.toSeconds(timeout);
+		}
 	}
 
 	/**

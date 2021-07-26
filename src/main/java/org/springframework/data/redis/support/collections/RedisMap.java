@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Map view of a Redis hash.
  *
@@ -27,9 +29,42 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 
+	/**
+	 * Increment {@code value} of the hash {@code key} by the given {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @return {@literal null} if hash does not exist.
+	 * @since 1.0
+	 */
 	Long increment(K key, long delta);
 
+	/**
+	 * Increment {@code value} of the hash {@code key} by the given {@code delta}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @return {@literal null} if hash does not exist.
+	 * @since 1.1
+	 */
 	Double increment(K key, double delta);
+
+	/**
+	 * Get a random key from the hash.
+	 *
+	 * @return {@literal null} if the hash does not exist.
+	 * @since 2.6
+	 */
+	K randomKey();
+
+	/**
+	 * Get a random entry from the hash.
+	 *
+	 * @return {@literal null} if the hash does not exist.
+	 * @since 2.6
+	 */
+	@Nullable
+	Map.Entry<K,V> randomEntry();
 
 	/**
 	 * @since 1.4

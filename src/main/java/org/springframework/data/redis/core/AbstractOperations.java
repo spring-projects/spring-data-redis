@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -223,7 +224,8 @@ abstract class AbstractOperations<K, V> {
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
-	Set<TypedTuple<V>> deserializeTupleValues(Collection<Tuple> rawValues) {
+	@Nullable
+	Set<TypedTuple<V>> deserializeTupleValues(@Nullable Set<Tuple> rawValues) {
 		if (rawValues == null) {
 			return null;
 		}
@@ -234,8 +236,23 @@ abstract class AbstractOperations<K, V> {
 		return set;
 	}
 
+	List<TypedTuple<V>> deserializeTupleValues(List<Tuple> rawValues) {
+		if (rawValues == null) {
+			return null;
+		}
+		List<TypedTuple<V>> set = new ArrayList<>(rawValues.size());
+		for (Tuple rawValue : rawValues) {
+			set.add(deserializeTuple(rawValue));
+		}
+		return set;
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	TypedTuple<V> deserializeTuple(Tuple tuple) {
+	@Nullable
+	TypedTuple<V> deserializeTuple(@Nullable Tuple tuple) {
+		if (tuple == null) {
+			return null;
+		}
 		Object value = tuple.getValue();
 		if (valueSerializer() != null) {
 			value = valueSerializer().deserialize(tuple.getValue());
@@ -273,6 +290,14 @@ abstract class AbstractOperations<K, V> {
 	<T> Set<T> deserializeHashKeys(Set<byte[]> rawKeys) {
 		if (hashKeySerializer() == null) {
 			return (Set<T>) rawKeys;
+		}
+		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> List<T> deserializeHashKeys(List<byte[]> rawKeys) {
+		if (hashKeySerializer() == null) {
+			return (List<T>) rawKeys;
 		}
 		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
 	}

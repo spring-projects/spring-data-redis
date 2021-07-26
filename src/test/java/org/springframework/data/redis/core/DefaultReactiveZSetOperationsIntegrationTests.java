@@ -20,12 +20,14 @@ import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.ByteBufferObjectFactory;
@@ -38,6 +40,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -138,6 +141,47 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.add(key, value, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		zSetOperations.incrementScore(key, value, 1.1).as(StepVerifier::create).expectNext(43.2).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	void randomMember() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.randomMember(key).as(StepVerifier::create).consumeNextWith(actual -> {
+
+			assertThat(actual).isIn(value1, value2);
+		}).verifyComplete();
+
+		zSetOperations.randomMembers(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
+		zSetOperations.distinctRandomMembers(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2049
+	@Disabled("https://github.com/redis/redis/issues/9160")
+	@EnabledOnCommand("ZRANDMEMBER")
+	void randomMemberWithScore() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.randomMemberWithScore(key).as(StepVerifier::create).consumeNextWith(actual -> {
+
+			assertThat(actual).isIn(new DefaultTypedTuple<>(value1, 42.1d), new DefaultTypedTuple<>(value2, 10d));
+		}).verifyComplete();
+
+		zSetOperations.randomMembersWithScore(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
+		zSetOperations.distinctRandomMembersWithScore(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
@@ -433,6 +477,52 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.lexCount(key, Range.rightOpen("b", "f")).as(StepVerifier::create).expectNext(4L).verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	void popMin() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value3, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value4, 4).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.popMin(key).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value1, 1D))
+				.verifyComplete();
+		zSetOperations.popMin(key, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTypedTuple<>(value2, 2D)).verifyComplete();
+		zSetOperations.popMin(key, 2).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value3, 3D))
+				.expectNext(new DefaultTypedTuple<>(value4, 4D)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	void popMax() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value3, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value4, 4).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.popMax(key).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value4, 4D))
+				.verifyComplete();
+		zSetOperations.popMax(key, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTypedTuple<>(value3, 3D)).verifyComplete();
+		zSetOperations.popMax(key, 2).as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(value2, 2D))
+				.expectNext(new DefaultTypedTuple<>(value1, 1D)).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-602
 	void size() {
 
@@ -458,6 +548,21 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 		zSetOperations.score(key, value1).as(StepVerifier::create).expectNext(42.1d).verifyComplete();
 		zSetOperations.score(key, value2).as(StepVerifier::create).expectNext(10d).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	void scores() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.score(key, value1, value2, valueFactory.instance()).as(StepVerifier::create)
+				.expectNext(Arrays.asList(42.1d, 10d, null)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
@@ -494,6 +599,168 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.range(key, ZERO_TO_FIVE).as(StepVerifier::create) //
 				.expectNext(value1) //
 				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2041
+	void difference() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.difference(key, otherKey).as(StepVerifier::create).expectNext(onlyInKey).verifyComplete();
+
+		zSetOperations.differenceWithScores(key, otherKey).as(StepVerifier::create)
+				.expectNext(new DefaultTypedTuple<>(onlyInKey, 10D)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2041
+	void differenceAndStore() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+		K destKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.differenceAndStore(key, otherKey, destKey).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		zSetOperations.range(destKey, ZERO_TO_FIVE).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZINTER")
+	void intersect() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.intersect(key, otherKey).as(StepVerifier::create).expectNext(shared).verifyComplete();
+
+		zSetOperations.intersectWithScores(key, otherKey).as(StepVerifier::create)
+				.expectNext(new DefaultTypedTuple<>(shared, 22D)).verifyComplete();
+
+		zSetOperations.intersectWithScores(key, Collections.singleton(otherKey), Aggregate.SUM, Weights.of(1, 2))
+				.as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(shared, 33D)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-602
+	void intersectAndStore() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+		K destKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.intersectAndStore(key, otherKey, destKey).as(StepVerifier::create).expectNext(1L).expectComplete()
+				.verify();
+
+		zSetOperations.range(destKey, ZERO_TO_FIVE).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-746
+	void intersectAndStoreWithAggregation() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+		K destKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.intersectAndStore(key, Collections.singletonList(otherKey), destKey, Aggregate.SUM)
+				.as(StepVerifier::create).expectNext(1L).expectComplete().verify();
+
+		zSetOperations.score(destKey, shared).as(StepVerifier::create) //
+				.expectNext(22d) //
+				.verifyComplete();
+
+		zSetOperations.intersectAndStore(key, Collections.singletonList(otherKey), destKey, Aggregate.SUM, Weights.of(1, 2))
+				.as(StepVerifier::create).expectNext(1L).expectComplete().verify();
+
+		zSetOperations.score(destKey, shared).as(StepVerifier::create) //
+				.expectNext(33d) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	@EnabledOnCommand("ZUNION")
+	void union() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.union(key, otherKey).as(StepVerifier::create).expectNextCount(3).verifyComplete();
+
+		zSetOperations.unionWithScores(key, otherKey).collectList().as(StepVerifier::create).assertNext(actual -> {
+			assertThat(actual).containsOnly(new DefaultTypedTuple<>(onlyInKey, 10D), new DefaultTypedTuple<>(shared, 22D),
+					new DefaultTypedTuple<>(onlyInOtherKey, 10D));
+
+		}).verifyComplete();
+
+		zSetOperations.unionWithScores(key, Collections.singleton(otherKey), Aggregate.SUM, Weights.of(1, 2)).collectList()
+				.as(StepVerifier::create).assertNext(actual -> {
+					assertThat(actual).containsOnly(new DefaultTypedTuple<>(onlyInKey, 10D), new DefaultTypedTuple<>(shared, 33D),
+							new DefaultTypedTuple<>(onlyInOtherKey, 20D));
+
+				}).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
@@ -542,64 +809,6 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.as(StepVerifier::create)
 				.expectNext(3L).verifyComplete();
 		zSetOperations.score(destKey, shared).as(StepVerifier::create).expectNext(33d).verifyComplete();
-	}
-
-	@ParameterizedRedisTest // DATAREDIS-602
-	void intersectAndStore() {
-
-		K key = keyFactory.instance();
-		K otherKey = keyFactory.instance();
-		K destKey = keyFactory.instance();
-
-		V onlyInKey = valueFactory.instance();
-		V shared = valueFactory.instance();
-		V onlyInOtherKey = valueFactory.instance();
-
-		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
-		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
-
-		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
-		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
-
-		zSetOperations.intersectAndStore(key, otherKey, destKey).as(StepVerifier::create).expectNext(1L).expectComplete()
-				.verify();
-
-		zSetOperations.range(destKey, ZERO_TO_FIVE).as(StepVerifier::create) //
-				.expectNextCount(1) //
-				.verifyComplete();
-	}
-
-	@ParameterizedRedisTest // DATAREDIS-746
-	void intersectAndStoreWithAggregation() {
-
-		K key = keyFactory.instance();
-		K otherKey = keyFactory.instance();
-		K destKey = keyFactory.instance();
-
-		V onlyInKey = valueFactory.instance();
-		V shared = valueFactory.instance();
-		V onlyInOtherKey = valueFactory.instance();
-
-		zSetOperations.add(key, onlyInKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
-		zSetOperations.add(key, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
-
-		zSetOperations.add(otherKey, onlyInOtherKey, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
-		zSetOperations.add(otherKey, shared, 11).as(StepVerifier::create).expectNext(true).verifyComplete();
-
-		zSetOperations.intersectAndStore(key, Collections.singletonList(otherKey), destKey, Aggregate.SUM)
-				.as(StepVerifier::create)
-				.expectNext(1L).expectComplete().verify();
-
-		zSetOperations.score(destKey, shared).as(StepVerifier::create) //
-				.expectNext(22d) //
-				.verifyComplete();
-
-		zSetOperations.intersectAndStore(key, Collections.singletonList(otherKey), destKey, Aggregate.SUM, Weights.of(1, 2))
-				.as(StepVerifier::create).expectNext(1L).expectComplete().verify();
-
-		zSetOperations.score(destKey, shared).as(StepVerifier::create) //
-				.expectNext(33d) //
-				.verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

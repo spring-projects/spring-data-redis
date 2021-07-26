@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Redis client configuration for lettuce. This configuration provides optional configuration elements such as
@@ -172,6 +173,30 @@ public interface LettuceClientConfiguration {
 		@Nullable Duration shutdownQuietPeriod;
 
 		LettuceClientConfigurationBuilder() {}
+
+		/**
+		 * Apply SSL settings, command timeout, and client name from a {@link RedisURI}.
+		 *
+		 * @param redisUri the connection URI.
+		 * @return {@literal this} builder.
+		 * @since 2.5.3
+		 */
+		public LettuceClientConfigurationBuilder apply(RedisURI redisUri) {
+
+			this.useSsl = redisUri.isSsl();
+			this.verifyPeer = redisUri.isVerifyPeer();
+			this.startTls = redisUri.isStartTls();
+
+			if (!redisUri.getTimeout().equals(RedisURI.DEFAULT_TIMEOUT_DURATION)) {
+				this.timeout = redisUri.getTimeout();
+			}
+
+			if (!ObjectUtils.isEmpty(redisUri.getClientName())) {
+				this.clientName = redisUri.getClientName();
+			}
+
+			return this;
+		}
 
 		/**
 		 * Enable SSL connections.

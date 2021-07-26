@@ -61,6 +61,7 @@ import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -97,6 +98,7 @@ import org.springframework.util.StringUtils;
  * @author Ruben Cervilla
  * @author Luis De Bello
  * @author Andrea Como
+ * @author Chris Bono
  */
 public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
@@ -277,6 +279,54 @@ public class LettuceConnectionFactory
 		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null!");
 
 		this.configuration = clusterConfiguration;
+	}
+
+	/**
+	 * Creates a {@link RedisConfiguration} based on a {@link String URI} according to the following:
+	 * <ul>
+	 * <li>If {@code redisUri} contains sentinels, a {@link RedisSentinelConfiguration} is returned</li>
+	 * <li>If {@code redisUri} has a configured socket a {@link RedisSocketConfiguration} is returned</li>
+	 * <li>Otherwise a {@link RedisStandaloneConfiguration} is returned</li>
+	 * </ul>
+	 *
+	 * @param redisUri the connection URI in the format of a {@link RedisURI}.
+	 * @return an appropriate {@link RedisConfiguration} instance representing the Redis URI.
+	 * @since 2.5.3
+	 * @see RedisURI
+	 */
+	public static RedisConfiguration createRedisConfiguration(String redisUri) {
+
+		Assert.hasText(redisUri, "RedisURI must not be null and not empty");
+
+		return createRedisConfiguration(RedisURI.create(redisUri));
+	}
+
+	/**
+	 * Creates a {@link RedisConfiguration} based on a {@link RedisURI} according to the following:
+	 * <ul>
+	 * <li>If {@link RedisURI} contains sentinels, a {@link RedisSentinelConfiguration} is returned</li>
+	 * <li>If {@link RedisURI} has a configured socket a {@link RedisSocketConfiguration} is returned</li>
+	 * <li>Otherwise a {@link RedisStandaloneConfiguration} is returned</li>
+	 * </ul>
+	 *
+	 * @param redisUri the connection URI.
+	 * @return an appropriate {@link RedisConfiguration} instance representing the Redis URI.
+	 * @since 2.5.3
+	 * @see RedisURI
+	 */
+	public static RedisConfiguration createRedisConfiguration(RedisURI redisUri) {
+
+		Assert.notNull(redisUri, "RedisURI must not be null");
+
+		if (!ObjectUtils.isEmpty(redisUri.getSentinels())) {
+			return LettuceConverters.createRedisSentinelConfiguration(redisUri);
+		}
+
+		if (!ObjectUtils.isEmpty(redisUri.getSocket())) {
+			return LettuceConverters.createRedisSocketConfiguration(redisUri);
+		}
+
+		return LettuceConverters.createRedisStandaloneConfiguration(redisUri);
 	}
 
 	/*

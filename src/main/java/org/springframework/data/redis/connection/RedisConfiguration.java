@@ -349,11 +349,11 @@ public interface RedisConfiguration {
 		 *
 		 * @param name must not be {@literal null}.
 		 */
-		default void setMaster(final String name) {
+		default void setMaster(String name) {
 
 			Assert.notNull(name, "Name of sentinel master must not be null.");
 
-			setMaster(() -> name);
+			setMaster(new SentinelMasterId(name));
 		}
 
 		/**

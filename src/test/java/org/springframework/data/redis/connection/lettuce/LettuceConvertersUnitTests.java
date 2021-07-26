@@ -17,8 +17,10 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.lettuce.LettuceCommandArgsComparator.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import io.lettuce.core.GetExArgs;
 import io.lettuce.core.Limit;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.SetArgs;
@@ -29,16 +31,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import redis.clients.jedis.params.SetParams;
 
 /**
  * @author Christoph Strobl
@@ -134,6 +138,20 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
 	}
 
+	@Test // GH-2050
+	void convertsExpirationToSetPXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS), null))
+				.isEqualTo(SetArgs.Builder.pxAt(10));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToSetEXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toSetArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES), null))
+				.isEqualTo(SetArgs.Builder.exAt(60));
+	}
+
 	@Test // DATAREDIS-316
 	void toSetArgsShouldSetPxForMilliseconds() {
 
@@ -192,5 +210,46 @@ class LettuceConvertersUnitTests {
 		limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.limit().count(5));
 		assertThat(limit.isLimited()).isTrue();
 		assertThat(limit.getCount()).isEqualTo(5L);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExEX() {
+
+		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.seconds(10))).isEqualTo(new GetExArgs().ex(10));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationWithTimeUnitToGetExEX() {
+
+		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.from(1, TimeUnit.MINUTES)))
+				.isEqualTo(new GetExArgs().ex(60));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExPEX() {
+
+		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.milliseconds(10)))
+				.isEqualTo(new GetExArgs().px(10));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExEXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.unixTimestamp(10, TimeUnit.SECONDS)))
+				.isEqualTo(new GetExArgs().exAt(10));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationWithTimeUnitToGetExEXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.unixTimestamp(1, TimeUnit.MINUTES)))
+				.isEqualTo(new GetExArgs().exAt(60));
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExPXAT() {
+
+		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS)))
+				.isEqualTo(new GetExArgs().pxAt(10));
 	}
 }

@@ -237,6 +237,23 @@ public class LettuceConnectionUnitTests {
 
 			verify(asyncCommandsMock).dispatch(eq(command.getType()), eq(command.getOutput()), any(CommandArgs.class));
 		}
+
+		@Test // GH-2047
+		void xaddShouldHonorNoMkStream() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.makeNoStream());
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			if (connection.isPipelined()) {
+				verify(asyncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
+			} else {
+				verify(syncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
+			}
+
+			assertThat(args.getValue()).extracting("nomkstream").isEqualTo(true);
+		}
+
 	}
 
 	public static class LettucePipelineConnectionUnitTests extends BasicUnitTests {

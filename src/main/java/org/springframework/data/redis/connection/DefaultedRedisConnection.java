@@ -44,6 +44,8 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.lang.Nullable;
 
 /**
@@ -274,6 +276,20 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default byte[] get(byte[] key) {
 		return stringCommands().get(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] getEx(byte[] key, Expiration expiration) {
+		return stringCommands().getEx(key, expiration);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] getDel(byte[] key) {
+		return stringCommands().getDel(key);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
@@ -703,6 +719,20 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
+	default byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+		return listCommands().lMove(sourceKey, destinationKey, from, to);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+		return listCommands().bLMove(sourceKey, destinationKey, from, to, timeout);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
+	@Override
+	@Deprecated
 	default void lSet(byte[] key, long index, byte[] value) {
 		listCommands().lSet(key, index, value);
 	}
@@ -824,6 +854,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Boolean> sMIsMember(byte[] key, byte[]... value) {
+		return setCommands().sMIsMember(key, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
+	@Override
+	@Deprecated
 	default Set<byte[]> sMembers(byte[] key) {
 		return setCommands().sMembers(key);
 	}
@@ -931,6 +968,48 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Tuple zPopMin(byte[] key) {
+		return zSetCommands().zPopMin(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zPopMin(byte[] key, long count) {
+		return zSetCommands().zPopMin(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+		return zSetCommands().bZPopMin(key, timeout, unit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple zPopMax(byte[] key) {
+		return zSetCommands().zPopMax(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zPopMax(byte[] key, long count) {
+		return zSetCommands().zPopMax(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+		return zSetCommands().bZPopMax(key, timeout, unit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zCount(byte[] key, Range range) {
 		return zSetCommands().zCount(key, range);
 	}
@@ -938,8 +1017,57 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Set<byte[]> zDiff(byte[]... sets) {
+		return zSetCommands().zDiff(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zDiffWithScores(byte[]... sets) {
+		return zSetCommands().zDiffWithScores(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zDiffStore(byte[] destKey, byte[]... sets) {
+		return zSetCommands().zDiffStore(destKey, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Double zIncrBy(byte[] key, double increment, byte[] value) {
 		return zSetCommands().zIncrBy(key, increment, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<byte[]> zInter(byte[]... sets) {
+		return zSetCommands().zInter(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zInterWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zSetCommands().zInterWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+		return zSetCommands().zInterWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zInterWithScores(byte[]... sets) {
+		return zSetCommands().zInterWithScores(sets);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
@@ -961,6 +1089,34 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long zInterStore(byte[] destKey, byte[]... sets) {
 		return zSetCommands().zInterStore(destKey, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] zRandMember(byte[] key) {
+		return zSetCommands().zRandMember(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default List<byte[]> zRandMember(byte[] key, long count) {
+		return zSetCommands().zRandMember(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Tuple zRandMemberWithScore(byte[] key) {
+		return zSetCommands().zRandMemberWithScore(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+		return zSetCommands().zRandMemberWithScore(key, count);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
@@ -1092,6 +1248,41 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Double> zMScore(byte[] key, byte[]... values) {
+		return zSetCommands().zMScore(key, values);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<byte[]> zUnion(byte[]... sets) {
+		return zSetCommands().zUnion(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zUnionWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
+		return zSetCommands().zUnionWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+		return zSetCommands().zUnionWithScores(aggregate, weights, sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Set<Tuple> zUnionWithScores(byte[]... sets) {
+		return zSetCommands().zUnionWithScores(sets);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		return zSetCommands().zUnionStore(destKey, aggregate, weights, sets);
 	}
@@ -1187,6 +1378,34 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long hIncrBy(byte[] key, byte[] field, long delta) {
 		return hashCommands().hIncrBy(key, field, delta);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default byte[] hRandField(byte[] key) {
+		return hashCommands().hRandField(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+		return hashCommands().hRandFieldWithValues(key);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<byte[]> hRandField(byte[] key, long count) {
+		return hashCommands().hRandField(key, count);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+		return hashCommands().hRandFieldWithValues(key, count);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
@@ -1321,6 +1540,22 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	@Deprecated
 	default Long geoRemove(byte[] key, byte[]... members) {
 		return geoCommands().geoRemove(key, members);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchCommandArgs args) {
+		return geoCommands().geoSearch(key, reference, predicate, args);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */
+	@Override
+	@Deprecated
+	default Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
+			GeoSearchStoreCommandArgs args) {
+		return geoCommands().geoSearchStore(destKey, key, reference, predicate, args);
 	}
 
 	// HLL COMMANDS

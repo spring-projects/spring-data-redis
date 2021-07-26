@@ -47,6 +47,8 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
@@ -396,6 +398,29 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisStringCommands#get(byte[])
 	 */
 	String get(String key);
+
+	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	String getDel(String key);
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	String getEx(String key, Expiration expiration);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -824,6 +849,43 @@ public interface StringRedisConnection extends RedisConnection {
 	Long lInsert(String key, Position where, String pivot, String value);
 
 	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
+	 * @see #lMove(byte[], byte[], Direction, Direction)
+	 */
+	@Nullable
+	String lMove(String sourceKey, String destinationKey, Direction from, Direction to);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 * @see #lMove(byte[], byte[], Direction, Direction)
+	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
+	 */
+	@Nullable
+	String bLMove(String sourceKey, String destinationKey, Direction from, Direction to, double timeout);
+
+	/**
 	 * Set the {@code value} list element at {@code index}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1021,6 +1083,19 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean sIsMember(String key, String value);
 
 	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 * @see RedisSetCommands#sMIsMember(byte[], byte[]...)
+	 */
+	@Nullable
+	List<Boolean> sMIsMember(String key, String... values);
+
+	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
 	 *
 	 * @param keys must not be {@literal null}.
@@ -1205,6 +1280,58 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zIncrBy(byte[], double, byte[])
 	 */
 	Double zIncrBy(String key, double increment, String value);
+
+	/**
+	 * Get random element from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	String zRandMember(String key);
+
+	/**
+	 * Get {@code count} random elements from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count if the provided {@code count} argument is positive, return a list of distinct fields, capped either at
+	 *          {@code count} or the set size. If {@code count} is negative, the behavior changes and the command is
+	 *          allowed to return the same value multiple times. In this case, the number of returned values is the
+	 *          absolute value of the specified count.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<String> zRandMember(String key, long count);
+
+	/**
+	 * Get random element from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	StringTuple zRandMemberWithScore(String key);
+
+	/**
+	 * Get {@code count} random elements from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count if the provided {@code count} argument is positive, return a list of distinct fields, capped either at
+	 *          {@code count} or the set size. If {@code count} is negative, the behavior changes and the command is
+	 *          allowed to return the same value multiple times. In this case, the number of returned values is the
+	 *          absolute value of the specified count.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	@Nullable
+	List<StringTuple> zRandMemberWithScores(String key, long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
@@ -1412,6 +1539,80 @@ public interface StringRedisConnection extends RedisConnection {
 	Long zLexCount(String key, Range range);
 
 	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Tuple zPopMin(String key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<StringTuple> zPopMin(String key, long count);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	StringTuple bZPopMin(String key, long timeout, TimeUnit unit);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	StringTuple zPopMax(String key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return {@literal null} when the sorted set is empty or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	Set<StringTuple> zPopMax(String key, long count);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}. <b>Blocks
+	 * connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	StringTuple bZPopMax(String key, long timeout, TimeUnit unit);
+
+	/**
 	 * Get the size of sorted set with {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1431,6 +1632,18 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zScore(byte[], byte[])
 	 */
 	Double zScore(String key, String value);
+
+	/**
+	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values the values.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @see RedisZSetCommands#zMScore(byte[], byte[][])
+	 * @since 2.6
+	 */
+	List<Double> zMScore(String key, String... values);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.
@@ -1469,28 +1682,88 @@ public interface StringRedisConnection extends RedisConnection {
 	Long zRemRangeByScore(String key, double min, double max);
 
 	/**
-	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 * Diff sorted {@code sets}.
 	 *
-	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
-	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 * @see RedisZSetCommands#zUnionStore(byte[], byte[]...)
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	Long zUnionStore(String destKey, String... sets);
+	@Nullable
+	Set<String> zDiff(String... sets);
 
 	/**
-	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	@Nullable
+	Set<StringTuple> zDiffWithScores(String... sets);
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
 	 *
 	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	@Nullable
+	Long zDiffStore(String destKey, String... sets);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<String> zInter(String... sets);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<StringTuple> zInterWithScores(String... sets);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
 	 * @param aggregate must not be {@literal null}.
-	 * @param weights
+	 * @param weights must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return
-	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
-	 * @see RedisZSetCommands#zUnionStore(byte[], Aggregate, int[], byte[]...)
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	@Nullable
+	default Set<StringTuple> zInterWithScores(Aggregate aggregate, int[] weights, String... sets) {
+		return zInterWithScores(aggregate, Weights.of(weights), sets);
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	@Nullable
+	Set<StringTuple> zInterWithScores(Aggregate aggregate, Weights weights, String... sets);
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
@@ -1515,6 +1788,82 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zInterStore(byte[], Aggregate, int[], byte[]...)
 	 */
 	Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<String> zUnion(String... sets);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<StringTuple> zUnionWithScores(String... sets);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	default Set<StringTuple> zUnionWithScores(Aggregate aggregate, int[] weights, String... sets) {
+		return zUnionWithScores(aggregate, Weights.of(weights), sets);
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	@Nullable
+	Set<StringTuple> zUnionWithScores(Aggregate aggregate, Weights weights, String... sets);
+
+	/**
+	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see RedisZSetCommands#zUnionStore(byte[], byte[]...)
+	 */
+	Long zUnionStore(String destKey, String... sets);
+
+	/**
+	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 *
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights
+	 * @param sets must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
+	 * @see RedisZSetCommands#zUnionStore(byte[], Aggregate, int[], byte[]...)
+	 */
+	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.
@@ -1718,6 +2067,58 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisHashCommands#hIncrBy(byte[], byte[], double)
 	 */
 	Double hIncrBy(String key, String field, double delta);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	String hRandField(String key);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	Map.Entry<String, String> hRandFieldWithValues(String key);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * the number of returned fields is the absolute value of the specified count.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of fields to return.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	List<String> hRandField(String key, long count);
+
+	/**
+	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
+	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
+	 * the number of returned fields is the absolute value of the specified count.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of fields to return.
+	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
+	 */
+	@Nullable
+	List<Map.Entry<String, String>> hRandFieldWithValues(String key, long count);
 
 	/**
 	 * Determine if given hash {@code field} exists.
@@ -2025,6 +2426,40 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisGeoCommands#geoRemove(byte[], byte[]...)
 	 */
 	Long geoRemove(String key, String... members);
+
+	/**
+	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
+	 * shape}. The query's center point is provided by
+	 * {@link GeoReference}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	GeoResults<GeoLocation<String>> geoSearch(String key, GeoReference<String> reference, GeoShape predicate,
+			GeoSearchCommandArgs args);
+
+	/**
+	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
+	 * and store the result at {@code destKey}. The query's center point is provided by
+	 * {@link GeoReference}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param predicate must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	@Nullable
+	Long geoSearchStore(String destKey, String key, GeoReference<String> reference, GeoShape predicate,
+			GeoSearchStoreCommandArgs args);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Pub/Sub

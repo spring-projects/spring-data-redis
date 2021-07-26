@@ -186,6 +186,12 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void getRangeShouldReturnValueCorrectly();
 
+	// GH-2050
+	void getExShouldWorkCorrectly();
+
+	// GH-2050
+	void getDelShouldWorkCorrectly();
+
 	// DATAREDIS-315
 	void getSetShouldWorkCorrectly();
 
@@ -281,6 +287,12 @@ public interface ClusterConnectionTests {
 
 	// DATAREDIS-315
 	void lInsertShouldAddElementAtPositionCorrectly();
+
+	// GH-2039
+	void lMoveShouldMoveElementsCorrectly();
+
+	// GH-2039
+	void blMoveShouldMoveElementsCorrectly();
 
 	// DATAREDIS-315
 	void lLenShouldCountValuesCorrectly();
@@ -464,6 +476,9 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void sIsMemberShouldReturnTrueIfValueIsMemberOfSet();
 
+	// GH-2037
+	void sMIsMemberShouldReturnCorrectValues();
+
 	// DATAREDIS-315
 	void sMembersShouldReturnValuesContainedInSetCorrectly();
 
@@ -598,11 +613,44 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void zIncrByShouldIncScoreForValueCorrectly();
 
+	// GH-2041
+	void zDiffShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
+
+	// GH-2041
+	void zDiffShouldWorkForSameSlotKeys();
+
+	// GH-2041
+	void zDiffStoreShouldWorkForSameSlotKeys();
+
+	// GH-2042
+	void zInterShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
+
+	// GH-2042
+	void zInterShouldWorkForSameSlotKeys();
+
 	// DATAREDIS-315
 	void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
 
 	// DATAREDIS-315
 	void zInterStoreShouldWorkForSameSlotKeys();
+
+	// GH-2007
+	void zPopMinShouldWorkCorrectly();
+
+	// GH-2007
+	void bzPopMinShouldWorkCorrectly();
+
+	// GH-2007
+	void zPopMaxShouldWorkCorrectly();
+
+	// GH-2007
+	void bzPopMaxShouldWorkCorrectly();
+
+	// GH-2049
+	void zRandMemberShouldReturnResultCorrectly();
+
+	// GH-2049
+	void zRandMemberWithScoreShouldReturnResultCorrectly();
 
 	// DATAREDIS-315
 	void zRangeByLexShouldReturnResultCorrectly();
@@ -663,6 +711,15 @@ public interface ClusterConnectionTests {
 
 	// DATAREDIS-315
 	void zScoreShouldRetrieveScoreForValue();
+
+	// GH-2038
+	void zMScoreShouldRetrieveScoreForValues();
+
+	// GH-2042
+	void zUnionShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
+
+	// GH-2042
+	void zUnionShouldWorkForSameSlotKeys();
 
 	// DATAREDIS-315
 	void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots();

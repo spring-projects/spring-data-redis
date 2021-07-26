@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -28,17 +29,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -457,5 +460,40 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 			assertThat(entry.getValue()).isIn(v1, v2);
 		}
 		cursor.close();
+	}
+
+	@ParameterizedRedisTest // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	public void randomKeyFromHash() {
+
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		map.put(k2, v2);
+
+		assertThat(map.randomKey()).isIn(k1, k2);
+	}
+
+	@ParameterizedRedisTest // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	public void randomEntryFromHash() {
+
+		Assumptions.assumeThat(this.valueFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		map.put(k2, v2);
+
+		assertThat(map.randomEntry()).isIn(new AbstractMap.SimpleImmutableEntry(k1, v1),
+				new AbstractMap.SimpleImmutableEntry(k2, v2));
 	}
 }

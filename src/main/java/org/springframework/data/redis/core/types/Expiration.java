@@ -116,6 +116,17 @@ public class Expiration {
 	}
 
 	/**
+	 * Creates new {@link Expiration} with the given {@literal unix timestamp} and {@link TimeUnit}.
+	 *
+	 * @param unixTimestamp the unix timestamp at which the key will expire.
+	 * @param timeUnit must not be {@literal null}.
+	 * @return new instance of {@link Expiration}.
+	 */
+	public static Expiration unixTimestamp(long unixTimestamp, TimeUnit timeUnit) {
+		return new ExpireAt(unixTimestamp, timeUnit);
+	}
+
+	/**
 	 * Obtain an {@link Expiration} that indicates to keep the existing one. Eg. when sending a {@code SET} command.
 	 * <p />
 	 * <strong>NOTE: </strong>Please follow the documentation of the individual commands to see if {@link #keepTtl()} is
@@ -198,6 +209,14 @@ public class Expiration {
 	}
 
 	/**
+	 * @return {@literal true} if {@link Expiration} is set to a specified Unix time at which the key will expire.
+	 * @since 2.6
+	 */
+	public boolean isUnixTimestamp() {
+		return false;
+	}
+
+	/**
 	 * @author Christoph Strobl
 	 * @since 2.4
 	 */
@@ -211,6 +230,21 @@ public class Expiration {
 
 		@Override
 		public boolean isKeepTtl() {
+			return true;
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 2.6
+	 */
+	private static class ExpireAt extends Expiration {
+
+		private ExpireAt(long expirationTime, @Nullable TimeUnit timeUnit) {
+			super(expirationTime, timeUnit);
+		}
+
+		public boolean isUnixTimestamp() {
 			return true;
 		}
 	}

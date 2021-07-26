@@ -22,11 +22,13 @@ import static org.springframework.data.domain.Range.Bound.*;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Arrays;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -384,6 +386,62 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 				.isEqualTo(2L);
 	}
 
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	void zPopMinShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().zPopMin(KEY_1_BBUFFER).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_1_BYTES, 1D)).verifyComplete();
+
+		connection.zSetCommands().zPopMin(KEY_1_BBUFFER, 2).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_2_BYTES, 2D)).expectNext(new DefaultTuple(VALUE_3_BYTES, 3D))
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("BZPOPMIN")
+	void bzPopMinShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().bZPopMin(KEY_1_BBUFFER, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_1_BYTES, 1D)).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	void zPopMaxShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().zPopMax(KEY_1_BBUFFER).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_3_BYTES, 3D)).verifyComplete();
+
+		connection.zSetCommands().zPopMax(KEY_1_BBUFFER, 2).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_2_BYTES, 2D)).expectNext(new DefaultTuple(VALUE_1_BYTES, 1D))
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2007
+	@EnabledOnCommand("BZPOPMAX")
+	void bzPopMaxShouldReturnCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+
+		connection.zSetCommands().bZPopMax(KEY_1_BBUFFER, Duration.ofSeconds(1)).as(StepVerifier::create)
+				.expectNext(new DefaultTuple(VALUE_3_BYTES, 3D)).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-525
 	void zCardShouldReturnSizeCorrectly() {
 
@@ -400,6 +458,17 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 
 		assertThat(connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_2_BBUFFER).block()).isEqualTo(2D);
+	}
+
+	@ParameterizedRedisTest // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	void zMScoreShouldReturnScoreCorrectly() {
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+
+		connection.zSetCommands().zMScore(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER))
+				.as(StepVerifier::create).expectNext(Arrays.asList(1D, 2D)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -486,8 +555,50 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 				.isEqualTo(1L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
-	void zUnionStoreShouldWorkCorrectly() {
+	@ParameterizedRedisTest // GH-2041
+	void zDiffShouldWorkCorrectly() {
+
+		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+		nativeCommands.zadd(KEY_2, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
+
+		connection.zSetCommands().zDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)) //
+				.collectList() //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).containsOnly(VALUE_3_BBUFFER);
+				}).verifyComplete();
+
+		connection.zSetCommands().zDiffWithScores(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)) //
+				.collectList() //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).containsOnly(new DefaultTuple(VALUE_3_BYTES, 3D));
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2041
+	void zDiffStoreShouldWorkCorrectly() {
+
+		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
+		nativeCommands.zadd(KEY_2, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
+
+		connection.zSetCommands().zDiffStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)) //
+				.as(StepVerifier::create) //
+				.expectNext(1L).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	void zInterShouldWorkCorrectly() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
 
@@ -497,9 +608,19 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_2, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands()
-				.zUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
-						.isEqualTo(3L);
+		connection.zSetCommands().zInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)) //
+				.collectList() //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).contains(VALUE_1_BBUFFER, VALUE_2_BBUFFER);
+				}).verifyComplete();
+
+		connection.zSetCommands().zInterWithScores(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)) //
+				.collectList() //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).contains(new DefaultTuple(VALUE_1_BYTES, 5D), new DefaultTuple(VALUE_2_BYTES, 10D));
+				}).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -516,6 +637,49 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 		assertThat(connection.zSetCommands()
 				.zInterStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
 						.isEqualTo(2L);
+	}
+
+	@ParameterizedRedisTest // GH-2042
+	void zUnionShouldWorkCorrectly() {
+
+		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_2, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_2, 3D, VALUE_3);
+
+		connection.zSetCommands().zUnion(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)) //
+				.collectList() //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).contains(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER);
+				}).verifyComplete();
+
+		connection.zSetCommands().zUnionWithScores(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)) //
+				.collectList() //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).contains(new DefaultTuple(VALUE_1_BYTES, 5D), new DefaultTuple(VALUE_2_BYTES, 10D),
+							new DefaultTuple(VALUE_3_BYTES, 9D));
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // DATAREDIS-525
+	void zUnionStoreShouldWorkCorrectly() {
+
+		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+
+		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_2, 1D, VALUE_1);
+		nativeCommands.zadd(KEY_2, 2D, VALUE_2);
+		nativeCommands.zadd(KEY_2, 3D, VALUE_3);
+
+		assertThat(connection.zSetCommands()
+				.zUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
+						.isEqualTo(3L);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

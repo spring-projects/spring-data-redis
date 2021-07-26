@@ -18,7 +18,10 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
@@ -79,6 +82,74 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
 	Mono<Double> incrementScore(K key, V value, double delta);
+
+	/**
+	 * Get random element from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Mono<V> randomMember(K key);
+
+	/**
+	 * Get {@code count} distinct random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<V> distinctRandomMembers(K key, long count);
+
+	/**
+	 * Get {@code count} random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<V> randomMembers(K key, long count);
+
+	/**
+	 * Get random element with its score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Mono<TypedTuple<V>> randomMemberWithScore(K key);
+
+	/**
+	 * Get {@code count} distinct random elements with their score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count);
+
+	/**
+	 * Get {@code count} random elements with their score from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return
+	 * @throws IllegalArgumentException if count is negative.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
+	 */
+	Flux<TypedTuple<V>> randomMembersWithScore(K key, long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
@@ -282,6 +353,74 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Long> lexCount(K key, Range<String> range);
 
 	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMin(K key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Flux<TypedTuple<V>> popMin(K key, long count);
+
+	/**
+	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
+	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
+	 *          used to wait indefinitely. Durations between zero and one second are not supported.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMin(K key, Duration timeout);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMax(K key);
+
+	/**
+	 * Remove and return {@code count} values with their score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of elements to pop.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
+	 * @since 2.6
+	 */
+	Flux<TypedTuple<V>> popMax(K key, long count);
+
+	/**
+	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
+	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
+	 *          used to wait indefinitely. Durations between zero and one second are not supported.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
+	 * @since 2.6
+	 */
+	Mono<TypedTuple<V>> popMax(K key, Duration timeout);
+
+	/**
 	 * Returns the number of elements of the sorted set stored with given {@code key}.
 	 *
 	 * @param key
@@ -299,6 +438,17 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
 	Mono<Double> score(K key, Object o);
+
+	/**
+	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o the values.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
+	 * @since 2.6
+	 */
+	Mono<List<Double>> score(K key, Object... o);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.
@@ -330,6 +480,283 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
 	Mono<Long> removeRangeByScore(K key, Range<Double> range);
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	default Flux<V> difference(K key, K otherKey) {
+		return difference(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	Flux<V> difference(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	default Flux<TypedTuple<V>> differenceWithScores(K key, K otherKey) {
+		return differenceWithScores(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Diff sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
+	 */
+	Flux<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	default Mono<Long> differenceAndStore(K key, K otherKey, K destKey) {
+		return differenceAndStore(key, Collections.singleton(otherKey), destKey);
+	}
+
+	/**
+	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
+	 */
+	Mono<Long> differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<V> intersect(K key, K otherKey) {
+		return intersect(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	Flux<V> intersect(K key, Collection<K> otherKeys);
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<TypedTuple<V>> intersectWithScores(K key, K otherKey) {
+		return intersectWithScores(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	Flux<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys);
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} .
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	default Flux<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
+		return intersectWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Intersect sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
+	 */
+	Flux<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights);
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKey} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	default Mono<Long> intersectAndStore(K key, K otherKey, K destKey) {
+		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
+	}
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	default Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
+	 */
+	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<V> union(K key, K otherKey) {
+		return union(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	Flux<V> union(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<TypedTuple<V>> unionWithScores(K key, K otherKey) {
+		return unionWithScores(key, Collections.singleton(otherKey));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	Flux<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union sorted sets at {@code key} and {@code otherKeys} .
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	default Flux<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
+		return unionWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
+	}
+
+	/**
+	 * Union sorted {@code sets}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param aggregate must not be {@literal null}.
+	 * @param weights must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
+	 */
+	Flux<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Union sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
@@ -381,57 +808,6 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
 	Mono<Long> unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
-
-	/**
-	 * Intersect sorted sets at {@code key} and {@code otherKey} and store result in destination {@code destKey}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param otherKey must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @return
-	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
-	 */
-	Mono<Long> intersectAndStore(K key, K otherKey, K destKey);
-
-	/**
-	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @return
-	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
-	 */
-	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey);
-
-	/**
-	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @param aggregate must not be {@literal null}.
-	 * @return
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
-	 */
-	default Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
-		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
-	}
-
-	/**
-	 * Intersect sorted sets at {@code key} and {@code otherKeys} and store result in destination {@code destKey}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param otherKeys must not be {@literal null}.
-	 * @param destKey must not be {@literal null}.
-	 * @param aggregate must not be {@literal null}.
-	 * @param weights must not be {@literal null}.
-	 * @return
-	 * @since 2.1
-	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
-	 */
-	Mono<Long> intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
 	 * Get all elements with lexicographical ordering from {@literal ZSET} at {@code key} with a value between

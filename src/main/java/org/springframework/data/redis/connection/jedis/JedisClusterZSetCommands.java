@@ -18,11 +18,16 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ZParams;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.core.Cursor;
@@ -30,6 +35,7 @@ import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -60,7 +66,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(value, "Value must not be null!");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().zadd(key, score, value, JedisConverters.toZAddParams(args)));
+			return JedisConverters
+					.toBoolean(connection.getCluster().zadd(key, score, value, JedisConverters.toZAddParams(args)));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -114,6 +121,74 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			return connection.getCluster().zincrby(key, increment, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[])
+	 */
+	@Override
+	public byte[] zRandMember(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().zrandmember(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[], long)
+	 */
+	@Override
+	public List<byte[]> zRandMember(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return new ArrayList<>(connection.getCluster().zrandmember(key, count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[])
+	 */
+	@Override
+	public Tuple zRandMemberWithScore(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			Set<redis.clients.jedis.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, 1);
+
+			return tuples.isEmpty() ? null : JedisConverters.toTuple(tuples.iterator().next());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[], long)
+	 */
+	@Override
+	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			Set<redis.clients.jedis.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, count);
+
+			return tuples.stream().map(JedisConverters::toTuple).collect(Collectors.toList());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -275,6 +350,112 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			return connection.getCluster().zlexcount(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMin(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			redis.clients.jedis.Tuple tuple = connection.getCluster().zpopmin(key);
+			return tuple != null ? JedisConverters.toTuple(tuple) : null;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMin(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return toTupleSet(connection.getCluster().zpopmin(key, Math.toIntExact(count)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		try {
+			return toTuple(connection.getCluster().bzpopmin(JedisConverters.toSeconds(timeout, unit), key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[])
+	 */
+	@Nullable
+	@Override
+	public Tuple zPopMax(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			redis.clients.jedis.Tuple tuple = connection.getCluster().zpopmax(key);
+			return tuple != null ? JedisConverters.toTuple(tuple) : null;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public Set<Tuple> zPopMax(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return toTupleSet(connection.getCluster().zpopmax(key, Math.toIntExact(count)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(byte[], long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(unit, "TimeUnit must not be null!");
+
+		try {
+			return toTuple(connection.getCluster().bzpopmax(JedisConverters.toSeconds(timeout, unit), key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -639,6 +820,23 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zMScore(byte[], byte[][])
+	 */
+	@Override
+	public List<Double> zMScore(byte[] key, byte[][] values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
+
+		try {
+			return connection.getCluster().zmscore(key, values);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRange(byte[], long, long)
 	 */
 	@Override
@@ -671,56 +869,135 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiff(byte[][])
 	 */
 	@Override
-	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+	public Set<byte[]> zDiff(byte[]... sets) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(sets, "Source sets must not be null!");
-		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.notNull(sets, "Sets must not be null!");
 
-		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return connection.getCluster().zunionstore(destKey, sets);
+				return connection.getCluster().zdiff(sets);
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
-		throw new InvalidDataAccessApiUsageException("ZUNIONSTORE can only be executed when all keys map to the same slot");
+		throw new InvalidDataAccessApiUsageException("ZDIFF can only be executed when all keys map to the same slot");
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffWithScores(byte[][])
 	 */
 	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Set<Tuple> zDiffWithScores(byte[]... sets) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(sets, "Source sets must not be null!");
-		Assert.noNullElements(sets, "Source sets must not contain null elements!");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+		Assert.notNull(sets, "Sets must not be null!");
 
-		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
-
-			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return connection.getCluster().zunionstore(destKey, zparams, sets);
+				return JedisConverters.toTupleSet(connection.getCluster().zdiffWithScores(sets));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
-		throw new InvalidDataAccessApiUsageException("ZUNIONSTORE can only be executed when all keys map to the same slot");
+		throw new InvalidDataAccessApiUsageException("ZDIFF can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zDiffStore(byte[] destKey, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+
+			try {
+				return connection.getCluster().zdiffStore(destKey, sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZDIFFSTORE can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInter(byte[][])
+	 */
+	@Override
+	public Set<byte[]> zInter(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return connection.getCluster().zinter(new ZParams(), sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZINTER can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(byte[][])
+	 */
+	@Override
+	public Set<Tuple> zInterWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return JedisConverters.toTupleSet(connection.getCluster().zinterWithScores(new ZParams(), sets));
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZINTER can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return JedisConverters
+						.toTupleSet(connection.getCluster().zinterWithScores(toZParams(aggregate, weights), sets));
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZINTER can only be executed when all keys map to the same slot");
 	}
 
 	/*
@@ -765,16 +1042,135 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
-			ZParams zparams = new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
-
 			try {
-				return connection.getCluster().zinterstore(destKey, zparams, sets);
+				return connection.getCluster().zinterstore(destKey, toZParams(aggregate, weights), sets);
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
 		throw new IllegalArgumentException("ZINTERSTORE can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.redis.connection.RedisZSetCommands#zUnion(byte[][])
+	*/
+	@Override
+	public Set<byte[]> zUnion(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return connection.getCluster().zunion(new ZParams(), sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZUNION can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(byte[][])
+	 */
+	@Override
+	public Set<Tuple> zUnionWithScores(byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return JedisConverters.toTupleSet(connection.getCluster().zunionWithScores(new ZParams(), sets));
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZUNION can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(sets, "Sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
+
+			try {
+				return JedisConverters
+						.toTupleSet(connection.getCluster().zunionWithScores(toZParams(aggregate, weights), sets));
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZUNION can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+
+			try {
+				return connection.getCluster().zunionstore(destKey, sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZUNIONSTORE can only be executed when all keys map to the same slot");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
+	 */
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+
+		Assert.notNull(destKey, "Destination key must not be null!");
+		Assert.notNull(sets, "Source sets must not be null!");
+		Assert.noNullElements(sets, "Source sets must not contain null elements!");
+		Assert.isTrue(weights.size() == sets.length, () -> String
+				.format("The number of weights (%d) must match the number of source sets (%d)!", weights.size(), sets.length));
+
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
+
+			ZParams zparams = toZParams(aggregate, weights);
+
+			try {
+				return connection.getCluster().zunionstore(destKey, zparams, sets);
+			} catch (Exception ex) {
+				throw convertJedisAccessException(ex);
+			}
+		}
+
+		throw new InvalidDataAccessApiUsageException("ZUNIONSTORE can only be executed when all keys map to the same slot");
 	}
 
 	/*
@@ -844,6 +1240,27 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 	private static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
 		return TUPLE_SET_CONVERTER.convert(source);
+	}
+
+	private static ZParams toZParams(Aggregate aggregate, Weights weights) {
+		return new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+	}
+
+	/**
+	 * Workaround for broken Jedis BZPOP signature.
+	 *
+	 * @param bytes
+	 * @return
+	 */
+	@Nullable
+	@SuppressWarnings("unchecked")
+	private static Tuple toTuple(List<?> bytes) {
+
+		if (bytes.isEmpty()) {
+			return null;
+		}
+
+		return new DefaultTuple((byte[]) bytes.get(1), Double.parseDouble(new String((byte[]) bytes.get(2))));
 	}
 
 }

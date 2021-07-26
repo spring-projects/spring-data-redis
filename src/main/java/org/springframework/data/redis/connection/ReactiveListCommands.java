@@ -51,7 +51,28 @@ public interface ReactiveListCommands {
 	 * @author Christoph Strobl
 	 */
 	enum Direction {
-		LEFT, RIGHT
+
+		LEFT, RIGHT;
+
+		/**
+		 * Alias for {@link Direction#LEFT}.
+		 *
+		 * @since 2.6
+		 * @return
+		 */
+		public static Direction first() {
+			return LEFT;
+		}
+
+		/**
+		 * Alias for {@link Direction#RIGHT}.
+		 *
+		 * @since 2.6
+		 * @return
+		 */
+		public static Direction last() {
+			return RIGHT;
+		}
 	}
 
 	/**
@@ -634,6 +655,190 @@ public interface ReactiveListCommands {
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	Flux<NumericResponse<LInsertCommand, Long>> lInsert(Publisher<LInsertCommand> commands);
+
+	/**
+	 * {@code LMOVE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	class LMoveCommand extends KeyCommand {
+
+		private final @Nullable ByteBuffer destinationKey;
+		private final @Nullable Direction from;
+		private final @Nullable Direction to;
+
+		public LMoveCommand(@Nullable ByteBuffer sourceKey, @Nullable ByteBuffer destinationKey, @Nullable Direction from,
+				@Nullable Direction to) {
+
+			super(sourceKey);
+			this.destinationKey = destinationKey;
+			this.from = from;
+			this.to = to;
+		}
+
+		/**
+		 * Creates a new {@link LMoveCommand} given a {@link ByteBuffer sourceKey}.
+		 *
+		 * @param sourceKey must not be {@literal null}.
+		 * @param sourceDirection must not be {@literal null}.
+		 * @return a new {@link LMoveCommand} for {@link ByteBuffer value}.
+		 */
+		public static LMoveCommand from(ByteBuffer sourceKey, Direction sourceDirection) {
+
+			Assert.notNull(sourceKey, "Source key must not be null!");
+			Assert.notNull(sourceDirection, "Direction must not be null!");
+
+			return new LMoveCommand(sourceKey, null, sourceDirection, null);
+		}
+
+		/**
+		 * Applies the {@link ByteBuffer destinationKey}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param destinationKey must not be {@literal null}.
+		 * @param direction must not be {@literal null}.
+		 * @return a new {@link LMoveCommand} with {@literal pivot} applied.
+		 */
+		public LMoveCommand to(ByteBuffer destinationKey, Direction direction) {
+
+			Assert.notNull(destinationKey, "Destination key must not be null!");
+			Assert.notNull(direction, "Direction must not be null!");
+
+			return new LMoveCommand(getKey(), destinationKey, from, direction);
+		}
+
+		/**
+		 * Applies the {@link Duration timeout}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link LMoveCommand} with {@literal pivot} applied.
+		 */
+		public BLMoveCommand timeout(Duration timeout) {
+
+			Assert.notNull(timeout, "Timeout must not be null!");
+
+			return new BLMoveCommand(getKey(), destinationKey, from, to, timeout);
+		}
+
+		@Nullable
+		public ByteBuffer getDestinationKey() {
+			return destinationKey;
+		}
+
+		@Nullable
+		public Direction getFrom() {
+			return from;
+		}
+
+		@Nullable
+		public Direction getTo() {
+			return to;
+		}
+	}
+
+	/**
+	 * {@code BLMOVE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	class BLMoveCommand extends LMoveCommand {
+
+		private final @Nullable Duration timeout;
+
+		private BLMoveCommand(@Nullable ByteBuffer sourceKey, @Nullable ByteBuffer destinationKey, @Nullable Direction from,
+				@Nullable Direction to, @Nullable Duration timeout) {
+			super(sourceKey, destinationKey, from, to);
+			this.timeout = timeout;
+		}
+
+		@Nullable
+		public Duration getTimeout() {
+			return timeout;
+		}
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	default Mono<ByteBuffer> lMove(ByteBuffer sourceKey, ByteBuffer destinationKey, Direction from, Direction to) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		return lMove(Mono.just(LMoveCommand.from(sourceKey, from).to(destinationKey, to))).map(CommandResponse::getOutput)
+				.next();
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
+	 */
+	Flux<ByteBufferResponse<LMoveCommand>> lMove(Publisher<? extends LMoveCommand> commands);
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 *
+	 * @param sourceKey must not be {@literal null}.
+	 * @param destinationKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
+	 * @param timeout
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	default Mono<ByteBuffer> bLMove(ByteBuffer sourceKey, ByteBuffer destinationKey, Direction from, Direction to,
+			Duration timeout) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative!");
+
+		return bLMove(Mono.just(BLMoveCommand.from(sourceKey, from).to(destinationKey, to).timeout(timeout)))
+				.map(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
+	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
+	 * {@code to} argument) of the list stored at {@code destinationKey}.
+	 * <p/>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
+	 */
+	Flux<ByteBufferResponse<BLMoveCommand>> bLMove(Publisher<BLMoveCommand> commands);
 
 	/**
 	 * {@code LSET} command parameters.

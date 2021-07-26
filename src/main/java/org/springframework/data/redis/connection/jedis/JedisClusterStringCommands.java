@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.jedis.JedisClusterConnection.Je
 import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -63,6 +64,41 @@ class JedisClusterStringCommands implements RedisStringCommands {
 
 		try {
 			return connection.getCluster().get(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getDel(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] getDel(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return connection.getCluster().getDel(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getEx(byte[], org.springframework.data.redis.core.types.Expiration)
+	 */
+	@Nullable
+	@Override
+	public byte[] getEx(byte[] key, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(expiration, "Expiration must not be null!");
+
+		try {
+			return connection.getCluster().getEx(key, JedisConverters.toGetExParams(expiration));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

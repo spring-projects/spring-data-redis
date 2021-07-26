@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScanCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
@@ -546,13 +547,93 @@ public interface ReactiveSetCommands {
 	}
 
 	/**
-	 * Check if set at {@link SIsMemberCommand#getKey()} contains {@link SIsMemberCommand#getKey()}.
+	 * Check if set at {@link SIsMemberCommand#getKey()} contains {@link SIsMemberCommand#getValue()}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	Flux<BooleanResponse<SIsMemberCommand>> sIsMember(Publisher<SIsMemberCommand> commands);
+
+	/**
+	 * {@code SMISMEMBER} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	class SMIsMemberCommand extends KeyCommand {
+
+		private final List<ByteBuffer> values;
+
+		private SMIsMemberCommand(@Nullable ByteBuffer key, List<ByteBuffer> values) {
+
+			super(key);
+
+			this.values = values;
+		}
+
+		/**
+		 * Creates a new {@link SMIsMemberCommand} given one or more {@literal values}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SMIsMemberCommand} for a {@literal value}.
+		 */
+		public static SMIsMemberCommand values(List<ByteBuffer> values) {
+
+			Assert.notNull(values, "Values must not be null!");
+			Assert.notEmpty(values, "Values must not be empty!");
+
+			return new SMIsMemberCommand(null, values);
+		}
+
+		/**
+		 * Applies the {@literal set} key. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param set must not be {@literal null}.
+		 * @return a new {@link SMIsMemberCommand} with {@literal set} applied.
+		 */
+		public SMIsMemberCommand of(ByteBuffer set) {
+
+			Assert.notNull(set, "Set key must not be null!");
+
+			return new SMIsMemberCommand(set, values);
+		}
+
+		/**
+		 * @return
+		 */
+		public List<ByteBuffer> getValues() {
+			return values;
+		}
+	}
+
+	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	default Mono<List<Boolean>> sMIsMember(ByteBuffer key, List<ByteBuffer> values) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Value must not be null!");
+
+		return sMIsMember(Mono.just(SMIsMemberCommand.values(values).of(key))).next().map(MultiValueResponse::getOutput);
+	}
+
+	/**
+	 * Check if set at {@link SMIsMemberCommand#getKey()} contains {@link SMIsMemberCommand#getValues()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	Flux<MultiValueResponse<SMIsMemberCommand, Boolean>> sMIsMember(Publisher<SMIsMemberCommand> commands);
 
 	/**
 	 * {@code SINTER} command parameters.

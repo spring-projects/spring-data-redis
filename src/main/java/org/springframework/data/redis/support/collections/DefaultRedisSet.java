@@ -16,10 +16,9 @@
 package org.springframework.data.redis.support.collections;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -33,6 +32,7 @@ import org.springframework.data.redis.core.ScanOptions;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements RedisSet<E> {
 
@@ -189,6 +189,15 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisSet#randomElement()
+	 */
+	@Override
+	public E randomValue() {
+		return boundSetOps.randomMember();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see java.util.AbstractCollection#add(java.lang.Object)
 	 */
 	@Override
@@ -205,10 +214,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	 */
 	@Override
 	public void clear() {
-		// intersect the set with a non existing one
-		// TODO: find a safer way to clean the set
-		String randomKey = UUID.randomUUID().toString();
-		boundSetOps.intersectAndStore(Collections.singleton(randomKey), getKey());
+		boundSetOps.getOperations().delete(getKey());
 	}
 
 	/*
@@ -220,6 +226,23 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		Boolean result = boundSetOps.isMember(o);
 		checkResult(result);
 		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.util.AbstractCollection#containsAll(java.util.Collection)
+	 */
+	@Override
+	public boolean containsAll(Collection<?> c) {
+
+		if (c.isEmpty()) {
+			return true;
+		}
+
+		Map<Object, Boolean> member = boundSetOps.isMember(c.toArray());
+		checkResult(member);
+
+		return member.values().stream().reduce(true, (left, right) -> left && right);
 	}
 
 	/*

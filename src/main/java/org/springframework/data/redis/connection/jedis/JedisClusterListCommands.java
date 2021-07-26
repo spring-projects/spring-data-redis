@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.args.ListDirection;
 import redis.clients.jedis.params.LPosParams;
 
 import java.util.Arrays;
@@ -215,6 +216,46 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		try {
 			return connection.getCluster().linsert(key, JedisConverters.toListPosition(where), pivot, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#lMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction)
+	 */
+	@Override
+	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		try {
+			return connection.getCluster().lmove(sourceKey, destinationKey, ListDirection.valueOf(from.name()),
+					ListDirection.valueOf(to.name()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisListCommands#bLMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction, double)
+	 */
+	@Override
+	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+
+		Assert.notNull(sourceKey, "Source key must not be null!");
+		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(from, "From direction must not be null!");
+		Assert.notNull(to, "To direction must not be null!");
+
+		try {
+			return connection.getCluster().blmove(sourceKey, destinationKey, ListDirection.valueOf(from.name()),
+					ListDirection.valueOf(to.name()), timeout);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -1317,6 +1317,13 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
+	public void testZMScore() {
+
+		doReturn(Collections.singletonList(Arrays.asList(1d, 3d))).when(nativeConnection).exec();
+		super.testZMScore();
+	}
+
+	@Test
 	public void testZUnionStoreAggWeightsBytes() {
 		doReturn(Collections.singletonList(5L)).when(nativeConnection).exec();
 		super.testZUnionStoreAggWeightsBytes();

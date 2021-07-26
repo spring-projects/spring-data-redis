@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
@@ -48,6 +49,46 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	@Override
 	public V get() {
 		return ops.get(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#get()
+	 */
+	@Nullable
+	@Override
+	public V getAndDelete() {
+		return ops.getAndDelete(getKey());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#get(long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public V getAndExpire(long timeout, TimeUnit unit) {
+		return ops.getAndExpire(getKey(), timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#get(java.time.Duration)
+	 */
+	@Nullable
+	@Override
+	public V getAndExpire(Duration timeout) {
+		return ops.getAndExpire(getKey(), timeout);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundValueOperations#getAndPersist()
+	 */
+	@Nullable
+	@Override
+	public V getAndPersist() {
+		return ops.getAndPersist(getKey());
 	}
 
 	/*

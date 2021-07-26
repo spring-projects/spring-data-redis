@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.types.Expiration;
@@ -44,6 +45,33 @@ public interface RedisStringCommands {
 	 */
 	@Nullable
 	byte[] get(byte[] key);
+
+	/**
+	 * Return the value at {@code key} and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	byte[] getDel(byte[] key);
+
+	/**
+	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
+	 * <p />
+	 * Use {@link Expiration#seconds(long)} for {@code EX}. <br />
+	 * Use {@link Expiration#milliseconds(long)} for {@code PX}. <br />
+	 * Use {@link Expiration#unixTimestamp(long, TimeUnit)} for {@code EXAT | PXAT}. <br />
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	byte[] getEx(byte[] key, Expiration expiration);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -403,4 +431,5 @@ public interface RedisStringCommands {
 			return SET_IF_ABSENT;
 		}
 	}
+
 }

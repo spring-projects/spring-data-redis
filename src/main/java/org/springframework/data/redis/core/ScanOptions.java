@@ -15,7 +15,11 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.StringJoiner;
+
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -25,6 +29,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @since 1.4
+ * @see KeyScanOptions
  */
 public class ScanOptions {
 
@@ -37,14 +42,15 @@ public class ScanOptions {
 	private final @Nullable String pattern;
 	private final @Nullable byte[] bytePattern;
 
-	private ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
+	ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
+
 		this.count = count;
 		this.pattern = pattern;
 		this.bytePattern = bytePattern;
 	}
 
 	/**
-	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
+	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
 	 *
 	 * @return
 	 */
@@ -83,17 +89,18 @@ public class ScanOptions {
 			return "";
 		}
 
-		String params = "";
+		StringJoiner joiner = new StringJoiner(", ");
 
-		if (this.count != null) {
-			params += (", 'count', " + count);
+		if (this.getCount() != null) {
+			joiner.add("'count' " + this.getCount());
 		}
+
 		String pattern = getPattern();
 		if (StringUtils.hasText(pattern)) {
-			params += (", 'match' , '" + this.pattern + "'");
+			joiner.add("'match' '" + pattern + "'");
 		}
 
-		return params;
+		return joiner.toString();
 	}
 
 	/**
@@ -103,16 +110,18 @@ public class ScanOptions {
 	 */
 	public static class ScanOptionsBuilder {
 
-		private @Nullable Long count;
-		private @Nullable String pattern;
-		private @Nullable byte[] bytePattern;
+		@Nullable Long count;
+		@Nullable String pattern;
+		@Nullable byte[] bytePattern;
+		@Nullable DataType type;
 
+		ScanOptionsBuilder() {}
 
 		/**
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code count}.
 		 *
 		 * @param count
-		 * @return
+		 * @return this.
 		 */
 		public ScanOptionsBuilder count(long count) {
 			this.count = count;
@@ -123,7 +132,7 @@ public class ScanOptions {
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code pattern}.
 		 *
 		 * @param pattern
-		 * @return
+		 * @return this.
 		 */
 		public ScanOptionsBuilder match(String pattern) {
 			this.pattern = pattern;
@@ -134,7 +143,7 @@ public class ScanOptions {
 		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code pattern}.
 		 *
 		 * @param pattern
-		 * @return
+		 * @return this.
 		 * @since 2.6
 		 */
 		public ScanOptionsBuilder match(byte[] pattern) {
@@ -143,11 +152,45 @@ public class ScanOptions {
 		}
 
 		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code type}. <br />
+		 * Please verify the the targeted command supports the
+		 * <a href="https://redis.io/commands/SCAN#the-type-option">TYPE</a> option before use.
+		 *
+		 * @param type must not be {@literal null}. Either do not set or use {@link DataType#NONE}.
+		 * @return this.
+		 * @since 2.6
+		 */
+		public ScanOptionsBuilder type(DataType type) {
+
+			Assert.notNull(type, "Type must not be null! Use NONE instead.");
+
+			this.type = type;
+			return this;
+		}
+
+		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code type}.
+		 *
+		 * @param type the textual representation of {@link DataType#fromCode(String)}. Must not be {@literal null}.
+		 * @return this.
+		 * @throws IllegalArgumentException if given type is {@literal null} or unknown.
+		 */
+		public ScanOptionsBuilder type(String type) {
+
+			Assert.notNull(type, "Type must not be null!");
+			return type(DataType.fromCode(type));
+		}
+
+		/**
 		 * Builds a new {@link ScanOptions} objects.
 		 *
 		 * @return a new {@link ScanOptions} objects.
 		 */
 		public ScanOptions build() {
+
+			if (type != null && !DataType.NONE.equals(type)) {
+				return new KeyScanOptions(count, pattern, bytePattern, type.code());
+			}
 			return new ScanOptions(count, pattern, bytePattern);
 		}
 	}

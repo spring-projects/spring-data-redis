@@ -29,6 +29,7 @@ import java.util.Arrays;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.ReactiveListCommands;
 import org.springframework.data.redis.connection.ReactiveListCommands.LPosCommand;
 import org.springframework.data.redis.connection.ReactiveListCommands.PopResult;
 import org.springframework.data.redis.connection.ReactiveListCommands.PushCommand;
@@ -199,6 +200,38 @@ public class LettuceReactiveListCommandIntegrationTests extends LettuceReactiveC
 				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.AFTER, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block())
 						.isEqualTo(3L);
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2, VALUE_3);
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void lMoveShouldMoveValueCorrectly() {
+
+		nativeCommands.rpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2, VALUE_3);
+		nativeCommands.rpush(SAME_SLOT_KEY_2, VALUE_2, VALUE_3);
+
+		connection.listCommands().lMove(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER,
+				ReactiveListCommands.Direction.RIGHT, ReactiveListCommands.Direction.LEFT).as(StepVerifier::create)
+				.expectNext(VALUE_3_BBUFFER).verifyComplete();
+		assertThat(nativeCommands.lrange(SAME_SLOT_KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2);
+		assertThat(nativeCommands.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_3, VALUE_2, VALUE_3);
+	}
+
+	@ParameterizedRedisTest // GH-2039
+	@EnabledOnCommand("LMOVE")
+	void blMoveShouldMoveValueCorrectly() {
+
+		nativeCommands.rpush(SAME_SLOT_KEY_1, VALUE_3);
+		nativeCommands.rpush(SAME_SLOT_KEY_2, VALUE_2, VALUE_3);
+
+		connection.listCommands()
+				.bLMove(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER, ReactiveListCommands.Direction.RIGHT,
+						ReactiveListCommands.Direction.LEFT, Duration.ofMillis(10))
+				.as(StepVerifier::create).expectNext(VALUE_3_BBUFFER).verifyComplete();
+		connection.listCommands().bLMove(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER,
+				ReactiveListCommands.Direction.RIGHT, ReactiveListCommands.Direction.LEFT, Duration.ofMillis(10))
+				.as(StepVerifier::create).verifyComplete();
+		assertThat(nativeCommands.lrange(SAME_SLOT_KEY_1, 0, -1)).isEmpty();
+		assertThat(nativeCommands.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_3, VALUE_2, VALUE_3);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

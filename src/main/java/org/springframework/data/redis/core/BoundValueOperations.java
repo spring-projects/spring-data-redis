@@ -93,7 +93,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean setIfAbsent(V value, long timeout, TimeUnit unit);
 
 	/**
-	 * Set bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
+	 * Set bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is absent.
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
@@ -115,7 +115,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	}
 
 	/**
-	 * Set the bound key to hold the string {@code value} if {@code key} is present.
+	 * Set the bound key to hold the string {@code value} if the bound key is present.
 	 *
 	 * @param value must not be {@literal null}.
 	 * @return command result indicating if the key has been set.
@@ -127,7 +127,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean setIfPresent(V value);
 
 	/**
-	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
@@ -141,7 +141,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Boolean setIfPresent(V value, long timeout, TimeUnit unit);
 
 	/**
-	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
+	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
@@ -165,11 +165,56 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Get the value of the bound key.
 	 *
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
 	@Nullable
 	V get();
+
+	/**
+	 * Return the value at the bound key and delete the key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndDelete();
+
+	/**
+	 * Return the value at the bound key and expire the key by applying {@code timeout}.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndExpire(long timeout, TimeUnit unit);
+
+	/**
+	 * Return the value at the bound key and expire the key by applying {@code timeout}.
+	 *
+	 * @param timeout must not be {@literal null}.
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndExpire(Duration timeout);
+
+	/**
+	 * Return the value at the bound key and persist the key. This operation removes any TTL that is associated with the
+	 * bound key.
+	 *
+	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
+	 * @since 2.6
+	 */
+	@Nullable
+	V getAndPersist();
 
 	/**
 	 * Set {@code value} of the bound key and return its old value.

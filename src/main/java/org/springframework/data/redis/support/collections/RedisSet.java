@@ -19,41 +19,159 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.springframework.data.redis.core.RedisOperations;
+
 /**
  * Redis extension for the {@link Set} contract. Supports {@link Set} specific operations backed by Redis operations.
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 
-	Set<E> intersect(RedisSet<?> set);
+	/**
+	 * Constructs a new {@link RedisSet} instance.
+	 *
+	 * @param key Redis key of this set.
+	 * @param operations {@link RedisOperations} for the value type of this set.
+	 * @since 2.6
+	 */
+	static <E> RedisSet<E> create(String key, RedisOperations<String, E> operations) {
+		return new DefaultRedisSet<>(key, operations);
+	}
 
-	Set<E> intersect(Collection<? extends RedisSet<?>> sets);
-
-	Set<E> union(RedisSet<?> set);
-
-	Set<E> union(Collection<? extends RedisSet<?>> sets);
-
+	/**
+	 * Diff this set and another {@link RedisSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ.
+	 * @since 1.0
+	 */
 	Set<E> diff(RedisSet<?> set);
 
+	/**
+	 * Diff this set and other {@link RedisSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ.
+	 * @since 1.0
+	 */
 	Set<E> diff(Collection<? extends RedisSet<?>> sets);
 
-	RedisSet<E> intersectAndStore(RedisSet<?> set, String destKey);
-
-	RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
-
-	RedisSet<E> unionAndStore(RedisSet<?> set, String destKey);
-
-	RedisSet<E> unionAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
-
+	/**
+	 * Create a new {@link RedisSet} by diffing this sorted set and {@link RedisSet} and store result in destination
+	 * {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisSet} pointing at {@code destKey}.
+	 * @since 1.0
+	 */
 	RedisSet<E> diffAndStore(RedisSet<?> set, String destKey);
 
+	/**
+	 * Create a new {@link RedisSet} by diffing this sorted set and the collection {@link RedisSet} and store result in
+	 * destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisSet} pointing at {@code destKey}.
+	 * @since 1.0
+	 */
 	RedisSet<E> diffAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
+
+	/**
+	 * Intersect this set and another {@link RedisSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values.
+	 * @since 1.0
+	 */
+	Set<E> intersect(RedisSet<?> set);
+
+	/**
+	 * Intersect this set and other {@link RedisSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values.
+	 * @since 1.0
+	 */
+	Set<E> intersect(Collection<? extends RedisSet<?>> sets);
+
+	/**
+	 * Create a new {@link RedisSet} by intersecting this sorted set and {@link RedisSet} and store result in destination
+	 * {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisSet} pointing at {@code destKey}
+	 * @since 1.0
+	 */
+	RedisSet<E> intersectAndStore(RedisSet<?> set, String destKey);
+
+	/**
+	 * Create a new {@link RedisSet} by intersecting this sorted set and the collection {@link RedisSet} and store result
+	 * in destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisSet} pointing at {@code destKey}.
+	 * @since 1.0
+	 */
+	RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
+
+	/**
+	 * Get random element from the set.
+	 *
+	 * @return
+	 * @since 2.6
+	 */
+	E randomValue();
 
 	/**
 	 * @since 1.4
 	 * @return
 	 */
 	Iterator<E> scan();
+
+	/**
+	 * Union this set and another {@link RedisSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values.
+	 * @since 2.6
+	 */
+	Set<E> union(RedisSet<?> set);
+
+	/**
+	 * Union this set and other {@link RedisSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values.
+	 * @since 1.0
+	 */
+	Set<E> union(Collection<? extends RedisSet<?>> sets);
+
+	/**
+	 * Create a new {@link RedisSet} by union this sorted set and {@link RedisSet} and store result in destination
+	 * {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisSet} pointing at {@code destKey}.
+	 * @since 1.0
+	 */
+	RedisSet<E> unionAndStore(RedisSet<?> set, String destKey);
+
+	/**
+	 * Create a new {@link RedisSet} by union this sorted set and the collection {@link RedisSet} and store result in
+	 * destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisSet} pointing at {@code destKey}.
+	 * @since 1.0
+	 */
+	RedisSet<E> unionAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
 }

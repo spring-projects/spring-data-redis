@@ -57,6 +57,33 @@ class LettuceStringCommands implements RedisStringCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getDel(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] getDel(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisStringAsyncCommands::getdel, key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#getEx(byte[], org.springframework.data.redis.core.types.Expiration)
+	 */
+	@Nullable
+	@Override
+	public byte[] getEx(byte[] key, Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(expiration, "Expiration must not be null!");
+
+		return connection.invoke().just(RedisStringAsyncCommands::getex, key, LettuceConverters.toGetExArgs(expiration));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#getSet(byte[], byte[])
 	 */
 	@Override

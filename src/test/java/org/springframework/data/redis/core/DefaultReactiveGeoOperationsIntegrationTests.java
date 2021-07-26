@@ -16,9 +16,11 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
+import org.springframework.data.redis.domain.geo.GeoReference;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -29,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
@@ -37,8 +38,8 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -432,6 +433,61 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 		geoOperations.position(key, member1) //
 				.as(StepVerifier::create) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchShouldReturnLocationsWithDistance() {
+
+		K key = keyFactory.instance();
+		V member1 = valueFactory.instance();
+		V member2 = valueFactory.instance();
+		V member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_ARIGENTO, member3).block();
+
+		geoOperations
+				.search(key, GeoReference.fromMember(member3), GeoShape.byRadius(new Distance(100D, KILOMETERS)),
+						newGeoRadiusArgs().includeDistance().sortDescending())
+				.as(StepVerifier::create) //
+				.consumeNextWith(actual -> {
+
+					assertThat(actual.getDistance().getValue()).isCloseTo(90.9778, offset(0.005));
+					assertThat(actual.getContent().getName()).isEqualTo(member1);
+				}) //
+				.consumeNextWith(actual -> {
+
+					assertThat(actual.getDistance().getValue()).isCloseTo(0.0, offset(0.005));
+					assertThat(actual.getContent().getName()).isEqualTo(member3);
+				}) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2043
+	@EnabledOnCommand("GEOSEARCH")
+	void geoSearchAndStoreShouldStoreItems() {
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		V member1 = valueFactory.instance();
+		V member2 = valueFactory.instance();
+		V member3 = valueFactory.instance();
+
+		geoOperations.add(key, POINT_PALERMO, member1).block();
+		geoOperations.add(key, POINT_CATANIA, member2).block();
+		geoOperations.add(key, POINT_ARIGENTO, member3).block();
+
+		geoOperations.searchAndStore(key, destKey, GeoReference.fromMember(member3), new Distance(100D, KILOMETERS))
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		redisTemplate.opsForZSet().size(destKey) //
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
 				.verifyComplete();
 	}
 }

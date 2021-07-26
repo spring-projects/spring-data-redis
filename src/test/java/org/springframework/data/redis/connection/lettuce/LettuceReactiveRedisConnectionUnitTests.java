@@ -241,4 +241,22 @@ class LettuceReactiveRedisConnectionUnitTests {
 
 		assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
 	}
+
+	@Test // GH-2047
+	void xaddShouldHonorNoMkStream() {
+
+		LettuceReactiveRedisConnection connection = new LettuceReactiveRedisConnection(connectionProvider);
+
+		ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+		when(reactiveCommands.xadd(any(ByteBuffer.class), args.capture(), anyMap())).thenReturn(Mono.just("1-1"));
+
+		MapRecord<ByteBuffer, ByteBuffer, ByteBuffer> record = MapRecord.create(ByteBuffer.wrap("key".getBytes()),
+				Collections.emptyMap());
+
+		connection.streamCommands().xAdd(Mono.just(AddStreamRecord.of(ByteBufferRecord.of(record)).makeNoStream()))
+				.subscribe();
+
+		assertThat(args.getValue()).extracting("nomkstream").isEqualTo(true);
+	}
+
 }

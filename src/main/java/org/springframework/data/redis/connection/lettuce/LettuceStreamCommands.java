@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Tugdual Grall
  * @author Dejan Jankov
  * @author Dengliming
+ * @author Mark John Moreno
  * @since 2.2
  */
 class LettuceStreamCommands implements RedisStreamCommands {
@@ -90,6 +91,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		if (options.hasMaxlen()) {
 			args.maxlen(options.getMaxlen());
 		}
+		args.nomkstream(options.isNoMkStream());
 
 		return connection.invoke().from(RedisStreamAsyncCommands::xadd, record.getStream(), args, record.getValue())
 				.get(RecordId::of);

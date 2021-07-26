@@ -22,7 +22,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -149,6 +151,34 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.sIsMember(rawKey(key), rawValue((V) o)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#isMember(java.lang.Object, java.lang.Object...)
+	 */
+	@Override
+	public Mono<Map<Object, Boolean>> isMember(K key, Object... objects) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return createMono(connection -> {
+
+			return Flux.fromArray((V[]) objects) //
+					.map(this::rawValue) //
+					.collectList() //
+					.flatMap(rawValues -> connection.sMIsMember(rawKey(key), rawValues)) //
+					.map(result -> {
+
+						Map<Object, Boolean> isMember = new LinkedHashMap<>(result.size());
+
+						for (int i = 0; i < objects.length; i++) {
+							isMember.put(objects[i], result.get(i));
+						}
+
+						return isMember;
+					});
+		});
 	}
 
 	/*

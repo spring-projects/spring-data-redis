@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
@@ -141,6 +142,15 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 	@Override
 	public Boolean isMember(Object o) {
 		return ops.isMember(getKey(), o);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundSetOperations#isMember(java.lang.Object...)
+	 */
+	@Override
+	public Map<Object, Boolean> isMember(Object... objects) {
+		return ops.isMember(getKey(), objects);
 	}
 
 	/*

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.KeyValue;
 import io.lettuce.core.MapScanCursor;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
@@ -25,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -122,6 +124,60 @@ class LettuceHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hgetall, key);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[])
+	 */
+	@Nullable
+	@Override
+	public byte[] hRandField(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisHashAsyncCommands::hrandfield, key);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[])
+	 */
+	@Nullable
+	@Override
+	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().from(RedisHashAsyncCommands::hrandfieldWithvalues, key)
+				.get(LettuceHashCommands::toEntry);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<byte[]> hRandField(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().just(RedisHashAsyncCommands::hrandfield, key, count);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[], long)
+	 */
+	@Nullable
+	@Override
+	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hrandfieldWithvalues, key, count)
+				.toList(LettuceHashCommands::toEntry);
 	}
 
 	/*
@@ -273,6 +329,11 @@ class LettuceHashCommands implements RedisHashCommands {
 		Assert.notNull(field, "Field must not be null!");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hstrlen, key, field);
+	}
+
+	@Nullable
+	private static Entry<byte[], byte[]> toEntry(KeyValue<byte[], byte[]> value) {
+		return value.hasValue() ? Converters.entryOf(value.getKey(), value.getValue()) : null;
 	}
 
 }

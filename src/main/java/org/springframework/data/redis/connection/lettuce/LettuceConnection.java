@@ -936,7 +936,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
 
-		if (isQueueing()) {
+		if (isQueueing() || isPipelined()) {
 			return getAsyncDedicatedConnection();
 		}
 
@@ -1209,6 +1209,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZINCRBY, DoubleOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZSCORE, DoubleOutput.class);
 
+			// DOUBLE LIST
+			COMMAND_OUTPUT_TYPE_MAPPING.put(ZMSCORE, DoubleListOutput.class);
+
 			// MAP
 			COMMAND_OUTPUT_TYPE_MAPPING.put(HGETALL, MapOutput.class);
 
@@ -1281,6 +1284,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(HSET, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(HSETNX, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(MOVE, BooleanOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(COPY, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(MSETNX, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(PERSIST, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(PEXPIRE, BooleanOutput.class);

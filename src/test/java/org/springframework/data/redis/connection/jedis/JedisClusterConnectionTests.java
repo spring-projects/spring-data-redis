@@ -23,6 +23,7 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisListCommands.*;
 import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
@@ -59,12 +60,12 @@ import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
+import org.springframework.data.redis.connection.RedisListCommands.*;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DigestUtils;
@@ -696,6 +697,26 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.getRange(KEY_1_BYTES, 0, 2)).isEqualTo(JedisConverters.toBytes("val"));
 	}
 
+	@Test // GH-2050
+	@EnabledOnCommand("GETEX")
+	public void getExShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.getEx(KEY_1_BYTES, Expiration.seconds(10))).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isGreaterThan(1);
+	}
+
+	@Test // GH-2050
+	@EnabledOnCommand("GETDEL")
+	public void getDelShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.getDel(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
+	}
+
 	@Test // DATAREDIS-315
 	public void getSetShouldWorkCorrectly() {
 
@@ -1009,6 +1030,39 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.lInsert(KEY_1_BYTES, Position.AFTER, VALUE_2_BYTES, JedisConverters.toBytes("booh!"));
 
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(2)).isEqualTo("booh!");
+	}
+
+	@Test // GH-2039
+	@EnabledOnCommand("LMOVE")
+	public void lMoveShouldMoveElementsCorrectly() {
+
+		nativeConnection.rpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_3_BYTES);
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_2_BYTES);
+
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).containsExactly(VALUE_1);
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
+	}
+
+	@Test // GH-2039
+	@EnabledOnCommand("BLMOVE")
+	public void blMoveShouldMoveElementsCorrectly() {
+
+		nativeConnection.rpush(SAME_SLOT_KEY_1, VALUE_2, VALUE_3);
+
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_3_BYTES);
+		assertThat(clusterConnection.lMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT))
+				.isEqualTo(VALUE_2_BYTES);
+		assertThat(
+				clusterConnection.bLMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT, 0.01))
+						.isNull();
+
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).isEmpty();
+		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
 	}
 
 	@Test // DATAREDIS-315
@@ -1569,6 +1623,16 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sIsMember(KEY_1_BYTES, VALUE_1_BYTES)).isTrue();
 	}
 
+	@Test // GH-2037
+	@EnabledOnCommand("SMISMEMBER")
+	public void sMIsMemberShouldReturnCorrectValues() {
+
+		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
+
+		assertThat(clusterConnection.sMIsMember(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES))
+				.containsExactly(true, true, false);
+	}
+
 	@Test // DATAREDIS-315
 	public void sMembersShouldReturnValuesContainedInSetCorrectly() {
 
@@ -1986,8 +2050,71 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrank(KEY_1_BYTES, VALUE_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAREDIS-315
+	@Test // GH-2041
+	public void zDiffShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zDiff(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zDiffStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zDiffWithScores(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-2041
+	@EnabledOnCommand("ZDIFF")
+	public void zDiffShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zDiff(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_1_BYTES);
+		assertThat(clusterConnection.zDiffWithScores(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES))
+				.contains(new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2041
+	@EnabledOnCommand("ZDIFFSTORE")
+	public void zDiffStoreShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2_BYTES, 20D, VALUE_2_BYTES);
+
+		clusterConnection.zDiffStore(SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3_BYTES, 0, -1)).contains(VALUE_1_BYTES);
+	}
+
+	@Test // GH-2042
+	public void zInterShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInter(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zInterWithScores(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZINTER")
+	public void zInterShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		nativeConnection.zadd(SAME_SLOT_KEY_2_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zInter(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_2_BYTES);
+		assertThat(clusterConnection.zInterWithScores(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES))
+				.contains(new DefaultTuple(VALUE_2_BYTES, 40D));
+	}
+
+	@Test // GH-2042
 	public void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
@@ -2004,6 +2131,79 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.zInterStore(SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
 
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3_BYTES, 0, -1)).contains(VALUE_2_BYTES);
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMIN")
+	public void zPopMinShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zPopMin(KEY_1_BYTES)).isEqualTo(new DefaultTuple(VALUE_1_BYTES, 10D));
+		assertThat(clusterConnection.zPopMin(KEY_1_BYTES, 2)).containsExactly(new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_3_BYTES, 30D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("BZPOPMIN")
+	public void bzPopMinShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.bZPopMin(KEY_1_BYTES, 1, TimeUnit.SECONDS))
+				.isEqualTo(new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("ZPOPMAX")
+	public void zPopMaxShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zPopMax(KEY_1_BYTES)).isEqualTo(new DefaultTuple(VALUE_3_BYTES, 30D));
+		assertThat(clusterConnection.zPopMax(KEY_1_BYTES, 2)).containsExactly(new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_1_BYTES, 10D));
+	}
+
+	@Test // GH-2007
+	@EnabledOnCommand("BZPOPMAX")
+	public void bzPopMaxShouldWorkCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.bZPopMax(KEY_1_BYTES, 1, TimeUnit.SECONDS))
+				.isEqualTo(new DefaultTuple(VALUE_3_BYTES, 30D));
+	}
+
+	@Test // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	public void zRandMemberShouldReturnResultCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zRandMember(KEY_1_BYTES)).isIn(VALUE_1_BYTES, VALUE_2_BYTES);
+		assertThat(clusterConnection.zRandMember(KEY_1_BYTES, 2)).hasSize(2).contains(VALUE_1_BYTES, VALUE_2_BYTES);
+
+	}
+
+	@Test // GH-2049
+	@EnabledOnCommand("ZRANDMEMBER")
+	public void zRandMemberWithScoreShouldReturnResultCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zRandMemberWithScore(KEY_1_BYTES)).isNotNull();
+		assertThat(clusterConnection.zRandMemberWithScore(KEY_1_BYTES, 2)).hasSize(2);
 	}
 
 	@Test // DATAREDIS-315
@@ -2282,6 +2482,39 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
 
 		assertThat(clusterConnection.zScore(KEY_1_BYTES, VALUE_2_BYTES)).isEqualTo(20D);
+	}
+
+	@Test // GH-2038
+	@EnabledOnCommand("ZMSCORE")
+	public void zMScoreShouldRetrieveScoreForValues() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zMScore(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES)).containsSequence(10D, 20D);
+	}
+
+	@Test // GH-2042
+	public void zUnionShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zUnion(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+		assertThatExceptionOfType(DataAccessException.class)
+				.isThrownBy(() -> clusterConnection.zUnionWithScores(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
+	}
+
+	@Test // GH-2042
+	@EnabledOnCommand("ZUNION")
+	public void zUnionShouldWorkForSameSlotKeys() {
+
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 30D, VALUE_3_BYTES);
+		nativeConnection.zadd(SAME_SLOT_KEY_2_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zUnion(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_1_BYTES,
+				VALUE_2_BYTES, VALUE_3_BYTES);
+		assertThat(clusterConnection.zUnionWithScores(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(
+				new DefaultTuple(VALUE_1_BYTES, 10D), new DefaultTuple(VALUE_2_BYTES, 20D),
+				new DefaultTuple(VALUE_3_BYTES, 30D));
 	}
 
 	@Test // DATAREDIS-315

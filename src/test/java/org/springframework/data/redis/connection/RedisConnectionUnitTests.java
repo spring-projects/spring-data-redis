@@ -657,6 +657,22 @@ class RedisConnectionUnitTests {
 			return delegate.hGetAll(key);
 		}
 
+		public byte[] hRandField(byte[] key) {
+			return delegate.hRandField(key);
+		}
+
+		public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+			return delegate.hRandFieldWithValues(key);
+		}
+
+		public List<byte[]> hRandField(byte[] key, long count) {
+			return delegate.hRandField(key, count);
+		}
+
+		public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+			return delegate.hRandFieldWithValues(key, count);
+		}
+
 		public Boolean move(byte[] key, int dbIndex) {
 			return delegate.move(key, dbIndex);
 		}
@@ -831,6 +847,10 @@ class RedisConnectionUnitTests {
 
 		public Double zScore(byte[] key, byte[] value) {
 			return delegate.zScore(key, value);
+		}
+
+		public List<Double> zMScore(byte[] key, byte[][] values) {
+			return delegate.zMScore(key, values);
 		}
 
 		public Long zRemRange(byte[] key, long begin, long end) {

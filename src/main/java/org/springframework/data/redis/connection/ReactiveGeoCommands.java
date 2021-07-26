@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
+
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -27,6 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -37,9 +42,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
-import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -672,7 +674,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(flag, "Flag must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.flags.add(flag);
+			args.getFlags().add(flag);
 
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
@@ -735,7 +737,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(direction, "Direction must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.sortDirection = direction;
+			args.sort(direction);
 
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
@@ -1007,7 +1009,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(flag, "Flag must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.flags.add(flag);
+			args.getFlags().add(flag);
 
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
@@ -1069,7 +1071,7 @@ public interface ReactiveGeoCommands {
 			Assert.notNull(direction, "Direction must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			args.sortDirection = direction;
+			args.sort(direction);
 
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
@@ -1239,4 +1241,261 @@ public interface ReactiveGeoCommands {
 	 */
 	Flux<CommandResponse<GeoRadiusByMemberCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadiusByMember(
 			Publisher<GeoRadiusByMemberCommand> commands);
+
+	/**
+	 * {@code GEOSEARCH} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	class GeoSearchCommand extends KeyCommand {
+
+		private final @Nullable GeoReference<ByteBuffer> reference;
+		private final @Nullable GeoShape shape;
+		private final @Nullable GeoSearchCommandArgs args;
+
+		private GeoSearchCommand(@Nullable ByteBuffer key, @Nullable GeoReference<ByteBuffer> reference,
+				@Nullable GeoShape shape, @Nullable GeoSearchCommandArgs args) {
+			super(key);
+			this.reference = reference;
+			this.shape = shape;
+			this.args = args;
+		}
+
+		/**
+		 * Creates a new {@link GeoSearchCommand} given a {@link GeoShape}.
+		 *
+		 * @param shape must not be {@literal null}.
+		 * @return a new {@link GeoSearchCommand} for a {@link GeoShape}.
+		 */
+		public static GeoSearchCommand within(GeoShape shape) {
+
+			Assert.notNull(shape, "GeoShape must not be null!");
+
+			return new GeoSearchCommand(null, null, shape, null);
+		}
+
+		/**
+		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoSearchCommand} with {@literal key} applied.
+		 */
+		public GeoSearchCommand at(GeoReference<ByteBuffer> reference) {
+
+			Assert.notNull(reference, "GeoReference must not be null!");
+
+			return new GeoSearchCommand(getKey(), reference, getShape(), args);
+		}
+
+		/**
+		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoSearchCommand} with {@literal key} applied.
+		 */
+		public GeoSearchCommand in(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new GeoSearchCommand(key, getReference(), getShape(), args);
+		}
+
+		/**
+		 * Sets the command {@literal args}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param args must not be {@literal null}.
+		 * @return a new {@link GeoSearchCommand} with {@literal args} applied.
+		 */
+		public GeoSearchCommand with(GeoSearchCommandArgs args) {
+
+			Assert.notNull(args, "Args must not be null!");
+
+			return new GeoSearchCommand(getKey(), getReference(), getShape(), args);
+		}
+
+		public Optional<GeoSearchCommandArgs> getArgs() {
+			return Optional.ofNullable(args);
+		}
+
+		@Nullable
+		public GeoReference<ByteBuffer> getReference() {
+			return reference;
+		}
+
+		@Nullable
+		public GeoShape getShape() {
+			return shape;
+		}
+	}
+
+	/**
+	 * {@code GEOSEARCHSTORE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	class GeoSearchStoreCommand extends KeyCommand {
+
+		private final @Nullable ByteBuffer destKey;
+		private final @Nullable GeoReference<ByteBuffer> reference;
+		private final @Nullable GeoShape shape;
+		private final @Nullable GeoSearchStoreCommandArgs args;
+
+		private GeoSearchStoreCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer destKey,
+				@Nullable GeoReference<ByteBuffer> reference, @Nullable GeoShape shape,
+				@Nullable GeoSearchStoreCommandArgs args) {
+			super(key);
+			this.destKey = destKey;
+			this.reference = reference;
+			this.shape = shape;
+			this.args = args;
+		}
+
+		/**
+		 * Creates a new {@link GeoSearchStoreCommand} given a {@link GeoShape}.
+		 *
+		 * @param shape must not be {@literal null}.
+		 * @return a new {@link GeoSearchStoreCommand} for a {@link GeoShape}.
+		 */
+		public static GeoSearchStoreCommand within(GeoShape shape) {
+
+			Assert.notNull(shape, "GeoShape must not be null!");
+
+			return new GeoSearchStoreCommand(null, null, null, shape, null);
+		}
+
+		/**
+		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoSearchStoreCommand} with {@literal key} applied.
+		 */
+		public GeoSearchStoreCommand at(GeoReference<ByteBuffer> reference) {
+
+			Assert.notNull(reference, "GeoReference must not be null!");
+
+			return new GeoSearchStoreCommand(getKey(), getDestKey(), reference, getShape(), args);
+		}
+
+		/**
+		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoSearchStoreCommand} with {@literal key} applied.
+		 */
+		public GeoSearchStoreCommand in(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new GeoSearchStoreCommand(key, getDestKey(), getReference(), getShape(), args);
+		}
+
+		/**
+		 * Sets the geoset {@literal destKey}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoSearchStoreCommand} with {@literal destKey} applied.
+		 */
+		public GeoSearchStoreCommand storeAt(ByteBuffer destKey) {
+
+			Assert.notNull(destKey, "Destination key must not be null!");
+
+			return new GeoSearchStoreCommand(getKey(), destKey, getReference(), getShape(), args);
+		}
+
+		/**
+		 * Sets the command {@literal args}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param args must not be {@literal null}.
+		 * @return a new {@link GeoSearchStoreCommand} with {@literal args} applied.
+		 */
+		public GeoSearchStoreCommand with(GeoSearchStoreCommandArgs args) {
+
+			Assert.notNull(args, "Args must not be null!");
+
+			return new GeoSearchStoreCommand(getKey(), getDestKey(), getReference(), getShape(), args);
+		}
+
+		@Nullable
+		public ByteBuffer getDestKey() {
+			return destKey;
+		}
+
+		public Optional<GeoSearchStoreCommandArgs> getArgs() {
+			return Optional.ofNullable(args);
+		}
+
+		@Nullable
+		public GeoReference<ByteBuffer> getReference() {
+			return reference;
+		}
+
+		@Nullable
+		public GeoShape getShape() {
+			return shape;
+		}
+	}
+
+	/**
+	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
+	 * shape}. The query's center point is provided by {@link GeoReference}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param shape must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoSearch(ByteBuffer key, GeoReference<ByteBuffer> reference,
+			GeoShape shape, GeoSearchCommandArgs args) {
+		return geoSearch(Mono.just(GeoSearchCommand.within(shape).in(key).at(reference).with(args)))
+				.flatMap(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Get the {@literal member}s within given {@link GeoShape} from {@link GeoReference} applying given parameters.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	Flux<CommandResponse<GeoSearchCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoSearch(
+			Publisher<GeoSearchCommand> commands);
+
+	/**
+	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
+	 * and store the result at {@code destKey}. The query's center point is provided by {@link GeoReference}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param reference must not be {@literal null}.
+	 * @param shape must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
+	 */
+	default Mono<Long> geoSearchStore(ByteBuffer destKey, ByteBuffer key, GeoReference<ByteBuffer> reference,
+			GeoShape shape, GeoSearchStoreCommandArgs args) {
+		return geoSearchStore(
+				Mono.just(GeoSearchStoreCommand.within(shape).in(key).storeAt(destKey).at(reference).with(args))).next()
+						.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Store the {@literal member}s within given {@link GeoShape} from {@link GeoReference} applying given parameters in a
+	 * new geo set.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
+	 */
+	Flux<NumericResponse<GeoSearchStoreCommand, Long>> geoSearchStore(Publisher<GeoSearchStoreCommand> commands);
+
 }

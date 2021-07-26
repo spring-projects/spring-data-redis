@@ -21,10 +21,13 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.BoundZSetOperations;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -40,16 +43,223 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
+	/**
+	 * Constructs a new {@link RedisZSet} instance with a default score of {@literal 1}.
+	 *
+	 * @param key Redis key of this set.
+	 * @param operations {@link RedisOperations} for the value type of this set.
+	 * @since 2.6
+	 */
+	static <E> RedisZSet<E> create(String key, RedisOperations<String, E> operations) {
+		return new DefaultRedisZSet<>(key, operations, 1);
+	}
+
+	/**
+	 * Constructs a new {@link RedisZSet} instance.
+	 *
+	 * @param key Redis key of this set.
+	 * @param operations {@link RedisOperations} for the value type of this set.
+	 * @param defaultScore
+	 * @since 2.6
+	 */
+	static <E> RedisZSet<E> create(String key, RedisOperations<String, E> operations, double defaultScore) {
+		return new DefaultRedisZSet<>(key, operations, defaultScore);
+	}
+
+	/**
+	 * Diff this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ.
+	 * @since 2.6
+	 */
+	Set<E> diff(RedisZSet<?> set);
+
+	/**
+	 * Diff this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ.
+	 * @since 2.6
+	 */
+	Set<E> diff(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Diff this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> diffWithScores(RedisZSet<?> set);
+
+	/**
+	 * Diff this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the values that differ with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> diffWithScores(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Create a new {@link RedisZSet} by diffing this sorted set and {@link RedisZSet} and store result in destination
+	 * {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}.
+	 * @since 2.6
+	 */
+	RedisZSet<E> diffAndStore(RedisZSet<?> set, String destKey);
+
+	/**
+	 * Create a new {@link RedisZSet} by diffing this sorted set and the collection {@link RedisZSet} and store result in
+	 * destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}.
+	 * @since 2.6
+	 */
+	RedisZSet<E> diffAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
+
+	/**
+	 * Intersect this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values.
+	 * @since 2.6
+	 */
+	Set<E> intersect(RedisZSet<?> set);
+
+	/**
+	 * Intersect this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values.
+	 * @since 2.6
+	 */
+	Set<E> intersect(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Intersect this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> intersectWithScores(RedisZSet<?> set);
+
+	/**
+	 * Intersect this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the intersecting values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> intersectWithScores(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Create a new {@link RedisZSet} by intersecting this sorted set and {@link RedisZSet} and store result in
+	 * destination {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 */
 	RedisZSet<E> intersectAndStore(RedisZSet<?> set, String destKey);
 
+	/**
+	 * Create a new {@link RedisZSet} by intersecting this sorted set and the collection {@link RedisZSet} and store
+	 * result in destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 */
 	RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
 
+	/**
+	 * Union this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values.
+	 * @since 2.6
+	 */
+	Set<E> union(RedisZSet<?> set);
+
+	/**
+	 * Union this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values.
+	 * @since 2.6
+	 */
+	Set<E> union(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Union this set and another {@link RedisZSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> unionWithScores(RedisZSet<?> set);
+
+	/**
+	 * Union this set and other {@link RedisZSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return a {@link Set} containing the combined values with their scores.
+	 * @since 2.6
+	 */
+	Set<TypedTuple<E>> unionWithScores(Collection<? extends RedisZSet<?>> sets);
+
+	/**
+	 * Create a new {@link RedisZSet} by union this sorted set and {@link RedisZSet} and store result in destination
+	 * {@code destKey}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 */
 	RedisZSet<E> unionAndStore(RedisZSet<?> set, String destKey);
 
+	/**
+	 * Create a new {@link RedisZSet} by union this sorted set and the collection {@link RedisZSet} and store result in
+	 * destination {@code destKey}.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 */
 	RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
 
+	/**
+	 * Get random element from the set.
+	 *
+	 * @return
+	 * @since 2.6
+	 */
+	E randomValue();
+
+	/**
+	 * Get elements between {@code start} and {@code end} from sorted set.
+	 *
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	Set<E> range(long start, long end);
 
+	/**
+	 * Get elements in range from {@code start} to {@code end} from sorted set ordered from high to low.
+	 *
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	Set<E> reverseRange(long start, long end);
 
 	/**
@@ -104,29 +314,88 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 */
 	Set<E> reverseRangeByLex(Range range, Limit limit);
 
+	/**
+	 * Get elements where score is between {@code min} and {@code max} from sorted set.
+	 *
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	Set<E> rangeByScore(double min, double max);
 
+	/**
+	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered from high to low.
+	 *
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	Set<E> reverseRangeByScore(double min, double max);
 
+	/**
+	 * Get set of {@link RedisZSetCommands.Tuple}s between {@code start} and {@code end} from sorted set.
+	 *
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	Set<TypedTuple<E>> rangeWithScores(long start, long end);
 
+	/**
+	 * Get set of {@link RedisZSetCommands.Tuple}s in range from {@code start} to {@code end} from sorted set ordered from
+	 * high to low.
+	 *
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	Set<TypedTuple<E>> reverseRangeWithScores(long start, long end);
 
+	/**
+	 * Get set of {@link RedisZSetCommands.Tuple}s where score is between {@code min} and {@code max} from sorted set.
+	 *
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	Set<TypedTuple<E>> rangeByScoreWithScores(double min, double max);
 
+	/**
+	 * Get set of {@link RedisZSetCommands.Tuple}s where score is between {@code min} and {@code max} from sorted set
+	 * ordered from high to low.
+	 *
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	Set<TypedTuple<E>> reverseRangeByScoreWithScores(double min, double max);
 
+	/**
+	 * Remove elements in range between {@code start} and {@code end} from sorted set.
+	 *
+	 * @param start
+	 * @param end
+	 * @return {@code this} set.
+	 */
 	RedisZSet<E> remove(long start, long end);
 
 	/**
 	 * Remove all elements in range.
 	 *
 	 * @param range must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return {@code this} set.
 	 * @since 2.5
 	 */
+	// TODO: Switch to RedisZSet
 	Set<E> removeByLex(Range range);
 
+	/**
+	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.
+	 *
+	 * @param min
+	 * @param max
+	 * @return {@code this} set.
+	 */
 	RedisZSet<E> removeByScore(double min, double max);
 
 	/**
@@ -218,12 +487,56 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	E first();
 
 	/**
+	 * Removes the first (lowest) object at the top of this sorted set and returns that object as the value of this
+	 * function.
+	 *
+	 * @return the first (lowest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popFirst();
+
+	/**
+	 * Removes the first (lowest) object at the top of this sorted set and returns that object as the value of this
+	 * function. <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return the first (lowest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popFirst(long timeout, TimeUnit unit);
+
+	/**
 	 * Returns the last (highest) element currently in this sorted set.
 	 *
 	 * @return the last (highest) element currently in this sorted set.
 	 * @throws NoSuchElementException sorted set is empty.
 	 */
 	E last();
+
+	/**
+	 * Removes the last (highest) object at the top of this sorted set and returns that object as the value of this
+	 * function.
+	 *
+	 * @return the last (highest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popLast();
+
+	/**
+	 * Removes the last (highest) object at the top of this sorted set and returns that object as the value of this
+	 * function. <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return the last (highest) element currently in this sorted set.
+	 * @throws NoSuchElementException sorted set is empty.
+	 * @since 2.6
+	 */
+	E popLast(long timeout, TimeUnit unit);
 
 	/**
 	 * @since 1.4

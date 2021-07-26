@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.lang.Nullable;
@@ -107,6 +108,18 @@ public interface SetOperations<K, V> {
 	 */
 	@Nullable
 	Boolean isMember(K key, Object o);
+
+	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param objects
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	@Nullable
+	Map<Object, Boolean> isMember(K key, Object... objects);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code key} and {@code otherKey}.

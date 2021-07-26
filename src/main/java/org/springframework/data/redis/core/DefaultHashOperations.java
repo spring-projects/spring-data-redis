@@ -24,7 +24,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link HashOperations}.
@@ -89,6 +91,67 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
 		return execute(connection -> connection.hIncrBy(rawKey, rawHashKey, delta), true);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#randomField(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public HK randomKey(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return deserializeHashKey(execute(connection -> connection.hRandField(rawKey), true));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#randomValue(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public Entry<HK, HV> randomEntry(K key) {
+
+		byte[] rawKey = rawKey(key);
+		Entry<byte[], byte[]> rawEntry = execute(connection -> connection.hRandFieldWithValues(rawKey), true);
+		return rawEntry == null ? null
+				: Converters.entryOf(deserializeHashKey(rawEntry.getKey()), deserializeHashValue(rawEntry.getValue()));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#randomFields(java.lang.Object, long)
+	 */
+	@Nullable
+	@Override
+	public List<HK> randomKeys(K key, long count) {
+
+		byte[] rawKey = rawKey(key);
+		List<byte[]> rawValues = execute(connection -> connection.hRandField(rawKey, count), true);
+		return deserializeHashKeys(rawValues);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#randomValues(java.lang.Object, long)
+	 */
+	@Nullable
+	@Override
+	public Map<HK, HV> randomEntries(K key, long count) {
+
+		Assert.isTrue(count > 0, "Count must not be negative");
+		byte[] rawKey = rawKey(key);
+		List<Entry<byte[], byte[]>> rawEntries = execute(connection -> connection.hRandFieldWithValues(rawKey, count),
+				true);
+
+		if (rawEntries == null) {
+			return null;
+		}
+
+		Map<byte[], byte[]> rawMap = new LinkedHashMap<>(rawEntries.size());
+		rawEntries.forEach(entry -> rawMap.put(entry.getKey(), entry.getValue()));
+		return deserializeHashMap(rawMap);
 	}
 
 	/*
@@ -261,24 +324,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 							@Override
 							public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
-
-								return new Entry<HK, HV>() {
-
-									@Override
-									public HK getKey() {
-										return deserializeHashKey(source.getKey());
-									}
-
-									@Override
-									public HV getValue() {
-										return deserializeHashValue(source.getValue());
-									}
-
-									@Override
-									public HV setValue(HV value) {
-										throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
-									}
-								};
+								return Converters.entryOf(deserializeHashKey(source.getKey()), deserializeHashValue(source.getValue()));
 							}
 						}));
 

@@ -63,21 +63,20 @@ class StreamConverters {
 	}
 
 	static String getLowerValue(Range<String> range) {
-
-		if (range.getLowerBound().equals(Range.Bound.unbounded())) {
-			return "-";
-		}
-
-		return range.getLowerBound().getValue().orElse("-");
+		return getValue(range.getLowerBound(), "-");
 	}
 
 	static String getUpperValue(Range<String> range) {
+		return getValue(range.getUpperBound(), "+");
+	}
 
-		if (range.getUpperBound().equals(Range.Bound.unbounded())) {
-			return "+";
+	private static String getValue(Range.Bound<String> bound, String fallbackValue) {
+
+		if (bound.equals(Range.Bound.unbounded())) {
+			return fallbackValue;
 		}
 
-		return range.getUpperBound().getValue().orElse("+");
+		return bound.getValue().map(it -> bound.isInclusive() ? it : "(" + it).orElse(fallbackValue);
 	}
 
 	static List<Object> mapToList(Map<String, Object> map) {

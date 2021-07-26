@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -170,6 +171,10 @@ class JedisKeyCommands implements RedisKeyCommands {
 	 * @return
 	 */
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
+
+		if (options instanceof KeyScanOptions && ((KeyScanOptions) options).getType() != null) {
+			throw new UnsupportedOperationException("'SCAN' with type is not yet supported using the Jedis driver");
+		}
 
 		return new ScanCursor<byte[]>(cursorId, options) {
 

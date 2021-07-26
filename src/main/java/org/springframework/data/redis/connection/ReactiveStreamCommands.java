@@ -58,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Tugdual Grall
  * @author Dengliming
+ * @author Mark John Moreno
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -199,12 +200,14 @@ public interface ReactiveStreamCommands {
 
 		private final ByteBufferRecord record;
 		private final @Nullable Long maxlen;
+		private final boolean nomkstream;
 
-		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen) {
+		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean nomkstream) {
 
 			super(record.getStream());
 			this.record = record;
 			this.maxlen = maxlen;
+			this.nomkstream = nomkstream;
 		}
 
 		/**
@@ -217,7 +220,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null!");
 
-			return new AddStreamRecord(record, null);
+			return new AddStreamRecord(record, null, false);
 		}
 
 		/**
@@ -230,7 +233,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null!");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body), null);
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false);
 		}
 
 		/**
@@ -240,7 +243,7 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key), maxlen);
+			return new AddStreamRecord(record.withStreamKey(key), maxlen, false);
 		}
 
 		/**
@@ -249,7 +252,28 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord maxlen(long maxlen) {
-			return new AddStreamRecord(record, maxlen);
+			return new AddStreamRecord(record, maxlen, false);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @return new instance of {@link AddStreamRecord}.
+		 * @since 2.6
+		 */
+		public AddStreamRecord makeNoStream() {
+			return new AddStreamRecord(record, maxlen, true);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @param makeNoStream {@code true} to not create a stream if it does not already exist.
+		 * @return new instance of {@link AddStreamRecord}.
+		 * @since 2.6
+		 */
+		public AddStreamRecord makeNoStream(boolean makeNoStream) {
+			return new AddStreamRecord(record, maxlen, makeNoStream);
 		}
 
 		/**
@@ -280,6 +304,14 @@ public interface ReactiveStreamCommands {
 		 */
 		public boolean hasMaxlen() {
 			return maxlen != null && maxlen > 0;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal NOMKSTREAM} is set.
+		 * @since 2.6
+		 */
+		public boolean isNoMkStream() {
+			return nomkstream;
 		}
 	}
 

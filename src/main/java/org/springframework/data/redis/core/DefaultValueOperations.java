@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -55,6 +56,74 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.get(rawKey);
+			}
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#getAndDelete(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public V getAndDelete(K key) {
+
+		return execute(new ValueDeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.getDel(rawKey);
+			}
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#getAndPersist(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
+	@Nullable
+	@Override
+	public V getAndExpire(K key, long timeout, TimeUnit unit) {
+
+		return execute(new ValueDeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.getEx(rawKey, Expiration.from(timeout, unit));
+			}
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#getAndPersist(java.lang.Object, java.time.Duration)
+	 */
+	@Nullable
+	@Override
+	public V getAndExpire(K key, Duration timeout) {
+
+		return execute(new ValueDeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.getEx(rawKey, Expiration.from(timeout));
+			}
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#getAndPersist(java.lang.Object)
+	 */
+	@Nullable
+	@Override
+	public V getAndPersist(K key) {
+
+		return execute(new ValueDeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.getEx(rawKey, Expiration.persistent());
 			}
 		}, true);
 	}

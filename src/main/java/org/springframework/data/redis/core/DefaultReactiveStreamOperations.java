@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.convert.Converters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -422,8 +423,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	}
 
 	private Entry<HK, HV> deserializeRecordFields(Entry<ByteBuffer, ByteBuffer> it) {
-		return Collections.singletonMap(readHashKey(it.getKey()), deserializeHashValue(it.getValue())).entrySet().iterator()
-				.next();
+		return Converters.entryOf(readHashKey(it.getKey()), deserializeHashValue(it.getValue()));
 	}
 
 	private ByteBufferRecord serializeRecord(MapRecord<K, ? extends HK, ? extends HV> record) {
@@ -432,6 +432,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	}
 
 	private Entry<ByteBuffer, ByteBuffer> serializeRecordFields(Entry<? extends HK, ? extends HV> it) {
-		return Collections.singletonMap(rawHashKey(it.getKey()), rawValue(it.getValue())).entrySet().iterator().next();
+		return Converters.entryOf(rawHashKey(it.getKey()), rawValue(it.getValue()));
 	}
 }

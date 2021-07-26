@@ -18,11 +18,11 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import org.springframework.data.redis.connection.convert.Converters;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -228,6 +229,81 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	void randomField() {
+
+		assumeThat(hashValueFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		hashOperations.put(key, hashkey1, hashvalue1) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.put(key, hashkey2, hashvalue2) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.randomKey(key) //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).isIn(hashkey1, hashkey2);
+				}).verifyComplete();
+
+		hashOperations.randomKeys(key, -10) //
+				.collectList().as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).hasSize(10);
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2048
+	@EnabledOnCommand("HRANDFIELD")
+	void randomValue() {
+
+		assumeThat(hashValueFactory).isNotInstanceOf(RawObjectFactory.class);
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		hashOperations.put(key, hashkey1, hashvalue1) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.put(key, hashkey2, hashvalue2) //
+				.as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		hashOperations.randomEntry(key) //
+				.as(StepVerifier::create) //
+				.assertNext(actual -> {
+
+					if (actual.getKey().equals(hashkey1)) {
+						assertThat(actual.getValue()).isEqualTo(hashvalue1);
+					} else {
+						assertThat(actual.getValue()).isEqualTo(hashvalue2);
+					}
+				}).verifyComplete();
+
+		hashOperations.randomEntries(key, -10) //
+				.collectList().as(StepVerifier::create) //
+				.assertNext(actual -> {
+					assertThat(actual).hasSize(10);
+				}).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-602
 	@SuppressWarnings("unchecked")
 	void incrementDouble() {
@@ -386,8 +462,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.as(StepVerifier::create) //
 				.consumeNextWith(list -> {
 
-					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
-					Entry<HK, HV> entry2 = Collections.singletonMap(hashkey2, hashvalue2).entrySet().iterator().next();
+					Entry<HK, HV> entry1 = Converters.entryOf(hashkey1, hashvalue1);
+					Entry<HK, HV> entry2 = Converters.entryOf(hashkey2, hashvalue2);
 
 					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
 				}) //
@@ -413,8 +489,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.as(StepVerifier::create) //
 				.consumeNextWith(list -> {
 
-					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
-					Entry<HK, HV> entry2 = Collections.singletonMap(hashkey2, hashvalue2).entrySet().iterator().next();
+					Entry<HK, HV> entry1 = Converters.entryOf(hashkey1, hashvalue1);
+					Entry<HK, HV> entry2 = Converters.entryOf(hashkey2, hashvalue2);
 
 					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
 				}) //

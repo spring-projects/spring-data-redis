@@ -36,7 +36,7 @@ public class RedisListIntegrationTests extends AbstractRedisListIntegrationTests
 	}
 
 	RedisStore copyStore(RedisStore store) {
-		return new DefaultRedisList<>(store.getKey(), store.getOperations());
+		return RedisList.create(store.getKey(), store.getOperations());
 	}
 
 	AbstractRedisCollection<Object> createCollection() {

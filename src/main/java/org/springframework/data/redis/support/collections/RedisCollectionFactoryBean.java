@@ -106,13 +106,13 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 	private RedisStore createStore(DataType dt) {
 		switch (dt) {
 			case LIST:
-				return new DefaultRedisList(key, template);
+				return RedisList.create(key, template);
 
 			case SET:
 				return new DefaultRedisSet(key, template);
 
 			case ZSET:
-				return new DefaultRedisZSet(key, template);
+				return RedisZSet.create(key, template);
 
 			case HASH:
 				if (CollectionType.PROPERTIES.equals(type)) {
