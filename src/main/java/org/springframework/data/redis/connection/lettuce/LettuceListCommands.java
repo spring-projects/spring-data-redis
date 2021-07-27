@@ -307,13 +307,13 @@ class LettuceListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		if (TimeUnit.MILLISECONDS == unit) {
+		if (TimeUnit.SECONDS == unit) {
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+					.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
+		} else {
 			return connection.invoke(connection.getAsyncDedicatedConnection())
 					.from(RedisListAsyncCommands::blpop, TimeoutUtils.toDoubleSeconds(timeout, unit), keys).get(LettuceListCommands::toBytesList);
 		}
-
-		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
 	}
 
 	/*
@@ -336,13 +336,13 @@ class LettuceListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		if (TimeUnit.MILLISECONDS == unit) {
+		if (TimeUnit.SECONDS == unit) {
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+					.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceListCommands::toBytesList);
+		} else {
 			return connection.invoke(connection.getAsyncDedicatedConnection())
 					.from(RedisListAsyncCommands::brpop, TimeoutUtils.toDoubleSeconds(timeout, unit), keys).get(LettuceListCommands::toBytesList);
 		}
-
-		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceListCommands::toBytesList);
 	}
 
 	/*
