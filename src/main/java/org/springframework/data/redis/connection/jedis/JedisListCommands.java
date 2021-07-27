@@ -297,7 +297,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, TimeUnit.SECONDS, keys));
+		return bLPop(timeout, TimeUnit.SECONDS, keys);
 	}
 
 	/*
@@ -311,11 +311,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		if (TimeUnit.MILLISECONDS == unit) {
-			return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, unit, keys));
-		}
-
-		return bLPop(timeout, keys);
+		return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, unit, keys));
 	}
 
 	/*
@@ -328,7 +324,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::brpop, MultiKeyPipelineBase::brpop, bXPopArgs(timeout, TimeUnit.SECONDS, keys));
+		return bRPop(timeout, TimeUnit.SECONDS, keys);
 	}
 
 	/*
