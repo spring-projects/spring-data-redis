@@ -373,10 +373,10 @@ class JedisListCommands implements RedisListCommands {
 		byte[][] args = new byte[keys.length + 1][];
 		System.arraycopy(keys, 0, args, 0, keys.length);
 
-		if (TimeUnit.MILLISECONDS == unit) {
-			args[args.length - 1] = Protocol.toByteArray(TimeoutUtils.toDoubleSeconds(timeout, unit));
-		} else {
+		if (TimeUnit.SECONDS == unit) {
 			args[args.length - 1] = Protocol.toByteArray(timeout);
+		} else {
+			args[args.length - 1] = Protocol.toByteArray(TimeoutUtils.toDoubleSeconds(timeout, unit));
 		}
 
 		return args;
