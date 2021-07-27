@@ -383,26 +383,26 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
-				if (TimeUnit.MILLISECONDS == unit) {
-					return connection.getCluster().blpop(TimeoutUtils.toDoubleSeconds(timeout, unit), keys);
-				} else {
+				if (TimeUnit.SECONDS == unit) {
 					return connection.getCluster().blpop(timeout, keys);
+				} else {
+					return connection.getCluster().blpop(TimeoutUtils.toDoubleSeconds(timeout, unit), keys);
 				}
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
-		if (TimeUnit.MILLISECONDS == unit) {
+		if (TimeUnit.SECONDS == unit) {
 			return connection.getClusterCommandExecutor()
 					.executeMultiKeyCommand(
-							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(TimeoutUtils.toDoubleSeconds(timeout, unit), key),
+							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(timeout, key),
 							Arrays.asList(keys))
 					.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 		} else {
 			return connection.getClusterCommandExecutor()
 					.executeMultiKeyCommand(
-							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(timeout, key),
+							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(TimeoutUtils.toDoubleSeconds(timeout, unit), key),
 							Arrays.asList(keys))
 					.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 		}
@@ -430,26 +430,26 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
-				if (TimeUnit.MILLISECONDS == unit) {
-					return connection.getCluster().brpop(TimeoutUtils.toDoubleSeconds(timeout, unit), keys);
-				} else {
+				if (TimeUnit.SECONDS == unit) {
 					return connection.getCluster().brpop(timeout, keys);
+				} else {
+					return connection.getCluster().brpop(TimeoutUtils.toDoubleSeconds(timeout, unit), keys);
 				}
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
-		if (TimeUnit.MILLISECONDS == unit) {
+		if (TimeUnit.SECONDS == unit) {
 			return connection.getClusterCommandExecutor()
 					.executeMultiKeyCommand(
-							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(TimeoutUtils.toDoubleSeconds(timeout, unit), key),
+							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(timeout, key),
 							Arrays.asList(keys))
 					.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 		} else {
 			return connection.getClusterCommandExecutor()
 					.executeMultiKeyCommand(
-							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(timeout, key),
+							(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(TimeoutUtils.toDoubleSeconds(timeout, unit), key),
 							Arrays.asList(keys))
 					.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 		}
