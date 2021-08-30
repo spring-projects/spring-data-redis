@@ -15,25 +15,38 @@
  */
 package org.springframework.data.redis.repository.support;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
+import org.springframework.data.mapping.model.EntityInstantiators;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.repository.query.ExampleQueryMapper;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.util.Streamable;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,11 +60,14 @@ import org.springframework.util.Assert;
  * @since 2.1
  */
 @SuppressWarnings("unchecked")
-public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T> {
+public class QueryByExampleRedisExecutor<T>
+		implements QueryByExampleExecutor<T>, BeanFactoryAware, BeanClassLoaderAware {
 
 	private final EntityInformation<T, ?> entityInformation;
 	private final RedisKeyValueTemplate keyValueTemplate;
 	private final ExampleQueryMapper mapper;
+	private final SpelAwareProxyProjectionFactory projectionFactory;
+	private final EntityInstantiators entityInstantiators = new EntityInstantiators();
 
 	/**
 	 * Create a new {@link QueryByExampleRedisExecutor} given {@link EntityInformation} and {@link RedisKeyValueTemplate}.
@@ -85,6 +101,17 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 		this.keyValueTemplate = keyValueTemplate;
 
 		this.mapper = new ExampleQueryMapper(keyValueTemplate.getMappingContext(), indexResolver);
+		this.projectionFactory = new SpelAwareProxyProjectionFactory();
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.projectionFactory.setBeanFactory(beanFactory);
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.projectionFactory.setBeanClassLoader(classLoader);
 	}
 
 	/*
@@ -94,21 +121,32 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
-		RedisOperationChain operationChain = createQuery(example);
+		return Optional.ofNullable(doFindOne(example));
+	}
 
-		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(operationChain);
-		Iterator<T> iterator = keyValueTemplate.find(query.limit(2), entityInformation.getJavaType()).iterator();
+	@Nullable
+	private <S extends T> S doFindOne(Example<S> example) {
 
-		Optional result = Optional.empty();
+		Iterator<S> iterator = doFind(example);
 
 		if (iterator.hasNext()) {
-			result = Optional.of((S) iterator.next());
+			S result = iterator.next();
 			if (iterator.hasNext()) {
 				throw new IncorrectResultSizeDataAccessException(1);
 			}
+
+			return result;
 		}
 
-		return result;
+		return null;
+	}
+
+	private <S extends T> Iterator<S> doFind(Example<S> example) {
+
+		RedisOperationChain operationChain = createQuery(example);
+
+		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(operationChain);
+		return (Iterator<S>) keyValueTemplate.find(query.limit(2), entityInformation.getJavaType()).iterator();
 	}
 
 	/*
@@ -144,19 +182,13 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 		RedisOperationChain operationChain = createQuery(example);
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(operationChain);
-		Iterable<T> result = keyValueTemplate.find(
+		List<S> result = (List<S>) keyValueTemplate.find(
 				query.orderBy(pageable.getSort()).skip(pageable.getOffset()).limit(pageable.getPageSize()),
 				entityInformation.getJavaType());
 
-		long count = operationChain.isEmpty() ? keyValueTemplate.count(entityInformation.getJavaType())
-				: keyValueTemplate.count(query, entityInformation.getJavaType());
-
-		List<S> list = new ArrayList<>();
-		for (T t : result) {
-			list.add((S) t);
-		}
-
-		return new PageImpl<>(list, pageable, count);
+		return PageableExecutionUtils.getPage(result, pageable,
+				() -> operationChain.isEmpty() ? keyValueTemplate.count(entityInformation.getJavaType())
+						: keyValueTemplate.count(query, entityInformation.getJavaType()));
 	}
 
 	/*
@@ -180,10 +212,180 @@ public class QueryByExampleRedisExecutor<T> implements QueryByExampleExecutor<T>
 		return count(example) > 0;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findBy(org.springframework.data.domain.Example, java.util.function.Function)
+	 */
+	@Override
+	public <S extends T, R> R findBy(Example<S> example,
+			Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+
+		Assert.notNull(example, "Example must not be null!");
+		Assert.notNull(queryFunction, "Query function must not be null!");
+
+		return queryFunction.apply(new FluentQueryByExample<>(example, example.getProbeType()));
+	}
+
 	private <S extends T> RedisOperationChain createQuery(Example<S> example) {
 
 		Assert.notNull(example, "Example must not be null!");
 
 		return mapper.getMappedExample(example);
+	}
+
+	/**
+	 * {@link org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery} using {@link Example}.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.6
+	 */
+	class FluentQueryByExample<S extends T, R> implements FluentQuery.FetchableFluentQuery<R> {
+
+		private final Example<S> example;
+		private final Sort sort;
+		private final Class<?> domainType;
+		private final Class<R> resultType;
+
+		FluentQueryByExample(Example<S> example, Class<R> resultType) {
+			this(example, Sort.unsorted(), resultType, resultType);
+		}
+
+		FluentQueryByExample(Example<S> example, Sort sort, Class<?> domainType, Class<R> resultType) {
+			this.example = example;
+			this.sort = sort;
+			this.domainType = domainType;
+			this.resultType = resultType;
+		}
+
+		@Override
+		public FetchableFluentQuery<R> sortBy(Sort sort) {
+			return new FluentQueryByExample<>(example, sort, domainType, resultType);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
+		 */
+		@Override
+		public <R1> FetchableFluentQuery<R1> as(Class<R1> resultType) {
+			return new FluentQueryByExample<>(example, sort, domainType, resultType);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
+		 */
+		@Override
+		public FetchableFluentQuery<R> project(Collection<String> properties) {
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
+		 */
+		@Nullable
+		@Override
+		public R oneValue() {
+
+			S one = doFindOne(example);
+
+			if (one != null) {
+				return getConversionFunction(entityInformation.getJavaType(), resultType).apply(one);
+			}
+
+			return null;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
+		 */
+		@Nullable
+		@Override
+		public R firstValue() {
+
+			Iterator<S> iterator = doFind(example);
+
+			if (iterator.hasNext()) {
+				return getConversionFunction(entityInformation.getJavaType(), resultType).apply(iterator.next());
+			}
+
+			return null;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
+		 */
+		@Override
+		public List<R> all() {
+			return stream().collect(Collectors.toList());
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
+		 */
+		@Override
+		public Page<R> page(Pageable pageable) {
+
+			Assert.notNull(pageable, "Pageable must not be null!");
+
+			Function<Object, R> conversionFunction = getConversionFunction(entityInformation.getJavaType(), resultType);
+
+			List<R> content = findAll(example, pageable).stream().map(conversionFunction).collect(Collectors.toList());
+			return PageableExecutionUtils.getPage(content, pageable, this::count);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
+		 */
+		@Override
+		public Stream<R> stream() {
+
+			Function<Object, R> conversionFunction = getConversionFunction(entityInformation.getJavaType(), resultType);
+
+			if (sort.isSorted()) {
+				return findAll(example, PageRequest.of(0, Integer.MAX_VALUE, sort)).stream().map(conversionFunction);
+			}
+
+			return Streamable.of(findAll(example)).map(conversionFunction).stream();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
+		 */
+		@Override
+		public long count() {
+			return QueryByExampleRedisExecutor.this.count(example);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
+		 */
+		@Override
+		public boolean exists() {
+			return QueryByExampleRedisExecutor.this.exists(example);
+		}
+
+		private <P> Function<Object, P> getConversionFunction(Class<?> inputType, Class<P> targetType) {
+
+			if (targetType.isAssignableFrom(inputType)) {
+				return (Function<Object, P>) Function.identity();
+			}
+
+			if (targetType.isInterface()) {
+				return o -> projectionFactory.createProjection(targetType, o);
+			}
+
+			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(targetType,
+					keyValueTemplate.getMappingContext(), entityInstantiators);
+
+			return o -> (P) converter.convert(o);
+		}
 	}
 }
