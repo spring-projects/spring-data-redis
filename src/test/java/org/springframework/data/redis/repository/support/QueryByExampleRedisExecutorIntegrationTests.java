@@ -22,9 +22,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.repository.core.MappingRedisEntityInformation;
 import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.repository.query.FluentQuery;
 
 /**
  * Integration tests for {@link QueryByExampleRedisExecutor}.
@@ -197,6 +199,113 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 		assertThat(executor.exists(Example.of(new Person("Foo", "Bar")))).isFalse();
 	}
 
+	@Test // GH-2150
+	void findByShouldFindFirst() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThat((Object) executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::first)).isNotNull();
+		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).first()).getFirstname())
+				.isEqualTo(walt.getFirstname());
+	}
+
+	@Test // GH-2150
+	void findByShouldFindFirstAsDto() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonDto.class).first()).getFirstname())
+				.isEqualTo(walt.getFirstname());
+	}
+
+	@Test // GH-2150
+	void findByShouldFindOne() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+				.isThrownBy(() -> executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::one));
+		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).one()).getFirstname())
+				.isEqualTo(walt.getFirstname());
+	}
+
+	@Test // GH-2150
+	void findByShouldFindAll() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThat((List<Person>) executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::all)).hasSize(3);
+		List<PersonProjection> people = executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).all());
+		assertThat(people).hasOnlyElementsOfType(PersonProjection.class);
+	}
+
+	@Test // GH-2150
+	void findByShouldFindPage() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		Page<Person> result = executor.findBy(Example.of(person), it -> it.page(PageRequest.of(0, 2)));
+		assertThat(result).hasSize(2);
+		assertThat(result.getTotalElements()).isEqualTo(3);
+	}
+
+	@Test // GH-2150
+	void findByShouldFindStream() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		Stream<Person> result = executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::stream);
+		assertThat(result).hasSize(3);
+	}
+
+	@Test // GH-2150
+	void findByShouldCount() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThat((Long) executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::count)).isEqualTo(3);
+	}
+
+	@Test // GH-2150
+	void findByShouldExists() {
+
+		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
+				kvTemplate);
+
+		Person person = new Person();
+		person.setHometown(walt.getHometown());
+
+		assertThat((Boolean) executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::exists)).isTrue();
+	}
+
 	@SuppressWarnings("unchecked")
 	private <T> MappingRedisEntityInformation<T, String> getEntityInformation(Class<T> entityClass) {
 		return new MappingRedisEntityInformation<>(
@@ -226,5 +335,15 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 	@NoArgsConstructor
 	static class City {
 		@Indexed String name;
+	}
+
+	@Data
+	static class PersonDto {
+		String firstname;
+	}
+
+	interface PersonProjection {
+
+		String getFirstname();
 	}
 }
