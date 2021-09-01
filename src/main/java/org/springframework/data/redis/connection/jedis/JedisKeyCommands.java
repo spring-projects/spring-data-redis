@@ -18,8 +18,10 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.SortingParams;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +40,7 @@ import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -172,10 +175,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 	 */
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
 
-		if (options instanceof KeyScanOptions && ((KeyScanOptions) options).getType() != null) {
-			throw new UnsupportedOperationException("'SCAN' with type is not yet supported using the Jedis driver");
-		}
-
 		return new ScanCursor<byte[]>(cursorId, options) {
 
 			@Override
@@ -186,8 +185,25 @@ class JedisKeyCommands implements RedisKeyCommands {
 				}
 
 				ScanParams params = JedisConverters.toScanParams(options);
-				redis.clients.jedis.ScanResult<byte[]> result = connection.getJedis().scan(Long.toString(cursorId).getBytes(),
+
+				ScanResult<byte[]> result;
+				byte[] type = null;
+
+				if (options instanceof KeyScanOptions) {
+					String typeAsString = ((KeyScanOptions) options).getType();
+
+					if (!ObjectUtils.isEmpty(typeAsString)) {
+						type = typeAsString.getBytes(StandardCharsets.US_ASCII);
+					}
+				}
+
+				if (type != null) {
+					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params, type);
+				} else {
+					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(),
 						params);
+				}
+
 				return new ScanIteration<>(Long.parseLong(result.getCursor()),
 						result.getResult());
 			}

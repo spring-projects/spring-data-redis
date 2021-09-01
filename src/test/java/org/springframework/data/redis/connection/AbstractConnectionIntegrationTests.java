@@ -2600,8 +2600,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i).isEqualTo(itemCount);
 	}
 
-	@Test // GH-2089
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	@Test // GH-2089, GH-2153
 	@EnabledOnRedisVersion("6.0")
 	void scanWithType() {
 
