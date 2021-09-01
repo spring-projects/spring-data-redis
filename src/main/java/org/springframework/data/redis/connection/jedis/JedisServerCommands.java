@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
+import redis.clients.jedis.args.SaveMode;
 
 import java.util.List;
 import java.util.Properties;
@@ -25,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
@@ -151,7 +151,9 @@ class JedisServerCommands implements RedisServerCommands {
 			return;
 		}
 
-		connection.eval(String.format(SHUTDOWN_SCRIPT, option.name()).getBytes(), ReturnType.STATUS, 0);
+		SaveMode saveMode = (option == ShutdownOption.NOSAVE) ? SaveMode.NOSAVE : SaveMode.SAVE;
+
+		connection.getJedis().shutdown(saveMode);
 	}
 
 	/*

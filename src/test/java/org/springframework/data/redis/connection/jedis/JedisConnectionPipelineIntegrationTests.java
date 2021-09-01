@@ -61,9 +61,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		connection = null;
 	}
 
-	@Disabled("Jedis issue: Pipeline tries to return String instead of List<String>")
-	public void testGetConfig() {}
-
 	@Test
 	public void testWatch() {
 		connection.set("testitnow", "willdo");

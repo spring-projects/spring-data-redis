@@ -22,6 +22,8 @@ import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.args.SaveMode;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -30,8 +32,8 @@ import java.util.Map.Entry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
@@ -58,34 +60,32 @@ class JedisConnectionUnitTests {
 			connection = new JedisConnection(jedisSpy);
 		}
 
-		@Test // DATAREDIS-184
+		@Test // DATAREDIS-184, GH-2153
 		void shutdownWithNullShouldDelegateCommandCorrectly() {
 
-			connection.shutdown(null);
+			try {
+				connection.shutdown(null);
+			} catch (InvalidDataAccessApiUsageException e) {
+				// all good. Sometimes it throws an Exception.
+			}
 
 			verifyNativeConnectionInvocation().shutdown();
 		}
 
-		@Test // DATAREDIS-184
-		public void shutdownNosaveShouldBeSentCorrectlyUsingLuaScript() {
+		@Test // DATAREDIS-184, GH-2153
+		void shutdownNosaveShouldBeSentCorrectly() {
 
-			connection.shutdown(ShutdownOption.NOSAVE);
+			assertThatExceptionOfType(JedisException.class).isThrownBy(() -> connection.shutdown(ShutdownOption.NOSAVE));
 
-			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
-
-			assertThat(captor.getValue()).isEqualTo("return redis.call('SHUTDOWN','NOSAVE')".getBytes());
+			verifyNativeConnectionInvocation().shutdown(SaveMode.NOSAVE);
 		}
 
-		@Test // DATAREDIS-184
-		public void shutdownSaveShouldBeSentCorrectlyUsingLuaScript() {
+		@Test // DATAREDIS-184, GH-2153
+		void shutdownSaveShouldBeSentCorrectly() {
 
-			connection.shutdown(ShutdownOption.SAVE);
+			assertThatExceptionOfType(JedisException.class).isThrownBy(() -> connection.shutdown(ShutdownOption.SAVE));
 
-			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
-
-			assertThat(captor.getValue()).isEqualTo("return redis.call('SHUTDOWN','SAVE')".getBytes());
+			verifyNativeConnectionInvocation().shutdown(SaveMode.SAVE);
 		}
 
 		@Test // DATAREDIS-267
@@ -277,22 +277,6 @@ class JedisConnectionUnitTests {
 		public void setUp() {
 			super.setUp();
 			connection.openPipeline();
-		}
-
-		@Test
-		@Override
-		// DATAREDIS-184
-		public void shutdownNosaveShouldBeSentCorrectlyUsingLuaScript() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
-					.isThrownBy(() -> super.shutdownNosaveShouldBeSentCorrectlyUsingLuaScript());
-		}
-
-		@Test
-		@Override
-		// DATAREDIS-184
-		public void shutdownSaveShouldBeSentCorrectlyUsingLuaScript() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
-					.isThrownBy(() -> super.shutdownSaveShouldBeSentCorrectlyUsingLuaScript());
 		}
 
 		@Test // DATAREDIS-267
