@@ -18,6 +18,8 @@ package org.springframework.data.redis.test;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
+import com.thoughtworks.xstream.security.AnyTypePermission;
+
 /**
  * @author Mark Paluch
  */
@@ -31,6 +33,7 @@ public final class XstreamOxmSerializerSingleton {
 
 		// XStream serializer
 		XStreamMarshaller xstream = new XStreamMarshaller();
+		xstream.getXStream().addPermission(AnyTypePermission.ANY);
 		try {
 			xstream.afterPropertiesSet();
 		} catch (Exception ex) {
