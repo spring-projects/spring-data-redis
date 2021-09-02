@@ -34,7 +34,16 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
@@ -204,12 +213,12 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		List<MapRecord<K, HK, HV>> messages = streamOps.range(key,
 				Range.from(Bound.exclusive(messageId1.getValue())).to(Bound.inclusive(messageId2.getValue())));
 
-		assertThat(messages).hasSize(1).extracting(Record::getId).contains(messageId2);
+		assertThat(messages).hasSize(1).extracting(MapRecord::getId).contains(messageId2);
 
 		messages = streamOps.range(key,
 				Range.from(Bound.inclusive(messageId1.getValue())).to(Bound.exclusive(messageId2.getValue())));
 
-		assertThat(messages).hasSize(1).extracting(Record::getId).contains(messageId1);
+		assertThat(messages).hasSize(1).extracting(MapRecord::getId).contains(messageId1);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-864
@@ -242,12 +251,12 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		List<MapRecord<K, HK, HV>> messages = streamOps.reverseRange(key,
 				Range.from(Bound.exclusive(messageId1.getValue())).to(Bound.inclusive(messageId3.getValue())));
 
-		assertThat(messages).hasSize(2).extracting(Record::getId).containsSequence(messageId3, messageId2);
+		assertThat(messages).hasSize(2).extracting(MapRecord::getId).containsSequence(messageId3, messageId2);
 
 		messages = streamOps.reverseRange(key,
 				Range.from(Bound.inclusive(messageId1.getValue())).to(Bound.exclusive(messageId3.getValue())));
 
-		assertThat(messages).hasSize(2).extracting(Record::getId).containsSequence(messageId2, messageId1);
+		assertThat(messages).hasSize(2).extracting(MapRecord::getId).containsSequence(messageId2, messageId1);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-864
