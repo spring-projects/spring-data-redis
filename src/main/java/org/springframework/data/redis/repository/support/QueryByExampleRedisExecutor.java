@@ -282,11 +282,11 @@ public class QueryByExampleRedisExecutor<T>
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#one()
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
 		 */
 		@Nullable
 		@Override
-		public R one() {
+		public R oneValue() {
 
 			S one = doFindOne(example);
 
@@ -299,11 +299,11 @@ public class QueryByExampleRedisExecutor<T>
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#first()
+		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
 		 */
 		@Nullable
 		@Override
-		public R first() {
+		public R firstValue() {
 
 			Iterator<S> iterator = doFind(example);
 

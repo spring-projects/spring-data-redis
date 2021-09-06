@@ -209,7 +209,7 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 		person.setHometown(walt.getHometown());
 
 		assertThat((Object) executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::first)).isNotNull();
-		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).first()).getFirstname())
+		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).firstValue()).getFirstname())
 				.isEqualTo(walt.getFirstname());
 	}
 
@@ -222,7 +222,7 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 		Person person = new Person();
 		person.setHometown(walt.getHometown());
 
-		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonDto.class).first()).getFirstname())
+		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonDto.class).firstValue()).getFirstname())
 				.isEqualTo(walt.getFirstname());
 	}
 
@@ -237,7 +237,7 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 
 		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
 				.isThrownBy(() -> executor.findBy(Example.of(person), FluentQuery.FetchableFluentQuery::one));
-		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).one()).getFirstname())
+		assertThat(executor.findBy(Example.of(walt), it -> it.as(PersonProjection.class).oneValue()).getFirstname())
 				.isEqualTo(walt.getFirstname());
 	}
 
