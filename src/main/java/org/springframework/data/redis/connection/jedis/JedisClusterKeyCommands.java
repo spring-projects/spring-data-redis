@@ -53,6 +53,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dan Smith
  * @since 2.0
  */
 class JedisClusterKeyCommands implements RedisKeyCommands {
@@ -498,7 +499,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 			return JedisConverters.toString(this.connection.execute("RESTORE", key,
 					Arrays.asList(JedisConverters.toBytes(ttlInMillis), serializedValue, JedisConverters.toBytes("REPLACE"))));
 
-		}, connection.clusterGetNodeForKey(key));
+		}, connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key));
 	}
 
 	/*
@@ -581,7 +582,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.objectEncoding(key),
-						connection.clusterGetNodeForKey(key))
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
 				.mapValue(JedisConverters::toEncoding);
 	}
 
@@ -597,7 +598,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectIdletime(key),
-						connection.clusterGetNodeForKey(key))
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
 				.mapValue(Converters::secondsToDuration);
 	}
 
@@ -613,7 +614,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectRefcount(key),
-						connection.clusterGetNodeForKey(key))
+						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
 				.getValue();
 
 	}
