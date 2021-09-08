@@ -1214,13 +1214,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * {@literal keyspace:id}.
 	 *
 	 * @author Mark Paluch
+	 * @author Stefan Berger
 	 * @since 1.8.10
 	 */
 	public static class KeyspaceIdentifier {
 
 		public static final String PHANTOM = "phantom";
-		public static final String DELIMITTER = ":";
-		public static final String PHANTOM_SUFFIX = DELIMITTER + PHANTOM;
+		public static final String DELIMITER = ":";
+		public static final String PHANTOM_SUFFIX = DELIMITER + PHANTOM;
 
 		private final String keyspace;
 		private final String id;
@@ -1244,7 +1245,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			Assert.isTrue(isValid(key), String.format("Invalid key %s", key));
 
 			boolean phantomKey = key.endsWith(PHANTOM_SUFFIX);
-			int keyspaceEndIndex = key.indexOf(DELIMITTER);
+			int keyspaceEndIndex = key.indexOf(DELIMITER);
 			String keyspace = key.substring(0, keyspaceEndIndex);
 			String id;
 
@@ -1270,7 +1271,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				return false;
 			}
 
-			int keyspaceEndIndex = key.indexOf(DELIMITTER);
+			int keyspaceEndIndex = key.indexOf(DELIMITER);
 
 			return keyspaceEndIndex > 0 && key.length() > keyspaceEndIndex;
 		}
@@ -1293,13 +1294,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * {@literal keyspace:id}.
 	 *
 	 * @author Mark Paluch
+	 * @author Stefan Berger
 	 * @since 1.8.10
 	 */
 	public static class BinaryKeyspaceIdentifier {
 
 		public static final byte[] PHANTOM = KeyspaceIdentifier.PHANTOM.getBytes();
-		public static final byte DELIMITTER = ':';
-		public static final byte[] PHANTOM_SUFFIX = ByteUtils.concat(new byte[] { DELIMITTER }, PHANTOM);
+		public static final byte DELIMITER = ':';
+		public static final byte[] PHANTOM_SUFFIX = ByteUtils.concat(new byte[] { DELIMITER }, PHANTOM);
 
 		private final byte[] keyspace;
 		private final byte[] id;
@@ -1324,7 +1326,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			boolean phantomKey = ByteUtils.startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
 
-			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITTER);
+			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITER);
 			byte[] keyspace = extractKeyspace(key, keyspaceEndIndex);
 			byte[] id = extractId(key, phantomKey, keyspaceEndIndex);
 
@@ -1344,7 +1346,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				return false;
 			}
 
-			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITTER);
+			int keyspaceEndIndex = ByteUtils.indexOf(key, DELIMITER);
 
 			return keyspaceEndIndex > 0 && key.length > keyspaceEndIndex;
 		}
