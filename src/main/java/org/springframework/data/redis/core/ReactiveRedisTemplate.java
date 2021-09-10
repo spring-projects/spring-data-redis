@@ -232,19 +232,27 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(action, "Callback object must not be null");
 
-		return Flux.usingWhen(Mono.fromSupplier(() -> {
-
-			ReactiveRedisConnectionFactory factory = getConnectionFactory();
-			ReactiveRedisConnection conn = factory.getReactiveConnection();
-			ReactiveRedisConnection connToUse = preProcessConnection(conn, false);
-
-			return (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
-		}), conn -> {
+		return Flux.usingWhen(getConnection(exposeConnection), conn -> {
 			Publisher<T> result = action.doInRedis(conn);
 
 			return postProcessResult(result, conn, false);
 
 		}, ReactiveRedisConnection::closeLater);
+	}
+
+	/**
+	 * Creates a Mono which generates a new connection. The successors of {@link ReactiveRedisTemplate} might override
+	 * the default behaviour.
+	 *
+	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
+	 * return a {@link Mono} wrapping the {@link ReactiveRedisConnection}.
+	 */
+	protected Mono<ReactiveRedisConnection> getConnection(boolean exposeConnection) {
+		ReactiveRedisConnectionFactory factory = getConnectionFactory();
+		ReactiveRedisConnection conn = factory.getReactiveConnection();
+		ReactiveRedisConnection connToUse = preProcessConnection(conn, false);
+
+		return Mono.just(exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
 	}
 
 	/*
