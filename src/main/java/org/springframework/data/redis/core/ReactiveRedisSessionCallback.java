@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection;
  * Generic callback interface for code that wants to use the same {@link ReactiveRedisConnection} avoiding connection
  * allocation overhead upon each Template API method call. Allows to execute any number of operations on a single
  * {@link ReactiveRedisConnection}, using any type and number of commands.
- * <p>
+ * <p />
  * This is particularly useful for issuing multiple calls on the same connection.
  *
  * @param <T>
@@ -36,13 +36,13 @@ public interface ReactiveRedisSessionCallback<K, V, T> {
 	/**
 	 * Gets called by {@link ReactiveRedisOperations#executeInSession(ReactiveRedisSessionCallback)} with an active Redis
 	 * connection. Does not need to care about activating or closing the {@link ReactiveRedisConnection}.
-	 * <p>
+	 * <p />
 	 * Allows for returning a result object created within the callback, i.e. a domain object or a collection of domain
 	 * objects.
 	 *
 	 * @param operations template associated with a connection.
-	 * @return a result object publisher
-	 * @throws DataAccessException in case of custom exceptions
+	 * @return a result object {@link Publisher}.
+	 * @throws DataAccessException in case of custom exceptions.
 	 */
 	Publisher<T> doWithOperations(ReactiveRedisOperations<K, V> operations) throws DataAccessException;
 }

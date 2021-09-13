@@ -180,6 +180,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 *
 	 * @param callback must not be {@literal null}
 	 * @return a {@link Flux} wrapping the {@link ReactiveRedisCallback}.
+	 * @since 2.6
 	 */
 	<T> Flux<T> doCreateFlux(ReactiveRedisCallback<T> callback) {
 
@@ -209,6 +210,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 *
 	 * @param callback must not be {@literal null}
 	 * @return a {@link Mono} wrapping the {@link ReactiveRedisCallback}.
+	 * @since 2.6
 	 */
 	<T> Mono<T> doCreateMono(ReactiveRedisCallback<T> callback) {
 
