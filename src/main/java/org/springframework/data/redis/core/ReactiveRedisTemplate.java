@@ -58,6 +58,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Petromir Dzhunev
  * @since 2.0
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
@@ -232,7 +233,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		Assert.notNull(action, "Callback object must not be null");
 
-		return Flux.usingWhen(getConnection(exposeConnection), conn -> {
+		Mono<ReactiveRedisConnection> connection = getConnection();
+
+		if (!exposeConnection) {
+			connection = connection.map(this::createRedisConnectionProxy);
+		}
+
+		return Flux.usingWhen(connection, conn -> {
+
 			Publisher<T> result = action.doInRedis(conn);
 
 			return postProcessResult(result, conn, false);
@@ -241,18 +249,16 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	/**
-	 * Creates a Mono which generates a new connection. The successors of {@link ReactiveRedisTemplate} might override
-	 * the default behaviour.
+	 * Creates a {@link Mono} which emits a new {@link ReactiveRedisConnection}. Can be overridden in subclasses to
+	 * provide a different mechanism for connection allocation for the given method.
 	 *
-	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
-	 * return a {@link Mono} wrapping the {@link ReactiveRedisConnection}.
+	 * @since 2.5.5
 	 */
-	protected Mono<ReactiveRedisConnection> getConnection(boolean exposeConnection) {
-		ReactiveRedisConnectionFactory factory = getConnectionFactory();
-		ReactiveRedisConnection conn = factory.getReactiveConnection();
-		ReactiveRedisConnection connToUse = preProcessConnection(conn, false);
+	protected Mono<ReactiveRedisConnection> getConnection() {
 
-		return Mono.just(exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
+		ReactiveRedisConnectionFactory factory = getConnectionFactory();
+
+		return Mono.fromSupplier(() -> preProcessConnection(factory.getReactiveConnection(), false));
 	}
 
 	/*
