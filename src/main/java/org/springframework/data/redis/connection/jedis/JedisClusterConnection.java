@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -38,6 +37,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.dao.DataAccessException;
@@ -693,6 +693,15 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodeForKey(byte[])
+	 */
+	@Override
+	public RedisClusterNode clusterGetNodeForKey(byte[] key) {
+		return topologyProvider.getTopology().getKeyServingMasterNode(key);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodeForSlot(int)
 	 */
 	@Override
@@ -755,15 +764,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		}
 
 		return result;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodeForKey(byte[])
-	 */
-	@Override
-	public RedisClusterNode clusterGetNodeForKey(byte[] key) {
-		return clusterGetNodeForSlot(clusterGetSlotForKey(key));
 	}
 
 	/*
