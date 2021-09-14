@@ -441,7 +441,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.pttl(key),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+						connection.clusterGetNodeForKey(key))
 				.getValue();
 	}
 
@@ -457,7 +457,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode(
 						(JedisClusterCommandCallback<Long>) client -> Converters.millisecondsToTimeUnit(client.pttl(key), timeUnit),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+						connection.clusterGetNodeForKey(key))
 				.getValue();
 	}
 
@@ -472,7 +472,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.dump(key),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+						connection.clusterGetNodeForKey(key))
 				.getValue();
 	}
 
@@ -499,7 +499,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 			return JedisConverters.toString(this.connection.execute("RESTORE", key,
 					Arrays.asList(JedisConverters.toBytes(ttlInMillis), serializedValue, JedisConverters.toBytes("REPLACE"))));
 
-		}, connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key));
+		}, connection.clusterGetNodeForKey(key));
 	}
 
 	/*
@@ -582,7 +582,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.objectEncoding(key),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+						connection.clusterGetNodeForKey(key))
 				.mapValue(JedisConverters::toEncoding);
 	}
 
@@ -598,7 +598,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectIdletime(key),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+						connection.clusterGetNodeForKey(key))
 				.mapValue(Converters::secondsToDuration);
 	}
 
@@ -614,7 +614,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectRefcount(key),
-						connection.getTopologyProvider().getTopology().getKeyServingMasterNode(key))
+						connection.clusterGetNodeForKey(key))
 				.getValue();
 
 	}
