@@ -95,7 +95,7 @@ class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	void shouldBeCreatedCorrecltyGivenValidPropertySourceWithSingleHostPort() {
+	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.cluster.nodes", HOST_AND_PORT_1);
