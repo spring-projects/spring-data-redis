@@ -307,6 +307,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 		Assert.hasText(master, "Master address must not be null or empty!");
 		Assert.notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
+		Assert.noNullElements(sentinelHostAndPorts, "ClusterHostAndPorts must not contain null elements!");
 
 		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);

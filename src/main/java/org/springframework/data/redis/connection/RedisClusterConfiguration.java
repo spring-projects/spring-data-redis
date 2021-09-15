@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.Assert.*;
 import static org.springframework.util.StringUtils.*;
 
 import java.util.Collection;
@@ -90,7 +89,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public RedisClusterConfiguration(PropertySource<?> propertySource) {
 
-		notNull(propertySource, "PropertySource must not be null!");
+		Assert.notNull(propertySource, "PropertySource must not be null!");
 
 		this.clusterNodes = new LinkedHashSet<>();
 
@@ -111,7 +110,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public void setClusterNodes(Iterable<RedisNode> nodes) {
 
-		notNull(nodes, "Cannot set cluster nodes to 'null'.");
+		Assert.notNull(nodes, "Cannot set cluster nodes to 'null'.");
 
 		this.clusterNodes.clear();
 
@@ -136,7 +135,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public void addClusterNode(RedisNode node) {
 
-		notNull(node, "ClusterNode must not be 'null'.");
+		Assert.notNull(node, "ClusterNode must not be 'null'.");
 		this.clusterNodes.add(node);
 	}
 
@@ -227,8 +226,8 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 		String[] args = split(hostAndPort, ":");
 
-		notNull(args, "HostAndPort need to be seperated by  ':'.");
-		isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
+		Assert.notNull(args, "HostAndPort need to be seperated by  ':'.");
+		Assert.isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
 		return new RedisNode(args[0], Integer.valueOf(args[1]));
 	}
 
@@ -239,7 +238,8 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, int redirects) {
 
-		notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
+		Assert.notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
+		Assert.noNullElements(clusterHostAndPorts, "ClusterHostAndPorts must not contain null elements!");
 
 		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_CLUSTER_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(clusterHostAndPorts));
