@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ObjectFactory;
@@ -464,6 +465,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 	@ParameterizedRedisTest // DATAREDIS-612
 	@EnabledIfLongRunningTest
+	@Disabled("Caused often CancellationException: Disconnected")
 	void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
 
 		String channel = "my-channel";
@@ -486,6 +488,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 	@ParameterizedRedisTest // GH-1622
 	@EnabledIfLongRunningTest
+	@Disabled("Caused often CancellationException: Disconnected")
 	void listenToLaterChannelShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";
@@ -508,7 +511,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-612
-	@EnabledIfLongRunningTest
+	@Disabled("Caused often CancellationException: Disconnected")
 	void listenToPatternShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";
@@ -533,7 +536,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // GH-1622
-	@EnabledIfLongRunningTest
+	@Disabled("Caused often CancellationException: Disconnected")
 	void listenToPatternLaterShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";
