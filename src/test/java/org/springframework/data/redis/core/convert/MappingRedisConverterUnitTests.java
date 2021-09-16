@@ -42,6 +42,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -1922,6 +1924,8 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-1175
+	@EnabledOnJre(JRE.JAVA_8)
+	// FIXME: https://github.com/spring-projects/spring-data-redis/issues/2168
 	void writePlainList() {
 
 		List<Object> source =  Arrays.asList("Hello", "stream", "message", 100L);
