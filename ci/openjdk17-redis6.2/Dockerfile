@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk8:latest
+FROM openjdk:17-bullseye
 
 # Copy Spring Data Redis's Makefile into the container
 COPY ./Makefile /
