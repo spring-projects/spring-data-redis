@@ -16,6 +16,7 @@
 	</parent>
 
 	<properties>
+		<spring>6.0.0-SNAPSHOT</spring>
 		<springdata.keyvalue>2.6.0-SNAPSHOT</springdata.keyvalue>
 		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
