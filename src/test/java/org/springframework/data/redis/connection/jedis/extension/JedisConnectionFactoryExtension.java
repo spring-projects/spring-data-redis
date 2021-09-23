@@ -109,7 +109,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	 * @return the managed {@link JedisConnectionFactory}.
 	 */
 	public static JedisConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier) {
-		return factories.get(qualifier).get();
+		return factories.get(qualifier).getNew();
 	}
 
 	/**
@@ -153,13 +153,12 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		return RedisStanalone.class;
 	}
 
-	static class NewableLazy<T> extends Lazy<T> {
+	static class NewableLazy<T> {
 
-		private final Supplier<? extends T> supplier;
+		private final Lazy<? extends T> lazy;
 
 		private NewableLazy(Supplier<? extends T> supplier) {
-			super(supplier);
-			this.supplier = supplier;
+			this.lazy = Lazy.of(supplier);
 		}
 
 		public static <T> NewableLazy<T> of(Supplier<? extends T> supplier) {
@@ -167,7 +166,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		}
 
 		public T getNew() {
-			return supplier.get();
+			return lazy.get();
 		}
 	}
 
