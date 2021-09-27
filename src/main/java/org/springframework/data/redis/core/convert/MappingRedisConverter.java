@@ -80,8 +80,8 @@ import org.springframework.util.comparator.NullSafeComparator;
  *   &#64;Id String id;
  *   String firstname;
  *
- *   List<String> nicknames;
- *   List<Person> coworkers;
+ *   List&lt;String&gt; nicknames;
+ *   List&lt;Person&gt; coworkers;
  *
  *   Address address;
  *   &#64;Reference Country nationality;

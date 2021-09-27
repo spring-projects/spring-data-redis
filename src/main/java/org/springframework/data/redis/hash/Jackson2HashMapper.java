@@ -59,10 +59,9 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * {@link ObjectMapper} based {@link HashMapper} implementation that allows flattening. Given an entity {@code Person}
  * with an {@code Address} like below the flattening will create individual hash entries for all nested properties and
  * resolve complex types into simple types, as far as possible.
- * <p/>
+ * <p>
  * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
- * <p/>
  * <h3>Example</h3>
  *
  * <pre class="code">

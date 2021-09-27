@@ -20,13 +20,12 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * String-focused extension of RedisTemplate. Since most operations against Redis are String based, this class provides
  * a dedicated class that minimizes configuration of its more generic {@link RedisTemplate template} especially in terms
  * of serializers.
- * <p/>
+ * <p>
  * Note that this template exposes the {@link RedisConnection} used by the {@link RedisCallback} as a
  * {@link StringRedisConnection}.
  *

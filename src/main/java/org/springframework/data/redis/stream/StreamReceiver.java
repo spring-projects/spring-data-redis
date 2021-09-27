@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 
 /**
  * A receiver to consume Redis Streams using reactive infrastructure.
- * <p/>
+ * <p>
  * Once created, a {@link StreamReceiver} can subscribe to a Redis Stream and consume incoming {@link Record records}.
  * Consider a {@link Flux} of {@link Record} infinite. Cancelling the {@link org.reactivestreams.Subscription}
  * terminates eventually background polling. Records are converted using {@link SerializationPair key and value
@@ -84,7 +84,7 @@ import org.springframework.util.Assert;
  * {@link StreamReceiver} propagates errors during stream reads and deserialization as terminal error signal by default.
  * Configuring a {@link StreamReceiverOptions#getResumeFunction() resume function} allows conditional resumption by
  * dropping the record or by propagating the error to terminate the subscription.
- * <p/>
+ * <p>
  * See the following example code how to use {@link StreamReceiver}:
  *
  * <pre class="code">
@@ -144,7 +144,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	 * Starts a Redis Stream consumer that consumes {@link Record records} from the {@link StreamOffset stream}. Records
 	 * are consumed from Redis and delivered on the returned {@link Flux} when requests are made on the Flux. The receiver
 	 * is closed when the returned {@link Flux} terminates.
-	 * <p/>
+	 * <p>
 	 * Every record must be acknowledged using
 	 * {@link org.springframework.data.redis.connection.ReactiveStreamCommands#xAck(ByteBuffer, String, String...)}
 	 *
@@ -158,7 +158,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	 * Starts a Redis Stream consumer that consumes {@link Record records} from the {@link StreamOffset stream}. Records
 	 * are consumed from Redis and delivered on the returned {@link Flux} when requests are made on the Flux. The receiver
 	 * is closed when the returned {@link Flux} terminates.
-	 * <p/>
+	 * <p>
 	 * Every record is acknowledged when received.
 	 *
 	 * @param consumer consumer group, must not be {@literal null}.
@@ -173,7 +173,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	 * Starts a Redis Stream consumer that consumes {@link Record records} from the {@link StreamOffset stream}. Records
 	 * are consumed from Redis and delivered on the returned {@link Flux} when requests are made on the Flux. The receiver
 	 * is closed when the returned {@link Flux} terminates.
-	 * <p/>
+	 * <p>
 	 * Every record must be acknowledged using
 	 * {@link org.springframework.data.redis.core.ReactiveStreamOperations#acknowledge(Object, String, String...)} after
 	 * processing.

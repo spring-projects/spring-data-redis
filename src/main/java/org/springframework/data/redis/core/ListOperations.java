@@ -277,7 +277,7 @@ public interface ListOperations<K, V> {
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
 	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
 	 * {@code to} argument) of the list stored at {@code destinationKey}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param from must not be {@literal null}.
@@ -303,7 +303,7 @@ public interface ListOperations<K, V> {
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
 	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
 	 * {@code to} argument) of the list stored at {@code destinationKey}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.
@@ -329,7 +329,7 @@ public interface ListOperations<K, V> {
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
 	 * list stored at {@code sourceKey}, and pushes the element at the first/last element (head/tail depending on the
 	 * {@code to} argument) of the list stored at {@code destinationKey}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.

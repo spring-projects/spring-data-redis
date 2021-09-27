@@ -23,13 +23,13 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * Defines a provider for Lettuce connections.
- * <p />
+ * <p>
  * This interface is typically used to encapsulate a native factory which returns a {@link StatefulConnection
  * connection} of on each invocation.
- * <p/>
+ * <p>
  * Connection providers may create a new connection on each invocation or return pooled instances. Each obtained
  * connection must be released through its connection provider to allow disposal or release back to the pool.
- * <p/>
+ * <p>
  * Connection providers are usually associated with a {@link io.lettuce.core.codec.RedisCodec} to create connections
  * with an appropriate codec.
  *

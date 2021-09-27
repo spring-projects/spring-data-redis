@@ -45,7 +45,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * Simple {@link Executor} based {@link StreamMessageListenerContainer} implementation for running {@link Task tasks} to
  * poll on Redis Streams.
- * <p />
+ * <p>
  * This message container creates long-running tasks that are executed on {@link Executor}.
  *
  * @author Mark Paluch

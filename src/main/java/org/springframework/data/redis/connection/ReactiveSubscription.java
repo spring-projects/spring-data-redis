@@ -29,7 +29,7 @@ import org.springframework.util.ObjectUtils;
  * {@link #subscribe(ByteBuffer...) channels} and {@link #pSubscribe(ByteBuffer...) patterns}. It provides access to the
  * {@link ChannelMessage} {@link #receive() stream} that emits only messages for channels and patterns registered in
  * this {@link ReactiveSubscription}.
- * <p />
+ * <p>
  * A reactive Redis connection can have multiple subscriptions. If two or more subscriptions subscribe to the same
  * target (channel/pattern) and one unsubscribes, then the other one will no longer receive messages for the target due
  * to how Redis handled Pub/Sub subscription.
@@ -103,7 +103,7 @@ public interface ReactiveSubscription {
 	/**
 	 * Retrieve the message stream emitting {@link Message messages}. The resulting message stream contains only messages
 	 * for subscribed and registered {@link #getChannels() channels} and {@link #getPatterns() patterns}.
-	 * <p />
+	 * <p>
 	 * Stream publishing uses {@link reactor.core.publisher.ConnectableFlux} turning the stream into a hot sequence.
 	 * Emission is paused if there is no demand. Messages received in that time are buffered. This stream terminates
 	 * either if all subscribers unsubscribe or if this {@link Subscription} is {@link #cancel() is terminated}.

@@ -38,7 +38,7 @@ import org.springframework.lang.Nullable;
  * {@link Properties} extension for a Redis back-store. Useful for reading (and storing) properties inside a Redis hash.
  * Particularly useful inside a Spring container for hooking into Spring's property placeholder or
  * {@link org.springframework.beans.factory.config.PropertiesFactoryBean}.
- * <p/>
+ * <p>
  * Note that this implementation only accepts Strings - objects of other type are not supported.
  *
  * @see Properties

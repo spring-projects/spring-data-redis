@@ -533,7 +533,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param otherKeys must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return
 	 * @since 2.6

@@ -24,7 +24,7 @@ package org.springframework.data.redis.core.index;
 public interface IndexDefinitionRegistry {
 
 	/**
-	 * Add given {@link RedisIndexSetting}.
+	 * Add given {@link IndexDefinition}.
 	 *
 	 * @param indexDefinition must not be {@literal null}.
 	 */

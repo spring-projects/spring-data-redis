@@ -105,7 +105,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * Check if set at {@code key} contains one or more {@code values}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param values
+	 * @param objects
 	 * @return
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>

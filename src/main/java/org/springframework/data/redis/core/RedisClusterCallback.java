@@ -29,8 +29,8 @@ import org.springframework.lang.Nullable;
 public interface RedisClusterCallback<T> {
 
 	/**
-	 * Gets called by {@link RedisClusterTemplate} with an active Redis connection. Does not need to care about activating
-	 * or closing the connection or handling exceptions.
+	 * Gets called by {@link ClusterOperations} with an active Redis connection. Does not need to care about activating or
+	 * closing the connection or handling exceptions.
 	 *
 	 * @param connection never {@literal null}.
 	 * @return

@@ -92,7 +92,6 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Check if set at at the bound key contains one or more {@code values}.
 	 *
-	 * @param key must not be {@literal null}.
 	 * @param objects
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6

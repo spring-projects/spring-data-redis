@@ -33,7 +33,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 /**
  * Redis ZSet (or sorted set (by weight)). Acts as a {@link SortedSet} based on the given priorities or weights
  * associated with each item.
- * <p/>
+ * <p>
  * Since using a {@link Comparator} does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
  *
  * @author Costin Leau

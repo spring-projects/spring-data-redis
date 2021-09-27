@@ -576,7 +576,7 @@ public interface ReactiveSetCommands {
 		/**
 		 * Creates a new {@link SMIsMemberCommand} given one or more {@literal values}.
 		 *
-		 * @param value must not be {@literal null}.
+		 * @param values must not be {@literal null}.
 		 * @return a new {@link SMIsMemberCommand} for a {@literal value}.
 		 */
 		public static SMIsMemberCommand values(List<ByteBuffer> values) {

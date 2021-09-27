@@ -43,13 +43,13 @@ import org.springframework.util.StringUtils;
  * Message listener adapter that delegates the handling of messages to target listener methods via reflection, with
  * flexible message type conversion. Allows listener methods to operate on message content types, completely independent
  * from the Redis API.
- * <p/>
+ * <p>
  * Make sure to call {@link #afterPropertiesSet()} after setting all the parameters on the adapter.
- * <p/>
+ * <p>
  * Note that if the underlying "delegate" is implementing {@link MessageListener}, the adapter will delegate to it and
  * allow an invalid method to be specified. However if it is not, the method becomes mandatory. This lenient behavior
  * allows the adapter to be used uniformly across existing listeners and message POJOs.
- * <p/>
+ * <p>
  * Modeled as much as possible after the JMS MessageListenerAdapter in Spring Framework.
  * <p>
  * By default, the content of incoming Redis messages gets extracted before being passed into the target listener
@@ -93,7 +93,6 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
- * @see org.springframework.jms.listener.adapter.MessageListenerAdapter
  */
 public class MessageListenerAdapter implements InitializingBean, MessageListener {
 

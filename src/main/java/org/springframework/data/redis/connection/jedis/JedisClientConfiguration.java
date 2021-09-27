@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 /**
  * Redis client configuration for jedis. This configuration provides optional configuration elements such as
  * {@link SSLSocketFactory} and {@link JedisPoolConfig} specific to jedis client features.
- * <p/>
+ * <p>
  * Providing optional elements allows a more specific configuration of the client:
  * <ul>
  * <li>Whether to use SSL</li>
@@ -46,7 +46,6 @@ import org.springframework.util.Assert;
  * <li>Connect {@link Duration timeout}</li>
  * <li>Read {@link Duration timeout}</li>
  * </ul>
- * <p />
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -152,7 +151,7 @@ public interface JedisClientConfiguration {
 
 		/**
 		 * Enable connection-pooling.
-		 * <p />
+		 * <p>
 		 * Applies only to single node Redis. Sentinel and Cluster modes use always connection-pooling regardless of the
 		 * pooling setting.
 		 *

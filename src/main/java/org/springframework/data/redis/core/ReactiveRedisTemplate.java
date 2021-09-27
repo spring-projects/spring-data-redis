@@ -49,10 +49,10 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Central abstraction for reactive Redis data access implementing {@link ReactiveRedisOperations}.
- * <p/>
+ * <p>
  * Performs automatic serialization/deserialization between the given objects and the underlying binary data in the
  * Redis store.
- * <p/>
+ * <p>
  * Note that while the template is generified, it is up to the serializers/deserializers to properly convert the given
  * Objects to and from binary data.
  *

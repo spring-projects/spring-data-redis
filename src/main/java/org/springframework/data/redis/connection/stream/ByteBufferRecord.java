@@ -94,7 +94,7 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 	/**
 	 * Convert a binary {@link MapRecord} into an {@link ObjectRecord}.
 	 *
-	 * @param source must not be {@literal null}.
+	 * @param mapper must not be {@literal null}.
 	 * @return new instance of {@link ByteRecord}.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })

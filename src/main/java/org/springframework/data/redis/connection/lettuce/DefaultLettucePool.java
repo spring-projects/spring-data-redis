@@ -64,7 +64,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	public DefaultLettucePool() {}
 
 	/**
-	 * Uses the {@link Config} and {@link RedisClient} defaults for configuring the connection pool
+	 * Uses the {@link GenericObjectPoolConfig} defaults for configuring the connection pool
 	 *
 	 * @param hostName The Redis host
 	 * @param port The Redis port

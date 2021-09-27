@@ -164,7 +164,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Get {@code count} random elements with their score from set at the bound key.
 	 *
-	 * @param key must not be {@literal null}.
 	 * @param count nr of members to return.
 	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if count is negative.
@@ -551,7 +550,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
 	 *
-	 * @param otherKeys must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6

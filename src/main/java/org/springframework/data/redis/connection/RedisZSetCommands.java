@@ -577,7 +577,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param score the score.
 	 * @param value the value.
-	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#empty()} instead.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
@@ -604,7 +604,7 @@ public interface RedisZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param tuples must not be {@literal null}.
-	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#empty()} instead.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
@@ -1308,7 +1308,6 @@ public interface RedisZSetCommands {
 	/**
 	 * Union sorted {@code sets}.
 	 *
-	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6
@@ -1320,7 +1319,6 @@ public interface RedisZSetCommands {
 	/**
 	 * Union sorted {@code sets}.
 	 *
-	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6

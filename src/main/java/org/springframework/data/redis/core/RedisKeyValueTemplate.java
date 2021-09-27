@@ -87,8 +87,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 *   }
 	 * }, RedisSession.class);
 	 * </code>
-	 *
-	 * <pre>
+	 * </pre>
 	 *
 	 * @param callback provides the to retrieve entity ids. Must not be {@literal null}.
 	 * @param type must not be {@literal null}.

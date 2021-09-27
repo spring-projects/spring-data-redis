@@ -25,7 +25,7 @@ import org.springframework.lang.Nullable;
 /**
  * Lettuce-specific {@link ScanCursor} extension that maintains the cursor state that is required for stateful-scanning
  * across a Redis Cluster.
- * <p/>
+ * <p>
  * The cursor state uses Lettuce's stateful {@link io.lettuce.core.ScanCursor} to keep track of scanning progress.
  *
  * @author Mark Paluch

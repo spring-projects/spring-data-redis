@@ -25,7 +25,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
  * Basic utility to help with the destruction of {@link RedisConnectionFactory} inside JUnit 4 tests. Simply add the
- * factory during setup and then call {@link #cleanUp()} through the <tt>@AfterClass</tt> method.
+ * factory during setup and then call {@link #cleanUp()} through the {@code @AfterClass} method.
  *
  * @author Costin Leau
  * @author Mark Paluch

@@ -59,21 +59,21 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Helper class that simplifies Redis data access code.
- * <p/>
+ * <p>
  * Performs automatic serialization/deserialization between the given objects and the underlying binary data in the
  * Redis store. By default, it uses Java serialization for its objects (through {@link JdkSerializationRedisSerializer}
  * ). For String intensive operations consider the dedicated {@link StringRedisTemplate}.
- * <p/>
+ * <p>
  * The central method is execute, supporting Redis access code implementing the {@link RedisCallback} interface. It
  * provides {@link RedisConnection} handling such that neither the {@link RedisCallback} implementation nor the calling
  * code needs to explicitly care about retrieving/closing Redis connections, or handling Connection lifecycle
  * exceptions. For typical single step actions, there are various convenience methods.
- * <p/>
+ * <p>
  * Once configured, this class is thread-safe.
- * <p/>
+ * <p>
  * Note that while the template is generified, it is up to the serializers/deserializers to properly convert the given
  * Objects to and from binary data.
- * <p/>
+ * <p>
  * <b>This is the central class in Redis support</b>.
  *
  * @author Costin Leau
@@ -83,7 +83,6 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Denis Zavedeev
  * @author ihaohong
- *
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -412,7 +411,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/**
 	 * Sets whether to expose the Redis connection to {@link RedisCallback} code. Default is "false": a proxy will be
-	 * returned, suppressing <tt>quit</tt> and <tt>disconnect</tt> calls.
+	 * returned, suppressing {@code quit} and {@code disconnect} calls.
 	 *
 	 * @param exposeConnection
 	 */

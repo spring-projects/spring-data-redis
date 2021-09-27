@@ -254,7 +254,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		 * Create a message stream from connect {@link Function}. Multiple calls to this method are lock-free synchronized.
 		 * The first successful caller creates the actual stream. Other concurrent callers that do not pass the
 		 * synchronization use the stream created by the first successful caller.
-		 * <p/>
+		 * <p>
 		 * The stream registers a disposal function upon subscription for external {@link #terminate() termination}.
 		 *
 		 * @param connectFunction

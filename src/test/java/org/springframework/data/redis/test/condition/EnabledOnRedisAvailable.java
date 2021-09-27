@@ -27,7 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * {@code @EnabledOnRedisAvailable} is used to signal that the annotated test class or test method is only
  * <em>enabled</em> if Redis is running at {@link #value() port}.
- * <p/>
+ * <p>
  * When applied at the class level, all test methods within that class will be enabled.
  *
  * @author Mark Paluch

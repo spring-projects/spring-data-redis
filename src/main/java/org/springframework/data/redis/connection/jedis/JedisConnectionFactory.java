@@ -702,7 +702,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Indicates the use of a connection pool.
-	 * <p />
+	 * <p>
 	 * Applies only to single node Redis. Sentinel and Cluster modes use always connection-pooling regardless of the
 	 * pooling setting.
 	 *

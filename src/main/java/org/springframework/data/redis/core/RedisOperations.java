@@ -58,7 +58,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action. Must not be {@literal null}.
-	 * @return a result object returned by the action or <tt>null</tt>
+	 * @return a result object returned by the action or {@literal null}
 	 */
 	@Nullable
 	<T> T execute(RedisCallback<T> action);
@@ -69,7 +69,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param session session callback. Must not be {@literal null}.
-	 * @return result object returned by the action or <tt>null</tt>
+	 * @return result object returned by the action or {@literal null}
 	 */
 	@Nullable
 	<T> T execute(SessionCallback<T> session);
@@ -502,7 +502,6 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Mark the start of a transaction block. <br>
 	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
-	 * <p>
 	 *
 	 * @see <a href="https://redis.io/commands/multi">Redis Documentation: MULTI</a>
 	 */
@@ -580,7 +579,6 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param destination the channel to publish to, must not be {@literal null}.
 	 * @param message message to publish
-	 * @return the number of clients that received the message
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	void convertAndSend(String destination, Object message);
@@ -626,8 +624,9 @@ public interface RedisOperations<K, V> {
 	<HK, HV> HashOperations<K, HK, HV> opsForHash();
 
 	/**
-	 * Returns the operations performed on hash values bound to the given key. * @param <HK> hash key (or field) type
+	 * Returns the operations performed on hash values bound to the given key.
 	 *
+	 * @param <HK> hash key (or field) type
 	 * @param <HV> hash value type
 	 * @param key Redis key
 	 * @return hash operations bound to the given key.

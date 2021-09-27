@@ -864,7 +864,7 @@ public class LettuceConnectionFactory
 	 * Returns the native {@link AbstractRedisClient} used by this instance. The client is initialized as part of
 	 * {@link #afterPropertiesSet() the bean initialization lifecycle} and only available when this connection factory is
 	 * initialized.
-	 * <p/>
+	 * <p>
 	 * Depending on the configuration, the client can be either {@link RedisClient} or {@link RedisClusterClient}.
 	 *
 	 * @return the native {@link AbstractRedisClient}. Can be {@literal null} if not initialized.
@@ -881,7 +881,7 @@ public class LettuceConnectionFactory
 	 * Returns the native {@link AbstractRedisClient} used by this instance. The client is initialized as part of
 	 * {@link #afterPropertiesSet() the bean initialization lifecycle} and only available when this connection factory is
 	 * initialized. Throws {@link IllegalStateException} if not yet initialized.
-	 * <p/>
+	 * <p>
 	 * Depending on the configuration, the client can be either {@link RedisClient} or {@link RedisClusterClient}.
 	 *
 	 * @return the native {@link AbstractRedisClient}.

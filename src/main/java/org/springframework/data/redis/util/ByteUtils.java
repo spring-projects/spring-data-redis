@@ -38,7 +38,7 @@ public final class ByteUtils {
 
 	/**
 	 * Concatenate the given {@code byte} arrays into one, with overlapping array elements included twice.
-	 * <p />
+	 * <p>
 	 * The order of elements in the original arrays is preserved.
 	 *
 	 * @param array1 the first array.
@@ -56,7 +56,7 @@ public final class ByteUtils {
 	/**
 	 * Concatenate the given {@code byte} arrays into one, with overlapping array elements included twice. Returns a new,
 	 * empty array if {@code arrays} was empty and returns the first array if {@code arrays} contains only a single array.
-	 * <p />
+	 * <p>
 	 * The order of elements in the original arrays is preserved.
 	 *
 	 * @param arrays the arrays.

@@ -29,7 +29,6 @@ public interface RedisTxCommands {
 	/**
 	 * Mark the start of a transaction block. <br>
 	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
-	 * <p>
 	 *
 	 * @see <a href="https://redis.io/commands/multi">Redis Documentation: MULTI</a>
 	 */

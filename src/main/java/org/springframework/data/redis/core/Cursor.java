@@ -20,11 +20,11 @@ import org.springframework.data.util.CloseableIterator;
 /**
  * Cursor abstraction to scan over the keyspace or elements within a data structure using a variant of a {@code SCAN}
  * command.
- * <p />
+ * <p>
  * Using a Java 8 {@link #stream() java.util.stream.Stream} allows to apply additional
- * {@link java.util.stream.Stream#filter(java.util.function.Predicate) filters} and {@link java.util.stream.Stream#limit(long) limits} to
- * the underlying {@link Cursor}.
- * <p />
+ * {@link java.util.stream.Stream#filter(java.util.function.Predicate) filters} and
+ * {@link java.util.stream.Stream#limit(long) limits} to the underlying {@link Cursor}.
+ * <p>
  * Make sure to {@link CloseableIterator#close() close} the cursor when done as this allows implementations to clean up
  * any resources they need to keep open to iterate over elements (eg. by using a try-with-resource statement).
  *

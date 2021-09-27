@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 
 /**
  * Utility to provide a {@link HashMapper} for Stream object conversion.
- * <p/>
+ * <p>
  * This utility can use generic a {@link HashMapper} or adapt specifically to {@link ObjectHashMapper}'s requirement to
  * convert incoming data into byte arrays. This class can be subclassed to override template methods for specific object
  * mapping strategies.

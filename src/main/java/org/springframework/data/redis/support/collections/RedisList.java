@@ -102,7 +102,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
 	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
 	 * at {@link RedisList destination}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param destination must not be {@literal null}.
@@ -127,7 +127,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
 	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
 	 * at {@link RedisList destination}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param destination must not be {@literal null}.
@@ -161,7 +161,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
 	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
 	 * at {@link RedisList destination}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param destination must not be {@literal null}.
@@ -186,7 +186,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
 	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
 	 * at {@link RedisList destination}.
-	 * <p/>
+	 * <p>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param destination must not be {@literal null}.

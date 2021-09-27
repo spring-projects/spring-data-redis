@@ -41,7 +41,7 @@ import org.springframework.util.ErrorHandler;
 /**
  * Abstraction used by the framework representing a message listener container. <strong>Not</strong> meant to be
  * implemented externally.
- * <p/>
+ * <p>
  * Once created, a {@link StreamMessageListenerContainer} can subscribe to a Redis Stream and consume incoming
  * {@link Record messages}. {@link StreamMessageListenerContainer} allows multiple stream read requests and returns a
  * {@link Subscription} handle per read request. Cancelling the {@link Subscription} terminates eventually background
@@ -79,16 +79,16 @@ import org.springframework.util.ErrorHandler;
  * <strong>Note: Using {@link ReadOffset#latest()} bears the chance of dropped messages as messages can arrive in the
  * time during polling is suspended. Use messagedId's as offset or {@link ReadOffset#lastConsumed()} to minimize the
  * chance of message loss.</strong>
- * <p/>
+ * <p>
  * {@link StreamMessageListenerContainer} requires a {@link Executor} to fork long-running polling tasks on a different
  * {@link Thread}. This thread is used as event loop to poll for stream messages and invoke the
  * {@link StreamListener#onMessage(Record) listener callback}.
- * <p/>
+ * <p>
  * {@link StreamMessageListenerContainer} tasks propagate errors during stream reads and
  * {@link StreamListener#onMessage(Record) listener notification} to a configurable {@link ErrorHandler}. Errors stop a
  * {@link Subscription} by default. Configuring a {@link Predicate} for a {@link StreamReadRequest} allows conditional
  * subscription cancelling or continuing on all errors.
- * <p/>
+ * <p>
  * See the following example code how to use {@link StreamMessageListenerContainer}:
  *
  * <pre class="code">
@@ -158,10 +158,9 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
 	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
 	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
-	 * <p/>
-	 * Errors during {@link org.springframework.data.redis.connection.RedisStreamCommands.StreamMessage} retrieval lead to
-	 * {@link Subscription#cancel() cancellation} of the underlying task.
-	 * <p/>
+	 * <p>
+	 * Errors during {@link Record} retrieval lead to {@link Subscription#cancel() cancellation} of the underlying task.
+	 * <p>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
 	 *
@@ -178,13 +177,13 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
 	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
 	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
-	 * <p/>
+	 * <p>
 	 * Every message must be acknowledged using
 	 * {@link org.springframework.data.redis.core.StreamOperations#acknowledge(Object, String, String...)} after
 	 * processing.
-	 * <p/>
+	 * <p>
 	 * Errors during {@link Record} retrieval lead to {@link Subscription#cancel() cancellation} of the underlying task.
-	 * <p/>
+	 * <p>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
 	 *
@@ -204,11 +203,11 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
 	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
 	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
-	 * <p/>
+	 * <p>
 	 * Every message is acknowledged when received.
-	 * <p/>
+	 * <p>
 	 * Errors during {@link Record} retrieval lead to {@link Subscription#cancel() cancellation} of the underlying task.
-	 * <p/>
+	 * <p>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
 	 *
@@ -227,13 +226,13 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
 	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
 	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
-	 * <p/>
+	 * <p>
 	 * Errors during {@link Record} are tested against test {@link StreamReadRequest#getCancelSubscriptionOnError()
 	 * cancellation predicate} whether to cancel the underlying task.
-	 * <p/>
+	 * <p>
 	 * On {@link StreamMessageListenerContainer#stop()} all {@link Subscription subscriptions} are cancelled prior to
 	 * shutting down the container itself.
-	 * <p />
+	 * <p>
 	 * Errors during {@link Record} retrieval are delegated to the given {@link StreamReadRequest#getErrorHandler()}.
 	 *
 	 * @param streamRequest must not be {@literal null}.

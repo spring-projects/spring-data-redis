@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection;
 
 /**
  * Listener for subscription notifications.
- * <p/>
+ * <p>
  * Subscription notifications are reported by Redis as confirmation for subscribe and unsubscribe operations for
  * channels and patterns.
  *

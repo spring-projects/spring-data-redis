@@ -96,7 +96,6 @@ public interface ReactiveServerCommands {
 	 * <li>cpu utilization</li>
 	 * <li>replication</li>
 	 * </ul>
-	 * <p>
 	 *
 	 * @return {@link Mono} wrapping server information.
 	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>

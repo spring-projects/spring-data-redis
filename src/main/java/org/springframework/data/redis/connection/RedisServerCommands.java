@@ -115,7 +115,6 @@ public interface RedisServerCommands {
 	 * <li>cpu utilization</li>
 	 * <li>replication</li>
 	 * </ul>
-	 * <p>
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>

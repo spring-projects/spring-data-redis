@@ -72,17 +72,17 @@ public interface SortParameters {
 	Boolean isAlphabetic();
 
 	/**
-	 * Returns the pattern (if set) for sorting by external keys (<tt>BY</tt>). Can be null if nothing is specified.
+	 * Returns the pattern (if set) for sorting by external keys ({@code BY}). Can be null if nothing is specified.
 	 *
-	 * @return <tt>BY</tt> pattern. {@literal null} if not set.
+	 * @return {@code BY} pattern. {@literal null} if not set.
 	 */
 	@Nullable
 	byte[] getByPattern();
 
 	/**
-	 * Returns the pattern (if set) for retrieving external keys (<tt>GET</tt>). Can be null if nothing is specified.
+	 * Returns the pattern (if set) for retrieving external keys ({@code GET}). Can be null if nothing is specified.
 	 *
-	 * @return <tt>GET</tt> pattern. {@literal null} if not set.
+	 * @return {@code GET} pattern. {@literal null} if not set.
 	 */
 	@Nullable
 	byte[][] getGetPattern();

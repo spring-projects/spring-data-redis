@@ -113,7 +113,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	}
 
 	/**
-	 * Obtain a new {@link BitFieldIncrByBuilder} for creating and adding a {@link BitFieldIncrby} sub command.
+	 * Obtain a new {@link BitFieldIncrByBuilder} for creating and adding a {@link BitFieldIncrBy} sub command.
 	 *
 	 * @param type must not be {@literal null}.
 	 * @return
@@ -125,7 +125,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	/**
 	 * Create new {@link BitFieldSubCommands} adding given {@link BitFieldIncrBy} to the sub commands.
 	 *
-	 * @param get must not be {@literal null}.
+	 * @param incrBy must not be {@literal null}.
 	 * @return
 	 */
 	protected BitFieldSubCommands incr(BitFieldIncrBy incrBy) {

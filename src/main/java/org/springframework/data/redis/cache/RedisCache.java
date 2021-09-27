@@ -39,7 +39,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link org.springframework.cache.Cache} implementation using for Redis as underlying store.
- * <p/>
+ * <p>
  * Use {@link RedisCacheManager} to create {@link RedisCache} instances.
  *
  * @author Christoph Strobl

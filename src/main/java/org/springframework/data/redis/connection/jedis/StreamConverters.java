@@ -40,7 +40,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
 
 /**
  * Converters for Redis Stream-specific types.
- * <p/>
+ * <p>
  * Converters typically convert between value objects/argument objects retaining the actual types of values (i.e. no
  * serialization/deserialization happens here).
  *

@@ -59,7 +59,7 @@ public interface RedisStringCommands {
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
-	 * <p />
+	 * <p>
 	 * Use {@link Expiration#seconds(long)} for {@code EX}. <br />
 	 * Use {@link Expiration#milliseconds(long)} for {@code PX}. <br />
 	 * Use {@link Expiration#unixTimestamp(long, TimeUnit)} for {@code EXAT | PXAT}. <br />
@@ -385,29 +385,21 @@ public interface RedisStringCommands {
 
 		/**
 		 * Do not set any additional command argument.
-		 *
-		 * @return
 		 */
 		UPSERT,
 
 		/**
 		 * {@code NX}
-		 *
-		 * @return
 		 */
 		SET_IF_ABSENT,
 
 		/**
 		 * {@code XX}
-		 *
-		 * @return
 		 */
 		SET_IF_PRESENT;
 
 		/**
 		 * Do not set any additional command argument.
-		 *
-		 * @return
 		 */
 		public static SetOption upsert() {
 			return UPSERT;
@@ -415,8 +407,6 @@ public interface RedisStringCommands {
 
 		/**
 		 * {@code XX}
-		 *
-		 * @return
 		 */
 		public static SetOption ifPresent() {
 			return SET_IF_PRESENT;
@@ -424,8 +414,6 @@ public interface RedisStringCommands {
 
 		/**
 		 * {@code NX}
-		 *
-		 * @return
 		 */
 		public static SetOption ifAbsent() {
 			return SET_IF_ABSENT;

@@ -87,9 +87,8 @@ public interface RedisStreamCommands {
 	}
 
 	/**
-	 * Append the given {@link MapRecord record} to the stream stored at {@link Record#getStream()}. <br />
-	 * If you prefer manual id assignment over server generated ones make sure to provide an id via
-	 * {@link Record#withId(RecordId)}.
+	 * Append the given {@link MapRecord record} to the stream stored at {@code Record#getStream}. If you prefer manual id
+	 * assignment over server generated ones make sure to provide an id via {@code Record#withId}.
 	 *
 	 * @param record the {@link MapRecord record} to append.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
@@ -100,9 +99,8 @@ public interface RedisStreamCommands {
 	}
 
 	/**
-	 * Append the given {@link MapRecord record} to the stream stored at {@link Record#getStream()}. <br />
-	 * If you prefer manual id assignment over server generated ones make sure to provide an id via
-	 * {@link Record#withId(RecordId)}.
+	 * Append the given {@link MapRecord record} to the stream stored at {@code Record#getStream}. If you prefer manual id
+	 * assignment over server generated ones make sure to provide an id via {@code Record#withId}.
 	 *
 	 * @param record the {@link MapRecord record} to append.
 	 * @param options additional options (eg. {@literal MAXLEN}). Must not be {@literal null}, use

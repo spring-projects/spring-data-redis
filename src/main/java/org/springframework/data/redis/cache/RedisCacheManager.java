@@ -32,10 +32,10 @@ import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.cache.CacheManager} backed by a {@link RedisCache Redis} cache.
- * <p />
+ * <p>
  * This cache manager creates caches by default upon first write. Empty caches are not visible on Redis due to how Redis
  * represents empty data structures.
- * <p />
+ * <p>
  * Caches requiring a different {@link RedisCacheConfiguration} than the default configuration can be specified via
  * {@link RedisCacheManagerBuilder#withInitialCacheConfigurations(Map)}.
  *
@@ -170,7 +170,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * <dt>locking</dt>
 	 * <dd>disabled</dd>
 	 * <dt>batch strategy</dt>
-	 * <dd>{@link BatchStrategy#keys() KEYS}</dd>
+	 * <dd>{@link BatchStrategies#keys()}</dd>
 	 * <dt>cache configuration</dt>
 	 * <dd>{@link RedisCacheConfiguration#defaultCacheConfig()}</dd>
 	 * <dt>initial caches</dt>
@@ -423,7 +423,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		/**
 		 * Disable in-flight {@link org.springframework.cache.Cache} creation for unconfigured caches.
-		 * <p />
+		 * <p>
 		 * {@link RedisCacheManager#getMissingCache(String)} returns {@literal null} for any unconfigured
 		 * {@link org.springframework.cache.Cache} instead of a new {@link RedisCache} instance. This allows eg.
 		 * {@link org.springframework.cache.support.CompositeCacheManager} to chime in.

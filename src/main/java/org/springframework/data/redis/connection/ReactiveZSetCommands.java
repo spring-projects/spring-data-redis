@@ -1540,7 +1540,7 @@ public interface ReactiveZSetCommands {
 		 * Applies a {@link Duration timeout}. Constructs a new command instance with all previously configured properties.
 		 *
 		 * @param timeout value.
-		 * @param timeout must not be {@literal null}.
+		 * @param timeUnit must not be {@literal null}.
 		 * @return a new {@link BZPopCommand} with {@link Duration timeout} applied.
 		 */
 		public BZPopCommand blockingFor(long timeout, TimeUnit timeUnit) {

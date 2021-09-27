@@ -123,7 +123,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	}
 
 	/**
-	 * Return a shared default {@value ObjectHashMapper} instance, lazily building it once needed.
+	 * Return a shared default {@link ObjectHashMapper} instance, lazily building it once needed.
 	 * <p>
 	 * <b>NOTE:</b> We highly recommend constructing individual {@link ObjectHashMapper} instances for customization
 	 * purposes. This accessor is only meant as a fallback for code paths which need simple type coercion but cannot

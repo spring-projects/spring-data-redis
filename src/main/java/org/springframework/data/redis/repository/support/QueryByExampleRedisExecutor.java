@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
 
 /**
  * Repository fragment implementing Redis {@link QueryByExampleExecutor Query-by-Example} operations.
- * <p/>
+ * <p>
  * This executor uses {@link ExampleQueryMapper} to map {@link Example}s into {@link KeyValueQuery} to execute its query
  * methods.
  *

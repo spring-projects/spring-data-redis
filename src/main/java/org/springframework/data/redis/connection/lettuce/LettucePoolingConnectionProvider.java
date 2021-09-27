@@ -42,11 +42,11 @@ import org.springframework.util.Assert;
 /**
  * {@link LettuceConnectionProvider} with connection pooling support. This connection provider holds multiple pools (one
  * per connection type and allocation type (synchronous/asynchronous)) for contextualized connection allocation.
- * <p />
+ * <p>
  * Each allocated connection is tracked and to be returned into the pool which created the connection. Instances of this
  * class require {@link #destroy() disposal} to de-allocate lingering connections that were not returned to the pool and
  * to close the pools.
- * <p />
+ * <p>
  * This provider maintains separate pools due to the allocation nature (synchronous/asynchronous). Asynchronous
  * connection pooling requires a non-blocking allocation API. Connections requested asynchronously can be returned
  * synchronously and vice versa. A connection obtained synchronously is returned to the synchronous pool even if

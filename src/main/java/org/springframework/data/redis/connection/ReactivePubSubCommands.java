@@ -34,7 +34,7 @@ public interface ReactivePubSubCommands {
 
 	/**
 	 * Creates a subscription for this connection. Connections can have multiple {@link ReactiveSubscription}s.
-	 * <p/>
+	 * <p>
 	 * Use {@link #createSubscription(SubscriptionListener)} to get notified when the subscription completes.
 	 *
 	 * @return the subscription.
@@ -77,7 +77,7 @@ public interface ReactivePubSubCommands {
 	 * Subscribes the connection to the given {@code channels}. Once subscribed, a connection enters listening mode and
 	 * can only subscribe to other channels or unsubscribe. No other commands are accepted until the connection is
 	 * unsubscribed.
-	 * <p />
+	 * <p>
 	 * Note that cancellation of the {@link Flux} will unsubscribe from {@code channels}.
 	 *
 	 * @param channels channel names, must not be {@literal null}.
@@ -89,7 +89,7 @@ public interface ReactivePubSubCommands {
 	 * Subscribes the connection to all channels matching the given {@code patterns}. Once subscribed, a connection enters
 	 * listening mode and can only subscribe to other channels or unsubscribe. No other commands are accepted until the
 	 * connection is unsubscribed.
-	 * <p />
+	 * <p>
 	 * Note that cancellation of the {@link Flux} will unsubscribe from {@code patterns}.
 	 *
 	 * @param patterns channel name patterns, must not be {@literal null}.

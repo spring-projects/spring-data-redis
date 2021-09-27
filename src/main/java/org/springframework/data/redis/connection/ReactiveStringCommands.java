@@ -276,7 +276,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * Applies {@link Expiration}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param options must not be {@literal null}.
+		 * @param expiration must not be {@literal null}.
 		 * @return a new {@link GetExCommand} with {@link Expiration} applied.
 		 */
 		public GetExCommand withExpiration(Expiration expiration) {

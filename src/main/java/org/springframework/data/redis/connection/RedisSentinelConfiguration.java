@@ -67,8 +67,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 *
 	 * <pre>
 	 * sentinelHostAndPorts[0] = 127.0.0.1:23679 sentinelHostAndPorts[1] = 127.0.0.1:23680 ...
-	 *
-	 * <pre>
+	 * </pre>
 	 *
 	 * @param sentinelHostAndPorts must not be {@literal null}.
 	 * @since 1.5

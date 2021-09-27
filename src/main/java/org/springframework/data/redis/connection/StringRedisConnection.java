@@ -144,7 +144,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param replace whether to replace existing keys.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
-	 * @see RedisKeyCommands#copy(byte[], byte[])
+	 * @see RedisKeyCommands#copy(byte[], byte[], boolean)
 	 */
 	Boolean copy(String sourceKey, String targetKey, boolean replace);
 
@@ -1224,7 +1224,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param score must not be {@literal null}.
 	 * @param value must not be {@literal null}.
-	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#empty()} instead.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
@@ -1249,7 +1249,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param tuples must not be {@literal null}.
-	 * @param args must not be {@literal null} use {@link ZAddArgs#none()} instead.
+	 * @param args must not be {@literal null} use {@link ZAddArgs#empty()} instead.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
@@ -1792,7 +1792,6 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Union sorted {@code sets}.
 	 *
-	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6
@@ -1804,7 +1803,6 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Union sorted {@code sets}.
 	 *
-	 * @param destKey must not be {@literal null}.
 	 * @param sets must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.6
@@ -1935,7 +1933,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param range can be {@literal null}.
+	 * @param limit can be {@literal null}.
 	 * @return
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
@@ -1971,12 +1969,12 @@ public interface StringRedisConnection extends RedisConnection {
 	}
 
 	/**
-	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering. Result is
-	 * limited via {@link Limit}.
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
+	 * Result is limited via {@link Limit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param range can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>

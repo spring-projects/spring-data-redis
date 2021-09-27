@@ -93,7 +93,7 @@ public interface ReactiveKeyCommands {
 		/**
 		 * Applies {@code replace}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param key must not be {@literal null}.
+		 * @param replace
 		 * @return a new {@link CopyCommand} with {@literal replace} applied.
 		 */
 		public CopyCommand replace(boolean replace) {

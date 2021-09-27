@@ -56,7 +56,7 @@ public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
 	 * Get time unix timestamp of last successful {@link #bgSave()} operation in seconds.
 	 *
 	 * @param node must not be {@literal null}.
-	 * @return @return {@link Mono} wrapping unix timestamp.
+	 * @return {@link Mono} wrapping unix timestamp.
 	 * @throws IllegalArgumentException when {@code node} is {@literal null}.
 	 * @see RedisServerCommands#lastSave()
 	 */
@@ -108,7 +108,6 @@ public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
 	 * <li>cpu utilization</li>
 	 * <li>replication</li>
 	 * </ul>
-	 * <p>
 	 *
 	 * @param node must not be {@literal null}.
 	 * @return {@link Mono} wrapping server information.

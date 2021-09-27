@@ -17,8 +17,6 @@ package org.springframework.data.redis.connection;
 
 import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 
-import org.springframework.data.redis.domain.geo.GeoReference;
-import org.springframework.data.redis.domain.geo.GeoShape;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -43,6 +41,8 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -1279,7 +1279,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param member must not be {@literal null}.
+		 * @param reference must not be {@literal null}.
 		 * @return a new {@link GeoSearchCommand} with {@literal key} applied.
 		 */
 		public GeoSearchCommand at(GeoReference<ByteBuffer> reference) {
@@ -1292,7 +1292,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param member must not be {@literal null}.
+		 * @param key must not be {@literal null}.
 		 * @return a new {@link GeoSearchCommand} with {@literal key} applied.
 		 */
 		public GeoSearchCommand in(ByteBuffer key) {
@@ -1370,7 +1370,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param member must not be {@literal null}.
+		 * @param reference must not be {@literal null}.
 		 * @return a new {@link GeoSearchStoreCommand} with {@literal key} applied.
 		 */
 		public GeoSearchStoreCommand at(GeoReference<ByteBuffer> reference) {
@@ -1383,7 +1383,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Sets the geoset {@literal key}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param member must not be {@literal null}.
+		 * @param key must not be {@literal null}.
 		 * @return a new {@link GeoSearchStoreCommand} with {@literal key} applied.
 		 */
 		public GeoSearchStoreCommand in(ByteBuffer key) {
@@ -1396,7 +1396,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * Sets the geoset {@literal destKey}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param member must not be {@literal null}.
+		 * @param destKey must not be {@literal null}.
 		 * @return a new {@link GeoSearchStoreCommand} with {@literal destKey} applied.
 		 */
 		public GeoSearchStoreCommand storeAt(ByteBuffer destKey) {

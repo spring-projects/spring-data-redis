@@ -27,9 +27,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Value object which may or may not contain a Redis password.
- * <p/>
+ * <p>
  * If a password is present, {@code isPresent()} will return {@code true} and {@code get()} will return the value.
- * <p/>
+ * <p>
  * The password is stored as character array.
  *
  * @author Mark Paluch
@@ -109,7 +109,7 @@ public class RedisPassword {
 
 	/**
 	 * Map the password using a {@link Function} and return a {@link Optional} containing the mapped value.
-	 * <p/>
+	 * <p>
 	 * Absent passwords return a {@link Optional#empty()}.
 	 *
 	 * @param mapper must not be {@literal null}.
@@ -124,7 +124,7 @@ public class RedisPassword {
 
 	/**
 	 * Adopt the password to {@link Optional} containing the password value.
-	 * <p/>
+	 * <p>
 	 * Absent passwords return a {@link Optional#empty()}.
 	 *
 	 * @return the {@link Optional} containing the password value.

@@ -40,11 +40,11 @@ import org.springframework.util.StringUtils;
 
 /**
  * Mapper for Query-by-Example examples to an actual query.
- * <p/>
+ * <p>
  * This mapper creates a {@link RedisOperationChain} for a given {@link Example} considering exact matches,
  * {@link PropertyValueTransformer value transformations} and {@link MatchMode} for indexed simple and nested type
  * properties. {@link java.util.Map} and {@link java.util.Collection} properties are not considered.
- * <p/>
+ * <p>
  * Example matching is limited to case-sensitive and exact matches only.
  *
  * @author Mark Paluch

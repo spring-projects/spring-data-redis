@@ -19,9 +19,9 @@ import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * A {@link BatchStrategy} to be used with {@link RedisCacheWriter}.
- * <p/>
+ * <p>
  * Mainly used to clear the cache.
- * <p/>
+ * <p>
  * Predefined strategies using the {@link BatchStrategies#keys() KEYS} or {@link BatchStrategies#scan(int) SCAN}
  * commands can be found in {@link BatchStrategies}.
  *

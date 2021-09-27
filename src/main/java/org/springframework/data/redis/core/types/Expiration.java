@@ -128,7 +128,7 @@ public class Expiration {
 
 	/**
 	 * Obtain an {@link Expiration} that indicates to keep the existing one. Eg. when sending a {@code SET} command.
-	 * <p />
+	 * <p>
 	 * <strong>NOTE: </strong>Please follow the documentation of the individual commands to see if {@link #keepTtl()} is
 	 * applicable.
 	 *

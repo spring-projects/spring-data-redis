@@ -29,7 +29,6 @@ import org.springframework.util.Assert;
  * <p>
  * As the rest of the APIs, if the underlying connection is pipelined or queued/in multi mode, all methods will return
  * {@literal null}.
- * <p>
  *
  * @author Costin Leau
  * @author Christoph Strobl

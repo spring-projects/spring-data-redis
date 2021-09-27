@@ -56,11 +56,11 @@ import org.springframework.util.ObjectUtils;
  * Container providing a stream of {@link ChannelMessage} for messages received via Redis Pub/Sub listeners. The stream
  * is infinite and registers Redis subscriptions. Handles the low level details of listening, converting and message
  * dispatching.
- * <p />
+ * <p>
  * Note the container allocates a single connection when it is created and releases the connection on
  * {@link #destroy()}. Connections are allocated eagerly to not interfere with non-blocking use during application
  * operations. Using reactive infrastructure allows usage of a single connection due to channel multiplexing.
- * <p />
+ * <p>
  * This class is thread-safe and allows subscription by multiple concurrent threads.
  *
  * @author Mark Paluch
@@ -166,7 +166,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * {@link Mono} completes. Messages and channel names are treated as {@link String}. The message stream subscribes
 	 * lazily to the Redis channels and unsubscribes if the inner {@link org.reactivestreams.Subscription} is
 	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
-	 * <p/>
+	 * <p>
 	 * The returned {@link Mono} completes once the connection has been subscribed to the given {@link Topic topics}. Note
 	 * that cancelling the returned {@link Mono} can leave the connection in a subscribed state.
 	 *
@@ -209,7 +209,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * {@link Mono} completes. Messages, pattern, and channel names are treated as {@link String}. The message stream
 	 * subscribes lazily to the Redis channels and unsubscribes if the inner {@link org.reactivestreams.Subscription} is
 	 * {@link org.reactivestreams.Subscription#cancel() cancelled}.
-	 * <p/>
+	 * <p>
 	 * The returned {@link Mono} completes once the connection has been subscribed to the given {@link Topic topics}. Note
 	 * that cancelling the returned {@link Mono} can leave the connection in a subscribed state.
 	 *

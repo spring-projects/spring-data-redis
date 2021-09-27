@@ -1,6 +1,6 @@
 /**
  * Core package for integrating <a href="https://redis.io">Redis</a> with Spring concepts.
- * <p/>
+ * <p>
  * Provides template support and callback for low-level access.
  */
 @org.springframework.lang.NonNullApi

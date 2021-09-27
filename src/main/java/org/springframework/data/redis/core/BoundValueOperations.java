@@ -174,7 +174,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	/**
 	 * Return the value at the bound key and delete the key.
 	 *
-	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6

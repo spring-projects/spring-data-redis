@@ -19,7 +19,7 @@ import org.springframework.data.redis.hash.HashMapper;
 
 /**
  * Function that returns a {@link HashMapper} for a given {@link Class type}.
- * <p/>
+ * <p>
  * Implementors of this interface can return a generic or a specific {@link HashMapper} implementation, depending on the
  * serialization strategy for the requested {@link Class target type}.
  *
