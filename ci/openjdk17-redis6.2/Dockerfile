@@ -1,8 +1,10 @@
+# Custom OpenJDK 17 Docker Image
 FROM openjdk:17-bullseye
 
 # Copy Spring Data Redis's Makefile into the container
 COPY ./Makefile /
 
+# Install Redis 6.2
 RUN set -eux; \
 	apt-get update ; \
 	apt-get install -y build-essential ; \
