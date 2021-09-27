@@ -33,26 +33,7 @@ pipeline {
 						}
 					}
 				}
-				stage('Publish OpenJDK 11 + Redis 6.2 docker image') {
-					when {
-						anyOf {
-							changeset "ci/openjdk11-redis-6.2/**"
-							changeset "Makefile"
-						}
-					}
-					agent { label 'data' }
-					options { timeout(time: 20, unit: 'MINUTES') }
-
-					steps {
-						script {
-							def image = docker.build("springci/spring-data-openjdk11-with-redis-6.2", "-f ci/openjdk11-redis-6.2/Dockerfile .")
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								image.push()
-							}
-						}
-					}
-				}
-				stage('Publish OpenJDK 16 + Redis 6.2 docker image') {
+				stage('Publish OpenJDK 17 + Redis 6.2 docker image') {
 					when {
 						anyOf {
 							changeset "ci/openjdk16-redis-6.2/**"
@@ -64,7 +45,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk16-with-redis-6.2", "-f ci/openjdk16-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-openjdk17-with-redis-6.2", "-f ci/openjdk17-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
@@ -76,8 +57,9 @@ pipeline {
 
 		stage("test: baseline (jdk8)") {
 			when {
+				beforeAgent(true)
 				anyOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -101,13 +83,14 @@ pipeline {
 
 		stage("Test other configurations") {
 			when {
+				beforeAgent(true)
 				allOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
 			parallel {
-				stage("test: baseline (jdk11)") {
+				stage("test: baseline (jdk17)") {
 					agent {
 						label 'data'
 					}
@@ -118,25 +101,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('springci/spring-data-openjdk11-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
-									sh 'PROFILE=java11 ci/test.sh'
-								}
-							}
-						}
-					}
-				}
-				stage("test: baseline (jdk16)") {
-					agent {
-						label 'data'
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					environment {
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
-					}
-					steps {
-						script {
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('springci/spring-data-openjdk16-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image('springci/spring-data-openjdk17-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
@@ -148,8 +113,9 @@ pipeline {
 
 		stage('Release to artifactory') {
 			when {
+				beforeAgent(true)
 				anyOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -173,35 +139,6 @@ pipeline {
 									"-Dartifactory.staging-repository=libs-snapshot-local " +
 									"-Dartifactory.build-name=spring-data-redis " +
 									"-Dartifactory.build-number=${BUILD_NUMBER} " +
-									'-Dmaven.test.skip=true clean deploy -U -B'
-						}
-					}
-				}
-			}
-		}
-
-		stage('Publish documentation') {
-			when {
-				branch 'main'
-			}
-			agent {
-				label 'data'
-			}
-			options { timeout(time: 20, unit: 'MINUTES') }
-
-			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
-			}
-
-			steps {
-				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute ' +
-									'-Dartifactory.server=https://repo.spring.io ' +
-									"-Dartifactory.username=${ARTIFACTORY_USR} " +
-									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-									"-Dartifactory.distribution-repository=temp-private-local " +
 									'-Dmaven.test.skip=true clean deploy -U -B'
 						}
 					}

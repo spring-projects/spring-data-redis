@@ -1,9 +1,10 @@
-FROM adoptopenjdk/openjdk11:latest
+FROM openjdk:17-bullseye
 
 # Copy Spring Data Redis's Makefile into the container
 COPY ./Makefile /
 
 RUN set -eux; \
+	sed -i -e 's/http/https/g' /etc/apt/sources.list ; \
 	apt-get update ; \
 	apt-get install -y build-essential ; \
 	make work/redis/bin/redis-cli work/redis/bin/redis-server REDIS_VERSION=6.2.4; \
