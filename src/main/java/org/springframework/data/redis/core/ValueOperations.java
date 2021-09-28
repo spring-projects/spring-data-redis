@@ -188,7 +188,7 @@ public interface ValueOperations<K, V> {
 	 * not exist.
 	 *
 	 * @param map must not be {@literal null}.
-	 * @param {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
 	@Nullable
@@ -343,7 +343,7 @@ public interface ValueOperations<K, V> {
 	 * @param offset
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.5
-	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: GETBIT</a>
+	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
 	@Nullable
 	Boolean getBit(K key, long offset);
