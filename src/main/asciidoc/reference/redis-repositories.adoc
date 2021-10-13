@@ -588,7 +588,7 @@ The `RedisKeyExpiredEvent` holds a copy of the expired domain object as well as 
 
 NOTE: Delaying or disabling the expiry event listener startup impacts `RedisKeyExpiredEvent` publishing. A disabled event listener does not publish expiry events. A delayed startup can cause loss of events because of the delayed listener initialization.
 
-NOTE: The keyspace notification message listener alters `notify-keyspace-events` settings in Redis, if those are not already set. Existing settings are not overridden, so you must set up those settings correctly (or leave them empty). Note that `CONFIG` is disabled on AWS ElastiCache, and enabling the listener leads to an error.
+NOTE: The keyspace notification message listener alters `notify-keyspace-events` settings in Redis, if those are not already set. Existing settings are not overridden, so you must set up those settings correctly (or leave them empty). Note that `CONFIG` is disabled on AWS ElastiCache, and enabling the listener leads to an error. To work around this error the `keyspaceNotificationsConfigParameter` parameter must be set to `null` or empty string. This prevents Spring Data Redis from using the `CONFIG` command.
 
 NOTE: Redis Pub/Sub messages are not persistent. If a key expires while the application is down, the expiry event is not processed, which may lead to secondary indexes containing references to the expired object.
 
