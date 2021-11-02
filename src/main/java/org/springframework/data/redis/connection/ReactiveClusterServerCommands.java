@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Properties;
 
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
@@ -27,6 +28,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dennis Neufeld
  * @since 2.0
  */
 public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
@@ -92,6 +94,17 @@ public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
 	Mono<String> flushDb(RedisClusterNode node);
 
 	/**
+	 * Delete all keys of the currently selected database using the specified flush option.
+	 *
+	 * @param node must not be {@literal null}. {@link Mono} indicating command completion.
+	 * @param option
+	 * @throws IllegalArgumentException when {@code node} is {@literal null}.
+	 * @see RedisServerCommands#flushDb(FlushOption)
+	 * @since 2.6
+	 */
+	Mono<String> flushDb(RedisClusterNode node, FlushOption option);
+
+	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
 	 *
 	 * @param node must not be {@literal null}.
@@ -100,6 +113,18 @@ public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
 	 * @see RedisServerCommands#flushAll()
 	 */
 	Mono<String> flushAll(RedisClusterNode node);
+
+	/**
+	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified flush option.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param option
+	 * @return {@link Mono} indicating command completion.
+	 * @throws IllegalArgumentException when {@code node} is {@literal null}.
+	 * @see RedisServerCommands#flushAll(FlushOption)
+	 * @since 2.6
+	 */
+	Mono<String> flushAll(RedisClusterNode node, FlushOption option);
 
 	/**
 	 * Load {@literal default} server information like

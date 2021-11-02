@@ -47,6 +47,7 @@ import org.springframework.util.ObjectUtils;
  * @author David Liu
  * @author Ninad Divadkar
  * @author Mark Paluch
+ * @author Dennis Neufeld
  */
 class RedisConnectionUnitTests {
 
@@ -433,6 +434,10 @@ class RedisConnectionUnitTests {
 			delegate.flushDb();
 		}
 
+		public void flushDb(FlushOption option) {
+			delegate.flushDb(option);
+		}
+
 		public Boolean sIsMember(byte[] key, byte[] value) {
 			return delegate.sIsMember(key, value);
 		}
@@ -455,6 +460,10 @@ class RedisConnectionUnitTests {
 
 		public void flushAll() {
 			delegate.flushAll();
+		}
+
+		public void flushAll(FlushOption option) {
+			delegate.flushAll(option);
 		}
 
 		public void lTrim(byte[] key, long begin, long end) {

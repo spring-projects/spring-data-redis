@@ -61,6 +61,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ReturnType;
@@ -79,6 +80,7 @@ import org.springframework.data.redis.test.util.HexStringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Pavel Khokhlov
+ * @author Dennis Neufeld
  */
 @EnabledOnRedisClusterAvailable
 @ExtendWith(JedisExtension.class)
@@ -456,6 +458,30 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isNull();
 	}
 
+	@Test // GH-2187
+	public void flushDbSyncOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushDb(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()), FlushOption.SYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushDbAsyncOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushDb(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()), FlushOption.ASYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
 	@Test // DATAREDIS-315
 	public void flushDbShouldFlushAllClusterNodes() {
 
@@ -463,6 +489,102 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_2, VALUE_2);
 
 		clusterConnection.flushDb();
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushDbSyncShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushDb(FlushOption.SYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushDbAsyncShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushDb(FlushOption.ASYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()));
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllSyncOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()), FlushOption.SYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllAsyncOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()), FlushOption.ASYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll();
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllSyncShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(FlushOption.SYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllAsyncShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(FlushOption.ASYNC);
 
 		assertThat(nativeConnection.get(KEY_1)).isNull();
 		assertThat(nativeConnection.get(KEY_2)).isNull();
