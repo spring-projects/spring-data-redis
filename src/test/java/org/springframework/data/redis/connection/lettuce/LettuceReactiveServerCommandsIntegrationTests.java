@@ -20,11 +20,14 @@ import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
 
+import org.junit.jupiter.api.Disabled;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dennis Neufeld
  */
 public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
 
@@ -66,6 +69,42 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
 
 		connection.serverCommands().flushDb().as(StepVerifier::create).expectNext("OK").verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
+	@ParameterizedRedisTest // GH-2187
+	void flushDbSyncShouldRespondCorrectly() {
+
+		connection.serverCommands().flushDb() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		connection.serverCommands().flushDb(FlushOption.SYNC).as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
+	@ParameterizedRedisTest // GH-2187
+	void flushDbAsyncShouldRespondCorrectly() {
+
+		connection.serverCommands().flushDb() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		connection.serverCommands().flushDb(FlushOption.ASYNC).as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
 
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}

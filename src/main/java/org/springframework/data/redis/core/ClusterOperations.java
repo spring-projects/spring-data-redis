@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisClusterCommands;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 
 /**
  * Redis operations for cluster specific operations. A {@link RedisClusterNode} can be obtained from
@@ -31,6 +32,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dennis Neufeld
  * @since 1.7
  */
 public interface ClusterOperations<K, V> {
@@ -116,6 +118,16 @@ public interface ClusterOperations<K, V> {
 	 * @see RedisConnection#flushDb()
 	 */
 	void flushDb(RedisClusterNode node);
+
+	/**
+	 * Flush db on node using the specified flush option.
+	 *
+	 * @param node must not be {@literal null}.
+	 * @param option
+	 * @see RedisConnection#flushDb(FlushOption)
+	 * @since 2.6
+	 */
+	void flushDb(RedisClusterNode node, FlushOption option);
 
 	/**
 	 * @param node must not be {@literal null}.

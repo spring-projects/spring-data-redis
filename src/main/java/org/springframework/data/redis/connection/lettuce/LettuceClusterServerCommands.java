@@ -38,6 +38,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Paluch
+ * @author Dennis Neufeld
  * @since 2.0
  */
 class LettuceClusterServerCommands extends LettuceServerCommands implements RedisClusterServerCommands {
@@ -126,11 +127,29 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#flushDb(org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushDb(FlushOption option) {
+		executeCommandOnAllNodes(it -> it.flushdb(toFlushMode(option)));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushDb(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
 	public void flushDb(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::flushdb, node);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushDb(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushDb(RedisClusterNode node, FlushOption option) {
+		executeCommandOnSingleNode(it -> it.flushdb(toFlushMode(option)), node);
 	}
 
 	/*

@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dennis Neufeld
  * @since 2.0
  */
 public interface ReactiveServerCommands {
@@ -80,6 +82,16 @@ public interface ReactiveServerCommands {
 	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
 	 */
 	Mono<String> flushDb();
+
+	/**
+	 * Delete all keys of the currently selected database using the specified flush option.
+	 *
+	 * @param option
+	 * @return {@link Mono} indicating command completion.
+	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
+	 * @since 2.6
+	 */
+	Mono<String> flushDb(FlushOption option);
 
 	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.

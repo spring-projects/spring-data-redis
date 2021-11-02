@@ -75,6 +75,7 @@ import org.springframework.util.ObjectUtils;
  * @author Andrey Shlykov
  * @author dengliming
  * @author ihaohong
+ * @author Dennis Neufeld
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -408,6 +409,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public void flushDb() {
 		delegate.flushDb();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushDb(org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushDb(FlushOption option) {
+		delegate.flushDb(option);
 	}
 
 	/*

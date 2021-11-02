@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisServerCommands.MigrateOption;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -44,6 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dennis Neufeld
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -206,6 +208,22 @@ class DefaultClusterOperationsUnitTests {
 		clusterOps.flushDb(NODE_1);
 
 		verify(connection, times(1)).flushDb(eq(NODE_1));
+	}
+
+	@Test // GH-2187
+	void flushDbSyncShouldDelegateToConnection() {
+
+		clusterOps.flushDb(NODE_1, FlushOption.SYNC);
+
+		verify(connection, times(1)).flushDb(eq(NODE_1), eq(FlushOption.SYNC));
+	}
+
+	@Test // GH-2187
+	void flushDbAsyncShouldDelegateToConnection() {
+
+		clusterOps.flushDb(NODE_1, FlushOption.ASYNC);
+
+		verify(connection, times(1)).flushDb(eq(NODE_1), eq(FlushOption.ASYNC));
 	}
 
 	@Test // DATAREDIS-315

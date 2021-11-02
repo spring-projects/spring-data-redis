@@ -23,6 +23,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
  * @author Mark Paluch
+ * @author Dennis Neufeld
  * @since 2.0
  */
 public interface RedisClusterServerCommands extends RedisServerCommands {
@@ -64,6 +65,14 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @see RedisServerCommands#flushDb()
 	 */
 	void flushDb(RedisClusterNode node);
+
+	/**
+	 * @param node must not be {@literal null}.
+	 * @param option
+	 * @see RedisServerCommands#flushDb(FlushOption)
+	 * @since 2.6
+	 */
+	void flushDb(RedisClusterNode node, FlushOption option);
 
 	/**
 	 * @param node must not be {@literal null}.
