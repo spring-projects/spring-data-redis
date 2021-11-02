@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Mark Paluch
+ * @author Todd Merrill
  */
 public interface RedisOperations<K, V> {
 
@@ -262,7 +263,7 @@ public interface RedisOperations<K, V> {
 	void rename(K oldKey, K newKey);
 
 	/**
-	 * Rename key {@code oleName} to {@code newKey} only if {@code newKey} does not exist.
+	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
 	 *
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
