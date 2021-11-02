@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
+import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.args.SaveMode;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Dennis Neufeld
  * @since 2.0
  */
 class JedisServerCommands implements RedisServerCommands {
@@ -76,8 +78,22 @@ class JedisServerCommands implements RedisServerCommands {
 	}
 
 	@Override
+	public void flushDb(FlushOption option) {
+
+		FlushMode flushMode = JedisClusterServerCommands.toFlushMode(option);
+		connection.invokeStatus().just(it -> it.flushDB(flushMode), it -> it.flushDB(flushMode));
+	}
+
+	@Override
 	public void flushAll() {
 		connection.invokeStatus().just(BinaryJedis::flushAll, MultiKeyPipelineBase::flushAll);
+	}
+
+	@Override
+	public void flushAll(FlushOption option) {
+
+		FlushMode flushMode = JedisClusterServerCommands.toFlushMode(option);
+		connection.invokeStatus().just(it -> it.flushAll(flushMode), it -> it.flushAll(flushMode));
 	}
 
 	@Override

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.FlushMode;
 import io.lettuce.core.LettuceFutures;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Dennis Neufeld
  * @since 2.0
  */
 class LettuceServerCommands implements RedisServerCommands {
@@ -75,8 +77,18 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
+	public void flushDb(FlushOption option) {
+		connection.invoke().just(it -> it.flushdb(toFlushMode(option)));
+	}
+
+	@Override
 	public void flushAll() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::flushall);
+	}
+
+	@Override
+	public void flushAll(FlushOption option) {
+		connection.invokeStatus().just(it -> it.flushall(toFlushMode(option)));
 	}
 
 	@Override
@@ -219,6 +231,21 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {
 		return connection.getConnection();
+	}
+
+	static FlushMode toFlushMode(@Nullable FlushOption option) {
+
+		if (option == null) {
+			return FlushMode.SYNC;
+		}
+
+		switch (option) {
+			case ASYNC:
+				return FlushMode.ASYNC;
+			case SYNC:
+				return FlushMode.SYNC;
+		}
+		throw new UnsupportedOperationException("Flush option " + option + " is not implemented.");
 	}
 
 	static class CompletedRedisFuture<T> extends CompletableFuture<T> implements RedisFuture<T> {

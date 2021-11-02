@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Dennis Neufeld
  */
 public interface RedisServerCommands {
 
@@ -41,6 +42,13 @@ public interface RedisServerCommands {
 	 */
 	enum MigrateOption {
 		COPY, REPLACE
+	}
+
+	/**
+	 * @since 2.6
+	 */
+	enum FlushOption {
+		SYNC, ASYNC
 	}
 
 	/**
@@ -102,11 +110,29 @@ public interface RedisServerCommands {
 	void flushDb();
 
 	/**
+	 * Delete all keys of the currently selected database using the specified flush option.
+	 *
+	 * @param option
+	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
+	 * @since 2.6
+	 */
+	void flushDb(FlushOption option);
+
+	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
 	 *
 	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
 	 */
 	void flushAll();
+
+	/**
+	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified flush option.
+	 *
+	 * @param option
+	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
+	 * @since 2.6
+	 */
+	void flushAll(FlushOption option);
 
 	/**
 	 * Load {@literal default} server information like

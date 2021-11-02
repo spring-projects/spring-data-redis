@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.args.FlushMode;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,6 +42,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Paluch
+ * @author Dennis Neufeld
  * @since 2.0
  */
 class JedisClusterServerCommands implements RedisClusterServerCommands {
@@ -128,8 +130,18 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	}
 
 	@Override
+	public void flushDb(FlushOption option) {
+		executeCommandOnAllNodes(it -> it.flushDB(toFlushMode(option)));
+	}
+
+	@Override
 	public void flushDb(RedisClusterNode node) {
 		executeCommandOnSingleNode(BinaryJedis::flushDB, node);
+	}
+
+	@Override
+	public void flushDb(RedisClusterNode node, FlushOption option) {
+		executeCommandOnSingleNode(it -> it.flushDB(toFlushMode(option)), node);
 	}
 
 	@Override
@@ -139,8 +151,19 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	}
 
 	@Override
+	public void flushAll(FlushOption option) {
+		connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) it -> it.flushAll(toFlushMode(option)));
+	}
+
+	@Override
 	public void flushAll(RedisClusterNode node) {
 		executeCommandOnSingleNode(BinaryJedis::flushAll, node);
+	}
+
+	@Override
+	public void flushAll(RedisClusterNode node, FlushOption option) {
+		executeCommandOnSingleNode(it -> it.flushAll(toFlushMode(option)), node);
 	}
 
 	@Override
@@ -394,5 +417,20 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	private <T> MultiNodeResult<T> executeCommandOnAllNodes(JedisClusterCommandCallback<T> cmd) {
 		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(cmd);
+	}
+
+	static FlushMode toFlushMode(@Nullable FlushOption option) {
+
+		if (option == null) {
+			return FlushMode.SYNC;
+		}
+
+		switch (option) {
+			case ASYNC:
+				return FlushMode.ASYNC;
+			case SYNC:
+				return FlushMode.SYNC;
+		}
+		throw new UnsupportedOperationException("Flush option " + option + " is not implemented.");
 	}
 }

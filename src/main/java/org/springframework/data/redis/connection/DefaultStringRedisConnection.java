@@ -75,6 +75,7 @@ import org.springframework.util.ObjectUtils;
  * @author Andrey Shlykov
  * @author dengliming
  * @author ihaohong
+ * @author Dennis Neufeld
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -314,8 +315,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public void flushAll(FlushOption option) {
+		delegate.flushAll(option);
+	}
+
+	@Override
 	public void flushDb() {
 		delegate.flushDb();
+	}
+
+	@Override
+	public void flushDb(FlushOption option) {
+		delegate.flushDb(option);
 	}
 
 	@Override

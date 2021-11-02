@@ -41,6 +41,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.ReactiveClusterServerCommands;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
@@ -50,6 +51,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dennis Neufeld
  * @since 2.0
  */
 class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
@@ -106,8 +108,18 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	}
 
 	@Override
+	public Mono<String> flushDb(RedisClusterNode node, FlushOption option) {
+		return connection.execute(node, it -> it.flushdb(LettuceServerCommands.toFlushMode(option))).next();
+	}
+
+	@Override
 	public Mono<String> flushAll(RedisClusterNode node) {
 		return connection.execute(node, RedisServerReactiveCommands::flushall).next();
+	}
+
+	@Override
+	public Mono<String> flushAll(RedisClusterNode node, FlushOption option) {
+		return connection.execute(node, it -> it.flushall(LettuceServerCommands.toFlushMode(option))).next();
 	}
 
 	@Override

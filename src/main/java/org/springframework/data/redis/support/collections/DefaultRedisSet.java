@@ -203,10 +203,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return DataType.SET;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#scan()
-	 */
 	@Override
 	public Cursor<E> scan() {
 		return scan(ScanOptions.NONE);

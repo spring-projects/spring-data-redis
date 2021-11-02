@@ -23,6 +23,7 @@ import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisServerCommands.MigrateOption;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
  * Default {@link ClusterOperations} implementation.
  *
  * @author Christoph Strobl
+ * @author Dennis Neufeld
  * @since 1.7
  * @param <K>
  * @param <V>
@@ -145,6 +147,17 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.flushDb(node);
+			return null;
+		});
+	}
+
+	@Override
+	public void flushDb(RedisClusterNode node, FlushOption option) {
+
+		Assert.notNull(node, "ClusterNode must not be null.");
+
+		doInCluster((RedisClusterCallback<Void>) connection -> {
+			connection.flushDb(node, option);
 			return null;
 		});
 	}

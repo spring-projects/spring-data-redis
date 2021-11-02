@@ -20,6 +20,7 @@ import org.springframework.data.geo.Point;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dennis Neufeld
  */
 public interface ClusterConnectionTests {
 
@@ -123,8 +124,38 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void flushDbOnSingleNodeShouldFlushOnlyGivenNodesDb();
 
+	// GH-2187
+	void flushDbSyncOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushDbAsyncOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
 	// DATAREDIS-315
 	void flushDbShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushDbSyncShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushDbAsyncShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushAllOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushAllSyncOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushAllAsyncOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushAllShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushAllSyncShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushAllAsyncShouldFlushAllClusterNodes();
 
 	// DATAREDIS-438
 	void geoAddMultipleGeoLocations();

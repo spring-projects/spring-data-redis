@@ -60,6 +60,7 @@ import org.springframework.lang.Nullable;
  * @author Andrey Shlykov
  * @author dengliming
  * @author ihaohong
+ * @author Dennis Neufeld
  * @since 2.0
  */
 public interface DefaultedRedisConnection extends RedisConnection {
@@ -1635,8 +1636,22 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
+	default void flushDb(FlushOption option) {
+		serverCommands().flushDb(option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
 	default void flushAll() {
 		serverCommands().flushAll();
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
+	default void flushAll(FlushOption option) {
+		serverCommands().flushAll(option);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */

@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.ReactiveServerCommands;
+import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dennis Neufeld
  */
 class LettuceReactiveServerCommands implements ReactiveServerCommands {
 
@@ -83,8 +85,18 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	}
 
 	@Override
+	public Mono<String> flushDb(FlushOption option) {
+		return connection.execute(it -> it.flushdb(LettuceServerCommands.toFlushMode(option))).next();
+	}
+
+	@Override
 	public Mono<String> flushAll() {
 		return connection.execute(RedisServerReactiveCommands::flushall).next();
+	}
+
+	@Override
+	public Mono<String> flushAll(FlushOption option) {
+		return connection.execute(it -> it.flushall(LettuceServerCommands.toFlushMode(option))).next();
 	}
 
 	@Override

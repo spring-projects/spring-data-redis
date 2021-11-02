@@ -486,10 +486,6 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	// Methods dealing with Redis Lua scripts
 	// -------------------------------------------------------------------------
 
-	/*
-	 *(non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List)
-	 */
 	@Override
 	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args) {
 		return reactiveScriptExecutor.execute(script, keys, args);
