@@ -91,6 +91,13 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
+	default void flushAll(RedisClusterNode node, FlushOption option) {
+		serverCommands().flushAll(node, option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
 	default Properties info(RedisClusterNode node) {
 		return serverCommands().info(node);
 	}

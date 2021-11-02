@@ -82,6 +82,14 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 
 	/**
 	 * @param node must not be {@literal null}.
+	 * @param option
+	 * @see RedisServerCommands#flushAll(FlushOption)
+	 * @since 2.6
+	 */
+	void flushAll(RedisClusterNode node, FlushOption option);
+
+	/**
+	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#info()
 	 */

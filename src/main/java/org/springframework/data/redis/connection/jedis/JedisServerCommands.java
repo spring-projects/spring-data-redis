@@ -123,6 +123,17 @@ class JedisServerCommands implements RedisServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll(org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushAll(FlushOption option) {
+
+		FlushMode flushMode = JedisClusterServerCommands.toFlushMode(option);
+		connection.invokeStatus().just(it -> it.flushAll(flushMode), it -> it.flushAll(flushMode));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#info()
 	 */
 	@Override

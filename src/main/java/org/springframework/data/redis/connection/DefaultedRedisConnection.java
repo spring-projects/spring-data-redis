@@ -1650,6 +1650,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
+	default void flushAll(FlushOption option) {
+		serverCommands().flushAll(option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
+	@Override
+	@Deprecated
 	default Properties info() {
 		return serverCommands().info();
 	}

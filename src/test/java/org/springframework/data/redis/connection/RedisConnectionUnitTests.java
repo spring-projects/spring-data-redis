@@ -462,6 +462,10 @@ class RedisConnectionUnitTests {
 			delegate.flushAll();
 		}
 
+		public void flushAll(FlushOption option) {
+			delegate.flushAll(option);
+		}
+
 		public void lTrim(byte[] key, long begin, long end) {
 			delegate.lTrim(key, begin, end);
 		}

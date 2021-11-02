@@ -128,6 +128,15 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#flushAll(FlushOption)
+	 */
+	@Override
+	public Mono<String> flushAll(FlushOption option) {
+		return connection.execute(it -> it.flushall(LettuceServerCommands.toFlushMode(option))).next();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#info()
 	 */
 	@Override

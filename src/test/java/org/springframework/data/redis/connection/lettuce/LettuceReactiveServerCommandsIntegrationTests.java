@@ -124,6 +124,38 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
+	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
+	@ParameterizedRedisTest // GH-2187
+	void flushAllSyncShouldRespondCorrectly() {
+
+		connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		connection.serverCommands().flushAll(FlushOption.SYNC).as(StepVerifier::create).expectNext("OK").verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
+	@ParameterizedRedisTest // GH-2187
+	void flushAllAsyncShouldRespondCorrectly() {
+
+		connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		connection.serverCommands().flushAll(FlushOption.ASYNC).as(StepVerifier::create).expectNext("OK").verifyComplete();
+
+		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-659
 	void infoShouldRespondCorrectly() {
 

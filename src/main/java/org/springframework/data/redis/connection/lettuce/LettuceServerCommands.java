@@ -120,6 +120,15 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll(org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushAll(FlushOption option) {
+		connection.invokeStatus().just(it -> it.flushall(toFlushMode(option)));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#info()
 	 */
 	@Override

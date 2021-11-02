@@ -132,6 +132,46 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
+	@Test // GH-2187
+	void flushAllSyncShouldRespondCorrectly() {
+
+		connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+				.then(connection.stringCommands().set(KEY_2_BBUFFER, VALUE_2_BBUFFER)).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		connection.serverCommands().flushAll(NODE1, FlushOption.SYNC).as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(0L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
+	}
+
+	@Test // GH-2187
+	void flushAllAsyncShouldRespondCorrectly() {
+
+		connection.serverCommands().flushAll() //
+				.then(connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
+				.then(connection.stringCommands().set(KEY_2_BBUFFER, VALUE_2_BBUFFER)).as(StepVerifier::create) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(1L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		connection.serverCommands().flushAll(NODE1, FlushOption.ASYNC).as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
+
+		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNext(0L).verifyComplete();
+		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
+	}
+
 	@Test // DATAREDIS-659
 	void infoShouldRespondCorrectly() {
 

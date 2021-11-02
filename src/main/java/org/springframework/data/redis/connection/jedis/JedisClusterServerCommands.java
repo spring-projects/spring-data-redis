@@ -212,11 +212,30 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll(org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushAll(FlushOption option) {
+		connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) it -> it.flushAll(toFlushMode(option)));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
 	public void flushAll(RedisClusterNode node) {
 		executeCommandOnSingleNode(BinaryJedis::flushAll, node);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushAll(RedisClusterNode node, FlushOption option) {
+		executeCommandOnSingleNode(it -> it.flushAll(toFlushMode(option)), node);
 	}
 
 	/*

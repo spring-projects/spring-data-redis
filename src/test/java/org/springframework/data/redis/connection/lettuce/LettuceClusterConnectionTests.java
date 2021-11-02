@@ -547,6 +547,78 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isNull();
 	}
 
+	@Test // GH-2187
+	public void flushAllOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()));
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllSyncOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()), FlushOption.SYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllAsyncOnSingleNodeShouldFlushOnlyGivenNodesDb() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(new RedisClusterNode("127.0.0.1", 7379, SlotRange.empty()), FlushOption.ASYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNotNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll();
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllSyncShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(FlushOption.SYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
+	@Test // GH-2187
+	public void flushAllAsyncShouldFlushAllClusterNodes() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		nativeConnection.set(KEY_2, VALUE_2);
+
+		clusterConnection.flushAll(FlushOption.ASYNC);
+
+		assertThat(nativeConnection.get(KEY_1)).isNull();
+		assertThat(nativeConnection.get(KEY_2)).isNull();
+	}
+
 	@Test // DATAREDIS-438
 	public void geoAddMultipleGeoLocations() {
 		assertThat(clusterConnection.geoAdd(KEY_1_BYTES,

@@ -151,6 +151,15 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public Mono<String> flushAll(RedisClusterNode node, FlushOption option) {
+		return connection.execute(node, it -> it.flushall(LettuceServerCommands.toFlushMode(option))).next();
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveServerCommands#info()
 	 */
 	@Override

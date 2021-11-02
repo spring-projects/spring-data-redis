@@ -139,6 +139,24 @@ public interface ClusterConnectionTests {
 	// GH-2187
 	void flushDbAsyncShouldFlushAllClusterNodes();
 
+	// GH-2187
+	void flushAllOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushAllSyncOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushAllAsyncOnSingleNodeShouldFlushOnlyGivenNodesDb();
+
+	// GH-2187
+	void flushAllShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushAllSyncShouldFlushAllClusterNodes();
+
+	// GH-2187
+	void flushAllAsyncShouldFlushAllClusterNodes();
+
 	// DATAREDIS-438
 	void geoAddMultipleGeoLocations();
 

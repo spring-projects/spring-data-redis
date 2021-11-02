@@ -163,11 +163,29 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#flushAll(org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushAll(FlushOption option) {
+		executeCommandOnAllNodes(it -> it.flushall(toFlushMode(option)));
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode)
 	 */
 	@Override
 	public void flushAll(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::flushall, node);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisServerCommands.FlushOption)
+	 */
+	@Override
+	public void flushAll(RedisClusterNode node, FlushOption option) {
+		executeCommandOnSingleNode(it -> it.flushall(toFlushMode(option)), node);
 	}
 
 	/*
