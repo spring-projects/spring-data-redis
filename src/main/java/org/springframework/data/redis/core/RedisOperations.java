@@ -160,17 +160,17 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 * Copies the value stored at the {@code source} to the {@code destination}.
 	 *
-	 * @param sourceKey must not be {@literal null}.
-	 * @param targetKey must not be {@literal null}.
+	 * @param source must not be {@literal null}.
+	 * @param destination must not be {@literal null}.
 	 * @param replace whether the key was copied. {@literal null} when used in pipeline / transaction.
 	 * @return
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6
 	 */
 	@Nullable
-	Boolean copy(K sourceKey, K targetKey, boolean replace);
+	Boolean copy(K source, K destination, boolean replace);
 
 	/**
 	 * Determine if given {@code key} exists.
@@ -269,24 +269,24 @@ public interface RedisOperations<K, V> {
 	K randomKey();
 
 	/**
-	 * Rename key {@code oldKey} to {@code newKey}.
+	 * Rename key {@code key} to {@code newKey}.
 	 *
-	 * @param oldKey must not be {@literal null}.
+	 * @param key must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	void rename(K oldKey, K newKey);
+	void rename(K key, K newKey);
 
 	/**
-	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
+	 * Rename {@code key} to {@code newKey} only if {@code newKey} does not exist.
 	 *
-	 * @param oldKey must not be {@literal null}.
+	 * @param key must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	@Nullable
-	Boolean renameIfAbsent(K oldKey, K newKey);
+	Boolean renameIfAbsent(K key, K newKey);
 
 	/**
 	 * Set time to live for given {@code key}.
@@ -355,7 +355,7 @@ public interface RedisOperations<K, V> {
 	Boolean persist(K key);
 
 	/**
-	 * Move given {@code key} to database with {@code index}.
+	 * Move given {@code key} to database with {@code dbIndex}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param dbIndex
@@ -376,7 +376,7 @@ public interface RedisOperations<K, V> {
 	byte[] dump(K key);
 
 	/**
-	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.
+	 * Create {@code key} using the {@code value}, previously obtained using {@link #dump(Object)}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -389,7 +389,7 @@ public interface RedisOperations<K, V> {
 	}
 
 	/**
-	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.
+	 * Create {@code key} using the {@code value}, previously obtained using {@link #dump(Object)}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -576,13 +576,13 @@ public interface RedisOperations<K, V> {
 	void slaveOfNoOne();
 
 	/**
-	 * Publishes the given message to the given channel.
+	 * Publishes the given message to the given {@code channel}.
 	 *
-	 * @param destination the channel to publish to, must not be {@literal null}.
+	 * @param channel channel to publish to, must not be {@literal null}.
 	 * @param message message to publish
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
-	void convertAndSend(String destination, Object message);
+	void convertAndSend(String channel, Object message);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.
@@ -607,7 +607,7 @@ public interface RedisOperations<K, V> {
 	GeoOperations<K, V> opsForGeo();
 
 	/**
-	 * Returns geospatial specific operations interface bound to the given key.
+	 * Returns geospatial specific operations interface bound to the given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -625,7 +625,7 @@ public interface RedisOperations<K, V> {
 	<HK, HV> HashOperations<K, HK, HV> opsForHash();
 
 	/**
-	 * Returns the operations performed on hash values bound to the given key.
+	 * Returns the operations performed on hash values bound to the given {@code key}.
 	 *
 	 * @param <HK> hash key (or field) type
 	 * @param <HV> hash value type
@@ -648,7 +648,7 @@ public interface RedisOperations<K, V> {
 	ListOperations<K, V> opsForList();
 
 	/**
-	 * Returns the operations performed on list values bound to the given key.
+	 * Returns the operations performed on list values bound to the given {@code key}.
 	 *
 	 * @param key Redis key
 	 * @return list operations bound to the given key
@@ -663,7 +663,7 @@ public interface RedisOperations<K, V> {
 	SetOperations<K, V> opsForSet();
 
 	/**
-	 * Returns the operations performed on set values bound to the given key.
+	 * Returns the operations performed on set values bound to the given {@code key}.
 	 *
 	 * @param key Redis key
 	 * @return set operations bound to the given key
@@ -688,7 +688,7 @@ public interface RedisOperations<K, V> {
 	<HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper);
 
 	/**
-	 * Returns the operations performed on Streams bound to the given key.
+	 * Returns the operations performed on Streams bound to the given {@code key}.
 	 *
 	 * @return stream operations.
 	 * @since 2.2
@@ -703,7 +703,7 @@ public interface RedisOperations<K, V> {
 	ValueOperations<K, V> opsForValue();
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given {@code key}.
 	 *
 	 * @param key Redis key
 	 * @return value operations bound to the given key
@@ -718,7 +718,7 @@ public interface RedisOperations<K, V> {
 	ZSetOperations<K, V> opsForZSet();
 
 	/**
-	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given key.
+	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given {@code key}.
 	 *
 	 * @param key Redis key
 	 * @return zset operations bound to the given key.

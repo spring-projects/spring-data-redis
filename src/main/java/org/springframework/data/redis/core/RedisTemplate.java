@@ -83,6 +83,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Denis Zavedeev
  * @author ihaohong
+ * @author Todd Merrill
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -699,15 +700,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.lang.Object, java.lang.Object, boolean)
+	 * @see org.springframework.data.redis.core.RedisOperations#copy(java.lang.Object, java.lang.Object, boolean)
 	 */
 	@Override
-	public Boolean copy(K source, K target, boolean replace) {
+	public Boolean copy(K source, K destination, boolean replace) {
 
 		byte[] sourceKey = rawKey(source);
-		byte[] targetKey = rawKey(target);
+		byte[] destinationKey = rawKey(destination);
 
-		return execute(connection -> connection.copy(sourceKey, targetKey, replace), true);
+		return execute(connection -> connection.copy(sourceKey, destinationKey, replace), true);
 	}
 
 	/*
@@ -935,9 +936,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#rename(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void rename(K oldKey, K newKey) {
+	public void rename(K key, K newKey) {
 
-		byte[] rawOldKey = rawKey(oldKey);
+		byte[] rawOldKey = rawKey(key);
 		byte[] rawNewKey = rawKey(newKey);
 
 		execute(connection -> {
@@ -951,9 +952,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#renameIfAbsent(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public Boolean renameIfAbsent(K oldKey, K newKey) {
+	public Boolean renameIfAbsent(K key, K newKey) {
 
-		byte[] rawOldKey = rawKey(oldKey);
+		byte[] rawOldKey = rawKey(key);
 		byte[] rawNewKey = rawKey(newKey);
 		return execute(connection -> connection.renameNX(rawOldKey, rawNewKey), true);
 	}
