@@ -856,8 +856,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
 	 */
 	@Override
-	public void rename(byte[] sourceKey, byte[] targetKey) {
-		delegate.rename(sourceKey, targetKey);
+	public void rename(byte[] oldKey, byte[] newKey) {
+		delegate.rename(oldKey, newKey);
 	}
 
 	/*
@@ -865,8 +865,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#renameNX(byte[], byte[])
 	 */
 	@Override
-	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
-		return convertAndReturn(delegate.renameNX(sourceKey, targetKey), Converters.identityConverter());
+	public Boolean renameNX(byte[] oldKey, byte[] newKey) {
+		return convertAndReturn(delegate.renameNX(oldKey, newKey), Converters.identityConverter());
 	}
 
 	/*
@@ -2300,8 +2300,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#rename(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void rename(String oldName, String newName) {
-		delegate.rename(serialize(oldName), serialize(newName));
+	public void rename(String oldKey, String newKey) {
+		delegate.rename(serialize(oldKey), serialize(newKey));
 	}
 
 	/*
@@ -2309,8 +2309,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#renameNX(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public Boolean renameNX(String oldName, String newName) {
-		return renameNX(serialize(oldName), serialize(newName));
+	public Boolean renameNX(String oldKey, String newKey) {
+		return renameNX(serialize(oldKey), serialize(newKey));
 	}
 
 	/*

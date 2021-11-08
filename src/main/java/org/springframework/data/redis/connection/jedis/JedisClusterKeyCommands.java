@@ -252,27 +252,27 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
 	 */
 	@Override
-	public void rename(byte[] sourceKey, byte[] targetKey) {
+	public void rename(byte[] oldKey, byte[] newKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null!");
+		Assert.notNull(newKey, "New key must not be null!");
 
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sourceKey, targetKey)) {
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldKey, newKey)) {
 
 			try {
-				connection.getCluster().rename(sourceKey, targetKey);
+				connection.getCluster().rename(oldKey, newKey);
 				return;
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
 		}
 
-		byte[] value = dump(sourceKey);
+		byte[] value = dump(oldKey);
 
 		if (value != null && value.length > 0) {
 
-			restore(targetKey, 0, value, true);
-			del(sourceKey);
+			restore(newKey, 0, value, true);
+			del(oldKey);
 		}
 	}
 

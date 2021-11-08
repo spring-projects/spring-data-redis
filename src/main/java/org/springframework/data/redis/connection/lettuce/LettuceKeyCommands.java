@@ -200,12 +200,12 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
 	 */
 	@Override
-	public void rename(byte[] sourceKey, byte[] targetKey) {
+	public void rename(byte[] oldKey, byte[] newKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null!");
+		Assert.notNull(newKey, "New key must not be null!");
 
-		connection.invokeStatus().just(RedisKeyAsyncCommands::rename, sourceKey, targetKey);
+		connection.invokeStatus().just(RedisKeyAsyncCommands::rename, oldKey, newKey);
 	}
 
 	/*

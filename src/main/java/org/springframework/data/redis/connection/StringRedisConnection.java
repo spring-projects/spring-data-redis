@@ -176,25 +176,25 @@ public interface StringRedisConnection extends RedisConnection {
 	Collection<String> keys(String pattern);
 
 	/**
-	 * Rename key {@code oleName} to {@code newName}.
+	 * Rename key {@code oldKey} to {@code newKey}.
 	 *
-	 * @param oldName must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param oldKey must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 * @see RedisKeyCommands#rename(byte[], byte[])
 	 */
-	void rename(String oldName, String newName);
+	void rename(String oldKey, String newKey);
 
 	/**
-	 * Rename key {@code oleName} to {@code newName} only if {@code newName} does not exist.
+	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
 	 *
 	 * @param oldName must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 * @see RedisKeyCommands#renameNX(byte[], byte[])
 	 */
-	Boolean renameNX(String oldName, String newName);
+	Boolean renameNX(String oldKey, String newKey);
 
 	/**
 	 * Set time to live for given {@code key} in seconds.
