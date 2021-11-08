@@ -161,24 +161,24 @@ public interface RedisKeyCommands {
 	byte[] randomKey();
 
 	/**
-	 * Rename key {@code sourceKey} to {@code targetKey}.
+	 * Rename key {@code oldKey} to {@code newKey}.
 	 *
-	 * @param sourceKey must not be {@literal null}.
-	 * @param targetKey must not be {@literal null}.
+	 * @param oldKey must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	void rename(byte[] sourceKey, byte[] targetKey);
+	void rename(byte[] oldKey, byte[] newKey);
 
 	/**
-	 * Rename key {@code sourceKey} to {@code targetKey} only if {@code targetKey} does not exist.
+	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
 	 *
-	 * @param sourceKey must not be {@literal null}.
-	 * @param targetKey must not be {@literal null}.
+	 * @param oldKey must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	@Nullable
-	Boolean renameNX(byte[] sourceKey, byte[] targetKey);
+	Boolean renameNX(byte[] oldKey, byte[] newKey);
 
 	/**
 	 * Set time to live for given {@code key} in seconds.

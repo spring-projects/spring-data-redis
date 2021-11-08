@@ -139,8 +139,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
-	default void rename(byte[] sourceKey, byte[] targetKey) {
-		keyCommands().rename(sourceKey, targetKey);
+	default void rename(byte[] oldKey, byte[] newKey) {
+		keyCommands().rename(oldKey, newKey);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */

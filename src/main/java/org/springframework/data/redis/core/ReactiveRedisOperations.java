@@ -265,7 +265,7 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<Boolean> rename(K oldKey, K newKey);
 
 	/**
-	 * Rename key {@code oleName} to {@code newKey} only if {@code newKey} does not exist.
+	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
 	 *
 	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.

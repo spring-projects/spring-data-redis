@@ -78,17 +78,17 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "key must not be null.");
-			Assert.notNull(command.getNewName(), "NewName must not be null!");
+			Assert.notNull(command.getKey(), "Old key must not be null.");
+			Assert.notNull(command.getNewKey(), "New key must not be null!");
 
-			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getNewName())) {
+			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getNewKey())) {
 				return super.rename(Mono.just(command));
 			}
 
 			Mono<Boolean> result = cmd.dump(command.getKey())
 					.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 							new RedisException("ERR no such key."))))
-					.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
+					.flatMap(value -> cmd.restore(command.getNewKey(), 0, value).flatMap(res -> cmd.del(command.getKey())))
 					.map(LettuceConverters.longToBooleanConverter()::convert);
 
 			return result.map(val -> new BooleanResponse<>(command, val));
