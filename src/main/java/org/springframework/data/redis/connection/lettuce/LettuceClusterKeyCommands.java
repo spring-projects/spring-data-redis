@@ -104,22 +104,22 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#rename(byte[], byte[])
 	 */
 	@Override
-	public void rename(byte[] sourceKey, byte[] targetKey) {
+	public void rename(byte[] oldKey, byte[] newKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null!");
+		Assert.notNull(newKey, "New key must not be null!");
 
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sourceKey, targetKey)) {
-			super.rename(sourceKey, targetKey);
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldKey, newKey)) {
+			super.rename(oldKey, newKey);
 			return;
 		}
 
-		byte[] value = dump(sourceKey);
+		byte[] value = dump(oldKey);
 
 		if (value != null && value.length > 0) {
 
-			restore(targetKey, 0, value, true);
-			del(sourceKey);
+			restore(newKey, 0, value, true);
+			del(oldKey);
 		}
 	}
 

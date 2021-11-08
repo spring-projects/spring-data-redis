@@ -311,13 +311,13 @@ public interface ReactiveKeyCommands {
 	 */
 	class RenameCommand extends KeyCommand {
 
-		private @Nullable ByteBuffer newName;
+		private @Nullable ByteBuffer newKey;
 
-		private RenameCommand(ByteBuffer key, @Nullable ByteBuffer newName) {
+		private RenameCommand(ByteBuffer key, @Nullable ByteBuffer newKey) {
 
 			super(key);
 
-			this.newName = newName;
+			this.newKey = newKey;
 		}
 
 		/**
@@ -334,44 +334,55 @@ public interface ReactiveKeyCommands {
 		}
 
 		/**
-		 * Applies the {@literal newName}. Constructs a new command instance with all previously configured properties.
+		 * Applies the {@literal newKey}. Constructs a new command instance with all previously configured properties.
 		 *
-		 * @param newName must not be {@literal null}.
-		 * @return a new {@link RenameCommand} with {@literal newName} applied.
+		 * @param newKey must not be {@literal null}.
+		 * @return a new {@link RenameCommand} with {@literal newKey} applied.
 		 */
-		public RenameCommand to(ByteBuffer newName) {
+		public RenameCommand to(ByteBuffer newKey) {
 
-			Assert.notNull(newName, "New name must not be null!");
+			Assert.notNull(newKey, "New key name must not be null!");
 
-			return new RenameCommand(getKey(), newName);
+			return new RenameCommand(getKey(), newKey);
 		}
 
 		/**
 		 * @return can be {@literal null}.
+		 * @deprecated since 2.5.7, renamed to {@link #getNewKey()}.
 		 */
 		@Nullable
+		@Deprecated
 		public ByteBuffer getNewName() {
-			return newName;
+			return newKey;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 * @since 2.5.7
+		 */
+		@Nullable
+		public ByteBuffer getNewKey() {
+			return newKey;
 		}
 	}
 
 	/**
-	 * Rename key {@literal oleName} to {@literal newName}.
+	 * Rename key {@literal oldKey} to {@literal newKey}.
 	 *
-	 * @param key must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param oldKey must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	default Mono<Boolean> rename(ByteBuffer key, ByteBuffer newName) {
+	default Mono<Boolean> rename(ByteBuffer oldKey, ByteBuffer newKey) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(oldKey, "Key must not be null!");
 
-		return rename(Mono.just(RenameCommand.key(key).to(newName))).next().map(BooleanResponse::getOutput);
+		return rename(Mono.just(RenameCommand.key(oldKey).to(newKey))).next().map(BooleanResponse::getOutput);
 	}
 
 	/**
-	 * Rename key {@literal oleName} to {@literal newName}.
+	 * Rename key {@literal oldKey} to {@literal newKey}.
 	 *
 	 * @param command must not be {@literal null}.
 	 * @return
@@ -380,22 +391,22 @@ public interface ReactiveKeyCommands {
 	Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> command);
 
 	/**
-	 * Rename key {@literal oleName} to {@literal newName} only if {@literal newName} does not exist.
+	 * Rename key {@literal oldKey} to {@literal newKey} only if {@literal newKey} does not exist.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
-	default Mono<Boolean> renameNX(ByteBuffer key, ByteBuffer newName) {
+	default Mono<Boolean> renameNX(ByteBuffer key, ByteBuffer newKey) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return renameNX(Mono.just(RenameCommand.key(key).to(newName))).next().map(BooleanResponse::getOutput);
+		return renameNX(Mono.just(RenameCommand.key(key).to(newKey))).next().map(BooleanResponse::getOutput);
 	}
 
 	/**
-	 * Rename key {@literal oleName} to {@literal newName} only if {@literal newName} does not exist.
+	 * Rename key {@literal oldKey} to {@literal newKey} only if {@literal newKey} does not exist.
 	 *
 	 * @param command must not be {@literal null}.
 	 * @return
