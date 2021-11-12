@@ -438,9 +438,7 @@ public class LettuceConnectionFactory
 
 		RedisClusterClient clusterClient = (RedisClusterClient) client;
 
-		StatefulRedisClusterConnection<byte[], byte[]> sharedConnection = getShareNativeConnection()
-				? (StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
-				: null;
+		StatefulRedisClusterConnection<byte[], byte[]> sharedConnection = getSharedClusterConnection();
 
 		LettuceClusterTopologyProvider topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		return doCreateLettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider,
@@ -540,7 +538,12 @@ public class LettuceConnectionFactory
 
 		resetConnection();
 
-		getSharedConnection();
+		if (isClusterAware()) {
+			getSharedClusterConnection();
+		} else {
+			getSharedConnection();
+		}
+
 		getSharedReactiveConnection();
 	}
 
@@ -1081,12 +1084,27 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * @return the shared connection using {@literal byte} array encoding for imperative API use. {@literal null} if
-	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
+	 * @return the shared connection using {@literal byte[]} encoding for imperative API use. {@literal null} if
+	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis Cluster.
 	 */
 	@Nullable
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
-		return shareNativeConnection ? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection() : null;
+		return shareNativeConnection && !isClusterAware()
+				? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection()
+				: null;
+	}
+
+	/**
+	 * @return the shared cluster connection using {@literal byte[]} encoding for imperative API use. {@literal null} if
+	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis
+	 *         Standalone/Sentinel/Master-Replica.
+	 * @since 2.5.7
+	 */
+	@Nullable
+	protected StatefulRedisClusterConnection<byte[], byte[]> getSharedClusterConnection() {
+		return shareNativeConnection && isClusterAware()
+				? (StatefulRedisClusterConnection) getOrCreateSharedConnection().getConnection()
+				: null;
 	}
 
 	/**
