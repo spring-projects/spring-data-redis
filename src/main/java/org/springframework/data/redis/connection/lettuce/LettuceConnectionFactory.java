@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
@@ -56,7 +57,6 @@ import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfi
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -374,9 +374,7 @@ public class LettuceConnectionFactory
 
 		RedisClusterClient clusterClient = (RedisClusterClient) client;
 
-		StatefulRedisClusterConnection<byte[], byte[]> sharedConnection = getShareNativeConnection()
-				? (StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
-				: null;
+		StatefulRedisClusterConnection<byte[], byte[]> sharedConnection = getSharedClusterConnection();
 
 		LettuceClusterTopologyProvider topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 		return doCreateLettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider,
@@ -472,7 +470,12 @@ public class LettuceConnectionFactory
 
 		resetConnection();
 
-		getSharedConnection();
+		if (isClusterAware()) {
+			getSharedClusterConnection();
+		} else {
+			getSharedConnection();
+		}
+
 		getSharedReactiveConnection();
 	}
 
@@ -971,12 +974,27 @@ public class LettuceConnectionFactory
 	}
 
 	/**
-	 * @return the shared connection using {@literal byte} array encoding for imperative API use. {@literal null} if
-	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
+	 * @return the shared connection using {@literal byte[]} encoding for imperative API use. {@literal null} if
+	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis Cluster.
 	 */
 	@Nullable
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
-		return shareNativeConnection ? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection() : null;
+		return shareNativeConnection && !isClusterAware()
+				? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection()
+				: null;
+	}
+
+	/**
+	 * @return the shared cluster connection using {@literal byte[]} encoding for imperative API use. {@literal null} if
+	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis
+	 *         Standalone/Sentinel/Master-Replica.
+	 * @since 2.4.15
+	 */
+	@Nullable
+	protected StatefulRedisClusterConnection<byte[], byte[]> getSharedClusterConnection() {
+		return shareNativeConnection && isClusterAware()
+				? (StatefulRedisClusterConnection) getOrCreateSharedConnection().getConnection()
+				: null;
 	}
 
 	/**
