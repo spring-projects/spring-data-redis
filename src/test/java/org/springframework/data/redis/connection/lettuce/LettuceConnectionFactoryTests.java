@@ -48,6 +48,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 
 /**
@@ -84,7 +85,6 @@ class LettuceConnectionFactoryTests {
 
 		factory.destroy();
 	}
-
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -462,9 +462,8 @@ class LettuceConnectionFactoryTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {
-		}, "foo".getBytes())).isInstanceOf(RedisConnectionFailureException.class)
-				.hasCauseInstanceOf(UnsupportedOperationException.class);
+		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {}, "foo".getBytes()))
+				.isInstanceOf(RedisConnectionFailureException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
 
 		connection.close();
 		factory.destroy();
@@ -558,4 +557,44 @@ class LettuceConnectionFactoryTests {
 
 		connection.close();
 	}
+
+	@Test // GH-2186
+	void shouldInitializeMasterReplicaConnectionsEagerly() {
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
+				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
+		factory.setEagerInitialization(true);
+		factory.afterPropertiesSet();
+
+		assertThat(factory.getSharedConnection()).isNotNull();
+		assertThat(factory.getSharedClusterConnection()).isNull();
+
+		factory.getConnection().close();
+		factory.destroy();
+	}
+
+	@Test // GH-2186
+	@EnabledOnRedisClusterAvailable
+	void shouldInitializeClusterConnectionsEagerly() {
+
+		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
+				configuration);
+		factory.setEagerInitialization(true);
+		factory.afterPropertiesSet();
+
+		assertThat(factory.getSharedConnection()).isNull();
+		assertThat(factory.getSharedClusterConnection()).isNotNull();
+
+		factory.getConnection().close();
+		factory.destroy();
+	}
+
 }
