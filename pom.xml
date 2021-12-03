@@ -19,7 +19,7 @@
 		<springdata.keyvalue>2.4.16-SNAPSHOT</springdata.keyvalue>
 		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
-		<beanutils>1.9.2</beanutils>
+		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.18</xstream>
 		<pool>2.7.0</pool>
 		<lettuce>6.0.8.RELEASE</lettuce>
