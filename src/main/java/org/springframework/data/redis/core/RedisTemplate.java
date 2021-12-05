@@ -83,6 +83,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Denis Zavedeev
  * @author ihaohong
+ * @author Jihoon Cha
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -238,6 +239,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#execute(org.springframework.data.redis.core.SessionCallback)
 	 */
 	@Override
+	@Nullable
 	public <T> T execute(SessionCallback<T> session) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
