@@ -22,6 +22,7 @@ import reactor.test.StepVerifier;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -110,11 +111,18 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@ParameterizedRedisTest // DATAREDIS-525, GH-2210
 	void hMGetShouldReturnNullValueForFieldsThatHaveNoValue() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
+
+		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_1_BBUFFER)).as(StepVerifier::create)
+				.expectNext(Collections.singletonList(VALUE_1_BBUFFER)).verifyComplete();
+
+		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Collections.singletonList(null)).verifyComplete();
 
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER))
 				.as(StepVerifier::create)
