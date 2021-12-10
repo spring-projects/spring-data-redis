@@ -204,7 +204,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
 	 *
-	 * @param oldName must not be {@literal null}.
+	 * @param oldKey must not be {@literal null}.
 	 * @param newKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
