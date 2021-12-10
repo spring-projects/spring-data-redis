@@ -283,7 +283,8 @@ public interface ReactiveHashCommands {
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
 	default Mono<ByteBuffer> hGet(ByteBuffer key, ByteBuffer field) {
-		return hMGet(key, Collections.singletonList(field)).flatMapIterable(Function.identity()).next();
+		return hMGet(key, Collections.singletonList(field)).filter(it -> !it.contains(null))
+				.flatMapIterable(Function.identity()).next();
 	}
 
 	/**
