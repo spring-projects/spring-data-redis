@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -68,9 +69,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		registerNullValueSerializer(mapper, classPropertyTypeName);
 
 		if (StringUtils.hasText(classPropertyTypeName)) {
-			mapper.enableDefaultTypingAsProperty(DefaultTyping.NON_FINAL, classPropertyTypeName);
+			mapper.activateDefaultTypingAsProperty(LaissezFaireSubTypeValidator.instance, DefaultTyping.NON_FINAL, classPropertyTypeName);
 		} else {
-			mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
+			mapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, DefaultTyping.NON_FINAL, As.PROPERTY);
 		}
 	}
 
