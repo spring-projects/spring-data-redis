@@ -129,7 +129,8 @@ public final class ByteUtils {
 	}
 
 	/**
-	 * Extract a byte array from {@link ByteBuffer} without consuming it.
+	 * Extract a byte array from {@link ByteBuffer} without consuming it. The resulting {@code byte[]} is a copy of the
+	 * buffer's contents and not updated upon changes within the buffer.
 	 *
 	 * @param byteBuffer must not be {@literal null}.
 	 * @return
@@ -138,10 +139,6 @@ public final class ByteUtils {
 	public static byte[] getBytes(ByteBuffer byteBuffer) {
 
 		Assert.notNull(byteBuffer, "ByteBuffer must not be null!");
-
-		if (byteBuffer.hasArray()) {
-			return byteBuffer.array();
-		}
 
 		ByteBuffer duplicate = byteBuffer.duplicate();
 		byte[] bytes = new byte[duplicate.remaining()];
