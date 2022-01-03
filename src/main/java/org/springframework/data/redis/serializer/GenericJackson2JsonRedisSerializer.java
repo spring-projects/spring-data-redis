@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -59,6 +59,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * {@link JsonTypeInfo.Id#CLASS} will be used.
 	 *
 	 * @param classPropertyTypeName Name of the JSON property holding type information. Can be {@literal null}.
+	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
+	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
 	 */
 	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName) {
 
@@ -69,9 +71,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		registerNullValueSerializer(mapper, classPropertyTypeName);
 
 		if (StringUtils.hasText(classPropertyTypeName)) {
-			mapper.activateDefaultTypingAsProperty(LaissezFaireSubTypeValidator.instance, DefaultTyping.NON_FINAL, classPropertyTypeName);
+			mapper.activateDefaultTypingAsProperty(mapper.getPolymorphicTypeValidator(), DefaultTyping.NON_FINAL,
+					classPropertyTypeName);
 		} else {
-			mapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, DefaultTyping.NON_FINAL, As.PROPERTY);
+			mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), DefaultTyping.NON_FINAL, As.PROPERTY);
 		}
 	}
 
