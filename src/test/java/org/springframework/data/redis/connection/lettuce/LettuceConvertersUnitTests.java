@@ -46,6 +46,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
  * @author Christoph Strobl
+ * @author Vikas Garg
  */
 class LettuceConvertersUnitTests {
 

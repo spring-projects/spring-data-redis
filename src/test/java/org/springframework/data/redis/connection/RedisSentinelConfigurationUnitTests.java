@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Vikas Garg
  */
 class RedisSentinelConfigurationUnitTests {
 

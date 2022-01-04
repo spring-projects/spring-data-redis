@@ -82,6 +82,7 @@ import org.springframework.util.StringUtils;
  * @author Ninad Divadkar
  * @author dengliming
  * @author Chris Bono
+ * @author Vikas Garg
  */
 public abstract class LettuceConverters extends Converters {
 

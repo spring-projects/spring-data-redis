@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Luis De Bello
+ * @author Vikas Garg
  * @since 2.1
  */
 public interface RedisConfiguration {
