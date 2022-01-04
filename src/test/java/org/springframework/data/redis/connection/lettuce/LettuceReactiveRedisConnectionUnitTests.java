@@ -72,7 +72,7 @@ class LettuceReactiveRedisConnectionUnitTests {
 
 		new LettuceReactiveRedisConnection(connectionProvider);
 
-		verifyZeroInteractions(connectionProvider);
+		verifyNoInteractions(connectionProvider);
 	}
 
 	@Test // DATAREDIS-720, DATAREDIS-721
@@ -103,7 +103,7 @@ class LettuceReactiveRedisConnectionUnitTests {
 
 		connection.execute(cmd -> Mono.just("foo")).as(StepVerifier::create).expectNext("foo").verifyComplete();
 
-		verifyZeroInteractions(connectionProvider);
+		verifyNoInteractions(connectionProvider);
 	}
 
 	@Test // DATAREDIS-720, DATAREDIS-721

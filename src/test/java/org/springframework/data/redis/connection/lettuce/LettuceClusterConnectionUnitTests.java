@@ -163,7 +163,7 @@ class LettuceClusterConnectionUnitTests {
 		connection.clusterForget(CLUSTER_NODE_2);
 
 		verify(clusterConnection1Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
-		verifyZeroInteractions(clusterConnection2Mock);
+		verifyNoInteractions(clusterConnection2Mock);
 		verify(clusterConnection3Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
 	}
 
@@ -173,7 +173,7 @@ class LettuceClusterConnectionUnitTests {
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
 
 		verify(clusterConnection2Mock, times(1)).clusterReplicate(CLUSTER_NODE_1.getId());
-		verifyZeroInteractions(clusterConnection1Mock);
+		verifyNoInteractions(clusterConnection1Mock);
 	}
 
 	@Test // DATAREDIS-315
@@ -334,7 +334,7 @@ class LettuceClusterConnectionUnitTests {
 		connection.time(CLUSTER_NODE_2);
 
 		verify(clusterConnection2Mock, times(1)).time();
-		verifyZeroInteractions(clusterConnection1Mock, clusterConnection3Mock);
+		verifyNoInteractions(clusterConnection1Mock, clusterConnection3Mock);
 	}
 
 	@Test // DATAREDIS-315
@@ -412,6 +412,6 @@ class LettuceClusterConnectionUnitTests {
 		verify(async).blpop(1, KEY_1_BYTES);
 		verify(connectionProviderMock).getConnection(StatefulConnection.class);
 		verifyNoMoreInteractions(connectionProviderMock);
-		verifyZeroInteractions(sharedConnectionMock);
+		verifyNoInteractions(sharedConnectionMock);
 	}
 }

@@ -99,11 +99,6 @@ public class MockitoUtils {
 			return wanted;
 		}
 
-		@Override
-		public InvocationMatcher getWanted() {
-			return wanted;
-		}
-
 	}
 
 }

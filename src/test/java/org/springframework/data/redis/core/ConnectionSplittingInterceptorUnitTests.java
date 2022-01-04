@@ -71,7 +71,7 @@ class ConnectionSplittingInterceptorUnitTests {
 
 		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} });
 		verify(connectionFactoryMock, times(1)).getConnection();
-		verifyZeroInteractions(boundConnectionMock);
+		verifyNoInteractions(boundConnectionMock);
 	}
 
 	@Test // DATAREDIS-73
@@ -79,7 +79,7 @@ class ConnectionSplittingInterceptorUnitTests {
 
 		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L });
 		verify(boundConnectionMock, times(1)).expire(any(byte[].class), anyLong());
-		verifyZeroInteractions(connectionFactoryMock);
+		verifyNoInteractions(connectionFactoryMock);
 	}
 
 	@SuppressWarnings("unchecked")

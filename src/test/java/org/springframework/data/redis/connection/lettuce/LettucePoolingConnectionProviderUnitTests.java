@@ -57,7 +57,7 @@ class LettucePoolingConnectionProviderUnitTests {
 
 		provider.release(provider.getConnection(StatefulRedisConnection.class));
 
-		verifyZeroInteractions(commandsMock);
+		verifyNoInteractions(commandsMock);
 	}
 
 	@Test // DATAREDIS-988
