@@ -17,7 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.springframework.data.redis.SpinBarrier.*;
+import static org.awaitility.Awaitility.await;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -316,7 +317,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		valueOps.set(key, value, 1, TimeUnit.MILLISECONDS);
 
-		waitFor(() -> (!redisTemplate.hasKey(key)), 500);
+		await().atMost(Duration.ofMillis(500L)).until(() -> !redisTemplate.hasKey(key));
 	}
 
 	@ParameterizedRedisTest
