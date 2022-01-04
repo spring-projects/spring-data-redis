@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis;
 
+import org.awaitility.Awaitility;
+
 /**
- * A condition to test periodically, used in conjunction with {@link SpinBarrier}
+ * A condition to test periodically, used in conjunction with {@link Awaitility}
  *
  * @author Jennifer Hickey
  */
