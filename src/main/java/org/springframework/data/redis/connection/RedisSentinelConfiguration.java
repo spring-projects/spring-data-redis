@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Vikas Garg
  * @since 1.4
  */
 public class RedisSentinelConfiguration implements RedisConfiguration, SentinelConfiguration {
@@ -46,12 +47,14 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
 	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
+	private static final String REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.username";
 
 	private @Nullable NamedNode master;
 	private Set<RedisNode> sentinels;
 	private int database;
 
 	private @Nullable String dataNodeUsername = null;
+	private @Nullable String sentinelUsername = null;
 	private RedisPassword dataNodePassword = RedisPassword.none();
 	private RedisPassword sentinelPassword = RedisPassword.none();
 
@@ -106,6 +109,10 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY)) {
 			this.setSentinelPassword(propertySource.getProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY).toString());
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY)) {
+			this.setSentinelUsername(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY).toString());
 		}
 	}
 
@@ -268,6 +275,25 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		Assert.notNull(password, "RedisPassword must not be null!");
 
 		this.dataNodePassword = password;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#getSentinelUsername()
+	 */
+	@Nullable
+	@Override
+	public String getSentinelUsername() {
+		return this.sentinelUsername;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelUsername(String)
+ 	 */
+	@Override
+	public void setSentinelUsername(@Nullable String sentinelUsername) {
+		this.sentinelUsername = sentinelUsername;
 	}
 
 	/*
