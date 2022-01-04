@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.springframework.data.redis.SpinBarrier.*;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
@@ -36,6 +36,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.data.Offset;
+import org.awaitility.Awaitility;
 import org.junit.AssumptionViolatedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -162,7 +163,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.expire("exp", 1));
 
 		verifyResults(Arrays.asList(true, true));
-		assertThat(waitFor(new KeyExpired("exp"), 3000L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("exp");
+		await().atMost(Duration.ofMillis(3000L)).until(keyExpired::passes);
 	}
 
 	@Test // DATAREDIS-1103
@@ -185,7 +188,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("exp2", "true"));
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
 		verifyResults(Arrays.asList(true, true));
-		assertThat(waitFor(new KeyExpired("exp2"), 3000L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("exp2");
+		await().atMost(Duration.ofMillis(3000L)).until(keyExpired::passes);
 	}
 
 	@LongRunningTest
@@ -194,7 +199,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("exp", "true"));
 		actual.add(connection.pExpire("exp", 100));
 		verifyResults(Arrays.asList(true, true));
-		assertThat(waitFor(new KeyExpired("exp"), 1000L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("exp");
+		await().atMost(Duration.ofMillis(1000L)).until(keyExpired::passes);
 	}
 
 	@Test
@@ -209,7 +216,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.set("exp2", "true"));
 		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
 		verifyResults(Arrays.asList(true, true));
-		assertThat(waitFor(new KeyExpired("exp2"), 1000L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("exp2");
+		await().atMost(Duration.ofMillis(1000L)).until(keyExpired::passes);
 	}
 
 	@LongRunningTest
@@ -390,7 +399,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("expy"));
 
 		verifyResults(Arrays.asList(true, "yep"));
-		assertThat(waitFor(new KeyExpired("expy"), 2500L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("expy");
+		await().atMost(Duration.ofMillis(2500L)).until(keyExpired::passes);
 	}
 
 	@LongRunningTest // DATAREDIS-271
@@ -400,7 +411,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("expy"));
 
 		verifyResults(Arrays.asList(true, "yep"));
-		assertThat(waitFor(new KeyExpired("expy"), 2500L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("expy");
+		await().atMost(Duration.ofMillis(2500L)).until(keyExpired::passes);
 	}
 
 	@LongRunningTest
@@ -632,7 +645,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Thread th = new Thread(() -> {
 			// sync to let the registration happen
-			waitFor(connection::isSubscribed, 2000);
+			await().atMost(Duration.ofMillis(2000L)).until(connection::isSubscribed);
+
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException o_O) {}
@@ -674,7 +688,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Thread th = new Thread(() -> {
 			// sync to let the registration happen
-			waitFor(connection::isSubscribed, 2000);
+			await().atMost(Duration.ofMillis(2000L)).until(connection::isSubscribed);
 
 			try {
 				Thread.sleep(500);
@@ -1093,7 +1107,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("testing"));
 		connection.restore("testing".getBytes(), 100L, (byte[]) results.get(1));
 		verifyResults(Arrays.asList(1L, null));
-		assertThat(waitFor(new KeyExpired("testing"), 400L)).isTrue();
+
+		KeyExpired keyExpired = new KeyExpired("testing");
+		await().atMost(Duration.ofMillis(400L)).until(keyExpired::passes);
 	}
 
 	@Test
