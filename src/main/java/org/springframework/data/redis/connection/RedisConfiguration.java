@@ -438,6 +438,21 @@ public interface RedisConfiguration {
 		 * @since 2.2.2
 		 */
 		RedisPassword getSentinelPassword();
+
+		/**
+		 * Create and set a username with the given {@link String}. Requires Redis 6 or newer.
+		 *
+		 * @param sentinelUsername the username for sentinel.
+		 */
+		void setSentinelUsername(@Nullable String sentinelUsername);
+
+		/**
+		 * Get the username to use when connecting.
+		 *
+		 * @return {@literal null} if none set.
+		 */
+		@Nullable
+		String getSentinelUsername();
 	}
 
 	/**

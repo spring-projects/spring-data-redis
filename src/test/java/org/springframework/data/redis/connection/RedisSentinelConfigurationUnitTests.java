@@ -67,20 +67,20 @@ class RedisSentinelConfigurationUnitTests {
 	@Test // DATAREDIS-372
 	void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new RedisSentinelConfiguration("mymaster", Collections.<String> singleton(null)));
+				.isThrownBy(() -> new RedisSentinelConfiguration("mymaster", Collections.singleton(null)));
 	}
 
 	@Test // DATAREDIS-372
 	void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
-		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.<String> emptySet());
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.emptySet());
 
 		assertThat(config.getSentinels()).isEmpty();
 	}
 
 	@Test // DATAREDIS-372
 	void shouldThrowExceptionGivenNullPropertySource() {
-		assertThatIllegalArgumentException().isThrownBy(() -> new RedisSentinelConfiguration((PropertySource<?>) null));
+		assertThatIllegalArgumentException().isThrownBy(() -> new RedisSentinelConfiguration(null));
 	}
 
 	@Test // DATAREDIS-372
@@ -93,7 +93,7 @@ class RedisSentinelConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-372
-	void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMasterAndSingleHostPort() {
+	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMasterAndSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
@@ -101,13 +101,14 @@ class RedisSentinelConfigurationUnitTests {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
 
+		assertThat(config.getMaster()).isNotNull();
 		assertThat(config.getMaster().getName()).isEqualTo("myMaster");
 		assertThat(config.getSentinels()).hasSize(1);
 		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123));
 	}
 
 	@Test // DATAREDIS-372
-	void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMasterAndMultipleHostPort() {
+	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMasterAndMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
@@ -132,6 +133,16 @@ class RedisSentinelConfigurationUnitTests {
 		assertThat(configuration.getSentinelPassword()).isEqualTo(RedisPassword.none());
 	}
 
+	@Test
+	void dataNodeUsernameDoesNotAffectSentinelUsername() {
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
+				Collections.singleton(HOST_AND_PORT_1));
+		configuration.setSentinelUsername("sentinel-admin");
+ 	    configuration.setUsername("app");
+
+		assertThat(configuration.getSentinelUsername()).isEqualTo("sentinel-admin");
+	}
+
 	@Test // DATAREDIS-1060
 	void readSentinelPasswordFromConfigProperty() {
 
@@ -143,6 +154,20 @@ class RedisSentinelConfigurationUnitTests {
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
 
 		assertThat(config.getSentinelPassword()).isEqualTo(RedisPassword.of("computer-says-no"));
+		assertThat(config.getSentinels()).hasSize(1).contains(new RedisNode("127.0.0.1", 123));
+	}
+
+	@Test
+	void readSentinelUsernameFromConfigProperty() {
+
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
+		propertySource.setProperty("spring.redis.sentinel.nodes", HOST_AND_PORT_1);
+		propertySource.setProperty("spring.redis.sentinel.username", "sentinel-admin");
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
+
+		assertThat(config.getSentinelUsername()).isEqualTo(RedisPassword.of("sentinel-admin"));
 		assertThat(config.getSentinels()).hasSize(1).contains(new RedisNode("127.0.0.1", 123));
 	}
 }

@@ -37,12 +37,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
-import redis.clients.jedis.params.SetParams;
 
 /**
  * @author Christoph Strobl
@@ -50,6 +50,8 @@ import redis.clients.jedis.params.SetParams;
 class LettuceConvertersUnitTests {
 
 	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
+
+	private static final String MASTER_NAME = "mymaster";
 
 	@Test // DATAREDIS-268
 	void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
@@ -75,12 +77,12 @@ class LettuceConvertersUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartionsDoesNotContainElements() {
+	void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartitionsDoesNotContainElements() {
 		assertThat(LettuceConverters.partitionsToClusterNodes(new Partitions())).isNotNull();
 	}
 
 	@Test // DATAREDIS-315
-	void partitionsToClusterNodesShouldConvertPartitionCorrctly() {
+	void partitionsToClusterNodesShouldConvertPartitionCorrectly() {
 
 		Partitions partitions = new Partitions();
 
@@ -89,7 +91,7 @@ class LettuceConvertersUnitTests {
 		partition.setConnected(true);
 		partition.setFlags(new HashSet<>(Arrays.asList(NodeFlag.MASTER, NodeFlag.MYSELF)));
 		partition.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT));
-		partition.setSlots(Arrays.<Integer> asList(1, 2, 3, 4, 5));
+		partition.setSlots(Arrays.asList(1, 2, 3, 4, 5));
 
 		partitions.add(partition);
 
@@ -251,5 +253,19 @@ class LettuceConvertersUnitTests {
 
 		assertThatCommandArgument(LettuceConverters.toGetExArgs(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS)))
 				.isEqualTo(new GetExArgs().pxAt(10));
+	}
+
+	@Test
+	void sentinelConfigurationWithAuth() {
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
+				.master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379)
+				.sentinel("127.0.0.1", 26380);
+		sentinelConfiguration.setSentinelUsername("admin");
+		sentinelConfiguration.setSentinelPassword(RedisPassword.of("88888888-8x8-getting-creative-now"));
+		sentinelConfiguration.setUsername("app");
+		sentinelConfiguration.setPassword(RedisPassword.of("88888888-8x8-getting-creative-now"));
+		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+		assertThat(redisURI.toString()).isEqualTo("redis-sentinel://app:*********************************@127.0.0.1,127.0.0.1:26380?sentinelMasterId=mymaster");
 	}
 }
