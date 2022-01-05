@@ -34,29 +34,17 @@ class SentinelMasterId implements NamedNode {
 		this.name = name;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.NamedNode#getName()
-	 */
 	@NonNull
 	@Override
 	public String getName() {
 		return name;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return getName();
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -69,10 +57,6 @@ class SentinelMasterId implements NamedNode {
 		return ObjectUtils.nullSafeEquals(name, that.name);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		return ObjectUtils.nullSafeHashCode(name);

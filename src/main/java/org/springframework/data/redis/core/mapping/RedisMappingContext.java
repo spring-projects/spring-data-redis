@@ -132,10 +132,6 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			this.keyspaceConfig = keyspaceConfig;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.keyvalue.core.mapping.KeySpaceResolver#resolveKeySpace(java.lang.Class)
-		 */
 		@Override
 		public String resolveKeySpace(Class<?> type) {
 
@@ -162,10 +158,6 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 		INSTANCE;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.keyvalue.core.KeySpaceResolver#resolveKeySpace(java.lang.Class)
-		 */
 		@Override
 		public String resolveKeySpace(Class<?> type) {
 
@@ -279,10 +271,6 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return defaultTimeout;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.TimeToLiveResolver#isExpiringEntity(java.lang.Class)
-		 */
 		@Override
 		public boolean isExpiringEntity(Class<?> type) {
 

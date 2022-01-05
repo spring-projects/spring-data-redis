@@ -60,10 +60,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAck(byte[], byte[], java.lang.String[])
-	 */
 	@Override
 	public Long xAck(byte[] key, String group, RecordId... recordIds) {
 
@@ -76,10 +72,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.invoke().just(RedisStreamAsyncCommands::xack, key, LettuceConverters.toBytes(group), ids);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(byte[], MapRecord, XAddOptions)
-	 */
 	@Override
 	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
 
@@ -97,10 +89,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.get(RecordId::of);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaimJustId(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
-	 */
 	@Override
 	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
 
@@ -113,10 +101,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.toList(it -> RecordId.of(it.getId()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaim(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
-	 */
 	@Override
 	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
 
@@ -129,10 +113,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.toList(StreamConverters.byteRecordConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xDel(byte[], java.lang.String[])
-	 */
 	@Override
 	public Long xDel(byte[] key, RecordId... recordIds) {
 
@@ -142,19 +122,11 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.invoke().just(RedisStreamAsyncCommands::xdel, key, entryIdsToString(recordIds));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String)
-	 */
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
 		return xGroupCreate(key, groupName, readOffset, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
-	 */
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkSteam) {
 
@@ -168,10 +140,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				LettuceConverters.toBytes(groupName), XGroupCreateArgs.Builder.mkstream(mkSteam));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupDelConsumer(byte[], org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
-	 */
 	@Override
 	public Boolean xGroupDelConsumer(byte[] key, Consumer consumer) {
 
@@ -184,10 +152,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.get(Objects::nonNull);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupDestroy(byte[], java.lang.String)
-	 */
 	@Override
 	public Boolean xGroupDestroy(byte[] key, String groupName) {
 
@@ -197,10 +161,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.invoke().just(RedisStreamAsyncCommands::xgroupDestroy, key, LettuceConverters.toBytes(groupName));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfo(byte[])
-	 */
 	@Override
 	public XInfoStream xInfo(byte[] key) {
 
@@ -209,10 +169,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.invoke().from(RedisStreamAsyncCommands::xinfoStream, key).get(XInfoStream::fromList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoGroups(byte[])
-	 */
 	@Override
 	public XInfoGroups xInfoGroups(byte[] key) {
 
@@ -221,10 +177,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.invoke().from(RedisStreamAsyncCommands::xinfoGroups, key).get(XInfoGroups::fromList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoConsumers(byte[], java.lang.String)
-	 */
 	@Override
 	public XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
 
@@ -235,10 +187,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.get(it -> XInfoConsumers.fromList(groupName, it));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xLen(byte[])
-	 */
 	@Override
 	public Long xLen(byte[] key) {
 
@@ -247,10 +195,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		return connection.invoke().just(RedisStreamAsyncCommands::xlen, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
-	 */
 	@Override
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
 
@@ -260,10 +204,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.get(it -> StreamConverters.toPendingMessagesInfo(groupName, it));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions)
-	 */
 	@Override
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
@@ -285,10 +225,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.get(it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public List<ByteRecord> xRange(byte[] key, Range<String> range, Limit limit) {
 
@@ -303,10 +239,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.toList(StreamConverters.byteRecordConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRead(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public List<ByteRecord> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
 
@@ -327,10 +259,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.toList(StreamConverters.byteRecordConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xReadGroup(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<byte[]>... streams) {
@@ -354,10 +282,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.toList(StreamConverters.byteRecordConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRevRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public List<ByteRecord> xRevRange(byte[] key, Range<String> range, Limit limit) {
 
@@ -373,19 +297,11 @@ class LettuceStreamCommands implements RedisStreamCommands {
 				.toList(StreamConverters.byteRecordConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long)
-	 */
 	@Override
 	public Long xTrim(byte[] key, long count) {
 		return xTrim(key, count, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long, boolean)
-	 */
 	@Override
 	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");

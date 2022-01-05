@@ -62,10 +62,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoAdd(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<GeoAddCommand, Long>> geoAdd(Publisher<GeoAddCommand> commands) {
 
@@ -89,10 +85,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoDist(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<GeoDistCommand, Distance>> geoDist(Publisher<GeoDistCommand> commands) {
 
@@ -115,10 +107,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoHash(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<GeoHashCommand, String>> geoHash(Publisher<GeoHashCommand> commands) {
 
@@ -133,10 +121,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoPos(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<GeoPosCommand, Point>> geoPos(Publisher<GeoPosCommand> commands) {
 
@@ -153,10 +137,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoRadius(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<GeoRadiusCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadius(
 			Publisher<GeoRadiusCommand> commands) {
@@ -180,10 +160,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoRadiusByMember(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<GeoRadiusByMemberCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadiusByMember(
 			Publisher<GeoRadiusByMemberCommand> commands) {
@@ -206,10 +182,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoSearch(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<GeoSearchCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoSearch(
 			Publisher<GeoSearchCommand> commands) {
@@ -232,10 +204,6 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveGeoCommands#geoSearchStore(Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<GeoSearchStoreCommand, Long>> geoSearchStore(Publisher<GeoSearchStoreCommand> commands) {
 

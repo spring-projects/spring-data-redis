@@ -43,10 +43,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sMove(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
@@ -66,10 +62,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		return Boolean.FALSE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sInter(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
@@ -106,10 +98,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		return result.asRawSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sInterStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
@@ -130,10 +118,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		return sAdd(destKey, result.toArray(new byte[result.size()][]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sUnion(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
@@ -161,10 +145,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		return result.asRawSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sUnionStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
@@ -185,10 +165,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		return sAdd(destKey, result.toArray(new byte[result.size()][]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sDiff(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
@@ -219,10 +195,6 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 		return values.asRawSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sDiffStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 

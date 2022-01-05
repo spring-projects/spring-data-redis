@@ -79,10 +79,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		this.conversionService = cacheConfig.getConversionService();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.support.AbstractValueAdaptingCache#lookup(java.lang.Object)
-	 */
 	@Override
 	protected Object lookup(Object key) {
 
@@ -95,28 +91,16 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return deserializeCacheValue(value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#getName()
-	 */
 	@Override
 	public String getName() {
 		return name;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#getNativeCache()
-	 */
 	@Override
 	public RedisCacheWriter getNativeCache() {
 		return this.cacheWriter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#get(java.lang.Object, java.util.concurrent.Callable)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Object key, Callable<T> valueLoader) {
@@ -149,10 +133,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return value;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#put(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public void put(Object key, @Nullable Object value) {
 
@@ -168,10 +148,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		cacheWriter.put(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue), cacheConfig.getTtl());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#putIfAbsent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
 
@@ -191,19 +167,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#evict(java.lang.Object)
-	 */
 	@Override
 	public void evict(Object key) {
 		cacheWriter.remove(name, createAndConvertCacheKey(key));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#clear()
-	 */
 	@Override
 	public void clear() {
 

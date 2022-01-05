@@ -65,10 +65,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
-	 */
 	@Override
 	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
 
@@ -78,10 +74,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return connection.getCluster().copy(sourceKey, targetKey, replace);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
-	 */
 	@Override
 	public Long del(byte[]... keys) {
 
@@ -102,10 +94,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.resultsAsList().size();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#unlink(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long unlink(byte[]... keys) {
@@ -116,10 +104,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.mapToLong(val -> val).sum();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#type(byte[])
-	 */
 	@Override
 	public DataType type(byte[] key) {
 
@@ -132,10 +116,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#touch(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long touch(byte[]... keys) {
@@ -146,10 +126,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.mapToLong(val -> val).sum();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#keys(byte[])
-	 */
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
@@ -166,10 +142,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return keys;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#keys(org.springframework.data.redis.connection.RedisClusterNode, byte[])
-	 */
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null!");
@@ -180,10 +152,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
 		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
@@ -219,10 +187,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				}, node).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#randomKey()
-	 */
 	@Override
 	public byte[] randomKey() {
 
@@ -248,10 +212,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	public byte[] randomKey(RedisClusterNode node) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null!");
@@ -261,10 +221,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
-	 */
 	@Override
 	public void rename(byte[] oldKey, byte[] newKey) {
 
@@ -290,10 +246,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#renameNX(byte[], byte[])
-	 */
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
@@ -320,10 +272,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return Boolean.FALSE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expire(byte[], long)
-	 */
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
 
@@ -339,10 +287,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpire(byte[], long)
-	 */
 	@Override
 	public Boolean pExpire(byte[] key, long millis) {
 
@@ -355,10 +299,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expireAt(byte[], long)
-	 */
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 
@@ -371,10 +311,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpireAt(byte[], long)
-	 */
 	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 
@@ -387,10 +323,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#persist(byte[])
-	 */
 	@Override
 	public Boolean persist(byte[] key) {
 
@@ -403,19 +335,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#move(byte[], int)
-	 */
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 		throw new UnsupportedOperationException("Cluster mode does not allow moving keys.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
-	 */
 	@Override
 	public Long ttl(byte[] key) {
 
@@ -428,10 +352,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
 
@@ -444,10 +364,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
-	 */
 	@Override
 	public Long pTtl(byte[] key) {
 
@@ -459,10 +375,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
 
@@ -475,10 +387,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#dump(byte[])
-	 */
 	@Override
 	public byte[] dump(byte[] key) {
 
@@ -490,10 +398,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
-	 */
 	@Override
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
@@ -516,10 +420,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}, connection.clusterGetNodeForKey(key));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters)
-	 */
 	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
@@ -532,10 +432,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters, byte[])
-	 */
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 
@@ -560,10 +456,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		return 0L;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long exists(byte[]... keys) {
@@ -584,10 +476,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
-	 */
 	@Nullable
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
@@ -600,10 +488,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.mapValue(JedisConverters::toEncoding);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
-	 */
 	@Nullable
 	@Override
 	public Duration idletime(byte[] key) {
@@ -616,10 +500,6 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 				.mapValue(Converters::secondsToDuration);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
-	 */
 	@Nullable
 	@Override
 	public Long refcount(byte[] key) {

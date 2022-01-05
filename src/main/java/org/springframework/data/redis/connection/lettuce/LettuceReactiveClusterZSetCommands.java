@@ -41,10 +41,6 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 		super(connection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveZSetCommands#zUnionStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zUnionStore(
 			Publisher<? extends ZAggregateStoreCommand> commands) {
@@ -62,10 +58,6 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveZSetCommands#zInterStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zInterStore(
 			Publisher<? extends ZAggregateStoreCommand> commands) {

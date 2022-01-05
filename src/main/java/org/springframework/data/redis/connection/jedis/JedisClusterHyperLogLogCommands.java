@@ -35,10 +35,6 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfAdd(byte[], byte[][])
-	 */
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
 
@@ -52,10 +48,6 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfCount(byte[][])
-	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
 
@@ -74,10 +66,6 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfMerge(byte[], byte[][])
-	 */
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 

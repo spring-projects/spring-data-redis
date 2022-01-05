@@ -30,10 +30,6 @@ class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 		super(connection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#pfCount(byte[][])
-	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
 
@@ -44,10 +40,6 @@ class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#pfMerge(byte[], byte[][])
-	 */
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 

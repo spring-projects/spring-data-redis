@@ -31,10 +31,6 @@ class LettuceClusterStringCommands extends LettuceStringCommands {
 		super(connection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#mSetNX(java.util.Map)
-	 */
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 

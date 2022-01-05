@@ -359,64 +359,36 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		return Double.toString(get());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getKey()
-	 */
 	@Override
 	public String getKey() {
 		return key;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
-	 */
 	@Override
 	public DataType getType() {
 		return DataType.STRING;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
-	 */
 	@Override
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
-	 */
 	@Override
 	public Boolean expireAt(Date date) {
 		return generalOps.expireAt(key, date);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
-	 */
 	@Override
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
-	 */
 	@Override
 	public void rename(String newKey) {
 
@@ -424,37 +396,21 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 		key = newKey;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Number#intValue()
-	 */
 	@Override
 	public int intValue() {
 		return (int) get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Number#longValue()
-	 */
 	@Override
 	public long longValue() {
 		return (long) get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Number#floatValue()
-	 */
 	@Override
 	public float floatValue() {
 		return (float) get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Number#doubleValue()
-	 */
 	@Override
 	public double doubleValue() {
 		return get();

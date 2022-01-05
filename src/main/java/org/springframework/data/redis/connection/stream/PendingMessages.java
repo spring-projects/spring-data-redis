@@ -102,10 +102,6 @@ public class PendingMessages implements Streamable<PendingMessage> {
 		return pendingMessages.get(index);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
-	 */
 	@Override
 	public Iterator<PendingMessage> iterator() {
 		return pendingMessages.iterator();

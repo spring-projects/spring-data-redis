@@ -45,9 +45,6 @@ class LettuceReactiveClusterStringCommands extends LettuceReactiveStringCommands
 		super(connection);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveStringCommands#bitOp(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ReactiveRedisConnection.NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands) {
 
@@ -65,9 +62,6 @@ class LettuceReactiveClusterStringCommands extends LettuceReactiveStringCommands
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveStringCommands#mSetNX(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ReactiveRedisConnection.BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> commands) {
 

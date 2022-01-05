@@ -61,91 +61,51 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		this.shutdownQuietPeriod = shutdownQuietPeriod != null ? shutdownQuietPeriod : shutdownTimeout;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#useSsl()
-	 */
 	@Override
 	public boolean isUseSsl() {
 		return useSsl;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
-	 */
 	@Override
 	public boolean isVerifyPeer() {
 		return verifyPeer;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isStartTls()
-	 */
 	@Override
 	public boolean isStartTls() {
 		return startTls;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientResources()
-	 */
 	@Override
 	public Optional<ClientResources> getClientResources() {
 		return clientResources;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
-	 */
 	@Override
 	public Optional<ClientOptions> getClientOptions() {
 		return clientOptions;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
-	 */
 	@Override
 	public Optional<String> getClientName() {
 		return clientName;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getReadFrom()
-	 */
 	@Override
 	public Optional<ReadFrom> getReadFrom() {
 		return readFrom;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
-	 */
 	@Override
 	public Duration getCommandTimeout() {
 		return timeout;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownTimeout()
-	 */
 	@Override
 	public Duration getShutdownTimeout() {
 		return shutdownTimeout;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownQuietPeriod()
-	 */
 	@Override
 	public Duration getShutdownQuietPeriod() {
 		return shutdownQuietPeriod;

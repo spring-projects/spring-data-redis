@@ -37,19 +37,11 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
-	 */
 	@Override
 	public void scriptFlush() {
 		connection.invoke().just(RedisScriptingAsyncCommands::scriptFlush);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
-	 */
 	@Override
 	public void scriptKill() {
 
@@ -60,10 +52,6 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		connection.invoke().just(RedisScriptingAsyncCommands::scriptKill);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
-	 */
 	@Override
 	public String scriptLoad(byte[] script) {
 
@@ -72,10 +60,6 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		return connection.invoke().just(RedisScriptingAsyncCommands::scriptLoad, script);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
-	 */
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
 
@@ -85,10 +69,6 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 		return connection.invoke().just(RedisScriptingAsyncCommands::scriptExists, scriptSha1);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
@@ -104,10 +84,6 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				.get(new LettuceEvalResultsConverter<T>(returnType));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
@@ -122,10 +98,6 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 				.get(new LettuceEvalResultsConverter<T>(returnType));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 

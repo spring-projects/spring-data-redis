@@ -29,10 +29,6 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 		super(template);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HyperLogLogOperations#add(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long add(K key, V... values) {
 
@@ -41,10 +37,6 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 		return execute(connection -> connection.pfAdd(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HyperLogLogOperations#size(java.lang.Object[])
-	 */
 	@Override
 	public Long size(K... keys) {
 
@@ -52,10 +44,6 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 		return execute(connection -> connection.pfCount(rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HyperLogLogOperations#union(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long union(K destination, K... sourceKeys) {
 
@@ -68,10 +56,6 @@ class DefaultHyperLogLogOperations<K, V> extends AbstractOperations<K, V> implem
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HyperLogLogOperations#delete(java.lang.Object)
-	 */
 	@Override
 	public void delete(K key) {
 		template.delete(key);

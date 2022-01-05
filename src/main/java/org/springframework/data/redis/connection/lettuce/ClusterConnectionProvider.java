@@ -75,10 +75,6 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 		this.readFrom = Optional.ofNullable(readFrom);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> CompletableFuture<T> getConnectionAsync(Class<T> connectionType) {
 
@@ -117,10 +113,6 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported!"));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.RedisClientProvider#getRedisClient()
-	 */
 	@Override
 	public RedisClusterClient getRedisClient() {
 		return client;

@@ -53,140 +53,84 @@ class DefaultBoundStreamOperations<K, HK, HV> extends DefaultBoundKeyOperations<
 		this.ops = operations.opsForStream();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#acknowledge(java.lang.String, java.lang.String[])
-	 */
 	@Nullable
 	@Override
 	public Long acknowledge(String group, String... recordIds) {
 		return ops.acknowledge(getKey(), group, recordIds);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#add(java.util.Map)
-	 */
 	@Nullable
 	@Override
 	public RecordId add(Map<HK, HV> body) {
 		return ops.add(getKey(), body);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#delete(java.lang.String[])
-	 */
 	@Nullable
 	@Override
 	public Long delete(String... recordIds) {
 		return ops.delete(getKey(), recordIds);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#createGroup(org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String)
-	 */
 	@Nullable
 	@Override
 	public String createGroup(ReadOffset readOffset, String group) {
 		return ops.createGroup(getKey(), readOffset, group);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#deleteConsumer(org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
-	 */
 	@Nullable
 	@Override
 	public Boolean deleteConsumer(Consumer consumer) {
 		return ops.deleteConsumer(getKey(), consumer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#destroyGroup(java.lang.String)
-	 */
 	@Nullable
 	@Override
 	public Boolean destroyGroup(String group) {
 		return ops.destroyGroup(getKey(), group);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#size()
-	 */
 	@Nullable
 	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#range(org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Nullable
 	@Override
 	public List<MapRecord<K, HK, HV>> range(Range<String> range, Limit limit) {
 		return ops.range(getKey(), range, limit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset)
-	 */
 	@Nullable
 	@Override
 	public List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, ReadOffset readOffset) {
 		return ops.read(readOptions, StreamOffset.create(getKey(), readOffset));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset)
-	 */
 	@Nullable
 	@Override
 	public List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, ReadOffset readOffset) {
 		return ops.read(consumer, readOptions, StreamOffset.create(getKey(), readOffset));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#reverseRange(org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Nullable
 	@Override
 	public List<MapRecord<K, HK, HV>> reverseRange(Range<String> range, Limit limit) {
 		return ops.reverseRange(getKey(), range, limit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#trim(long)
-	 */
 	@Nullable
 	@Override
 	public Long trim(long count) {
 		return trim(count, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundStreamOperations#trim(long,boolean)
-	 */
 	@Nullable
 	@Override
 	public Long trim(long count, boolean approximateTrimming) {
 		return ops.trim(getKey(), count, approximateTrimming);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
-	 */
 	@Nullable
 	@Override
 	public DataType getType() {

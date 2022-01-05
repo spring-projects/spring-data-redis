@@ -23,10 +23,6 @@ package org.springframework.data.redis.connection.stream;
  */
 public interface StringRecord extends MapRecord<String, String, String> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands.Record#withId(org.springframework.data.redis.connection.RedisStreamCommands.RecordId)
-	 */
 	@Override
 	StringRecord withId(RecordId id);
 

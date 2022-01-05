@@ -53,10 +53,6 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 		this.listenerContainer = listenerContainer;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.MessageListener#onMessage(org.springframework.data.redis.connection.Message, byte[])
-	 */
 	@Override
 	public void onMessage(Message message, @Nullable byte[] pattern) {
 
@@ -109,10 +105,6 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 		listenerContainer.addMessageListener(this, TOPIC_ALL_KEYEVENTS);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	@Override
 	public void destroy() throws Exception {
 		listenerContainer.removeMessageListener(this);
@@ -128,10 +120,6 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		init();

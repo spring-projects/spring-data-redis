@@ -45,19 +45,11 @@ class MutableCacheStatistics implements CacheStatistics {
 		this.cacheName = cacheName;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * org.springframework.data.redis.cache.CacheStatistics#getCacheName()
-	 */
 	@Override
 	public String getCacheName() {
 		return cacheName;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getPuts()
-	 */
 	@Override
 	public long getPuts() {
 		return puts.sum();
@@ -67,10 +59,6 @@ class MutableCacheStatistics implements CacheStatistics {
 		puts.increment();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getRetrievals()
-	 */
 	@Override
 	public long getGets() {
 		return gets.sum();
@@ -80,10 +68,6 @@ class MutableCacheStatistics implements CacheStatistics {
 		gets.increment();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getHits()
-	 */
 	@Override
 	public long getHits() {
 		return hits.sum();
@@ -93,10 +77,6 @@ class MutableCacheStatistics implements CacheStatistics {
 		hits.increment();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getMisses()
-	 */
 	@Override
 	public long getMisses() {
 		return misses.sum();
@@ -106,10 +86,6 @@ class MutableCacheStatistics implements CacheStatistics {
 		misses.increment();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getRemovals()
-	 */
 	@Override
 	public long getDeletes() {
 		return deletes.sum();
@@ -122,10 +98,6 @@ class MutableCacheStatistics implements CacheStatistics {
 		deletes.add(x);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getLockWaitDuration(java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public long getLockWaitDuration(TimeUnit unit) {
 
@@ -134,19 +106,11 @@ class MutableCacheStatistics implements CacheStatistics {
 		return unit.convert(lockWaitTimeNs.sum(), TimeUnit.NANOSECONDS);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getSince()
-	 */
 	@Override
 	public Instant getSince() {
 		return this.aliveSince;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.cache.CacheStatistics#getLastReset()
-	 */
 	@Override
 	public Instant getLastReset() {
 		return lastReset;
@@ -206,73 +170,41 @@ class MutableCacheStatistics implements CacheStatistics {
 			lastReset = Instant.from(statistics.getLastReset());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getCacheName()
-		 */
 		@Override
 		public String getCacheName() {
 			return cacheName;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getPuts()
-		 */
 		@Override
 		public long getPuts() {
 			return puts;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getGets()
-		 */
 		@Override
 		public long getGets() {
 			return gets;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getHits()
-		 */
 		@Override
 		public long getHits() {
 			return hits;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getMisses()
-		 */
 		@Override
 		public long getMisses() {
 			return misses;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getPending()
-		 */
 		@Override
 		public long getPending() {
 			return pending;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getDeletes()
-		 */
 		@Override
 		public long getDeletes() {
 			return deletes;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getCacheName(java.util.concurrent.TimeUnit)
-		 */
 		@Override
 		public long getLockWaitDuration(TimeUnit unit) {
 
@@ -281,28 +213,16 @@ class MutableCacheStatistics implements CacheStatistics {
 			return unit.convert(lockWaitTimeNS, TimeUnit.NANOSECONDS);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getSince()
-		 */
 		@Override
 		public Instant getSince() {
 			return since;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getLastReset()
-		 */
 		@Override
 		public Instant getLastReset() {
 			return lastReset;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * org.springframework.data.redis.cache.CacheStatistics#getTime()
-		 */
 		@Override
 		public Instant getTime() {
 			return time;

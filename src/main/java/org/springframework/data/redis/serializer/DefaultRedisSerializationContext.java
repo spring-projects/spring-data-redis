@@ -43,43 +43,28 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		this.stringTuple = stringTuple;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext#getKeySerializationPair()
-	 */
 	@Override
 	public SerializationPair<K> getKeySerializationPair() {
 		return keyTuple;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext#getValueSerializationPair()
-	 */
 	@Override
 	public SerializationPair<V> getValueSerializationPair() {
 		return valueTuple;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext#getHashKeySerializationPair()
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <HK> SerializationPair<HK> getHashKeySerializationPair() {
 		return (SerializationPair) hashKeyTuple;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext#getHashValueSerializationPair()
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <HV> SerializationPair<HV> getHashValueSerializationPair() {
 		return (SerializationPair) hashValueTuple;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext#getStringSerializationPair()
-	 */
 	@Override
 	public SerializationPair<String> getStringSerializationPair() {
 		return stringTuple;
@@ -100,9 +85,6 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		private @Nullable SerializationPair<?> hashValueTuple;
 		private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(RedisSerializer.string());
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#key(SerializationPair)
-		 */
 		@Override
 		public RedisSerializationContextBuilder<K, V> key(SerializationPair<K> tuple) {
 
@@ -112,9 +94,6 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#value(SerializationPair)
-		 */
 		@Override
 		public RedisSerializationContextBuilder<K, V> value(SerializationPair<V> tuple) {
 
@@ -124,9 +103,6 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#hashKey(SerializationPair)
-		 */
 		@Override
 		public RedisSerializationContextBuilder<K, V> hashKey(SerializationPair<?> tuple) {
 
@@ -136,9 +112,6 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#hashValue(SerializationPair)
-		 */
 		@Override
 		public RedisSerializationContextBuilder<K, V> hashValue(SerializationPair<?> tuple) {
 
@@ -148,9 +121,6 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#string(SerializationPair)
-		 */
 		@Override
 		public RedisSerializationContextBuilder<K, V> string(SerializationPair<String> tuple) {
 
@@ -160,9 +130,6 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			return this;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisSerializationContextBuilder#build()
-		 */
 		@Override
 		public RedisSerializationContext<K, V> build() {
 

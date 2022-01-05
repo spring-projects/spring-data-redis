@@ -281,10 +281,6 @@ public interface JedisClientConfiguration {
 
 		private DefaultJedisClientConfigurationBuilder() {}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#useSsl()
-		 */
 		@Override
 		public JedisSslClientConfigurationBuilder useSsl() {
 
@@ -292,10 +288,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslSocketFactory(javax.net.ssl.SSLSocketFactory)
-		 */
 		@Override
 		public JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
 
@@ -305,10 +297,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslParameters(javax.net.ssl.SSLParameters)
-		 */
 		@Override
 		public JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
 
@@ -318,10 +306,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#hostnameVerifier(javax.net.ssl.HostnameVerifier)
-		 */
 		@Override
 		public JedisSslClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
 
@@ -331,10 +315,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#usePooling()
-		 */
 		@Override
 		public JedisPoolingClientConfigurationBuilder usePooling() {
 
@@ -342,10 +322,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisPoolingClientConfigurationBuilder#poolConfig(org.apache.commons.pool2.impl.GenericObjectPoolConfig)
-		 */
 		@Override
 		public JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
 
@@ -355,19 +331,11 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisPoolingClientConfigurationBuilder#and()
-		 */
 		@Override
 		public JedisClientConfigurationBuilder and() {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#clientName(java.lang.String)
-		 */
 		@Override
 		public JedisClientConfigurationBuilder clientName(String clientName) {
 
@@ -377,10 +345,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#readTimeout(java.time.Duration)
-		 */
 		@Override
 		public JedisClientConfigurationBuilder readTimeout(Duration readTimeout) {
 
@@ -390,10 +354,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#connectTimeout(java.time.Duration)
-		 */
 		@Override
 		public JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout) {
 
@@ -403,10 +363,6 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#build()
-		 */
 		@Override
 		public JedisClientConfiguration build() {
 

@@ -662,10 +662,6 @@ public interface ReactiveSetCommands {
 			return new SInterCommand(new ArrayList<>(keys));
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		@Nullable
 		public ByteBuffer getKey() {
@@ -808,10 +804,6 @@ public interface ReactiveSetCommands {
 			return new SUnionCommand(new ArrayList<>(keys));
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		@Nullable
 		public ByteBuffer getKey() {
@@ -954,10 +946,6 @@ public interface ReactiveSetCommands {
 			return new SDiffCommand(new ArrayList<>(keys));
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		@Nullable
 		public ByteBuffer getKey() {

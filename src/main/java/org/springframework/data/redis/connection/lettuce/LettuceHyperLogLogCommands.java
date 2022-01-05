@@ -33,10 +33,6 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		this.connection = connection;
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfAdd(byte[], byte[][])
-	*/
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
 
@@ -46,10 +42,6 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		return connection.invoke().just(RedisHLLAsyncCommands::pfadd, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfCount(byte[][])
-	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
 
@@ -59,10 +51,6 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 		return connection.invoke().just(RedisHLLAsyncCommands::pfcount, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfMerge(byte[], byte[][])
-	 */
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 

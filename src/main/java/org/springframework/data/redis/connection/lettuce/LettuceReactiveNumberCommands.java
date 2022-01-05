@@ -46,10 +46,6 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveNumberCommands#incr(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> incr(Publisher<KeyCommand> commands) {
 
@@ -61,10 +57,6 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveNumberCommands#incrBy(org.reactivestreams.Publisher, java.util.function.Supplier)
-	 */
 	@Override
 	public <T extends Number> Flux<NumericResponse<IncrByCommand<T>, T>> incrBy(Publisher<IncrByCommand<T>> commands) {
 
@@ -87,10 +79,6 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveNumberCommands#decr(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> decr(Publisher<KeyCommand> commands) {
 
@@ -102,10 +90,6 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveNumberCommands#decrBy(org.reactivestreams.Publisher, java.util.function.Supplier)
-	 */
 	@Override
 	public <T extends Number> Flux<NumericResponse<DecrByCommand<T>, T>> decrBy(Publisher<DecrByCommand<T>> commands) {
 
@@ -128,10 +112,6 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveNumberCommands#hIncrBy(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public <T extends Number> Flux<NumericResponse<HIncrByCommand<T>, T>> hIncrBy(Publisher<HIncrByCommand<T>> commands) {
 

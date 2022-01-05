@@ -39,10 +39,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		super(template);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#index(java.lang.Object, long)
-	 */
 	@Override
 	public V index(K key, long index) {
 
@@ -55,10 +51,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#indexOf(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long indexOf(K key, V value) {
 
@@ -67,10 +59,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lPos(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#lastIndexOf(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long lastIndexOf(K key, V value) {
 
@@ -83,10 +71,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object)
-	 */
 	@Override
 	public V leftPop(K key) {
 
@@ -99,20 +83,12 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object, long)
-	 */
 	@Override
 	public List<V> leftPop(K key, long count) {
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> deserializeValues(connection.lPop(rawKey, count)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V leftPop(K key, long timeout, TimeUnit unit) {
 
@@ -127,10 +103,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long leftPush(K key, V value) {
 
@@ -139,10 +111,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lPush(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPushAll(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long leftPushAll(K key, V... values) {
 
@@ -151,10 +119,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lPush(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPushAll(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Long leftPushAll(K key, Collection<V> values) {
 
@@ -164,10 +128,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lPush(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPushIfPresent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long leftPushIfPresent(K key, V value) {
 
@@ -176,10 +136,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lPushX(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#leftPush(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long leftPush(K key, V pivot, V value) {
 
@@ -189,10 +145,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lInsert(rawKey, Position.BEFORE, rawPivot, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Long size(K key) {
 
@@ -200,10 +152,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lLen(rawKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#range(java.lang.Object, long, long)
-	 */
 	@Override
 	public List<V> range(K key, long start, long end) {
 
@@ -211,10 +159,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> deserializeValues(connection.lRange(rawKey, start, end)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#remove(java.lang.Object, long, java.lang.Object)
-	 */
 	@Override
 	public Long remove(K key, long count, Object value) {
 
@@ -223,10 +167,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lRem(rawKey, count, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPop(java.lang.Object)
-	 */
 	@Override
 	public V rightPop(K key) {
 
@@ -239,20 +179,12 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPop(java.lang.Object, long)
-	 */
 	@Override
 	public List<V> rightPop(K key, long count) {
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> deserializeValues(connection.rPop(rawKey, count)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPop(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V rightPop(K key, long timeout, TimeUnit unit) {
 
@@ -268,10 +200,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long rightPush(K key, V value) {
 
@@ -280,10 +208,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.rPush(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPushAll(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long rightPushAll(K key, V... values) {
 
@@ -292,10 +216,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.rPush(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPushAll(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Long rightPushAll(K key, Collection<V> values) {
 
@@ -304,10 +224,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.rPush(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPushIfPresent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long rightPushIfPresent(K key, V value) {
 
@@ -316,10 +232,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.rPushX(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPush(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long rightPush(K key, V pivot, V value) {
 
@@ -329,10 +241,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(connection -> connection.lInsert(rawKey, Position.AFTER, rawPivot, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPopAndLeftPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey) {
 
@@ -346,10 +254,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#rightPopAndLeftPush(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit) {
 
@@ -364,10 +268,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#move(java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction)
-	 */
 	@Override
 	public V move(K sourceKey, Direction from, K destinationKey, Direction to) {
 
@@ -381,10 +281,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#move(java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V move(K sourceKey, Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit) {
 
@@ -398,10 +294,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#set(java.lang.Object, long, java.lang.Object)
-	 */
 	@Override
 	public void set(K key, long index, V value) {
 
@@ -416,10 +308,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ListOperations#trim(java.lang.Object, long, long)
-	 */
 	@Override
 	public void trim(K key, long start, long end) {
 

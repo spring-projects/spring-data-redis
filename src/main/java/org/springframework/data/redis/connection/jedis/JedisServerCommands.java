@@ -45,82 +45,46 @@ class JedisServerCommands implements RedisServerCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgReWriteAof()
-	 */
 	@Override
 	public void bgReWriteAof() {
 		connection.invoke().just(BinaryJedis::bgrewriteaof, MultiKeyPipelineBase::bgrewriteaof);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgSave()
-	 */
 	@Override
 	public void bgSave() {
 		connection.invokeStatus().just(BinaryJedis::bgsave, MultiKeyPipelineBase::bgsave);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#lastSave()
-	 */
 	@Override
 	public Long lastSave() {
 		return connection.invoke().just(BinaryJedis::lastsave, MultiKeyPipelineBase::lastsave);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#save()
-	 */
 	@Override
 	public void save() {
 		connection.invokeStatus().just(BinaryJedis::save, MultiKeyPipelineBase::save);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#dbSize()
-	 */
 	@Override
 	public Long dbSize() {
 		return connection.invoke().just(BinaryJedis::dbSize, MultiKeyPipelineBase::dbSize);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushDb()
-	 */
 	@Override
 	public void flushDb() {
 		connection.invokeStatus().just(BinaryJedis::flushDB, MultiKeyPipelineBase::flushDB);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll()
-	 */
 	@Override
 	public void flushAll() {
 		connection.invokeStatus().just(BinaryJedis::flushAll, MultiKeyPipelineBase::flushAll);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#info()
-	 */
 	@Override
 	public Properties info() {
 		return connection.invoke().from(BinaryJedis::info, MultiKeyPipelineBase::info).get(JedisConverters::toProperties);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#info(java.lang.String)
-	 */
 	@Override
 	public Properties info(String section) {
 
@@ -130,19 +94,11 @@ class JedisServerCommands implements RedisServerCommands {
 				.get(JedisConverters::toProperties);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown()
-	 */
 	@Override
 	public void shutdown() {
 		connection.invokeStatus().just(BinaryJedis::shutdown, MultiKeyPipelineBase::shutdown);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
-	 */
 	@Override
 	public void shutdown(ShutdownOption option) {
 
@@ -156,10 +112,6 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.getJedis().shutdown(saveMode);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
-	 */
 	@Override
 	public Properties getConfig(String pattern) {
 
@@ -169,10 +121,6 @@ class JedisServerCommands implements RedisServerCommands {
 				.get(Converters::toProperties);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#setConfig(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public void setConfig(String param, String value) {
 
@@ -182,28 +130,16 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.invokeStatus().just(Jedis::configSet, MultiKeyPipelineBase::configSet, param, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
-	 */
 	@Override
 	public void resetConfigStats() {
 		connection.invokeStatus().just(BinaryJedis::configResetStat, MultiKeyPipelineBase::configResetStat);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
-	 */
 	@Override
 	public void rewriteConfig() {
 		connection.invokeStatus().just(Jedis::configRewrite);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
-	 */
 	@Override
 	public Long time(TimeUnit timeUnit) {
 
@@ -213,10 +149,6 @@ class JedisServerCommands implements RedisServerCommands {
 				.get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#killClient(java.lang.String, int)
-	 */
 	@Override
 	public void killClient(String host, int port) {
 
@@ -229,10 +161,6 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.invokeStatus().just(it -> it.clientKill(String.format("%s:%s", host, port)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(byte[])
-	 */
 	@Override
 	public void setClientName(byte[] name) {
 
@@ -245,10 +173,6 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.invokeStatus().just(it -> it.clientSetname(name));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
-	 */
 	@Override
 	public String getClientName() {
 
@@ -259,10 +183,6 @@ class JedisServerCommands implements RedisServerCommands {
 		return connection.invokeStatus().just(Jedis::clientGetname);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientList()
-	 */
 	@Override
 	public List<RedisClientInfo> getClientList() {
 
@@ -273,10 +193,6 @@ class JedisServerCommands implements RedisServerCommands {
 		return connection.invokeStatus().from(Jedis::clientList).get(JedisConverters::toListOfRedisClientInformation);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
-	 */
 	@Override
 	public void slaveOf(String host, int port) {
 
@@ -289,10 +205,6 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.invokeStatus().just(it -> it.slaveof(host, port));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
-	 */
 	@Override
 	public void slaveOfNoOne() {
 
@@ -303,19 +215,11 @@ class JedisServerCommands implements RedisServerCommands {
 		connection.invokeStatus().just(BinaryJedis::slaveofNoOne);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
-	 */
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
-	 */
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 

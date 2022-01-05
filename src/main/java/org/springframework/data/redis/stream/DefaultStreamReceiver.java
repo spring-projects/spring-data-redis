@@ -100,10 +100,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.StreamReceiver#receive(org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Flux<V> receive(StreamOffset<K> streamOffset) {
@@ -128,10 +124,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.StreamReceiver#receiveAutoAck(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Flux<V> receiveAutoAck(Consumer consumer, StreamOffset<K> streamOffset) {
@@ -153,10 +145,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.StreamReceiver#receive(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Flux<V> receive(Consumer consumer, StreamOffset<K> streamOffset) {

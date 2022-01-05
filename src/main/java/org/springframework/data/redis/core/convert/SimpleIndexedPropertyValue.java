@@ -53,19 +53,11 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 		return value;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexedData#getIndexName()
-	 */
 	@Override
 	public String getIndexName() {
 		return indexName;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexedData#getKeySpace()
-	 */
 	@Override
 	public String getKeyspace() {
 		return this.keyspace;

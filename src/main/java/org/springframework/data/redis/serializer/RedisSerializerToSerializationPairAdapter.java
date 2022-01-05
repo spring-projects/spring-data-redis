@@ -83,17 +83,11 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 		return new RedisSerializerToSerializationPairAdapter<>(redisSerializer);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair#reader()
-	 */
 	@Override
 	public RedisElementReader<T> getReader() {
 		return pair.getReader();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair#writer()
-	 */
 	@Override
 	public RedisElementWriter<T> getWriter() {
 		return pair.getWriter();

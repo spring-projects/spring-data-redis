@@ -60,82 +60,46 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.connectTimeout = connectTimeout;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#useSsl()
-	 */
 	@Override
 	public boolean isUseSsl() {
 		return useSsl;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslSocketFactory()
-	 */
 	@Override
 	public Optional<SSLSocketFactory> getSslSocketFactory() {
 		return sslSocketFactory;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslParameters()
-	 */
 	@Override
 	public Optional<SSLParameters> getSslParameters() {
 		return sslParameters;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getHostnameVerifier()
-	 */
 	@Override
 	public Optional<HostnameVerifier> getHostnameVerifier() {
 		return hostnameVerifier;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#usePooling()
-	 */
 	@Override
 	public boolean isUsePooling() {
 		return usePooling;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getPoolConfig()
-	 */
 	@Override
 	public Optional<GenericObjectPoolConfig> getPoolConfig() {
 		return poolConfig;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getClientName()
-	 */
 	@Override
 	public Optional<String> getClientName() {
 		return clientName;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getReadTimeout()
-	 */
 	@Override
 	public Duration getReadTimeout() {
 		return readTimeout;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getConnectTimeout()
-	 */
 	@Override
 	public Duration getConnectTimeout() {
 		return connectTimeout;

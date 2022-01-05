@@ -51,10 +51,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		super(template);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#add(java.lang.Object, org.springframework.data.geo.Point, java.lang.Object)
-	 */
 	@Override
 	public Long add(K key, Point point, M member) {
 
@@ -64,19 +60,11 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.geoAdd(rawKey, point, rawMember));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#add(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
-	 */
 	@Override
 	public Long add(K key, GeoLocation<M> location) {
 		return add(key, location.getPoint(), location.getName());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#add(java.lang.Object, java.util.Map)
-	 */
 	@Override
 	public Long add(K key, Map<M, Point> memberCoordinateMap) {
 
@@ -91,10 +79,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.geoAdd(rawKey, rawMemberCoordinateMap));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#add(java.lang.Object, java.lang.Iterable)
-	 */
 	@Override
 	public Long add(K key, Iterable<GeoLocation<M>> locations) {
 
@@ -106,10 +90,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return add(key, memberCoordinateMap);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#distance(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Distance distance(K key, M member1, M member2) {
 
@@ -120,10 +100,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#distance(java.lang.Object, java.lang.Object, java.lang.Object, org.springframework.data.geo.Metric)
-	 */
 	@Override
 	public Distance distance(K key, M member1, M member2, Metric metric) {
 
@@ -134,10 +110,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.geoDist(rawKey, rawMember1, rawMember2, metric));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#hash(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public List<String> hash(K key, M... members) {
 
@@ -147,10 +119,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.geoHash(rawKey, rawMembers));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#position(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public List<Point> position(K key, M... members) {
 		byte[] rawKey = rawKey(key);
@@ -159,10 +127,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.geoPos(rawKey, rawMembers));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#radius(java.lang.Object, org.springframework.data.geo.Circle)
-	 */
 	@Override
 	public GeoResults<GeoLocation<M>> radius(K key, Circle within) {
 
@@ -173,10 +137,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return deserializeGeoResults(raw);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#radius(java.lang.Object, org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
-	 */
 	@Override
 	public GeoResults<GeoLocation<M>> radius(K key, Circle within, GeoRadiusCommandArgs args) {
 
@@ -187,10 +147,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return deserializeGeoResults(raw);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#radius(java.lang.Object, java.lang.Object, double)
-	 */
 	@Override
 	public GeoResults<GeoLocation<M>> radius(K key, M member, double radius) {
 
@@ -202,10 +158,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return deserializeGeoResults(raw);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#radius(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance)
-	 */
 	@Override
 	public GeoResults<GeoLocation<M>> radius(K key, M member, Distance distance) {
 
@@ -218,10 +170,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return deserializeGeoResults(raw);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#radius(java.lang.Object, java.lang.Object, double, org.springframework.data.geo.Metric, org.springframework.data.redis.core.GeoRadiusCommandArgs)
-	 */
 	@Override
 	public GeoResults<GeoLocation<M>> radius(K key, M member, Distance distance, GeoRadiusCommandArgs param) {
 
@@ -234,10 +182,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return deserializeGeoResults(raw);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#remove(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long remove(K key, M... members) {
 
@@ -246,10 +190,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return execute(connection -> connection.zRem(rawKey, rawMembers));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#search(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
 	@Override
 	public GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference,
 			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
@@ -263,10 +203,6 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 		return deserializeGeoResults(raw);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.GeoOperations#searchAndStore(java.lang.Object, java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
-	 */
 	@Override
 	public Long searchAndStore(K key, K destKey, GeoReference<M> reference,
 			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {

@@ -73,10 +73,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xAck(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<AcknowledgeCommand, Long>> xAck(Publisher<AcknowledgeCommand> commands) {
 
@@ -92,10 +88,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xAdd(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands) {
 
@@ -118,10 +110,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xClaimJustId(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
-	 */
 	@Override
 	public Flux<CommandResponse<XClaimCommand, Flux<RecordId>>> xClaimJustId(Publisher<XClaimCommand> commands) {
 
@@ -136,10 +124,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xClaim(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
-	 */
 	@Override
 	public Flux<CommandResponse<XClaimCommand, Flux<ByteBufferRecord>>> xClaim(Publisher<XClaimCommand> commands) {
 
@@ -157,10 +141,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xDel(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<DeleteCommand, Long>> xDel(Publisher<DeleteCommand> commands) {
 
@@ -216,10 +196,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xLen(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> xLen(Publisher<KeyCommand> commands) {
 
@@ -231,10 +207,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xPendingSummary(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<PendingRecordsCommand, PendingMessagesSummary>> xPendingSummary(
 			Publisher<PendingRecordsCommand> commands) {
@@ -248,10 +220,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xPending(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<PendingRecordsCommand, PendingMessages>> xPending(
 			Publisher<PendingRecordsCommand> commands) {
@@ -275,10 +243,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<RangeCommand, Flux<ByteBufferRecord>>> xRange(Publisher<RangeCommand> commands) {
 
@@ -296,10 +260,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#read(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ReadCommand, Flux<ByteBufferRecord>>> read(Publisher<ReadCommand> commands) {
 
@@ -335,10 +295,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 				.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfo(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<XInfoCommand, XInfoStream>> xInfo(Publisher<XInfoCommand> commands) {
 
@@ -352,10 +308,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfoGroups(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<XInfoCommand, Flux<XInfoGroup>>> xInfoGroups(Publisher<XInfoCommand> commands) {
 
@@ -368,10 +320,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xInfoConsumers(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<XInfoCommand, Flux<XInfoConsumer>>> xInfoConsumers(Publisher<XInfoCommand> commands) {
 
@@ -385,10 +333,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xRevRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<RangeCommand, Flux<ByteBufferRecord>>> xRevRange(Publisher<RangeCommand> commands) {
 
@@ -406,10 +350,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveStreamCommands#xTrim(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> xTrim(Publisher<TrimCommand> commands) {
 

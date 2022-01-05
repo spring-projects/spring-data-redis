@@ -47,10 +47,6 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 		this.converter = new StringToBytesConverter();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	@Nullable
 	public Map<byte[], byte[]> resolveReference(Object id, String keyspace) {

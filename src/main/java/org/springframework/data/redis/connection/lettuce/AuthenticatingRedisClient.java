@@ -40,19 +40,11 @@ public class AuthenticatingRedisClient extends RedisClient {
 		super(null, RedisURI.builder().withHost(host).withPassword(password).build());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.RedisClient#connect(io.lettuce.core.codec.RedisCodec)
-	 */
 	@Override
 	public <K, V> StatefulRedisConnection<K, V> connect(RedisCodec<K, V> codec) {
 		return super.connect(codec);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.RedisClient#connectPubSub(io.lettuce.core.codec.RedisCodec)
-	 */
 	@Override
 	public <K, V> StatefulRedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
 		return super.connectPubSub(codec);

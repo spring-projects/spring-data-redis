@@ -35,9 +35,6 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 		this.serializer = serializer;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisElementReader#read(java.nio.ByteBuffer)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public T read(ByteBuffer buffer) {

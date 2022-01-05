@@ -43,10 +43,6 @@ public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 		this.itemConverter = itemConverter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public Set<T> convert(Set<S> source) {
 		return source.stream().map(itemConverter::convert).collect(Collectors.toCollection(LinkedHashSet::new));

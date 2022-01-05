@@ -42,18 +42,10 @@ public class DefaultTuple implements Tuple {
 		this.value = value;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands.Tuple#getScore()
-	 */
 	public Double getScore() {
 		return score;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands.Tuple#getValue()
-	 */
 	public byte[] getValue() {
 		return value;
 	}

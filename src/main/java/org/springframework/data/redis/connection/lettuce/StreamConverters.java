@@ -188,10 +188,6 @@ class StreamConverters {
 
 		INSTANCE;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
 		@Override
 		public XReadArgs convert(StreamReadOptions source) {
 

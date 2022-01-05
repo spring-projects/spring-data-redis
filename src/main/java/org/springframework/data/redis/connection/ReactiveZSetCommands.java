@@ -2128,10 +2128,6 @@ public interface ReactiveZSetCommands {
 			return new ZDiffCommand(new ArrayList<>(keys));
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		@Nullable
 		public ByteBuffer getKey() {

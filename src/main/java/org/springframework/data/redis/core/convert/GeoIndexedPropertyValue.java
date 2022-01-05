@@ -37,19 +37,11 @@ public class GeoIndexedPropertyValue implements IndexedData {
 		this.value = value;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexedData#getIndexName()
-	 */
 	@Override
 	public String getIndexName() {
 		return GeoIndexedPropertyValue.geoIndexName(indexName);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexedData#getKeyspace()
-	 */
 	@Override
 	public String getKeyspace() {
 		return keyspace;

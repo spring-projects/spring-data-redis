@@ -45,10 +45,6 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 		this.exceptionConverter = exceptionConverter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public List<Object> convert(List<Object> execResults) {
 

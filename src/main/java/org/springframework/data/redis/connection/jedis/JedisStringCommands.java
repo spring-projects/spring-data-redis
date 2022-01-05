@@ -45,10 +45,6 @@ class JedisStringCommands implements RedisStringCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#get(byte[])
-	 */
 	@Override
 	public byte[] get(byte[] key) {
 
@@ -57,10 +53,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::get, MultiKeyPipelineBase::get, key);
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.RedisStringCommands#getDel(byte[])
-	*/
 	@Nullable
 	@Override
 	public byte[] getDel(byte[] key) {
@@ -70,10 +62,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::getDel, MultiKeyPipelineBase::getDel, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getEx(byte[], org.springframework.data.redis.core.types.Expiration)
-	 */
 	@Nullable
 	@Override
 	public byte[] getEx(byte[] key, Expiration expiration) {
@@ -85,10 +73,6 @@ class JedisStringCommands implements RedisStringCommands {
 				JedisConverters.toGetExParams(expiration));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getSet(byte[], byte[])
-	 */
 	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
 
@@ -98,10 +82,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::getSet, MultiKeyPipelineBase::getSet, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#mGet(byte[][])
-	 */
 	@Override
 	public List<byte[]> mGet(byte[]... keys) {
 
@@ -111,10 +91,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::mget, MultiKeyPipelineBase::mget, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[])
-	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value) {
 
@@ -125,10 +101,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.get(Converters.stringToBooleanConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOption)
-	 */
 	@Override
 	public Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
@@ -144,10 +116,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#setNX(byte[], byte[])
-	 */
 	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 
@@ -158,10 +126,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.get(Converters.longToBoolean());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#setEx(byte[], long, byte[])
-	 */
 	@Override
 	public Boolean setEx(byte[] key, long seconds, byte[] value) {
 
@@ -176,10 +140,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
-	 */
 	@Override
 	public Boolean pSetEx(byte[] key, long milliseconds, byte[] value) {
 
@@ -190,10 +150,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.getOrElse(Converters.stringToBooleanConverter(), () -> false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSet(java.util.Map)
-	 */
 	@Override
 	public Boolean mSet(Map<byte[], byte[]> tuples) {
 
@@ -203,10 +159,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.get(Converters.stringToBooleanConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#mSetNX(java.util.Map)
-	 */
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 
@@ -217,10 +169,6 @@ class JedisStringCommands implements RedisStringCommands {
 				.get(Converters.longToBoolean());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#incr(byte[])
-	 */
 	@Override
 	public Long incr(byte[] key) {
 
@@ -229,10 +177,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::incr, MultiKeyPipelineBase::incr, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#incrBy(byte[], long)
-	 */
 	@Override
 	public Long incrBy(byte[] key, long value) {
 
@@ -241,10 +185,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::incrBy, MultiKeyPipelineBase::incrBy, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#incrBy(byte[], double)
-	 */
 	@Override
 	public Double incrBy(byte[] key, double value) {
 
@@ -253,10 +193,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::incrByFloat, MultiKeyPipelineBase::incrByFloat, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#decr(byte[])
-	 */
 	@Override
 	public Long decr(byte[] key) {
 
@@ -265,10 +201,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::decr, MultiKeyPipelineBase::decr, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#decrBy(byte[], long)
-	 */
 	@Override
 	public Long decrBy(byte[] key, long value) {
 
@@ -277,10 +209,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::decrBy, MultiKeyPipelineBase::decrBy, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#append(byte[], byte[])
-	 */
 	@Override
 	public Long append(byte[] key, byte[] value) {
 
@@ -290,10 +218,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::append, MultiKeyPipelineBase::append, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getRange(byte[], long, long)
-	 */
 	@Override
 	public byte[] getRange(byte[] key, long start, long end) {
 
@@ -302,10 +226,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::getrange, MultiKeyPipelineBase::getrange, key, start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#setRange(byte[], byte[], long)
-	 */
 	@Override
 	public void setRange(byte[] key, byte[] value, long offset) {
 
@@ -315,10 +235,6 @@ class JedisStringCommands implements RedisStringCommands {
 		connection.invokeStatus().just(BinaryJedis::setrange, MultiKeyPipelineBase::setrange, key, offset, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getBit(byte[], long)
-	 */
 	@Override
 	public Boolean getBit(byte[] key, long offset) {
 
@@ -327,10 +243,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::getbit, MultiKeyPipelineBase::getbit, key, offset);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#setBit(byte[], long, boolean)
-	 */
 	@Override
 	public Boolean setBit(byte[] key, long offset, boolean value) {
 
@@ -340,10 +252,6 @@ class JedisStringCommands implements RedisStringCommands {
 				JedisConverters.toBit(value));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[])
-	 */
 	@Override
 	public Long bitCount(byte[] key) {
 
@@ -352,10 +260,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::bitcount, MultiKeyPipelineBase::bitcount, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitCount(byte[], long, long)
-	 */
 	@Override
 	public Long bitCount(byte[] key, long start, long end) {
 
@@ -364,10 +268,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::bitcount, MultiKeyPipelineBase::bitcount, key, start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
-	 */
 	@Override
 	public List<Long> bitField(byte[] key, BitFieldSubCommands subCommands) {
 
@@ -378,10 +278,6 @@ class JedisStringCommands implements RedisStringCommands {
 				JedisConverters.toBitfieldCommandArguments(subCommands));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(org.springframework.data.redis.connection.RedisStringCommands.BitOperation, byte[], byte[][])
-	 */
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 
@@ -396,10 +292,6 @@ class JedisStringCommands implements RedisStringCommands {
 				destination, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(byte[], boolean, org.springframework.data.domain.Range)
-	 */
 	@Nullable
 	@Override
 	public Long bitPos(byte[] key, boolean bit, Range<Long> range) {
@@ -419,10 +311,6 @@ class JedisStringCommands implements RedisStringCommands {
 		return connection.invoke().just(BinaryJedis::bitpos, MultiKeyPipelineBase::bitpos, key, bit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#strLen(byte[])
-	 */
 	@Override
 	public Long strLen(byte[] key) {
 

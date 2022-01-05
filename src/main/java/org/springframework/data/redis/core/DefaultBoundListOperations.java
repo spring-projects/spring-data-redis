@@ -49,235 +49,131 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.getOperations();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#index(long)
-	 */
 	@Override
 	public V index(long index) {
 		return ops.index(getKey(), index);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#indexOf(java.lang.Object)
-	 */
 	@Override
 	public Long indexOf(V value) {
 		return ops.indexOf(getKey(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#lastIndexOf(java.lang.Object)
-	 */
 	@Override
 	public Long lastIndexOf(V value) {
 		return ops.lastIndexOf(getKey(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPop()
-	 */
 	@Override
 	public V leftPop() {
 		return ops.leftPop(getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPop(long)
-	 */
 	@Override
 	public List<V> leftPop(long count) {
 		return ops.leftPop(getKey(), count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPop(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V leftPop(long timeout, TimeUnit unit) {
 		return ops.leftPop(getKey(), timeout, unit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPush(java.lang.Object)
-	 */
 	@Override
 	public Long leftPush(V value) {
 		return ops.leftPush(getKey(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPushAll(java.lang.Object[])
-	 */
 	@Override
 	public Long leftPushAll(V... values) {
 		return ops.leftPushAll(getKey(), values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPushIfPresent(java.lang.Object)
-	 */
 	@Override
 	public Long leftPushIfPresent(V value) {
 		return ops.leftPushIfPresent(getKey(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#leftPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long leftPush(V pivot, V value) {
 		return ops.leftPush(getKey(), pivot, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#size()
-	 */
 	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#range(long, long)
-	 */
 	@Override
 	public List<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#remove(long, java.lang.Object)
-	 */
 	@Override
 	public Long remove(long i, Object value) {
 		return ops.remove(getKey(), i, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPop()
-	 */
 	@Override
 	public V rightPop() {
 		return ops.rightPop(getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPop(long)
-	 */
 	@Override
 	public List<V> rightPop(long count) {
 		return ops.rightPop(getKey(), count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPop(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V rightPop(long timeout, TimeUnit unit) {
 		return ops.rightPop(getKey(), timeout, unit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPushIfPresent(java.lang.Object)
-	 */
 	@Override
 	public Long rightPushIfPresent(V value) {
 		return ops.rightPushIfPresent(getKey(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPush(java.lang.Object)
-	 */
 	@Override
 	public Long rightPush(V value) {
 		return ops.rightPush(getKey(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPushAll(java.lang.Object[])
-	 */
 	@Override
 	public Long rightPushAll(V... values) {
 		return ops.rightPushAll(getKey(), values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#rightPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long rightPush(V pivot, V value) {
 		return ops.rightPush(getKey(), pivot, value);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#move(org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction)
-	 */
 	@Override
 	public V move(Direction from, K destinationKey, Direction to) {
 		return ops.move(getKey(), from, destinationKey, to);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#move(org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, java.time.Duration)
-	 */
 	@Override
 	public V move(Direction from, K destinationKey, Direction to, Duration timeout) {
 		return ops.move(getKey(), from, destinationKey, to, timeout);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#move(org.springframework.data.redis.connection.RedisListCommands.Direction, java.lang.Object, org.springframework.data.redis.connection.RedisListCommands.Direction, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public V move(Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit) {
 		return ops.move(getKey(), from, destinationKey, to, timeout, unit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#trim(long, long)
-	 */
 	@Override
 	public void trim(long start, long end) {
 		ops.trim(getKey(), start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundListOperations#set(long, java.lang.Object)
-	 */
 	@Override
 	public void set(long index, V value) {
 		ops.set(getKey(), index, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
-	 */
 	@Override
 	public DataType getType() {
 		return DataType.LIST;

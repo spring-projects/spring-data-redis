@@ -63,10 +63,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#mGet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<List<ByteBuffer>, ByteBuffer>> mGet(Publisher<List<ByteBuffer>> keyCollections) {
 
@@ -79,10 +75,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#set(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SetCommand>> set(Publisher<SetCommand> commands) {
 
@@ -105,10 +97,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getSet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<SetCommand>> getSet(Publisher<SetCommand> commands) {
 
@@ -126,10 +114,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#get(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<KeyCommand>> get(Publisher<KeyCommand> commands) {
 
@@ -142,10 +126,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getDel(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<KeyCommand>> getDel(Publisher<KeyCommand> commands) {
 
@@ -158,10 +138,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getDel(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<GetExCommand>> getEx(Publisher<GetExCommand> commands) {
 
@@ -176,10 +152,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#setNX(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SetCommand>> setNX(Publisher<SetCommand> commands) {
 
@@ -192,10 +164,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#setEX(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SetCommand>> setEX(Publisher<SetCommand> commands) {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
@@ -209,10 +177,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#pSetEX(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SetCommand>> pSetEX(Publisher<SetCommand> commands) {
 
@@ -228,10 +192,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#mSet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<MSetCommand>> mSet(Publisher<MSetCommand> commands) {
 
@@ -244,10 +204,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#mSet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> commands) {
 
@@ -259,10 +215,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#append(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<AppendCommand, Long>> append(Publisher<AppendCommand> commands) {
 
@@ -275,10 +227,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<RangeCommand>> getRange(Publisher<RangeCommand> commands) {
 
@@ -297,10 +245,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#setRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SetRangeCommand, Long>> setRange(Publisher<SetRangeCommand> commands) {
 
@@ -315,10 +259,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#getBit(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<GetBitCommand>> getBit(Publisher<GetBitCommand> commands) {
 
@@ -332,10 +272,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#setBit(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SetBitCommand>> setBit(Publisher<SetBitCommand> commands) {
 
@@ -350,10 +286,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#bitCount(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<BitCountCommand, Long>> bitCount(Publisher<BitCountCommand> commands) {
 
@@ -370,10 +302,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#bitField(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<BitFieldCommand, Long>> bitField(Publisher<BitFieldCommand> commands) {
 
@@ -388,10 +316,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#bitOp(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands) {
 
@@ -428,10 +352,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#bitPos(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<BitPosCommand, Long>> bitPos(Publisher<BitPosCommand> commands) {
 
@@ -458,10 +378,6 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveStringCommands#strLen(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> strLen(Publisher<KeyCommand> commands) {
 

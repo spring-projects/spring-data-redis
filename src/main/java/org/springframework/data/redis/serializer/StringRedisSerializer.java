@@ -80,19 +80,11 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 		this.charset = charset;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#deserialize(byte[])
-	 */
 	@Override
 	public String deserialize(@Nullable byte[] bytes) {
 		return (bytes == null ? null : new String(bytes, charset));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#serialize(java.lang.Object)
-	 */
 	@Override
 	public byte[] serialize(@Nullable String string) {
 		return (string == null ? null : string.getBytes(charset));

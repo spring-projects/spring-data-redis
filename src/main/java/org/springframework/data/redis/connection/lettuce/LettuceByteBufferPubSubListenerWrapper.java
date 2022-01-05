@@ -40,50 +40,26 @@ class LettuceByteBufferPubSubListenerWrapper implements RedisPubSubListener<Byte
 		this.delegate = delegate;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.pubsub.RedisPubSubListener#message(java.lang.Object, java.lang.Object)
-	 */
 	public void message(ByteBuffer channel, ByteBuffer message) {
 		delegate.message(getBytes(channel), getBytes(message));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.pubsub.RedisPubSubListener#message(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	public void message(ByteBuffer pattern, ByteBuffer channel, ByteBuffer message) {
 		delegate.message(getBytes(channel), getBytes(message), getBytes(pattern));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.pubsub.RedisPubSubListener#subscribed(java.lang.Object, long)
-	 */
 	public void subscribed(ByteBuffer channel, long count) {
 		delegate.subscribed(getBytes(channel), count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.pubsub.RedisPubSubListener#psubscribed(java.lang.Object, long)
-	 */
 	public void psubscribed(ByteBuffer pattern, long count) {
 		delegate.psubscribed(getBytes(pattern), count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.pubsub.RedisPubSubListener#unsubscribed(java.lang.Object, long)
-	 */
 	public void unsubscribed(ByteBuffer channel, long count) {
 		delegate.unsubscribed(getBytes(channel), count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see io.lettuce.core.pubsub.RedisPubSubListener#punsubscribed(java.lang.Object, long)
-	 */
 	public void punsubscribed(ByteBuffer pattern, long count) {
 		delegate.punsubscribed(getBytes(pattern), count);
 	}

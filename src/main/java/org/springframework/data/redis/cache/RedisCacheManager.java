@@ -228,10 +228,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return RedisCacheManagerBuilder.fromCacheWriter(cacheWriter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.support.AbstractCacheManager#loadCaches()
-	 */
 	@Override
 	protected Collection<RedisCache> loadCaches() {
 
@@ -244,10 +240,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return caches;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.cache.support.AbstractCacheManager#getMissingCache(java.lang.String)
-	 */
 	@Override
 	protected RedisCache getMissingCache(String name) {
 		return allowInFlightCacheCreation ? createRedisCache(name, defaultCacheConfig) : null;

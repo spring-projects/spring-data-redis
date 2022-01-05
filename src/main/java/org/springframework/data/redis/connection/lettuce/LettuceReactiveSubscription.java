@@ -69,10 +69,6 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		this.channelState = new State(exceptionTranslator);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#subscribe(java.nio.ByteBuffer[])
-	 */
 	@Override
 	public Mono<Void> subscribe(ByteBuffer... channels) {
 
@@ -82,10 +78,6 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		return channelState.subscribe(channels, commands::subscribe);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#pSubscribe(java.nio.ByteBuffer[])
-	 */
 	@Override
 	public Mono<Void> pSubscribe(ByteBuffer... patterns) {
 
@@ -95,19 +87,11 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		return patternState.subscribe(patterns, commands::psubscribe);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#unsubscribe()
-	 */
 	@Override
 	public Mono<Void> unsubscribe() {
 		return unsubscribe(channelState.getTargets().toArray(new ByteBuffer[channelState.getTargets().size()]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#unsubscribe(java.nio.ByteBuffer[])
-	 */
 	@Override
 	public Mono<Void> unsubscribe(ByteBuffer... channels) {
 
@@ -117,19 +101,11 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		return ObjectUtils.isEmpty(channels) ? Mono.empty() : channelState.unsubscribe(channels, commands::unsubscribe);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#pUnsubscribe()
-	 */
 	@Override
 	public Mono<Void> pUnsubscribe() {
 		return pUnsubscribe(patternState.getTargets().toArray(new ByteBuffer[patternState.getTargets().size()]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#pUnsubscribe(java.nio.ByteBuffer[])
-	 */
 	@Override
 	public Mono<Void> pUnsubscribe(ByteBuffer... patterns) {
 
@@ -139,28 +115,16 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		return ObjectUtils.isEmpty(patterns) ? Mono.empty() : patternState.unsubscribe(patterns, commands::punsubscribe);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#getChannels()
-	 */
 	@Override
 	public Set<ByteBuffer> getChannels() {
 		return channelState.getTargets();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#getPatterns()
-	 */
 	@Override
 	public Set<ByteBuffer> getPatterns() {
 		return patternState.getTargets();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#receive()
-	 */
 	@Override
 	public Flux<Message<ByteBuffer, ByteBuffer>> receive() {
 
@@ -175,10 +139,6 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		return channelMessages.mergeWith(patternMessages);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSubscription#terminate()
-	 */
 	@Override
 	public Mono<Void> cancel() {
 

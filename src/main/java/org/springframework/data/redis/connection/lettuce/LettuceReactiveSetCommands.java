@@ -54,10 +54,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sAdd(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SAddCommand, Long>> sAdd(Publisher<SAddCommand> commands) {
 
@@ -71,10 +67,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sRem(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SRemCommand, Long>> sRem(Publisher<SRemCommand> commands) {
 
@@ -88,10 +80,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sPop(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<KeyCommand>> sPop(Publisher<KeyCommand> commands) {
 
@@ -103,10 +91,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sPop(org.springframework.data.redis.connection.ReactiveSetCommands.SPopCommand)
-	 */
 	@Override
 	public Flux<ByteBuffer> sPop(SPopCommand command) {
 
@@ -116,10 +100,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		return connection.execute(cmd -> cmd.spop(command.getKey(), command.getCount()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sMove(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands) {
 
@@ -134,10 +114,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sCard(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> sCard(Publisher<KeyCommand> commands) {
 
@@ -149,10 +125,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sIsMember(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SIsMemberCommand>> sIsMember(Publisher<SIsMemberCommand> commands) {
 
@@ -165,10 +137,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sMIsMember(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<SMIsMemberCommand, Boolean>> sMIsMember(Publisher<SMIsMemberCommand> commands) {
 
@@ -182,10 +150,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInter(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SInterCommand, Flux<ByteBuffer>>> sInter(Publisher<SInterCommand> commands) {
 
@@ -198,10 +162,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInterStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands) {
 
@@ -215,10 +175,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInter(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SUnionCommand, Flux<ByteBuffer>>> sUnion(Publisher<SUnionCommand> commands) {
 
@@ -231,10 +187,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInterStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands) {
 
@@ -248,10 +200,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInter(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SDiffCommand, Flux<ByteBuffer>>> sDiff(Publisher<SDiffCommand> commands) {
 
@@ -264,10 +212,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInterStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands) {
 
@@ -281,10 +225,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sMembers(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sMembers(Publisher<KeyCommand> commands) {
 
@@ -297,10 +237,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sScan(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sScan(Publisher<KeyScanCommand> commands) {
 
@@ -316,10 +252,6 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sRandMembers(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SRandMembersCommand, Flux<ByteBuffer>>> sRandMember(
 			Publisher<SRandMembersCommand> commands) {

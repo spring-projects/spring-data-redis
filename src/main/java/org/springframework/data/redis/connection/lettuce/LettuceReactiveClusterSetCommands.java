@@ -47,9 +47,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		super(connection);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sUnion(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SUnionCommand, Flux<ByteBuffer>>> sUnion(Publisher<SUnionCommand> commands) {
 
@@ -68,9 +65,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sUnionStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands) {
 
@@ -99,9 +93,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sInter(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SInterCommand, Flux<ByteBuffer>>> sInter(Publisher<SInterCommand> commands) {
 
@@ -134,9 +125,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sInterStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands) {
 
@@ -165,9 +153,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sDiff(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<SDiffCommand, Flux<ByteBuffer>>> sDiff(Publisher<SDiffCommand> commands) {
 
@@ -202,9 +187,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sDiffStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands) {
 
@@ -233,9 +215,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sMove(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands) {
 

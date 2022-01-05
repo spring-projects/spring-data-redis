@@ -192,9 +192,6 @@ public interface ReactiveHyperLogLogCommands {
 			return keys;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;

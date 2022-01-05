@@ -54,17 +54,9 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 		return new MapBackedRecord<>(stream, RecordId.autoGenerate(), map);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands.Record#withId(org.springframework.data.redis.connection.RedisStreamCommands.RecordId)
-	 */
 	@Override
 	MapRecord<S, K, V> withId(RecordId id);
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands.Record#withStreamKey(java.lang.Object)
-	 */
 	@Override
 	<SK> MapRecord<SK, K, V> withStreamKey(SK key);
 

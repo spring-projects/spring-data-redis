@@ -34,9 +34,6 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 		this.serializer = serializer;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisElementWriter#write(java.lang.Object)
-	 */
 	@Override
 	public ByteBuffer write(T value) {
 

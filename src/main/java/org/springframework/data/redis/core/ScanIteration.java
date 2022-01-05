@@ -63,10 +63,6 @@ public class ScanIteration<T> implements Iterable<T> {
 		return items;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
-	 */
 	@Override
 	public Iterator<T> iterator() {
 		return items.iterator();

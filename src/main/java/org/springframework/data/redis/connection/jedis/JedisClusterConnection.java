@@ -150,10 +150,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisCommands#execute(java.lang.String, byte[][])
-	 */
 	@Nullable
 	@Override
 	public Object execute(String command, byte[]... args) {
@@ -167,10 +163,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#execute(String, byte[], java.util.Collection)
-	 */
 	@Nullable
 	@Override
 	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
@@ -240,100 +232,56 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		}, keys).resultsAsList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#geoCommands()
-	 */
 	@Override
 	public RedisGeoCommands geoCommands() {
 		return new JedisClusterGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#hashCommands()
-	 */
 	@Override
 	public RedisHashCommands hashCommands() {
 		return new JedisClusterHashCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#hyperLogLogCommands()
-	 */
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
 		return new JedisClusterHyperLogLogCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#keyCommands()
-	 */
 	@Override
 	public RedisKeyCommands keyCommands() {
 		return doGetKeyCommands();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#stringCommands()
-	 */
 	@Override
 	public RedisStringCommands stringCommands() {
 		return new JedisClusterStringCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#listCommands()
-	 */
 	@Override
 	public RedisListCommands listCommands() {
 		return new JedisClusterListCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#setCommands()
-	 */
 	@Override
 	public RedisSetCommands setCommands() {
 		return new JedisClusterSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#streamCommands()
-	 */
 	@Override
 	public RedisStreamCommands streamCommands() {
 		return new JedisClusterStreamCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#zSetCommands()
-	 */
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return new JedisClusterZSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#serverCommands()
-	 */
 	@Override
 	public RedisClusterServerCommands serverCommands() {
 		return new JedisClusterServerCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#scriptingCommands()
-	 */
 	@Override
 	public RedisScriptingCommands scriptingCommands() {
 		return new JedisClusterScriptingCommands(this);
@@ -343,91 +291,51 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return new JedisClusterKeyCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#keys(org.springframework.data.redis.connection.RedisClusterNode, byte[])
-	 */
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 		return doGetKeyCommands().keys(node, pattern);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#scan(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
 		return doGetKeyCommands().scan(node, options);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public byte[] randomKey(RedisClusterNode node) {
 		return doGetKeyCommands().randomKey(node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#multi()
-	 */
 	@Override
 	public void multi() {
 		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#exec()
-	 */
 	@Override
 	public List<Object> exec() {
 		throw new InvalidDataAccessApiUsageException("EXEC is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#discard()
-	 */
 	@Override
 	public void discard() {
 		throw new InvalidDataAccessApiUsageException("DISCARD is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#watch(byte[][])
-	 */
 	@Override
 	public void watch(byte[]... keys) {
 		throw new InvalidDataAccessApiUsageException("WATCH is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#unwatch()
-	 */
 	@Override
 	public void unwatch() {
 		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
-	 */
 	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
-	 */
 	@Override
 	public Subscription getSubscription() {
 		return subscription;
@@ -474,10 +382,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
-	 */
 	@Override
 	public void select(int dbIndex) {
 
@@ -486,10 +390,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#echo(byte[])
-	 */
 	@Override
 	public byte[] echo(byte[] message) {
 
@@ -500,10 +400,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#ping()
-	 */
 	@Override
 	public String ping() {
 
@@ -512,10 +408,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#ping(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public String ping(RedisClusterNode node) {
 
@@ -527,10 +419,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	 * --> Cluster Commands
 	 */
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterSetSlot(org.springframework.data.redis.connection.RedisClusterNode, int, org.springframework.data.redis.connection.RedisClusterCommands.AddSlots)
-	 */
 	@Override
 	public void clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
 
@@ -558,10 +446,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetKeysInSlot(int, java.lang.Integer)
-	 */
 	@Override
 	public List<byte[]> clusterGetKeysInSlot(int slot, Integer count) {
 
@@ -575,10 +459,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterAddSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public void clusterAddSlots(RedisClusterNode node, int... slots) {
 
@@ -586,10 +466,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				(JedisClusterCommandCallback<String>) client -> client.clusterAddSlots(slots), node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterAddSlots(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public void clusterAddSlots(RedisClusterNode node, SlotRange range) {
 
@@ -598,10 +474,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		clusterAddSlots(node, range.getSlotsArray());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterCountKeysInSlot(int)
-	 */
 	@Override
 	public Long clusterCountKeysInSlot(int slot) {
 
@@ -612,10 +484,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterDeleteSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public void clusterDeleteSlots(RedisClusterNode node, int... slots) {
 
@@ -624,10 +492,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterDeleteSlotsInRange(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public void clusterDeleteSlotsInRange(RedisClusterNode node, SlotRange range) {
 
@@ -636,10 +500,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		clusterDeleteSlots(node, range.getSlotsArray());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterForget(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void clusterForget(RedisClusterNode node) {
 
@@ -651,10 +511,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				(JedisClusterCommandCallback<String>) client -> client.clusterForget(node.getId()), nodes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterMeet(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void clusterMeet(RedisClusterNode node) {
 
@@ -666,10 +522,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				(JedisClusterCommandCallback<String>) client -> client.clusterMeet(node.getHost(), node.getPort()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterReplicate(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void clusterReplicate(RedisClusterNode master, RedisClusterNode replica) {
 
@@ -680,10 +532,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterSlotForKey(byte[])
-	 */
 	@Override
 	public Integer clusterGetSlotForKey(byte[] key) {
 
@@ -691,19 +539,11 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				.clusterKeySlot(JedisConverters.toString(key)).intValue()).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodeForKey(byte[])
-	 */
 	@Override
 	public RedisClusterNode clusterGetNodeForKey(byte[] key) {
 		return topologyProvider.getTopology().getKeyServingMasterNode(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodeForSlot(int)
-	 */
 	@Override
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
@@ -716,19 +556,11 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodes()
-	 */
 	@Override
 	public Set<RedisClusterNode> clusterGetNodes() {
 		return topologyProvider.getTopology().getNodes();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetSlaves(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Set<RedisClusterNode> clusterGetSlaves(RedisClusterNode master) {
 
@@ -742,10 +574,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 				.getValue());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetMasterSlaveMap()
-	 */
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
 
@@ -766,10 +594,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetClusterInfo()
-	 */
 	@Override
 	public ClusterInfo clusterGetClusterInfo() {
 
@@ -788,10 +612,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return translated != null ? translated : new RedisSystemException(ex.getMessage(), ex);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#close()
-	 */
 	@Override
 	public void close() throws DataAccessException {
 
@@ -806,64 +626,36 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		closed = true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
-	 */
 	@Override
 	public boolean isClosed() {
 		return closed;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
-	 */
 	@Override
 	public JedisCluster getNativeConnection() {
 		return cluster;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
-	 */
 	@Override
 	public boolean isQueueing() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
-	 */
 	@Override
 	public boolean isPipelined() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
-	 */
 	@Override
 	public void openPipeline() {
 		throw new UnsupportedOperationException("Pipeline is currently not supported for JedisClusterConnection.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
-	 */
 	@Override
 	public List<Object> closePipeline() throws RedisPipelineException {
 		throw new UnsupportedOperationException("Pipeline is currently not supported for JedisClusterConnection.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#getSentinelConnection()
-	 */
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 		throw new UnsupportedOperationException("Sentinel is currently not supported for JedisClusterConnection.");
@@ -927,10 +719,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 			}
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ClusterNodeResourceProvider#getResourceForSpecificNode(org.springframework.data.redis.connection.RedisClusterNode)
-		 */
 		@Override
 		@SuppressWarnings("unchecked")
 		public Jedis getResourceForSpecificNode(RedisClusterNode node) {
@@ -977,10 +765,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ClusterNodeResourceProvider#returnResourceForSpecificNode(org.springframework.data.redis.connection.RedisClusterNode, java.lang.Object)
-		 */
 		@Override
 		public void returnResourceForSpecificNode(RedisClusterNode node, Object client) {
 			((Jedis) client).close();
@@ -1028,10 +812,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 			this.cacheTimeMs = cacheTimeout.toMillis();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ClusterTopologyProvider#getTopology()
-		 */
 		@Override
 		public ClusterTopology getTopology() {
 

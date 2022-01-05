@@ -43,10 +43,6 @@ class JedisSetCommands implements RedisSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sAdd(byte[], byte[][])
-	 */
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
 
@@ -57,10 +53,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sadd, MultiKeyPipelineBase::sadd, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sCard(byte[])
-	 */
 	@Override
 	public Long sCard(byte[] key) {
 
@@ -69,10 +61,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::scard, MultiKeyPipelineBase::scard, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiff(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
@@ -82,10 +70,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sdiff, MultiKeyPipelineBase::sdiff, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiffStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
@@ -96,10 +80,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sdiffstore, MultiKeyPipelineBase::sdiffstore, destKey, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInter(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
@@ -109,10 +89,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sinter, MultiKeyPipelineBase::sinter, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInterStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
@@ -123,10 +99,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sinterstore, MultiKeyPipelineBase::sinterstore, destKey, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sIsMember(byte[], byte[])
-	 */
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 
@@ -136,10 +108,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sismember, MultiKeyPipelineBase::sismember, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMIsMember(byte[], byte[]...)
-	 */
 	@Override
 	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
 
@@ -150,10 +118,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::smismember, MultiKeyPipelineBase::smismember, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMembers(byte[])
-	 */
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 
@@ -162,10 +126,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::smembers, MultiKeyPipelineBase::smembers, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMove(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
@@ -177,10 +137,6 @@ class JedisSetCommands implements RedisSetCommands {
 				.get(JedisConverters::toBoolean);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[])
-	 */
 	@Override
 	public byte[] sPop(byte[] key) {
 
@@ -189,10 +145,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::spop, MultiKeyPipelineBase::spop, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[], long)
-	 */
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
 
@@ -201,10 +153,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().from(BinaryJedis::spop, MultiKeyPipelineBase::spop, key, count).get(ArrayList::new);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[])
-	 */
 	@Override
 	public byte[] sRandMember(byte[] key) {
 
@@ -213,10 +161,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::srandmember, MultiKeyPipelineBase::srandmember, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[], long)
-	 */
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
@@ -229,10 +173,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::srandmember, MultiKeyPipelineBase::srandmember, key, (int) count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRem(byte[], byte[][])
-	 */
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
 
@@ -243,10 +183,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::srem, MultiKeyPipelineBase::srem, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnion(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
@@ -256,10 +192,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sunion, MultiKeyPipelineBase::sunion, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnionStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
@@ -270,10 +202,6 @@ class JedisSetCommands implements RedisSetCommands {
 		return connection.invoke().just(BinaryJedis::sunionstore, MultiKeyPipelineBase::sunionstore, destKey, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
 		return sScan(key, 0, options);

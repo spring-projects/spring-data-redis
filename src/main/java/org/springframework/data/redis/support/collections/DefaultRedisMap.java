@@ -63,64 +63,36 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		this.hashOps = boundOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisMap#increment(java.lang.Object, long)
-	 */
 	@Override
 	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisMap#increment(java.lang.Object, double)
-	 */
 	@Override
 	public Double increment(K key, double delta) {
 		return hashOps.increment(key, delta);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisMap#randomKey()
-	 */
 	@Override
 	public K randomKey() {
 		return hashOps.randomKey();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisMap#randomEntry()
-	 */
 	@Override
 	public Entry<K, V> randomEntry() {
 		return hashOps.randomEntry();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisStore#getOperations()
-	 */
 	@Override
 	public RedisOperations<String, ?> getOperations() {
 		return hashOps.getOperations();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#clear()
-	 */
 	@Override
 	public void clear() {
 		getOperations().delete(Collections.singleton(getKey()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#containsKey(java.lang.Object)
-	 */
 	@Override
 	public boolean containsKey(Object key) {
 
@@ -129,19 +101,11 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#containsValue(java.lang.Object)
-	 */
 	@Override
 	public boolean containsValue(Object value) {
 		throw new UnsupportedOperationException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#entrySet()
-	 */
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
 
@@ -150,38 +114,22 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return entries.entrySet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#get(java.lang.Object)
-	 */
 	@Override
 	@Nullable
 	public V get(Object key) {
 		return hashOps.get(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#isEmpty()
-	 */
 	@Override
 	public boolean isEmpty() {
 		return size() == 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#keySet()
-	 */
 	@Override
 	public Set<K> keySet() {
 		return hashOps.keys();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public V put(K key, V value) {
 
@@ -190,19 +138,11 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return oldV;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#putAll(java.util.Map)
-	 */
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		hashOps.putAll(m);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#remove(java.lang.Object)
-	 */
 	@Override
 	@Nullable
 	public V remove(Object key) {
@@ -212,10 +152,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return v;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#size()
-	 */
 	@Override
 	public int size() {
 
@@ -224,19 +160,11 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return size.intValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#values()
-	 */
 	@Override
 	public Collection<V> values() {
 		return hashOps.values();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 
@@ -249,10 +177,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 
@@ -261,30 +185,18 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 
 		return "RedisStore for key:" + getKey();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.concurrent.ConcurrentMap#putIfAbsent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	@Nullable
 	public V putIfAbsent(K key, V value) {
 		return (hashOps.putIfAbsent(key, value) ? null : get(key));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.concurrent.ConcurrentMap#remove(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public boolean remove(Object key, Object value) {
 
@@ -313,10 +225,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.concurrent.ConcurrentMap#replace(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public boolean replace(K key, V oldValue, V newValue) {
 
@@ -345,10 +253,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.concurrent.ConcurrentMap#replace(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	@Nullable
 	public V replace(K key, V value) {
@@ -378,64 +282,36 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return hashOps.expire(timeout, unit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
-	 */
 	@Override
 	public Boolean expireAt(Date date) {
 		return hashOps.expireAt(date);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
-	 */
 	@Override
 	public Long getExpire() {
 		return hashOps.getExpire();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
-	 */
 	@Override
 	public Boolean persist() {
 		return hashOps.persist();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getKey()
-	 */
 	@Override
 	public String getKey() {
 		return hashOps.getKey();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
-	 */
 	@Override
 	public void rename(String newKey) {
 		hashOps.rename(newKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
-	 */
 	@Override
 	public DataType getType() {
 		return hashOps.getType();
@@ -447,10 +323,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisMap#scan()
-	 */
 	@Override
 	public Cursor<java.util.Map.Entry<K, V>> scan() {
 		return scan(ScanOptions.NONE);

@@ -107,10 +107,6 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 		return value;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.EventObject#toString()
-	 */
 	@Override
 	public String toString() {
 

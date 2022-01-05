@@ -54,10 +54,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAck(byte[], String, org.springframework.data.redis.connection.stream.RecordId[])
-	 */
 	@Override
 	public Long xAck(byte[] key, String group, RecordId... recordIds) {
 
@@ -69,10 +65,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xAdd(MapRecord, XAddOptions)
-	 */
 	@Override
 	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
 
@@ -93,19 +85,11 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.get(it -> RecordId.of(JedisConverters.toString(it)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaimJustId(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
-	 */
 	@Override
 	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
 		throw new UnsupportedOperationException("Jedis does not support xClaimJustId.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xClaim(byte[], java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions)
-	 */
 	@Override
 	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
 
@@ -126,10 +110,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.get(r -> StreamConverters.convertToByteRecord(key, r));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xDel(byte[], java.lang.String[])
-	 */
 	@Override
 	public Long xDel(byte[] key, RecordId... recordIds) {
 
@@ -140,19 +120,11 @@ class JedisStreamCommands implements RedisStreamCommands {
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String)
-	 */
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
 		return xGroupCreate(key, groupName, readOffset, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupCreate(byte[], org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String, boolean)
-	 */
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
 
@@ -164,10 +136,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				JedisConverters.toBytes(groupName), JedisConverters.toBytes(readOffset.getOffset()), mkStream);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupDelConsumer(byte[], org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
-	 */
 	@Override
 	public Boolean xGroupDelConsumer(byte[] key, Consumer consumer) {
 
@@ -178,10 +146,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				JedisConverters.toBytes(consumer.getGroup()), JedisConverters.toBytes(consumer.getName())).get(r -> r > 0);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xGroupDestroy(byte[], java.lang.String)
-	 */
 	@Override
 	public Boolean xGroupDestroy(byte[] key, String groupName) {
 
@@ -193,10 +157,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.get(r -> r > 0);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfo(byte[])
-	 */
 	@Override
 	public StreamInfo.XInfoStream xInfo(byte[] key) {
 
@@ -212,10 +172,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoGroups(byte[])
-	 */
 	@Override
 	public StreamInfo.XInfoGroups xInfoGroups(byte[] key) {
 
@@ -234,10 +190,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xInfoConsumers(byte[], java.lang.String)
-	 */
 	@Override
 	public StreamInfo.XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
 
@@ -258,10 +210,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xLen(byte[])
-	 */
 	@Override
 	public Long xLen(byte[] key) {
 
@@ -270,19 +218,11 @@ class JedisStreamCommands implements RedisStreamCommands {
 		return connection.invoke().just(BinaryJedis::xlen, MultiKeyPipelineBase::xlen, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String)
-	 */
 	@Override
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
 		throw new UnsupportedOperationException("Jedis does not support returning PendingMessagesSummary.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xPending(byte[], java.lang.String, org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions)
-	 */
 	@Override
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
@@ -302,10 +242,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.get(r -> StreamConverters.toPendingMessages(groupName, range, r));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public List<ByteRecord> xRange(byte[] key, Range<String> range, RedisZSetCommands.Limit limit) {
 
@@ -324,10 +260,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.get(r -> StreamConverters.convertToByteRecord(key, r));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRead(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public List<ByteRecord> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
 
@@ -345,10 +277,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.getOrElse(StreamConverters::convertToByteRecords, Collections::emptyList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xReadGroup(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<byte[]>... streams) {
@@ -371,10 +299,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 		}).getOrElse(StreamConverters::convertToByteRecords, Collections::emptyList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xRevRange(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public List<ByteRecord> xRevRange(byte[] key, Range<String> range, RedisZSetCommands.Limit limit) {
 
@@ -390,19 +314,11 @@ class JedisStreamCommands implements RedisStreamCommands {
 				.get(it -> StreamConverters.convertToByteRecord(key, it));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long)
-	 */
 	@Override
 	public Long xTrim(byte[] key, long count) {
 		return xTrim(key, count, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands#xTrim(byte[], long, boolean)
-	 */
 	@Override
 	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 

@@ -55,37 +55,21 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		this.conditions = new ArrayList<>();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinition#getKeyspace()
-	 */
 	@Override
 	public String getKeyspace() {
 		return keyspace;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinition#getConditions()
-	 */
 	@Override
 	public Collection<Condition<?>> getConditions() {
 		return Collections.unmodifiableCollection(conditions);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinition#valueTransformer()
-	 */
 	@Override
 	public IndexValueTransformer valueTransformer() {
 		return valueTransformer != null ? valueTransformer : NoOpValueTransformer.INSTANCE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinition#getIndexName()
-	 */
 	@Override
 	public String getIndexName() {
 		return indexName;
@@ -106,20 +90,12 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		this.valueTransformer = valueTransformer;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		int result = ObjectUtils.nullSafeHashCode(indexName);
 		return result + ObjectUtils.nullSafeHashCode(keyspace);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 
@@ -148,10 +124,6 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	public static enum NoOpValueTransformer implements IndexValueTransformer {
 		INSTANCE;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
 		@Override
 		public Object convert(Object source) {
 			return source;
@@ -165,10 +137,6 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	public static enum LowercaseIndexValueTransformer implements IndexValueTransformer {
 		INSTANCE;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
 		@Override
 		public Object convert(Object source) {
 
@@ -192,10 +160,6 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 			this.transformers.addAll(transformers);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
 		@Override
 		public Object convert(Object source) {
 
@@ -221,10 +185,6 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 			this.conditions.addAll(conditions);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.index.IndexDefinition.Condition#matches(java.lang.Object, org.springframework.data.redis.core.index.IndexDefinition.IndexingContext)
-		 */
 		@Override
 		public boolean matches(T value, IndexingContext context) {
 
@@ -249,10 +209,6 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 			this.path = path;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.index.IndexDefinition.Condition#matches(java.lang.Object, org.springframework.data.redis.core.index.IndexDefinition.IndexingContext)
-		 */
 		@Override
 		public boolean matches(Object value, IndexingContext context) {
 

@@ -50,10 +50,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		this.template = template;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#keys(org.springframework.data.redis.connection.RedisNode, byte[])
-	 */
 	@Override
 	public Set<K> keys(final RedisClusterNode node, final K pattern) {
 
@@ -62,10 +58,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		return doInCluster(connection -> deserializeKeys(connection.keys(node, rawKey(pattern))));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#randomKey(org.springframework.data.redis.connection.RedisNode)
-	 */
 	@Override
 	public K randomKey(final RedisClusterNode node) {
 
@@ -74,10 +66,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		return doInCluster(connection -> deserializeKey(connection.randomKey(node)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#ping(org.springframework.data.redis.connection.RedisNode)
-	 */
 	@Override
 	public String ping(final RedisClusterNode node) {
 
@@ -86,10 +74,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		return doInCluster(connection -> connection.ping(node));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#addSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public void addSlots(final RedisClusterNode node, final int... slots) {
 
@@ -101,10 +85,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#addSlots(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public void addSlots(RedisClusterNode node, SlotRange range) {
 
@@ -114,10 +94,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		addSlots(node, range.getSlotsArray());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#bgReWriteAof(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void bgReWriteAof(final RedisClusterNode node) {
 
@@ -129,10 +105,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#bgSave(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void bgSave(final RedisClusterNode node) {
 
@@ -144,10 +116,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#meet(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void meet(final RedisClusterNode node) {
 
@@ -159,10 +127,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#forget(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void forget(final RedisClusterNode node) {
 
@@ -174,10 +138,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#flushDb(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void flushDb(final RedisClusterNode node) {
 
@@ -189,10 +149,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#getSlaves(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Collection<RedisClusterNode> getSlaves(final RedisClusterNode node) {
 
@@ -201,10 +157,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		return doInCluster(connection -> connection.clusterGetSlaves(node));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#save(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void save(final RedisClusterNode node) {
 
@@ -216,10 +168,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisClusterOperations#shutdown(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void shutdown(final RedisClusterNode node) {
 
@@ -231,10 +179,6 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ClusterOperations#reshard(org.springframework.data.redis.connection.RedisClusterNode, int, org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void reshard(final RedisClusterNode source, final int slot, final RedisClusterNode target) {
 

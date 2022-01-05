@@ -43,9 +43,6 @@ class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands imp
 		super(connection);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveListCommands#bPop(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<PopResponse> bPop(Publisher<BPopCommand> commands) {
 
@@ -62,9 +59,6 @@ class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands imp
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveListCommands#rPopLPush(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands) {
 

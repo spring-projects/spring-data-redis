@@ -52,10 +52,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], double, byte[], org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
-	 */
 	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
 
@@ -67,10 +63,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.get(LettuceConverters.longToBoolean());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zAdd(byte[], java.util.Set, org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs)
-	 */
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
 
@@ -81,10 +73,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.toObjects(tuples).toArray());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRem(byte[], byte[][])
-	 */
 	@Override
 	public Long zRem(byte[] key, byte[]... values) {
 
@@ -95,10 +83,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrem, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zIncrBy(byte[], double, byte[])
-	 */
 	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 
@@ -108,10 +92,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zincrby, key, increment, value);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[])
-	 */
 	@Override
 	public byte[] zRandMember(byte[] key) {
 
@@ -120,10 +100,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrandmember, key);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMember(byte[], long)
-	 */
 	@Override
 	public List<byte[]> zRandMember(byte[] key, long count) {
 
@@ -132,10 +108,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrandmember, key, count);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[])
-	 */
 	@Override
 	public Tuple zRandMemberWithScore(byte[] key) {
 
@@ -145,10 +117,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.get(LettuceConverters::toTuple);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRandMemberWithScore(byte[], long)
-	 */
 	@Override
 	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
 
@@ -158,10 +126,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toList(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRank(byte[], byte[])
-	 */
 	@Override
 	public Long zRank(byte[] key, byte[] value) {
 
@@ -171,10 +135,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrank, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRank(byte[], byte[])
-	 */
 	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
 
@@ -183,10 +143,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrank, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRange(byte[], long, long)
-	 */
 	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 
@@ -195,10 +151,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrange, key, start, end).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeWithScores(byte[], long, long)
-	 */
 	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 
@@ -208,10 +160,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 
@@ -231,10 +179,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRange(byte[], long, long)
-	 */
 	@Override
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 
@@ -244,10 +188,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(Converters.identityConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeWithScores(byte[], long, long)
-	 */
 	@Override
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 
@@ -257,10 +197,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
 
@@ -280,10 +216,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 
@@ -303,10 +235,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
 	@Override
 	public Long zCount(byte[] key, Range range) {
 
@@ -316,10 +244,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.<Number> toRange(range));
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.redis.connection.RedisZSetCommands#zLexCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	*/
 	@Override
 	public Long zLexCount(byte[] key, Range range) {
 
@@ -330,10 +254,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.<byte[]> toRange(range, true));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[])
-	 */
 	@Nullable
 	@Override
 	public Tuple zPopMin(byte[] key) {
@@ -343,10 +263,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().from(RedisSortedSetAsyncCommands::zpopmin, key).get(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMin(byte[], long)
-	 */
 	@Nullable
 	@Override
 	public Set<Tuple> zPopMin(byte[] key, long count) {
@@ -357,10 +273,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMin(byte[], long, java.util.concurrent.TimeUnit)
-	 */
 	@Nullable
 	@Override
 	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
@@ -380,10 +292,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[])
-	 */
 	@Nullable
 	@Override
 	public Tuple zPopMax(byte[] key) {
@@ -393,10 +301,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().from(RedisSortedSetAsyncCommands::zpopmax, key).get(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zPopMax(byte[], long)
-	 */
 	@Nullable
 	@Override
 	public Set<Tuple> zPopMax(byte[] key, long count) {
@@ -407,10 +311,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#bZPopMax(byte[], long, java.util.concurrent.TimeUnit)
-	 */
 	@Nullable
 	@Override
 	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
@@ -430,10 +330,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCard(byte[])
-	 */
 	@Override
 	public Long zCard(byte[] key) {
 
@@ -442,10 +338,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zcard, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScore(byte[], byte[])
-	 */
 	@Override
 	public Double zScore(byte[] key, byte[] value) {
 
@@ -455,10 +347,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zscore, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zMScore(byte[], byte[][])
-	 */
 	@Override
 	public List<Double> zMScore(byte[] key, byte[][] values) {
 
@@ -468,10 +356,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zmscore, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRange(byte[], long, long)
-	 */
 	@Override
 	public Long zRemRange(byte[] key, long start, long end) {
 
@@ -480,10 +364,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zremrangebyrank, key, start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
 	@Override
 	public Long zRemRangeByLex(byte[] key, Range range) {
 
@@ -494,10 +374,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.<byte[]> toRange(range, true));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRemRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
 	@Override
 	public Long zRemRangeByScore(byte[] key, Range range) {
 
@@ -508,10 +384,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.<Number> toRange(range));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiff(byte[][])
-	 */
 	@Override
 	public Set<byte[]> zDiff(byte[]... sets) {
 
@@ -520,10 +392,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zdiff, sets).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffWithScores(byte[][])
-	 */
 	@Override
 	public Set<Tuple> zDiffWithScores(byte[]... sets) {
 
@@ -533,10 +401,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zDiffStore(byte[], byte[][])
-	 */
 	@Override
 	public Long zDiffStore(byte[] destKey, byte[]... sets) {
 
@@ -546,10 +410,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zdiffstore, destKey, sets);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInter(byte[][])
-	 */
 	@Override
 	public Set<byte[]> zInter(byte[]... sets) {
 
@@ -558,10 +418,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zinter, sets).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(byte[][])
-	 */
 	@Override
 	public Set<Tuple> zInterWithScores(byte[]... sets) {
 
@@ -571,10 +427,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
-	 */
 	@Override
 	public Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
 
@@ -589,10 +441,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
-	 */
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 
@@ -607,10 +455,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zinterstore, destKey, storeArgs, sets);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zInterStore(byte[], byte[][])
-	 */
 	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 
@@ -621,10 +465,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zinterstore, destKey, sets);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnion(byte[][])
-	 */
 	@Override
 	public Set<byte[]> zUnion(byte[]... sets) {
 
@@ -633,10 +473,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zunion, sets).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(byte[][])
-	 */
 	@Override
 	public Set<Tuple> zUnionWithScores(byte[]... sets) {
 
@@ -646,10 +482,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionWithScores(org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
-	 */
 	@Override
 	public Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
 
@@ -664,10 +496,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet(LettuceConverters::toTuple);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights, byte[][])
-	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 
@@ -682,10 +510,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, storeArgs, sets);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zUnionStore(byte[], byte[][])
-	 */
 	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 
@@ -696,10 +520,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zunionstore, destKey, sets);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
 		return zScan(key, 0L, options);
@@ -746,10 +566,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		}.open();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], java.lang.String, java.lang.String)
-	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
 
@@ -758,10 +574,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key, min, max).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], java.lang.String, java.lang.String, long, long)
-	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
 
@@ -771,10 +583,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				.toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
 
@@ -791,10 +599,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
 
@@ -812,10 +616,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				LettuceConverters.<byte[]> toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
 

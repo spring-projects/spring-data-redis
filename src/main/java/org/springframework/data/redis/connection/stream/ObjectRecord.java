@@ -45,17 +45,9 @@ public interface ObjectRecord<S, V> extends Record<S, V> {
 		return new ObjectBackedRecord<>(stream, RecordId.autoGenerate(), value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands.Record#withId(org.springframework.data.redis.connection.RedisStreamCommands.RecordId)
-	 */
 	@Override
 	ObjectRecord<S, V> withId(RecordId id);
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands.Record#withStreamKey(java.lang.Object)
-	 */
 	<SK> ObjectRecord<SK, V> withStreamKey(SK key);
 
 	/**

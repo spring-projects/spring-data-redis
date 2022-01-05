@@ -60,10 +60,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#copy(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<CopyCommand>> copy(Publisher<CopyCommand> commands) {
 
@@ -81,10 +77,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#exists(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<KeyCommand>> exists(Publisher<KeyCommand> commands) {
 
@@ -97,10 +89,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#type(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, DataType>> type(Publisher<KeyCommand> commands) {
 
@@ -113,10 +101,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#touch(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<Collection<ByteBuffer>, Long>> touch(Publisher<Collection<ByteBuffer>> keysCollection) {
 
@@ -128,10 +112,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#keys(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns) {
 
@@ -143,10 +123,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Flux<ByteBuffer> scan(ScanOptions options) {
 
@@ -155,19 +131,11 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		return connection.execute(cmd -> ScanStream.scan(cmd, LettuceConverters.toScanArgs(options)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#randomKey()
-	 */
 	@Override
 	public Mono<ByteBuffer> randomKey() {
 		return connection.execute(RedisKeyReactiveCommands::randomkey).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#rename(org.reactivestreams.Publisher, java.util.function.Supplier)
-	 */
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> commands) {
 
@@ -181,10 +149,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#rename(org.reactivestreams.Publisher, java.util.function.Supplier)
-	 */
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> commands) {
 
@@ -197,10 +161,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#del(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> commands) {
 
@@ -212,10 +172,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#mDel(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keysCollection) {
 
@@ -227,10 +183,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#unlink(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> unlink(Publisher<KeyCommand> commands) {
 
@@ -242,10 +194,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#mUnlink(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<List<ByteBuffer>, Long>> mUnlink(Publisher<List<ByteBuffer>> keysCollection) {
 
@@ -257,9 +205,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#expire(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands) {
 
@@ -273,9 +218,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#pExpire(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands) {
 
@@ -289,9 +231,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#expireAt(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<ExpireAtCommand>> expireAt(Publisher<ExpireAtCommand> commands) {
 
@@ -305,9 +244,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#pExpireAt(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<ExpireAtCommand>> pExpireAt(Publisher<ExpireAtCommand> commands) {
 
@@ -321,9 +257,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#persist(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<KeyCommand>> persist(Publisher<KeyCommand> commands) {
 
@@ -335,9 +268,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#ttl(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> ttl(Publisher<KeyCommand> commands) {
 
@@ -349,9 +279,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#pTtl(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> pTtl(Publisher<KeyCommand> commands) {
 
@@ -363,10 +290,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#move(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands) {
 
@@ -379,10 +302,6 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#encodingOf(java.nio.ByteBuffer)
-	 */
 	@Override
 	public Mono<ValueEncoding> encodingOf(ByteBuffer key) {
 
@@ -391,19 +310,11 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 				.next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#idletime(java.nio.ByteBuffer)
-	 */
 	@Override
 	public Mono<Duration> idletime(ByteBuffer key) {
 		return connection.execute(cmd -> cmd.objectIdletime(key).map(Duration::ofSeconds)).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveKeyCommands#refcount(java.nio.ByteBuffer)
-	 */
 	@Override
 	public Mono<Long> refcount(ByteBuffer key) {
 		return connection.execute(cmd -> cmd.objectRefcount(key)).next();

@@ -40,10 +40,6 @@ public class ListConverter<S, T> implements Converter<List<S>, List<T>> {
 		this.itemConverter = itemConverter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public List<T> convert(List<S> source) {
 

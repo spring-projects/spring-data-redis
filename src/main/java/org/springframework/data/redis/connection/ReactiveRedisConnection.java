@@ -51,10 +51,6 @@ import org.springframework.util.ObjectUtils;
  */
 public interface ReactiveRedisConnection extends Closeable {
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.io.Closeable#close()
-	 */
 	@Override
 	default void close() {
 		closeLater().block();
@@ -208,10 +204,6 @@ public interface ReactiveRedisConnection extends Closeable {
 			this.key = key;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		public ByteBuffer getKey() {
 			return key;
@@ -431,9 +423,6 @@ public interface ReactiveRedisConnection extends Closeable {
 			super(input, EMPTY_BYTE_BUFFER);
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse#isPresent()
-		 */
 		@Override
 		public boolean isPresent() {
 			return false;

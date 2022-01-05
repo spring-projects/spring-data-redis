@@ -329,10 +329,6 @@ public class LettuceConnectionFactory
 		return LettuceConverters.createRedisStandaloneConfiguration(redisUri);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	public void afterPropertiesSet() {
 
 		this.client = createClient();
@@ -356,10 +352,6 @@ public class LettuceConnectionFactory
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	public void destroy() {
 
 		resetConnection();
@@ -405,10 +397,6 @@ public class LettuceConnectionFactory
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getConnection()
-	 */
 	public RedisConnection getConnection() {
 
 		assertInitialized();
@@ -423,10 +411,6 @@ public class LettuceConnectionFactory
 		return connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getClusterConnection()
-	 */
 	@Override
 	public RedisClusterConnection getClusterConnection() {
 
@@ -492,10 +476,6 @@ public class LettuceConnectionFactory
 		return connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnectionFactory#getReactiveConnection()
-	 */
 	@Override
 	public LettuceReactiveRedisConnection getReactiveConnection() {
 
@@ -510,10 +490,6 @@ public class LettuceConnectionFactory
 				: new LettuceReactiveRedisConnection(reactiveConnectionProvider);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnectionFactory#getReactiveClusterConnection()
-	 */
 	@Override
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
 
@@ -1449,10 +1425,6 @@ public class LettuceConnectionFactory
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		private Duration shutdownTimeout = Duration.ofMillis(100);
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUseSsl()
-		 */
 		@Override
 		public boolean isUseSsl() {
 			return useSsl;
@@ -1462,10 +1434,6 @@ public class LettuceConnectionFactory
 			this.useSsl = useSsl;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
-		 */
 		@Override
 		public boolean isVerifyPeer() {
 			return verifyPeer;
@@ -1475,10 +1443,6 @@ public class LettuceConnectionFactory
 			this.verifyPeer = verifyPeer;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isStartTls()
-		 */
 		@Override
 		public boolean isStartTls() {
 			return startTls;
@@ -1488,10 +1452,6 @@ public class LettuceConnectionFactory
 			this.startTls = startTls;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientResources()
-		 */
 		@Override
 		public Optional<ClientResources> getClientResources() {
 			return Optional.ofNullable(clientResources);
@@ -1501,28 +1461,16 @@ public class LettuceConnectionFactory
 			this.clientResources = clientResources;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
-		 */
 		@Override
 		public Optional<ClientOptions> getClientOptions() {
 			return Optional.empty();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getReadFrom()
-		 */
 		@Override
 		public Optional<ReadFrom> getReadFrom() {
 			return Optional.empty();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
-		 */
 		@Override
 		public Optional<String> getClientName() {
 			return Optional.ofNullable(clientName);
@@ -1536,10 +1484,6 @@ public class LettuceConnectionFactory
 			this.clientName = clientName;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
-		 */
 		@Override
 		public Duration getCommandTimeout() {
 			return timeout;
@@ -1549,10 +1493,6 @@ public class LettuceConnectionFactory
 			this.timeout = timeout;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownTimeout()
-		 */
 		@Override
 		public Duration getShutdownTimeout() {
 			return shutdownTimeout;
@@ -1562,10 +1502,6 @@ public class LettuceConnectionFactory
 			this.shutdownTimeout = shutdownTimeout;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownQuietPeriod()
-		 */
 		@Override
 		public Duration getShutdownQuietPeriod() {
 			return shutdownTimeout;
@@ -1584,10 +1520,6 @@ public class LettuceConnectionFactory
 			this.delegate = delegate;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
@@ -1598,10 +1530,6 @@ public class LettuceConnectionFactory
 			}
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class, RedisURI)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType, RedisURI redisURI) {
 
@@ -1612,10 +1540,6 @@ public class LettuceConnectionFactory
 			}
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
 
@@ -1633,10 +1557,6 @@ public class LettuceConnectionFactory
 			return future;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class, RedisURI)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType,
 				RedisURI redisURI) {
@@ -1655,28 +1575,16 @@ public class LettuceConnectionFactory
 			return future;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
-		 */
 		@Override
 		public void release(StatefulConnection<?, ?> connection) {
 			delegate.release(connection);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#releaseAsync(io.lettuce.core.api.StatefulConnection)
-		 */
 		@Override
 		public CompletableFuture<Void> releaseAsync(StatefulConnection<?, ?> connection) {
 			return delegate.releaseAsync(connection);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.beans.factory.DisposableBean#destroy()
-		 */
 		@Override
 		public void destroy() throws Exception {
 

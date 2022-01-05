@@ -73,133 +73,77 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		this.boundSetOps = boundOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#diff(org.springframework.data.redis.support.collections.RedisSet)
-	 */
 	@Override
 	public Set<E> diff(RedisSet<?> set) {
 		return boundSetOps.diff(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#diff(java.util.Collection)
-	 */
 	@Override
 	public Set<E> diff(Collection<? extends RedisSet<?>> sets) {
 		return boundSetOps.diff(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#diffAndStore(org.springframework.data.redis.support.collections.RedisSet, java.lang.String)
-	 */
 	@Override
 	public RedisSet<E> diffAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.diffAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#diffAndStore(java.util.Collection, java.lang.String)
-	 */
 	@Override
 	public RedisSet<E> diffAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.diffAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#intersect(org.springframework.data.redis.support.collections.RedisSet)
-	 */
 	@Override
 	public Set<E> intersect(RedisSet<?> set) {
 		return boundSetOps.intersect(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#intersect(java.util.Collection)
-	 */
 	@Override
 	public Set<E> intersect(Collection<? extends RedisSet<?>> sets) {
 		return boundSetOps.intersect(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#intersectAndStore(org.springframework.data.redis.support.collections.RedisSet, java.lang.String)
-	 */
 	@Override
 	public RedisSet<E> intersectAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.intersectAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#intersectAndStore(java.util.Collection, java.lang.String)
-	 */
 	@Override
 	public RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#union(org.springframework.data.redis.support.collections.RedisSet)
-	 */
 	@Override
 	public Set<E> union(RedisSet<?> set) {
 		return boundSetOps.union(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#union(java.util.Collection)
-	 */
 	@Override
 	public Set<E> union(Collection<? extends RedisSet<?>> sets) {
 		return boundSetOps.union(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#unionAndStore(org.springframework.data.redis.support.collections.RedisSet, java.lang.String)
-	 */
 	@Override
 	public RedisSet<E> unionAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.unionAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#unionAndStore(java.util.Collection, java.lang.String)
-	 */
 	@Override
 	public RedisSet<E> unionAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#randomElement()
-	 */
 	@Override
 	public E randomValue() {
 		return boundSetOps.randomMember();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#add(java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean add(E e) {
@@ -208,19 +152,11 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return result == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#clear()
-	 */
 	@Override
 	public void clear() {
 		boundSetOps.getOperations().delete(getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#contains(java.lang.Object)
-	 */
 	@Override
 	public boolean contains(Object o) {
 		Boolean result = boundSetOps.isMember(o);
@@ -228,10 +164,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#containsAll(java.util.Collection)
-	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
 
@@ -245,10 +177,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return member.values().stream().reduce(true, (left, right) -> left && right);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#iterator()
-	 */
 	@Override
 	public Iterator<E> iterator() {
 		Set<E> members = boundSetOps.members();
@@ -256,10 +184,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return new DefaultRedisSetIterator(members.iterator());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#remove(java.lang.Object)
-	 */
 	@Override
 	public boolean remove(Object o) {
 		Long result = boundSetOps.remove(o);
@@ -267,10 +191,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return result == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#size()
-	 */
 	@Override
 	public int size() {
 		Long result = boundSetOps.size();
@@ -278,19 +198,11 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return result.intValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
-	 */
 	@Override
 	public DataType getType() {
 		return DataType.SET;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisSet#scan()
-	 */
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.support.collections.RedisSet#scan()

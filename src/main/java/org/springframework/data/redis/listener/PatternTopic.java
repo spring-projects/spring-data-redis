@@ -60,10 +60,6 @@ public class PatternTopic implements Topic {
 		return channelPattern;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return channelPattern;

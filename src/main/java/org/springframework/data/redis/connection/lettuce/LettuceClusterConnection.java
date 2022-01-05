@@ -199,37 +199,21 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				connectionProvider.getClass().getName()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#geoCommands()
-	 */
 	@Override
 	public RedisGeoCommands geoCommands() {
 		return new LettuceClusterGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#hashCommands()
-	 */
 	@Override
 	public RedisHashCommands hashCommands() {
 		return new LettuceClusterHashCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#hyperLogLogCommands()
-	 */
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceClusterHyperLogLogCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#keyCommands()
-	 */
 	@Override
 	public RedisKeyCommands keyCommands() {
 		return doGetClusterKeyCommands();
@@ -239,55 +223,31 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return new LettuceClusterKeyCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#listCommands()
-	 */
 	@Override
 	public RedisListCommands listCommands() {
 		return new LettuceClusterListCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#stringCommands()
-	 */
 	@Override
 	public RedisStringCommands stringCommands() {
 		return new LettuceClusterStringCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#setCommands()
-	 */
 	@Override
 	public RedisSetCommands setCommands() {
 		return new LettuceClusterSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#zSetCommands()
-	 */
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return new LettuceClusterZSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#serverCommands()
-	 */
 	@Override
 	public RedisClusterServerCommands serverCommands() {
 		return new LettuceClusterServerCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#ping()
-	 */
 	@Override
 	public String ping() {
 		Collection<String> ping = clusterCommandExecutor
@@ -302,10 +262,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return "PONG";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#ping(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public String ping(RedisClusterNode node) {
 
@@ -313,19 +269,11 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<String>) BaseRedisCommands::ping, node).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterNodes()
-	 */
 	@Override
 	public List<RedisClusterNode> clusterGetNodes() {
 		return new ArrayList<>(topologyProvider.getTopology().getNodes());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterSlaves(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Set<RedisClusterNode> clusterGetSlaves(RedisClusterNode master) {
 
@@ -339,10 +287,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetMasterSlaveMap()
-	 */
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
 
@@ -360,19 +304,11 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterSlotForKey(byte[])
-	 */
 	@Override
 	public Integer clusterGetSlotForKey(byte[] key) {
 		return SlotHash.getSlot(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterNodeForSlot(int)
-	 */
 	@Override
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
@@ -383,19 +319,11 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return nodes.iterator().next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterNodeForKey(byte[])
-	 */
 	@Override
 	public RedisClusterNode clusterGetNodeForKey(byte[] key) {
 		return clusterGetNodeForSlot(clusterGetSlotForKey(key));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterInfo()
-	 */
 	@Override
 	public ClusterInfo clusterGetClusterInfo() {
 
@@ -405,10 +333,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#addSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public void clusterAddSlots(RedisClusterNode node, int... slots) {
 
@@ -416,10 +340,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				(LettuceClusterCommandCallback<String>) client -> client.clusterAddSlots(slots), node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterAddSlots(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public void clusterAddSlots(RedisClusterNode node, SlotRange range) {
 
@@ -428,10 +348,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		clusterAddSlots(node, range.getSlotsArray());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#countKeys(int)
-	 */
 	@Override
 	public Long clusterCountKeysInSlot(int slot) {
 
@@ -442,20 +358,12 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#deleteSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public void clusterDeleteSlots(RedisClusterNode node, int... slots) {
 		clusterCommandExecutor.executeCommandOnSingleNode(
 				(LettuceClusterCommandCallback<String>) client -> client.clusterDelSlots(slots), node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterDeleteSlotsInRange(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public void clusterDeleteSlotsInRange(RedisClusterNode node, SlotRange range) {
 
@@ -464,10 +372,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		clusterDeleteSlots(node, range.getSlotsArray());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterForget(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void clusterForget(RedisClusterNode node) {
 
@@ -479,10 +383,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				(LettuceClusterCommandCallback<String>) client -> client.clusterForget(nodeToRemove.getId()), nodes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterMeet(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void clusterMeet(RedisClusterNode node) {
 
@@ -494,10 +394,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				(LettuceClusterCommandCallback<String>) client -> client.clusterMeet(node.getHost(), node.getPort()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterSetSlot(org.springframework.data.redis.connection.RedisClusterNode, int, org.springframework.data.redis.connection.RedisClusterCommands.AddSlots)
-	 */
 	@Override
 	public void clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
 
@@ -523,10 +419,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		}, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getKeysInSlot(int, java.lang.Integer)
-	 */
 	@Override
 	public List<byte[]> clusterGetKeysInSlot(int slot, Integer count) {
 
@@ -537,10 +429,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterReplicate(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void clusterReplicate(RedisClusterNode master, RedisClusterNode replica) {
 
@@ -549,36 +437,20 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 				(LettuceClusterCommandCallback<String>) client -> client.clusterReplicate(masterNode.getId()), replica);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#keys(org.springframework.data.redis.connection.RedisClusterNode, byte[])
-	 */
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 		return doGetClusterKeyCommands().keys(node, pattern);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#scan(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
 		return doGetClusterKeyCommands().scan(node, options);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	public byte[] randomKey(RedisClusterNode node) {
 		return doGetClusterKeyCommands().randomKey(node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
-	 */
 	@Override
 	public void select(int dbIndex) {
 
@@ -589,28 +461,16 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 	// --> cluster node stuff
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#watch(byte[][])
-	 */
 	@Override
 	public void watch(byte[]... keys) {
 		throw new InvalidDataAccessApiUsageException("WATCH is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#unwatch()
-	 */
 	@Override
 	public void unwatch() {
 		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#multi()
-	 */
 	@Override
 	public void multi() {
 		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode.");
@@ -621,10 +481,6 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		return clusterCommandExecutor;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#close()
-	 */
 	@Override
 	public void close() throws DataAccessException {
 

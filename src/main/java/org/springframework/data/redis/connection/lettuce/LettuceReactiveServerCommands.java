@@ -52,73 +52,41 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#bgReWriteAof()
-	 */
 	@Override
 	public Mono<String> bgReWriteAof() {
 		return connection.execute(RedisServerReactiveCommands::bgrewriteaof).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#bgSave()
-	 */
 	@Override
 	public Mono<String> bgSave() {
 		return connection.execute(RedisServerReactiveCommands::bgsave).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#lastSave()
-	 */
 	@Override
 	public Mono<Long> lastSave() {
 		return connection.execute(RedisServerReactiveCommands::lastsave).next().map(Date::getTime);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#save()
-	 */
 	@Override
 	public Mono<String> save() {
 		return connection.execute(RedisServerReactiveCommands::save).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#dbSize()
-	 */
 	@Override
 	public Mono<Long> dbSize() {
 		return connection.execute(RedisServerReactiveCommands::dbsize).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#flushDb()
-	 */
 	@Override
 	public Mono<String> flushDb() {
 		return connection.execute(RedisServerReactiveCommands::flushdb).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#flushAll()
-	 */
 	@Override
 	public Mono<String> flushAll() {
 		return connection.execute(RedisServerReactiveCommands::flushall).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#info()
-	 */
 	@Override
 	public Mono<Properties> info() {
 
@@ -127,10 +95,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#info(java.lang.String)
-	 */
 	@Override
 	public Mono<Properties> info(String section) {
 
@@ -141,10 +105,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#getConfig(java.lang.String)
-	 */
 	@Override
 	public Mono<Properties> getConfig(String pattern) {
 
@@ -154,10 +114,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.map(LettuceConverters::toProperties).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#setConfig(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public Mono<String> setConfig(String param, String value) {
 
@@ -167,19 +123,11 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(c -> c.configSet(param, value)).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#resetConfigStats()
-	 */
 	@Override
 	public Mono<String> resetConfigStats() {
 		return connection.execute(RedisServerReactiveCommands::configResetstat).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#time(TimeUnit)
-	 */
 	@Override
 	public Mono<Long> time(TimeUnit timeUnit) {
 
@@ -189,10 +137,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.map(LettuceConverters.toTimeConverter(timeUnit)::convert);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#killClient(java.lang.String, int)
-	 */
 	@Override
 	public Mono<String> killClient(String host, int port) {
 
@@ -201,10 +145,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(c -> c.clientKill(String.format("%s:%s", host, port))).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#setClientName(java.lang.String)
-	 */
 	@Override
 	public Mono<String> setClientName(String name) {
 
@@ -213,10 +153,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 		return connection.execute(c -> c.clientSetname(ByteBuffer.wrap(LettuceConverters.toBytes(name)))).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#getClientName()
-	 */
 	@Override
 	public Mono<String> getClientName() {
 
@@ -226,10 +162,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 				.next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveServerCommands#getClientList()
-	 */
 	@Override
 	public Flux<RedisClientInfo> getClientList() {
 

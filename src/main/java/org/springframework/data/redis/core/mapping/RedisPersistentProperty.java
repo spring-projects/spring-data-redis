@@ -50,10 +50,6 @@ public class RedisPersistentProperty extends KeyValuePersistentProperty<RedisPer
 		super(property, owner, simpleTypeHolder);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isIdProperty()
-	 */
 	@Override
 	public boolean isIdProperty() {
 

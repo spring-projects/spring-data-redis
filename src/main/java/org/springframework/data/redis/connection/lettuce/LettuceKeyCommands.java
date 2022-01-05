@@ -53,10 +53,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#copy(byte[], byte[])
-	 */
 	@Override
 	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
 
@@ -67,10 +63,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				CopyArgs.Builder.replace(replace));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[])
-	 */
 	@Override
 	public Boolean exists(byte[] key) {
 
@@ -79,10 +71,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().from(RedisKeyAsyncCommands::exists, key).get(LettuceConverters.longToBooleanConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long exists(byte[]... keys) {
@@ -93,10 +81,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::exists, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
-	 */
 	@Override
 	public Long del(byte[]... keys) {
 
@@ -107,10 +91,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#unlink(byte[][])
-	 */
 	@Override
 	public Long unlink(byte[]... keys) {
 
@@ -119,10 +99,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::unlink, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#type(byte[])
-	 */
 	@Override
 	public DataType type(byte[] key) {
 
@@ -131,10 +107,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().from(RedisKeyAsyncCommands::type, key).get(LettuceConverters.stringToDataType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#touch(byte[][])
-	 */
 	@Override
 	public Long touch(byte[]... keys) {
 
@@ -143,10 +115,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::touch, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#keys(byte[])
-	 */
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
@@ -163,10 +131,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return scan(ScanOptions.NONE);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
 		return doScan(options != null ? options : ScanOptions.NONE);
@@ -203,19 +167,11 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		}.open();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#randomKey()
-	 */
 	@Override
 	public byte[] randomKey() {
 		return connection.invoke().just(RedisKeyAsyncCommands::randomkey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
-	 */
 	@Override
 	public void rename(byte[] oldKey, byte[] newKey) {
 
@@ -225,10 +181,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		connection.invokeStatus().just(RedisKeyAsyncCommands::rename, oldKey, newKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#renameNX(byte[], byte[])
-	 */
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
@@ -238,10 +190,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::renamenx, sourceKey, targetKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expire(byte[], long)
-	 */
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
 
@@ -250,10 +198,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::expire, key, seconds);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpire(byte[], long)
-	 */
 	@Override
 	public Boolean pExpire(byte[] key, long millis) {
 
@@ -262,10 +206,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::pexpire, key, millis);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expireAt(byte[], long)
-	 */
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 
@@ -274,10 +214,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::expireat, key, unixTime);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpireAt(byte[], long)
-	 */
 	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 
@@ -286,10 +222,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::pexpireat, key, unixTimeInMillis);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#persist(byte[])
-	 */
 	@Override
 	public Boolean persist(byte[] key) {
 
@@ -298,10 +230,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::persist, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#move(byte[], int)
-	 */
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 
@@ -310,10 +238,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::move, key, dbIndex);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
-	 */
 	@Override
 	public Long ttl(byte[] key) {
 
@@ -322,10 +246,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::ttl, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
 
@@ -334,10 +254,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().from(RedisKeyAsyncCommands::ttl, key).get(Converters.secondsToTimeUnit(timeUnit));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
-	 */
 	@Override
 	public Long pTtl(byte[] key) {
 
@@ -346,10 +262,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::pttl, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
 
@@ -358,10 +270,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().from(RedisKeyAsyncCommands::pttl, key).get(Converters.millisecondsToTimeUnit(timeUnit));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters)
-	 */
 	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
@@ -372,10 +280,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::sort, key, args);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters, byte[])
-	 */
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 
@@ -386,10 +290,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::sortStore, key, args, sortKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#dump(byte[])
-	 */
 	@Override
 	public byte[] dump(byte[] key) {
 
@@ -398,10 +298,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::dump, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
-	 */
 	@Override
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
@@ -413,10 +309,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		connection.invokeStatus().just(RedisKeyAsyncCommands::restore, key, serializedValue, restoreArgs);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
-	 */
 	@Nullable
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
@@ -427,10 +319,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 				RedisValueEncoding.VACANT);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
-	 */
 	@Nullable
 	@Override
 	public Duration idletime(byte[] key) {
@@ -440,10 +328,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().from(RedisKeyAsyncCommands::objectIdletime, key).get(Converters::secondsToDuration);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
-	 */
 	@Nullable
 	@Override
 	public Long refcount(byte[] key) {

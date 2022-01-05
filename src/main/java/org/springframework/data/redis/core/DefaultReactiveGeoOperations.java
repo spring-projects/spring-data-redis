@@ -61,10 +61,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		this.serializationContext = serializationContext;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#add(java.lang.Object, org.springframework.data.geo.Point, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> add(K key, Point point, V member) {
 
@@ -75,10 +71,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(connection -> connection.geoAdd(rawKey(key), point, rawValue(member)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#add(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
-	 */
 	@Override
 	public Mono<Long> add(K key, GeoLocation<V> location) {
 
@@ -89,10 +81,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				new GeoLocation<>(rawValue(location.getName()), location.getPoint())));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#add(java.lang.Object, java.util.Map)
-	 */
 	@Override
 	public Mono<Long> add(K key, Map<V, Point> memberCoordinateMap) {
 
@@ -109,10 +97,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#add(java.lang.Object, java.lang.Iterable)
-	 */
 	@Override
 	public Mono<Long> add(K key, Iterable<GeoLocation<V>> geoLocations) {
 
@@ -128,10 +112,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#add(java.lang.Object, org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<Long> add(K key, Publisher<? extends Collection<GeoLocation<V>>> locations) {
 
@@ -145,10 +125,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.flatMap(list -> connection.geoAdd(rawKey(key), list)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#distance(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Distance> distance(K key, V member1, V member2) {
 
@@ -159,10 +135,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(connection -> connection.geoDist(rawKey(key), rawValue(member1), rawValue(member2)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#distance(java.lang.Object, java.lang.Object, java.lang.Object, org.springframework.data.geo.Metric)
-	 */
 	@Override
 	public Mono<Distance> distance(K key, V member1, V member2, Metric metric) {
 
@@ -174,10 +146,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(connection -> connection.geoDist(rawKey(key), rawValue(member1), rawValue(member2), metric));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#hash(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<String> hash(K key, V member) {
 
@@ -187,10 +155,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(connection -> connection.geoHash(rawKey(key), rawValue(member)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#hash(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<List<String>> hash(K key, V... members) {
@@ -205,10 +169,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.flatMap(serialized -> connection.geoHash(rawKey(key), serialized)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#position(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Point> position(K key, V member) {
 
@@ -218,10 +178,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(connection -> connection.geoPos(rawKey(key), rawValue(member)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#position(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<List<Point>> position(K key, V... members) {
@@ -236,10 +192,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.flatMap(serialized -> connection.geoPos(rawKey(key), serialized)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#radius(java.lang.Object, org.springframework.data.geo.Circle)
-	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, Circle within) {
 
@@ -249,10 +201,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createFlux(connection -> connection.geoRadius(rawKey(key), within).map(this::readGeoResult));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#radius(java.lang.Object, org.springframework.data.geo.Circle, org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs)
-	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, Circle within, GeoRadiusCommandArgs args) {
 
@@ -264,10 +212,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.map(this::readGeoResult));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#radius(java.lang.Object, java.lang.Object, double)
-	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, V member, double radius) {
 
@@ -278,10 +222,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.map(this::readGeoResult));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#radius(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance)
-	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, V member, Distance distance) {
 
@@ -293,10 +233,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.map(this::readGeoResult));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#radius(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs)
-	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, V member, Distance distance, GeoRadiusCommandArgs args) {
 
@@ -309,10 +245,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.map(this::readGeoResult);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#remove(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<Long> remove(K key, V... members) {
@@ -327,10 +259,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.flatMap(serialized -> connection.zSetCommands().zRem(rawKey(key), serialized)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#delete(java.lang.Object)
-	 */
 	@Override
 	public Mono<Boolean> delete(K key) {
 
@@ -339,10 +267,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#search(K, RedisGeoCommands.GeoReference, GeoShape, GeoSearchCommandArgs)
-	 */
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> search(K key, GeoReference<V> reference,
 			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
@@ -355,10 +279,6 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 				.geoSearch(rawKey(key), rawReference, geoPredicate, args).map(this::readGeoResult));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#searchAndStore(K, K, RedisGeoCommands.GeoReference, GeoShape, GeoSearchStoreCommandArgs)
-	 */
 	@Override
 	public Mono<Long> searchAndStore(K key, K destKey, GeoReference<V> reference,
 			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {

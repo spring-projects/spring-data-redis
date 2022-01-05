@@ -119,10 +119,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		};
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#acknowledge(java.lang.Object, java.lang.String, java.lang.String[])
-	 */
 	@Override
 	public Mono<Long> acknowledge(K key, String group, RecordId... recordIds) {
 
@@ -134,10 +130,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xAck(rawKey(key), group, recordIds));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#add(java.lang.Object, java.util.Map)
-	 */
 	@Override
 	public Mono<RecordId> add(Record<K, ?> record) {
 
@@ -149,10 +141,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xAdd(serializeRecord(input)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#delete(java.lang.Object, java.lang.String[])
-	 */
 	@Override
 	public Mono<Long> delete(K key, RecordId... recordIds) {
 
@@ -190,10 +178,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xGroupDestroy(rawKey(key), group));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#consumers(java.lang.Object)
-	 */
 	@Override
 	public Flux<XInfoConsumer> consumers(K key, String group) {
 
@@ -203,10 +187,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createFlux(connection -> connection.xInfoConsumers(rawKey(key), group));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#info(java.lang.Object)
-	 */
 	@Override
 	public Mono<XInfoStream> info(K key) {
 
@@ -215,10 +195,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xInfo(rawKey(key)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#groups(java.lang.Object)
-	 */
 	@Override
 	public Flux<XInfoGroup> groups(K key) {
 
@@ -227,10 +203,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createFlux(connection -> connection.xInfoGroups(rawKey(key)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
-	 */
 	@Override
 	public Mono<PendingMessages> pending(K key, String group, Range<?> range, long count) {
 
@@ -238,10 +210,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xPending(rawKey, group, range, count));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, org.springframework.data.redis.connection.stream.Consumer, org.springframework.data.domain.Range, java.lang.Long)
-	 */
 	@Override
 	public Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, long count) {
 
@@ -249,10 +217,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xPending(rawKey, consumer, range, count));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public Mono<PendingMessagesSummary> pending(K key, String group) {
 
@@ -260,10 +224,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xPending(rawKey, group));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> size(K key) {
 
@@ -272,10 +232,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createMono(connection -> connection.xLen(rawKey(key)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#range(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Flux<MapRecord<K, HK, HV>> range(K key, Range<String> range, Limit limit) {
 
@@ -286,10 +242,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createFlux(connection -> connection.xRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public Flux<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
@@ -304,10 +256,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
@@ -323,10 +271,6 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#reverseRange(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Flux<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range, Limit limit) {
 
@@ -337,19 +281,11 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return createFlux(connection -> connection.xRevRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#trim(java.lang.Object, long)
-	 */
 	@Override
 	public Mono<Long> trim(K key, long count) {
 		return trim(key, count, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#trim(java.lang.Object, long, boolean)
-	 */
 	@Override
 	public Mono<Long> trim(K key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null!");

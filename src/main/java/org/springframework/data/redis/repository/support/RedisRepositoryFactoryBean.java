@@ -46,10 +46,6 @@ public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		super(repositoryInterface);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean#createRepositoryFactory(org.springframework.data.keyvalue.core.KeyValueOperations, java.lang.Class, java.lang.Class)
-	 */
 	@Override
 	protected RedisRepositoryFactory createRepositoryFactory(KeyValueOperations operations,
 			Class<? extends AbstractQueryCreator<?, ?>> queryCreator, Class<? extends RepositoryQuery> repositoryQueryType) {

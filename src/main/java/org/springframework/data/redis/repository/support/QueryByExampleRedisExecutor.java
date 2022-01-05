@@ -114,10 +114,6 @@ public class QueryByExampleRedisExecutor<T>
 		this.projectionFactory.setBeanClassLoader(classLoader);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findOne(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
@@ -149,10 +145,6 @@ public class QueryByExampleRedisExecutor<T>
 		return (Iterator<S>) keyValueTemplate.find(query.limit(2), entityInformation.getJavaType()).iterator();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> Iterable<S> findAll(Example<S> example) {
 
@@ -161,19 +153,11 @@ public class QueryByExampleRedisExecutor<T>
 		return (Iterable<S>) keyValueTemplate.find(new KeyValueQuery<>(operationChain), entityInformation.getJavaType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public <S extends T> Iterable<S> findAll(Example<S> example, Sort sort) {
 		throw new UnsupportedOperationException("Ordering is not supported");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Pageable)
-	 */
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
@@ -191,10 +175,6 @@ public class QueryByExampleRedisExecutor<T>
 						: keyValueTemplate.count(query, entityInformation.getJavaType()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#count(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> long count(Example<S> example) {
 
@@ -203,19 +183,11 @@ public class QueryByExampleRedisExecutor<T>
 		return keyValueTemplate.count(new KeyValueQuery<>(operationChain), entityInformation.getJavaType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#exists(org.springframework.data.domain.Example)
-	 */
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
 		return count(example) > 0;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findBy(org.springframework.data.domain.Example, java.util.function.Function)
-	 */
 	@Override
 	public <S extends T, R> R findBy(Example<S> example,
 			Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
@@ -262,28 +234,16 @@ public class QueryByExampleRedisExecutor<T>
 			return new FluentQueryByExample<>(example, sort, domainType, resultType);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#as(java.lang.Class)
-		 */
 		@Override
 		public <R1> FetchableFluentQuery<R1> as(Class<R1> resultType) {
 			return new FluentQueryByExample<>(example, sort, domainType, resultType);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#project(java.util.Collection)
-		 */
 		@Override
 		public FetchableFluentQuery<R> project(Collection<String> properties) {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#oneValue()
-		 */
 		@Nullable
 		@Override
 		public R oneValue() {
@@ -297,10 +257,6 @@ public class QueryByExampleRedisExecutor<T>
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#firstValue()
-		 */
 		@Nullable
 		@Override
 		public R firstValue() {
@@ -314,19 +270,11 @@ public class QueryByExampleRedisExecutor<T>
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#all()
-		 */
 		@Override
 		public List<R> all() {
 			return stream().collect(Collectors.toList());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#page(org.springframework.data.domain.Pageable)
-		 */
 		@Override
 		public Page<R> page(Pageable pageable) {
 
@@ -338,10 +286,6 @@ public class QueryByExampleRedisExecutor<T>
 			return PageableExecutionUtils.getPage(content, pageable, this::count);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#stream()
-		 */
 		@Override
 		public Stream<R> stream() {
 
@@ -354,19 +298,11 @@ public class QueryByExampleRedisExecutor<T>
 			return Streamable.of(findAll(example)).map(conversionFunction).stream();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#count()
-		 */
 		@Override
 		public long count() {
 			return QueryByExampleRedisExecutor.this.count(example);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery#exists()
-		 */
 		@Override
 		public boolean exists() {
 			return QueryByExampleRedisExecutor.this.exists(example);

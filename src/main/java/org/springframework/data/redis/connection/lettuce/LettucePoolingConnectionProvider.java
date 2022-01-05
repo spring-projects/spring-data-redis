@@ -86,10 +86,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		this.asyncPoolConfig = CommonsPool2ConfigConverter.bounded(this.poolConfig);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
@@ -110,10 +106,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
 
@@ -137,10 +129,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		}).thenApply(connectionType::cast);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.RedisClientProvider#getRedisClient()
-	 */
 	@Override
 	public AbstractRedisClient getRedisClient() {
 
@@ -153,10 +141,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 						connectionProvider.getClass().getName()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
-	 */
 	@Override
 	public void release(StatefulConnection<?, ?> connection) {
 
@@ -191,10 +175,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#releaseAsync(io.lettuce.core.api.StatefulConnection)
-	 */
 	@Override
 	public CompletableFuture<Void> releaseAsync(StatefulConnection<?, ?> connection) {
 
@@ -217,10 +197,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		return pool.release(connection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	@Override
 	public void destroy() throws Exception {
 

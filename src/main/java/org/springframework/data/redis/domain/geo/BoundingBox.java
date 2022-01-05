@@ -81,10 +81,6 @@ public class BoundingBox implements Shape {
 		return height;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		int result = ObjectUtils.nullSafeHashCode(width);
@@ -107,10 +103,6 @@ public class BoundingBox implements Shape {
 		return ObjectUtils.nullSafeEquals(height, that.height);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return String.format("Bounding box: [width=%s, height=%s]", width, height);

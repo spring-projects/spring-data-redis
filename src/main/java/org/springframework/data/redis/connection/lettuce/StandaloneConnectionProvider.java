@@ -94,10 +94,6 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		};
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
@@ -118,19 +114,11 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
 		return getConnectionAsync(connectionType, redisURISupplier.get());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware#getConnectionAsync(java.lang.Class, io.lettuce.core.RedisURI)
-	 */
 	@SuppressWarnings({ "null", "unchecked", "rawtypes" })
 	@Override
 	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType,

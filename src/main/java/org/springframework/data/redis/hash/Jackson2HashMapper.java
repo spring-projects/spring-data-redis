@@ -214,10 +214,6 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		this.untypedMapper.setSerializationInclusion(Include.NON_NULL);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.hash.HashMapper#toHash(java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> toHash(Object source) {
@@ -226,10 +222,6 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		return flatten ? flattenMap(tree.fields()) : untypedMapper.convertValue(tree, Map.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(java.util.Map)
-	 */
 	@Override
 	public Object fromHash(Map<String, Object> hash) {
 

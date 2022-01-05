@@ -64,10 +64,6 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 		this.nodes = nodes;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
@@ -86,10 +82,6 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 		throw new UnsupportedOperationException(String.format("Connection type %s not supported!", connectionType));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-	 */
 	@Override
 	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
 

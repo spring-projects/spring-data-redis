@@ -34,10 +34,6 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfAdd(byte[], byte[][])
-	 */
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
 
@@ -47,10 +43,6 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		return connection.invoke().just(BinaryJedis::pfadd, MultiKeyPipelineBase::pfadd, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfCount(byte[][])
-	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
 
@@ -60,10 +52,6 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		return connection.invoke().just(BinaryJedis::pfcount, MultiKeyPipelineBase::pfcount, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHyperLogLogCommands#pfMerge(byte[], byte[][])
-	 */
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 

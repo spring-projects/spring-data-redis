@@ -54,10 +54,6 @@ class CompareAndSet<T> implements SessionCallback<Boolean> {
 		this.update = update;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SessionCallback#execute(org.springframework.data.redis.core.RedisOperations)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <K, V> Boolean execute(RedisOperations<K, V> operations) throws DataAccessException {

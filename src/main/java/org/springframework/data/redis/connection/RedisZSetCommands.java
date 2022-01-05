@@ -169,10 +169,6 @@ public interface RedisZSetCommands {
 			return Collections.unmodifiableList(weights);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -188,10 +184,6 @@ public interface RedisZSetCommands {
 			return ObjectUtils.nullSafeEquals(this.weights, that.weights);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 			return ObjectUtils.nullSafeHashCode(weights);

@@ -44,82 +44,46 @@ class LettuceServerCommands implements RedisServerCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgReWriteAof()
-	 */
 	@Override
 	public void bgReWriteAof() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::bgrewriteaof);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgSave()
-	 */
 	@Override
 	public void bgSave() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::bgsave);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#lastSave()
-	 */
 	@Override
 	public Long lastSave() {
 		return connection.invoke().from(RedisServerAsyncCommands::lastsave).get(LettuceConverters::toLong);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#save()
-	 */
 	@Override
 	public void save() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::save);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#dbSize()
-	 */
 	@Override
 	public Long dbSize() {
 		return connection.invoke().just(RedisServerAsyncCommands::dbsize);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushDb()
-	 */
 	@Override
 	public void flushDb() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::flushdb);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll()
-	 */
 	@Override
 	public void flushAll() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::flushall);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#info()
-	 */
 	@Override
 	public Properties info() {
 		return connection.invoke().from(RedisServerAsyncCommands::info).get(LettuceConverters.stringToProps());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#info(java.lang.String)
-	 */
 	@Override
 	public Properties info(String section) {
 
@@ -128,10 +92,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		return connection.invoke().from(RedisServerAsyncCommands::info, section).get(LettuceConverters.stringToProps());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown()
-	 */
 	@Override
 	public void shutdown() {
 		connection.invokeStatus().just(it -> {
@@ -142,10 +102,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
-	 */
 	@Override
 	public void shutdown(ShutdownOption option) {
 
@@ -164,10 +120,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
-	 */
 	@Override
 	public Properties getConfig(String pattern) {
 
@@ -177,10 +129,6 @@ class LettuceServerCommands implements RedisServerCommands {
 				.get(LettuceConverters.mapToPropertiesConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#setConfig(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public void setConfig(String param, String value) {
 
@@ -190,28 +138,16 @@ class LettuceServerCommands implements RedisServerCommands {
 		connection.invokeStatus().just(RedisServerAsyncCommands::configSet, param, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
-	 */
 	@Override
 	public void resetConfigStats() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::configResetstat);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#resetConfigStats()
-	 */
 	@Override
 	public void rewriteConfig() {
 		connection.invokeStatus().just(RedisServerAsyncCommands::configRewrite);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time(TimeUnit)
-	 */
 	@Override
 	public Long time(TimeUnit timeUnit) {
 
@@ -220,10 +156,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		return connection.invoke().from(RedisServerAsyncCommands::time).get(LettuceConverters.toTimeConverter(timeUnit));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#killClient(java.lang.String, int)
-	 */
 	@Override
 	public void killClient(String host, int port) {
 
@@ -234,10 +166,6 @@ class LettuceServerCommands implements RedisServerCommands {
 		connection.invoke().just(RedisServerAsyncCommands::clientKill, client);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(byte[])
-	 */
 	@Override
 	public void setClientName(byte[] name) {
 
@@ -246,19 +174,11 @@ class LettuceServerCommands implements RedisServerCommands {
 		connection.invoke().just(RedisServerAsyncCommands::clientSetname, name);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
-	 */
 	@Override
 	public String getClientName() {
 		return connection.invoke().from(RedisServerAsyncCommands::clientGetname).get(LettuceConverters::toString);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientList()
-	 */
 	@Override
 	public List<RedisClientInfo> getClientList() {
 
@@ -270,10 +190,6 @@ class LettuceServerCommands implements RedisServerCommands {
 				.get(LettuceConverters.stringToRedisClientListConverter());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
-	 */
 	@Override
 	public void slaveOf(String host, int port) {
 
@@ -282,28 +198,16 @@ class LettuceServerCommands implements RedisServerCommands {
 		connection.invoke().just(RedisServerAsyncCommands::slaveof, host, port);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
-	 */
 	@Override
 	public void slaveOfNoOne() {
 		connection.invoke().just(RedisServerAsyncCommands::slaveofNoOne);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
-	 */
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
-	 */
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 

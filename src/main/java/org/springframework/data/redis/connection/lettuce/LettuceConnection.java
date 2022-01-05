@@ -272,100 +272,56 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#geoCommands()
-	 */
 	@Override
 	public RedisGeoCommands geoCommands() {
 		return new LettuceGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#hashCommands()
-	 */
 	@Override
 	public RedisHashCommands hashCommands() {
 		return new LettuceHashCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#hyperLogLogCommands()
-	 */
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceHyperLogLogCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#keyCommands()
-	 */
 	@Override
 	public RedisKeyCommands keyCommands() {
 		return new LettuceKeyCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#listCommands()
-	 */
 	@Override
 	public RedisListCommands listCommands() {
 		return new LettuceListCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#setCommands()
-	 */
 	@Override
 	public RedisSetCommands setCommands() {
 		return new LettuceSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#scriptingCommands()
-	 */
 	@Override
 	public RedisScriptingCommands scriptingCommands() {
 		return new LettuceScriptingCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#streamCommands()
-	 */
 	@Override
 	public RedisStreamCommands streamCommands() {
 		return new LettuceStreamCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#stringCommands()
-	 */
 	@Override
 	public RedisStringCommands stringCommands() {
 		return new LettuceStringCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#serverCommands()
-	 */
 	@Override
 	public RedisServerCommands serverCommands() {
 		return new LettuceServerCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#zSetCommands()
-	 */
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return new LettuceZSetCommands(this);
@@ -408,10 +364,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return invoke().just(RedisClusterAsyncCommands::dispatch, cmd.getType(), cmd.getOutput(), cmd.getArgs());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#close()
-	 */
 	@Override
 	public void close() throws DataAccessException {
 
@@ -444,19 +396,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 		this.dbIndex = defaultDbIndex;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
-	 */
 	@Override
 	public boolean isClosed() {
 		return isClosed && !isSubscribed();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
-	 */
 	@Override
 	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
 
@@ -464,28 +408,16 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return (subscription != null ? subscription.getNativeConnection().async() : getAsyncConnection());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
-	 */
 	@Override
 	public boolean isQueueing() {
 		return isMulti;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
-	 */
 	@Override
 	public boolean isPipelined() {
 		return isPipelined;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
-	 */
 	@Override
 	public void openPipeline() {
 
@@ -497,10 +429,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
-	 */
 	@Override
 	public List<Object> closePipeline() {
 
@@ -564,10 +492,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
-	 */
 	@Override
 	public byte[] echo(byte[] message) {
 		return invoke().just(RedisClusterAsyncCommands::echo, message);
@@ -699,37 +623,21 @@ public class LettuceConnection extends AbstractRedisConnection {
 	// Pub/Sub functionality
 	//
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#publish(byte[], byte[])
-	 */
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
 		return invoke().just(RedisClusterAsyncCommands::publish, channel, message);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
-	 */
 	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
-	 */
 	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
-	 */
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 
@@ -747,10 +655,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
-	 */
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 
@@ -1029,10 +933,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#getSentinelConnection(org.springframework.data.redis.connection.RedisNode)
-	 */
 	@Override
 	protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
 
@@ -1356,28 +1256,16 @@ public class LettuceConnection extends AbstractRedisConnection {
 			this.pool = pool;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnection(java.lang.Class)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 			return connectionType.cast(pool.getResource());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
 			throw new UnsupportedOperationException("Async operations not supported!");
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
-		 */
 		@Override
 		@SuppressWarnings("unchecked")
 		public void release(StatefulConnection<?, ?> connection) {

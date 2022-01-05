@@ -48,10 +48,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		super(template);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#add(java.lang.Object, java.lang.Object, double)
-	 */
 	@Override
 	public Boolean add(K key, V value, double score) {
 
@@ -60,10 +56,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zAdd(rawKey, score, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#addIfAbsent(java.lang.Object, java.lang.Object, double)
-	 */
 	@Override
 	public Boolean addIfAbsent(K key, V value, double score) {
 		return add(key, value, score, ZAddArgs.ifNotExists());
@@ -84,10 +76,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zAdd(rawKey, score, rawValue, args));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#add(java.lang.Object, java.util.Set)
-	 */
 	@Override
 	public Long add(K key, Set<TypedTuple<V>> tuples) {
 
@@ -96,10 +84,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zAdd(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#addIfAbsent(java.lang.Object, java.util.Set)
-	 */
 	@Override
 	public Long addIfAbsent(K key, Set<TypedTuple<V>> tuples) {
 		return add(key, tuples, ZAddArgs.ifNotExists());
@@ -120,10 +104,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zAdd(rawKey, rawValues, args));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#incrementScore(java.lang.Object, java.lang.Object, double)
-	 */
 	@Override
 	public Double incrementScore(K key, V value, double delta) {
 
@@ -132,10 +112,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zIncrBy(rawKey, delta, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#randomMember(java.lang.Object)
-	 */
 	@Override
 	public V randomMember(K key) {
 
@@ -144,10 +120,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValue(execute(connection -> connection.zRandMember(rawKey)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#distinctRandomMembers(java.lang.Object, long)
-	 */
 	@Override
 	public Set<V> distinctRandomMembers(K key, long count) {
 
@@ -159,10 +131,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return result != null ? deserializeValues(new LinkedHashSet<>(result)) : null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#randomMembers(java.lang.Object, long)
-	 */
 	@Override
 	public List<V> randomMembers(K key, long count) {
 
@@ -174,10 +142,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(result);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#randomMemberWithScore(java.lang.Object)
-	 */
 	@Override
 	public TypedTuple<V> randomMemberWithScore(K key) {
 
@@ -186,10 +150,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTuple(execute(connection -> connection.zRandMemberWithScore(rawKey)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#distinctRandomMembersWithScore(java.lang.Object, long)
-	 */
 	@Override
 	public Set<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count) {
 
@@ -201,10 +161,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return result != null ? deserializeTupleValues(new LinkedHashSet<>(result)) : null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#randomMembersWithScore(java.lang.Object, long)
-	 */
 	@Override
 	public List<TypedTuple<V>> randomMembersWithScore(K key, long count) {
 
@@ -216,10 +172,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return result != null ? deserializeTupleValues(result) : null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#range(java.lang.Object, long, long)
-	 */
 	@Override
 	public Set<V> range(K key, long start, long end) {
 
@@ -229,10 +181,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRange(java.lang.Object, long, long)
-	 */
 	@Override
 	public Set<V> reverseRange(K key, long start, long end) {
 
@@ -242,10 +190,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeWithScores(java.lang.Object, long, long)
-	 */
 	@Override
 	public Set<TypedTuple<V>> rangeWithScores(K key, long start, long end) {
 
@@ -255,10 +199,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeWithScores(java.lang.Object, long, long)
-	 */
 	@Override
 	public Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end) {
 
@@ -268,10 +208,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<V> rangeByLex(K key, Range range, Limit limit) {
 
@@ -281,10 +217,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<V> reverseRangeByLex(K key, Range range, Limit limit) {
 
@@ -294,10 +226,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScore(java.lang.Object, double, double)
-	 */
 	@Override
 	public Set<V> rangeByScore(K key, double min, double max) {
 
@@ -307,10 +235,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScore(java.lang.Object, double, double, long, long)
-	 */
 	@Override
 	public Set<V> rangeByScore(K key, double min, double max, long offset, long count) {
 
@@ -320,10 +244,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScore(java.lang.Object, double, double)
-	 */
 	@Override
 	public Set<V> reverseRangeByScore(K key, double min, double max) {
 
@@ -333,10 +253,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScore(java.lang.Object, double, double, long, long)
-	 */
 	@Override
 	public Set<V> reverseRangeByScore(K key, double min, double max, long offset, long count) {
 
@@ -346,10 +262,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScoreWithScores(java.lang.Object, double, double)
-	 */
 	@Override
 	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max) {
 
@@ -359,10 +271,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByScoreWithScores(java.lang.Object, double, double, long, long)
-	 */
 	@Override
 	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max, long offset, long count) {
 
@@ -372,10 +280,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScoreWithScores(java.lang.Object, double, double)
-	 */
 	@Override
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max) {
 
@@ -385,10 +289,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRangeByScoreWithScores(java.lang.Object, double, double, long, long)
-	 */
 	@Override
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count) {
 
@@ -399,10 +299,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#rank(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long rank(K key, Object o) {
 
@@ -415,10 +311,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#reverseRank(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long reverseRank(K key, Object o) {
 
@@ -431,10 +323,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#remove(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long remove(K key, Object... values) {
 
@@ -444,10 +332,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zRem(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#removeRange(java.lang.Object, long, long)
-	 */
 	@Override
 	public Long removeRange(K key, long start, long end) {
 
@@ -455,10 +339,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zRemRange(rawKey, start, end));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#removeRangeByLex(java.lang.Object, Range)
-	 */
 	@Override
 	public Long removeRangeByLex(K key, Range range) {
 
@@ -466,10 +346,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zRemRangeByLex(rawKey, range));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#removeRangeByScore(java.lang.Object, double, double)
-	 */
 	@Override
 	public Long removeRangeByScore(K key, double min, double max) {
 
@@ -477,10 +353,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zRemRangeByScore(rawKey, min, max));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#score(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Double score(K key, Object o) {
 
@@ -489,10 +361,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zScore(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#score(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public List<Double> score(K key, Object... o) {
 
@@ -501,10 +369,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zMScore(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#count(java.lang.Object, double, double)
-	 */
 	@Override
 	public Long count(K key, double min, double max) {
 
@@ -512,10 +376,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zCount(rawKey, min, max));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#lexCount(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
 	@Override
 	public Long lexCount(K key, Range range) {
 
@@ -523,10 +383,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zLexCount(rawKey, range));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#popMin(java.lang.Object)
-	 */
 	@Nullable
 	@Override
 	public TypedTuple<V> popMin(K key) {
@@ -535,10 +391,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTuple(execute(connection -> connection.zPopMin(rawKey)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#popMin(java.lang.Object, long)
-	 */
 	@Nullable
 	@Override
 	public Set<TypedTuple<V>> popMin(K key, long count) {
@@ -548,10 +400,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(new LinkedHashSet<> (result));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#popMin(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Nullable
 	@Override
 	public TypedTuple<V> popMin(K key, long timeout, TimeUnit unit) {
@@ -560,10 +408,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTuple(execute(connection -> connection.bZPopMin(rawKey, timeout, unit)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#popMax(java.lang.Object)
-	 */
 	@Nullable
 	@Override
 	public TypedTuple<V> popMax(K key) {
@@ -572,10 +416,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTuple(execute(connection -> connection.zPopMax(rawKey)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#popMax(java.lang.Object, long)
-	 */
 	@Nullable
 	@Override
 	public Set<TypedTuple<V>> popMax(K key, long count) {
@@ -585,10 +425,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#popMax(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Nullable
 	@Override
 	public TypedTuple<V> popMax(K key, long timeout, TimeUnit unit) {
@@ -597,19 +433,11 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTuple(execute(connection -> connection.bZPopMax(rawKey, timeout, unit)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Long size(K key) {
 		return zCard(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#zCard(java.lang.Object)
-	 */
 	@Override
 	public Long zCard(K key) {
 
@@ -617,10 +445,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zCard(rawKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#difference(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<V> difference(K key, Collection<K> otherKeys) {
 
@@ -629,10 +453,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#differenceWithScores(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys) {
 
@@ -641,10 +461,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#differenceAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long differenceAndStore(K key, Collection<K> otherKeys, K destKey) {
 
@@ -654,10 +470,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zDiffStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersect(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<V> intersect(K key, Collection<K> otherKeys) {
 
@@ -666,10 +478,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectWithScores(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys) {
 
@@ -678,10 +486,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(result);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectWithScores(java.lang.Object, java.util.Collection, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
 	@Override
 	public Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
 
@@ -690,19 +494,11 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(result);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long intersectAndStore(K key, K otherKey, K destKey) {
 		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 
@@ -712,10 +508,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zInterStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
 	@Override
 	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
 
@@ -725,10 +517,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zInterStore(rawDestKey, aggregate, weights, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#union(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<V> union(K key, Collection<K> otherKeys) {
 
@@ -737,10 +525,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#unionWithScores(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys) {
 
@@ -749,10 +533,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(result);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#unionWithScores(java.lang.Object, java.util.Collection, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
 	@Override
 	public Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights) {
 
@@ -762,19 +542,11 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 				result);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long unionAndStore(K key, K otherKey, K destKey) {
 		return unionAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
 
@@ -784,10 +556,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zUnionStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Aggregate, org.springframework.data.redis.connection.RedisZSetCommands.Weights)
-	 */
 	@Override
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights) {
 
@@ -797,10 +565,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> connection.zUnionStore(rawDestKey, aggregate, weights, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ZSetOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<TypedTuple<V>> scan(K key, ScanOptions options) {
 

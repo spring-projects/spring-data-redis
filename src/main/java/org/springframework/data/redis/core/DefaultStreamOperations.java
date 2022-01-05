@@ -111,10 +111,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		};
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#acknowledge(java.lang.Object, java.lang.String, java.lang.String[])
-	 */
 	@Override
 	public Long acknowledge(K key, String group, String... recordIds) {
 
@@ -122,10 +118,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xAck(rawKey, group, recordIds));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#add(org.springframework.data.redis.connection.stream.Record)
-	 */
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
@@ -140,10 +132,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xAdd(binaryRecord));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#delete(java.lang.Object, java.lang.String[])
-	 */
 	@Override
 	public Long delete(K key, RecordId... recordIds) {
 
@@ -151,10 +139,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xDel(rawKey, recordIds));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#createGroup(java.lang.Object, org.springframework.data.redis.connection.RedisStreamCommands.ReadOffset, java.lang.String)
-	 */
 	@Override
 	public String createGroup(K key, ReadOffset readOffset, String group) {
 
@@ -162,10 +146,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#deleteConsumer(java.lang.Object, org.springframework.data.redis.connection.RedisStreamCommands.Consumer)
-	 */
 	@Override
 	public Boolean deleteConsumer(K key, Consumer consumer) {
 
@@ -173,10 +153,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xGroupDelConsumer(rawKey, consumer));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#destroyGroup(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public Boolean destroyGroup(K key, String group) {
 
@@ -184,10 +160,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xGroupDestroy(rawKey, group));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#info(java.lang.Object)
-	 */
 	@Override
 	public XInfoStream info(K key) {
 
@@ -195,10 +167,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xInfo(rawKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#consumers(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public XInfoConsumers consumers(K key, String group) {
 
@@ -206,10 +174,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xInfoConsumers(rawKey, group));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#groups(java.lang.Object)
-	 */
 	@Override
 	public XInfoGroups groups(K key) {
 
@@ -217,10 +181,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xInfoGroups(rawKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String, org.springframework.data.domain.Range, java.lang.Long)
-	 */
 	@Override
 	public PendingMessages pending(K key, String group, Range<?> range, long count) {
 
@@ -228,10 +188,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xPending(rawKey, group, range, count));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, org.springframework.data.redis.connection.stream.Consumer, org.springframework.data.domain.Range, java.lang.Long)
-	 */
 	@Override
 	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count) {
 
@@ -239,10 +195,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xPending(rawKey, consumer, range, count));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#pending(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public PendingMessagesSummary pending(K key, String group) {
 
@@ -250,10 +202,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xPending(rawKey, group));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Long size(K key) {
 
@@ -261,10 +209,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xLen(rawKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#range(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public List<MapRecord<K, HK, HV>> range(K key, Range<String> range, Limit limit) {
 
@@ -278,10 +222,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
@@ -295,10 +235,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#read(org.springframework.data.redis.connection.RedisStreamCommands.Consumer, org.springframework.data.redis.connection.RedisStreamCommands.StreamReadOptions, org.springframework.data.redis.connection.RedisStreamCommands.StreamOffset[])
-	 */
 	@Override
 	public List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
@@ -312,10 +248,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.StreamOperations#reverseRange(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public List<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range, Limit limit) {
 

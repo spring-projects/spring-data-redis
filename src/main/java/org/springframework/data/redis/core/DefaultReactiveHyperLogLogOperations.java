@@ -45,9 +45,6 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 		this.serializationContext = serializationContext;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveHyperLogLogOperations#add(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<Long> add(K key, V... values) {
@@ -62,9 +59,6 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 				.flatMap(serializedValues -> connection.pfAdd(rawKey(key), serializedValues)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveHyperLogLogOperations#size(java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<Long> size(K... keys) {
@@ -78,9 +72,6 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 				.flatMap(connection::pfCount));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveHyperLogLogOperations#union(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<Boolean> union(K destination, K... sourceKeys) {
@@ -95,9 +86,6 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 				.flatMap(serialized -> connection.pfMerge(rawKey(destination), serialized)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveHyperLogLogOperations#delete(java.lang.Object)
-	 */
 	@Override
 	public Mono<Boolean> delete(K key) {
 

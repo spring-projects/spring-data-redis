@@ -64,10 +64,6 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 		this.serializationContext = serializationContext;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.ReactiveScriptExecutor#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args) {
@@ -82,10 +78,6 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 				(RedisElementReader<T>) serializationPair.getReader());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.ReactiveScriptExecutor#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.util.List, org.springframework.data.redis.serializer.RedisElementWriter, org.springframework.data.redis.serializer.RedisElementReader)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,

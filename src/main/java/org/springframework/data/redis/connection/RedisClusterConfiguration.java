@@ -119,10 +119,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration#getClusterNodes()
-	 */
 	@Override
 	public Set<RedisNode> getClusterNodes() {
 		return Collections.unmodifiableSet(clusterNodes);
@@ -148,10 +144,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration#getMaxRedirects()
-	 */
 	@Override
 	public Integer getMaxRedirects() {
 		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
@@ -182,38 +174,22 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
-	 */
 	@Override
 	public void setUsername(@Nullable String username) {
 		this.username = username;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
-	 */
 	@Nullable
 	@Override
 	public String getUsername() {
 		return this.username;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
-	 */
 	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
-	 */
 	@Override
 	public void setPassword(RedisPassword password) {
 
@@ -222,10 +198,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		this.password = password;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -247,10 +219,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		return ObjectUtils.nullSafeEquals(password, that.password);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		int result = ObjectUtils.nullSafeHashCode(clusterNodes);

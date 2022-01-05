@@ -48,10 +48,6 @@ class JedisHashCommands implements RedisHashCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hSet(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 
@@ -63,10 +59,6 @@ class JedisHashCommands implements RedisHashCommands {
 				.get(JedisConverters.longToBoolean());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hSetNX(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 
@@ -78,10 +70,6 @@ class JedisHashCommands implements RedisHashCommands {
 				.get(JedisConverters.longToBoolean());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hDel(byte[], byte[][])
-	 */
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
 
@@ -91,10 +79,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hdel, MultiKeyPipelineBase::hdel, key, fields);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hExists(byte[], byte[])
-	 */
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 
@@ -104,10 +88,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hexists, MultiKeyPipelineBase::hexists, key, field);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGet(byte[], byte[])
-	 */
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 
@@ -117,10 +97,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hget, MultiKeyPipelineBase::hget, key, field);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGetAll(byte[])
-	 */
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 
@@ -129,10 +105,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hgetAll, MultiKeyPipelineBase::hgetAll, key);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[])
-	 */
 	@Nullable
 	@Override
 	public byte[] hRandField(byte[] key) {
@@ -142,10 +114,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hrandfield, MultiKeyPipelineBase::hrandfield, key);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[])
-	 */
 	@Nullable
 	@Override
 	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
@@ -157,10 +125,6 @@ class JedisHashCommands implements RedisHashCommands {
 				.get(it -> it.isEmpty() ? null : it.entrySet().iterator().next());
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[], long)
-	 */
 	@Nullable
 	@Override
 	public List<byte[]> hRandField(byte[] key, long count) {
@@ -170,10 +134,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hrandfield, MultiKeyPipelineBase::hrandfield, key, count);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[], long)
-	 */
 	@Nullable
 	@Override
 	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
@@ -190,10 +150,6 @@ class JedisHashCommands implements RedisHashCommands {
 				});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hIncrBy(byte[], byte[], long)
-	 */
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 
@@ -203,10 +159,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hincrBy, MultiKeyPipelineBase::hincrBy, key, field, delta);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hIncrBy(byte[], byte[], double)
-	 */
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
 
@@ -216,10 +168,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hincrByFloat, MultiKeyPipelineBase::hincrByFloat, key, field, delta);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hKeys(byte[])
-	 */
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
 
@@ -228,10 +176,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hkeys, MultiKeyPipelineBase::hkeys, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hLen(byte[])
-	 */
 	@Override
 	public Long hLen(byte[] key) {
 
@@ -240,10 +184,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hlen, MultiKeyPipelineBase::hlen, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMGet(byte[], byte[][])
-	 */
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 
@@ -253,10 +193,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hmget, MultiKeyPipelineBase::hmget, key, fields);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMSet(byte[], java.util.Map)
-	 */
 	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
 
@@ -266,10 +202,6 @@ class JedisHashCommands implements RedisHashCommands {
 		connection.invokeStatus().just(BinaryJedis::hmset, MultiKeyPipelineBase::hmset, key, hashes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hVals(byte[])
-	 */
 	@Override
 	public List<byte[]> hVals(byte[] key) {
 
@@ -278,10 +210,6 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(BinaryJedis::hvals, MultiKeyPipelineBase::hvals, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hScan(byte[], org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
 		return hScan(key, 0, options);
@@ -322,10 +250,6 @@ class JedisHashCommands implements RedisHashCommands {
 		}.open();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hStrLen(byte[], byte[])
-	 */
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {

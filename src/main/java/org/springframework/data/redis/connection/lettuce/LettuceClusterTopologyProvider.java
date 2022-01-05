@@ -44,10 +44,6 @@ class LettuceClusterTopologyProvider implements ClusterTopologyProvider {
 		this.client = client;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ClusterTopologyProvider#getTopology()
-	 */
 	@Override
 	public ClusterTopology getTopology() {
 		return new ClusterTopology(new LinkedHashSet<>(LettuceConverters.partitionsToClusterNodes(client.getPartitions())));

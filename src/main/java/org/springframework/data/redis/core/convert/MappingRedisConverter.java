@@ -172,10 +172,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		this.referenceResolver = referenceResolver;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.convert.EntityReader#read(java.lang.Class, java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> R read(Class<R> type, RedisData source) {
@@ -385,10 +381,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.convert.EntityWriter#write(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void write(Object source, RedisData sink) {
@@ -1047,29 +1039,17 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		this.customConversions = customConversions != null ? customConversions : new RedisCustomConversions();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.convert.EntityConverter#getMappingContext()
-	 */
 	@Override
 	public RedisMappingContext getMappingContext() {
 		return this.mappingContext;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.RedisConverter#getIndexResolver()
-	 */
 	@Nullable
 	@Override
 	public IndexResolver getIndexResolver() {
 		return this.indexResolver;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.convert.EntityConverter#getConversionService()
-	 */
 	@Override
 	public ConversionService getConversionService() {
 		return this.conversionService;
@@ -1127,10 +1107,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		INSTANCE;
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-		 */
 		public int compare(String s1, String s2) {
 
 			int s1offset = 0;
@@ -1193,10 +1169,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				return rawValue.length();
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see java.lang.Comparable#compareTo(java.lang.Object)
-			 */
 			@Override
 			public int compareTo(Part that) {
 

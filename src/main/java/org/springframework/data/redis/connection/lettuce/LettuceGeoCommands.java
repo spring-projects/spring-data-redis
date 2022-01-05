@@ -52,10 +52,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.geo.Point, byte[])
-	 */
 	@Override
 	public Long geoAdd(byte[] key, Point point, byte[] member) {
 
@@ -66,10 +62,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		return connection.invoke().just(RedisGeoAsyncCommands::geoadd, key, point.getX(), point.getY(), member);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.util.Map)
-	 */
 	@Override
 	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
 
@@ -87,10 +79,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		return geoAdd(key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.lang.Iterable)
-	 */
 	@Override
 	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
 
@@ -113,19 +101,11 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		return connection.invoke().just(it -> it.geoadd(key, values.toArray()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[])
-	 */
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
 		return geoDist(key, member1, member2, DistanceUnit.METERS);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[], org.springframework.data.geo.Metric)
-	 */
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
 
@@ -141,10 +121,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.get(distanceConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoHash(byte[], byte[][])
-	 */
 	@Override
 	public List<String> geoHash(byte[] key, byte[]... members) {
 
@@ -156,10 +132,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.toList(it -> it.getValueOrElse(null));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoPos(byte[], byte[][])
-	 */
 	@Override
 	public List<Point> geoPos(byte[] key, byte[]... members) {
 
@@ -171,10 +143,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.toList(LettuceConverters::geoCoordinatesToPoint);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadius(byte[], org.springframework.data.geo.Circle)
-	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
 
@@ -190,10 +158,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.get(geoResultsConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
-	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
 
@@ -211,19 +175,11 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.get(geoResultsConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], double)
-	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
 		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], double, org.springframework.data.geo.Metric)
-	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
 
@@ -239,10 +195,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.get(converter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
-	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
 			GeoRadiusCommandArgs args) {
@@ -262,19 +214,11 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.get(geoResultsConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRemove(byte[], byte[][])
-	 */
 	@Override
 	public Long geoRemove(byte[] key, byte[]... values) {
 		return connection.zSetCommands().zRem(key, values);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearch(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs)
-	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
@@ -292,10 +236,6 @@ class LettuceGeoCommands implements RedisGeoCommands {
 				.get(LettuceConverters.geoRadiusResponseToGeoResultsConverter(predicate.getMetric()));
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoSearchStore(byte[], byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoReference, org.springframework.data.redis.connection.RedisGeoCommands.GeoShape, org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs)
-	 */
 	@Override
 	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {

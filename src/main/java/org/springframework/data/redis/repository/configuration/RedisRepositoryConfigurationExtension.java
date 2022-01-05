@@ -52,37 +52,21 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 	private static final String REDIS_ADAPTER_BEAN_NAME = "redisKeyValueAdapter";
 	private static final String REDIS_CUSTOM_CONVERSIONS_BEAN_NAME = "redisCustomConversions";
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getModuleName()
-	 */
 	@Override
 	public String getModuleName() {
 		return "Redis";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getModulePrefix()
-	 */
 	@Override
 	protected String getModulePrefix() {
 		return "redis";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getDefaultKeyValueTemplateRef()
-	 */
 	@Override
 	protected String getDefaultKeyValueTemplateRef() {
 		return "redisKeyValueTemplate";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry, org.springframework.data.repository.config.RepositoryConfigurationSource)
-	 */
 	@Override
 	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource configuration) {
 
@@ -114,10 +98,6 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 		super.registerBeansForRoot(registry, configuration);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getDefaultKeyValueTemplateBeanDefinition(org.springframework.data.repository.config.RepositoryConfigurationSource)
-	 */
 	@Override
 	protected AbstractBeanDefinition getDefaultKeyValueTemplateBeanDefinition(
 			RepositoryConfigurationSource configurationSource) {
@@ -128,10 +108,6 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 				.getBeanDefinition();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
-	 */
 	@Override
 	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
 		return Collections.singleton(RedisHash.class);

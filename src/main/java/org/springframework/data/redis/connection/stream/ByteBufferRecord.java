@@ -33,10 +33,6 @@ import org.springframework.lang.Nullable;
  */
 public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, ByteBuffer> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStreamCommands.Record#withId(org.springframework.data.redis.connection.RedisStreamCommands.RecordId)
-	 */
 	@Override
 	ByteBufferRecord withId(RecordId id);
 

@@ -153,19 +153,11 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		delegate = Collections.emptyIterator();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.Cursor#getCursorId()
-	 */
 	@Override
 	public long getCursorId() {
 		return cursorId;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Iterator#hasNext()
-	 */
 	@Override
 	public boolean hasNext() {
 
@@ -189,10 +181,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Iterator#next()
-	 */
 	@Override
 	public T next() {
 
@@ -218,19 +206,11 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		return source.next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Iterator#remove()
-	 */
 	@Override
 	public void remove() {
 		throw new UnsupportedOperationException("Remove is not supported");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.io.Closeable#close()
-	 */
 	@Override
 	public final void close() {
 
@@ -246,10 +226,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 */
 	protected void doClose() {}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.Cursor#isClosed()
-	 */
 	@Override
 	public boolean isClosed() {
 		return state == CursorState.CLOSED;
@@ -263,10 +239,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		return state == CursorState.OPEN;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.Cursor#getPosition()
-	 */
 	@Override
 	public long getPosition() {
 		return position;

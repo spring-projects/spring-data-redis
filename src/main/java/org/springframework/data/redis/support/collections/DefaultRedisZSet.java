@@ -105,46 +105,26 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		this.defaultScore = defaultScore;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#difference(org.springframework.data.redis.support.collections.RedisZSet)
-	 */
 	@Override
 	public Set<E> diff(RedisZSet<?> set) {
 		return boundZSetOps.difference(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#difference(java.util.Collection)
-	 */
 	@Override
 	public Set<E> diff(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.difference(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceWithScores(org.springframework.data.redis.support.collections.RedisZSet)
-	 */
 	@Override
 	public Set<TypedTuple<E>> diffWithScores(RedisZSet<?> set) {
 		return boundZSetOps.differenceWithScores(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceWithScores(java.util.Collection)
-	 */
 	@Override
 	public Set<TypedTuple<E>> diffWithScores(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.differenceWithScores(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceAndStore(org.springframework.data.redis.support.collections.RedisZSet, java.lang.String)
-	 */
 	@Override
 	public RedisZSet<E> diffAndStore(RedisZSet<?> set, String destKey) {
 
@@ -152,10 +132,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#differenceAndStore(java.util.Collection, java.lang.String)
-	 */
 	@Override
 	public RedisZSet<E> diffAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 
@@ -163,46 +139,26 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#intersect(org.springframework.data.redis.support.collections.RedisZSet)
-	 */
 	@Override
 	public Set<E> intersect(RedisZSet<?> set) {
 		return boundZSetOps.intersect(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#intersect(java.util.Collection)
-	 */
 	@Override
 	public Set<E> intersect(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.intersect(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#intersectWithScores(org.springframework.data.redis.support.collections.RedisZSet)
-	 */
 	@Override
 	public Set<TypedTuple<E>> intersectWithScores(RedisZSet<?> set) {
 		return boundZSetOps.intersectWithScores(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#intersectWithScores(java.util.Collection)
-	 */
 	@Override
 	public Set<TypedTuple<E>> intersectWithScores(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.intersectWithScores(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#intersectAndStore(org.springframework.data.redis.support.collections.RedisZSet, java.lang.String)
-	 */
 	@Override
 	public RedisZSet<E> intersectAndStore(RedisZSet<?> set, String destKey) {
 
@@ -210,10 +166,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#intersectAndStore(java.util.Collection, java.lang.String)
-	 */
 	@Override
 	public RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 
@@ -221,195 +173,111 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#union(org.springframework.data.redis.support.collections.RedisZSet)
-	 */
 	@Override
 	public Set<E> union(RedisZSet<?> set) {
 		return boundZSetOps.union(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#union(java.util.Collection)
-	 */
 	@Override
 	public Set<E> union(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.union(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#unionWithScores(org.springframework.data.redis.support.collections.RedisZSet)
-	 */
 	@Override
 	public Set<TypedTuple<E>> unionWithScores(RedisZSet<?> set) {
 		return boundZSetOps.unionWithScores(set.getKey());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#unionWithScores(java.util.Collection)
-	 */
 	@Override
 	public Set<TypedTuple<E>> unionWithScores(Collection<? extends RedisZSet<?>> sets) {
 		return boundZSetOps.unionWithScores(CollectionUtils.extractKeys(sets));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#unionAndStore(org.springframework.data.redis.support.collections.RedisZSet, java.lang.String)
-	 */
 	@Override
 	public RedisZSet<E> unionAndStore(RedisZSet<?> set, String destKey) {
 		boundZSetOps.unionAndStore(set.getKey(), destKey);
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#unionAndStore(java.util.Collection, java.lang.String)
-	 */
 	@Override
 	public RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 		boundZSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisZSet<>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#randomElement()
-	 */
 	@Override
 	public E randomValue() {
 		return boundZSetOps.randomMember();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#range(long, long)
-	 */
 	@Override
 	public Set<E> range(long start, long end) {
 		return boundZSetOps.range(start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRange(long, long)
-	 */
 	@Override
 	public Set<E> reverseRange(long start, long end) {
 		return boundZSetOps.reverseRange(start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<E> rangeByLex(Range range, Limit limit) {
 		return boundZSetOps.rangeByLex(range, limit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
-	 */
 	@Override
 	public Set<E> reverseRangeByLex(Range range, Limit limit) {
 		return boundZSetOps.reverseRangeByLex(range, limit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByScore(double, double)
-	 */
 	@Override
 	public Set<E> rangeByScore(double min, double max) {
 		return boundZSetOps.rangeByScore(min, max);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRangeByScore(double, double)
-	 */
 	@Override
 	public Set<E> reverseRangeByScore(double min, double max) {
 		return boundZSetOps.reverseRangeByScore(min, max);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeByScoreWithScores(double, double)
-	 */
 	@Override
 	public Set<TypedTuple<E>> rangeByScoreWithScores(double min, double max) {
 		return boundZSetOps.rangeByScoreWithScores(min, max);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rangeWithScores(long, long)
-	 */
 	@Override
 	public Set<TypedTuple<E>> rangeWithScores(long start, long end) {
 		return boundZSetOps.rangeWithScores(start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRangeByScoreWithScores(double, double)
-	 */
 	@Override
 	public Set<TypedTuple<E>> reverseRangeByScoreWithScores(double min, double max) {
 		return boundZSetOps.reverseRangeByScoreWithScores(min, max);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRangeWithScores(long, long)
-	 */
 	@Override
 	public Set<TypedTuple<E>> reverseRangeWithScores(long start, long end) {
 		return boundZSetOps.reverseRangeWithScores(start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#remove(long, long)
-	 */
 	@Override
 	public RedisZSet<E> remove(long start, long end) {
 		boundZSetOps.removeRange(start, end);
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#removeRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
 	@Override
 	public Set<E> removeByLex(Range range) {
 		boundZSetOps.removeRangeByLex(range);
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#removeByScore(double, double)
-	 */
 	@Override
 	public RedisZSet<E> removeByScore(double min, double max) {
 		boundZSetOps.removeRangeByScore(min, max);
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#add(java.lang.Object)
-	 */
 	@Override
 	public boolean add(E e) {
 		Boolean result = add(e, getDefaultScore());
@@ -417,10 +285,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#add(java.lang.Object, double)
-	 */
 	@Override
 	public boolean add(E e, double score) {
 		Boolean result = boundZSetOps.add(e, score);
@@ -428,10 +292,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#addIfAbsent(java.lang.Object, double)
-	 */
 	@Override
 	public boolean addIfAbsent(E e, double score) {
 
@@ -440,28 +300,16 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#clear()
-	 */
 	@Override
 	public void clear() {
 		boundZSetOps.removeRange(0, -1);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#contains(java.lang.Object)
-	 */
 	@Override
 	public boolean contains(Object o) {
 		return (boundZSetOps.rank(o) != null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#iterator()
-	 */
 	@Override
 	public Iterator<E> iterator() {
 		Set<E> members = boundZSetOps.range(0, -1);
@@ -469,10 +317,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return new DefaultRedisSortedSetIterator(members.iterator());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#remove(java.lang.Object)
-	 */
 	@Override
 	public boolean remove(Object o) {
 
@@ -481,10 +325,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return result == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#size()
-	 */
 	@Override
 	public int size() {
 
@@ -493,19 +333,11 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		return result.intValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#getDefaultScore()
-	 */
 	@Override
 	public Double getDefaultScore() {
 		return defaultScore;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#first()
-	 */
 	@Override
 	public E first() {
 
@@ -520,10 +352,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#popFirst()
-	 */
 	@Override
 	public E popFirst() {
 
@@ -536,10 +364,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#popFirst(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public E popFirst(long timeout, TimeUnit unit) {
 
@@ -552,10 +376,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#last()
-	 */
 	@Override
 	public E last() {
 
@@ -569,10 +389,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#popLast()
-	 */
 	@Override
 	public E popLast() {
 
@@ -585,10 +401,6 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#popLast(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public E popLast(long timeout, TimeUnit unit) {
 
@@ -601,55 +413,31 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#rank(java.lang.Object)
-	 */
 	@Override
 	public Long rank(Object o) {
 		return boundZSetOps.rank(o);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#reverseRank(java.lang.Object)
-	 */
 	@Override
 	public Long reverseRank(Object o) {
 		return boundZSetOps.reverseRank(o);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range)
-	 */
 	@Override
 	public Long lexCount(Range range) {
 		return boundZSetOps.lexCount(range);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#score(java.lang.Object)
-	 */
 	@Override
 	public Double score(Object o) {
 		return boundZSetOps.score(o);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getType()
-	 */
 	@Override
 	public DataType getType() {
 		return DataType.ZSET;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisZSet#scan()
-	 */
 	@Override
 	public Cursor<E> scan() {
 		return new ConvertingCursor<>(scan(ScanOptions.NONE), TypedTuple::getValue);

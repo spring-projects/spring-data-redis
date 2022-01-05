@@ -494,10 +494,6 @@ abstract public class Converters {
 				this.metric = ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric;
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-			 */
 			@Override
 			public Distance convert(Double source) {
 				return new Distance(source, metric);
@@ -519,10 +515,6 @@ abstract public class Converters {
 			this.serializer = serializer;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-		 */
 		@Override
 		public GeoResults<GeoLocation<V>> convert(GeoResults<GeoLocation<byte[]>> source) {
 

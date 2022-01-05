@@ -150,10 +150,6 @@ public class RedisClusterNode extends RedisNode {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisNode#toString()
-	 */
 	@Override
 	public String toString() {
 		return super.toString();
@@ -277,59 +273,35 @@ public class RedisClusterNode extends RedisNode {
 			this.slotRange = SlotRange.empty();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#listeningAt(java.lang.String, int)
-		 */
 		@Override
 		public RedisClusterNodeBuilder listeningAt(String host, int port) {
 			super.listeningAt(host, port);
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#withName(java.lang.String)
-		 */
 		@Override
 		public RedisClusterNodeBuilder withName(String name) {
 			super.withName(name);
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#withId(java.lang.String)
-		 */
 		@Override
 		public RedisClusterNodeBuilder withId(String id) {
 			super.withId(id);
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#promotedAs(org.springframework.data.redis.connection.RedisNode.NodeType)
-		 */
 		@Override
 		public RedisClusterNodeBuilder promotedAs(NodeType nodeType) {
 			super.promotedAs(nodeType);
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#slaveOf(java.lang.String)
-		 */
 		public RedisClusterNodeBuilder slaveOf(String masterId) {
 			super.slaveOf(masterId);
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#replicaOf(java.lang.String)
-		 */
 		@Override
 		public RedisClusterNodeBuilder replicaOf(String masterId) {
 			super.replicaOf(masterId);
@@ -371,10 +343,6 @@ public class RedisClusterNode extends RedisNode {
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder#build()
-		 */
 		@Override
 		public RedisClusterNode build() {
 

@@ -53,11 +53,6 @@ class JedisResult<T, R> extends FutureResult<Response<?>> {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.FutureResult#get()
-	 * @return
-	 */
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
@@ -65,10 +60,6 @@ class JedisResult<T, R> extends FutureResult<Response<?>> {
 		return (T) getResultHolder().get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.FutureResult#conversionRequired()
-	 */
 	public boolean conversionRequired() {
 		return convertPipelineAndTxResults;
 	}

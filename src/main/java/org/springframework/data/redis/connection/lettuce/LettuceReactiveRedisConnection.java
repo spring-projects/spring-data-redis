@@ -90,127 +90,71 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		this.sharedConnection = Mono.just(sharedConnection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#keyCommands()
-	 */
 	@Override
 	public ReactiveKeyCommands keyCommands() {
 		return new LettuceReactiveKeyCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#stringCommands()
-	 */
 	@Override
 	public ReactiveStringCommands stringCommands() {
 		return new LettuceReactiveStringCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#numberCommands()
-	 */
 	@Override
 	public ReactiveNumberCommands numberCommands() {
 		return new LettuceReactiveNumberCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#listCommands()
-	 */
 	@Override
 	public ReactiveListCommands listCommands() {
 		return new LettuceReactiveListCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#setCommands()
-	 */
 	@Override
 	public ReactiveSetCommands setCommands() {
 		return new LettuceReactiveSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#zSetCommands()
-	 */
 	@Override
 	public ReactiveZSetCommands zSetCommands() {
 		return new LettuceReactiveZSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hashCommands()
-	 */
 	@Override
 	public ReactiveHashCommands hashCommands() {
 		return new LettuceReactiveHashCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#geoCommands()
-	 */
 	@Override
 	public ReactiveGeoCommands geoCommands() {
 		return new LettuceReactiveGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hyperLogLogCommands()
-	 */
 	@Override
 	public ReactiveHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceReactiveHyperLogLogCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#pubSubCommands()
-	 */
 	@Override
 	public ReactivePubSubCommands pubSubCommands() {
 		return new LettuceReactivePubSubCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#scriptingCommands()
-	 */
 	@Override
 	public ReactiveScriptingCommands scriptingCommands() {
 		return new LettuceReactiveScriptingCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#serverCommands()
-	 */
 	@Override
 	public ReactiveServerCommands serverCommands() {
 		return new LettuceReactiveServerCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#streamCommands()
-	 */
 	@Override
 	public ReactiveStreamCommands streamCommands() {
 		return new LettuceReactiveStreamCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#ping()
-	 */
 	@Override
 	public Mono<String> ping() {
 		return execute(BaseRedisReactiveCommands::ping).next();
@@ -233,10 +177,6 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return getDedicatedCommands().flatMapMany(callback::doWithCommands).onErrorMap(translateException());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#closeLater()
-	 */
 	public Mono<Void> closeLater() {
 		return Flux.mergeDelayError(2, dedicatedConnection.close(), pubSubConnection.close()).then();
 	}

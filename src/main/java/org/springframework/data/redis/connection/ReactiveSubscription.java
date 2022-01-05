@@ -175,19 +175,11 @@ public interface ReactiveSubscription {
 			this.message = message;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveSubscription.Message#getChannel()
-		 */
 		@Override
 		public C getChannel() {
 			return channel;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveSubscription.Message#getMessage()
-		 */
 		@Override
 		public M getMessage() {
 			return message;

@@ -44,100 +44,56 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 		this.poolConfig = poolConfig;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isUseSsl()
-	 */
 	@Override
 	public boolean isUseSsl() {
 		return clientConfiguration.isUseSsl();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
-	 */
 	@Override
 	public boolean isVerifyPeer() {
 		return clientConfiguration.isVerifyPeer();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isStartTls()
-	 */
 	@Override
 	public boolean isStartTls() {
 		return clientConfiguration.isStartTls();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientResources()
-	 */
 	@Override
 	public Optional<ClientResources> getClientResources() {
 		return clientConfiguration.getClientResources();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
-	 */
 	@Override
 	public Optional<ClientOptions> getClientOptions() {
 		return clientConfiguration.getClientOptions();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientName()
-	 */
 	@Override
 	public Optional<String> getClientName() {
 		return clientConfiguration.getClientName();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getReadFrom()
-	 */
 	@Override
 	public Optional<ReadFrom> getReadFrom() {
 		return clientConfiguration.getReadFrom();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getCommandTimeout()
-	 */
 	@Override
 	public Duration getCommandTimeout() {
 		return clientConfiguration.getCommandTimeout();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownTimeout()
-	 */
 	@Override
 	public Duration getShutdownTimeout() {
 		return clientConfiguration.getShutdownTimeout();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownQuietPeriod()
-	 */
 	@Override
 	public Duration getShutdownQuietPeriod() {
 		return clientConfiguration.getShutdownQuietPeriod();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettucePoolingClientConfiguration#getPoolConfig()
-	 */
 	@Override
 	public GenericObjectPoolConfig getPoolConfig() {
 		return poolConfig;

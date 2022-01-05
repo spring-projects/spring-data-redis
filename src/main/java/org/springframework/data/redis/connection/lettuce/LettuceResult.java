@@ -55,10 +55,6 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.FutureResult#get()
-	 */
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
@@ -66,10 +62,6 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 		return (T) getResultHolder().getOutput().get();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.FutureResult#conversionRequired()
-	 */
 	@Override
 	public boolean conversionRequired() {
 		return convertPipelineAndTxResults;

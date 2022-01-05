@@ -69,10 +69,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zAdd(org.reactivestreams.Publisher)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Flux<NumericResponse<ZAddCommand, Number>> zAdd(Publisher<ZAddCommand> commands) {
@@ -126,10 +122,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRem(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZRemCommand, Long>> zRem(Publisher<ZRemCommand> commands) {
 
@@ -143,10 +135,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zIncrBy(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZIncrByCommand, Double>> zIncrBy(Publisher<ZIncrByCommand> commands) {
 
@@ -161,10 +149,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMember(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZRandMemberCommand, Flux<ByteBuffer>>> zRandMember(
 			Publisher<ZRandMemberCommand> commands) {
@@ -177,10 +161,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMemberWithScore(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZRandMemberCommand, Flux<Tuple>>> zRandMemberWithScore(
 			Publisher<ZRandMemberCommand> commands) {
@@ -194,10 +174,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRank(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZRankCommand, Long>> zRank(Publisher<ZRankCommand> commands) {
 
@@ -214,10 +190,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZRangeCommand, Flux<Tuple>>> zRange(Publisher<ZRangeCommand> commands) {
 
@@ -253,10 +225,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZRangeByScoreCommand, Flux<Tuple>>> zRangeByScore(
 			Publisher<ZRangeByScoreCommand> commands) {
@@ -322,10 +290,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zScan(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<Tuple>>> zScan(Publisher<KeyScanCommand> commands) {
 
@@ -341,10 +305,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zCount(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZCountCommand, Long>> zCount(Publisher<ZCountCommand> commands) {
 
@@ -360,10 +320,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zLexCount(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZLexCountCommand, Long>> zLexCount(Publisher<ZLexCountCommand> commands) {
 
@@ -378,10 +334,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zPop(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZPopCommand, Flux<Tuple>>> zPop(Publisher<ZPopCommand> commands) {
 
@@ -402,10 +354,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#bZPop(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<BZPopCommand, Flux<Tuple>>> bZPop(Publisher<BZPopCommand> commands) {
 
@@ -435,10 +383,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zCard(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> zCard(Publisher<KeyCommand> commands) {
 
@@ -450,10 +394,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zScore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZScoreCommand, Double>> zScore(Publisher<ZScoreCommand> commands) {
 
@@ -466,10 +406,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zMScore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<ZMScoreCommand, Double>> zMScore(Publisher<ZMScoreCommand> commands) {
 
@@ -483,10 +419,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRemRangeByRank(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZRemRangeByRankCommand, Long>> zRemRangeByRank(
 			Publisher<ZRemRangeByRankCommand> commands) {
@@ -504,10 +436,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRemRangeByRank(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZRemRangeByScoreCommand, Long>> zRemRangeByScore(
 			Publisher<ZRemRangeByScoreCommand> commands) {
@@ -524,10 +452,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRemRangeByLex(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZRemRangeByLexCommand, Long>> zRemRangeByLex(Publisher<ZRemRangeByLexCommand> commands) {
 
@@ -542,10 +466,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zDiff(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZDiffCommand, Flux<ByteBuffer>>> zDiff(Publisher<? extends ZDiffCommand> commands) {
 
@@ -558,10 +478,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zDiffWithScores(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZDiffCommand, Flux<Tuple>>> zDiffWithScores(Publisher<? extends ZDiffCommand> commands) {
 
@@ -574,10 +490,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zDiffStore(Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZDiffStoreCommand, Long>> zDiffStore(Publisher<ZDiffStoreCommand> commands) {
 
@@ -591,10 +503,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInter(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zInter(
 			Publisher<? extends ZAggregateCommand> commands) {
@@ -615,10 +523,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInterWithScores(Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZAggregateCommand, Flux<Tuple>>> zInterWithScores(
 			Publisher<? extends ZAggregateCommand> commands) {
@@ -640,10 +544,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zInterStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zInterStore(
 			Publisher<? extends ZAggregateStoreCommand> commands) {
@@ -666,10 +566,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zUnion(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZAggregateCommand, Flux<ByteBuffer>>> zUnion(
 			Publisher<? extends ZAggregateCommand> commands) {
@@ -690,10 +586,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zUnion(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZAggregateCommand, Flux<Tuple>>> zUnionWithScores(
 			Publisher<? extends ZAggregateCommand> commands) {
@@ -715,10 +607,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zUnionStore(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<ZAggregateStoreCommand, Long>> zUnionStore(
 			Publisher<? extends ZAggregateStoreCommand> commands) {
@@ -741,10 +629,6 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRangeByLex(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<ZRangeByLexCommand, Flux<ByteBuffer>>> zRangeByLex(
 			Publisher<ZRangeByLexCommand> commands) {

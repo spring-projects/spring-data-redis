@@ -147,10 +147,6 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		return cs;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.hash.HashMapper#toHash(java.lang.Object)
-	 */
 	@Override
 	public Map<byte[], byte[]> toHash(Object source) {
 
@@ -163,10 +159,6 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		return sink.getBucket().rawMap();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(java.util.Map)
-	 */
 	@Override
 	public Object fromHash(Map<byte[], byte[]> hash) {
 
@@ -198,10 +190,6 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
 		private static final Map<byte[], byte[]> NO_REFERENCE = Collections.emptyMap();
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.lang.Object, java.lang.String)
-		 */
 		@Override
 		public Map<byte[], byte[]> resolveReference(Object id, String keyspace) {
 			return NO_REFERENCE;
@@ -217,19 +205,11 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
 		private static final Set<IndexedData> NO_INDEXES = Collections.emptySet();
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(org.springframework.data.util.TypeInformation, java.lang.Object)
-		 */
 		@Override
 		public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
 			return NO_INDEXES;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(java.lang.String, java.lang.String, org.springframework.data.util.TypeInformation, java.lang.Object)
-		 */
 		@Override
 		public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
 				Object value) {

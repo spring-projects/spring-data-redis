@@ -64,10 +64,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lPush(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<PushCommand, Long>> push(Publisher<PushCommand> commands) {
 
@@ -97,10 +93,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lLen(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> lLen(Publisher<KeyCommand> commands) {
 
@@ -112,10 +104,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lRange(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<RangeCommand, Flux<ByteBuffer>>> lRange(Publisher<RangeCommand> commands) {
 
@@ -134,10 +122,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lTrim(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<RangeCommand>> lTrim(Publisher<RangeCommand> commands) {
 
@@ -156,10 +140,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lPos(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<LPosCommand, Long>> lPos(Publisher<LPosCommand> commands) {
 
@@ -181,10 +161,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lIndex(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<LIndexCommand>> lIndex(Publisher<LIndexCommand> commands) {
 
@@ -197,10 +173,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lInsert(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<LInsertCommand, Long>> lInsert(Publisher<LInsertCommand> commands) {
 
@@ -216,10 +188,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lMove(Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<LMoveCommand>> lMove(Publisher<? extends LMoveCommand> commands) {
 
@@ -237,10 +205,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#bLMove(Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<BLMoveCommand>> bLMove(Publisher<BLMoveCommand> commands) {
 
@@ -260,10 +224,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lSet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<LSetCommand>> lSet(Publisher<LSetCommand> commands) {
 
@@ -281,10 +241,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lRem(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<LRemCommand, Long>> lRem(Publisher<LRemCommand> commands) {
 
@@ -299,10 +255,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#pop(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<PopCommand>> pop(Publisher<PopCommand> commands) {
 
@@ -319,10 +271,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#popList(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<PopCommand, Flux<ByteBuffer>>> popList(Publisher<PopCommand> commands) {
 
@@ -339,10 +287,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#bPop(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<PopResponse> bPop(Publisher<BPopCommand> commands) {
 
@@ -362,10 +306,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#rPopLPush(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands) {
 
@@ -379,10 +319,6 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveListCommands#bRPopLPush(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<ByteBufferResponse<BRPopLPushCommand>> bRPopLPush(Publisher<BRPopLPushCommand> commands) {
 

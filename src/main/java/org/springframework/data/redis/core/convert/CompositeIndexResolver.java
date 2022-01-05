@@ -55,10 +55,6 @@ public class CompositeIndexResolver implements IndexResolver {
 		this.resolvers = new ArrayList<>(resolvers);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(org.springframework.data.util.TypeInformation, java.lang.Object)
-	 */
 	@Override
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 
@@ -73,9 +69,6 @@ public class CompositeIndexResolver implements IndexResolver {
 		return data;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(java.lang.String, java.lang.String, org.springframework.data.util.TypeInformation, java.lang.Object)
-	 */
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
 			@Nullable Object value) {

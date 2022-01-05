@@ -146,10 +146,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		init();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#failover(org.springframework.data.redis.connection.NamedNode)
-	 */
 	@Override
 	public void failover(NamedNode master) {
 
@@ -158,10 +154,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		getSentinelCommands().failover(master.getName());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#masters()
-	 */
 	@Override
 	public List<RedisServer> masters() {
 		try {
@@ -171,10 +163,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#slaves(org.springframework.data.redis.connection.NamedNode)
-	 */
 	@Override
 	public List<RedisServer> slaves(NamedNode master) {
 
@@ -197,10 +185,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#remove(org.springframework.data.redis.connection.NamedNode)
-	 */
 	@Override
 	public void remove(NamedNode master) {
 
@@ -218,10 +202,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		getSentinelCommands().remove(masterName);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#monitor(org.springframework.data.redis.connection.RedisServer)
-	 */
 	@Override
 	public void monitor(RedisServer server) {
 
@@ -234,10 +214,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 				server.getQuorum().intValue());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.io.Closeable#close()
-	 */
 	@Override
 	public void close() throws IOException {
 		provider.release(connection);
@@ -285,19 +261,11 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 			redisClient = RedisClient.create(clientResources, uri);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#getConnectionAsync(java.lang.Class)
-		 */
 		@Override
 		public <T extends StatefulConnection<?, ?>> CompletableFuture<T> getConnectionAsync(Class<T> connectionType) {
 			return redisClient.connectSentinelAsync(StringCodec.UTF8, uri).thenApply(connectionType::cast);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#release(io.lettuce.core.api.StatefulConnection)
-		 */
 		@Override
 		public void release(StatefulConnection<?, ?> connection) {
 
@@ -305,10 +273,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 			redisClient.shutdown();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider#releaseAsync(io.lettuce.core.api.StatefulConnection)
-		 */
 		@Override
 		public CompletableFuture<Void> releaseAsync(StatefulConnection<?, ?> connection) {
 			return connection.closeAsync().exceptionally(LettuceFutureUtils.ignoreErrors())

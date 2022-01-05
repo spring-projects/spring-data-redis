@@ -69,10 +69,6 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 		return connection.execute(node, RedisKeyReactiveCommands::randomkey).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#rename(org.reactivestreams.Publisher, java.util.function.Supplier)
-	 */
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> commands) {
 
@@ -95,10 +91,6 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#renameNX(org.reactivestreams.Publisher, java.util.function.Supplier)
-	 */
 	@Override
 	public Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> commands) {
 
@@ -128,9 +120,6 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveKeyCommands#move(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands) {
 		throw new UnsupportedOperationException("MOVE not supported in CLUSTER mode!");

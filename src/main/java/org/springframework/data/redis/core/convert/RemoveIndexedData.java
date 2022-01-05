@@ -30,19 +30,11 @@ public class RemoveIndexedData implements IndexedData {
 		this.delegate = delegate;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexedData#getIndexName()
-	 */
 	@Override
 	public String getIndexName() {
 		return delegate.getIndexName();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.IndexedData#getKeyspace()
-	 */
 	@Override
 	public String getKeyspace() {
 		return delegate.getKeyspace();

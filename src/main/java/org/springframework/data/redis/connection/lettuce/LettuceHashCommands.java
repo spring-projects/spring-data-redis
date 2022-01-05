@@ -47,10 +47,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hSet(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 
@@ -61,10 +57,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hset, key, field, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hSetNX(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 
@@ -75,10 +67,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hsetnx, key, field, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hDel(byte[], byte[][])
-	 */
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
 
@@ -88,10 +76,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hdel, key, fields);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hExists(byte[], byte[])
-	 */
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 
@@ -101,10 +85,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hexists, key, field);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGet(byte[], byte[])
-	 */
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 
@@ -114,10 +94,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hget, key, field);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGetAll(byte[])
-	 */
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 
@@ -126,10 +102,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hgetall, key);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[])
-	 */
 	@Nullable
 	@Override
 	public byte[] hRandField(byte[] key) {
@@ -139,10 +111,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hrandfield, key);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[])
-	 */
 	@Nullable
 	@Override
 	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
@@ -153,10 +121,6 @@ class LettuceHashCommands implements RedisHashCommands {
 				.get(LettuceHashCommands::toEntry);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandField(byte[], long)
-	 */
 	@Nullable
 	@Override
 	public List<byte[]> hRandField(byte[] key, long count) {
@@ -166,10 +130,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hrandfield, key, count);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hRandFieldWithValues(byte[], long)
-	 */
 	@Nullable
 	@Override
 	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
@@ -180,10 +140,6 @@ class LettuceHashCommands implements RedisHashCommands {
 				.toList(LettuceHashCommands::toEntry);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hIncrBy(byte[], byte[], long)
-	 */
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 
@@ -193,10 +149,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hincrby, key, field, delta);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hIncrBy(byte[], byte[], double)
-	 */
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
 
@@ -206,10 +158,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hincrbyfloat, key, field, delta);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hKeys(byte[])
-	 */
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
 
@@ -218,10 +166,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hkeys, key).toSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hLen(byte[])
-	 */
 	@Override
 	public Long hLen(byte[] key) {
 
@@ -230,10 +174,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hlen, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMGet(byte[], byte[][])
-	 */
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 
@@ -244,10 +184,6 @@ class LettuceHashCommands implements RedisHashCommands {
 				.toList(source -> source.getValueOrElse(null));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hMSet(byte[], java.util.Map)
-	 */
 	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
 
@@ -257,10 +193,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		connection.invokeStatus().just(RedisHashAsyncCommands::hmset, key, hashes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hVals(byte[])
-	 */
 	@Override
 	public List<byte[]> hVals(byte[] key) {
 
@@ -269,10 +201,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hvals, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hScan(byte[], org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
 		return hScan(key, 0, options);
@@ -317,10 +245,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		}.open();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hStrLen(byte[], byte[])
-	 */
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {

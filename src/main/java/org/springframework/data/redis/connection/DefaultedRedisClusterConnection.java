@@ -150,10 +150,6 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 		return serverCommands().getClientList(node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#execute(String, byte[], Collection)
-	 */
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")

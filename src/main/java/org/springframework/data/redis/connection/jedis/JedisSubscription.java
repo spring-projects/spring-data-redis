@@ -36,10 +36,6 @@ class JedisSubscription extends AbstractSubscription {
 		this.jedisPubSub = jedisPubSub;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doClose()
-	 */
 	@Override
 	protected void doClose() {
 		if (!getChannels().isEmpty()) {
@@ -50,19 +46,11 @@ class JedisSubscription extends AbstractSubscription {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPsubscribe(byte[][])
-	 */
 	@Override
 	protected void doPsubscribe(byte[]... patterns) {
 		jedisPubSub.psubscribe(patterns);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doPUnsubscribe(boolean, byte[][])
-	 */
 	@Override
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		if (all) {
@@ -72,19 +60,11 @@ class JedisSubscription extends AbstractSubscription {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doSubscribe(byte[][])
-	 */
 	@Override
 	protected void doSubscribe(byte[]... channels) {
 		jedisPubSub.subscribe(channels);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.util.AbstractSubscription#doUnsubscribe(boolean, byte[][])
-	 */
 	@Override
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		if (all) {

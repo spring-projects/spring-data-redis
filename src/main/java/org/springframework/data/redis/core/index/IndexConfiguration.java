@@ -48,35 +48,19 @@ public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#hasIndexFor(java.io.Serializable)
-	 */
 	@Override
 	public boolean hasIndexFor(Serializable keyspace) {
 		return !getIndexDefinitionsFor(keyspace).isEmpty();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#hasIndexFor(java.io.Serializable, java.lang.String)
-	 */
 	public boolean hasIndexFor(Serializable keyspace, String path) {
 		return !getIndexDefinitionsFor(keyspace, path).isEmpty();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#getIndexDefinitionsFor(java.io.Serializable, java.lang.String)
-	 */
 	public Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace, String path) {
 		return getIndexDefinitions(keyspace, path, Object.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#getIndexDefinitionsFor(java.io.Serializable)
-	 */
 	public Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace) {
 
 		Set<IndexDefinition> indexDefinitions = new LinkedHashSet<>();
@@ -90,10 +74,6 @@ public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 		return indexDefinitions;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.index.IndexDefinitionRegistry#addIndexDefinition(org.springframework.data.redis.core.index.IndexDefinition)
-	 */
 	public void addIndexDefinition(IndexDefinition indexDefinition) {
 
 		Assert.notNull(indexDefinition, "RedisIndexDefinition must not be null in order to be added.");

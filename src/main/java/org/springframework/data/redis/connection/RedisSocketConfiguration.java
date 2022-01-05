@@ -54,19 +54,11 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		this.socket = socket;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDomainSocket#getSocket()
-	 */
 	@Override
 	public String getSocket() {
 		return socket;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDomainSocket#setSocket(java.lang.String)
-	 */
 	@Override
 	public void setSocket(String socket) {
 
@@ -74,19 +66,11 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		this.socket = socket;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
-	 */
 	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
-	 */
 	@Override
 	public void setDatabase(int index) {
 
@@ -95,38 +79,22 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		this.database = index;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
-	 */
 	@Override
 	public void setUsername(@Nullable String username) {
 		this.username = username;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
-	 */
 	@Nullable
 	@Override
 	public String getUsername() {
 		return this.username;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
-	 */
 	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
-	 */
 	@Override
 	public void setPassword(RedisPassword password) {
 
@@ -135,10 +103,6 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		this.password = password;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -160,10 +124,6 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		return ObjectUtils.nullSafeEquals(password, that.password);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		int result = ObjectUtils.nullSafeHashCode(socket);

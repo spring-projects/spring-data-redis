@@ -80,46 +80,26 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 		return PollState.standalone(streamOffset.getOffset());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.Cancelable#cancel()
-	 */
 	@Override
 	public void cancel() throws DataAccessResourceFailureException {
 		this.pollState.cancel();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.Task#getState()
-	 */
 	@Override
 	public State getState() {
 		return pollState.getState();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.Task#awaitStart(java.time.Duration)
-	 */
 	@Override
 	public boolean awaitStart(Duration timeout) throws InterruptedException {
 		return pollState.awaitStart(timeout.toNanos(), TimeUnit.NANOSECONDS);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.scheduling.SchedulingAwareRunnable#isLongLived()
-	 */
 	@Override
 	public boolean isLongLived() {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
 	@Override
 	public void run() {
 

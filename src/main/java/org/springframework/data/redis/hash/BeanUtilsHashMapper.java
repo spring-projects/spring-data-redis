@@ -41,10 +41,6 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 		this.type = type;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(java.util.Map)
-	 */
 	@Override
 	public T fromHash(Map<String, String> hash) {
 
@@ -59,10 +55,6 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.hash.HashMapper#toHash(java.lang.Object)
-	 */
 	@Override
 	public Map<String, String> toHash(T object) {
 

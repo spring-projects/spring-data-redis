@@ -1287,9 +1287,6 @@ public interface ReactiveListCommands {
 			return new BPopCommand(keys, timeout, direction);
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;

@@ -45,19 +45,11 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 		super(listenerContainer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.listener.KeyspaceEventMessageListener#doRegister(org.springframework.data.redis.listener.RedisMessageListenerContainer)
-	 */
 	@Override
 	protected void doRegister(RedisMessageListenerContainer listenerContainer) {
 		listenerContainer.addMessageListener(this, KEYEVENT_EXPIRED_TOPIC);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.listener.KeyspaceEventMessageListener#doHandleMessage(org.springframework.data.redis.connection.Message)
-	 */
 	@Override
 	protected void doHandleMessage(Message message) {
 		publishEvent(new RedisKeyExpiredEvent(message.getBody()));
@@ -75,10 +67,6 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.ApplicationEventPublisherAware#setApplicationEventPublisher(org.springframework.context.ApplicationEventPublisher)
-	 */
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.publisher = applicationEventPublisher;

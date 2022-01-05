@@ -42,10 +42,6 @@ public class MapConverter<S, T> implements Converter<Map<S, S>, Map<T, T>> {
 		this.itemConverter = itemConverter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public Map<T, T> convert(Map<S, S> source) {
 

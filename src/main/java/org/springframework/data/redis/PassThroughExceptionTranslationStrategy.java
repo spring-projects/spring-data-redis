@@ -34,10 +34,6 @@ public class PassThroughExceptionTranslationStrategy implements ExceptionTransla
 		this.converter = converter;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.ExceptionTranslationStrategy#translate(java.lang.Exception)
-	 */
 	@Nullable
 	@Override
 	public DataAccessException translate(Exception e) {

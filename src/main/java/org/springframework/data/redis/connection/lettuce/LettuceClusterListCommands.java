@@ -41,10 +41,6 @@ class LettuceClusterListCommands extends LettuceListCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bLPop(int, byte[][])
-	 */
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 
@@ -68,10 +64,6 @@ class LettuceClusterListCommands extends LettuceListCommands {
 		return Collections.emptyList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bRPop(int, byte[][])
-	 */
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 
@@ -95,10 +87,6 @@ class LettuceClusterListCommands extends LettuceListCommands {
 		return Collections.emptyList();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#rPopLPush(byte[], byte[])
-	 */
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 
@@ -114,10 +102,6 @@ class LettuceClusterListCommands extends LettuceListCommands {
 		return val;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#bRPopLPush(int, byte[], byte[])
-	 */
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 

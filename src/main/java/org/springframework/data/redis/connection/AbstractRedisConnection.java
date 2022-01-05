@@ -36,10 +36,6 @@ public abstract class AbstractRedisConnection implements DefaultedRedisConnectio
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
 	private final Map<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<>();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#getSentinelCommands()
-	 */
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 
@@ -97,10 +93,6 @@ public abstract class AbstractRedisConnection implements DefaultedRedisConnectio
 		throw new UnsupportedOperationException("Sentinel is not supported by this client.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#close()
-	 */
 	@Override
 	public void close() throws DataAccessException {
 

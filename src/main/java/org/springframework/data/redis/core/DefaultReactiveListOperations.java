@@ -53,9 +53,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		this.serializationContext = serializationContext;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#range(java.lang.Object, long, long)
-	 */
 	@Override
 	public Flux<V> range(K key, long start, long end) {
 
@@ -64,9 +61,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createFlux(connection -> connection.lRange(rawKey(key), start, end).map(this::readValue));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#trim(java.lang.Object, long, long)
-	 */
 	@Override
 	public Mono<Boolean> trim(K key, long start, long end) {
 
@@ -75,9 +69,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lTrim(rawKey(key), start, end));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> size(K key) {
 
@@ -86,17 +77,11 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lLen(rawKey(key)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> leftPush(K key, V value) {
 		return leftPushAll(key, value);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPushAll(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<Long> leftPushAll(K key, V... values) {
@@ -106,9 +91,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return leftPushAll(key, Arrays.asList(values));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPushAll(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Mono<Long> leftPushAll(K key, Collection<V> values) {
 
@@ -121,9 +103,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				.flatMap(serialized -> connection.lPush(rawKey(key), serialized)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPushIfPresent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> leftPushIfPresent(K key, V value) {
 
@@ -132,9 +111,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lPushX(rawKey(key), rawValue(value)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPush(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> leftPush(K key, V pivot, V value) {
 
@@ -143,17 +119,11 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> rightPush(K key, V value) {
 		return rightPushAll(key, value);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPushAll(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	@SafeVarargs
 	public final Mono<Long> rightPushAll(K key, V... values) {
@@ -163,9 +133,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return rightPushAll(key, Arrays.asList(values));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPushAll(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Mono<Long> rightPushAll(K key, Collection<V> values) {
 
@@ -178,9 +145,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				.flatMap(serialized -> connection.rPush(rawKey(key), serialized)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPushIfPresent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> rightPushIfPresent(K key, V value) {
 
@@ -189,9 +153,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.rPushX(rawKey(key), rawValue(value)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPush(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> rightPush(K key, V pivot, V value) {
 
@@ -200,10 +161,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#move(K, Direction, K, Direction)
-	 */
 	@Override
 	public Mono<V> move(K sourceKey, Direction from, K destinationKey, Direction to) {
 
@@ -216,10 +173,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				connection -> connection.lMove(rawKey(sourceKey), rawKey(destinationKey), from, to).map(this::readValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#move(K, Direction, K, Direction, Duration)
-	 */
 	@Override
 	public Mono<V> move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
 
@@ -233,9 +186,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				.map(this::readValue));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#set(java.lang.Object, long, java.lang.Object)
-	 */
 	@Override
 	public Mono<Boolean> set(K key, long index, V value) {
 
@@ -244,9 +194,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lSet(rawKey(key), index, rawValue(value)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#remove(java.lang.Object, long, java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Mono<Long> remove(K key, long count, Object value) {
@@ -256,9 +203,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lRem(rawKey(key), count, rawValue((V) value)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#index(java.lang.Object, long)
-	 */
 	@Override
 	public Mono<V> index(K key, long index) {
 
@@ -267,10 +211,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lIndex(rawKey(key), index).map(this::readValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#indexOf(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> indexOf(K key, V value) {
 
@@ -279,10 +219,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lPos(rawKey(key), rawValue(value)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#lastIndexOf(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<Long> lastIndexOf(K key, V value) {
 
@@ -291,9 +227,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPop(java.lang.Object)
-	 */
 	@Override
 	public Mono<V> leftPop(K key) {
 
@@ -303,9 +236,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#leftPop(java.lang.Object, java.time.Duration)
-	 */
 	@Override
 	public Mono<V> leftPop(K key, Duration timeout) {
 
@@ -317,9 +247,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				.map(popResult -> readValue(popResult.getValue())));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPop(java.lang.Object)
-	 */
 	@Override
 	public Mono<V> rightPop(K key) {
 
@@ -328,9 +255,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(connection -> connection.rPop(rawKey(key)).map(this::readValue));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPop(java.lang.Object, java.time.Duration)
-	 */
 	@Override
 	public Mono<V> rightPop(K key, Duration timeout) {
 
@@ -342,9 +266,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				.map(popResult -> readValue(popResult.getValue())));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPopAndLeftPush(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey) {
 
@@ -355,9 +276,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey)).map(this::readValue));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#rightPopAndLeftPush(java.lang.Object, java.lang.Object, java.time.Duration)
-	 */
 	@Override
 	public Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout) {
 
@@ -370,9 +288,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 				connection -> connection.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveListOperations#delete(java.lang.Object)
-	 */
 	@Override
 	public Mono<Boolean> delete(K key) {
 

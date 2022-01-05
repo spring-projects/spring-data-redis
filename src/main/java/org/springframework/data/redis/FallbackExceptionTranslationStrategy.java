@@ -32,10 +32,6 @@ public class FallbackExceptionTranslationStrategy extends PassThroughExceptionTr
 		super(converter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.PassThroughExceptionTranslationStrategy#translate(java.lang.Exception)
-	 */
 	@Override
 	public DataAccessException translate(Exception e) {
 

@@ -341,10 +341,6 @@ public class ClusterCommandExecutor implements DisposableBean {
 		this.maxRedirects = maxRedirects;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	@Override
 	public void destroy() throws Exception {
 

@@ -313,10 +313,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	public void afterPropertiesSet() {
 
 		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
@@ -466,10 +462,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	public void destroy() {
 
 		if (getUsePool() && pool != null) {
@@ -500,10 +492,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.destroyed = true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getConnection()
-	 */
 	public RedisConnection getConnection() {
 
 		assertInitialized();
@@ -526,10 +514,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return postProcessConnection(connection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getClusterConnection()
-	 */
 	@Override
 	public RedisClusterConnection getClusterConnection() {
 
@@ -541,10 +525,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
-	 */
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
@@ -888,9 +868,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return RedisConfiguration.isClusterConfiguration(configuration);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getSentinelConnection()
-	 */
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 
@@ -1002,9 +979,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			return configuration;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#isUseSsl()
-		 */
 		@Override
 		public boolean isUseSsl() {
 			return useSsl;
@@ -1014,10 +988,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.useSsl = useSsl;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslSocketFactory()
-		 */
 		@Override
 		public Optional<SSLSocketFactory> getSslSocketFactory() {
 			return Optional.ofNullable(sslSocketFactory);
@@ -1027,10 +997,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.sslSocketFactory = sslSocketFactory;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslParameters()
-		 */
 		@Override
 		public Optional<SSLParameters> getSslParameters() {
 			return Optional.ofNullable(sslParameters);
@@ -1040,10 +1006,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.sslParameters = sslParameters;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getHostnameVerifier()
-		 */
 		@Override
 		public Optional<HostnameVerifier> getHostnameVerifier() {
 			return Optional.ofNullable(hostnameVerifier);
@@ -1053,10 +1015,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.hostnameVerifier = hostnameVerifier;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#isUsePooling()
-		 */
 		@Override
 		public boolean isUsePooling() {
 			return usePooling;
@@ -1066,10 +1024,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.usePooling = usePooling;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getPoolConfig()
-		 */
 		@Override
 		public Optional<GenericObjectPoolConfig> getPoolConfig() {
 			return Optional.ofNullable(poolConfig);
@@ -1079,10 +1033,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.poolConfig = poolConfig;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getClientName()
-		 */
 		@Override
 		public Optional<String> getClientName() {
 			return Optional.ofNullable(clientName);
@@ -1092,10 +1042,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.clientName = clientName;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getReadTimeout()
-		 */
 		@Override
 		public Duration getReadTimeout() {
 			return readTimeout;
@@ -1105,10 +1051,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.readTimeout = readTimeout;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getConnectTimeout()
-		 */
 		@Override
 		public Duration getConnectTimeout() {
 			return connectTimeout;

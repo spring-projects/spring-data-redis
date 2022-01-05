@@ -55,28 +55,16 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		this.operations = operations;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getKey()
-	 */
 	@Override
 	public String getKey() {
 		return key;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.support.collections.RedisStore#getOperations()
-	 */
 	@Override
 	public RedisOperations<String, E> getOperations() {
 		return operations;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#addAll(java.util.Collection)
-	 */
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
 
@@ -89,10 +77,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return modified;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#containsAll(java.util.Collection)
-	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
 
@@ -105,10 +89,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return contains;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#removeAll(java.util.Collection)
-	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
 
@@ -121,46 +101,26 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return modified;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return operations.expire(key, timeout, unit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
-	 */
 	@Override
 	public Boolean expireAt(Date date) {
 		return operations.expireAt(key, date);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
-	 */
 	@Override
 	public Long getExpire() {
 		return operations.getExpire(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
-	 */
 	@Override
 	public Boolean persist() {
 		return operations.persist(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
-	 */
 	@Override
 	public void rename(final String newKey) {
 
@@ -178,10 +138,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 
@@ -199,10 +155,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 
@@ -212,10 +164,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.AbstractCollection#toString()
-	 */
 	@Override
 	public String toString() {
 

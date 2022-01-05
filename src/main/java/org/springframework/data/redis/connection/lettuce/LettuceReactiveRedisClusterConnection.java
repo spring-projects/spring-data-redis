@@ -92,145 +92,81 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		this.topologyProvider = new LettuceClusterTopologyProvider(client);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#keyCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterKeyCommands keyCommands() {
 		return new LettuceReactiveClusterKeyCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#listCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterListCommands listCommands() {
 		return new LettuceReactiveClusterListCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#setCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterSetCommands setCommands() {
 		return new LettuceReactiveClusterSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#zSetCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterZSetCommands zSetCommands() {
 		return new LettuceReactiveClusterZSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#hyperLogLogCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceReactiveClusterHyperLogLogCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#stringCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterStringCommands stringCommands() {
 		return new LettuceReactiveClusterStringCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#geoCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterGeoCommands geoCommands() {
 		return new LettuceReactiveClusterGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#hashCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterHashCommands hashCommands() {
 		return new LettuceReactiveClusterHashCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#numberCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterNumberCommands numberCommands() {
 		return new LettuceReactiveClusterNumberCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#scriptingCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterScriptingCommands scriptingCommands() {
 		return new LettuceReactiveClusterScriptingCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#serverCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterServerCommands serverCommands() {
 		return new LettuceReactiveClusterServerCommands(this, topologyProvider);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#streamCommands()
-	 */
 	@Override
 	public LettuceReactiveClusterStreamCommands streamCommands() {
 		return new LettuceReactiveClusterStreamCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterConnection#ping()
-	 */
 	@Override
 	public Mono<String> ping() {
 		return clusterGetNodes().flatMap(node -> execute(node, BaseRedisReactiveCommands::ping)).last();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterConnection#ping(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Mono<String> ping(RedisClusterNode node) {
 		return execute(node, BaseRedisReactiveCommands::ping).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetNodes()
-	 */
 	@Override
 	public Flux<RedisClusterNode> clusterGetNodes() {
 		return Flux.fromStream(() -> doGetActiveNodes().stream());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetSlaves(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Flux<RedisClusterNode> clusterGetSlaves(RedisClusterNode master) {
 
@@ -241,10 +177,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 						.flatMapIterable(LettuceConverters::toSetOfRedisClusterNodes)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetMasterSlaveMap()
-	 */
 	@Override
 	public Mono<Map<RedisClusterNode, Collection<RedisClusterNode>>> clusterGetMasterSlaveMap() {
 
@@ -256,19 +188,11 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 				}).collect(Collectors.toMap(Tuple2::getT1, Tuple2::getT2));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetSlotForKey(java.nio.ByteBuffer)
-	 */
 	@Override
 	public Mono<Integer> clusterGetSlotForKey(ByteBuffer key) {
 		return Mono.fromSupplier(() -> SlotHash.getSlot(key));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetNodeForSlot(int)
-	 */
 	@Override
 	public Mono<RedisClusterNode> clusterGetNodeForSlot(int slot) {
 
@@ -276,10 +200,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return nodes.isEmpty() ? Mono.empty() : Flux.fromIterable(nodes).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetNodeForKey(java.nio.ByteBuffer)
-	 */
 	@Override
 	public Mono<RedisClusterNode> clusterGetNodeForKey(ByteBuffer key) {
 
@@ -288,10 +208,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return clusterGetSlotForKey(key).flatMap(this::clusterGetNodeForSlot);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetClusterInfo()
-	 */
 	@Override
 	public Mono<ClusterInfo> clusterGetClusterInfo() {
 
@@ -301,19 +217,11 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 				.single();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterAddSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public Mono<Void> clusterAddSlots(RedisClusterNode node, int... slots) {
 		return execute(node, cmd -> cmd.clusterAddSlots(slots)).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterAddSlots(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public Mono<Void> clusterAddSlots(RedisClusterNode node, RedisClusterNode.SlotRange range) {
 
@@ -322,28 +230,16 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return execute(node, cmd -> cmd.clusterAddSlots(range.getSlotsArray())).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterCountKeysInSlot(int)
-	 */
 	@Override
 	public Mono<Long> clusterCountKeysInSlot(int slot) {
 		return execute(cmd -> cmd.clusterCountKeysInSlot(slot)).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterDeleteSlots(org.springframework.data.redis.connection.RedisClusterNode, int[])
-	 */
 	@Override
 	public Mono<Void> clusterDeleteSlots(RedisClusterNode node, int... slots) {
 		return execute(node, cmd -> cmd.clusterDelSlots(slots)).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterDeleteSlotsInRange(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode.SlotRange)
-	 */
 	@Override
 	public Mono<Void> clusterDeleteSlotsInRange(RedisClusterNode node, RedisClusterNode.SlotRange range) {
 
@@ -352,10 +248,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return execute(node, cmd -> cmd.clusterDelSlots(range.getSlotsArray())).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterForget(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Mono<Void> clusterForget(RedisClusterNode node) {
 
@@ -369,10 +261,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		}).flatMap(actualNode -> execute(node, cmd -> cmd.clusterForget(nodeToRemove.getId()))).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterMeet(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Mono<Void> clusterMeet(RedisClusterNode node) {
 
@@ -384,10 +272,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 				.flatMap(actualNode -> execute(node, cmd -> cmd.clusterMeet(node.getHost(), node.getPort()))).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterSetSlot(org.springframework.data.redis.connection.RedisClusterNode, int, org.springframework.data.redis.connection.ReactiveRedisClusterCommands.AddSlots)
-	 */
 	@Override
 	public Mono<Void> clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
 
@@ -415,19 +299,11 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		}).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterGetKeysInSlot(int, int)
-	 */
 	@Override
 	public Flux<ByteBuffer> clusterGetKeysInSlot(int slot, int count) {
 		return execute(cmd -> cmd.clusterGetKeysInSlot(slot, count));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveRedisClusterCommands#clusterReplicate(org.springframework.data.redis.connection.RedisClusterNode, org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Mono<Void> clusterReplicate(RedisClusterNode master, RedisClusterNode replica) {
 		return execute(replica, cmd -> cmd.clusterReplicate(lookup(master).getId())).then();
@@ -469,20 +345,12 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return getCommands(node).flatMapMany(callback::doWithCommands).onErrorMap(translateException());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getConnection()
-	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected Mono<StatefulRedisClusterConnection<ByteBuffer, ByteBuffer>> getConnection() {
 		return (Mono) super.getConnection();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getCommands()
-	 */
 	protected Mono<RedisClusterReactiveCommands<ByteBuffer, ByteBuffer>> getCommands() {
 		return getConnection().map(StatefulRedisClusterConnection::reactive);
 	}

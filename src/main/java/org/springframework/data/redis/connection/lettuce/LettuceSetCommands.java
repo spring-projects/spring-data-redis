@@ -44,10 +44,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sAdd(byte[], byte[][])
-	 */
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
 
@@ -58,10 +54,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sadd, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sCard(byte[])
-	 */
 	@Override
 	public Long sCard(byte[] key) {
 
@@ -70,10 +62,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::scard, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiff(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
@@ -83,10 +71,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sdiff, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiffStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
@@ -97,10 +81,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sdiffstore, destKey, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInter(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
@@ -110,10 +90,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sinter, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInterStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
@@ -124,10 +100,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sinterstore, destKey, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sIsMember(byte[], byte[])
-	 */
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 
@@ -137,10 +109,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sismember, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMIsMember(byte[], byte[]...)
-	 */
 	@Override
 	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
 
@@ -151,10 +119,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::smismember, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMembers(byte[])
-	 */
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 
@@ -163,10 +127,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::smembers, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMove(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
@@ -177,10 +137,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::smove, srcKey, destKey, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[])
-	 */
 	@Override
 	public byte[] sPop(byte[] key) {
 
@@ -189,10 +145,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::spop, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[], long)
-	 */
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
 
@@ -201,10 +153,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().from(RedisSetAsyncCommands::spop, key, count).get(ArrayList::new);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[])
-	 */
 	@Override
 	public byte[] sRandMember(byte[] key) {
 
@@ -213,10 +161,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::srandmember, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[], long)
-	 */
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
@@ -225,10 +169,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::srandmember, key, count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRem(byte[], byte[][])
-	 */
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
 
@@ -239,10 +179,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::srem, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnion(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
@@ -252,10 +188,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sunion, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnionStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
@@ -266,10 +198,6 @@ class LettuceSetCommands implements RedisSetCommands {
 		return connection.invoke().just(RedisSetAsyncCommands::sunionstore, destKey, keys);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
 		return sScan(key, 0, options);

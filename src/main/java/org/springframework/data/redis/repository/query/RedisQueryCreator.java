@@ -44,10 +44,6 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 		super(tree, parameters);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#create(org.springframework.data.repository.query.parser.Part, java.util.Iterator)
-	 */
 	@Override
 	protected RedisOperationChain create(Part part, Iterator<Object> iterator) {
 		return from(part, iterator, new RedisOperationChain());
@@ -76,29 +72,17 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 		return sink;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#and(org.springframework.data.repository.query.parser.Part, java.lang.Object, java.util.Iterator)
-	 */
 	@Override
 	protected RedisOperationChain and(Part part, RedisOperationChain base, Iterator<Object> iterator) {
 		return from(part, iterator, base);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#or(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	protected RedisOperationChain or(RedisOperationChain base, RedisOperationChain criteria) {
 		base.orSismember(criteria.getSismember());
 		return base;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#complete(java.lang.Object, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	protected KeyValueQuery<RedisOperationChain> complete(final RedisOperationChain criteria, Sort sort) {
 

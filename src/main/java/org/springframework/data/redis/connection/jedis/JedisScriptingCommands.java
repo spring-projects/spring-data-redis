@@ -35,10 +35,6 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
-	 */
 	@Override
 	public void scriptFlush() {
 
@@ -47,10 +43,6 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		connection.invoke().just(BinaryJedis::scriptFlush);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
-	 */
 	@Override
 	public void scriptKill() {
 
@@ -59,10 +51,6 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		connection.invoke().just(BinaryJedis::scriptKill);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
-	 */
 	@Override
 	public String scriptLoad(byte[] script) {
 
@@ -72,10 +60,6 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		return connection.invoke().from(it -> it.scriptLoad(script)).get(JedisConverters::toString);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
-	 */
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
 
@@ -86,10 +70,6 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		return connection.invoke().just(it -> it.scriptExists(scriptSha1));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
@@ -102,19 +82,11 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 				.getOrElse(converter, () -> converter.convert(null));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return evalSha(JedisConverters.toBytes(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {

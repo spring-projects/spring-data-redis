@@ -40,10 +40,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		super(template);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#add(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long add(K key, V... values) {
 
@@ -52,19 +48,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sAdd(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#difference(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Set<V> difference(K key, K otherKey) {
 		return difference(Arrays.asList(key, otherKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#difference(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<V> difference(K key, Collection<K> otherKeys) {
 
@@ -74,10 +62,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#difference(java.util.Collection)
-	 */
 	@Override
 	public Set<V> difference(Collection<K> keys) {
 
@@ -87,19 +71,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#differenceAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long differenceAndStore(K key, K otherKey, K destKey) {
 		return differenceAndStore(Arrays.asList(key, otherKey), destKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#differenceAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long differenceAndStore(K key, Collection<K> otherKeys, K destKey) {
 
@@ -109,10 +85,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#differenceAndStore(java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long differenceAndStore(Collection<K> keys, K destKey) {
 
@@ -122,19 +94,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sDiffStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#intersect(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Set<V> intersect(K key, K otherKey) {
 		return intersect(Arrays.asList(key, otherKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#intersect(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<V> intersect(K key, Collection<K> otherKeys) {
 
@@ -144,10 +108,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#intersect(java.util.Collection)
-	 */
 	@Override
 	public Set<V> intersect(Collection<K> keys) {
 
@@ -157,19 +117,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#intersectAndStore(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long intersectAndStore(K key, K otherKey, K destKey) {
 		return intersectAndStore(Arrays.asList(key, otherKey), destKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#intersectAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 
@@ -179,10 +131,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#intersectAndStore(java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long intersectAndStore(Collection<K> keys, K destKey) {
 
@@ -192,10 +140,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#isMember(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Boolean isMember(K key, Object o) {
 
@@ -205,10 +149,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sIsMember(rawKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#isMember(java.lang.Object, java.lang.Object...)
-	 */
 	@Override
 	public Map<Object, Boolean> isMember(K key, Object... objects) {
 
@@ -233,10 +173,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#members(java.lang.Object)
-	 */
 	@Override
 	public Set<V> members(K key) {
 
@@ -246,10 +182,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#move(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Boolean move(K key, V value, K destKey) {
 
@@ -260,10 +192,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sMove(rawKey, rawDestKey, rawValue));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#randomMember(java.lang.Object)
-	 */
 	@Override
 	public V randomMember(K key) {
 
@@ -276,10 +204,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#distinctRandomMembers(java.lang.Object, long)
-	 */
 	@Override
 	public Set<V> distinctRandomMembers(K key, long count) {
 
@@ -292,10 +216,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#randomMembers(java.lang.Object, long)
-	 */
 	@Override
 	public List<V> randomMembers(K key, long count) {
 
@@ -308,10 +228,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#remove(java.lang.Object, java.lang.Object[])
-	 */
 	@Override
 	public Long remove(K key, Object... values) {
 
@@ -320,10 +236,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sRem(rawKey, rawValues));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#pop(java.lang.Object)
-	 */
 	@Override
 	public V pop(K key) {
 
@@ -336,10 +248,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations(java.lang.Object, long)
-	 */
 	@Override
 	public List<V> pop(K key, long count) {
 
@@ -349,10 +257,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Long size(K key) {
 
@@ -360,19 +264,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sCard(rawKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#union(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Set<V> union(K key, K otherKey) {
 		return union(Arrays.asList(key, otherKey));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#union(java.lang.Object, java.util.Collection)
-	 */
 	@Override
 	public Set<V> union(K key, Collection<K> otherKeys) {
 
@@ -382,10 +278,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#union(java.util.Collection)
-	 */
 	@Override
 	public Set<V> union(Collection<K> keys) {
 
@@ -395,19 +287,11 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#union(java.lang.Object, java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Long unionAndStore(K key, K otherKey, K destKey) {
 		return unionAndStore(Arrays.asList(key, otherKey), destKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#unionAndStore(java.lang.Object, java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
 
@@ -417,10 +301,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#union(java.util.Collection, java.lang.Object)
-	 */
 	@Override
 	public Long unionAndStore(Collection<K> keys, K destKey) {
 
@@ -430,10 +310,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(connection -> connection.sUnionStore(rawDestKey, rawKeys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.SetOperations#sScan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<V> scan(K key, ScanOptions options) {
 

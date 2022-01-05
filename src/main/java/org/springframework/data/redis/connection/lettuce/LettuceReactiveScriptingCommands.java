@@ -54,28 +54,16 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#scriptFlush()
-	 */
 	@Override
 	public Mono<String> scriptFlush() {
 		return connection.execute(RedisScriptingReactiveCommands::scriptFlush).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#scriptKill()
-	 */
 	@Override
 	public Mono<String> scriptKill() {
 		return connection.execute(RedisScriptingReactiveCommands::scriptKill).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#scriptLoad(java.nio.ByteBuffer)
-	 */
 	@Override
 	public Mono<String> scriptLoad(ByteBuffer script) {
 
@@ -84,10 +72,6 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 		return connection.execute(cmd -> cmd.scriptLoad(ByteUtils.getBytes(script))).next();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#scriptExists(java.util.List)
-	 */
 	@Override
 	public Flux<Boolean> scriptExists(List<String> scriptShas) {
 
@@ -96,10 +80,6 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 		return connection.execute(cmd -> cmd.scriptExists(scriptShas.toArray(new String[scriptShas.size()])));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#eval(java.nio.ByteBuffer, org.springframework.data.redis.connection.ReturnType, int, java.nio.ByteBuffer[])
-	 */
 	@Override
 	public <T> Flux<T> eval(ByteBuffer script, ReturnType returnType, int numKeys, ByteBuffer... keysAndArgs) {
 
@@ -117,10 +97,6 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 				returnType);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, java.nio.ByteBuffer[])
-	 */
 	@Override
 	public <T> Flux<T> evalSha(String scriptSha, ReturnType returnType, int numKeys, ByteBuffer... keysAndArgs) {
 

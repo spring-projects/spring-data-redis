@@ -27,10 +27,6 @@ public class LongToBooleanConverter implements Converter<Long, Boolean> {
 
 	public static final LongToBooleanConverter INSTANCE = new LongToBooleanConverter();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public Boolean convert(Long result) {
 		return result == 1;

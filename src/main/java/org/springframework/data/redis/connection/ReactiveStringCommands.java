@@ -466,10 +466,6 @@ public interface ReactiveStringCommands {
 			this.keyValuePairs = keyValuePairs;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
-		 */
 		@Override
 		@Nullable
 		public ByteBuffer getKey() {

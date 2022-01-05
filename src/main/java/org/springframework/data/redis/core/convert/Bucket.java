@@ -270,10 +270,6 @@ public class Bucket {
 		return bucket;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "Bucket [data=" + safeToString() + "]";

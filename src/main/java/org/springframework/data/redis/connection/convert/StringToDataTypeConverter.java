@@ -26,10 +26,6 @@ import org.springframework.data.redis.connection.DataType;
  */
 public class StringToDataTypeConverter implements Converter<String, DataType> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public DataType convert(String source) {
 		return DataType.fromCode(source);

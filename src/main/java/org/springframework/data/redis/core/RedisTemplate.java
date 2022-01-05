@@ -119,10 +119,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	public RedisTemplate() {}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisAccessor#afterPropertiesSet()
-	 */
 	@Override
 	public void afterPropertiesSet() {
 
@@ -167,10 +163,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		initialized = true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#execute(org.springframework.data.redis.core.RedisCallback)
-	 */
 	@Override
 	@Nullable
 	public <T> T execute(RedisCallback<T> action) {
@@ -233,10 +225,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#execute(org.springframework.data.redis.core.SessionCallback)
-	 */
 	@Override
 	public <T> T execute(SessionCallback<T> session) {
 
@@ -253,19 +241,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.SessionCallback)
-	 */
 	@Override
 	public List<Object> executePipelined(SessionCallback<?> session) {
 		return executePipelined(session, valueSerializer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.SessionCallback, org.springframework.data.redis.serializer.RedisSerializer)
-	 */
 	@Override
 	public List<Object> executePipelined(SessionCallback<?> session, @Nullable RedisSerializer<?> resultSerializer) {
 
@@ -299,19 +279,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.RedisCallback)
-	 */
 	@Override
 	public List<Object> executePipelined(RedisCallback<?> action) {
 		return executePipelined(action, valueSerializer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#executePipelined(org.springframework.data.redis.core.RedisCallback, org.springframework.data.redis.serializer.RedisSerializer)
-	 */
 	@Override
 	public List<Object> executePipelined(RedisCallback<?> action, @Nullable RedisSerializer<?> resultSerializer) {
 
@@ -335,29 +307,17 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, java.util.List, java.lang.Object[])
-	 */
 	@Override
 	public <T> T execute(RedisScript<T> script, List<K> keys, Object... args) {
 		return scriptExecutor.execute(script, keys, args);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#execute(org.springframework.data.redis.core.script.RedisScript, org.springframework.data.redis.serializer.RedisSerializer, org.springframework.data.redis.serializer.RedisSerializer, java.util.List, java.lang.Object[])
-	 */
 	@Override
 	public <T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
 			List<K> keys, Object... args) {
 		return scriptExecutor.execute(script, argsSerializer, resultSerializer, keys, args);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#executeWithStickyConnection(org.springframework.data.redis.core.RedisCallback)
-	 */
 	@Override
 	public <T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback) {
 
@@ -682,10 +642,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#exec(org.springframework.data.redis.serializer.RedisSerializer)
-	 */
 	@Override
 	public List<Object> exec(RedisSerializer<?> valueSerializer) {
 		return deserializeMixedResults(execRaw(), valueSerializer, valueSerializer, valueSerializer);
@@ -697,10 +653,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return raw == null ? Collections.emptyList() : raw;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.lang.Object, java.lang.Object, boolean)
-	 */
 	@Override
 	public Boolean copy(K source, K target, boolean replace) {
 
@@ -710,10 +662,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.copy(sourceKey, targetKey, replace), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.lang.Object)
-	 */
 	@Override
 	public Boolean delete(K key) {
 
@@ -723,10 +671,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result != null && result.intValue() == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#delete(java.util.Collection)
-	 */
 	@Override
 	public Long delete(Collection<K> keys) {
 
@@ -739,10 +683,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.del(rawKeys), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#unlink(java.lang.Object)
-	 */
 	@Override
 	public Boolean unlink(K key) {
 
@@ -753,10 +693,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result != null && result.intValue() == 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#unlink(java.util.Collection)
-	 */
 	@Override
 	public Long unlink(Collection<K> keys) {
 
@@ -769,10 +705,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.unlink(rawKeys), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#hasKey(java.lang.Object)
-	 */
 	@Override
 	public Boolean hasKey(K key) {
 
@@ -781,10 +713,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.exists(rawKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#countExistingKeys(java.util.Collection)
-	 */
 	@Override
 	public Long countExistingKeys(Collection<K> keys) {
 
@@ -794,10 +722,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.exists(rawKeys), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#expire(java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Boolean expire(K key, final long timeout, final TimeUnit unit) {
 
@@ -814,10 +738,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#expireAt(java.lang.Object, java.util.Date)
-	 */
 	@Override
 	public Boolean expireAt(K key, final Date date) {
 
@@ -832,10 +752,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#convertAndSend(java.lang.String, java.lang.Object)
-	 */
 	@Override
 	public void convertAndSend(String channel, Object message) {
 
@@ -854,10 +770,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// Value operations
 	//
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#getExpire(java.lang.Object)
-	 */
 	@Override
 	public Long getExpire(K key) {
 
@@ -865,10 +777,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.ttl(rawKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#getExpire(java.lang.Object, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long getExpire(K key, final TimeUnit timeUnit) {
 
@@ -883,10 +791,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#keys(java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Set<K> keys(K pattern) {
@@ -897,10 +801,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : (Set<K>) rawKeys;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#persist(java.lang.Object)
-	 */
 	@Override
 	public Boolean persist(K key) {
 
@@ -908,10 +808,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.persist(rawKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#move(java.lang.Object, int)
-	 */
 	@Override
 	public Boolean move(K key, final int dbIndex) {
 
@@ -919,10 +815,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.move(rawKey, dbIndex), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#randomKey()
-	 */
 	@Override
 	public K randomKey() {
 
@@ -930,10 +822,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return deserializeKey(rawKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#rename(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public void rename(K oldKey, K newKey) {
 
@@ -946,10 +834,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#renameIfAbsent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Boolean renameIfAbsent(K oldKey, K newKey) {
 
@@ -958,10 +842,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.renameNX(rawOldKey, rawNewKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#type(java.lang.Object)
-	 */
 	@Override
 	public DataType type(K key) {
 
@@ -1008,10 +888,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#multi()
-	 */
 	@Override
 	public void multi() {
 		execute(connection -> {
@@ -1020,10 +896,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#discard()
-	 */
 	@Override
 	public void discard() {
 
@@ -1033,10 +905,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#watch(java.lang.Object)
-	 */
 	@Override
 	public void watch(K key) {
 
@@ -1048,10 +916,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#watch(java.util.Collection)
-	 */
 	@Override
 	public void watch(Collection<K> keys) {
 
@@ -1063,10 +927,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#unwatch()
-	 */
 	@Override
 	public void unwatch() {
 
@@ -1078,20 +938,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	// Sort operations
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<V> sort(SortQuery<K> query) {
 		return sort(query, valueSerializer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery, org.springframework.data.redis.serializer.RedisSerializer)
-	 */
 	@Override
 	public <T> List<T> sort(SortQuery<K> query, @Nullable RedisSerializer<T> resultSerializer) {
 
@@ -1103,20 +955,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return SerializationUtils.deserialize(vals, resultSerializer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery, org.springframework.data.redis.core.BulkMapper)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper) {
 		return sort(query, bulkMapper, valueSerializer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery, org.springframework.data.redis.core.BulkMapper, org.springframework.data.redis.serializer.RedisSerializer)
-	 */
 	@Override
 	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper,
 			@Nullable RedisSerializer<S> resultSerializer) {
@@ -1144,10 +988,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#sort(org.springframework.data.redis.core.query.SortQuery, java.lang.Object)
-	 */
 	@Override
 	public Long sort(SortQuery<K> query, K storeKey) {
 
@@ -1158,10 +998,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(connection -> connection.sort(rawKey, params, rawStoreKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#killClient(java.lang.Object)
-	 */
 	@Override
 	public void killClient(final String host, final int port) {
 
@@ -1171,10 +1007,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#getClientList()
-	 */
 	@Override
 	public List<RedisClientInfo> getClientList() {
 		return execute(RedisServerCommands::getClientList);
@@ -1193,10 +1025,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#slaveOfNoOne()
-	 */
 	@Override
 	public void slaveOfNoOne() {
 
@@ -1206,155 +1034,87 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForCluster()
-	 */
 	@Override
 	public ClusterOperations<K, V> opsForCluster() {
 		return clusterOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForGeo()
-	 */
 	@Override
 	public GeoOperations<K, V> opsForGeo() {
 		return geoOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundGeoOps(java.lang.Object)
-	 */
 	@Override
 	public BoundGeoOperations<K, V> boundGeoOps(K key) {
 		return new DefaultBoundGeoOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundHashOps(java.lang.Object)
-	 */
 	@Override
 	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
 		return new DefaultBoundHashOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForHash()
-	 */
 	@Override
 	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
 		return new DefaultHashOperations<>(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
-	 */
 	@Override
 	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
 		return hllOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForList()
-	 */
 	@Override
 	public ListOperations<K, V> opsForList() {
 		return listOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundListOps(java.lang.Object)
-	 */
 	@Override
 	public BoundListOperations<K, V> boundListOps(K key) {
 		return new DefaultBoundListOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundSetOps(java.lang.Object)
-	 */
 	@Override
 	public BoundSetOperations<K, V> boundSetOps(K key) {
 		return new DefaultBoundSetOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForSet()
-	 */
 	@Override
 	public SetOperations<K, V> opsForSet() {
 		return setOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForStream()
-	 */
 	@Override
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream() {
 		return (StreamOperations<K, HK, HV>) streamOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForStream()
-	 */
 	@Override
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
 
 		return new DefaultStreamOperations<>(this, hashMapper);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundStreamOps(java.lang.Object)
-	 */
 	@Override
 	public <HK, HV> BoundStreamOperations<K, HK, HV> boundStreamOps(K key) {
 		return new DefaultBoundStreamOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundValueOps(java.lang.Object)
-	 */
 	@Override
 	public BoundValueOperations<K, V> boundValueOps(K key) {
 		return new DefaultBoundValueOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForValue()
-	 */
 	@Override
 	public ValueOperations<K, V> opsForValue() {
 		return valueOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#boundZSetOps(java.lang.Object)
-	 */
 	@Override
 	public BoundZSetOperations<K, V> boundZSetOps(K key) {
 		return new DefaultBoundZSetOperations<>(key, this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForZSet()
-	 */
 	@Override
 	public ZSetOperations<K, V> opsForZSet() {
 		return zSetOps;

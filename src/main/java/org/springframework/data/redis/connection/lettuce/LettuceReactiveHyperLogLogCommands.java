@@ -46,10 +46,6 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHyperLogLogCommands#pfAdd(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<PfAddCommand, Long>> pfAdd(Publisher<PfAddCommand> commands) {
 
@@ -63,10 +59,6 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHyperLogLogCommands#pfCount(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<PfCountCommand, Long>> pfCount(Publisher<PfCountCommand> commands) {
 
@@ -79,10 +71,6 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHyperLogLogCommands#pfMerge(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands) {
 

@@ -168,10 +168,6 @@ public class RedisData {
 		setTimeToLive(TimeUnit.SECONDS.convert(timeToLive, timeUnit));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "RedisDataObject [key=" + keyspace + ":" + id + ", hash=" + bucket + "]";

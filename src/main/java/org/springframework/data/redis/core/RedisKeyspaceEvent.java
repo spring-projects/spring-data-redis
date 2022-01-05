@@ -50,10 +50,6 @@ public class RedisKeyspaceEvent extends ApplicationEvent {
 		this.channel = channel;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.EventObject#getSource()
-	 */
 	public byte[] getSource() {
 		return (byte[]) super.getSource();
 	}

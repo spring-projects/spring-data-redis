@@ -59,10 +59,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hSet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<HSetCommand>> hSet(Publisher<HSetCommand> commands) {
 
@@ -90,10 +86,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hMGet(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<MultiValueResponse<HGetCommand, ByteBuffer>> hMGet(Publisher<HGetCommand> commands) {
 
@@ -117,10 +109,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hExists(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<HExistsCommand>> hExists(Publisher<HExistsCommand> commands) {
 
@@ -133,10 +121,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hDel(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<HDelCommand, Long>> hDel(Publisher<HDelCommand> commands) {
 
@@ -150,10 +134,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hLen(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> hLen(Publisher<KeyCommand> commands) {
 
@@ -198,10 +178,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hKeys(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> hKeys(Publisher<KeyCommand> commands) {
 
@@ -215,10 +191,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hKeys(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> hVals(Publisher<KeyCommand> commands) {
 
@@ -232,10 +204,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hGetAll(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hGetAll(
 			Publisher<KeyCommand> commands) {
@@ -250,10 +218,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hScan(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hScan(
 			Publisher<KeyScanCommand> commands) {
@@ -288,10 +252,6 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactiveHashCommands#hstrlen(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<HStrLenCommand, Long>> hStrLen(Publisher<HStrLenCommand> commands) {
 

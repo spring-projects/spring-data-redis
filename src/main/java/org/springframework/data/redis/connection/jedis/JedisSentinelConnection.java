@@ -50,10 +50,6 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		init();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#failover(org.springframework.data.redis.connection.NamedNode)
-	 */
 	@Override
 	public void failover(NamedNode master) {
 
@@ -62,19 +58,11 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		jedis.sentinelFailover(master.getName());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#masters()
-	 */
 	@Override
 	public List<RedisServer> masters() {
 		return JedisConverters.toListOfRedisServer(jedis.sentinelMasters());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#slaves(org.springframework.data.redis.connection.NamedNode)
-	 */
 	@Override
 	public List<RedisServer> slaves(NamedNode master) {
 
@@ -93,10 +81,6 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		return JedisConverters.toListOfRedisServer(jedis.sentinelSlaves(masterName));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#remove(org.springframework.data.redis.connection.NamedNode)
-	 */
 	@Override
 	public void remove(NamedNode master) {
 
@@ -114,10 +98,6 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		jedis.sentinelRemove(masterName);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#monitor(org.springframework.data.redis.connection.RedisServer)
-	 */
 	@Override
 	public void monitor(RedisServer server) {
 
@@ -130,10 +110,6 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 				server.getQuorum().intValue());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.io.Closeable#close()
-	 */
 	@Override
 	public void close() throws IOException {
 		jedis.close();

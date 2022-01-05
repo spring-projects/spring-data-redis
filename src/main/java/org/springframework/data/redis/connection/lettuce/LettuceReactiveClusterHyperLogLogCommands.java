@@ -47,9 +47,6 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 		super(connection);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveHyperLogLogCommands#pfMerge(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands) {
 
@@ -70,9 +67,6 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 		}));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveHyperLogLogCommands#pfCount(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<NumericResponse<PfCountCommand, Long>> pfCount(Publisher<PfCountCommand> commands) {
 

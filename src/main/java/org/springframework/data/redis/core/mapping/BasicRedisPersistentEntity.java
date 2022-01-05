@@ -52,38 +52,22 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 		this.timeToLiveAccessor = timeToLiveAccessor;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getTimeToLiveAccessor()
-	 */
 	@Override
 	public TimeToLiveAccessor getTimeToLiveAccessor() {
 		return this.timeToLiveAccessor;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#hasExplictTimeToLiveProperty()
-	 */
 	@Override
 	public boolean hasExplictTimeToLiveProperty() {
 		return getExplicitTimeToLiveProperty() != null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getExplicitTimeToLiveProperty()
-	 */
 	@Override
 	@Nullable
 	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
 		return this.getPersistentProperty(TimeToLive.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
-	 */
 	@Override
 	@Nullable
 	protected RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {

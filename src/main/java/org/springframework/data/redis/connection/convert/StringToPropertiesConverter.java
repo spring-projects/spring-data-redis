@@ -29,10 +29,6 @@ import org.springframework.data.redis.RedisSystemException;
  */
 public class StringToPropertiesConverter implements Converter<String, Properties> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public Properties convert(String source) {
 

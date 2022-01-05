@@ -70,10 +70,6 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		super(criteriaAccessor, sortAccessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.lang.String, java.lang.Class)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
@@ -156,20 +152,12 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.lang.String)
-	 */
 	@Override
 	public Collection<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
 			String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.QueryEngine#count(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public long count(RedisOperationChain criteria, String keyspace) {
 

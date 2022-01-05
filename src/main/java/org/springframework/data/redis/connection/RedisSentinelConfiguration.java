@@ -132,10 +132,6 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#getSentinels()
-	 */
 	public Set<RedisNode> getSentinels() {
 		return Collections.unmodifiableSet(sentinels);
 	}
@@ -151,20 +147,12 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.sentinels.add(sentinel);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setMaster(org.springframework.data.redis.connection.NamedNode)
-	 */
 	public void setMaster(NamedNode master) {
 
 		Assert.notNull(master, "Sentinel master node must not be 'null'.");
 		this.master = master;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#getMaster()
-	 */
 	public NamedNode getMaster() {
 		return master;
 	}
@@ -216,19 +204,11 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
-	 */
 	@Override
 	public int getDatabase() {
 		return database;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
-	 */
 	@Override
 	public void setDatabase(int index) {
 
@@ -237,38 +217,22 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.database = index;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#setUsername(String)
-	 */
 	@Override
 	public void setUsername(@Nullable String username) {
 		this.dataNodeUsername = username;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithAuthentication#getUsername()
-	 */
 	@Nullable
 	@Override
 	public String getUsername() {
 		return this.dataNodeUsername;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
-	 */
 	@Override
 	public RedisPassword getPassword() {
 		return dataNodePassword;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
-	 */
 	@Override
 	public void setPassword(RedisPassword password) {
 
@@ -277,48 +241,29 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.dataNodePassword = password;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#getSentinelUsername()
-	 */
 	@Nullable
 	@Override
 	public String getSentinelUsername() {
 		return this.sentinelUsername;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelUsername(String)
- 	 */
 	@Override
 	public void setSentinelUsername(@Nullable String sentinelUsername) {
 		this.sentinelUsername = sentinelUsername;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelPassword(org.springframework.data.redis.connection.RedisPassword)
-	 */
+	@Override
 	public void setSentinelPassword(RedisPassword sentinelPassword) {
 
 		Assert.notNull(sentinelPassword, "SentinelPassword must not be null!");
 		this.sentinelPassword = sentinelPassword;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration#setSentinelPassword()
-	 */
 	@Override
 	public RedisPassword getSentinelPassword() {
 		return sentinelPassword;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -349,10 +294,6 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		return ObjectUtils.nullSafeEquals(sentinelPassword, that.sentinelPassword);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		int result = ObjectUtils.nullSafeHashCode(master);

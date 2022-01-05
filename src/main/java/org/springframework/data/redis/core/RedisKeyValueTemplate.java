@@ -63,10 +63,6 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 		return adapter.getConverter();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#getMappingContext()
-	 */
 	@Override
 	public RedisMappingContext getMappingContext() {
 		return (RedisMappingContext) super.getMappingContext();
@@ -125,10 +121,6 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#insert(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public <T> T insert(Object id, T objectToInsert) {
 
@@ -157,10 +149,6 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 		return super.insert(id, objectToInsert);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#update(java.lang.Object)
-	 */
 	@Override
 	public <T> T update(T objectToUpdate) {
 
@@ -200,10 +188,6 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 */
 	public static abstract class RedisKeyValueCallback<T> implements KeyValueCallback<T> {
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.keyvalue.core.KeyValueCallback#doInKeyValue(org.springframework.data.keyvalue.core.KeyValueAdapter)
-		 */
 		@Override
 		public T doInKeyValue(KeyValueAdapter adapter) {
 			return doInRedis((RedisKeyValueAdapter) adapter);

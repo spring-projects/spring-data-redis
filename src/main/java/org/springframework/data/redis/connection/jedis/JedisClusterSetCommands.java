@@ -49,10 +49,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sAdd(byte[], byte[][])
-	 */
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
 
@@ -67,10 +63,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRem(byte[], byte[][])
-	 */
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
 
@@ -85,10 +77,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[])
-	 */
 	@Override
 	public byte[] sPop(byte[] key) {
 
@@ -101,10 +89,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sPop(byte[], long)
-	 */
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
 
@@ -117,10 +101,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMove(byte[], byte[], byte[])
-	 */
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
@@ -144,10 +124,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return Boolean.FALSE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sCard(byte[])
-	 */
 	@Override
 	public Long sCard(byte[] key) {
 
@@ -160,10 +136,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sIsMember(byte[], byte[])
-	 */
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 
@@ -177,10 +149,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMIsMember(byte[], byte[]...)
-	 */
 	@Override
 	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
 
@@ -195,10 +163,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInter(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
@@ -241,10 +205,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return result.asRawSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sInterStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
@@ -269,10 +229,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return sAdd(destKey, result.toArray(new byte[result.size()][]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnion(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
@@ -305,10 +261,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return result.asRawSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sUnionStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
@@ -333,10 +285,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return sAdd(destKey, result.toArray(new byte[result.size()][]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiff(byte[][])
-	 */
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
@@ -372,10 +320,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return values.asRawSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sDiffStore(byte[], byte[][])
-	 */
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
@@ -401,10 +345,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return sAdd(destKey, diff.toArray(new byte[diff.size()][]));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sMembers(byte[])
-	 */
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 
@@ -417,10 +357,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[])
-	 */
 	@Override
 	public byte[] sRandMember(byte[] key) {
 
@@ -433,10 +369,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sRandMember(byte[], long)
-	 */
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
@@ -453,10 +385,6 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
 

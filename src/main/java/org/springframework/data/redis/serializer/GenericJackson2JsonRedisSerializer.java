@@ -108,10 +108,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#serialize(java.lang.Object)
-	 */
 	@Override
 	public byte[] serialize(@Nullable Object source) throws SerializationException {
 
@@ -126,10 +122,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#deserialize(byte[])
-	 */
 	@Override
 	public Object deserialize(@Nullable byte[] source) throws SerializationException {
 		return deserialize(source, Object.class);
@@ -179,10 +171,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			this.classIdentifier = StringUtils.hasText(classIdentifier) ? classIdentifier : "@class";
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see com.fasterxml.jackson.databind.ser.std.StdSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)
-		 */
 		@Override
 		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider)
 				throws IOException {

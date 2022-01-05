@@ -106,10 +106,6 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 		return conversionService;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.convert.RedisTypeMapper#isTypeKey(java.lang.String)
-	 */
 	public boolean isTypeKey(@Nullable String key) {
 		return key != null && typeKey != null && key.endsWith(typeKey);
 	}
@@ -133,10 +129,6 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 			this.conversionService = conversionService;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.convert.TypeAliasAccessor#readAliasFrom(java.lang.Object)
-		 */
 		public Alias readAliasFrom(BucketPropertyPath source) {
 
 			if (typeKey == null || source instanceof List) {
@@ -152,10 +144,6 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 			return Alias.NONE;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.convert.TypeAliasAccessor#writeTypeTo(java.lang.Object, java.lang.Object)
-		 */
 		public void writeTypeTo(BucketPropertyPath sink, Object alias) {
 
 			if (typeKey != null) {

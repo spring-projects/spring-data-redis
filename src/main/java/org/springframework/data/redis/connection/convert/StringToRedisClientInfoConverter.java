@@ -37,10 +37,6 @@ public class StringToRedisClientInfoConverter implements Converter<String[], Lis
 
 	public static final StringToRedisClientInfoConverter INSTANCE = new StringToRedisClientInfoConverter();
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public List<RedisClientInfo> convert(String[] lines) {
 

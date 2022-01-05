@@ -43,10 +43,6 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#createSubscription(org.springframework.data.redis.connection.SubscriptionListener)
-	 */
 	@Override
 	public Mono<ReactiveSubscription> createSubscription(SubscriptionListener listener) {
 
@@ -55,10 +51,6 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 						connection.translateException()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#publish(org.reactivestreams.Publisher)
-	 */
 	@Override
 	public Flux<Long> publish(Publisher<ChannelMessage<ByteBuffer, ByteBuffer>> messageStream) {
 
@@ -68,10 +60,6 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 				.flatMap(message -> commands.publish(message.getChannel(), message.getMessage())));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#subscribe(java.nio.ByteBuffer[])
-	 */
 	@Override
 	public Mono<Void> subscribe(ByteBuffer... channels) {
 
@@ -80,10 +68,6 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 		return doWithPubSub(commands -> commands.subscribe(channels));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.ReactivePubSubCommands#pSubscribe(java.nio.ByteBuffer[])
-	 */
 	@Override
 	public Mono<Void> pSubscribe(ByteBuffer... patterns) {
 

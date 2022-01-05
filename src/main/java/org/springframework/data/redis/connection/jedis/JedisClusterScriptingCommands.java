@@ -39,10 +39,6 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptFlush()
-	 */
 	@Override
 	public void scriptFlush() {
 
@@ -54,10 +50,6 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptKill()
-	 */
 	@Override
 	public void scriptKill() {
 
@@ -69,10 +61,6 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptLoad(byte[])
-	 */
 	@Override
 	public String scriptLoad(byte[] script) {
 
@@ -89,19 +77,11 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#scriptExists(java.lang.String[])
-	 */
 	@Override
 	public List<Boolean> scriptExists(String... scriptShas) {
 		throw new InvalidDataAccessApiUsageException("ScriptExists is not supported in cluster environment.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#eval(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
@@ -116,19 +96,11 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(java.lang.String, org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	public <T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return evalSha(JedisConverters.toBytes(scriptSha), returnType, numKeys, keysAndArgs);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisScriptingCommands#evalSha(byte[], org.springframework.data.redis.connection.ReturnType, int, byte[][])
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {

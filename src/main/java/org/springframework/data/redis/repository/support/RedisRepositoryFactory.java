@@ -75,10 +75,6 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 		this.operations = keyValueOperations;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryFragments(org.springframework.data.repository.core.RepositoryMetadata)
-	 */
 	@Override
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
 
@@ -97,10 +93,6 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 		return fragments;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory#getEntityInformation(java.lang.Class)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {

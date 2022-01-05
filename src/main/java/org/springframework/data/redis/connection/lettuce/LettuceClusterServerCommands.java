@@ -50,46 +50,26 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#bgReWriteAof(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void bgReWriteAof(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::bgrewriteaof, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#bgSave(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void bgSave(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::bgsave, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#lastSave(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Long lastSave(RedisClusterNode node) {
 		return executeCommandOnSingleNode(client -> client.lastsave().getTime(), node).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#save(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void save(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::save, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#dbSize()
-	 */
 	@Override
 	public Long dbSize() {
 
@@ -106,64 +86,36 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return size;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#dbSize(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Long dbSize(RedisClusterNode node) {
 		return executeCommandOnSingleNode(RedisServerCommands::dbsize, node).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#flushDb()
-	 */
 	@Override
 	public void flushDb() {
 		executeCommandOnAllNodes(RedisServerCommands::flushdb);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushDb(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void flushDb(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::flushdb, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#flushAll()
-	 */
 	@Override
 	public void flushAll() {
 		executeCommandOnAllNodes(RedisServerCommands::flushall);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#flushAll(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void flushAll(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::flushall, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#info(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Properties info(RedisClusterNode node) {
 		return LettuceConverters.toProperties(executeCommandOnSingleNode(RedisServerCommands::info, node).getValue());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#info()
-	 */
 	@Override
 	public Properties info() {
 
@@ -181,10 +133,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return infos;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#info(java.lang.String)
-	 */
 	@Override
 	public Properties info(String section) {
 
@@ -203,10 +151,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return infos;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#info(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
-	 */
 	@Override
 	public Properties info(RedisClusterNode node, String section) {
 
@@ -215,10 +159,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return LettuceConverters.toProperties(executeCommandOnSingleNode(client -> client.info(section), node).getValue());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#shutdown(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void shutdown(RedisClusterNode node) {
 
@@ -228,10 +168,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		}, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#getConfig(java.lang.String)
-	 */
 	@Override
 	public Properties getConfig(String pattern) {
 
@@ -251,10 +187,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return properties;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#getConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String)
-	 */
 	@Override
 	public Properties getConfig(RedisClusterNode node, String pattern) {
 
@@ -263,10 +195,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return executeCommandOnSingleNode(client -> Converters.toProperties(client.configGet(pattern)), node).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#setConfig(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public void setConfig(String param, String value) {
 
@@ -276,10 +204,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		executeCommandOnAllNodes(client -> client.configSet(param, value));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#setConfig(org.springframework.data.redis.connection.RedisClusterNode, java.lang.String, java.lang.String)
-	 */
 	@Override
 	public void setConfig(RedisClusterNode node, String param, String value) {
 
@@ -289,55 +213,31 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		executeCommandOnSingleNode(client -> client.configSet(param, value), node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#resetConfigStats()
-	 */
 	@Override
 	public void resetConfigStats() {
 		executeCommandOnAllNodes(RedisServerCommands::configResetstat);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#resetConfigStats(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void resetConfigStats(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::configResetstat, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#rewriteConfig()
-	 */
 	@Override
 	public void rewriteConfig() {
 		executeCommandOnAllNodes(RedisServerCommands::configRewrite);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#rewriteConfig(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public void rewriteConfig(RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::configRewrite, node);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#time(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public Long time(RedisClusterNode node, TimeUnit timeUnit) {
 		return convertListOfStringToTime(executeCommandOnSingleNode(RedisServerCommands::time, node).getValue(), timeUnit);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#getClientList()
-	 */
 	@Override
 	public List<RedisClientInfo> getClientList() {
 
@@ -350,10 +250,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterServerCommands#getClientList(org.springframework.data.redis.connection.RedisClusterNode)
-	 */
 	@Override
 	public List<RedisClientInfo> getClientList(RedisClusterNode node) {
 
@@ -361,20 +257,12 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 				.toListOfRedisClientInformation(executeCommandOnSingleNode(RedisServerCommands::clientList, node).getValue());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#slaveOf(java.lang.String, int)
-	 */
 	@Override
 	public void slaveOf(String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
 				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceServerCommands#slaveOfNoOne()
-	 */
 	@Override
 	public void slaveOfNoOne() {
 		throw new InvalidDataAccessApiUsageException(

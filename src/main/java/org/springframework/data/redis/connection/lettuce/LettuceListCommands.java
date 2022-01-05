@@ -41,10 +41,6 @@ class LettuceListCommands implements RedisListCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#rPush(byte[], byte[][])
-	 */
 	@Override
 	public Long rPush(byte[] key, byte[]... values) {
 
@@ -53,10 +49,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::rpush, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#l{lPos(byte[], byte[], java.lang.Integer, java.lang.Integer)
-	 */
 	@Override
 	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
 
@@ -76,10 +68,6 @@ class LettuceListCommands implements RedisListCommands {
 				.getOrElse(Collections::singletonList, Collections::emptyList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lPush(byte[], byte[][])
-	 */
 	@Override
 	public Long lPush(byte[] key, byte[]... values) {
 
@@ -90,10 +78,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lpush, key, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#rPushX(byte[], byte[])
-	 */
 	@Override
 	public Long rPushX(byte[] key, byte[] value) {
 
@@ -103,10 +87,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::rpushx, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lPushX(byte[], byte[])
-	 */
 	@Override
 	public Long lPushX(byte[] key, byte[] value) {
 
@@ -116,10 +96,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lpushx, key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lLen(byte[])
-	 */
 	@Override
 	public Long lLen(byte[] key) {
 
@@ -128,10 +104,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::llen, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lRange(byte[], long, long)
-	 */
 	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 
@@ -140,10 +112,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lrange, key, start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lTrim(byte[], long, long)
-	 */
 	@Override
 	public void lTrim(byte[] key, long start, long end) {
 
@@ -152,10 +120,6 @@ class LettuceListCommands implements RedisListCommands {
 		connection.invokeStatus().just(RedisListAsyncCommands::ltrim, key, start, end);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lIndex(byte[], long)
-	 */
 	@Override
 	public byte[] lIndex(byte[] key, long index) {
 
@@ -164,10 +128,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lindex, key, index);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lInsert(byte[], org.springframework.data.redis.connection.RedisListCommands.Position, byte[], byte[])
-	 */
 	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 
@@ -177,10 +137,6 @@ class LettuceListCommands implements RedisListCommands {
 				value);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction)
-	 */
 	@Override
 	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
 
@@ -194,10 +150,6 @@ class LettuceListCommands implements RedisListCommands {
 
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bLMove(byte[], byte[], org.springframework.data.redis.connection.RedisListCommands.Direction, org.springframework.data.redis.connection.RedisListCommands.Direction, double)
-	 */
 	@Override
 	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
 
@@ -210,10 +162,6 @@ class LettuceListCommands implements RedisListCommands {
 				destinationKey, LettuceConverters.toLmoveArgs(from, to), timeout);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lSet(byte[], long, byte[])
-	 */
 	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
 
@@ -223,10 +171,6 @@ class LettuceListCommands implements RedisListCommands {
 		connection.invokeStatus().just(RedisListAsyncCommands::lset, key, index, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lRem(byte[], long, byte[])
-	 */
 	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 
@@ -236,10 +180,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lrem, key, count, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[])
-	 */
 	@Override
 	public byte[] lPop(byte[] key) {
 
@@ -248,10 +188,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lpop, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#lPop(byte[], long)
-	 */
 	@Override
 	public List<byte[]> lPop(byte[] key, long count) {
 
@@ -260,10 +196,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::lpop, key, count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[])
-	 */
 	@Override
 	public byte[] rPop(byte[] key) {
 
@@ -272,10 +204,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::rpop, key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#rPop(byte[], long)
-	 */
 	@Override
 	public List<byte[]> rPop(byte[] key, long count) {
 
@@ -284,10 +212,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::rpop, key, count);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, byte[][])
-	 */
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 
@@ -298,10 +222,6 @@ class LettuceListCommands implements RedisListCommands {
 				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, byte[][])
-	 */
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 
@@ -312,10 +232,6 @@ class LettuceListCommands implements RedisListCommands {
 				.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceListCommands::toBytesList);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#rPopLPush(byte[], byte[])
-	 */
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 
@@ -325,10 +241,6 @@ class LettuceListCommands implements RedisListCommands {
 		return connection.invoke().just(RedisListAsyncCommands::rpoplpush, srcKey, dstKey);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPopLPush(int, byte[], byte[])
-	 */
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 

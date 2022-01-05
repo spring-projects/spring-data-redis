@@ -77,10 +77,6 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		this.unmarshaller = unmarshaller;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	@Override
 	public void afterPropertiesSet() {
 
@@ -88,10 +84,6 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		Assert.state(unmarshaller != null, "non-null unmarshaller required");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#deserialize(byte[])
-	 */
 	@Override
 	public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
 
@@ -106,10 +98,6 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#serialize(java.lang.Object)
-	 */
 	@Override
 	public byte[] serialize(@Nullable Object t) throws SerializationException {
 

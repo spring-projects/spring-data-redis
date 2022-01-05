@@ -31,10 +31,6 @@ import org.springframework.lang.Nullable;
 public interface RedisConverter
 		extends EntityConverter<RedisPersistentEntity<?>, RedisPersistentProperty, Object, RedisData> {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.convert.EntityConverter#getMappingContext()
-	 */
 	@Override
 	RedisMappingContext getMappingContext();
 

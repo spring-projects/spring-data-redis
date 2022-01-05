@@ -28,10 +28,6 @@ public enum MapToPropertiesConverter implements Converter<Map<?, ?>, Properties>
 
 	INSTANCE;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(Object)
-	 */
 	@Override
 	public Properties convert(Map<?, ?> source) {
 

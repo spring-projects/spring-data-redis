@@ -203,10 +203,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	protected RedisKeyValueAdapter() {}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.lang.Object, java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public Object put(Object id, Object item, String keyspace) {
 
@@ -270,10 +266,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return item;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#contains(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public boolean contains(Object id, String keyspace) {
 
@@ -283,20 +275,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return exists != null ? exists : false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.lang.Object, java.lang.String)
-	 */
 	@Nullable
 	@Override
 	public Object get(Object id, String keyspace) {
 		return get(id, keyspace, Object.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.lang.Object, java.lang.String, java.lang.Class)
-	 */
 	@Nullable
 	@Override
 	public <T> T get(Object id, String keyspace, Class<T> type) {
@@ -320,19 +304,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return readBackTimeToLiveIfSet(binId, converter.read(type, data));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#delete(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public Object delete(Object id, String keyspace) {
 		return delete(id, keyspace, Object.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.AbstractKeyValueAdapter#delete(java.lang.Object, java.lang.String, java.lang.Class)
-	 */
 	@Override
 	public <T> T delete(Object id, String keyspace, Class<T> type) {
 
@@ -367,19 +343,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return o;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.lang.String)
-	 */
 	@Override
 	public List<?> getAllOf(String keyspace) {
 		return getAllOf(keyspace, Object.class, -1, -1);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.lang.String, java.lang.Class)
-	 */
 	@Override
 	public <T> Iterable<T> getAllOf(String keyspace, Class<T> type) {
 		return getAllOf(keyspace, type, -1, -1);
@@ -420,10 +388,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#deleteAllOf(java.lang.String)
-	 */
 	@Override
 	public void deleteAllOf(String keyspace) {
 
@@ -435,19 +399,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#entries(java.lang.String)
-	 */
 	@Override
 	public CloseableIterator<Entry<Object, Object>> entries(String keyspace) {
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#count(java.lang.String)
-	 */
 	@Override
 	public long count(String keyspace) {
 
@@ -736,10 +692,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	public void destroy() throws Exception {
 
 		if (this.expirationListener.get() != null) {
@@ -751,19 +703,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.ApplicationListener#onApplicationEvent(org.springframework.context.ApplicationEvent)
-	 */
 	@Override
 	public void onApplicationEvent(RedisKeyspaceEvent event) {
 		// just a customization hook
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
-	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.eventPublisher = applicationContext;
@@ -823,10 +767,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			this.converter = converter;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.listener.KeyspaceEventMessageListener#onMessage(org.springframework.data.redis.connection.Message, byte[])
-		 */
 		@Override
 		public void onMessage(Message message, @Nullable byte[] pattern) {
 

@@ -55,10 +55,6 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 		this.redisOperations = redisOperations;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(jakarta.enterprise.context.spi.CreationalContext, java.lang.Class)
-	 */
 	@Override
 	public RedisKeyValueAdapter create(CreationalContext<RedisKeyValueAdapter> creationalContext) {
 

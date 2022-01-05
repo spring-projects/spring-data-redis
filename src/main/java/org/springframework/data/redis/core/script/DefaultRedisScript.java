@@ -70,18 +70,10 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 		this.resultType = resultType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
 	public void afterPropertiesSet() {
 		Assert.state(this.scriptSource != null, "Either script, script location," + " or script source is required");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.RedisScript#getSha1()
-	 */
 	public String getSha1() {
 
 		synchronized (shaModifiedMonitor) {
@@ -92,19 +84,11 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.RedisScript#getResultType()
-	 */
 	@Nullable
 	public Class<T> getResultType() {
 		return this.resultType;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.script.RedisScript#getScriptAsString()
-	 */
 	public String getScriptAsString() {
 
 		try {

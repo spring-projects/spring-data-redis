@@ -88,10 +88,6 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		this.connection = connectionFactory.getReactiveConnection();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
 	@Override
 	public void destroy() {
 		destroyLater().block();

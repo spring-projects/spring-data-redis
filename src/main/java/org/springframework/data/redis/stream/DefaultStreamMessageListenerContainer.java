@@ -121,19 +121,11 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		return template;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.SmartLifecycle#isAutoStartup()
-	 */
 	@Override
 	public boolean isAutoStartup() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.SmartLifecycle#stop(java.lang.Runnable)
-	 */
 	@Override
 	public void stop(Runnable callback) {
 
@@ -141,10 +133,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		callback.run();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.Lifecycle#start()
-	 */
 	@Override
 	public void start() {
 
@@ -165,10 +153,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.Lifecycle#stop()
-	 */
 	@Override
 	public void stop() {
 
@@ -183,10 +167,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.Lifecycle#isRunning()
-	 */
 	@Override
 	public boolean isRunning() {
 
@@ -195,19 +175,11 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.Phased#getPhase()
-	 */
 	@Override
 	public int getPhase() {
 		return Integer.MAX_VALUE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.stream.StreamMessageListenerContainer#register(org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest, org.springframework.data.redis.stream.StreamListener)
-	 */
 	@Override
 	public Subscription register(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {
 		return doRegister(getReadTask(streamRequest, listener));
@@ -279,10 +251,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		return subscription;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mongodb.monitor.MessageListenerContainer#remove(org.springframework.data.mongodb.monitor.Subscription)
-	 */
 	@Override
 	public void remove(Subscription subscription) {
 
@@ -317,28 +285,16 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 			return task;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.stream.Subscription#isActive()
-		 */
 		@Override
 		public boolean isActive() {
 			return task.isActive();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.stream.Subscription#await(java.time.Duration)
-		 */
 		@Override
 		public boolean await(Duration timeout) throws InterruptedException {
 			return task.awaitStart(timeout);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.stream.Cancelable#cancel()
-		 */
 		@Override
 		public void cancel() throws DataAccessResourceFailureException {
 			task.cancel();
@@ -378,10 +334,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 			this.logger = LogFactory.getLog(LoggingErrorHandler.class);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.util.ErrorHandler#handleError(java.lang.Throwable)
-		 */
 		public void handleError(Throwable t) {
 
 			if (this.logger.isErrorEnabled()) {

@@ -113,10 +113,6 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 		return builder.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getTypes()
-	 */
 	public Set<Type> getTypes() {
 
 		Set<Type> types = new HashSet<>();
@@ -150,10 +146,6 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 		create(beanManager.createCreationalContext(this));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.context.spi.Contextual#destroy(java.lang.Object, jakarta.enterprise.context.spi.CreationalContext)
-	 */
 	public void destroy(T instance, CreationalContext<T> creationalContext) {
 
 		if (log.isDebugEnabled()) {
@@ -164,28 +156,16 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 		creationalContext.release();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getQualifiers()
-	 */
 	public Set<Annotation> getQualifiers() {
 		return qualifiers;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getName()
-	 */
 	public String getName() {
 
 		return getQualifiers().contains(Default.class) ? beanClass.getName()
 				: beanClass.getName() + "-" + getQualifiers().toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getStereotypes()
-	 */
 	public Set<Class<? extends Annotation>> getStereotypes() {
 
 		Set<Class<? extends Annotation>> stereotypes = new HashSet<>();
@@ -200,58 +180,30 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 		return stereotypes;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getBeanClass()
-	 */
 	public Class<?> getBeanClass() {
 		return beanClass;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#isAlternative()
-	 */
 	public boolean isAlternative() {
 		return beanClass.isAnnotationPresent(Alternative.class);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#isNullable()
-	 */
 	public boolean isNullable() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getInjectionPoints()
-	 */
 	public Set<InjectionPoint> getInjectionPoints() {
 		return Collections.emptySet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.Bean#getScope()
-	 */
 	public Class<? extends Annotation> getScope() {
 		return ApplicationScoped.class;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see jakarta.enterprise.inject.spi.PassivationCapable#getId()
-	 */
 	public String getId() {
 		return passivationId;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return String.format("CdiBean: type='%s', qualifiers=%s", beanClass.getName(), qualifiers.toString());

@@ -141,19 +141,11 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		return subCommands;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
-	 */
 	@Override
 	public Iterator<BitFieldSubCommand> iterator() {
 		return subCommands.iterator();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -166,19 +158,11 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		return ObjectUtils.nullSafeEquals(subCommands, that.subCommands);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		return ObjectUtils.nullSafeHashCode(subCommands);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		final StringBuffer sb = new StringBuffer();
@@ -442,19 +426,11 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return (isZeroBased() ? "" : "#") + getValue();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			return asString();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -471,10 +447,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return zeroBased == that.zeroBased;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 			int result = (int) (offset ^ (offset >>> 32));
@@ -571,10 +543,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return (isSigned() ? "i" : "u") + getBits();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -591,10 +559,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return bits == that.bits;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 			int result = (signed ? 1 : 0);
@@ -602,10 +566,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			return asString();
@@ -621,28 +581,16 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		BitFieldType type;
 		Offset offset;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getType()
-		 */
 		@Override
 		public BitFieldType getType() {
 			return type;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getOffset()
-		 */
 		@Override
 		public Offset getOffset() {
 			return offset;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -662,10 +610,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return ObjectUtils.nullSafeEquals(offset, that.offset);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 
@@ -674,10 +618,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			StringBuffer sb = new StringBuffer();
@@ -721,10 +661,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return instance;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
-		 */
 		@Override
 		public String getCommand() {
 			return "SET";
@@ -739,10 +675,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return value;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) {
@@ -761,10 +693,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return true;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 			int result = super.hashCode();
@@ -772,10 +700,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			StringBuffer sb = new StringBuffer();
@@ -816,10 +740,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return instance;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
-		 */
 		@Override
 		public String getCommand() {
 			return "GET";
@@ -875,10 +795,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return instance;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.StringRedisConnection.BitFieldSubCommand#getCommand()
-		 */
 		@Override
 		public String getCommand() {
 			return "INCRBY";
@@ -910,10 +826,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			SAT, FAIL, WRAP
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object o) {
 
@@ -930,10 +842,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return overflow == that.overflow;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
 		@Override
 		public int hashCode() {
 
@@ -942,10 +850,6 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			return result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			StringBuffer sb = new StringBuffer();

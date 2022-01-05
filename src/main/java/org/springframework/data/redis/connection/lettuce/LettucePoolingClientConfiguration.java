@@ -97,10 +97,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			super();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#useSsl()
-		 */
 		@Override
 		public LettucePoolingSslClientConfigurationBuilder useSsl() {
 
@@ -108,10 +104,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return new LettucePoolingSslClientConfigurationBuilder(this);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientResources(io.lettuce.core.resource.ClientResources)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder clientResources(ClientResources clientResources) {
 
@@ -119,10 +111,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientOptions(io.lettuce.core.ClientOptions)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder clientOptions(ClientOptions clientOptions) {
 
@@ -130,10 +118,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#commandTimeout(java.time.Duration)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder commandTimeout(Duration timeout) {
 
@@ -141,10 +125,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownTimeout(java.time.Duration)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
 
@@ -152,10 +132,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#shutdownQuietPeriod(java.time.Duration)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder shutdownQuietPeriod(Duration shutdownQuietPeriod) {
 
@@ -163,20 +139,12 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#readFrom(io.lettuce.core.ReadFrom)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder readFrom(ReadFrom readFrom) {
 			super.readFrom(readFrom);
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#clientName(String)
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder clientName(String clientName) {
 			super.clientName(clientName);
@@ -196,10 +164,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder#build()
-		 */
 		@Override
 		public LettucePoolingClientConfiguration build() {
 			return new DefaultLettucePoolingClientConfiguration(super.build(), poolConfig);
@@ -215,19 +179,11 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			super(delegate);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#and()
-		 */
 		@Override
 		public LettucePoolingClientConfigurationBuilder and() {
 			return (LettucePoolingClientConfigurationBuilder) super.and();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#disablePeerVerification()
-		 */
 		@Override
 		public LettucePoolingSslClientConfigurationBuilder disablePeerVerification() {
 
@@ -235,10 +191,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#startTls()
-		 */
 		@Override
 		public LettucePoolingSslClientConfigurationBuilder startTls() {
 
@@ -246,10 +198,6 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 			return this;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceSslClientConfigurationBuilder#build()
-		 */
 		@Override
 		public LettucePoolingClientConfiguration build() {
 			return (LettucePoolingClientConfiguration) super.build();

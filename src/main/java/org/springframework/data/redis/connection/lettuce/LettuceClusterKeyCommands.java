@@ -50,10 +50,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		this.connection = connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#randomKey()
-	 */
 	@Override
 	public byte[] randomKey() {
 
@@ -78,10 +74,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#keys(byte[])
-	 */
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
@@ -99,10 +91,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		return keys;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#rename(byte[], byte[])
-	 */
 	@Override
 	public void rename(byte[] oldKey, byte[] newKey) {
 
@@ -123,10 +111,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#renameNX(byte[], byte[])
-	 */
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
@@ -148,19 +132,11 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		return Boolean.FALSE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#move(byte[], int)
-	*/
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 		throw new UnsupportedOperationException("MOVE not supported in CLUSTER mode!");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#randomKey(org.springframework.data.redis.connection.RedisClusterNode)
-	*/
 	@Nullable
 	public byte[] randomKey(RedisClusterNode node) {
 
@@ -169,10 +145,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 				.getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterConnection#keys(org.springframework.data.redis.connection.RedisClusterNode, byte[])
-	 */
 	@Nullable
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 
@@ -215,10 +187,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 				}, node).getValue();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#sort(byte[], org.springframework.data.redis.connection.SortParameters, byte[])
-	 */
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 
