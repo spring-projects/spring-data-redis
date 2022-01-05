@@ -86,6 +86,7 @@ import org.springframework.util.CollectionUtils;
  * @author Denis Zavedeev
  * @author ihaohong
  * @author Chen Li
+ * @author Vedran Pavic
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -942,14 +943,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public void convertAndSend(String channel, Object message) {
+	public Long convertAndSend(String channel, Object message) {
 
 		Assert.hasText(channel, "a non-empty channel is required");
 
 		byte[] rawChannel = rawString(channel);
 		byte[] rawMessage = rawValue(message);
 
-		executeWithoutResult(connection -> connection.publish(rawChannel, rawMessage));
+		return execute(connection -> connection.publish(rawChannel, rawMessage), true);
 	}
 
 	private void executeWithoutResult(Consumer<RedisConnection> action) {

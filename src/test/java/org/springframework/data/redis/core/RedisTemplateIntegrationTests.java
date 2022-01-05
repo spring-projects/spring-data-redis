@@ -63,6 +63,7 @@ import org.springframework.data.redis.test.util.CollectionAwareComparator;
  * @author ihaohong
  * @author Hendrik Duerkop
  * @author Chen Li
+ * @author Vedran Pavic
  */
 @MethodSource("testParams")
 public class RedisTemplateIntegrationTests<K, V> {
@@ -815,10 +816,10 @@ public class RedisTemplateIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
-	public void testConvertAndSend() {
+	void testConvertAndSend() {
 		V value1 = valueFactory.instance();
 		// Make sure basic message sent without Exception on serialization
-		redisTemplate.convertAndSend("Channel", value1);
+		assertThat(redisTemplate.convertAndSend("Channel", value1)).isEqualTo(0L);
 	}
 
 	@ParameterizedRedisTest

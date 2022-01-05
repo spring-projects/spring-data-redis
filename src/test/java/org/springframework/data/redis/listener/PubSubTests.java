@@ -49,6 +49,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Vedran Pavic
  */
 @MethodSource("testParams")
 public class PubSubTests<T> {
@@ -124,14 +125,13 @@ public class PubSubTests<T> {
 		return factory.instance();
 	}
 
-	@SuppressWarnings("unchecked")
 	@ParameterizedRedisTest
-	void testContainerSubscribe() throws Exception {
+	void testContainerSubscribe() {
 		T payload1 = getT();
 		T payload2 = getT();
 
-		template.convertAndSend(CHANNEL, payload1);
-		template.convertAndSend(CHANNEL, payload2);
+		assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
+		assertThat(template.convertAndSend(CHANNEL, payload2)).isEqualTo(1L);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload1) && bag.contains(payload2));
 	}
@@ -140,7 +140,7 @@ public class PubSubTests<T> {
 	void testMessageBatch() throws Exception {
 		int COUNT = 10;
 		for (int i = 0; i < COUNT; i++) {
-			template.convertAndSend(CHANNEL, getT());
+			assertThat(template.convertAndSend(CHANNEL, getT())).isEqualTo(1L);
 		}
 
 		for (int i = 0; i < COUNT; i++) {
@@ -155,8 +155,8 @@ public class PubSubTests<T> {
 		T payload2 = getT();
 
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
-		template.convertAndSend(CHANNEL, payload1);
-		template.convertAndSend(CHANNEL, payload2);
+		assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
+		assertThat(template.convertAndSend(CHANNEL, payload2)).isEqualTo(1L);
 
 		assertThat(bag.poll(200, TimeUnit.MILLISECONDS)).isNull();
 	}
@@ -169,9 +169,8 @@ public class PubSubTests<T> {
 		container.start();
 	}
 
-	@SuppressWarnings("unchecked")
 	@ParameterizedRedisTest // DATAREDIS-251, GH-964
-	void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
+	void testStartListenersToNoSpecificChannelTest() {
 
 		assumeThat(isClusterAware(template.getConnectionFactory())).isFalse();
 
@@ -181,7 +180,7 @@ public class PubSubTests<T> {
 
 		T payload = getT();
 
-		template.convertAndSend(CHANNEL, payload);
+		assertThat(template.convertAndSend(CHANNEL, payload)).isEqualTo(1L);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload));
 	}

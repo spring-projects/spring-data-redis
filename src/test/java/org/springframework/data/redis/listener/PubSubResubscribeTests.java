@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.listener;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.*;
 import static org.junit.Assume.*;
 
@@ -53,6 +54,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Vedran Pavic
  */
 @MethodSource("testParams")
 @EnabledIfLongRunningTest
@@ -126,7 +128,7 @@ public class PubSubResubscribeTests {
 
 	@ParameterizedRedisTest
 	@EnabledIfLongRunningTest
-	void testContainerPatternResubscribe() throws Exception {
+	void testContainerPatternResubscribe() {
 
 		String payload1 = "do";
 		String payload2 = "re mi";
@@ -143,11 +145,11 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(anotherListener, new PatternTopic(PATTERN));
 
 		// Wait for async subscription tasks to setup
-		Thread.sleep(400);
-
-		// test no messages are sent just to patterns
-		template.convertAndSend(CHANNEL, payload1);
-		template.convertAndSend(ANOTHER_CHANNEL, payload2);
+		await().atMost(Duration.ofMillis(600)).untilAsserted(() -> {
+			// test no messages are sent just to patterns
+			assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
+			assertThat(template.convertAndSend(ANOTHER_CHANNEL, payload2)).isEqualTo(1L);
+		});
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 
@@ -155,10 +157,10 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
 
 		// Wait for async subscription tasks to setup
-		Thread.sleep(400);
-
-		template.convertAndSend(CHANNEL, payload1);
-		template.convertAndSend(ANOTHER_CHANNEL, payload2);
+		await().atMost(Duration.ofMillis(400)).untilAsserted(() -> {
+			assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
+			assertThat(template.convertAndSend(ANOTHER_CHANNEL, payload2)).isEqualTo(2L);
+		});
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload2));
 
@@ -167,7 +169,7 @@ public class PubSubResubscribeTests {
 	}
 
 	@ParameterizedRedisTest
-	void testContainerChannelResubscribe() throws Exception {
+	void testContainerChannelResubscribe() {
 
 		String payload1 = "do";
 		String payload2 = "re mi";
@@ -183,15 +185,15 @@ public class PubSubResubscribeTests {
 
 		// timing: There's currently no other way to synchronize
 		// than to hope the subscribe/unsubscribe are executed within the time.
-		Thread.sleep(400);
+		await().atMost(Duration.ofMillis(400)).untilAsserted(() -> {
+			// Listener removed from channel
+			assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(0L);
+			assertThat(template.convertAndSend(CHANNEL, payload2)).isEqualTo(0L);
 
-		// Listener removed from channel
-		template.convertAndSend(CHANNEL, payload1);
-		template.convertAndSend(CHANNEL, payload2);
-
-		// Listener receives messages on another channel
-		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
-		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
+			// Listener receives messages on another channel
+			assertThat(template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1)).isEqualTo(1L);
+			assertThat(template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2)).isEqualTo(1L);
+		});
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(anotherPayload1) && bag.contains(anotherPayload2));
 	}
@@ -199,11 +201,9 @@ public class PubSubResubscribeTests {
 	/**
 	 * Validates the behavior of {@link RedisMessageListenerContainer} when it needs to spin up a thread executing its
 	 * PatternSubscriptionTask
-	 *
-	 * @throws Exception
 	 */
 	@ParameterizedRedisTest
-	void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
+	void testInitializeContainerWithMultipleTopicsIncludingPattern() {
 
 		assumeFalse(isClusterAware(template.getConnectionFactory()));
 
@@ -217,10 +217,10 @@ public class PubSubResubscribeTests {
 
 		// timing: There's currently no other way to synchronize
 		// than to hope the subscribe/unsubscribe are executed within the time.
-		Thread.sleep(250);
-
-		template.convertAndSend("somechannel", "HELLO");
-		template.convertAndSend(uniqueChannel, "WORLD");
+		await().atMost(Duration.ofMillis(250)).untilAsserted(() -> {
+			assertThat(template.convertAndSend("somechannel", "HELLO")).isEqualTo(1L);
+			assertThat(template.convertAndSend(uniqueChannel, "WORLD")).isEqualTo(1L);
+		});
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains("HELLO") && bag.contains("WORLD"));
 	}

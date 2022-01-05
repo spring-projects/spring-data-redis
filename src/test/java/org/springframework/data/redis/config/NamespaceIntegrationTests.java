@@ -27,6 +27,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 /**
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Vedran Pavic
  */
 @SpringJUnitConfig(locations = "namespace.xml")
 class NamespaceIntegrationTests {
@@ -43,8 +44,8 @@ class NamespaceIntegrationTests {
 	}
 
 	@Test
-	void testWithMessages() throws Exception {
-		template.convertAndSend("x1", "[X]test");
-		template.convertAndSend("z1", "[Z]test");
+	void testWithMessages() {
+		assertThat(template.convertAndSend("x1", "[X]test")).isEqualTo(1L);
+		assertThat(template.convertAndSend("z1", "[Z]test")).isEqualTo(1L);
 	}
 }
