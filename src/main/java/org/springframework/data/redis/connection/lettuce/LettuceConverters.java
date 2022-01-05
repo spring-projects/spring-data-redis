@@ -515,11 +515,11 @@ public abstract class LettuceConverters extends Converters {
 
 			String sentinelUsername = sentinelConfiguration.getSentinelUsername();
 			if (StringUtils.hasText(sentinelUsername) && sentinelPassword.isPresent()) {
-			   // See https://github.com/lettuce-io/lettuce-core/issues/1404
-			   sentinelBuilder.withAuthentication(sentinelUsername, new String(sentinelPassword.toOptional().orElse((new char[0]))));
-		    } else {
-			    sentinelPassword.toOptional().ifPresent(sentinelBuilder::withPassword);
-		    }
+				// See https://github.com/lettuce-io/lettuce-core/issues/1404
+				sentinelBuilder.withAuthentication(sentinelUsername, new String(sentinelPassword.toOptional().orElse((new char[0]))));
+			} else {
+				sentinelPassword.toOptional().ifPresent(sentinelBuilder::withPassword);
+			}
 
 			builder.withSentinel(sentinelBuilder.build());
 		}

@@ -139,7 +139,7 @@ class RedisSentinelConfigurationUnitTests {
 		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton(HOST_AND_PORT_1));
 		configuration.setSentinelUsername("sentinel-admin");
- 	    configuration.setUsername("app");
+		configuration.setUsername("app");
 
 		assertThat(configuration.getSentinelUsername()).isEqualTo("sentinel-admin");
 	}
