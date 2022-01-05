@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 the original author or authors.
+ * Copyright 2011-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author ihaohong
  * @author Todd Merrill
+ * @author Vedran Pavic
  */
 public interface RedisOperations<K, V> {
 
@@ -580,9 +581,11 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param destination the channel to publish to, must not be {@literal null}.
 	 * @param message message to publish
+	 * @return the number of clients that received the message
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
-	void convertAndSend(String destination, Object message);
+	@Nullable
+	Long convertAndSend(String destination, Object message);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 the original author or authors.
+ * Copyright 2011-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Denis Zavedeev
  * @author ihaohong
+ * @author Vedran Pavic
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -837,17 +838,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see org.springframework.data.redis.core.RedisOperations#convertAndSend(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public void convertAndSend(String channel, Object message) {
+	public Long convertAndSend(String channel, Object message) {
 
 		Assert.hasText(channel, "a non-empty channel is required");
 
 		byte[] rawChannel = rawString(channel);
 		byte[] rawMessage = rawValue(message);
 
-		execute(connection -> {
-			connection.publish(rawChannel, rawMessage);
-			return null;
-		}, true);
+		return execute(connection -> connection.publish(rawChannel, rawMessage), true);
 	}
 
 	//
