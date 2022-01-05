@@ -514,7 +514,7 @@ public abstract class LettuceConverters extends Converters {
 			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getHost(), sentinel.getPort());
 
 			String sentinelUsername = sentinelConfiguration.getSentinelUsername();
-			if (StringUtils.hasText(sentinelUsername)) {
+			if (StringUtils.hasText(sentinelUsername) && sentinelPassword.isPresent()) {
 			   // See https://github.com/lettuce-io/lettuce-core/issues/1404
 			   sentinelBuilder.withAuthentication(sentinelUsername, new String(sentinelPassword.toOptional().orElse((new char[0]))));
 		    } else {
