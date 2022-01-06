@@ -70,6 +70,7 @@ import org.springframework.util.Assert;
  * @author Tao Chen
  * @author Chen Guanqun
  * @author Pavel Khokhlov
+ * @author Liming Deng
  * @since 1.7
  */
 public class JedisClusterConnection implements DefaultedRedisClusterConnection {
@@ -749,13 +750,10 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
 
-		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor
-				.executeCommandAsyncOnNodes((JedisClusterCommandCallback<Collection<RedisClusterNode>>) client -> {
-
-					// TODO: remove client.eval as soon as Jedis offers support for myid
-					return JedisConverters.toSetOfRedisClusterNodes(
-							client.clusterSlaves((String) client.eval("return redis.call('cluster', 'myid')", 0)));
-				}, topologyProvider.getTopology().getActiveMasterNodes()).getResults();
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor.executeCommandAsyncOnNodes(
+				(JedisClusterCommandCallback<Collection<RedisClusterNode>>) client -> JedisConverters
+						.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId())),
+				topologyProvider.getTopology().getActiveMasterNodes()).getResults();
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<>();
 
