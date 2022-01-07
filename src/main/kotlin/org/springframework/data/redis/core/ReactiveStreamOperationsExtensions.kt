@@ -263,6 +263,7 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.reverseR
  * Coroutines variant of [ReactiveStreamOperations.trim].
  *
  * @author Mark Paluch
+ * @author Quantum64@github
  * @since 2.2
  */
 @JvmOverloads // Maintain compatibility with versions <= 2.6.0
