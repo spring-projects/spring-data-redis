@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
+ * Unit tests for {@link LettuceConverters}.
+ *
  * @author Christoph Strobl
  * @author Vikas Garg
  */
@@ -256,54 +258,73 @@ class LettuceConvertersUnitTests {
 				.isEqualTo(new GetExArgs().pxAt(10));
 	}
 
-	@Test
+	@Test // GH-2218
 	void sentinelConfigurationWithAuth() {
-		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
+
+		RedisPassword dataPassword = RedisPassword.of("data-secret");
+		RedisPassword sentinelPassword = RedisPassword.of("sentinel-secret");
+
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
 				.master(MASTER_NAME)
 				.sentinel("127.0.0.1", 26379)
 				.sentinel("127.0.0.1", 26380);
-		sentinelConfiguration.setSentinelUsername("admin");
-		sentinelConfiguration.setSentinelPassword(password);
 		sentinelConfiguration.setUsername("app");
-		sentinelConfiguration.setPassword(password);
+		sentinelConfiguration.setPassword(dataPassword);
+
+		sentinelConfiguration.setSentinelUsername("admin");
+		sentinelConfiguration.setSentinelPassword(sentinelPassword);
+
 		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+
 		assertThat(redisURI.getUsername()).isEqualTo("app");
+		assertThat(redisURI.getPassword()).isEqualTo(dataPassword.get());
+
 		redisURI.getSentinels().forEach(sentinel -> {
 			assertThat(sentinel.getUsername()).isEqualTo("admin");
+			assertThat(sentinel.getPassword()).isEqualTo(sentinelPassword.get());
 		});
 	}
 
-	@Test
+	@Test // GH-2218
 	void sentinelConfigurationSetSentinelPasswordIfUsernameNotPresent() {
+
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
+
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
 				.master(MASTER_NAME)
 				.sentinel("127.0.0.1", 26379)
 				.sentinel("127.0.0.1", 26380);
-		sentinelConfiguration.setSentinelPassword(password);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(password);
+		sentinelConfiguration.setSentinelPassword(password);
+
 		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+
 		assertThat(redisURI.getUsername()).isEqualTo("app");
+
 		redisURI.getSentinels().forEach(sentinel -> {
  			assertThat(sentinel.getUsername()).isNull();
 			assertThat(sentinel.getPassword()).isNotNull();
 		});
 	}
 
-	@Test
+	@Test // GH-2218
 	void sentinelConfigurationShouldNotSetSentinelAuthIfUsernameIsPresentWithNoPassword() {
+
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
+
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
 				.master(MASTER_NAME)
 				.sentinel("127.0.0.1", 26379)
 				.sentinel("127.0.0.1", 26380);
-		sentinelConfiguration.setSentinelUsername("admin");
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(password);
+		sentinelConfiguration.setSentinelUsername("admin");
+
 		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+
 		assertThat(redisURI.getUsername()).isEqualTo("app");
+
 		redisURI.getSentinels().forEach(sentinel -> {
 			assertThat(sentinel.getUsername()).isNull();
 			assertThat(sentinel.getPassword()).isNull();

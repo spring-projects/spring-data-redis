@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2021 the original author or authors.
+ * Copyright 2015-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,12 @@ import java.util.HashSet;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
 import org.springframework.util.StringUtils;
 
 /**
+ * Unit tests for {@link RedisSentinelConfiguration}.
+ *
  * @author Christoph Strobl
  * @author Vikas Garg
  */
@@ -134,13 +135,14 @@ class RedisSentinelConfigurationUnitTests {
 		assertThat(configuration.getSentinelPassword()).isEqualTo(RedisPassword.none());
 	}
 
-	@Test
+	@Test // GH-2218
 	void dataNodeUsernameDoesNotAffectSentinelUsername() {
 		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton(HOST_AND_PORT_1));
+		configuration.setUsername("data-admin");
 		configuration.setSentinelUsername("sentinel-admin");
-		configuration.setUsername("app");
 
+		assertThat(configuration.getDataNodeUsername()).isEqualTo("data-admin");
 		assertThat(configuration.getSentinelUsername()).isEqualTo("sentinel-admin");
 	}
 
@@ -158,17 +160,19 @@ class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels()).hasSize(1).contains(new RedisNode("127.0.0.1", 123));
 	}
 
-	@Test
+	@Test // GH-2218
 	void readSentinelUsernameFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
 		propertySource.setProperty("spring.redis.sentinel.nodes", HOST_AND_PORT_1);
 		propertySource.setProperty("spring.redis.sentinel.username", "sentinel-admin");
+		propertySource.setProperty("spring.redis.sentinel.password", "foo");
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
 
-		assertThat(config.getSentinelUsername()).isEqualTo(RedisPassword.of("sentinel-admin"));
+		assertThat(config.getSentinelUsername()).isEqualTo("sentinel-admin");
+		assertThat(config.getSentinelPassword()).isEqualTo(RedisPassword.of("foo"));
 		assertThat(config.getSentinels()).hasSize(1).contains(new RedisNode("127.0.0.1", 123));
 	}
 }

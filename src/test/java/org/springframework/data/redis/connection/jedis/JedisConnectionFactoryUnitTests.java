@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -280,6 +280,20 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSentinelConfiguration()).isSameAs(configuration);
 		assertThat(connectionFactory.getClusterConfiguration()).isNull();
+	}
+
+	@Test // GH-2218
+	void shouldConsiderSentinelAuthentication() {
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
+		configuration.setSentinelUsername("sentinel");
+		configuration.setSentinelPassword("the-password");
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.defaultConfiguration());
+
+		JedisClientConfig clientConfig = connectionFactory.createSentinelClientConfig(configuration);
+
+		assertThat(clientConfig.getUser()).isEqualTo("sentinel");
+		assertThat(clientConfig.getPassword()).isEqualTo("the-password");
 	}
 
 	@Test // DATAREDIS-574

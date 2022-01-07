@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 the original author or authors.
+ * Copyright 2014-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
-	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
 	private static final String REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.username";
+	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
 
 	private @Nullable NamedNode master;
 	private Set<RedisNode> sentinels;
@@ -343,6 +343,9 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		if (!ObjectUtils.nullSafeEquals(dataNodePassword, that.dataNodePassword)) {
 			return false;
 		}
+		if (!ObjectUtils.nullSafeEquals(sentinelUsername, that.sentinelUsername)) {
+			return false;
+		}
 		return ObjectUtils.nullSafeEquals(sentinelPassword, that.sentinelPassword);
 	}
 
@@ -357,6 +360,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		result = 31 * result + database;
 		result = 31 * result + ObjectUtils.nullSafeHashCode(dataNodeUsername);
 		result = 31 * result + ObjectUtils.nullSafeHashCode(dataNodePassword);
+		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelUsername);
 		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelPassword);
 		return result;
 	}

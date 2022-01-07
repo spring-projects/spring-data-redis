@@ -319,6 +319,7 @@ public RedisConnectionFactory lettuceConnectionFactory() {
 .Configuration Properties
 * `spring.redis.sentinel.master`: name of the master node.
 * `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
+* `spring.redis.sentinel.username`: The username to apply when authenticating with Redis Sentinel (requires Redis 6)
 * `spring.redis.sentinel.password`: The password to apply when authenticating with Redis Sentinel
 ====
 

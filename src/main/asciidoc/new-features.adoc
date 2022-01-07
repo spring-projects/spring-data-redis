@@ -3,6 +3,11 @@
 
 This section briefly covers items that are new and noteworthy in the latest releases.
 
+[[new-in-2.7.0]]
+== New in Spring Data Redis 2.7
+
+* Sentinel ACL authentication considering a sentinel-specific username. Setting a username enables username and password authentication requiring Redis 6.
+
 [[new-in-2.6.0]]
 == New in Spring Data Redis 2.6
 
