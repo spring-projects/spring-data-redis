@@ -263,7 +263,9 @@ inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.reverseR
  * Coroutines variant of [ReactiveStreamOperations.trim].
  *
  * @author Mark Paluch
+ * @author Quantum64@github
  * @since 2.2
  */
-suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long): Long =
-		trim(key, count).awaitSingle()
+@JvmOverloads // Maintain compatibility with versions <= 2.6.0
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long, approximateTrimming: Boolean = false): Long =
+		trim(key, count, approximateTrimming).awaitSingle()
