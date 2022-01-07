@@ -57,6 +57,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Quantum64@github
  * @since 2.2
  */
 class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperations<K, HK, HV> {
@@ -147,6 +148,21 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
 
 		return createMono(connection -> connection.xAdd(serializeRecord(input)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#add(java.lang.Object, java.util.Map, java.lang.Long, java.lang.Boolean)
+	 */
+	@Override
+	public Mono<RecordId> add(Record<K, ?> record, long count, boolean approximateTrimming) {
+
+		Assert.notNull(record.getStream(), "Key must not be null!");
+		Assert.notNull(record.getValue(), "Body must not be null!");
+
+		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
+
+		return createMono(connection -> connection.xAdd(serializeRecord(input), count, approximateTrimming));
 	}
 
 	/*

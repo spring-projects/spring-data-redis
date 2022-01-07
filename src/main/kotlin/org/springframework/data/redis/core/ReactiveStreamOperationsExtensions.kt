@@ -62,6 +62,15 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.add(key: K
 /**
  * Coroutines variant of [ReactiveStreamOperations.add].
  *
+ * @author Quantum64@github
+ * @since 2.7
+ */
+fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.add(key: K, bodyFlow: Flow<Map<HK, HV>>, length: Long, approximateTrimming: Boolean = false): Flow<RecordId> =
+	add(key, bodyFlow.asPublisher(), length, approximateTrimming).asFlow()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.add].
+ *
  * @author Mark Paluch
  * @since 2.2
  */
@@ -71,11 +80,29 @@ suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.ad
 /**
  * Coroutines variant of [ReactiveStreamOperations.add].
  *
+ * @author Quantum64@github
+ * @since 2.7
+ */
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: MapRecord<K, HK, HV>, length: Long, approximateTrimming: Boolean = false): RecordId =
+	add(record, length, approximateTrimming).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.add].
+ *
  * @author Mark Paluch
  * @since 2.2
  */
 suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: Record<K, *>): RecordId =
 		add(record).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.add].
+ *
+ * @author Quantum64@github
+ * @since 2.7
+ */
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.addAndAwait(record: Record<K, *>, length: Long, approximateTrimming: Boolean = false): RecordId =
+	add(record, length, approximateTrimming).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveStreamOperations.delete].

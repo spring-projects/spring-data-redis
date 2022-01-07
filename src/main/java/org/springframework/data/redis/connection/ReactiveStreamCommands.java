@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  * @author Tugdual Grall
  * @author Dengliming
  * @author Mark John Moreno
+ * @author Quantum64@github
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -200,13 +201,14 @@ public interface ReactiveStreamCommands {
 
 		private final ByteBufferRecord record;
 		private final @Nullable Long maxlen;
+		private final boolean approximateTrimming;
 		private final boolean nomkstream;
 
-		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean nomkstream) {
-
+		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean approximateTrimming, boolean nomkstream) {
 			super(record.getStream());
 			this.record = record;
 			this.maxlen = maxlen;
+			this.approximateTrimming = approximateTrimming;
 			this.nomkstream = nomkstream;
 		}
 
@@ -220,7 +222,20 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null!");
 
-			return new AddStreamRecord(record, null, false);
+			return new AddStreamRecord(record, null, false, false);
+		}
+
+		/**
+		 * Creates a new {@link AddStreamRecord} given {@link Map body}.
+		 *
+		 * @param record must not be {@literal null}.
+		 * @return a new {@link AddStreamRecord}.
+		 */
+		public static AddStreamRecord of(ByteBufferRecord record, long length, boolean approximateTrimming) {
+
+			Assert.notNull(record, "Record must not be null!");
+
+			return new AddStreamRecord(record, length, approximateTrimming, false);
 		}
 
 		/**
@@ -233,7 +248,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null!");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false);
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false, false);
 		}
 
 		/**
@@ -243,7 +258,7 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key), maxlen, false);
+			return new AddStreamRecord(record.withStreamKey(key), maxlen, approximateTrimming, nomkstream);
 		}
 
 		/**
@@ -252,7 +267,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord maxlen(long maxlen) {
-			return new AddStreamRecord(record, maxlen, false);
+			return new AddStreamRecord(record, maxlen, approximateTrimming, nomkstream);
 		}
 
 		/**
@@ -262,7 +277,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream() {
-			return new AddStreamRecord(record, maxlen, true);
+			return new AddStreamRecord(record, maxlen, approximateTrimming, true);
 		}
 
 		/**
@@ -273,7 +288,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream(boolean makeNoStream) {
-			return new AddStreamRecord(record, maxlen, makeNoStream);
+			return new AddStreamRecord(record, maxlen, approximateTrimming, makeNoStream);
 		}
 
 		/**
@@ -304,6 +319,31 @@ public interface ReactiveStreamCommands {
 		 */
 		public boolean hasMaxlen() {
 			return maxlen != null && maxlen > 0;
+		}
+
+		/**
+		 * Applies approximate trimming. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return new instance of {@link AddStreamRecord}.
+		 * @since 2.7
+		 */
+		public AddStreamRecord approximateTrimming() {
+			return approximateTrimming(true);
+		}
+
+		/**
+		 * Applies {@code approximateTrimming}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param approximateTrimming
+		 * @return new instance of {@link AddStreamRecord}.
+		 * @since 2.7
+		 */
+		public AddStreamRecord approximateTrimming(boolean approximateTrimming) {
+			return new AddStreamRecord(record, maxlen, approximateTrimming, nomkstream);
+		}
+
+		public boolean isApproximateTrimming() {
+			return approximateTrimming;
 		}
 
 		/**
@@ -343,6 +383,22 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(record, "Record must not be null!");
 
 		return xAdd(Mono.just(AddStreamRecord.of(record))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Add stream record with given {@literal body} to {@literal key} and trims the stream.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param length the maximum length of the stream
+	 * @param approximateTrimming if approximate trimming should be used
+	 * @return {@link Mono} the {@link RecordId id}.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	default Mono<RecordId> xAdd(ByteBufferRecord record, long length, boolean approximateTrimming) {
+
+		Assert.notNull(record, "Record must not be null!");
+
+		return xAdd(Mono.just(AddStreamRecord.of(record, length, approximateTrimming))).next().map(CommandResponse::getOutput);
 	}
 
 	/**

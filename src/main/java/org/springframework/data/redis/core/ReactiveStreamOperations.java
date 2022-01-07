@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dengliming
+ * @author Quantum64@github
  * @since 2.2
  */
 public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -103,6 +104,20 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	}
 
 	/**
+	 * Append one or more records to the stream {@code key} and trims the stream.
+	 *
+	 * @param key the stream key.
+	 * @param bodyPublisher record body {@link Publisher}.
+	 * @param count the maximum length of the stream
+	 * @param approximateTrimming if approximate trimming should be used
+	 * @return the record Ids.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	default Flux<RecordId> add(K key, Publisher<? extends Map<? extends HK, ? extends HV>> bodyPublisher, long count, boolean approximateTrimming) {
+		return Flux.from(bodyPublisher).flatMap(it -> add(key, it, count, approximateTrimming));
+	}
+
+	/**
 	 * Append a record to the stream {@code key}.
 	 *
 	 * @param key the stream key.
@@ -112,6 +127,20 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 */
 	default Mono<RecordId> add(K key, Map<? extends HK, ? extends HV> content) {
 		return add(StreamRecords.newRecord().in(key).ofMap(content));
+	}
+
+	/**
+	 * Append a record to the stream {@code key} and trims the stream.
+	 *
+	 * @param key the stream key.
+	 * @param content record content as Map.
+	 * @param count the maximum length of the stream
+	 * @param approximateTrimming if approximate trimming should be used
+	 * @return the {@link Mono} emitting the {@link RecordId}.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	default Mono<RecordId> add(K key, Map<? extends HK, ? extends HV> content, long count, boolean approximateTrimming) {
+		return add(StreamRecords.newRecord().in(key).ofMap(content), count, approximateTrimming);
 	}
 
 	/**
@@ -127,6 +156,20 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	}
 
 	/**
+	 * Append a record, backed by a {@link Map} holding the field/value pairs, to the stream, and trims the stream.
+	 *
+	 * @param record the record to append.
+	 * @param count the maximum length of the stream
+	 * @param approximateTrimming if approximate trimming should be used
+	 * @return the {@link Mono} emitting the {@link RecordId}.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 */
+	@SuppressWarnings("unchecked")
+	default Mono<RecordId> add(MapRecord<K, ? extends HK, ? extends HV> record, long count, boolean approximateTrimming) {
+		return add((Record) record, count, approximateTrimming);
+	}
+
+	/**
 	 * Append the record, backed by the given value, to the stream. The value will be hashed and serialized.
 	 *
 	 * @param record must not be {@literal null}.
@@ -135,6 +178,18 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see ObjectRecord
 	 */
 	Mono<RecordId> add(Record<K, ?> record);
+
+	/**
+	 * Append the record, backed by the given value, to the stream, and trims the stream. The value will be hashed and serialized.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param count the maximum length of the stream
+	 * @param approximateTrimming if approximate trimming should be used
+	 * @return the {@link Mono} emitting the {@link RecordId}.
+	 * @see MapRecord
+	 * @see ObjectRecord
+	 */
+	Mono<RecordId> add(Record<K, ?> record, long count, boolean approximateTrimming);
 
 	/**
 	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
