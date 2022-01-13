@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -71,10 +72,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		registerNullValueSerializer(mapper, classPropertyTypeName);
 
 		if (StringUtils.hasText(classPropertyTypeName)) {
-			mapper.activateDefaultTypingAsProperty(mapper.getPolymorphicTypeValidator(), DefaultTyping.NON_FINAL,
+			mapper.activateDefaultTypingAsProperty(mapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
 					classPropertyTypeName);
 		} else {
-			mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), DefaultTyping.NON_FINAL, As.PROPERTY);
+			mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING, As.PROPERTY);
 		}
 	}
 
@@ -189,6 +190,12 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			jgen.writeStartObject();
 			jgen.writeStringField(classIdentifier, NullValue.class.getName());
 			jgen.writeEndObject();
+		}
+
+		@Override
+		public void serializeWithType(NullValue value, JsonGenerator gen, SerializerProvider serializers,
+				TypeSerializer typeSer) throws IOException {
+			serialize(value, gen, serializers);
 		}
 	}
 }

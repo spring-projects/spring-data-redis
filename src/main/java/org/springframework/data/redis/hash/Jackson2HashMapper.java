@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.hash;
 
+import static com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.*;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -39,8 +41,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -49,7 +53,9 @@ import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializer;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.CalendarSerializer;
@@ -157,9 +163,30 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	 */
 	public Jackson2HashMapper(boolean flatten) {
 
-		this(new ObjectMapper().findAndRegisterModules(), flatten);
+		this(new ObjectMapper() {
 
-		typingMapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
+			@Override
+			protected TypeResolverBuilder<?> _constructDefaultTypeResolverBuilder(DefaultTyping applicability,
+					PolymorphicTypeValidator ptv) {
+				return new DefaultTypeResolverBuilder(applicability, ptv) {
+					public boolean useForType(JavaType t) {
+
+						if (t.isPrimitive()) {
+							return false;
+						}
+
+						if (EVERYTHING.equals(_appliesFor)) {
+							return !TreeNode.class.isAssignableFrom(t.getRawClass());
+						}
+
+						return super.useForType(t);
+					}
+				};
+			}
+		}.findAndRegisterModules(), flatten);
+
+		typingMapper.activateDefaultTyping(typingMapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
+				As.PROPERTY);
 		typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 
 		// Prevent splitting time types into arrays. E
