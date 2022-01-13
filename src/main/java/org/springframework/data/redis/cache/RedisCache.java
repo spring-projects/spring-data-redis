@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
@@ -30,6 +32,7 @@ import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
@@ -57,6 +60,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	private final RedisCacheWriter cacheWriter;
 	private final RedisCacheConfiguration cacheConfig;
 	private final ConversionService conversionService;
+    private final WeakHashLock weakHashLock = new WeakHashLock();
 
 	/**
 	 * Create new {@link RedisCache}.
@@ -126,9 +130,61 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		if (result != null) {
 			return (T) result.get();
 		}
-
-		return getSynchronized(key, valueLoader);
+        // performance update:
+		return getByKeyLock(key, valueLoader);
+		// getSynchronized method performance is not good when has huge numbers of keys
+        // return getSynchronized(key, valueLoader);
 	}
+
+
+    /**
+     *  performance update:
+     *  Get cache through using lock of instead of synchronizing method .allocate every key a single lock,to improve performance.
+     *  When setting a key,it won't block other thread to get other cache.
+     */
+    private <T> T getByKeyLock(Object key, Callable<T> valueLoader) {
+
+        ValueWrapper result = get(key);// [first get]
+
+        if (result != null) {
+            return (T) result.get();
+        }
+        // Here, cache is not exist,we get lock of this key to sync save cache.
+        // The lock is individual for every key.
+        // Using WeakReference is aimed at keeping single instance key lock for multi-thread jvm env and decreasing lock instance amount in jvm stack.
+        // As we know if no strong reference,the key lock instance will be released by gc.So, Even if has huge numbers of keys, the alive key lock will not take up too much stack space.
+        ReentrantLock lock = weakHashLock.get(key);
+
+        T value;
+        try {
+            if (!lock.tryLock(30, TimeUnit.SECONDS)) {//not hold lock
+                result = get(key);//[second get]Try again before throw exception.Maybe other jvm server set the cache, or other local thread has set the cache but not release the lock timely.
+                if(result != null){
+                    return (T) result.get();
+                }
+                throw new RuntimeException("Get cache failed, because get key lock failed, other thread may hold the lock too long!");
+            }
+            //hold lock
+            result = get(key);//[third get]Other jvm server or other local thread may have set the cache.
+            if (result != null) {
+                return (T) result.get();
+            } else {
+                try {
+                    value = valueLoader.call();
+                } catch (Exception e) {
+                    throw new ValueRetrievalException(key, valueLoader, e);
+                }
+                put(key, value);
+                return value;
+            }
+        } catch (InterruptedException ex) {
+            throw new RedisSystemException("TryLock interrupted", ex);
+        } finally {
+            if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
 
 	@SuppressWarnings("unchecked")
 	private synchronized <T> T getSynchronized(Object key, Callable<T> valueLoader) {
