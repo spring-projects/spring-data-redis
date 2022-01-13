@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 the original author or authors.
+ * Copyright 2017-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -34,6 +36,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 @ExtendWith(MockitoExtension.class)
 class RedisCacheManagerUnitTests {
@@ -187,5 +190,18 @@ class RedisCacheManagerUnitTests {
 		RedisCacheManager.builder(cacheWriter).build();
 
 		verify(cacheWriter, never()).withStatisticsCollector(any());
+	}
+
+	@Test
+	void configureCacheManagerBuilderDefaultsBaseOnCurrentDefaults() {
+
+		RedisCacheManagerBuilder cmb = RedisCacheManager.builder(cacheWriter);
+		SerializationPair<?> jsonSerializerPair = SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer());
+
+		assertThat(cmb.cacheDefaults().getValueSerializationPair()).isNotEqualTo(jsonSerializerPair);
+
+		cmb.cacheDefaults(cmb.cacheDefaults().serializeValuesWith(jsonSerializerPair));
+
+		assertThat(cmb.cacheDefaults().getValueSerializationPair()).isEqualTo(jsonSerializerPair);
 	}
 }
