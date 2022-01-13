@@ -97,6 +97,10 @@ public interface ReactiveRedisOperations<K, V> {
 
 	/**
 	 * Subscribe to the given Redis {@code channels} and emit {@link Message messages} received for those.
+	 * <p>
+	 * <strong>NOTE:</strong> Implementation may decide to allocate resources on a per method call basis. Dealing with
+	 * multiple subscriptions is best handled via a dedicated
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer}.
 	 *
 	 * @param channels must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -112,6 +116,10 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels matching the given {@code pattern} and emit {@link Message messages} received for
 	 * those.
+	 * <p>
+	 * <strong>NOTE:</strong> Implementation may decide to allocate resources on a per method call basis. Dealing with
+	 * multiple subscriptions is best handled via a dedicated
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer}.
 	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -126,6 +134,10 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels for the given {@link Topic topics} and emit {@link Message messages} received for
 	 * those.
+	 * <p>
+	 * <strong>NOTE:</strong> Implementation may decide to allocate resources on a per method call basis. Dealing with
+	 * multiple subscriptions is best handled via a dedicated
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer}.
 	 *
 	 * @param topics must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -136,6 +148,10 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the given Redis {@code channels} and emit {@link Message messages} received for those. The
 	 * {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 * <p>
+	 * <strong>NOTE:</strong> Implementation may decide to allocate resources on a per method call basis. Dealing with
+	 * multiple subscriptions is best handled via a dedicated
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer}.
 	 *
 	 * @param channels must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -152,6 +168,10 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels matching the given {@code pattern} and emit {@link Message messages} received for
 	 * those. The {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 * <p>
+	 * <strong>NOTE:</strong> Implementation may decide to allocate resources on a per method call basis. Dealing with
+	 * multiple subscriptions is best handled via a dedicated
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer}.
 	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -167,6 +187,10 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels for the given {@link Topic topics} and emit {@link Message messages} received for
 	 * those. The {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 * <p>
+	 * <strong>NOTE:</strong> Implementation may decide to allocate resources on a per method call basis. Dealing with
+	 * multiple subscriptions is best handled via a dedicated
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer}.
 	 *
 	 * @param topics must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
