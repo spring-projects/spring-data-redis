@@ -183,6 +183,15 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
+	@Test // GH-1566
+	void mapFinalClass() {
+
+		MeFinal source = new MeFinal();
+		source.value = "id-1";
+
+		assertBackAndForwardMapping(source);
+	}
+
 	@Data
 	public static class WithList {
 		List<String> strings;
@@ -205,5 +214,10 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		private Calendar calendar;
 		private LocalDate localDate;
 		private LocalDateTime localDateTime;
+	}
+
+	@Data
+	public static final class MeFinal {
+		private String value;
 	}
 }

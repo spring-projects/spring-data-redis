@@ -20,11 +20,12 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 import static org.springframework.util.ObjectUtils.*;
 
+import lombok.Data;
+
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
 
@@ -141,12 +142,24 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	void shouldSerializeNullValueWithCustomObjectMapper() {
 
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
+		mapper.enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY);
 
 		GenericJackson2JsonRedisSerializer.registerNullValueSerializer(mapper, null);
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 
 		serializeAndDeserializeNullValue(serializer);
+	}
+
+	@Test // GH-1566
+	void deserializeShouldBeAbleToRestoreFinalObjectAfterSerialization() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		FinalObject source = new FinalObject();
+		source.longValue = 1L;
+		source.simpleObject = new SimpleObject(2L);
+
+		assertThat(serializer.deserialize(serializer.serialize(source))).isEqualTo(source);
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
@@ -199,6 +212,12 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 					&& nullSafeEquals(this.simpleObject, other.simpleObject);
 		}
 
+	}
+
+	@Data
+	static final class FinalObject {
+		public Long longValue;
+		SimpleObject simpleObject;
 	}
 
 	static class SimpleObject {
