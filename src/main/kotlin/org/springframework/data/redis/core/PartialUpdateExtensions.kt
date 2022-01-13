@@ -16,10 +16,10 @@
 package org.springframework.data.redis.core
 
 /**
- * Inline fun variant with reified generics for [PartialUpdate]
+ * Inline fun variant with reified generics for [PartialUpdate].
  *
  * @author Mikhael Sokolov
- * @since 2.7
+ * @since 2.6.1
  */
 @Suppress("FunctionName")
 inline fun <reified T : Any> PartialUpdate(id: Any): PartialUpdate<T> =

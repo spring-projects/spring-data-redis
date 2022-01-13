@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.script
+package org.springframework.data.redis.core
 
-import org.springframework.core.io.Resource
-
-
-/**
- * Inline fun variant with reified generics for [RedisScript].
- *
- * @author Mikhael Sokolov
- * @since 2.6.1
- */
-@Suppress("FunctionName")
-inline fun <reified T : Any> RedisScript(script: String): RedisScript<T> =
-    RedisScript.of(script, T::class.java)
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 
 /**
- * Inline fun variant with reified generics for [RedisScript].
+ * Unit tests for `PartialUpdateExtensions`.
  *
- * @author Mikhael Sokolov
- * @since 2.6.1
+ * @author Mark Paluch
  */
-@Suppress("FunctionName")
-inline fun <reified T : Any> RedisScript(script: Resource): RedisScript<T> =
-    RedisScript.of(script, T::class.java)
+class PartialUpdateExtensionsUnitTests {
+
+	@Test // GH-2234
+	fun shouldCreatePartialUpdate() {
+
+		val update = PartialUpdate<String>("foo")
+
+		assertThat(update.target).isEqualTo(String::class.java)
+	}
+
+}
