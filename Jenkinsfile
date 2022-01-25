@@ -1,3 +1,9 @@
+def p = [:]
+node {
+    checkout scm
+    p = readProperties interpolate: true, file: 'ci/pipeline.properties'
+}
+
 pipeline {
 	agent none
 
@@ -14,11 +20,12 @@ pipeline {
 	stages {
 		stage("Docker images") {
 			parallel {
-				stage('Publish OpenJDK 8 + Redis 6.2 docker image') {
+				stage('Publish OpenJDK (main) + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk8-redis-6.2/**"
+							changeset "ci/openjdk8-redis-6.2/Dockerfile"
 							changeset "Makefile"
+                            changeset "ci/pipeline.properties"
 						}
 					}
 					agent { label 'data' }
@@ -26,18 +33,19 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk8-with-redis-6.2", "-f ci/openjdk8-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk8-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
 						}
 					}
 				}
-				stage('Publish OpenJDK 17 + Redis 6.2 docker image') {
+				stage('Publish OpenJDK (LTS) + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk16-redis-6.2/**"
+							changeset "ci/openjdk17-redis-6.2/Dockerfile"
 							changeset "Makefile"
+						    changeset "ci/pipeline.properties"
 						}
 					}
 					agent { label 'data' }
@@ -45,7 +53,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk17-with-redis-6.2", "-f ci/openjdk17-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.lts.tag']}", "--build-arg BASE=${p['docker.java.lts.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 								image.push()
 							}
@@ -55,7 +63,7 @@ pipeline {
 			}
 		}
 
-		stage("test: baseline (jdk8)") {
+		stage("test: baseline (main)") {
 			when {
 				beforeAgent(true)
 				anyOf {
@@ -73,7 +81,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('springci/spring-data-openjdk8-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
+						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.basic']) {
 							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 						}
 					}
@@ -90,7 +98,7 @@ pipeline {
 				}
 			}
 			parallel {
-				stage("test: baseline (jdk17)") {
+				stage("test: baseline (LTS)") {
 					agent {
 						label 'data'
 					}
@@ -101,7 +109,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-								docker.image('springci/spring-data-openjdk17-with-redis-6.2:latest').inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image("springci/spring-data-with-redis-6.2:${p['java.lts.tag']}").inside(p['docker.java.inside.basic']) {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
@@ -131,7 +139,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
