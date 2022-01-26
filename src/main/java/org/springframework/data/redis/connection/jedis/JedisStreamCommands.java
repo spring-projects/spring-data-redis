@@ -79,6 +79,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 		if (options.isNoMkStream()) {
 			xAddParams.noMkStream();
 		}
+		if (options.isApproximateTrimming()) {
+			xAddParams.approximateTrimming();
+		}
 
 		return connection.invoke()
 				.from(BinaryJedis::xadd, MultiKeyPipelineBase::xadd, record.getStream(), record.getValue(), xAddParams)

@@ -104,6 +104,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 				args.maxlen(command.getMaxlen());
 			}
 			args.nomkstream(command.isNoMkStream());
+			args.approximateTrimming(command.isApproximateTrimming());
 
 			return cmd.xadd(command.getKey(), args, command.getBody())
 					.map(value -> new CommandResponse<>(command, RecordId.of(value)));

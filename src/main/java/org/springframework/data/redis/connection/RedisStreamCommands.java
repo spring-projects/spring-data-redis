@@ -116,18 +116,21 @@ public interface RedisStreamCommands {
 	 *
 	 * @author Christoph Strobl
 	 * @author Mark John Moreno
+	 * @author Liming Deng
 	 * @since 2.3
 	 */
 	class XAddOptions {
 
-		private static final XAddOptions NONE = new XAddOptions(null, false);
+		private static final XAddOptions NONE = new XAddOptions(null, false, false);
 
 		private final @Nullable Long maxlen;
 		private final boolean nomkstream;
+		private final boolean approximateTrimming;
 
-		private XAddOptions(@Nullable Long maxlen, boolean nomkstream) {
+		private XAddOptions(@Nullable Long maxlen, boolean nomkstream, boolean approximateTrimming) {
 			this.maxlen = maxlen;
 			this.nomkstream = nomkstream;
+			this.approximateTrimming = approximateTrimming;
 		}
 
 		/**
@@ -143,7 +146,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XAddOptions}.
 		 */
 		public static XAddOptions maxlen(long maxlen) {
-			return new XAddOptions(maxlen, false);
+			return new XAddOptions(maxlen, false, false);
 		}
 
 		/**
@@ -153,7 +156,7 @@ public interface RedisStreamCommands {
 		 * @since 2.6
 		 */
 		public static XAddOptions makeNoStream() {
-			return new XAddOptions(null, true);
+			return new XAddOptions(null, true, false);
 		}
 
 		/**
@@ -164,7 +167,23 @@ public interface RedisStreamCommands {
 		 * @since 2.6
 		 */
 		public static XAddOptions makeNoStream(boolean makeNoStream) {
-			return new XAddOptions(null, makeNoStream);
+			return new XAddOptions(null, makeNoStream, false);
+		}
+
+		/**
+		 * Apply efficient trimming for capped streams using the {@code ~} flag.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public XAddOptions approximateTrimming(boolean approximateTrimming) {
+			return new XAddOptions(null, nomkstream, approximateTrimming);
+		}
+
+		/**
+		 * @return {@literal true} if {@literal approximateTrimming} is set.
+		 */
+		public boolean isApproximateTrimming() {
+			return approximateTrimming;
 		}
 
 		/**
@@ -202,6 +221,7 @@ public interface RedisStreamCommands {
 			}
 			XAddOptions that = (XAddOptions) o;
 			if (this.nomkstream != that.nomkstream) return false;
+			if (this.approximateTrimming != that.approximateTrimming) return false;
 			return ObjectUtils.nullSafeEquals(this.maxlen, that.maxlen);
 		}
 
@@ -209,6 +229,7 @@ public interface RedisStreamCommands {
 		public int hashCode() {
 			int result = ObjectUtils.nullSafeHashCode(this.maxlen);
 			result = 31 * result + ObjectUtils.nullSafeHashCode(this.nomkstream);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(this.approximateTrimming);
 			return result;
 		}
 	}

@@ -84,6 +84,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			args.maxlen(options.getMaxlen());
 		}
 		args.nomkstream(options.isNoMkStream());
+		args.approximateTrimming(options.isApproximateTrimming());
 
 		return connection.invoke().from(RedisStreamAsyncCommands::xadd, record.getStream(), args, record.getValue())
 				.get(RecordId::of);
