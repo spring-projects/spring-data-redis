@@ -201,13 +201,17 @@ public interface ReactiveStreamCommands {
 		private final ByteBufferRecord record;
 		private final @Nullable Long maxlen;
 		private final boolean nomkstream;
+		private final boolean approximateTrimming;
 
-		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean nomkstream) {
+
+		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean nomkstream,
+				boolean approximateTrimming) {
 
 			super(record.getStream());
 			this.record = record;
 			this.maxlen = maxlen;
 			this.nomkstream = nomkstream;
+			this.approximateTrimming = approximateTrimming;
 		}
 
 		/**
@@ -220,7 +224,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null!");
 
-			return new AddStreamRecord(record, null, false);
+			return new AddStreamRecord(record, null, false, false);
 		}
 
 		/**
@@ -233,7 +237,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null!");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false);
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false, false);
 		}
 
 		/**
@@ -243,7 +247,7 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key), maxlen, false);
+			return new AddStreamRecord(record.withStreamKey(key), maxlen, false, false);
 		}
 
 		/**
@@ -252,7 +256,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord maxlen(long maxlen) {
-			return new AddStreamRecord(record, maxlen, false);
+			return new AddStreamRecord(record, maxlen, false, false);
 		}
 
 		/**
@@ -262,7 +266,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream() {
-			return new AddStreamRecord(record, maxlen, true);
+			return new AddStreamRecord(record, maxlen, true, false);
 		}
 
 		/**
@@ -273,7 +277,23 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream(boolean makeNoStream) {
-			return new AddStreamRecord(record, maxlen, makeNoStream);
+			return new AddStreamRecord(record, maxlen, makeNoStream, false);
+		}
+
+		/**
+		 * Apply efficient trimming for capped streams using the {@code ~} flag.
+		 *
+		 * @return new instance of {@link AddStreamRecord}.
+		 */
+		public AddStreamRecord approximateTrimming(boolean approximateTrimming) {
+			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming);
+		}
+
+		/**
+		 * @return {@literal true} if {@literal approximateTrimming} is set.
+		 */
+		public boolean isApproximateTrimming() {
+			return approximateTrimming;
 		}
 
 		/**
