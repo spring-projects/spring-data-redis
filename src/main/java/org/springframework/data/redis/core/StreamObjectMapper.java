@@ -17,9 +17,9 @@ package org.springframework.data.redis.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -29,6 +29,7 @@ import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.hash.HashMapper;
+import org.springframework.data.redis.hash.HashObjectReader;
 import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -72,25 +73,7 @@ class StreamObjectMapper {
 		this.mapper = (HashMapper) mapper;
 
 		if (mapper instanceof ObjectHashMapper) {
-
-			ObjectHashMapper ohm = (ObjectHashMapper) mapper;
-			this.objectHashMapper = new HashMapper<Object, Object, Object>() {
-
-				@Override
-				public Map<Object, Object> toHash(Object object) {
-					return (Map) ohm.toHash(object);
-				}
-
-				@Override
-				public Object fromHash(Map<Object, Object> hash) {
-
-					Map<byte[], byte[]> map = hash.entrySet().stream()
-							.collect(Collectors.toMap(e -> conversionService.convert(e.getKey(), byte[].class),
-									e -> conversionService.convert(e.getValue(), byte[].class)));
-
-					return ohm.fromHash(map);
-				}
-			};
+			this.objectHashMapper = new BinaryObjectHashMapperAdapter((ObjectHashMapper) mapper);
 		} else {
 			this.objectHashMapper = null;
 		}
@@ -174,9 +157,27 @@ class StreamObjectMapper {
 		return transformed;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	final <V, HK, HV> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType) {
-		return (HashMapper) doGetHashMapper(conversionService, targetType);
+
+		HashMapper hashMapper = doGetHashMapper(conversionService, targetType);
+
+		if (hashMapper instanceof HashObjectReader) {
+
+			return new HashMapper<V, HK, HV>() {
+				@Override
+				public Map<HK, HV> toHash(V object) {
+					return hashMapper.toHash(object);
+				}
+
+				@Override
+				public V fromHash(Map<HK, HV> hash) {
+					return ((HashObjectReader<HK, HV>) hashMapper).fromHash(targetType, hash);
+				}
+			};
+		}
+
+		return hashMapper;
 	}
 
 	/**
@@ -207,5 +208,47 @@ class StreamObjectMapper {
 	 */
 	ConversionService getConversionService() {
 		return conversionService;
+	}
+
+	private static class BinaryObjectHashMapperAdapter
+			implements HashMapper<Object, Object, Object>, HashObjectReader<Object, Object> {
+
+		private final ObjectHashMapper ohm;
+
+		public BinaryObjectHashMapperAdapter(ObjectHashMapper ohm) {
+			this.ohm = ohm;
+		}
+
+		@Override
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public Map<Object, Object> toHash(Object object) {
+			return (Map) ohm.toHash(object);
+		}
+
+		@Override
+		public Object fromHash(Map<Object, Object> hash) {
+			return ohm.fromHash(toMap(hash));
+		}
+
+		@Override
+		public <R> R fromHash(Class<R> type, Map<Object, Object> hash) {
+			return ohm.fromHash(type, toMap(hash));
+		}
+
+		private static Map<byte[], byte[]> toMap(Map<Object, Object> hash) {
+
+			Map<byte[], byte[]> target = new LinkedHashMap<>(hash.size());
+
+			for (Map.Entry<Object, Object> entry : hash.entrySet()) {
+				target.put(toBytes(entry.getKey()), toBytes(entry.getValue()));
+			}
+
+			return target;
+		}
+
+		@Nullable
+		private static byte[] toBytes(Object value) {
+			return value instanceof byte[] ? (byte[]) value : conversionService.convert(value, byte[].class);
+		}
 	}
 }

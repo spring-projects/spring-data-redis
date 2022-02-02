@@ -69,7 +69,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 1.8
  */
-public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
+public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]>, HashObjectReader<byte[], byte[]> {
 
 	@Nullable private volatile static ObjectHashMapper sharedInstance;
 
@@ -169,12 +169,20 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 */
 	@Override
 	public Object fromHash(Map<byte[], byte[]> hash) {
+		return fromHash(Object.class, hash);
+	}
 
-		if (hash == null || hash.isEmpty()) {
-			return null;
-		}
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(java.lang.Class, java.util.Map)
+	 */
+	@Override
+	public <R> R fromHash(Class<R> type, Map<byte[], byte[]> hash) {
 
-		return converter.read(Object.class, new RedisData(hash));
+		Assert.notNull(type, "Type must not be null");
+		Assert.notNull(hash, "Hash must not be null");
+
+		return converter.read(type, new RedisData(hash));
 	}
 
 	/**

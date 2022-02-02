@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.mapping;
+
+import static org.assertj.core.api.Assertions.*;
 
 import lombok.Data;
 
@@ -48,13 +50,13 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		this.mapper = mapper;
 	}
 
-	static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
+	public static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
 		FlatteningJackson2HashMapperUnitTests() {
 			super(new Jackson2HashMapper(true));
 		}
 	}
 
-	static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
+	public static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
 
 		NonFlatteningJackson2HashMapperUnitTests() {
 			super(new Jackson2HashMapper(false));
@@ -181,6 +183,24 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		source.localDateTime = LocalDateTime.parse("2018-01-02T12:13:14");
 
 		assertBackAndForwardMapping(source);
+	}
+
+	@Test // GH-2198
+	void shouldDeserializeObjectWithoutClassHint() {
+
+		WithDates source = new WithDates();
+		source.string = "id-1";
+		source.date = new Date(1561543964015L);
+		source.calendar = Calendar.getInstance();
+		source.localDate = LocalDate.parse("2018-01-02");
+		source.localDateTime = LocalDateTime.parse("2018-01-02T12:13:14");
+
+		Map<String, Object> map = mapper.toHash(source);
+
+		// ensure that we remove the correct type hint
+		assertThat(map.remove("@class")).isNotNull();
+
+		assertThat(mapper.fromHash(WithDates.class, map)).isEqualTo(source);
 	}
 
 	@Test // GH-1566
