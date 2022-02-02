@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import lombok.Data;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -81,6 +82,18 @@ class ObjectHashMapperTests extends AbstractHashMapperTests {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper(mappingRedisConverter);
 		assertThat(objectHashMapper.fromHash(hash)).isEqualTo(source);
+	}
+
+	@Test // GH-2198
+	void readHashConsidersTypeHint() {
+
+		Map<byte[], byte[]> hash = new LinkedHashMap<>();
+		hash.put("value".getBytes(), "hello".getBytes());
+
+		ObjectHashMapper objectHashMapper = ObjectHashMapper.getSharedInstance();
+		WithTypeAlias withTypeAlias = objectHashMapper.fromHash(WithTypeAlias.class, hash);
+
+		assertThat(withTypeAlias.value).isEqualTo("hello");
 	}
 
 	@TypeAlias("_42_")

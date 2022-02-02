@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -148,7 +149,7 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * @author Mark Paluch
  * @since 1.8
  */
-public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
+public class Jackson2HashMapper implements HashMapper<Object, String, Object>, HashObjectReader<String, Object> {
 
 	private final HashMapperModule HASH_MAPPER_MODULE = new HashMapperModule();
 
@@ -188,6 +189,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		typingMapper.activateDefaultTyping(typingMapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
 				As.PROPERTY);
 		typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+		typingMapper.configure(MapperFeature.USE_BASE_TYPE_AS_DEFAULT_IMPL, true);
 
 		// Prevent splitting time types into arrays. E
 		typingMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -209,7 +211,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		this.flatten = flatten;
 
 		this.untypedMapper = new ObjectMapper();
-		untypedMapper.findAndRegisterModules();
+		this.untypedMapper.findAndRegisterModules();
 		this.untypedMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 		this.untypedMapper.setSerializationInclusion(Include.NON_NULL);
 	}
@@ -232,16 +234,25 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	 */
 	@Override
 	public Object fromHash(Map<String, Object> hash) {
+		return fromHash(Object.class, hash);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.hash.HashMapper#fromHash(Class, java.util.Map)
+	 */
+	@Override
+	public <R> R fromHash(Class<R> type, Map<String, Object> hash) {
 
 		try {
 
 			if (flatten) {
 
-				return typingMapper.reader().forType(Object.class)
+				return typingMapper.reader().forType(type)
 						.readValue(untypedMapper.writeValueAsBytes(doUnflatten(hash)));
 			}
 
-			return typingMapper.treeToValue(untypedMapper.valueToTree(hash), Object.class);
+			return typingMapper.treeToValue(untypedMapper.valueToTree(hash), type);
 
 		} catch (IOException e) {
 			throw new MappingException(e.getMessage(), e);

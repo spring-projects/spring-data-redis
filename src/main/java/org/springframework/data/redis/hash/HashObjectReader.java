@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,31 +18,21 @@ package org.springframework.data.redis.hash;
 import java.util.Map;
 
 /**
- * Core mapping contract between Java types and Redis hashes/maps. It's up to the implementation to support nested
- * objects.
+ * Core mapping contract to materialize an object using particular Java class from a Redis Hash.
  *
- * @param <T> Object type
  * @param <K> Redis Hash field type
  * @param <V> Redis Hash value type
- * @author Costin Leau
  * @author Mark Paluch
- * @see HashObjectReader
+ * @since 2.7
+ * @see HashMapper
  */
-public interface HashMapper<T, K, V> {
+public interface HashObjectReader<K, V> {
 
 	/**
-	 * Convert an {@code object} to a map that can be used with Redis hashes.
+	 * Materialize an object of the {@link Class type} from a {@code hash}.
 	 *
-	 * @param object
-	 * @return
+	 * @param hash must not be {@literal null}.
+	 * @return the materialized object from the given {@code hash}.
 	 */
-	Map<K, V> toHash(T object);
-
-	/**
-	 * Convert a {@code hash} (map) to an object.
-	 *
-	 * @param hash
-	 * @return
-	 */
-	T fromHash(Map<K, V> hash);
+	<R> R fromHash(Class<R> type, Map<K, V> hash);
 }
