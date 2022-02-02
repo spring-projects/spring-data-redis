@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,6 +177,12 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object>, H
 						}
 
 						if (EVERYTHING.equals(_appliesFor)) {
+							// yuck! Isn't there a better way to distinguish whether there's a registered serializer so that we don't
+							// use type builders?
+							if (t.getRawClass().getPackage().getName().startsWith("java.time")) {
+								return false;
+							}
+
 							return !TreeNode.class.isAssignableFrom(t.getRawClass());
 						}
 
@@ -196,6 +202,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object>, H
 		typingMapper.setSerializationInclusion(Include.NON_NULL);
 		typingMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		typingMapper.registerModule(HASH_MAPPER_MODULE);
+		typingMapper.findAndRegisterModules();
 	}
 
 	/**

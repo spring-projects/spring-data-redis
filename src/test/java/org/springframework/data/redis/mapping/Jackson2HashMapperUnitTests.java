@@ -50,13 +50,13 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		this.mapper = mapper;
 	}
 
-	static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
+	public static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
 		FlatteningJackson2HashMapperUnitTests() {
 			super(new Jackson2HashMapper(true));
 		}
 	}
 
-	static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
+	public static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
 
 		NonFlatteningJackson2HashMapperUnitTests() {
 			super(new Jackson2HashMapper(false));
