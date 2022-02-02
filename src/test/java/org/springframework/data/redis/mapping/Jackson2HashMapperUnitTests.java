@@ -42,25 +42,12 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
+abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
 
 	private final Jackson2HashMapper mapper;
 
 	Jackson2HashMapperUnitTests(Jackson2HashMapper mapper) {
 		this.mapper = mapper;
-	}
-
-	public static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
-		FlatteningJackson2HashMapperUnitTests() {
-			super(new Jackson2HashMapper(true));
-		}
-	}
-
-	public static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
-
-		NonFlatteningJackson2HashMapperUnitTests() {
-			super(new Jackson2HashMapper(false));
-		}
 	}
 
 	@Override
