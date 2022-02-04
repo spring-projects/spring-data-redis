@@ -53,6 +53,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerFactory;
+import com.fasterxml.jackson.databind.deser.Deserializers;
 import com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializer;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
@@ -169,7 +171,11 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object>, H
 			@Override
 			protected TypeResolverBuilder<?> _constructDefaultTypeResolverBuilder(DefaultTyping applicability,
 					PolymorphicTypeValidator ptv) {
+
 				return new DefaultTypeResolverBuilder(applicability, ptv) {
+
+					Map<Class, Boolean> serializerPresentCache = new HashMap<>();
+
 					public boolean useForType(JavaType t) {
 
 						if (t.isPrimitive()) {
@@ -177,9 +183,18 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object>, H
 						}
 
 						if (EVERYTHING.equals(_appliesFor)) {
-							// yuck! Isn't there a better way to distinguish whether there's a registered serializer so that we don't
-							// use type builders?
-							if (t.getRawClass().getPackage().getName().startsWith("java.time")) {
+
+							while (t.isArrayType()) {
+								t = t.getContentType();
+							}
+							while (t.isReferenceType()) {
+								t = t.getReferencedType();
+							}
+
+							/* 
+							 * check for registered serializers and make uses of those.
+							 */
+							if (serializerPresentCache.computeIfAbsent(t.getRawClass(), this::hasConfiguredSerializer)) {
 								return false;
 							}
 
@@ -187,6 +202,23 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object>, H
 						}
 
 						return super.useForType(t);
+					}
+
+					private Boolean hasConfiguredSerializer(Class key) {
+
+						if (!(_deserializationContext.getFactory() instanceof BeanDeserializerFactory)) {
+							return false;
+						}
+
+						Iterator<Deserializers> deserializers = ((BeanDeserializerFactory) _deserializationContext.getFactory())
+								.getFactoryConfig().deserializers().iterator();
+						while (deserializers.hasNext()) {
+							Deserializers next = deserializers.next();
+							if (next.hasDeserializerFor(_deserializationConfig, key)) {
+								return true;
+							}
+						}
+						return false;
 					}
 				};
 			}
