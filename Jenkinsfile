@@ -1,7 +1,7 @@
 def p = [:]
 node {
-    checkout scm
-    p = readProperties interpolate: true, file: 'ci/pipeline.properties'
+	checkout scm
+	p = readProperties interpolate: true, file: 'ci/pipeline.properties'
 }
 
 pipeline {
@@ -25,7 +25,7 @@ pipeline {
 						anyOf {
 							changeset "ci/openjdk8-redis-6.2/Dockerfile"
 							changeset "Makefile"
-                            changeset "ci/pipeline.properties"
+							changeset "ci/pipeline.properties"
 						}
 					}
 					agent { label 'data' }
@@ -34,7 +34,7 @@ pipeline {
 					steps {
 						script {
 							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk8-redis-6.2/Dockerfile .")
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
 						}
@@ -54,7 +54,7 @@ pipeline {
 					steps {
 						script {
 							def image = docker.build("springci/spring-data-openjdk11-with-redis-6.2:${p['java.11.tag']}", "--build-arg BASE=${p['docker.java.11.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk11-redis-6.2/Dockerfile .")
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
 						}
@@ -65,7 +65,7 @@ pipeline {
 						anyOf {
 							changeset "ci/openjdk15-redis-6.2/**"
 							changeset "Makefile"
-						    changeset "ci/pipeline.properties"
+							changeset "ci/pipeline.properties"
 						}
 					}
 					agent { label 'data' }
@@ -74,7 +74,7 @@ pipeline {
 					steps {
 						script {
 							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.15.tag']}", "--build-arg BASE=${p['docker.java.15.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
 						}
@@ -95,11 +95,11 @@ pipeline {
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.basic']) {
 							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 						}
@@ -122,11 +122,11 @@ pipeline {
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 					}
 					steps {
 						script {
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								docker.image("springci/spring-data-with-redis-6.2:${p['java.11.tag']}").inside(p['docker.java.inside.basic']) {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
@@ -140,11 +140,11 @@ pipeline {
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 					}
 					steps {
 						script {
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								docker.image("springci/spring-data-with-redis-6.2:${p['java.15.tag']}").inside(p['docker.java.inside.basic']) {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
@@ -168,12 +168,12 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
@@ -199,13 +199,13 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
