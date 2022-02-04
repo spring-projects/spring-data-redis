@@ -1,7 +1,7 @@
 def p = [:]
 node {
-    checkout scm
-    p = readProperties interpolate: true, file: 'ci/pipeline.properties'
+	checkout scm
+	p = readProperties interpolate: true, file: 'ci/pipeline.properties'
 }
 
 pipeline {
@@ -25,7 +25,7 @@ pipeline {
 						anyOf {
 							changeset "ci/openjdk17-redis-6.2/Dockerfile"
 							changeset "Makefile"
-						    changeset "ci/pipeline.properties"
+							changeset "ci/pipeline.properties"
 						}
 					}
 					agent { label 'data' }
@@ -34,7 +34,7 @@ pipeline {
 					steps {
 						script {
 							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
-							docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
 						}
@@ -56,12 +56,12 @@ pipeline {
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
-						docker.image('springci/spring-data-openjdk17-with-redis-6.2:${p['java.main.tag']}').inside('-v $HOME:/tmp/jenkins-home') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
+						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
 							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 						}
 					}
@@ -83,12 +83,12 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
