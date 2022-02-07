@@ -61,7 +61,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+						docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
 							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 						}
 					}
