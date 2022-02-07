@@ -100,7 +100,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.basic']) {
+						docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.basic']) {
 							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 						}
 					}
@@ -127,7 +127,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image("springci/spring-data-with-redis-6.2:${p['java.11.tag']}").inside(p['docker.java.inside.basic']) {
+								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.11.tag']}").inside(p['docker.java.inside.basic']) {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
@@ -145,7 +145,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image("springci/spring-data-with-redis-6.2:${p['java.15.tag']}").inside(p['docker.java.inside.basic']) {
+								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.15.tag']}").inside(p['docker.java.inside.basic']) {
 									sh 'PROFILE=java11 ci/test.sh'
 								}
 							}
