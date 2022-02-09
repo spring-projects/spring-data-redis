@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 the original author or authors.
+ * Copyright 2011-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -171,18 +170,14 @@ public class PubSubTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest // DATAREDIS-251
+	@ParameterizedRedisTest // DATAREDIS-251, GH-964
 	void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
 
 		assumeThat(isClusterAware(template.getConnectionFactory())).isFalse();
-		assumeThat(ConnectionUtils.isJedis(template.getConnectionFactory())).isTrue();
 
-		PubSubAwaitUtil.runAndAwaitPatternSubscription(template.getRequiredConnectionFactory(), () -> {
-
-			container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
-			container.addMessageListener(adapter, Collections.singletonList(new PatternTopic(CHANNEL + "*")));
-			container.start();
-		});
+		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
+		container.addMessageListener(adapter, Collections.singletonList(new PatternTopic(CHANNEL + "*")));
+		container.start();
 
 		T payload = getT();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.listener;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +28,8 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.SubscriptionListener;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
@@ -57,7 +59,7 @@ class RedisMessageListenerContainerUnitTests {
 	void setUp() {
 
 		executorMock = mock(Executor.class);
-		connectionFactoryMock = mock(LettuceConnectionFactory.class);
+		connectionFactoryMock = mock(JedisConnectionFactory.class);
 		connectionMock = mock(RedisConnection.class);
 		subscriptionMock = mock(Subscription.class);
 
@@ -85,7 +87,11 @@ class RedisMessageListenerContainerUnitTests {
 
 		doAnswer(it -> {
 
+			SubscriptionListener listener = it.getArgument(0);
 			when(connectionMock.isSubscribed()).thenReturn(true);
+
+			listener.onChannelSubscribed("a".getBytes(StandardCharsets.UTF_8), 0);
+
 			return null;
 		}).when(connectionMock).subscribe(any(), any());
 

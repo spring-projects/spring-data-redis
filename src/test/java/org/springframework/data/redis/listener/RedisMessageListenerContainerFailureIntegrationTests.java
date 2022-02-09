@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.listener;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.AfterEach;
@@ -25,11 +26,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
+import org.springframework.util.backoff.FixedBackOff;
 
 /**
  * Integration tests for {@link RedisMessageListenerContainer}.
@@ -37,7 +39,7 @@ import org.springframework.data.redis.test.extension.parametrized.MethodSource;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-class RedisMessageListenerContainerInterruptIntegrationTests {
+class RedisMessageListenerContainerFailureIntegrationTests {
 
 	private final Object handler = new Object() {
 
@@ -80,24 +82,44 @@ class RedisMessageListenerContainerInterruptIntegrationTests {
 		connectionFactory.destroy();
 	}
 
-	@Test // DATAREDIS-415
+	@Test // DATAREDIS-415, GH-964
 	void interruptAtStart() {
 
-		final Thread main = Thread.currentThread();
+		Thread main = Thread.currentThread();
 
 		// interrupt thread once Executor.execute is called
 		doAnswer(invocationOnMock -> {
 
 			main.interrupt();
-			return null;
+			throw new InterruptedException();
 		}).when(executorMock).execute(any(Runnable.class));
 
 		container.addMessageListener(adapter, new ChannelTopic("a"));
-		container.start();
+		assertThatThrownBy(() -> container.start()).isInstanceOf(CompletionException.class)
+				.hasRootCauseInstanceOf(InterruptedException.class);
 
 		// reset the interrupted flag to not destroy the teardown
-		assertThat(Thread.interrupted()).isTrue();
+		Thread.interrupted();
 
-		assertThat(container.isRunning()).isFalse();
+		assertThat(container.isRunning()).isTrue();
+		assertThat(container.isListening()).isFalse();
+	}
+
+	@Test // GH-964
+	void connectionFailureAndRetry() {
+
+		// interrupt thread once Executor.execute is called
+		doAnswer(invocationOnMock -> {
+
+			throw new RedisConnectionFailureException("I want to break free!");
+		}).when(executorMock).execute(any(Runnable.class));
+
+		container.setRecoveryBackoff(new FixedBackOff(1, 5));
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		assertThatThrownBy(() -> container.start()).isInstanceOf(CompletionException.class)
+				.hasRootCauseInstanceOf(RedisConnectionFailureException.class);
+
+		assertThat(container.isRunning()).isTrue();
+		assertThat(container.isListening()).isFalse();
 	}
 }
