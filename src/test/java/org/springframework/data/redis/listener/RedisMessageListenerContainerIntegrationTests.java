@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -211,6 +212,143 @@ class RedisMessageListenerContainerIntegrationTests {
 		await().until(() -> subscriptions1.get() > 0 || subscriptions2.get() > 0);
 
 		assertThat(subscriptions1.get() + subscriptions2.get()).isGreaterThan(0);
+	}
+
+	@ParameterizedRedisTest // GH-964
+	void subscribeAfterStart() throws Exception {
+
+		AtomicInteger subscriptions1 = new AtomicInteger();
+		AtomicInteger subscriptions2 = new AtomicInteger();
+		CountDownLatch received = new CountDownLatch(2);
+
+		CompositeListener listener1 = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				received.countDown();
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptions1.incrementAndGet();
+			}
+		};
+
+		CompositeListener listener2 = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				received.countDown();
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptions2.incrementAndGet();
+			}
+		};
+
+		container.start();
+
+		container.addMessageListener(listener1, new PatternTopic("a"));
+		container.addMessageListener(listener2, new PatternTopic("a"));
+
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.publish("a".getBytes(), "hello".getBytes());
+		}
+
+		assertThat(received.await(2, TimeUnit.SECONDS)).isTrue();
+		container.destroy();
+
+		await().until(() -> subscriptions1.get() > 0 || subscriptions2.get() > 0);
+
+		assertThat(subscriptions1.get() + subscriptions2.get()).isGreaterThan(0);
+	}
+
+	@ParameterizedRedisTest // GH-964
+	void multipleStarts() throws Exception {
+
+		AtomicInteger subscriptions = new AtomicInteger();
+		CountDownLatch received = new CountDownLatch(1);
+
+		CompositeListener listener1 = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				received.countDown();
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptions.incrementAndGet();
+			}
+		};
+
+		container.start();
+		container.addMessageListener(listener1, new PatternTopic("a"));
+		container.stop();
+		container.start();
+
+		// Listeners run on a listener executor and they can be notified later
+		await().untilAtomic(subscriptions, Matchers.is(2));
+		assertThat(subscriptions.get()).isEqualTo(2);
+
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.publish("a".getBytes(), "hello".getBytes());
+		}
+
+		assertThat(received.await(2, TimeUnit.SECONDS)).isTrue();
+		container.destroy();
+	}
+
+	@ParameterizedRedisTest // GH-964
+	void shouldRegisterChannelsAndTopics() throws Exception {
+
+		AtomicInteger subscriptions = new AtomicInteger();
+		CountDownLatch received = new CountDownLatch(2);
+
+		CompositeListener patternListener = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				if (message.toString().contains("pattern")) {
+					received.countDown();
+				}
+			}
+
+			@Override
+			public void onPatternSubscribed(byte[] pattern, long count) {
+				subscriptions.incrementAndGet();
+			}
+		};
+
+		CompositeListener channelListener = new CompositeListener() {
+			@Override
+			public void onMessage(Message message, @Nullable byte[] pattern) {
+				if (message.toString().contains("channel")) {
+					received.countDown();
+				}
+			}
+
+			@Override
+			public void onChannelSubscribed(byte[] channel, long count) {
+				subscriptions.incrementAndGet();
+			}
+		};
+
+		container.start();
+
+		container.addMessageListener(patternListener, new PatternTopic("a-pattern-0"));
+		container.addMessageListener(patternListener, new PatternTopic("a-pattern-1"));
+		container.addMessageListener(channelListener, new ChannelTopic("a-channel-0"));
+		container.addMessageListener(channelListener, new ChannelTopic("a-channel-1"));
+
+		// Listeners run on a listener executor and they can be notified later
+		await().untilAtomic(subscriptions, Matchers.is(4));
+		assertThat(subscriptions.get()).isEqualTo(4);
+
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+			connection.publish("a-pattern-1".getBytes(), "pattern".getBytes());
+			connection.publish("a-channel-0".getBytes(), "channel".getBytes());
+		}
+
+		assertThat(received.await(2, TimeUnit.SECONDS)).isTrue();
+		container.destroy();
 	}
 
 	interface CompositeListener extends MessageListener, SubscriptionListener {

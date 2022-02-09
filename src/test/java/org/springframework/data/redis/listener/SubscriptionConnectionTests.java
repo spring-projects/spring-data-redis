@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 the original author or authors.
+ * Copyright 2011-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.junit.jupiter.api.AfterEach;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -70,8 +69,6 @@ public class SubscriptionConnectionTests {
 	}
 
 	public static Collection<Object[]> testParams() {
-		int port = SettingsUtils.getPort();
-		String host = SettingsUtils.getHost();
 
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
@@ -93,8 +90,9 @@ public class SubscriptionConnectionTests {
 		}
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-964
 	void testStopMessageListenerContainers() throws Exception {
+
 		// Grab all 8 connections from the pool. They should be released on
 		// container stop
 		for (int i = 0; i < 8; i++) {
@@ -108,12 +106,6 @@ public class SubscriptionConnectionTests {
 			container.afterPropertiesSet();
 			container.start();
 
-			if (connectionFactory instanceof JedisConnectionFactory) {
-				// Need to sleep shortly as jedis cannot deal propery with multiple repsonses within one connection
-				// see https://github.com/xetorthio/jedis/issues/186
-				Thread.sleep(100);
-			}
-
 			container.stop();
 			containers.add(container);
 		}
@@ -125,6 +117,7 @@ public class SubscriptionConnectionTests {
 
 	@ParameterizedRedisTest
 	void testRemoveLastListener() throws Exception {
+
 		// Grab all 8 connections from the pool
 		MessageListener listener = new MessageListenerAdapter(handler);
 		for (int i = 0; i < 8; i++) {
@@ -150,6 +143,7 @@ public class SubscriptionConnectionTests {
 
 	@ParameterizedRedisTest
 	void testStopListening() throws InterruptedException {
+
 		// Grab all 8 connections from the pool.
 		MessageListener listener = new MessageListenerAdapter(handler);
 		for (int i = 0; i < 8; i++) {
@@ -165,7 +159,7 @@ public class SubscriptionConnectionTests {
 		}
 
 		// Unsubscribe all listeners from all topics, freeing up a connection
-		containers.get(0).removeMessageListener(null, Arrays.asList(new Topic[] {}));
+		containers.get(0).stop();
 
 		// verify we can now get a connection from the pool
 		RedisConnection connection = connectionFactory.getConnection();
