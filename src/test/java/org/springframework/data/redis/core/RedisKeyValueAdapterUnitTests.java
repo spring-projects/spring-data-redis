@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 the original author or authors.
+ * Copyright 2016-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
@@ -38,6 +37,7 @@ import org.mockito.quality.Strictness;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.convert.Bucket;
@@ -71,6 +71,22 @@ class RedisKeyValueAdapterUnitTests {
 		template = new RedisTemplate<>();
 		template.setConnectionFactory(jedisConnectionFactoryMock);
 		template.afterPropertiesSet();
+
+		doAnswer(it -> {
+
+			SubscriptionListener listener = it.getArgument(0);
+			listener.onChannelSubscribed(it.getArgument(1), 0);
+
+			return null;
+		}).when(redisConnectionMock).subscribe(any(), any());
+
+		doAnswer(it -> {
+
+			SubscriptionListener listener = it.getArgument(0);
+			listener.onPatternSubscribed(it.getArgument(1), 0);
+
+			return null;
+		}).when(redisConnectionMock).pSubscribe(any(), any());
 
 		when(jedisConnectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
 
