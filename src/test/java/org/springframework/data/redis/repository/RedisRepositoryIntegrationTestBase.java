@@ -475,7 +475,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	public static interface PersonRepository
-			extends PagingAndSortingRepository<Person, String>, QueryByExampleExecutor<Person> {
+			extends PagingAndSortingRepository<Person, String>, CrudRepository<Person, String>,
+			QueryByExampleExecutor<Person> {
 
 		List<Person> findByFirstname(String firstname);
 
