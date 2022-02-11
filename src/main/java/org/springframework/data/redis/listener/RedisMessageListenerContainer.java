@@ -596,7 +596,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @param listener message listener
 	 * @param topics message listener topics
 	 */
-	public void removeMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
+	public void removeMessageListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
 		removeListener(listener, topics);
 	}
 
@@ -610,7 +610,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @param listener message listener
 	 * @param topic message topic
 	 */
-	public void removeMessageListener(MessageListener listener, Topic topic) {
+	public void removeMessageListener(@Nullable MessageListener listener, Topic topic) {
 		removeMessageListener(listener, Collections.singleton(topic));
 	}
 
@@ -621,6 +621,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @param listener message listener
 	 */
 	public void removeMessageListener(MessageListener listener) {
+
+		Assert.notNull(listener, "MessageListener must not be null");
 		removeMessageListener(listener, Collections.emptySet());
 	}
 
@@ -717,12 +719,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	private void removeListener(MessageListener listener, Collection<? extends Topic> topics) {
+	private void removeListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
 
-		Assert.notNull(listener, "MessageListener must not be null");
 		Assert.notNull(topics, "Topics must not be null");
 
-		if (listenerTopics.get(listener) == null) {
+		if (listener != null && listenerTopics.get(listener) == null) {
 			// Listener not subscribed
 			return;
 		}
@@ -1197,7 +1198,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 
 			if (!channels.isEmpty()) {
-				connection.subscribe(synchronizingMessageListener, channels.toArray(new byte[0][]));
+				if (patterns.isEmpty()) {
+					connection.subscribe(synchronizingMessageListener, channels.toArray(new byte[0][]));
+				} else {
+					subscribeChannel(channels.toArray(new byte[0][]));
+				}
 			}
 		}
 
