@@ -210,12 +210,10 @@ public class PubSubResubscribeTests {
 		container.stop();
 
 		String uniqueChannel = "random-" + UUID.randomUUID();
-		PubSubAwaitUtil.runAndAwaitPatternSubscription(template.getConnectionFactory(), () -> {
 
-			container.addMessageListener(adapter,
-					Arrays.asList(new Topic[] { new ChannelTopic(uniqueChannel), new PatternTopic("s*") }));
-			container.start();
-		});
+		container.addMessageListener(adapter,
+				Arrays.asList(new Topic[] { new ChannelTopic(uniqueChannel), new PatternTopic("s*") }));
+		container.start();
 
 		// timing: There's currently no other way to synchronize
 		// than to hope the subscribe/unsubscribe are executed within the time.
