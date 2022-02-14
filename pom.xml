@@ -20,7 +20,7 @@
 		<awaitility>4.0.2</awaitility>
 		<jta>1.1</jta>
 		<beanutils>1.9.4</beanutils>
-		<xstream>1.4.18</xstream>
+		<xstream>1.4.19</xstream>
 		<pool>2.9.0</pool>
 		<lettuce>6.1.6.RELEASE</lettuce>
 		<jedis>3.7.1</jedis>
