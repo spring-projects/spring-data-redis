@@ -28,6 +28,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.convert.DtoInstantiatingConverter;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
