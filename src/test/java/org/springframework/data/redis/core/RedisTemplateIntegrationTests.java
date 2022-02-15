@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -61,6 +61,7 @@ import org.springframework.data.redis.test.util.CollectionAwareComparator;
  * @author Duobiao Ou
  * @author Mark Paluch
  * @author ihaohong
+ * @author Hendrik Duerkop
  */
 @MethodSource("testParams")
 public class RedisTemplateIntegrationTests<K, V> {
@@ -617,7 +618,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
 		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 5L));
-		await().atMost(Duration.ofMillis(5L)).until(() -> !redisTemplate.hasKey(key1));
+		await().until(() -> !redisTemplate.hasKey(key1));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-611
@@ -626,7 +627,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
 		redisTemplate.expireAt(key1, Instant.now().plus(5, ChronoUnit.MILLIS));
-		await().atMost(Duration.ofMillis(5L)).until(() -> !redisTemplate.hasKey(key1));
+		await().until(() -> !redisTemplate.hasKey(key1));
 	}
 
 	@ParameterizedRedisTest
@@ -644,7 +645,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		template2.boundValueOps((String) key1).set((String) value1);
 		template2.expireAt((String) key1, new Date(System.currentTimeMillis() + 5L));
 		// Just ensure this works as expected, pExpireAt just adds some precision over expireAt
-		await().atMost(Duration.ofMillis(5L)).until(() -> !template2.hasKey((String) key1));
+		await().until(() -> !template2.hasKey((String) key1));
 	}
 
 	@ParameterizedRedisTest

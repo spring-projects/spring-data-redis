@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.*;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -46,6 +45,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Thomas Darimont
  * @author Jiahe Cai
  * @author Mark Paluch
+ * @author Hendrik Duerkop
  */
 @MethodSource("testParams")
 public class DefaultValueOperationsIntegrationTests<K, V> {
