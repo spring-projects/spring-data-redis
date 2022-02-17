@@ -262,6 +262,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Use a {@link Cursor} to iterate over keys.
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
 	 *
 	 * @param options must not be {@literal null}.
 	 * @return never {@literal null}.
