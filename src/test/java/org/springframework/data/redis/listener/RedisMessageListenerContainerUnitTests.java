@@ -105,4 +105,9 @@ class RedisMessageListenerContainerUnitTests {
 		assertThat(container.isRunning()).isFalse();
 		verify(subscriptionMock).close();
 	}
+
+	@Test // GH-964
+	void failsOnDuplicateInit() {
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> container.afterPropertiesSet());
+	}
 }
