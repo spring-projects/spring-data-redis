@@ -265,7 +265,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		try {
-			futureToAwait.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.SECONDS);
+			futureToAwait.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		} catch (ExecutionException e) {
@@ -391,15 +391,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			return true;
 		}
 
-		try {
-			listenFuture.join();
-		} catch (Exception e) {
-			// ignore, just await completion here.
-		}
+		awaitRegistrationTime(listenFuture);
 
 		if (this.state.compareAndSet(state, State.prepareUnsubscribe())) {
 
-			getRequiredSubscriber().cancel();
+			getRequiredSubscriber().unsubscribeAll();
+
+			awaitRegistrationTime(this.unsubscribeFuture);
 
 			this.state.set(State.notListening());
 
@@ -413,6 +411,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	private void awaitRegistrationTime(CompletableFuture<Void> future) {
+		try {
+			future.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		} catch (ExecutionException | TimeoutException e) {
+			// ignore
 		}
 	}
 
@@ -876,7 +884,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				long recoveryInterval = backOffExecution.nextBackOff();
 
 				if (recoveryInterval != BackOffExecution.STOP) {
-					logger.error(String.format("Connection failure occurred: %s. Restarting subscription task after %s ms.", ex, recoveryInterval));
+					logger.error(String.format("Connection failure occurred: %s. Restarting subscription task after %s ms.", ex,
+							recoveryInterval), ex);
 				}
 
 				return recoveryInterval;
@@ -897,7 +906,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			return;
 		}
 
-		logger.error("SubscriptionTask aborted with exception:", ex);
+		if (isRunning()) { // log only if the container is still running to prevent close errors from logging
+			logger.error("SubscriptionTask aborted with exception:", ex);
+		}
 		future.completeExceptionally(ex);
 	}
 
@@ -1216,6 +1227,26 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			this.synchronizingMessageListener.addSynchronization(synchronizer);
 		}
 
+		public void unsubscribeAll() {
+
+			synchronized (localMonitor) {
+
+				RedisConnection connection = this.connection;
+				if (connection == null) {
+					return;
+				}
+
+				doUnsubscribe(connection);
+			}
+		}
+
+		void doUnsubscribe(RedisConnection connection) {
+			closeSubscription(connection);
+			closeConnection();
+
+			unsubscribeFuture.complete(null);
+		}
+
 		/**
 		 * Cancel all subscriptions and close the connection.
 		 */
@@ -1228,26 +1259,34 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					return;
 				}
 
+				doCancel(connection);
+			}
+		}
+
+		void doCancel(RedisConnection connection) {
+			closeSubscription(connection);
+			closeConnection();
+		}
+
+		void closeSubscription(RedisConnection connection) {
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("Cancelling Redis subscription...");
+			}
+
+			Subscription sub = connection.getSubscription();
+
+			if (sub != null) {
+
 				if (logger.isTraceEnabled()) {
-					logger.trace("Cancelling Redis subscription...");
+					logger.trace("Unsubscribing from all channels");
 				}
 
-				Subscription sub = connection.getSubscription();
-
-				if (sub != null) {
-
-					if (logger.isTraceEnabled()) {
-						logger.trace("Unsubscribing from all channels");
-					}
-
-					try {
-						sub.close();
-					} catch (Exception e) {
-						logger.warn("Unable to unsubscribe from subscriptions", e);
-					}
+				try {
+					sub.close();
+				} catch (Exception e) {
+					logger.warn("Unable to unsubscribe from subscriptions", e);
 				}
-
-				closeConnection();
 			}
 		}
 
@@ -1324,6 +1363,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 			}
 		}
+
 	}
 
 	/**
@@ -1339,6 +1379,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		BlockingSubscriber(RedisConnectionFactory connectionFactory, Executor executor) {
 			super(connectionFactory);
 			this.executor = executor;
+		}
+
+		@Override
+		void doUnsubscribe(RedisConnection connection) {
+			closeSubscription(connection); // connection will be closed after exiting the doSubscribe method
 		}
 
 		@Override
@@ -1369,6 +1414,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 				try {
 					doSubscribe(connection, patterns, initiallySubscribeToChannels);
+					closeConnection();
+					unsubscribeFuture.complete(null);
 				} catch (Throwable t) {
 					handleSubscriptionException(subscriptionDone, backOffExecution, t);
 				}

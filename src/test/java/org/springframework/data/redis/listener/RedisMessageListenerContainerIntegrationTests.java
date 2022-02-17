@@ -63,6 +63,7 @@ class RedisMessageListenerContainerIntegrationTests {
 	void setUp() {
 
 		container = new RedisMessageListenerContainer();
+		container.setRecoveryInterval(100);
 		container.setConnectionFactory(connectionFactory);
 		container.setBeanName("container");
 		container.afterPropertiesSet();

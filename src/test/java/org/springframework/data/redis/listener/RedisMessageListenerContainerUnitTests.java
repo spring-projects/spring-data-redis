@@ -81,7 +81,7 @@ class RedisMessageListenerContainerUnitTests {
 		doAnswer(it -> {
 
 			Runnable r = it.getArgument(0);
-			new Thread(r).start();
+			r.run();
 			return null;
 		}).when(executorMock).execute(any());
 
@@ -103,7 +103,7 @@ class RedisMessageListenerContainerUnitTests {
 		container.stop();
 
 		assertThat(container.isRunning()).isFalse();
-		verify(subscriptionMock).close();
+		verify(connectionMock).close();
 	}
 
 	@Test // GH-964
