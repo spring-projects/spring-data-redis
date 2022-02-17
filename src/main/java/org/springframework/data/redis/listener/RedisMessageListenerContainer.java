@@ -163,63 +163,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private volatile CompletableFuture<Void> unsubscribeFuture = new CompletableFuture<>();
 
-	/**
-	 * Container listening state.
-	 */
-	static class State {
-
-		private final boolean prepareListening;
-		private final boolean listening;
-
-		private State(boolean prepareListening, boolean listening) {
-			this.prepareListening = prepareListening;
-			this.listening = listening;
-		}
-
-		/**
-		 * Initial state. Next state is {@link #prepareListening()}.
-		 */
-		public static State notListening() {
-			return new State(false, false);
-		}
-
-		/**
-		 * Prepare listening after {@link #notListening()}. Next states are either {@link #notListening()} upon failure or
-		 * {@link #listening()}.
-		 */
-		public static State prepareListening() {
-			return new State(true, false);
-		}
-
-		/**
-		 * Active listening state after {@link #prepareListening()}. Next is {@link #prepareUnsubscribe()}.
-		 */
-		public static State listening() {
-			return new State(true, true);
-		}
-
-		/**
-		 * Prepare unsubscribe after {@link #listening()}. Next state is {@link #notListening()}.
-		 */
-		public static State prepareUnsubscribe() {
-			return new State(false, true);
-		}
-
-		private boolean isListenerActivated() {
-			return isListening() || isPrepareListening();
-		}
-
-		public boolean isListening() {
-			return listening;
-		}
-
-		public boolean isPrepareListening() {
-			return prepareListening;
-		}
-	}
-
 	@Override
 	public void afterPropertiesSet() {
+
+		Assert.state(!afterPropertiesSet, "Container already initialized.");
 
 		if (this.connectionFactory == null) {
 			throw new IllegalArgumentException("RedisConnectionFactory is not set");
@@ -233,6 +180,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		if (subscriptionExecutor == null) {
 			subscriptionExecutor = taskExecutor;
 		}
+
 
 		this.subscriber = createSubscriber(connectionFactory, this.subscriptionExecutor);
 
@@ -268,7 +216,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				((DisposableBean) taskExecutor).destroy();
 
 				if (logger.isDebugEnabled()) {
-					logger.debug("Stopped internally-managed task executor");
+					logger.debug("Stopped internally-managed task executor.");
 				}
 			}
 		}
@@ -323,7 +271,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		} catch (ExecutionException e) {
 			throw new CompletionException(e.getCause());
 		} catch (TimeoutException e) {
-			throw new IllegalStateException("Subscription registration timeout exceeded", e);
+			throw new IllegalStateException("Subscription registration timeout exceeded.", e);
 		}
 	}
 
@@ -333,7 +281,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private CompletableFuture<Void> lazyListen(BackOffExecution backOffExecution) {
 
 		if (!hasTopics()) {
-			logger.debug("Postpone listening for Redis messages until actual listeners are added");
+			logger.debug("Postpone listening for Redis messages until actual listeners are added.");
 			return CompletableFuture.completedFuture(null);
 		}
 
@@ -367,10 +315,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		listenFuture.whenComplete((unused, throwable) -> {
 
 			if (throwable == null) {
-				logger.debug("RedisMessageListenerContainer listeners registered successfully");
+				logger.debug("RedisMessageListenerContainer listeners registered successfully.");
 				this.state.set(State.listening());
 			} else {
-				logger.debug("Failed to start RedisMessageListenerContainer listeners", throwable);
+				logger.debug("Failed to start RedisMessageListenerContainer listeners.", throwable);
 				this.state.set(State.notListening());
 			}
 
@@ -382,7 +330,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		});
 
-		logger.debug("Subscribing to topics for RedisMessageListenerContainer");
+		logger.debug("Subscribing to topics for RedisMessageListenerContainer.");
 
 		return true;
 	}
@@ -422,7 +370,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			stopListening();
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("Stopped RedisMessageListenerContainer");
+				logger.debug("Stopped RedisMessageListenerContainer.");
 			}
 
 			callback.run();
@@ -459,7 +407,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			this.unsubscribeFuture = new CompletableFuture<>();
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("Stopped RedisMessageListenerContainer");
+				logger.debug("Stopped listening.");
 			}
 
 			return true;
@@ -831,7 +779,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 *
 	 * @see #handleSubscriptionException
 	 * @see #setRecoveryInterval(long)
-	 * @since 3.0
+	 * @since 2.7
 	 */
 	public void setRecoveryBackoff(BackOff recoveryInterval) {
 
@@ -928,8 +876,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				long recoveryInterval = backOffExecution.nextBackOff();
 
 				if (recoveryInterval != BackOffExecution.STOP) {
-					logger.error(
-							"Connection failure occurred:" + ex + ". Restarting subscription task after " + recoveryInterval + " ms");
+					logger.error(String.format("Connection failure occurred: %s. Restarting subscription task after %s ms.", ex, recoveryInterval));
 				}
 
 				return recoveryInterval;
@@ -1011,14 +958,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	/**
-	 * Represents an operation that accepts three input arguments {@link SubscriptionListener},
-	 * {@code channel or pattern}, and {@code count} and returns no result.
-	 */
-	interface SubscriptionConsumer {
-		void accept(SubscriptionListener listener, byte[] channelOrPattern, long count);
-	}
-
 	private void dispatchMessage(Collection<MessageListener> listeners, Message message, @Nullable byte[] pattern) {
 
 		byte[] source = (pattern != null ? pattern.clone() : message.getChannel());
@@ -1055,6 +994,73 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	@SuppressWarnings("ConstantConditions")
 	private byte[] serialize(Topic topic) {
 		return serializer.serialize(topic.getTopic());
+	}
+
+	/**
+	 * Represents an operation that accepts three input arguments {@link SubscriptionListener},
+	 * {@code channel or pattern}, and {@code count} and returns no result.
+	 */
+	interface SubscriptionConsumer {
+		void accept(SubscriptionListener listener, byte[] channelOrPattern, long count);
+	}
+
+	/**
+	 * Container listening state.
+	 *
+	 * @author Mark Paluch
+	 * @since 2.7
+	 */
+	static class State {
+
+		private final boolean prepareListening;
+		private final boolean listening;
+
+		private State(boolean prepareListening, boolean listening) {
+
+			this.prepareListening = prepareListening;
+			this.listening = listening;
+		}
+
+		/**
+		 * Initial state. Next state is {@link #prepareListening()}.
+		 */
+		static State notListening() {
+			return new State(false, false);
+		}
+
+		/**
+		 * Prepare listening after {@link #notListening()}. Next states are either {@link #notListening()} upon failure or
+		 * {@link #listening()}.
+		 */
+		static State prepareListening() {
+			return new State(true, false);
+		}
+
+		/**
+		 * Active listening state after {@link #prepareListening()}. Next is {@link #prepareUnsubscribe()}.
+		 */
+		static State listening() {
+			return new State(true, true);
+		}
+
+		/**
+		 * Prepare unsubscribe after {@link #listening()}. Next state is {@link #notListening()}.
+		 */
+		static State prepareUnsubscribe() {
+			return new State(false, true);
+		}
+
+		private boolean isListenerActivated() {
+			return isListening() || isPrepareListening();
+		}
+
+		public boolean isListening() {
+			return listening;
+		}
+
+		public boolean isPrepareListening() {
+			return prepareListening;
+		}
 	}
 
 	/**
@@ -1119,7 +1125,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * actual listeners without blocking the event loop.
 	 *
 	 * @author Mark Paluch
-	 * @since 3.0
+	 * @since 2.7
 	 */
 	class Subscriber {
 
@@ -1324,7 +1330,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Blocking variant of a subscriber for connectors that block within the (p)subscribe method.
 	 *
 	 * @author Mark Paluch
-	 * @since 3.0
+	 * @since 2.7
 	 */
 	class BlockingSubscriber extends Subscriber {
 
