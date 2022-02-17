@@ -62,6 +62,7 @@ import org.springframework.data.redis.test.util.CollectionAwareComparator;
  * @author Mark Paluch
  * @author ihaohong
  * @author Hendrik Duerkop
+ * @author Chen Li
  */
 @MethodSource("testParams")
 public class RedisTemplateIntegrationTests<K, V> {
@@ -124,6 +125,22 @@ public class RedisTemplateIntegrationTests<K, V> {
 		redisTemplate.opsForValue().set(key1, value1);
 		K keyPattern = key1 instanceof String ? (K) "*" : (K) "*".getBytes();
 		assertThat(redisTemplate.keys(keyPattern)).isNotNull();
+	}
+
+	@ParameterizedRedisTest // GH-2260
+	void testScan() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		assumeThat(key1 instanceof String || key1 instanceof byte[]).isTrue();
+		redisTemplate.opsForValue().set(key1, value1);
+		Cursor<K> cursor = redisTemplate.scan(ScanOptions.scanOptions().count(1).build());
+		long count = 0;
+		while (cursor.hasNext()) {
+			assertThat(cursor.next()).isEqualTo(key1);
+			count++;
+		}
+		cursor.close();
+		assertThat(count).isEqualTo(1);
 	}
 
 	@SuppressWarnings("rawtypes")

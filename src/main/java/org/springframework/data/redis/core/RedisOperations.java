@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author ihaohong
  * @author Todd Merrill
+ * @author Chen Li
  */
 public interface RedisOperations<K, V> {
 
@@ -258,6 +259,16 @@ public interface RedisOperations<K, V> {
 	 */
 	@Nullable
 	Set<K> keys(K pattern);
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 */
+	Cursor<K> scan(ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.

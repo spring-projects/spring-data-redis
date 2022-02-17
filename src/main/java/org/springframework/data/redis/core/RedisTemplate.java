@@ -83,6 +83,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Denis Zavedeev
  * @author ihaohong
+ * @author Chen Li
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -895,6 +896,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Set<byte[]> rawKeys = execute(connection -> connection.keys(rawKey), true);
 
 		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : (Set<K>) rawKeys;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#scan(java.lang.Object)
+	 */
+	@Override
+	public Cursor<K> scan(ScanOptions options) {
+		Assert.notNull(options, "ScanOptions must not be null!");
+
+		return executeWithStickyConnection(
+				(RedisCallback<Cursor<K>>) connection -> new ConvertingCursor<>(connection.scan(options),
+						this::deserializeKey));
 	}
 
 	/*
