@@ -56,7 +56,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 			.create(JedisConnectionFactoryExtension.class);
 
 	private static final JedisClientConfiguration CLIENT_CONFIGURATION = JedisClientConfiguration.builder()
-			.clientName("jedis-client").usePooling().build();
+			.clientName("jedis-client").build();
 
 	private static final NewableLazy<JedisConnectionFactory> STANDALONE = NewableLazy.of(() -> {
 
