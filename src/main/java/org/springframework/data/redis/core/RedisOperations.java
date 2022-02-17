@@ -261,7 +261,7 @@ public interface RedisOperations<K, V> {
 	Set<K> keys(K pattern);
 
 	/**
-	 * Use a {@link Cursor} to iterate over keys.
+	 * Use a {@link Cursor} to iterate over keys. <br />
 	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
 	 *
 	 * @param options must not be {@literal null}.
