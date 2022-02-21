@@ -60,10 +60,10 @@ pipeline {
 						}
 					}
 				}
-				stage('Publish OpenJDK 15 + Redis 6.2 docker image') {
+				stage('Publish OpenJDK LTS + Redis 6.2 docker image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk15-redis-6.2/**"
+							changeset "ci/openjdk17-redis-6.2/**"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -73,7 +73,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.15.tag']}", "--build-arg BASE=${p['docker.java.15.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.lts.tag']}", "--build-arg BASE=${p['docker.java.lts.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
@@ -128,13 +128,13 @@ pipeline {
 						script {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.11.tag']}").inside(p['docker.java.inside.basic']) {
-									sh 'PROFILE=java11 ci/test.sh'
+									sh 'PROFILE=none ci/test.sh'
 								}
 							}
 						}
 					}
 				}
-				stage("test: baseline (jdk15)") {
+				stage("test: baseline (LTS)") {
 					agent {
 						label 'data'
 					}
@@ -145,8 +145,8 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.15.tag']}").inside(p['docker.java.inside.basic']) {
-									sh 'PROFILE=java11 ci/test.sh'
+								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.lts.tag']}").inside(p['docker.java.inside.basic']) {
+									sh 'PROFILE=none ci/test.sh'
 								}
 							}
 						}
@@ -174,7 +174,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+						docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
@@ -182,35 +182,6 @@ pipeline {
 									"-Dartifactory.staging-repository=libs-snapshot-local " +
 									"-Dartifactory.build-name=spring-data-redis " +
 									"-Dartifactory.build-number=${BUILD_NUMBER} " +
-									'-Dmaven.test.skip=true clean deploy -U -B'
-						}
-					}
-				}
-			}
-		}
-
-		stage('Publish documentation') {
-			when {
-				branch '2.5.x'
-			}
-			agent {
-				label 'data'
-			}
-			options { timeout(time: 20, unit: 'MINUTES') }
-
-			environment {
-				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-			}
-
-			steps {
-				script {
-					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute ' +
-									'-Dartifactory.server=https://repo.spring.io ' +
-									"-Dartifactory.username=${ARTIFACTORY_USR} " +
-									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-									"-Dartifactory.distribution-repository=temp-private-local " +
 									'-Dmaven.test.skip=true clean deploy -U -B'
 						}
 					}
