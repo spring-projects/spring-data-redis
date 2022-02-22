@@ -40,6 +40,8 @@ import org.springframework.data.redis.RedisSystemException;
  */
 public class LettuceExceptionConverter implements Converter<Exception, DataAccessException> {
 
+	static final LettuceExceptionConverter INSTANCE = new LettuceExceptionConverter();
+
 	public DataAccessException convert(Exception ex) {
 
 		if (ex instanceof ExecutionException || ex instanceof RedisCommandExecutionException) {

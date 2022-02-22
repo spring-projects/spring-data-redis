@@ -17,13 +17,10 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.lettuce.core.api.async.RedisAsyncCommands;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -122,48 +119,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	}
 
 	@Test
-	void testClosePooledConnectionWithShared() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.afterPropertiesSet();
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.setShutdownTimeout(0);
-		factory2.afterPropertiesSet();
-		RedisConnection connection = factory2.getConnection();
-		// Use the connection to make sure the channel is initialized, else nothing happens on close
-		connection.ping();
-		connection.close();
-		// The shared connection should not be closed
-		connection.ping();
-
-		// The dedicated connection should not be closed b/c it's part of a pool
-		connection.multi();
-		connection.close();
-		factory2.destroy();
-		pool.destroy();
-	}
-
-	@Test
-	void testClosePooledConnectionNotShared() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.afterPropertiesSet();
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.setShareNativeConnection(false);
-		factory2.afterPropertiesSet();
-		RedisConnection connection = factory2.getConnection();
-		// Use the connection to make sure the channel is initialized, else nothing happens on close
-		connection.ping();
-		connection.close();
-		// The dedicated connection should not be closed
-		connection.ping();
-
-		connection.close();
-		factory2.destroy();
-		pool.destroy();
-	}
-
-	@Test
 	void testCloseNonPooledConnectionNotShared() {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -180,60 +135,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			fail("Exception should be thrown trying to use a closed connection");
 		} catch (RedisSystemException e) {}
 		factory2.destroy();
-	}
-
-	@SuppressWarnings("rawtypes")
-	@Test
-	void testCloseReturnBrokenResourceToPool() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.afterPropertiesSet();
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.setShutdownTimeout(0);
-		factory2.setShareNativeConnection(false);
-		factory2.afterPropertiesSet();
-		RedisConnection connection = factory2.getConnection();
-		// Use the connection to make sure the channel is initialized, else nothing happens on close
-		connection.ping();
-		((RedisAsyncCommands) connection.getNativeConnection()).getStatefulConnection().close();
-		try {
-			connection.ping();
-			fail("Exception should be thrown trying to use a closed connection");
-		} catch (RedisSystemException e) {}
-		connection.close();
-		factory2.destroy();
-		pool.destroy();
-	}
-
-	@Test // DATAREDIS-1062
-	void testSelectNotShared() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
-		config.setMaxTotal(1);
-		config.setMaxIdle(1);
-		pool.setPoolConfig(config);
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.afterPropertiesSet();
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.setDatabase(0);
-		factory2.setShutdownTimeout(0);
-		factory2.setShareNativeConnection(false);
-		factory2.afterPropertiesSet();
-		RedisConnection connection = factory2.getConnection();
-
-		connection.select(2);
-		connection.rPush("key".getBytes(), "value1".getBytes(), "value2".getBytes());
-		List<byte[]> bytes = connection.bLPop(1, "key".getBytes());
-		assertThat(bytes).hasSize(2);
-		connection.close();
-
-		connection = factory2.getConnection();
-		assertThat(connection.lLen("key".getBytes())).isEqualTo(0);
-		connection.select(2);
-		assertThat(connection.lLen("key".getBytes())).isEqualTo(1);
-
-		factory2.destroy();
-		pool.destroy();
 	}
 
 	@Test

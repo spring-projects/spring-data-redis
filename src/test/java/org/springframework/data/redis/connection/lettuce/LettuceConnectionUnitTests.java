@@ -143,7 +143,7 @@ public class LettuceConnectionUnitTests {
 		@Test // DATAREDIS-431
 		void dbIndexShouldBeSetWhenObtainingConnection() {
 
-			connection = new LettuceConnection(null, 0, clientMock, null, 0);
+			connection = new LettuceConnection(null, 0, clientMock, 0);
 			connection.select(1);
 			connection.getNativeConnection();
 
@@ -156,7 +156,7 @@ public class LettuceConnectionUnitTests {
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
 
 			when(syncCommandsMock.set(any(), any())).thenThrow(exception);
-			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+			connection = new LettuceConnection(null, 0, clientMock, 1);
 
 			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))
 					.hasMessageContaining(exception.getMessage()).hasRootCause(exception);
@@ -168,7 +168,7 @@ public class LettuceConnectionUnitTests {
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
 
 			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenThrow(exception);
-			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+			connection = new LettuceConnection(null, 0, clientMock, 1);
 			connection.openPipeline();
 
 			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))

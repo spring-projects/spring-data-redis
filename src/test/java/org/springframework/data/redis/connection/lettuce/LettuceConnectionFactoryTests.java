@@ -300,23 +300,6 @@ class LettuceConnectionFactoryTests {
 		assertThat(factory.getSharedConnection()).isNull();
 	}
 
-	@Test
-	void testCreateFactoryWithPool() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		pool.afterPropertiesSet();
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
-		factory2.setShutdownTimeout(0);
-		factory2.afterPropertiesSet();
-
-		ConnectionFactoryTracker.add(factory2);
-
-		RedisConnection conn2 = factory2.getConnection();
-		conn2.close();
-		factory2.destroy();
-		pool.destroy();
-	}
-
 	@Test // DATAREDIS-431
 	void dbIndexShouldBePropagatedCorrectly() {
 

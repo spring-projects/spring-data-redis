@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
 public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
-			LettuceConverters.exceptionConverter());
+			LettuceExceptionConverter.INSTANCE);
 
 	private final LettuceConnectionProvider provider;
 	private StatefulRedisSentinelConnection<String, String> connection; // no that should not be null

@@ -49,7 +49,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -93,7 +92,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
-			LettuceConverters.exceptionConverter());
+			LettuceExceptionConverter.INSTANCE);
 	private static final TypeHints typeHints = new TypeHints();
 
 	private final int defaultDbIndex;
@@ -161,20 +160,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param client The {@link RedisClient} to use when instantiating a native connection
 	 */
 	public LettuceConnection(long timeout, RedisClient client) {
-		this(null, timeout, client, null);
-	}
-
-	/**
-	 * Instantiates a new lettuce connection.
-	 *
-	 * @param timeout The connection timeout (in milliseconds) * @param client The {@link RedisClient} to use when
-	 *          instantiating a pub/sub connection
-	 * @param pool The connection pool to use for all other native connections
-	 * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
-	 */
-	@Deprecated
-	public LettuceConnection(long timeout, RedisClient client, LettucePool pool) {
-		this(null, timeout, client, pool);
+		this(null, timeout, client);
 	}
 
 	/**
@@ -187,25 +173,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
 			RedisClient client) {
-		this(sharedConnection, timeout, client, null);
-	}
-
-	/**
-	 * Instantiates a new lettuce connection.
-	 *
-	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
-	 *          used for transactions or blocking operations
-	 * @param timeout The connection timeout (in milliseconds)
-	 * @param client The {@link RedisClient} to use when making pub/sub connections
-	 * @param pool The connection pool to use for blocking and tx operations
-	 * @deprecated since 2.0, use
-	 *             {@link #LettuceConnection(StatefulRedisConnection, LettuceConnectionProvider, long, int)}
-	 */
-	@Deprecated
-	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-			RedisClient client, @Nullable LettucePool pool) {
-
-		this(sharedConnection, timeout, client, pool, 0);
+		this(sharedConnection, timeout, client, 0);
 	}
 
 	/**
@@ -213,22 +181,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 *          used for transactions or blocking operations.
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when making pub/sub connections.
-	 * @param pool The connection pool to use for blocking and tx operations.
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 1.7
-	 * @deprecated since 2.0, use
-	 *             {@link #LettuceConnection(StatefulRedisConnection, LettuceConnectionProvider, long, int)}
 	 */
-	@Deprecated
 	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-			@Nullable AbstractRedisClient client, @Nullable LettucePool pool, int defaultDbIndex) {
+			@Nullable AbstractRedisClient client, int defaultDbIndex) {
 
-		if (pool != null) {
-			this.connectionProvider = new LettucePoolConnectionProvider(pool);
-		} else {
-			this.connectionProvider = new StandaloneConnectionProvider((RedisClient) client, CODEC);
-		}
-
+		this.connectionProvider = new StandaloneConnectionProvider((RedisClient) client, CODEC);
 		this.asyncSharedConn = sharedConnection;
 		this.timeout = timeout;
 		this.defaultDbIndex = defaultDbIndex;
@@ -1245,43 +1204,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 				CONSTRUCTORS.put(type, constructor);
 			}
 			return BeanUtils.instantiateClass(constructor, CODEC);
-		}
-	}
-
-	static class LettucePoolConnectionProvider implements LettuceConnectionProvider {
-
-		private final LettucePool pool;
-
-		LettucePoolConnectionProvider(LettucePool pool) {
-			this.pool = pool;
-		}
-
-		@Override
-		public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
-			return connectionType.cast(pool.getResource());
-		}
-
-		@Override
-		public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
-			throw new UnsupportedOperationException("Async operations not supported!");
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public void release(StatefulConnection<?, ?> connection) {
-
-			if (connection.isOpen()) {
-
-				if (connection instanceof StatefulRedisConnection) {
-					StatefulRedisConnection<?, ?> redisConnection = (StatefulRedisConnection<?, ?>) connection;
-					if (redisConnection.isMulti()) {
-						redisConnection.async().discard();
-					}
-				}
-				pool.returnResource((StatefulConnection<byte[], byte[]>) connection);
-			} else {
-				pool.returnBrokenResource((StatefulConnection<byte[], byte[]>) connection);
-			}
 		}
 	}
 
