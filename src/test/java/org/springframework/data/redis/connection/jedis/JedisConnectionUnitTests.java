@@ -103,21 +103,21 @@ class JedisConnectionUnitTests {
 		}
 
 		@Test // DATAREDIS-277
-		void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
-			assertThatIllegalArgumentException().isThrownBy(() -> connection.slaveOf(null, 0));
+		void replicaOfShouldThrowExectpionWhenCalledForNullHost() {
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.replicaOf(null, 0));
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfShouldBeSentCorrectly() {
+		public void replicaOfShouldBeSentCorrectly() {
 
-			connection.slaveOf("127.0.0.1", 1001);
+			connection.replicaOf("127.0.0.1", 1001);
 			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfNoOneShouldBeSentCorrectly() {
+		public void replicaOfNoOneShouldBeSentCorrectly() {
 
-			connection.slaveOfNoOne();
+			connection.replicaOfNoOne();
 			verifyNativeConnectionInvocation().slaveofNoOne();
 		}
 
@@ -296,15 +296,15 @@ class JedisConnectionUnitTests {
 		@Test
 		@Override
 		// DATAREDIS-277
-		public void slaveOfShouldBeSentCorrectly() {
+		public void replicaOfShouldBeSentCorrectly() {
 			assertThatExceptionOfType(UnsupportedOperationException.class)
-					.isThrownBy(() -> super.slaveOfShouldBeSentCorrectly());
+					.isThrownBy(() -> super.replicaOfShouldBeSentCorrectly());
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfNoOneShouldBeSentCorrectly() {
+		public void replicaOfNoOneShouldBeSentCorrectly() {
 			assertThatExceptionOfType(UnsupportedOperationException.class)
-					.isThrownBy(() -> super.slaveOfNoOneShouldBeSentCorrectly());
+					.isThrownBy(() -> super.replicaOfNoOneShouldBeSentCorrectly());
 		}
 
 		@Test // DATAREDIS-531

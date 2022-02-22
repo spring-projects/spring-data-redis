@@ -163,11 +163,11 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public Collection<RedisClusterNode> getSlaves(RedisClusterNode node) {
+	public Collection<RedisClusterNode> getReplicas(final RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null.");
 
-		return doInCluster(connection -> connection.clusterGetSlaves(node));
+		return doInCluster(connection -> connection.clusterGetReplicas(node));
 	}
 
 	@Override

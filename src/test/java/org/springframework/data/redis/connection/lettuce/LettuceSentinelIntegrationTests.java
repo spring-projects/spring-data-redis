@@ -56,8 +56,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	private static final RedisServer SENTINEL_0 = new RedisServer("127.0.0.1", 26379);
 	private static final RedisServer SENTINEL_1 = new RedisServer("127.0.0.1", 26380);
 
-	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
-	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
+	private static final RedisServer REPLICA_0 = new RedisServer("127.0.0.1", 6380);
+	private static final RedisServer REPLICA_1 = new RedisServer("127.0.0.1", 6381);
 
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG;
 	static {
@@ -159,15 +159,15 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	// DATAREDIS-348
-	void shouldReadSlavesOfMastersCorrectly() {
+	void shouldReadReplicasOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
 		assertThat(servers.size()).isEqualTo(1);
 
-		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves).containsAnyOf(SLAVE_0, SLAVE_1);
+		Collection<RedisServer> replicas = sentinelConnection.replicas(servers.get(0));
+		assertThat(replicas).containsAnyOf(REPLICA_0, REPLICA_1);
 	}
 
 	@Test // DATAREDIS-462
@@ -228,10 +228,10 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-580
-	void factoryWithReadFromSlaveSettings() {
+	void factoryWithReadFromReplicaSettings() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
-				LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE).build());
+				LettuceTestClientConfiguration.builder().readFrom(ReadFrom.REPLICA).build());
 		factory.afterPropertiesSet();
 
 		ConnectionFactoryTracker.add(factory);
@@ -247,7 +247,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-580
-	void factoryUsesMasterSlaveConnections() {
+	void factoryUsesMasterReplicaConnections() {
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
 				.build();

@@ -1023,23 +1023,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/*
-	 * @see org.springframework.data.redis.core.RedisOperations#slaveOf(java.lang.String, int)
+	 * @see org.springframework.data.redis.core.RedisOperations#replicaOf(java.lang.String, int)
 	 */
 	@Override
-	public void slaveOf(final String host, final int port) {
+	public void replicaOf(final String host, final int port) {
 
 		execute((RedisCallback<Void>) connection -> {
 
-			connection.slaveOf(host, port);
+			connection.replicaOf(host, port);
 			return null;
 		});
 	}
 
 	@Override
-	public void slaveOfNoOne() {
+	public void replicaOfNoOne() {
 
 		execute((RedisCallback<Void>) connection -> {
-			connection.slaveOfNoOne();
+			connection.replicaOfNoOne();
 			return null;
 		});
 	}

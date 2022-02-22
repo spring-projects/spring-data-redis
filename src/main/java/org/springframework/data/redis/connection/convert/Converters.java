@@ -570,13 +570,13 @@ abstract public class Converters {
 			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
 					.listeningAt(hostAndPort[0], Integer.valueOf(portPart)) //
 					.withId(args[ID_INDEX]) //
-					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE) //
+					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA) //
 					.serving(range) //
 					.withFlags(flags) //
 					.linkState(parseLinkState(args));
 
 			if (!args[MASTER_ID_INDEX].isEmpty() && !args[MASTER_ID_INDEX].startsWith("-")) {
-				nodeBuilder.slaveOf(args[MASTER_ID_INDEX]);
+				nodeBuilder.replicaOf(args[MASTER_ID_INDEX]);
 			}
 
 			return nodeBuilder.build();

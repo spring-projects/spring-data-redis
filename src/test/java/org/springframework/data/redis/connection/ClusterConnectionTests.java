@@ -62,10 +62,10 @@ public interface ClusterConnectionTests {
 	void clientListShouldGetInfosForAllClients();
 
 	// DATAREDIS-315
-	void clusterGetMasterSlaveMapShouldListMastersAndSlavesCorrectly();
+	void clusterGetMasterReplicaMapShouldListMastersAndReplicasCorrectly();
 
 	// DATAREDIS-315
-	void clusterGetSlavesShouldReturnSlaveCorrectly();
+	void clusterGetReplicasShouldReturnReplicaCorrectly();
 
 	// DATAREDIS-315
 	void countKeysShouldReturnNumberOfKeysInSlot();

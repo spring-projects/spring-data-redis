@@ -144,18 +144,10 @@ public class RedisNode implements NamedNode {
 
 	/**
 	 * @return
-	 * @since 1.7
-	 */
-	public boolean isSlave() {
-		return isReplica();
-	}
-
-	/**
-	 * @return
 	 * @since 2.1
 	 */
 	public boolean isReplica() {
-		return ObjectUtils.nullSafeEquals(NodeType.SLAVE, getType());
+		return ObjectUtils.nullSafeEquals(NodeType.REPLICA, getType());
 	}
 
 	/**
@@ -214,7 +206,7 @@ public class RedisNode implements NamedNode {
 	 * @since 1.7
 	 */
 	public enum NodeType {
-		MASTER, SLAVE
+		MASTER, REPLICA
 	}
 
 	/**
@@ -277,17 +269,6 @@ public class RedisNode implements NamedNode {
 
 			node.type = type;
 			return this;
-		}
-
-		/**
-		 * Set the id of the master node.
-		 *
-		 * @param masterId
-		 * @return
-		 * @since 1.7
-		 */
-		public RedisNodeBuilder slaveOf(String masterId) {
-			return replicaOf(masterId);
 		}
 
 		/**

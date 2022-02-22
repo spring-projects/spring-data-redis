@@ -133,7 +133,7 @@ public interface ClusterOperations<K, V> {
 	 * @param node must not be {@literal null}.
 	 * @return
 	 */
-	Collection<RedisClusterNode> getSlaves(RedisClusterNode node);
+	Collection<RedisClusterNode> getReplicas(RedisClusterNode node);
 
 	/**
 	 * Synchronous save current db snapshot on server.

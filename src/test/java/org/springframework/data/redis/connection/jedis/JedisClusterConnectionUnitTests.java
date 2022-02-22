@@ -257,10 +257,10 @@ class JedisClusterConnectionUnitTests {
 	void shouldFailWithUnknownNode() {
 
 		try {
-			connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
+			connection.serverCommands().dbSize(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT));
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage())
-					.contains("Node " + CLUSTER_HOST + ":" + SLAVEOF_NODE_1_PORT + " is unknown to cluster");
+					.contains("Node " + CLUSTER_HOST + ":" + REPLICAOF_NODE_1_PORT + " is unknown to cluster");
 		}
 	}
 

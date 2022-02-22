@@ -375,15 +375,15 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	}
 
 	@Override
-	public void slaveOf(String host, int port) {
+	public void replicaOf(String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
-				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
 	@Override
-	public void slaveOfNoOne() {
+	public void replicaOfNoOne() {
 		throw new InvalidDataAccessApiUsageException(
-				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
 	@Override

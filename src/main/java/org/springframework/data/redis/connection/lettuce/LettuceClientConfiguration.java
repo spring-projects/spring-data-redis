@@ -89,8 +89,6 @@ public interface LettuceClientConfiguration {
 	Optional<String> getClientName();
 
 	/**
-	 * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
-	 *
 	 * @return the optional {@link io.lettuce.core.ReadFrom} setting.
 	 * @since 2.1
 	 */
@@ -240,8 +238,7 @@ public interface LettuceClientConfiguration {
 		}
 
 		/**
-		 * Configure {@link ReadFrom}. Enables Master/Replica operations if configured. <br/>
-		 * Note: Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
+		 * Configure {@link ReadFrom}. Enables Master/Replica operations if configured.
 		 *
 		 * @param readFrom must not be {@literal null}.
 		 * @return {@literal this} builder.

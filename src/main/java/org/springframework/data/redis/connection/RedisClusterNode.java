@@ -242,7 +242,7 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	public static enum Flag {
 
-		MYSELF("myself"), MASTER("master"), SLAVE("slave"), FAIL("fail"), PFAIL("fail?"), HANDSHAKE("handshake"), NOADDR(
+		MYSELF("myself"), MASTER("master"), REPLICA("slave"), FAIL("fail"), PFAIL("fail?"), HANDSHAKE("handshake"), NOADDR(
 				"noaddr"), NOFLAGS("noflags");
 
 		private String raw;
@@ -294,11 +294,6 @@ public class RedisClusterNode extends RedisNode {
 		@Override
 		public RedisClusterNodeBuilder promotedAs(NodeType nodeType) {
 			super.promotedAs(nodeType);
-			return this;
-		}
-
-		public RedisClusterNodeBuilder slaveOf(String masterId) {
-			super.slaveOf(masterId);
 			return this;
 		}
 

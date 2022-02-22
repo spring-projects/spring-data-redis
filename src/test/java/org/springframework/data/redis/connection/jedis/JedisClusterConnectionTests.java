@@ -66,7 +66,6 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
-import org.springframework.data.redis.connection.RedisListCommands.*;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.script.DigestUtils;
@@ -124,7 +123,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 			try (Jedis jedis = pool.getResource()) {
 				jedis.flushAll();
 			} catch (Exception e) {
-				// ignore this one since we cannot remove data from slaves
+				// ignore this one since we cannot remove data from replicas
 			}
 		}
 	}
@@ -236,26 +235,27 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterGetMasterSlaveMapShouldListMastersAndSlavesCorrectly() {
+	public void clusterGetMasterReplicaMapShouldListMastersAndReplicasCorrectly() {
 
-		Map<RedisClusterNode, Collection<RedisClusterNode>> masterSlaveMap = clusterConnection.clusterGetMasterSlaveMap();
+		Map<RedisClusterNode, Collection<RedisClusterNode>> masterReplicaMap = clusterConnection
+				.clusterGetMasterReplicaMap();
 
-		assertThat(masterSlaveMap).isNotNull();
-		assertThat(masterSlaveMap.size()).isEqualTo(3);
-		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT)))
-				.contains(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
-		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT)).isEmpty()).isTrue();
-		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty()).isTrue();
+		assertThat(masterReplicaMap).isNotNull();
+		assertThat(masterReplicaMap.size()).isEqualTo(3);
+		assertThat(masterReplicaMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT)))
+				.contains(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT));
+		assertThat(masterReplicaMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT)).isEmpty()).isTrue();
+		assertThat(masterReplicaMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty()).isTrue();
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterGetSlavesShouldReturnSlaveCorrectly() {
+	public void clusterGetReplicasShouldReturnReplicaCorrectly() {
 
-		Set<RedisClusterNode> slaves = clusterConnection
-				.clusterGetSlaves(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
+		Set<RedisClusterNode> replicas = clusterConnection
+				.clusterGetReplicas(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
 
-		assertThat(slaves.size()).isEqualTo(1);
-		assertThat(slaves).contains(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
+		assertThat(replicas.size()).isEqualTo(1);
+		assertThat(replicas).contains(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT));
 	}
 
 	@Test // DATAREDIS-315
@@ -790,7 +790,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315, DATAREDIS-661
 	public void getConfigShouldLoadConfigurationOfSpecificNode() {
 
-		Properties result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT), "*");
+		Properties result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT), "*");
 
 		assertThat(result.getProperty("slaveof")).endsWith("7379");
 	}

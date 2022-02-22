@@ -46,22 +46,22 @@ public interface ReactiveClusterCommands {
 	Flux<RedisClusterNode> clusterGetNodes();
 
 	/**
-	 * Retrieve information about connected slaves for given master node.
+	 * Retrieve information about connected replicas for given master node.
 	 *
 	 * @param master must not be {@literal null}.
 	 * @return a {@link Flux} emitting {@link RedisClusterNode cluster nodes}, an {@link Flux#empty() empty one} if none
 	 *         found.
-	 * @see <a href="https://redis.io/commands/cluster-slaves">Redis Documentation: CLUSTER SLAVES</a>
+	 * @see <a href="https://redis.io/commands/cluster-replicas">Redis Documentation: CLUSTER REPLICAS</a>
 	 */
-	Flux<RedisClusterNode> clusterGetSlaves(RedisClusterNode master);
+	Flux<RedisClusterNode> clusterGetReplicas(RedisClusterNode master);
 
 	/**
-	 * Retrieve information about masters and their connected slaves.
+	 * Retrieve information about masters and their connected replicas.
 	 *
 	 * @return never {@literal null}.
-	 * @see <a href="https://redis.io/commands/cluster-slaves">Redis Documentation: CLUSTER SLAVES</a>
+	 * @see <a href="https://redis.io/commands/cluster-replicas">Redis Documentation: CLUSTER REPLICAS</a>
 	 */
-	Mono<Map<RedisClusterNode, Collection<RedisClusterNode>>> clusterGetMasterSlaveMap();
+	Mono<Map<RedisClusterNode, Collection<RedisClusterNode>>> clusterGetMasterReplicaMap();
 
 	/**
 	 * Find the slot for a given {@code key}.
@@ -184,7 +184,7 @@ public interface ReactiveClusterCommands {
 	Flux<ByteBuffer> clusterGetKeysInSlot(int slot, int count);
 
 	/**
-	 * Assign a {@literal slave} to given {@literal master}.
+	 * Assign a {@literal replica} to given {@literal master}.
 	 *
 	 * @param master must not be {@literal null}.
 	 * @param replica must not be {@literal null}.

@@ -103,10 +103,10 @@ class ConvertersUnitTests {
 		assertThat(node.getId()).isEqualTo("8cad73f63eb996fedba89f041636f17d88cda075");
 		assertThat(node.getHost()).isEqualTo("127.0.0.1");
 		assertThat(node.getPort()).isEqualTo(7369);
-		assertThat(node.getType()).isEqualTo(NodeType.SLAVE);
+		assertThat(node.getType()).isEqualTo(NodeType.REPLICA);
 		assertThat(node.getMasterId()).isEqualTo("ef570f86c7b1a953846668debc177a3a16733420");
 		assertThat(node.getSlotRange()).isNotNull();
-		assertThat(node.getFlags()).contains(Flag.SLAVE);
+		assertThat(node.getFlags()).contains(Flag.REPLICA);
 		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
 	}
 
@@ -153,10 +153,10 @@ class ConvertersUnitTests {
 		assertThat(node.getId()).isEqualTo("8cad73f63eb996fedba89f041636f17d88cda075");
 		assertThat(node.getHost()).isEqualTo("127.0.0.1");
 		assertThat(node.getPort()).isEqualTo(7369);
-		assertThat(node.getType()).isEqualTo(NodeType.SLAVE);
+		assertThat(node.getType()).isEqualTo(NodeType.REPLICA);
 		assertThat(node.getMasterId()).isEqualTo("ef570f86c7b1a953846668debc177a3a16733420");
 		assertThat(node.getSlotRange()).isNotNull();
-		assertThat(node.getFlags()).contains(Flag.SLAVE);
+		assertThat(node.getFlags()).contains(Flag.REPLICA);
 		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
 	}
 

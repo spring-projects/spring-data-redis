@@ -778,8 +778,8 @@ class RedisConnectionUnitTests {
 			return delegate.getBit(key, offset);
 		}
 
-		public void slaveOf(String host, int port) {
-			delegate.slaveOf(host, port);
+		public void replicaOf(String host, int port) {
+			delegate.replicaOf(host, port);
 		}
 
 		public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
@@ -798,8 +798,8 @@ class RedisConnectionUnitTests {
 			return delegate.setBit(key, offset, value);
 		}
 
-		public void slaveOfNoOne() {
-			delegate.slaveOfNoOne();
+		public void replicaOfNoOne() {
+			delegate.replicaOfNoOne();
 		}
 
 		public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {

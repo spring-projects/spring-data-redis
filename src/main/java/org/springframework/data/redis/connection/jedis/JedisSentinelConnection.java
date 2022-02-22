@@ -64,21 +64,21 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	}
 
 	@Override
-	public List<RedisServer> slaves(NamedNode master) {
+	public List<RedisServer> replicas(NamedNode master) {
 
-		Assert.notNull(master, "Master node cannot be 'null' when loading slaves.");
-		return slaves(master.getName());
+		Assert.notNull(master, "Master node cannot be 'null' when loading replicas.");
+		return replicas(master.getName());
 	}
 
 	/**
 	 * @param masterName
-	 * @see RedisSentinelCommands#slaves(NamedNode)
+	 * @see RedisSentinelCommands#replicas(NamedNode)
 	 * @return
 	 */
-	public List<RedisServer> slaves(String masterName) {
+	public List<RedisServer> replicas(String masterName) {
 
-		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading slaves.");
-		return JedisConverters.toListOfRedisServer(jedis.sentinelSlaves(masterName));
+		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading replicas.");
+		return JedisConverters.toListOfRedisServer(jedis.sentinelReplicas(masterName));
 	}
 
 	@Override
