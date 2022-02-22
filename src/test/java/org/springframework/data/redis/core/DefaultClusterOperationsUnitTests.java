@@ -214,16 +214,16 @@ class DefaultClusterOperationsUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	void getSlavesShouldDelegateToConnection() {
+	void getReplicasShouldDelegateToConnection() {
 
-		clusterOps.getSlaves(NODE_1);
+		clusterOps.getReplicas(NODE_1);
 
-		verify(connection, times(1)).clusterGetSlaves(eq(NODE_1));
+		verify(connection, times(1)).clusterGetReplicas(eq(NODE_1));
 	}
 
 	@Test // DATAREDIS-315
-	void getSlavesShouldThrowExceptionWhenNodeIsNull() {
-		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.getSlaves(null));
+	void getReplicasShouldThrowExceptionWhenNodeIsNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.getReplicas(null));
 	}
 
 	@Test // DATAREDIS-315

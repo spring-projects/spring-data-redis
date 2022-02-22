@@ -576,17 +576,17 @@ public interface RedisOperations<K, V> {
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @since 1.3
-	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @see <a href="https://redis.io/commands/replicaof">Redis Documentation: REPLICAOF</a>
 	 */
-	void slaveOf(String host, int port);
+	void replicaOf(String host, int port);
 
 	/**
 	 * Change server into master.
 	 *
 	 * @since 1.3
-	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @see <a href="https://redis.io/commands/replicaof">Redis Documentation: REPLICAOF</a>
 	 */
-	void slaveOfNoOne();
+	void replicaOfNoOne();
 
 	/**
 	 * Publishes the given message to the given channel.

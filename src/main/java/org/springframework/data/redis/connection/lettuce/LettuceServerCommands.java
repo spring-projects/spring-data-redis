@@ -191,15 +191,15 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void slaveOf(String host, int port) {
+	public void replicaOf(String host, int port) {
 
-		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
+		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command.");
 
 		connection.invoke().just(RedisServerAsyncCommands::slaveof, host, port);
 	}
 
 	@Override
-	public void slaveOfNoOne() {
+	public void replicaOfNoOne() {
 		connection.invoke().just(RedisServerAsyncCommands::slaveofNoOne);
 	}
 

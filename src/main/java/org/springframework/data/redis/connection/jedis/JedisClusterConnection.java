@@ -562,7 +562,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	}
 
 	@Override
-	public Set<RedisClusterNode> clusterGetSlaves(RedisClusterNode master) {
+	public Set<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
 
 		Assert.notNull(master, "Master cannot be null!");
 
@@ -575,7 +575,7 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	}
 
 	@Override
-	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
+	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterReplicaMap() {
 
 		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor
 				.executeCommandAsyncOnNodes((JedisClusterCommandCallback<Collection<RedisClusterNode>>) client -> {

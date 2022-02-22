@@ -478,7 +478,7 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * @param source List of Maps containing node details from SENTINEL SLAVES or SENTINEL MASTERS. May be empty or
+	 * @param source List of Maps containing node details from SENTINEL REPLICAS or SENTINEL MASTERS. May be empty or
 	 *          {@literal null}.
 	 * @return List of {@link RedisServer}'s. List is empty if List of Maps is empty.
 	 * @since 1.5
@@ -724,9 +724,9 @@ public abstract class LettuceConverters extends Converters {
 		Set<Flag> flags = parseFlags(source.getFlags());
 
 		return RedisClusterNode.newRedisClusterNode().listeningAt(source.getUri().getHost(), source.getUri().getPort())
-				.withId(source.getNodeId()).promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE)
+				.withId(source.getNodeId()).promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA)
 				.serving(new SlotRange(source.getSlots())).withFlags(flags)
-				.linkState(source.isConnected() ? LinkState.CONNECTED : LinkState.DISCONNECTED).slaveOf(source.getSlaveOf())
+				.linkState(source.isConnected() ? LinkState.CONNECTED : LinkState.DISCONNECTED).replicaOf(source.getSlaveOf())
 				.build();
 	}
 
@@ -757,7 +757,8 @@ public abstract class LettuceConverters extends Converters {
 					flags.add(Flag.NOADDR);
 					break;
 				case SLAVE:
-					flags.add(Flag.SLAVE);
+				case REPLICA:
+					flags.add(Flag.REPLICA);
 					break;
 			}
 		}

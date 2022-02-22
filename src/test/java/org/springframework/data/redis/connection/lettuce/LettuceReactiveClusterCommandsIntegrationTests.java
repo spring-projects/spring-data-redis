@@ -60,11 +60,11 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 	}
 
 	@Test // DATAREDIS-1150
-	void clusterGetSlavesShouldReturnNodes() {
+	void clusterGetReplicasShouldReturnNodes() {
 
 		connection.clusterGetNodes().filter(RedisClusterNode::isMaster)
 				.filter(node -> (node.getPort() == 7379 || node.getPort() == 7382))
-				.flatMap(it -> connection.clusterGetSlaves(it)) //
+				.flatMap(it -> connection.clusterGetReplicas(it)) //
 				.collectList() //
 				.as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
@@ -74,9 +74,9 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 	}
 
 	@Test // DATAREDIS-1150
-	void clusterGetMasterSlaveMapShouldReportTopology() {
+	void clusterGetMasterReplicaMapShouldReportTopology() {
 
-		connection.clusterGetMasterSlaveMap() //
+		connection.clusterGetMasterReplicaMap() //
 				.as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
 

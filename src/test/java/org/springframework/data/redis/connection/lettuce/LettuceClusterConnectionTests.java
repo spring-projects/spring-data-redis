@@ -285,26 +285,27 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterGetMasterSlaveMapShouldListMastersAndSlavesCorrectly() {
+	public void clusterGetMasterReplicaMapShouldListMastersAndReplicasCorrectly() {
 
-		Map<RedisClusterNode, Collection<RedisClusterNode>> masterSlaveMap = clusterConnection.clusterGetMasterSlaveMap();
+		Map<RedisClusterNode, Collection<RedisClusterNode>> masterReplicaMap = clusterConnection
+				.clusterGetMasterReplicaMap();
 
-		assertThat(masterSlaveMap).isNotNull();
-		assertThat(masterSlaveMap).hasSize(3);
-		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT)))
-				.contains(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
-		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT)).isEmpty()).isTrue();
-		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty()).isTrue();
+		assertThat(masterReplicaMap).isNotNull();
+		assertThat(masterReplicaMap).hasSize(3);
+		assertThat(masterReplicaMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT)))
+				.contains(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT));
+		assertThat(masterReplicaMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT)).isEmpty()).isTrue();
+		assertThat(masterReplicaMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty()).isTrue();
 	}
 
 	@Test // DATAREDIS-315
-	public void clusterGetSlavesShouldReturnSlaveCorrectly() {
+	public void clusterGetReplicasShouldReturnReplicaCorrectly() {
 
-		Set<RedisClusterNode> slaves = clusterConnection
-				.clusterGetSlaves(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
+		Set<RedisClusterNode> replicas = clusterConnection
+				.clusterGetReplicas(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
 
-		assertThat(slaves).hasSize(1);
-		assertThat(slaves).contains(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT));
+		assertThat(replicas).hasSize(1);
+		assertThat(replicas).contains(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT));
 	}
 
 	@Test // DATAREDIS-315
@@ -699,7 +700,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // DATAREDIS-315, DATAREDIS-661
 	public void getConfigShouldLoadConfigurationOfSpecificNode() {
 
-		Properties result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT), "*");
+		Properties result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT), "*");
 
 		assertThat(result.getProperty("slaveof")).endsWith("7379");
 	}

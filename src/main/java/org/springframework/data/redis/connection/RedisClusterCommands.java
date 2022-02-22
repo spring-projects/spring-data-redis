@@ -41,21 +41,21 @@ public interface RedisClusterCommands {
 	Iterable<RedisClusterNode> clusterGetNodes();
 
 	/**
-	 * Retrieve information about connected slaves for given master node.
+	 * Retrieve information about connected replicas for given master node.
 	 *
 	 * @param master must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="https://redis.io/commands/cluster-slaves">Redis Documentation: CLUSTER SLAVES</a>
+	 * @see <a href="https://redis.io/commands/cluster-replicas">Redis Documentation: CLUSTER REPLICAS</a>
 	 */
-	Collection<RedisClusterNode> clusterGetSlaves(RedisClusterNode master);
+	Collection<RedisClusterNode> clusterGetReplicas(RedisClusterNode master);
 
 	/**
-	 * Retrieve information about masters and their connected slaves.
+	 * Retrieve information about masters and their connected replicas.
 	 *
 	 * @return never {@literal null}.
-	 * @see <a href="https://redis.io/commands/cluster-slaves">Redis Documentation: CLUSTER SLAVES</a>
+	 * @see <a href="https://redis.io/commands/cluster-replicas">Redis Documentation: CLUSTER REPLICAS</a>
 	 */
-	Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap();
+	Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterReplicaMap();
 
 	/**
 	 * Find the slot for a given {@code key}.
@@ -171,7 +171,7 @@ public interface RedisClusterCommands {
 	List<byte[]> clusterGetKeysInSlot(int slot, Integer count);
 
 	/**
-	 * Assign a {@literal slave} to given {@literal master}.
+	 * Assign a {@literal replica} to given {@literal master}.
 	 *
 	 * @param master must not be {@literal null}.
 	 * @param replica must not be {@literal null}.

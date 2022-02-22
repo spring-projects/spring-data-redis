@@ -38,12 +38,12 @@ public abstract class ClusterTestVariables {
 	public static final int MASTER_NODE_1_PORT = 7379;
 	public static final int MASTER_NODE_2_PORT = 7380;
 	public static final int MASTER_NODE_3_PORT = 7381;
-	public static final int SLAVEOF_NODE_1_PORT = 7382;
+	public static final int REPLICAOF_NODE_1_PORT = 7382;
 
 	public static final String MASTER_NODE_1_ID = "ef570f86c7b1a953846668debc177a3a16733420";
 	public static final String MASTER_NODE_2_ID = "0f2ee5df45d18c50aca07228cc18b1da96fd5e84";
 	public static final String MASTER_NODE_3_ID = "3b9b8192a874fa8f1f09dbc0ee20afab5738eee7";
-	public static final String SLAVEOF_NODE_1_ID = "b8b5ee73b1d1997abff694b3fe8b2397d2138b6d";
+	public static final String REPLICAOF_NODE_1_ID = "b8b5ee73b1d1997abff694b3fe8b2397d2138b6d";
 
 	public static final RedisClusterNode CLUSTER_NODE_1 = RedisClusterNode.newRedisClusterNode()
 			.listeningAt(CLUSTER_HOST, MASTER_NODE_1_PORT).withId(MASTER_NODE_1_ID).promotedAs(NodeType.MASTER).build();
@@ -51,8 +51,9 @@ public abstract class ClusterTestVariables {
 			.listeningAt(CLUSTER_HOST, MASTER_NODE_2_PORT).withId(MASTER_NODE_2_ID).promotedAs(NodeType.MASTER).build();
 	public static final RedisClusterNode CLUSTER_NODE_3 = RedisClusterNode.newRedisClusterNode()
 			.listeningAt(CLUSTER_HOST, MASTER_NODE_3_PORT).withId(MASTER_NODE_3_ID).promotedAs(NodeType.MASTER).build();
-	public static final RedisClusterNode SLAVE_OF_NODE_1 = RedisClusterNode.newRedisClusterNode()
-			.listeningAt(CLUSTER_HOST, SLAVEOF_NODE_1_PORT).withId(SLAVEOF_NODE_1_ID).promotedAs(NodeType.SLAVE).build();
+	public static final RedisClusterNode REPLICA_OF_NODE_1 = RedisClusterNode.newRedisClusterNode()
+			.listeningAt(CLUSTER_HOST, REPLICAOF_NODE_1_PORT).withId(REPLICAOF_NODE_1_ID).promotedAs(NodeType.REPLICA)
+			.build();
 
 	public static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 6379);
 

@@ -258,15 +258,15 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public void slaveOf(String host, int port) {
+	public void replicaOf(String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
-				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
 	@Override
-	public void slaveOfNoOne() {
+	public void replicaOfNoOne() {
 		throw new InvalidDataAccessApiUsageException(
-				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
 	private <T> NodeResult<T> executeCommandOnSingleNode(LettuceClusterCommandCallback<T> command,

@@ -2433,13 +2433,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public void slaveOf(String host, int port) {
-		this.delegate.slaveOf(host, port);
+	public void replicaOf(String host, int port) {
+		this.delegate.replicaOf(host, port);
 	}
 
 	@Override
-	public void slaveOfNoOne() {
-		this.delegate.slaveOfNoOne();
+	public void replicaOfNoOne() {
+		this.delegate.replicaOfNoOne();
 	}
 
 	@Override

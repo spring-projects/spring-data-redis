@@ -168,7 +168,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	}
 
 	@Override
-	public Flux<RedisClusterNode> clusterGetSlaves(RedisClusterNode master) {
+	public Flux<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
 
 		Assert.notNull(master, "Master must not be null!");
 
@@ -178,7 +178,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	}
 
 	@Override
-	public Mono<Map<RedisClusterNode, Collection<RedisClusterNode>>> clusterGetMasterSlaveMap() {
+	public Mono<Map<RedisClusterNode, Collection<RedisClusterNode>>> clusterGetMasterReplicaMap() {
 
 		return Flux.fromStream(() -> topologyProvider.getTopology().getActiveMasterNodes().stream()) //
 				.flatMap(node -> {

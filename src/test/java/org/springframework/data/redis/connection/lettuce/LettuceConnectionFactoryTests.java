@@ -426,7 +426,7 @@ class LettuceConnectionFactoryTests {
 		assumeTrue(String.format("No replicas connected to %s:%s.", SettingsUtils.getHost(), SettingsUtils.getPort()),
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
 
-		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.REPLICA)
 				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
 		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(

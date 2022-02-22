@@ -42,12 +42,12 @@ public interface RedisSentinelCommands {
 	Collection<RedisServer> masters();
 
 	/**
-	 * Show list of slaves for given {@literal master}.
+	 * Show list of replicas for given {@literal master}.
 	 *
 	 * @param master must not be {@literal null}.
 	 * @return Collection of {@link RedisServer}s. Never {@literal null}.
 	 */
-	Collection<RedisServer> slaves(NamedNode master);
+	Collection<RedisServer> replicas(NamedNode master);
 
 	/**
 	 * Removes given {@literal master}. The server will no longer be monitored and will no longer be returned by

@@ -55,8 +55,8 @@ public class ClusterTopology {
 	}
 
 	/**
-	 * Get all nodes (master and slave) in cluster where {@code link-state} is {@literal connected} and {@code flags} does
-	 * not contain {@literal fail} or {@literal fail?}.
+	 * Get all nodes (master and replica) in cluster where {@code link-state} is {@literal connected} and {@code flags}
+	 * does not contain {@literal fail} or {@literal fail?}.
 	 *
 	 * @return never {@literal null}.
 	 */
@@ -105,7 +105,7 @@ public class ClusterTopology {
 	}
 
 	/**
-	 * Get the {@link RedisClusterNode}s (master and slave) serving s specific slot.
+	 * Get the {@link RedisClusterNode}s (master and replica) serving s specific slot.
 	 *
 	 * @param slot
 	 * @return never {@literal null}.

@@ -164,20 +164,20 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	}
 
 	@Override
-	public List<RedisServer> slaves(NamedNode master) {
+	public List<RedisServer> replicas(NamedNode master) {
 
-		Assert.notNull(master, "Master node cannot be 'null' when loading slaves.");
+		Assert.notNull(master, "Master node cannot be 'null' when loading replicas.");
 		return slaves(master.getName());
 	}
 
 	/**
 	 * @param masterName
-	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#slaves(org.springframework.data.redis.connection.NamedNode)
+	 * @see org.springframework.data.redis.connection.RedisSentinelCommands#replicas(org.springframework.data.redis.connection.NamedNode)
 	 * @return
 	 */
 	public List<RedisServer> slaves(String masterName) {
 
-		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading slaves.");
+		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading replicas.");
 		try {
 			return LettuceConverters.toListOfRedisServer(getSentinelCommands().slaves(masterName));
 		} catch (Exception e) {

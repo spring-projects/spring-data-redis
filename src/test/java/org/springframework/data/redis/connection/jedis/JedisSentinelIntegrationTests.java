@@ -46,8 +46,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 @EnabledOnRedisSentinelAvailable
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
 
-	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
-	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
+	private static final RedisServer REPLICA_0 = new RedisServer("127.0.0.1", 6380);
+	private static final RedisServer REPLICA_1 = new RedisServer("127.0.0.1", 6381);
 
 	public JedisSentinelIntegrationTests(@RedisSentinel JedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -70,15 +70,15 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Test // DATAREDIS-330
-	void shouldReadSlavesOfMastersCorrectly() {
+	void shouldReadReplicaOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
 		assertThat(servers).hasSize(1);
 
-		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves).hasSize(2).contains(SLAVE_0, SLAVE_1);
+		Collection<RedisServer> replicas = sentinelConnection.replicas(servers.get(0));
+		assertThat(replicas).hasSize(2).contains(REPLICA_0, REPLICA_1);
 	}
 
 	@Test // DATAREDIS-552

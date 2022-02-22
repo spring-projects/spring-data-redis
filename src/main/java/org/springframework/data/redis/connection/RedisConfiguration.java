@@ -482,8 +482,7 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * Configuration interface suitable for Redis master/slave environments with fixed hosts. <br/>
-	 * Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
+	 * Configuration interface suitable for Redis master/replica environments with fixed hosts.
 	 *
 	 * @author Christoph Strobl
 	 * @author Mark Paluch

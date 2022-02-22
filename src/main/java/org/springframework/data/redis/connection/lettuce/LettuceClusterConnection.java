@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.sync.BaseRedisCommands;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -33,9 +32,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
@@ -275,7 +274,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	}
 
 	@Override
-	public Set<RedisClusterNode> clusterGetSlaves(RedisClusterNode master) {
+	public Set<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
 
 		Assert.notNull(master, "Master must not be null!");
 
@@ -288,7 +287,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	}
 
 	@Override
-	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
+	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterReplicaMap() {
 
 		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor.executeCommandAsyncOnNodes(
 				(LettuceClusterCommandCallback<Collection<RedisClusterNode>>) client -> Converters

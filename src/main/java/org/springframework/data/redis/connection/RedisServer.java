@@ -165,10 +165,6 @@ public class RedisServer extends RedisNode {
 		return getLongValueOf(INFO.CONFIG_EPOCH);
 	}
 
-	public Long getNumberSlaves() {
-		return getNumberReplicas();
-	}
-
 	/**
 	 * Get the number of connected replicas.
 	 *

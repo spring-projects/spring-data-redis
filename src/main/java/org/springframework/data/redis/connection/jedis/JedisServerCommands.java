@@ -194,22 +194,22 @@ class JedisServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void slaveOf(String host, int port) {
+	public void replicaOf(String host, int port) {
 
-		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
+		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command.");
 
 		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
+			throw new UnsupportedOperationException("'REPLICAOF' cannot be called in pipeline / transaction mode.");
 		}
 
 		connection.invokeStatus().just(it -> it.slaveof(host, port));
 	}
 
 	@Override
-	public void slaveOfNoOne() {
+	public void replicaOfNoOne() {
 
 		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
+			throw new UnsupportedOperationException("'REPLICAOF' cannot be called in pipeline / transaction mode.");
 		}
 
 		connection.invokeStatus().just(BinaryJedis::slaveofNoOne);

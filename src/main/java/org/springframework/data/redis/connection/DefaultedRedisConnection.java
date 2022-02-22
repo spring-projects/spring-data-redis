@@ -1740,15 +1740,15 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default void slaveOf(String host, int port) {
-		serverCommands().slaveOf(host, port);
+	default void replicaOf(String host, int port) {
+		serverCommands().replicaOf(host, port);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default void slaveOfNoOne() {
-		serverCommands().slaveOfNoOne();
+	default void replicaOfNoOne() {
+		serverCommands().replicaOfNoOne();
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */

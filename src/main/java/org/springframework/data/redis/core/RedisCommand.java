@@ -145,6 +145,7 @@ public enum RedisCommand {
 	RANAME("w", 2, 2), //
 	RENAME("w", 2, 2), //
 	RENAMENX("w", 2, 2), //
+	REPLICAOF("w", 2), //
 	RESTORE("w", 3, 3), //
 	RPOP("rw", 1, 1), //
 	RPOPLPUSH("rw", 2, 2), //

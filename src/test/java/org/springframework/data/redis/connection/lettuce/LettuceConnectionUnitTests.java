@@ -116,21 +116,21 @@ public class LettuceConnectionUnitTests {
 		}
 
 		@Test // DATAREDIS-277
-		void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
-			assertThatIllegalArgumentException().isThrownBy(() -> connection.slaveOf(null, 0));
+		void replicaOfShouldThrowExectpionWhenCalledForNullHost() {
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.replicaOf(null, 0));
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfShouldBeSentCorrectly() {
+		public void replicaOfShouldBeSentCorrectly() {
 
-			connection.slaveOf("127.0.0.1", 1001);
+			connection.replicaOf("127.0.0.1", 1001);
 			verify(syncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
 		@Test // DATAREDIS-277
-		public void slaveOfNoOneShouldBeSentCorrectly() {
+		public void replicaOfNoOneShouldBeSentCorrectly() {
 
-			connection.slaveOfNoOne();
+			connection.replicaOfNoOne();
 			verify(syncCommandsMock, times(1)).slaveofNoOne();
 		}
 
@@ -280,9 +280,9 @@ public class LettuceConnectionUnitTests {
 		}
 
 		@Test // DATAREDIS-528
-		public void slaveOfShouldBeSentCorrectly() {
+		public void replicaOfShouldBeSentCorrectly() {
 
-			connection.slaveOf("127.0.0.1", 1001);
+			connection.replicaOf("127.0.0.1", 1001);
 			verify(asyncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
@@ -302,9 +302,9 @@ public class LettuceConnectionUnitTests {
 		}
 
 		@Test // DATAREDIS-528
-		public void slaveOfNoOneShouldBeSentCorrectly() {
+		public void replicaOfNoOneShouldBeSentCorrectly() {
 
-			connection.slaveOfNoOne();
+			connection.replicaOfNoOne();
 			verify(asyncCommandsMock, times(1)).slaveofNoOne();
 		}
 
