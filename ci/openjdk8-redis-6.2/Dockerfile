@@ -4,6 +4,7 @@ FROM ${BASE}
 ARG REDIS
 
 # Copy Spring Data Redis's Makefile into the container
+#
 COPY ./Makefile /
 
 RUN set -eux; \
