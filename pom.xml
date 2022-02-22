@@ -298,4 +298,11 @@
 			<url>https://repo.spring.io/plugins-release</url>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<profiles>
+		<profile>
+			<!-- placeholder for no profile -->
+			<id>none</id>
+		</profile>
+	</profiles>
 </project>
