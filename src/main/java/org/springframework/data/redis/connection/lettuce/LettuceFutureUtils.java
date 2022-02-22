@@ -71,7 +71,7 @@ class LettuceFutureUtils {
 			Throwable exceptionToUse = e;
 
 			if (e instanceof CompletionException) {
-				exceptionToUse = new LettuceExceptionConverter().convert((Exception) e.getCause());
+				exceptionToUse = LettuceExceptionConverter.INSTANCE.convert((Exception) e.getCause());
 				if (exceptionToUse == null) {
 					exceptionToUse = e.getCause();
 				}

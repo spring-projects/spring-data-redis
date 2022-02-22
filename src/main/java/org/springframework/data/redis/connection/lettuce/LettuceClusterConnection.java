@@ -61,7 +61,7 @@ import org.springframework.util.ObjectUtils;
 public class LettuceClusterConnection extends LettuceConnection implements DefaultedRedisClusterConnection {
 
 	static final ExceptionTranslationStrategy exceptionConverter = new PassThroughExceptionTranslationStrategy(
-			new LettuceExceptionConverter());
+			LettuceExceptionConverter.INSTANCE);
 
 	private final Log log = LogFactory.getLog(getClass());
 

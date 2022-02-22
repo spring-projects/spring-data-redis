@@ -229,7 +229,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 			if (throwable instanceof RuntimeException) {
 
-				DataAccessException convertedException = LettuceConverters.exceptionConverter()
+				DataAccessException convertedException = LettuceExceptionConverter.INSTANCE
 						.convert((RuntimeException) throwable);
 				return convertedException != null ? convertedException : throwable;
 			}

@@ -104,7 +104,7 @@ public class LettuceConnectionFactory
 		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
-			LettuceConverters.exceptionConverter());
+			LettuceExceptionConverter.INSTANCE);
 
 	private final Log log = LogFactory.getLog(getClass());
 	private final LettuceClientConfiguration clientConfiguration;
@@ -117,7 +117,6 @@ public class LettuceConnectionFactory
 	private boolean eagerInitialization = false;
 	private @Nullable SharedConnection<byte[]> connection;
 	private @Nullable SharedConnection<ByteBuffer> reactiveConnection;
-	private @Nullable LettucePool pool;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
 	private boolean convertPipelineAndTxResults = true;
@@ -196,17 +195,6 @@ public class LettuceConnectionFactory
 	 */
 	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration) {
 		this(clusterConfiguration, new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * @param pool
-	 * @deprecated since 2.0, use pooling via {@link LettucePoolingClientConfiguration}.
-	 */
-	@Deprecated
-	public LettuceConnectionFactory(LettucePool pool) {
-
-		this(new MutableLettuceClientConfiguration());
-		this.pool = pool;
 	}
 
 	/**
@@ -405,8 +393,8 @@ public class LettuceConnectionFactory
 			return getClusterConnection();
 		}
 
-		LettuceConnection connection;
-		connection = doCreateLettuceConnection(getSharedConnection(), connectionProvider, getTimeout(), getDatabase());
+		LettuceConnection connection = doCreateLettuceConnection(getSharedConnection(), connectionProvider, getTimeout(),
+				getDatabase());
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -1094,10 +1082,6 @@ public class LettuceConnectionFactory
 	}
 
 	private LettuceConnectionProvider createConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
-
-		if (this.pool != null) {
-			return new LettucePoolConnectionProvider(this.pool);
-		}
 
 		LettuceConnectionProvider connectionProvider = doCreateConnectionProvider(client, codec);
 
