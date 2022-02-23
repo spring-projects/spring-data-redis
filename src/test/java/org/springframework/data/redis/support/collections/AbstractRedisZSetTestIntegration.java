@@ -34,6 +34,7 @@ import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.Cursor;
@@ -441,7 +442,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
 		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded(),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+				Limit.limit().count(1).offset(1));
 
 		assertThat(tuples).hasSize(1);
 		T tuple = tuples.iterator().next();
@@ -462,7 +463,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
 		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1),
-				RedisZSetCommands.Limit.limit().count(2).offset(1));
+				Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
 	}
@@ -481,7 +482,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
 		Set<T> tuples = zSet.reverseRangeByLex(RedisZSetCommands.Range.range().gte(t1),
-				RedisZSetCommands.Limit.limit().count(2).offset(1));
+				Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(t2, t1);
 	}

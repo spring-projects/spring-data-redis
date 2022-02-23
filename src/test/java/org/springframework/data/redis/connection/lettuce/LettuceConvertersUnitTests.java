@@ -40,7 +40,6 @@ import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
@@ -204,15 +203,15 @@ class LettuceConvertersUnitTests {
 	@Test // DATAREDIS-981
 	void toLimit() {
 
-		Limit limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.unlimited());
+		Limit limit = LettuceConverters.toLimit(org.springframework.data.redis.connection.Limit.unlimited());
 		assertThat(limit.isLimited()).isFalse();
 		assertThat(limit.getCount()).isEqualTo(-1L);
 
-		limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.limit().count(-1));
+		limit = LettuceConverters.toLimit(org.springframework.data.redis.connection.Limit.limit().count(-1));
 		assertThat(limit.isLimited()).isTrue();
 		assertThat(limit.getCount()).isEqualTo(-1L);
 
-		limit = LettuceConverters.toLimit(RedisZSetCommands.Limit.limit().count(5));
+		limit = LettuceConverters.toLimit(org.springframework.data.redis.connection.Limit.limit().count(5));
 		assertThat(limit.isLimited()).isTrue();
 		assertThat(limit.getCount()).isEqualTo(5L);
 	}

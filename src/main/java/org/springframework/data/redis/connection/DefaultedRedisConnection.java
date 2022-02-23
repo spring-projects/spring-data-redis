@@ -40,6 +40,8 @@ import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -584,7 +586,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
+	default List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return streamCommands().xRange(key, range, limit);
 	}
 
@@ -627,7 +630,8 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
-	default List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
+	default List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return streamCommands().xRevRange(key, range, limit);
 	}
 
@@ -1136,28 +1140,29 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+	default Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByLex(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+	default Set<byte[]> zRevRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByLex(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+	default Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByScore(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByScoreWithScores(key, range, limit);
 	}
 
@@ -1171,14 +1176,15 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+	default Set<byte[]> zRevRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByScore(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByScoreWithScores(key, range, limit);
 	}
 

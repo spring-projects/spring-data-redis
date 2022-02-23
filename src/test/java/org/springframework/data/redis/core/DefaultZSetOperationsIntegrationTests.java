@@ -35,8 +35,9 @@ import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
+import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -348,7 +349,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded(),
-				RedisZSetCommands.Limit.limit().count(2).offset(1));
+				Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(value2, value3);
 	}
@@ -368,7 +369,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.reverseRangeByLex(key, RedisZSetCommands.Range.unbounded(),
-				RedisZSetCommands.Limit.limit().count(2).offset(1));
+				Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(value2, value1);
 	}
@@ -388,7 +389,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+				Limit.limit().count(1).offset(1));
 
 		assertThat(tuples).hasSize(1).startsWith(value2);
 	}

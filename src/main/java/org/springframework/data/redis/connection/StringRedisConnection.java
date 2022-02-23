@@ -41,6 +41,8 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.stream.StringRecord;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.ScanOptions;
@@ -1929,7 +1931,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is
-	 * limited via {@link Limit}.
+	 * limited via {@link org.springframework.data.redis.connection.Limit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -1939,7 +1941,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], Range, Limit)
 	 */
-	Set<String> zRangeByLex(String key, Range range, Limit limit);
+	Set<String> zRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
@@ -1965,12 +1967,12 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range)
 	 */
 	default Set<String> zRevRangeByLex(String key, Range range) {
-		return zRevRangeByLex(key, range, Limit.unlimited());
+		return zRevRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
-	 * Result is limited via {@link Limit}.
+	 * Result is limited via {@link org.springframework.data.redis.connection.Limit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -1980,7 +1982,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range, Limit)
 	 */
-	Set<String> zRevRangeByLex(String key, Range range, Limit limit);
+	Set<String> zRevRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Hashes
@@ -2866,11 +2868,12 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	default List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range) {
-		return xRange(key, range, Limit.unlimited());
+		return xRange(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
 	/**
-	 * Read records from a stream within a specific {@link Range} applying a {@link Limit}.
+	 * Read records from a stream within a specific {@link Range} applying a
+	 * {@link org.springframework.data.redis.connection.Limit}.
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
@@ -2880,7 +2883,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
 	@Nullable
-	List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range, Limit limit);
+	List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s.
@@ -3007,7 +3011,8 @@ public interface StringRedisConnection extends RedisConnection {
 	}
 
 	/**
-	 * Read records from a stream within a specific {@link Range} applying a {@link Limit} in reverse order.
+	 * Read records from a stream within a specific {@link Range} applying a
+	 * {@link org.springframework.data.redis.connection.Limit} in reverse order.
 	 *
 	 * @param key the stream key.
 	 * @param range must not be {@literal null}.
@@ -3017,7 +3022,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
 	@Nullable
-	List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range, Limit limit);
+	List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Trims the stream to {@code count} elements.

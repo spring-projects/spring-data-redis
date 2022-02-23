@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldInc
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
+import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
@@ -48,11 +49,12 @@ import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
-import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -266,15 +268,15 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Limit} to a Lettuce
-	 * {@link io.lettuce.core.Limit}.
+	 * Convert a {@link Limit} to a Lettuce {@link io.lettuce.core.Limit}.
 	 *
 	 * @param limit
 	 * @return a lettuce {@link io.lettuce.core.Limit}.
 	 * @since 2.0
 	 */
-	public static io.lettuce.core.Limit toLimit(RedisZSetCommands.Limit limit) {
-		return limit.isUnlimited() ? Limit.unlimited() : Limit.create(limit.getOffset(), limit.getCount());
+	public static io.lettuce.core.Limit toLimit(Limit limit) {
+		return limit.isUnlimited() ? io.lettuce.core.Limit.unlimited()
+				: io.lettuce.core.Limit.create(limit.getOffset(), limit.getCount());
 	}
 
 	/**

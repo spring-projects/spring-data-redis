@@ -25,7 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.reactivestreams.Publisher
 import org.springframework.data.domain.Range
-import org.springframework.data.redis.connection.RedisZSetCommands.Limit
+import org.springframework.data.redis.connection.Limit
 import org.springframework.data.redis.connection.stream.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
