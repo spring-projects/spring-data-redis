@@ -348,16 +348,6 @@ public interface ReactiveKeyCommands {
 
 		/**
 		 * @return can be {@literal null}.
-		 * @deprecated since 2.5.7, renamed to {@link #getNewKey()}.
-		 */
-		@Nullable
-		@Deprecated
-		public ByteBuffer getNewName() {
-			return newKey;
-		}
-
-		/**
-		 * @return can be {@literal null}.
 		 * @since 2.5.7
 		 */
 		@Nullable

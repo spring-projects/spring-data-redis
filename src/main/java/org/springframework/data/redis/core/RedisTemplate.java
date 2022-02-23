@@ -222,7 +222,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return postProcessResult(result, connToUse, existingConnection);
 		} finally {
-			RedisConnectionUtils.releaseConnection(conn, factory, enableTransactionSupport);
+			RedisConnectionUtils.releaseConnection(conn, factory);
 		}
 	}
 

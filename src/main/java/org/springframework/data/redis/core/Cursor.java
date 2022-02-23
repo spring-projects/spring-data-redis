@@ -49,16 +49,6 @@ public interface Cursor<T> extends CloseableIterator<T> {
 	boolean isClosed();
 
 	/**
-	 * Opens cursor and returns itself. This method is intended to be called by components constructing a {@link Cursor}
-	 * and should not be called externally.
-	 *
-	 * @return the opened cursor.
-	 * @deprecated to be removed from the interface in the next major version.
-	 */
-	@Deprecated
-	Cursor<T> open();
-
-	/**
 	 * @return the current position of the cursor.
 	 */
 	long getPosition();

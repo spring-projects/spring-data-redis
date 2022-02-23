@@ -61,7 +61,7 @@ import org.springframework.util.CollectionUtils;
 public class JedisConnection extends AbstractRedisConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
-			JedisConverters.exceptionConverter());
+			JedisExceptionConverter.INSTANCE);
 
 	private final Jedis jedis;
 
@@ -417,7 +417,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(newJedisResult(getRequiredPipeline().exec(),
-						new TransactionResultConverter<>(new LinkedList<>(txResults), JedisConverters.exceptionConverter())));
+						new TransactionResultConverter<>(new LinkedList<>(txResults), JedisExceptionConverter.INSTANCE)));
 				return null;
 			}
 
@@ -428,7 +428,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			List<Object> results = transaction.exec();
 
 			return !CollectionUtils.isEmpty(results)
-					? new TransactionResultConverter<>(txResults, JedisConverters.exceptionConverter()).convert(results)
+					? new TransactionResultConverter<>(txResults, JedisExceptionConverter.INSTANCE).convert(results)
 					: results;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);

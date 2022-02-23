@@ -142,9 +142,9 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getNewName(), "New name must not be null!");
+			Assert.notNull(command.getNewKey(), "New name must not be null!");
 
-			return cmd.rename(command.getKey(), command.getNewName()).map(LettuceConverters::stringToBoolean)
+			return cmd.rename(command.getKey(), command.getNewKey()).map(LettuceConverters::stringToBoolean)
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -155,9 +155,9 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getNewName(), "New name must not be null!");
+			Assert.notNull(command.getNewKey(), "New name must not be null!");
 
-			return cmd.renamenx(command.getKey(), command.getNewName()).map(value -> new BooleanResponse<>(command, value));
+			return cmd.renamenx(command.getKey(), command.getNewKey()).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 

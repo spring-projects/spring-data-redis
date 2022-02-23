@@ -199,14 +199,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.bgReWriteAof();
 	}
 
-	/**
-	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
-	 */
-	@Deprecated
-	public void bgWriteAof() {
-		bgReWriteAof();
-	}
-
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bLPop(timeout, keys), Converters.identityConverter());

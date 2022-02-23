@@ -105,7 +105,7 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 	}
 
 	@Override
-	public GeoResults<GeoLocation<M>> radius(K key, M member, double radius) {
+	public GeoResults<GeoLocation<M>> radius(M member, double radius) {
 		return ops.radius(getKey(), member, radius);
 	}
 

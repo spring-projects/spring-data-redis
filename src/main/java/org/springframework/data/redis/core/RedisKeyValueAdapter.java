@@ -44,7 +44,6 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.PartialUpdate.PropertyUpdate;
 import org.springframework.data.redis.core.PartialUpdate.UpdateCommand;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.RedisUpdateObject.Index;
-import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -138,21 +137,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext) {
 		this(redisOps, mappingContext, new RedisCustomConversions());
-	}
-
-	/**
-	 * Creates new {@link RedisKeyValueAdapter}.
-	 *
-	 * @param redisOps must not be {@literal null}.
-	 * @param mappingContext must not be {@literal null}.
-	 * @param customConversions can be {@literal null}.
-	 * @deprecated since 2.0, use
-	 *             {@link #RedisKeyValueAdapter(RedisOperations, RedisMappingContext, org.springframework.data.convert.CustomConversions)}.
-	 */
-	@Deprecated
-	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext,
-			CustomConversions customConversions) {
-		this(redisOps, mappingContext, (org.springframework.data.convert.CustomConversions) customConversions);
 	}
 
 	/**

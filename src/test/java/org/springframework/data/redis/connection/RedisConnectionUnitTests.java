@@ -162,10 +162,6 @@ class RedisConnectionUnitTests {
 			return delegate.hSet(key, field, value);
 		}
 
-		public void bgWriteAof() {
-			delegate.bgWriteAof();
-		}
-
 		public Object execute(String command, byte[]... args) {
 			return delegate.execute(command, args);
 		}

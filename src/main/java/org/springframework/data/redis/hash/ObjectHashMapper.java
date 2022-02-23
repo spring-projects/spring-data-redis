@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.data.redis.core.convert.CustomConversions;
+import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.IndexResolver;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -99,20 +99,9 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 * Creates new {@link ObjectHashMapper}.
 	 *
 	 * @param customConversions can be {@literal null}.
-	 * @deprecated since 2.0, use {@link #ObjectHashMapper(org.springframework.data.convert.CustomConversions)}.
-	 */
-	@Deprecated
-	public ObjectHashMapper(CustomConversions customConversions) {
-		this((org.springframework.data.convert.CustomConversions) customConversions);
-	}
-
-	/**
-	 * Creates new {@link ObjectHashMapper}.
-	 *
-	 * @param customConversions can be {@literal null}.
 	 * @since 2.0
 	 */
-	public ObjectHashMapper(@Nullable org.springframework.data.convert.CustomConversions customConversions) {
+	public ObjectHashMapper(@Nullable CustomConversions customConversions) {
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(new RedisMappingContext(),
 				new NoOpIndexResolver(), new NoOpReferenceResolver());
