@@ -1336,7 +1336,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<?>) results.get(1)).hasSize(2);
 
 		// Oh Jedis, JedisByteHashMap.ByteArrayWrapper. Why?
-		assertThat((List<?>) results.get(2)).hasSizeGreaterThan(2);
+		assertThat((List<?>) results.get(2)).hasSizeGreaterThan(1);
 	}
 
 	@Test
