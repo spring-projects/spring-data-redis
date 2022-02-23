@@ -46,17 +46,6 @@ public interface RedisServerCommands {
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 *
-	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
-	 * @see <a href="https://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
-	 */
-	@Deprecated
-	default void bgWriteAof() {
-		bgReWriteAof();
-	}
-
-	/**
-	 * Start an {@literal Append Only File} rewrite process on server.
-	 *
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */

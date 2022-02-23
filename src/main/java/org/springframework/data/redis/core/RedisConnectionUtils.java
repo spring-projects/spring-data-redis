@@ -268,22 +268,6 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * Closes the given {@link RedisConnection}, created via the given factory if not managed externally (i.e. not bound
-	 * to the transaction).
-	 *
-	 * @param conn the Redis connection to close.
-	 * @param factory the Redis factory that the connection was created with.
-	 * @param transactionSupport whether transaction support is enabled.
-	 * @since 2.1.9
-	 * @deprecated since 2.4.2, use {@link #releaseConnection(RedisConnection, RedisConnectionFactory)}
-	 */
-	@Deprecated
-	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory,
-			boolean transactionSupport) {
-		releaseConnection(conn, factory);
-	}
-
-	/**
 	 * Determine whether the given two RedisConnections are equal, asking the target {@link RedisConnection} in case of a
 	 * proxy. Used to detect equality even if the user passed in a raw target Connection while the held one is a proxy.
 	 *

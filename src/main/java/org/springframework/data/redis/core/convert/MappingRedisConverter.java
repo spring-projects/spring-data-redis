@@ -1195,12 +1195,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		public static final String DELIMITER = ":";
 		public static final String PHANTOM_SUFFIX = DELIMITER + PHANTOM;
 
-		/**
-		 * @deprecated since 2.6. Please use {@link #DELIMITER} instead.
-		 */
-		@Deprecated(/* since="2.6" */)
-		public static final String DELIMITTER = DELIMITER;
-
 		private final String keyspace;
 		private final String id;
 		private final boolean phantomKey;
@@ -1280,12 +1274,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		public static final byte[] PHANTOM = KeyspaceIdentifier.PHANTOM.getBytes();
 		public static final byte DELIMITER = ':';
 		public static final byte[] PHANTOM_SUFFIX = ByteUtils.concat(new byte[] { DELIMITER }, PHANTOM);
-
-		/**
-		 * @deprecated since 2.6. Please use {@link #DELIMITER} instead.
-		 */
-		@Deprecated(/* since="2.6" */)
-		public static final byte DELIMITTER = DELIMITER;
 
 		private final byte[] keyspace;
 		private final byte[] id;

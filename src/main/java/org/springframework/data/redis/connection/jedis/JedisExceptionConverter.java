@@ -41,6 +41,8 @@ import org.springframework.data.redis.TooManyClusterRedirectionsException;
  */
 public class JedisExceptionConverter implements Converter<Exception, DataAccessException> {
 
+	static final JedisExceptionConverter INSTANCE = new JedisExceptionConverter();
+
 	public DataAccessException convert(Exception ex) {
 
 		if (ex instanceof DataAccessException) {

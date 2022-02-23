@@ -141,8 +141,6 @@ public enum RedisCommand {
 	// -- R
 	RANDOMKEY("r", 0, 0), //
 
-	@Deprecated
-	RANAME("w", 2, 2), //
 	RENAME("w", 2, 2), //
 	RENAMENX("w", 2, 2), //
 	REPLICAOF("w", 2), //

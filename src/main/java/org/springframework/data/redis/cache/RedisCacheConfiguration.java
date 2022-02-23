@@ -17,7 +17,6 @@ package org.springframework.data.redis.cache;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.springframework.cache.Cache;
@@ -144,25 +143,6 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Use the given prefix instead of using the cache name. <br />
-	 * This option replaces the cache name with {@code prefix} therefore we recommend rather using
-	 * {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)} for more control. <br />
-	 * The generated cache key will be: {@code prefix + cache entry key}.
-	 *
-	 * @param prefix must not be {@literal null}.
-	 * @return new {@link RedisCacheConfiguration}.
-	 * @deprecated since 2.3. Use {@link #prefixCacheNameWith(String)} or {@link #computePrefixWith(CacheKeyPrefix)}
-	 *             instead.
-	 */
-	@Deprecated
-	public RedisCacheConfiguration prefixKeysWith(String prefix) {
-
-		Assert.notNull(prefix, "Prefix must not be null!");
-
-		return computePrefixWith((cacheName) -> prefix);
-	}
-
-	/**
 	 * Prefix the {@link RedisCache#getName() cache name} with the given value. <br />
 	 * The generated cache key will be: {@code prefix + cache name + "::" + cache entry key}.
 	 *
@@ -259,15 +239,6 @@ public class RedisCacheConfiguration {
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
-	}
-
-	/**
-	 * @return never {@literal null}.
-	 * @deprecated since 2.0.4. Please use {@link #getKeyPrefixFor(String)}.
-	 */
-	@Deprecated
-	public Optional<String> getKeyPrefix() {
-		return usePrefix() ? Optional.of(keyPrefix.compute("")) : Optional.empty();
 	}
 
 	/**

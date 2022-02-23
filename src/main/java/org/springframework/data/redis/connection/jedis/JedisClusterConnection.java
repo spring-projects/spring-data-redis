@@ -75,7 +75,7 @@ import org.springframework.util.Assert;
 public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
-			JedisConverters.exceptionConverter());
+			JedisExceptionConverter.INSTANCE);
 
 	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
 

@@ -31,8 +31,8 @@ import org.springframework.util.Assert;
  */
 public class ConvertingCursor<S, T> implements Cursor<T> {
 
-	private Cursor<S> delegate;
-	private Converter<S, T> converter;
+	private final Cursor<S> delegate;
+	private final Converter<S, T> converter;
 
 	/**
 	 * @param cursor Cursor must not be {@literal null}.
@@ -75,12 +75,6 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 	@Override
 	public boolean isClosed() {
 		return delegate.isClosed();
-	}
-
-	@Override
-	public Cursor<T> open() {
-		this.delegate = delegate.open();
-		return this;
 	}
 
 	@Override

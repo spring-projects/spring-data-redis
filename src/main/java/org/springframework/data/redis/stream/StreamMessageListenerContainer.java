@@ -318,15 +318,6 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 		/**
 		 * @return
-		 * @deprecated since 2.3, use {@link #isAutoAcknowledge()} for improved readability instead.
-		 */
-		@Deprecated
-		public boolean isAutoAck() {
-			return isAutoAcknowledge();
-		}
-
-		/**
-		 * @return
 		 * @since 2.3
 		 */
 		public boolean isAutoAcknowledge() {
@@ -451,19 +442,6 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 			this.consumer = consumer;
 			return this;
-		}
-
-		/**
-		 * Configure auto-acknowledgement for stream message consumption.
-		 *
-		 * @param autoAck {@literal true} (default) to auto-acknowledge received messages or {@literal false} for external
-		 *          acknowledgement.
-		 * @return {@code this} {@link ConsumerStreamReadRequestBuilder}.
-		 * @deprecated since 2.3, use {@link #autoAcknowledge(boolean)} instead.
-		 */
-		@Deprecated
-		public ConsumerStreamReadRequestBuilder<K> autoAck(boolean autoAck) {
-			return autoAcknowledge(autoAck);
 		}
 
 		/**

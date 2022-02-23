@@ -17,8 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import redis.clients.jedis.JedisShardInfo;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,19 +40,6 @@ class JedisConnectionFactoryIntegrationTests {
 		if (factory != null) {
 			factory.destroy();
 		}
-	}
-
-	@Test // DATAREDIS-574
-	void shardInfoShouldOverrideFactorySettings() {
-
-		factory = new JedisConnectionFactory(new JedisShardInfo(SettingsUtils.getHost(), SettingsUtils.getPort()));
-		factory.setUsePool(false);
-		factory.setPassword("foo");
-		factory.setHostName("bar");
-		factory.setPort(1234);
-		factory.afterPropertiesSet();
-
-		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
 	}
 
 	@Test // DATAREDIS-574

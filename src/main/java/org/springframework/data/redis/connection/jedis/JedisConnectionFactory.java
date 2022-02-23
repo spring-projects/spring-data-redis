@@ -61,7 +61,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -90,12 +89,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
-			JedisConverters.exceptionConverter());
+			JedisExceptionConverter.INSTANCE);
 
 	private final JedisClientConfiguration clientConfiguration;
-	private @Nullable JedisShardInfo shardInfo;
 	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().build();
-	private boolean providedShardInfo = false;
 	private @Nullable Pool<Jedis> pool;
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
@@ -132,23 +129,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance. Will override the other connection parameters passed
-	 * to the factory.
-	 *
-	 * @param shardInfo shard information
-	 * @deprecated since 2.0, configure Jedis with {@link JedisClientConfiguration} and
-	 *             {@link RedisStandaloneConfiguration}.
-	 */
-	@Deprecated
-	public JedisConnectionFactory(JedisShardInfo shardInfo) {
-
-		this(MutableJedisClientConfiguration.create(shardInfo));
-
-		this.shardInfo = shardInfo;
-		this.providedShardInfo = true;
-	}
-
-	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance using the given pool configuration.
 	 *
 	 * @param poolConfig pool configuration
@@ -176,7 +156,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
 	 * @since 1.4
 	 */
-	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, JedisPoolConfig poolConfig) {
+	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, @Nullable JedisPoolConfig poolConfig) {
 
 		this.configuration = sentinelConfig;
 		this.clientConfiguration = MutableJedisClientConfiguration
@@ -295,10 +275,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private Jedis createJedis() {
 
-		if (providedShardInfo) {
-			return new Jedis(getShardInfo());
-		}
-
 		return new Jedis(new HostAndPort(getHostName(), getPort()), this.clientConfig);
 	}
 
@@ -316,29 +292,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void afterPropertiesSet() {
 
 		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
-
-		if (shardInfo == null && clientConfiguration instanceof MutableJedisClientConfiguration) {
-
-			providedShardInfo = false;
-			shardInfo = new JedisShardInfo(getHostName(), getPort(), isUseSsl(), //
-					clientConfiguration.getSslSocketFactory().orElse(null), //
-					clientConfiguration.getSslParameters().orElse(null), //
-					clientConfiguration.getHostnameVerifier().orElse(null));
-
-			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
-			String username = getRedisUsername();
-			if (StringUtils.hasText(username)) {
-				shardInfo.setUser(username);
-			}
-
-			int readTimeout = getReadTimeout();
-
-			if (readTimeout > 0) {
-				shardInfo.setSoTimeout(readTimeout);
-			}
-
-			getMutableConfiguration().setShardInfo(shardInfo);
-		}
 
 		if (getUsePool() && !isRedisClusterAware()) {
 			this.pool = createPool();
@@ -628,34 +581,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	@Deprecated
 	public void setPort(int port) {
 		standaloneConfig.setPort(port);
-	}
-
-	/**
-	 * Returns the shardInfo.
-	 *
-	 * @return the shardInfo.
-	 * @deprecated since 2.0.
-	 */
-	@Deprecated
-	@Nullable
-	public JedisShardInfo getShardInfo() {
-		return shardInfo;
-	}
-
-	/**
-	 * Sets the shard info for this factory.
-	 *
-	 * @param shardInfo the shardInfo to set.
-	 * @deprecated since 2.0, configure the individual properties from {@link JedisShardInfo} using
-	 *             {@link JedisClientConfiguration}.
-	 * @throws IllegalStateException if {@link JedisClientConfiguration} is immutable.
-	 */
-	@Deprecated
-	public void setShardInfo(JedisShardInfo shardInfo) {
-
-		this.shardInfo = shardInfo;
-		this.providedShardInfo = true;
-		getMutableConfiguration().setShardInfo(shardInfo);
 	}
 
 	/**
@@ -968,7 +893,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		public static JedisClientConfiguration create(JedisShardInfo shardInfo) {
 
 			MutableJedisClientConfiguration configuration = new MutableJedisClientConfiguration();
-			configuration.setShardInfo(shardInfo);
 			return configuration;
 		}
 
@@ -1060,14 +984,5 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			this.connectTimeout = connectTimeout;
 		}
 
-		public void setShardInfo(JedisShardInfo shardInfo) {
-
-			setSslSocketFactory(shardInfo.getSslSocketFactory());
-			setSslParameters(shardInfo.getSslParameters());
-			setHostnameVerifier(shardInfo.getHostnameVerifier());
-			setUseSsl(shardInfo.getSsl());
-			setConnectTimeout(Duration.ofMillis(shardInfo.getConnectionTimeout()));
-			setReadTimeout(Duration.ofMillis(shardInfo.getSoTimeout()));
-		}
 	}
 }

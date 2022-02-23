@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -68,7 +67,6 @@ import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
-import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
@@ -93,9 +91,8 @@ import org.springframework.util.StringUtils;
  * @author Guy Korland
  * @author dengliming
  */
+@SuppressWarnings("ConstantConditions")
 public abstract class JedisConverters extends Converters {
-
-	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -120,56 +117,19 @@ public abstract class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.4
 	 */
-	public static ListConverter<redis.clients.jedis.Tuple, Tuple> tuplesToTuples() {
+	static ListConverter<redis.clients.jedis.Tuple, Tuple> tuplesToTuples() {
 		return new ListConverter<>(JedisConverters::toTuple);
 	}
 
-	public static ListConverter<String, byte[]> stringListToByteList() {
+	static ListConverter<String, byte[]> stringListToByteList() {
 		return new ListConverter<>(stringToBytes());
 	}
 
 	/**
 	 * @deprecated since 2.5
 	 */
-	@Deprecated
-	public static SetConverter<String, byte[]> stringSetToByteSet() {
-		return new SetConverter<>(stringToBytes());
-	}
-
-	/**
-	 * @deprecated since 2.5
-	 */
-	@Deprecated
-	public static MapConverter<String, byte[]> stringMapToByteMap() {
-		return new MapConverter<>(stringToBytes());
-	}
-
-	/**
-	 * @deprecated since 2.5
-	 */
-	@Deprecated
-	public static SetConverter<redis.clients.jedis.Tuple, Tuple> tupleSetToTupleSet() {
-		return new SetConverter<>(JedisConverters::toTuple);
-	}
-
-	public static Converter<Exception, DataAccessException> exceptionConverter() {
-		return EXCEPTION_CONVERTER;
-	}
-
-	public static String[] toStrings(byte[][] source) {
-		String[] result = new String[source.length];
-		for (int i = 0; i < source.length; i++) {
-			result[i] = SafeEncoder.encode(source[i]);
-		}
-		return result;
-	}
-
-	/**
-	 * @deprecated since 2.5
-	 */
-	@Deprecated
-	public static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
-		return tupleSetToTupleSet().convert(source);
+	static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
+		return new SetConverter<>(JedisConverters::toTuple).convert(source);
 	}
 
 	public static Tuple toTuple(redis.clients.jedis.Tuple source) {
@@ -190,18 +150,8 @@ public abstract class JedisConverters extends Converters {
 		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
 		Set<Double> scores = new HashSet<>(tuples.size(), 1);
 
-		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
-
 		for (Tuple tuple : tuples) {
-
-			if (!isAtLeastJedis24) {
-				if (scores.contains(tuple.getScore())) {
-					throw new UnsupportedOperationException(
-							"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
-				}
-				scores.add(tuple.getScore());
-			}
-
+			scores.add(tuple.getScore());
 			args.put(tuple.getValue(), tuple.getScore());
 		}
 
@@ -288,14 +238,6 @@ public abstract class JedisConverters extends Converters {
 	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
 
 		return toList(it -> RedisServer.newServerFrom(Converters.toProperties(it)), source);
-	}
-
-	/**
-	 * @deprecated since 2.5
-	 */
-	@Deprecated
-	public static DataAccessException toDataAccessException(Exception ex) {
-		return EXCEPTION_CONVERTER.convert(ex);
 	}
 
 	public static ListPosition toListPosition(Position source) {
@@ -436,10 +378,12 @@ public abstract class JedisConverters extends Converters {
 		}
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime()) : paramsToUse.px(expiration.getExpirationTime());
+			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime())
+					: paramsToUse.px(expiration.getExpirationTime());
 		}
 
-		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS)) : paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
+		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	/**
@@ -606,25 +550,8 @@ public abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @deprecated since 2.5
-	 */
-	@Deprecated
-	public static ListConverter<byte[], String> bytesListToStringListConverter() {
-		return new ListConverter<>(JedisConverters::toString);
-	}
-
-	/**
-	 * @deprecated since 2.5
-	 */
-	@Deprecated
-	public static ListConverter<byte[], Long> getBytesListToLongListConverter() {
-		return new ListConverter<>(JedisConverters::toLong);
-	}
-
-	/**
 	 * @return
 	 * @since 1.8
-	 * @deprecated since 2.5
 	 */
 	public static ListConverter<redis.clients.jedis.GeoCoordinate, Point> geoCoordinateToPointConverter() {
 		return new ListConverter<>(JedisConverters::toPoint);

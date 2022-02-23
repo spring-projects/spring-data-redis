@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,8 +30,6 @@ import org.springframework.dao.UncategorizedDataAccessException;
 public class ClusterCommandExecutionFailureException extends UncategorizedDataAccessException {
 
 	private static final long serialVersionUID = 5727044227040368955L;
-
-	private final Collection<? extends Throwable> causes;
 
 	/**
 	 * Creates new {@link ClusterCommandExecutionFailureException}.
@@ -51,18 +48,8 @@ public class ClusterCommandExecutionFailureException extends UncategorizedDataAc
 	public ClusterCommandExecutionFailureException(List<? extends Throwable> causes) {
 
 		super(causes.get(0).getMessage(), causes.get(0));
-		this.causes = causes;
 
 		causes.forEach(this::addSuppressed);
 	}
 
-	/**
-	 * Get the collected errors.
-	 *
-	 * @return never {@literal null}.
-	 * @deprecated since 2.0, use {@link #getSuppressed()}.
-	 */
-	public Collection<? extends Throwable> getCauses() {
-		return causes;
-	}
 }

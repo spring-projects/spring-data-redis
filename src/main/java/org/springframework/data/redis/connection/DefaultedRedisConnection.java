@@ -1592,13 +1592,6 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
 	@Deprecated
-	default void bgWriteAof() {
-		serverCommands().bgWriteAof();
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
-	@Override
-	@Deprecated
 	default void bgReWriteAof() {
 		serverCommands().bgReWriteAof();
 	}

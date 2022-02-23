@@ -60,7 +60,7 @@ class RedisConnectionUtilsUnitTests {
 
 		Mockito.reset(connectionMock1);
 		doThrow(new IllegalStateException()).when(connectionMock1).close();
-		RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock, false);
+		RedisConnectionUtils.releaseConnection(connectionMock1, factoryMock);
 
 		verify(connectionMock1).close();
 	}

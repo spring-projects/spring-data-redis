@@ -51,7 +51,6 @@ import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -124,12 +123,16 @@ public abstract class LettuceConverters extends Converters {
 		};
 	}
 
+	public static boolean toBoolean(long value) {
+		return value == 1;
+	}
+
 	/**
 	 * @return
 	 * @sice 1.3
 	 */
 	public static Converter<Long, Boolean> longToBooleanConverter() {
-		return LongToBooleanConverter.INSTANCE;
+		return Converters::toBoolean;
 	}
 
 	public static Long toLong(@Nullable Date source) {

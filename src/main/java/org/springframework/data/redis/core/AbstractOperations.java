@@ -191,7 +191,7 @@ abstract class AbstractOperations<K, V> {
 		byte[][] rawKeys = new byte[2][];
 
 		rawKeys[0] = rawKey(key);
-		rawKeys[1] = rawKey(key);
+		rawKeys[1] = rawKey(otherKey);
 		return rawKeys;
 	}
 
