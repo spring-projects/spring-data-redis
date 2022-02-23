@@ -20,9 +20,10 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Range
+import org.springframework.data.redis.connection.Limit
 import org.springframework.data.redis.connection.RedisZSetCommands
-import org.springframework.data.redis.connection.RedisZSetCommands.Limit
-import org.springframework.data.redis.core.ZSetOperations.*
+import org.springframework.data.redis.connection.zset.Weights
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.add].
@@ -237,8 +238,14 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwai
  * @author Mark Paluch
  * @since 2.2
  */
-suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
-		unionAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(
+	key: K,
+	otherKeys: Collection<K>,
+	destKey: K,
+	aggregate: RedisZSetCommands.Aggregate,
+	weights: Weights
+): Long =
+	unionAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.intersectAndStore].
@@ -273,8 +280,14 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAnd
  * @author Mark Paluch
  * @since 2.2
  */
-suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate, weights: RedisZSetCommands.Weights): Long =
-		intersectAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(
+	key: K,
+	otherKeys: Collection<K>,
+	destKey: K,
+	aggregate: RedisZSetCommands.Aggregate,
+	weights: Weights
+): Long =
+	intersectAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.rangeByLex].

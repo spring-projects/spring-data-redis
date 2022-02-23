@@ -20,13 +20,13 @@ import java.util.Map;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.lang.Nullable;
 
 /**

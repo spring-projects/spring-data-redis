@@ -48,6 +48,9 @@ import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StringRecord;
+import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ConvertingCursor;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -1042,7 +1045,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
@@ -1063,7 +1066,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
 
@@ -1093,7 +1097,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
@@ -1109,7 +1113,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
 
@@ -2589,7 +2594,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByLex(key, range, limit), Converters.identityConverter());
 	}
 
@@ -2600,21 +2605,21 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	@Override
 	public Set<String> zRangeByLex(String key, Range range) {
-		return zRangeByLex(key, range, Limit.unlimited());
+		return zRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
 	@Override
-	public Set<String> zRangeByLex(String key, Range range, Limit limit) {
+	public Set<String> zRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByLex(serialize(key), range, limit), byteSetToStringSet);
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByLex(key, range, limit), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<String> zRevRangeByLex(String key, Range range, Limit limit) {
+	public Set<String> zRevRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByLex(serialize(key), range, limit), byteSetToStringSet);
 	}
 
@@ -2720,7 +2725,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range, Limit limit) {
+	public List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.xRange(serialize(key), range, limit), listByteMapRecordToStringMapRecordConverter);
 	}
 
@@ -2739,7 +2745,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range, Limit limit) {
+	public List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 
 		return convertAndReturn(delegate.xRevRange(serialize(key), range, limit),
 				listByteMapRecordToStringMapRecordConverter);
@@ -2831,7 +2838,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
+	public List<ByteRecord> xRange(byte[] key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return delegate.xRange(key, range, limit);
 	}
 
@@ -2847,7 +2855,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range, Limit limit) {
+	public List<ByteRecord> xRevRange(byte[] key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return delegate.xRevRange(key, range, limit);
 	}
 

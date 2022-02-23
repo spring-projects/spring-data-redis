@@ -15,14 +15,14 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
 
-import org.springframework.data.redis.connection.RedisZSetCommands.Weights;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.data.redis.connection.zset.Weights;
 
 /**
- * Unit tests for {@link org.springframework.data.redis.connection.RedisZSetCommands.Weights}.
+ * Unit tests for {@link Weights}.
  *
  * @author Mark Paluch
  */

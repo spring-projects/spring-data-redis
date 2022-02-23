@@ -15,18 +15,13 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
@@ -50,160 +45,6 @@ public interface RedisZSetCommands {
 	 */
 	enum Aggregate {
 		SUM, MIN, MAX;
-	}
-
-	/**
-	 * Value object encapsulating a multiplication factor for each input sorted set. This means that the score of every
-	 * element in every input sorted set is multiplied by this factor before being passed to the aggregation function.
-	 *
-	 * @author Mark Paluch
-	 * @author Christoph Strobl
-	 * @since 2.1
-	 */
-	class Weights {
-
-		private final List<Double> weights;
-
-		private Weights(List<Double> weights) {
-			this.weights = weights;
-		}
-
-		/**
-		 * Create new {@link Weights} given {@code weights} as {@code int}.
-		 *
-		 * @param weights must not be {@literal null}.
-		 * @return the {@link Weights} for {@code weights}.
-		 */
-		public static Weights of(int... weights) {
-
-			Assert.notNull(weights, "Weights must not be null!");
-			return new Weights(Arrays.stream(weights).mapToDouble(value -> value).boxed().collect(Collectors.toList()));
-		}
-
-		/**
-		 * Create new {@link Weights} given {@code weights} as {@code double}.
-		 *
-		 * @param weights must not be {@literal null}.
-		 * @return the {@link Weights} for {@code weights}.
-		 */
-		public static Weights of(double... weights) {
-
-			Assert.notNull(weights, "Weights must not be null!");
-
-			return new Weights(DoubleStream.of(weights).boxed().collect(Collectors.toList()));
-		}
-
-		/**
-		 * Creates equal {@link Weights} for a number of input sets {@code count} with a weight of one.
-		 *
-		 * @param count number of input sets. Must be greater or equal to zero.
-		 * @return equal {@link Weights} for a number of input sets with a weight of one.
-		 */
-		public static Weights fromSetCount(int count) {
-
-			Assert.isTrue(count >= 0, "Count of input sorted sets must be greater or equal to zero!");
-
-			return new Weights(IntStream.range(0, count).mapToDouble(value -> 1).boxed().collect(Collectors.toList()));
-		}
-
-		/**
-		 * Creates a new {@link Weights} object that contains all weights multiplied by {@code multiplier}
-		 *
-		 * @param multiplier multiplier used to multiply each weight with.
-		 * @return equal {@link Weights} for a number of input sets with a weight of one.
-		 */
-		public Weights multiply(int multiplier) {
-			return apply(it -> it * multiplier);
-		}
-
-		/**
-		 * Creates a new {@link Weights} object that contains all weights multiplied by {@code multiplier}
-		 *
-		 * @param multiplier multiplier used to multiply each weight with.
-		 * @return equal {@link Weights} for a number of input sets with a weight of one.
-		 */
-		public Weights multiply(double multiplier) {
-			return apply(it -> it * multiplier);
-		}
-
-		/**
-		 * Creates a new {@link Weights} object that contains all weights with {@link Function} applied.
-		 *
-		 * @param operator operator function.
-		 * @return the new {@link Weights} with {@link DoubleUnaryOperator} applied.
-		 */
-		public Weights apply(Function<Double, Double> operator) {
-			return new Weights(weights.stream().map(operator).collect(Collectors.toList()));
-		}
-
-		/**
-		 * Retrieve the weight at {@code index}.
-		 *
-		 * @param index the weight index.
-		 * @return the weight at {@code index}.
-		 * @throws IndexOutOfBoundsException if the index is out of range
-		 */
-		public double getWeight(int index) {
-			return weights.get(index);
-		}
-
-		/**
-		 * @return number of weights.
-		 */
-		public int size() {
-			return weights.size();
-		}
-
-		/**
-		 * @return an array containing all of the weights in this list in proper sequence (from first to last element).
-		 */
-		public double[] toArray() {
-			return weights.stream().mapToDouble(Double::doubleValue).toArray();
-		}
-
-		/**
-		 * @return a {@link List} containing all of the weights in this list in proper sequence (from first to last
-		 *         element).
-		 */
-		public List<Double> toList() {
-			return Collections.unmodifiableList(weights);
-		}
-
-		@Override
-		public boolean equals(Object o) {
-
-			if (this == o) {
-				return true;
-			}
-
-			if (!(o instanceof Weights)) {
-				return false;
-			}
-
-			Weights that = (Weights) o;
-			return ObjectUtils.nullSafeEquals(this.weights, that.weights);
-		}
-
-		@Override
-		public int hashCode() {
-			return ObjectUtils.nullSafeHashCode(weights);
-		}
-	}
-
-	/**
-	 * ZSet tuple.
-	 */
-	interface Tuple extends Comparable<Double> {
-
-		/**
-		 * @return the raw value of the member.
-		 */
-		byte[] getValue();
-
-		/**
-		 * @return the member score value used for sorting.
-		 */
-		Double getScore();
 	}
 
 	/**
@@ -336,58 +177,11 @@ public interface RedisZSetCommands {
 	/**
 	 * @author Christoph Strobl
 	 * @since 1.6
+	 * @deprecated since 3.0, use {@link org.springframework.data.redis.connection.Limit} instead.
 	 */
-	class Limit {
+	@Deprecated
+	class Limit extends org.springframework.data.redis.connection.Limit {
 
-		private static final Limit UNLIMITED = new Limit() {
-
-			@Override
-			public int getCount() {
-				return -1;
-			}
-
-			@Override
-			public int getOffset() {
-				return super.getOffset();
-			}
-		};
-
-		int offset;
-		int count;
-
-		public static Limit limit() {
-			return new Limit();
-		}
-
-		public Limit offset(int offset) {
-			this.offset = offset;
-			return this;
-		}
-
-		public Limit count(int count) {
-			this.count = count;
-			return this;
-		}
-
-		public int getCount() {
-			return count;
-		}
-
-		public int getOffset() {
-			return offset;
-		}
-
-		public boolean isUnlimited() {
-			return this.equals(UNLIMITED);
-		}
-
-		/**
-		 * @return new {@link Limit} indicating no limit;
-		 * @since 1.3
-		 */
-		public static Limit unlimited() {
-			return UNLIMITED;
-		}
 	}
 
 	/**
@@ -787,7 +581,8 @@ public interface RedisZSetCommands {
 	@Nullable
 	default Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		return zRangeByScore(key, new Range().gte(min).lte(max),
-				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
+						.count(Long.valueOf(count).intValue()));
 	}
 
 	/**
@@ -806,7 +601,8 @@ public interface RedisZSetCommands {
 	@Nullable
 	default Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		return zRangeByScoreWithScores(key, new Range().gte(min).lte(max),
-				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
+						.count(Long.valueOf(count).intValue()));
 	}
 
 	/**
@@ -822,7 +618,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit);
+	Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} from sorted set ordered from high to low.
@@ -928,7 +724,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit);
+	Set<byte[]> zRevRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Get set of {@link Tuple} in range from {@code start} to {@code end} where score is between {@code min} and
@@ -946,7 +742,8 @@ public interface RedisZSetCommands {
 	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 
 		return zRevRangeByScoreWithScores(key, new Range().gte(min).lte(max),
-				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
+						.count(Long.valueOf(count).intValue()));
 	}
 
 	/**
@@ -976,7 +773,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit);
+	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
@@ -1454,7 +1251,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit);
+	Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in lexicographical ordering.
@@ -1495,7 +1292,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit);
+	Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
@@ -1521,7 +1318,7 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	default Set<byte[]> zRevRangeByLex(byte[] key, Range range) {
-		return zRevRangeByLex(key, range, Limit.unlimited());
+		return zRevRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
 	/**
@@ -1536,6 +1333,6 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit);
+	Set<byte[]> zRevRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit);
 
 }

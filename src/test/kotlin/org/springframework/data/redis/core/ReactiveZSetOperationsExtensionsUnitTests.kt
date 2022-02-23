@@ -23,10 +23,10 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Range
-import org.springframework.data.redis.connection.RedisZSetCommands
+import org.springframework.data.redis.connection.Limit
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate
-import org.springframework.data.redis.connection.RedisZSetCommands.Weights
-import org.springframework.data.redis.core.ZSetOperations.*
+import org.springframework.data.redis.connection.zset.Weights
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -204,7 +204,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 
 		verify {
-			operations.rangeByScore("foo", range, RedisZSetCommands.Limit.unlimited())
+			operations.rangeByScore("foo", range, Limit.unlimited())
 		}
 	}
 
@@ -221,7 +221,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 
 		verify {
-			operations.rangeByScoreWithScores("foo", range, RedisZSetCommands.Limit.unlimited())
+			operations.rangeByScoreWithScores("foo", range, Limit.unlimited())
 		}
 	}
 
@@ -270,7 +270,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 
 		verify {
-			operations.reverseRangeByScore("foo", range, RedisZSetCommands.Limit.unlimited())
+			operations.reverseRangeByScore("foo", range, Limit.unlimited())
 		}
 	}
 
@@ -287,7 +287,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 
 		verify {
-			operations.reverseRangeByScoreWithScores("foo", range, RedisZSetCommands.Limit.unlimited())
+			operations.reverseRangeByScoreWithScores("foo", range, Limit.unlimited())
 		}
 	}
 
@@ -527,7 +527,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 
 		verify {
-			operations.rangeByLex("foo", Range.just("bar"), RedisZSetCommands.Limit.unlimited())
+			operations.rangeByLex("foo", Range.just("bar"), Limit.unlimited())
 		}
 	}
 
@@ -542,7 +542,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 
 		verify {
-			operations.reverseRangeByLex("foo", Range.just("bar"), RedisZSetCommands.Limit.unlimited())
+			operations.reverseRangeByLex("foo", Range.just("bar"), Limit.unlimited())
 		}
 	}
 

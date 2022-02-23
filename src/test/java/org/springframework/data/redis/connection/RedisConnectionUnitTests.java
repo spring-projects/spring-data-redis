@@ -35,6 +35,8 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -947,12 +949,13 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+		public Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRangeByLex(key, range, limit);
 		}
 
 		@Override
-		public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+		public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRangeByScoreWithScores(key, range, limit);
 		}
 
@@ -962,12 +965,14 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+		public Set<byte[]> zRevRangeByScore(byte[] key, Range range,
+				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRevRangeByScore(key, range, limit);
 		}
 
 		@Override
-		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRevRangeByScoreWithScores(key, range, limit);
 		}
 
@@ -992,7 +997,7 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+		public Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRangeByScore(key, range, limit);
 		}
 

@@ -23,9 +23,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
+import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -333,7 +333,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<E> reverseRangeByScore(double min, double max);
 
 	/**
-	 * Get set of {@link RedisZSetCommands.Tuple}s between {@code start} and {@code end} from sorted set.
+	 * Get set of {@link Tuple}s between {@code start} and {@code end} from sorted set.
 	 *
 	 * @param start
 	 * @param end
@@ -342,8 +342,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<TypedTuple<E>> rangeWithScores(long start, long end);
 
 	/**
-	 * Get set of {@link RedisZSetCommands.Tuple}s in range from {@code start} to {@code end} from sorted set ordered from
-	 * high to low.
+	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} from sorted set ordered from high to low.
 	 *
 	 * @param start
 	 * @param end
@@ -352,7 +351,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<TypedTuple<E>> reverseRangeWithScores(long start, long end);
 
 	/**
-	 * Get set of {@link RedisZSetCommands.Tuple}s where score is between {@code min} and {@code max} from sorted set.
+	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set.
 	 *
 	 * @param min
 	 * @param max
@@ -361,8 +360,8 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<TypedTuple<E>> rangeByScoreWithScores(double min, double max);
 
 	/**
-	 * Get set of {@link RedisZSetCommands.Tuple}s where score is between {@code min} and {@code max} from sorted set
-	 * ordered from high to low.
+	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set ordered from high to
+	 * low.
 	 *
 	 * @param min
 	 * @param max

@@ -27,9 +27,11 @@ import java.util.stream.Collectors;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
-import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.convert.SetConverter;
+import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -201,7 +203,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range cannot be null for ZRANGEBYSCOREWITHSCORES.");
@@ -221,7 +224,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range cannot be null for ZREVRANGEBYSCORE.");
@@ -240,7 +243,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range cannot be null for ZREVRANGEBYSCOREWITHSCORES.");
@@ -391,7 +395,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range cannot be null for ZRANGEBYSCORE.");
@@ -410,7 +414,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null for ZRANGEBYLEX!");
@@ -446,7 +450,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, Limit limit) {
+	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null for ZREVRANGEBYLEX!");
