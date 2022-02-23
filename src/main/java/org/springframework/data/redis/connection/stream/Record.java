@@ -40,6 +40,24 @@ public interface Record<S, V> {
 	S getStream();
 
 	/**
+	 * The id of the stream (aka the {@literal key} in Redis).
+	 *
+	 * @return can be {@literal null}.
+	 * @throws IllegalStateException if the stream is {@literal null}.
+	 * @since 3.0
+	 */
+	default S getRequiredStream() {
+
+		S stream = getStream();
+
+		if (stream == null) {
+			throw new IllegalStateException("Stream is not available");
+		}
+
+		return stream;
+	}
+
+	/**
 	 * The id of the entry inside the stream.
 	 *
 	 * @return never {@literal null}.

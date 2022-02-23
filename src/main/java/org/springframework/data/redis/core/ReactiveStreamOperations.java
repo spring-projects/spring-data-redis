@@ -77,7 +77,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
 	default Mono<Long> acknowledge(String group, Record<K, ?> record) {
-		return acknowledge(record.getStream(), group, record.getId());
+		return acknowledge(record.getRequiredStream(), group, record.getId());
 	}
 
 	/**

@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 
 /**
@@ -65,6 +66,16 @@ public class StreamInfo {
 			Object value = raw.get(entry);
 
 			return value == null ? null : type.cast(value);
+		}
+
+		<T> T getRequired(String entry, Class<T> type) {
+
+			T value = get(entry, type);
+
+			if (value == null) {
+				throw new IllegalStateException("Value for entry '%s' is null.".formatted(entry));
+			}
+			return value;
 		}
 
 		@Nullable
@@ -124,8 +135,8 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Long streamLength() {
-			return get("length", Long.class);
+		public long streamLength() {
+			return getRequired("length", Long.class);
 		}
 
 		/**
@@ -133,8 +144,8 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Long radixTreeKeySize() {
-			return get("radix-tree-keys", Long.class);
+		public long radixTreeKeySize() {
+			return getRequired("radix-tree-keys", Long.class);
 		}
 
 		/**
@@ -142,8 +153,8 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Long radixTreeNodesSize() {
-			return get("radix-tree-nodes", Long.class);
+		public long radixTreeNodesSize() {
+			return getRequired("radix-tree-nodes", Long.class);
 		}
 
 		/**
@@ -151,8 +162,8 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Long groupCount() {
-			return get("groups", Long.class);
+		public long groupCount() {
+			return getRequired("groups", Long.class);
 		}
 
 		/**
@@ -162,7 +173,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public String lastGeneratedId() {
-			return get("last-generated-id", String.class);
+			return getRequired("last-generated-id", String.class);
 		}
 
 		/**
@@ -209,7 +220,7 @@ public class StreamInfo {
 	 *
 	 * @author Christoph Strobl
 	 */
-	public static class XInfoGroups {
+	public static class XInfoGroups implements Streamable<XInfoGroup> {
 
 		private final List<XInfoGroup> groupInfoList;
 
@@ -253,6 +264,7 @@ public class StreamInfo {
 		/**
 		 * @return {@literal true} if no groups associated.
 		 */
+		@Override
 		public boolean isEmpty() {
 			return groupInfoList.isEmpty();
 		}
@@ -262,6 +274,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
+		@Override
 		public Iterator<XInfoGroup> iterator() {
 			return groupInfoList.iterator();
 		}
@@ -281,6 +294,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
+		@Override
 		public Stream<XInfoGroup> stream() {
 			return groupInfoList.stream();
 		}
@@ -290,6 +304,7 @@ public class StreamInfo {
 		 *
 		 * @param action
 		 */
+		@Override
 		public void forEach(Consumer<? super XInfoGroup> action) {
 			groupInfoList.forEach(action);
 		}
@@ -317,7 +332,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public String groupName() {
-			return get("name", String.class);
+			return getRequired("name", String.class);
 		}
 
 		/**
@@ -326,7 +341,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public Long consumerCount() {
-			return get("consumers", Long.class);
+			return getRequired("consumers", Long.class);
 		}
 
 		/**
@@ -335,7 +350,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public Long pendingCount() {
-			return get("pending", Long.class);
+			return getRequired("pending", Long.class);
 		}
 
 		/**
@@ -344,11 +359,11 @@ public class StreamInfo {
 		 * @return
 		 */
 		public String lastDeliveredId() {
-			return get("last-delivered-id", String.class);
+			return getRequired("last-delivered-id", String.class);
 		}
 	}
 
-	public static class XInfoConsumers {
+	public static class XInfoConsumers implements Streamable<XInfoConsumer> {
 
 		private final List<XInfoConsumer> consumerInfoList;
 
@@ -386,6 +401,7 @@ public class StreamInfo {
 		/**
 		 * @return {@literal true} if no groups associated.
 		 */
+		@Override
 		public boolean isEmpty() {
 			return consumerInfoList.isEmpty();
 		}
@@ -395,6 +411,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
+		@Override
 		public Iterator<XInfoConsumer> iterator() {
 			return consumerInfoList.iterator();
 		}
@@ -414,6 +431,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
+		@Override
 		public Stream<XInfoConsumer> stream() {
 			return consumerInfoList.stream();
 		}
@@ -423,6 +441,7 @@ public class StreamInfo {
 		 *
 		 * @param action
 		 */
+		@Override
 		public void forEach(Consumer<? super XInfoConsumer> action) {
 			consumerInfoList.forEach(action);
 		}
@@ -458,7 +477,7 @@ public class StreamInfo {
 		 * @return
 		 */
 		public String consumerName() {
-			return get("name", String.class);
+			return getRequired("name", String.class);
 		}
 
 		/**
@@ -466,8 +485,8 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Long idleTimeMs() {
-			return get("idle", Long.class);
+		public long idleTimeMs() {
+			return getRequired("idle", Long.class);
 		}
 
 		/**
@@ -484,8 +503,8 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Long pendingCount() {
-			return get("pending", Long.class);
+		public long pendingCount() {
+			return getRequired("pending", Long.class);
 		}
 	}
 }
