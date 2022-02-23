@@ -253,8 +253,12 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	List<V> randomMembers(long count);
 
 	/**
-	 * @param options
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * Use a {@link Cursor} to iterate over entries in set at {@code key}. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
+	 *
+	 * @param options must not be {@literal null}.
+	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
+	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
 	@Nullable

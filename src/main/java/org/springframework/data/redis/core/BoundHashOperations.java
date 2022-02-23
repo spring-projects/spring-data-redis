@@ -202,10 +202,12 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Map<HK, HV> entries();
 
 	/**
-	 * Use a {@link Cursor} to iterate over entries in the hash.
+	 * Use a {@link Cursor} to iterate over entries in hash at the bound key. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
 	 *
-	 * @param options
-	 * @return
+	 * @param options must not be {@literal null}.
+	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
+	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
 	Cursor<Map.Entry<HK, HV>> scan(ScanOptions options);

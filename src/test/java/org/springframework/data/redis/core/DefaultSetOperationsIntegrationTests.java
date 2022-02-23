@@ -208,13 +208,14 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		V v3 = valueFactory.instance();
 
 		setOps.add(key, v1, v2, v3);
-		Cursor<V> it = setOps.scan(key, ScanOptions.scanOptions().count(1).build());
 		long count = 0;
-		while (it.hasNext()) {
-			assertThat(it.next()).isIn(v1, v2, v3);
-			count++;
+		try (Cursor<V> it = setOps.scan(key, ScanOptions.scanOptions().count(1).build())) {
+			while (it.hasNext()) {
+				assertThat(it.next()).isIn(v1, v2, v3);
+				count++;
+			}
 		}
-		it.close();
+
 		assertThat(count).isEqualTo(setOps.size(key));
 	}
 

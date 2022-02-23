@@ -210,11 +210,12 @@ public interface HashOperations<H, HK, HV> {
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}. <br />
-	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @param options must not be {@literal null}.
+	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
+	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
 	Cursor<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
