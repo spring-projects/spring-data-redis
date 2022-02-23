@@ -133,13 +133,13 @@ public class RedisTemplateIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		assumeThat(key1 instanceof String || key1 instanceof byte[]).isTrue();
 		redisTemplate.opsForValue().set(key1, value1);
-		Cursor<K> cursor = redisTemplate.scan(ScanOptions.scanOptions().count(1).build());
 		long count = 0;
-		while (cursor.hasNext()) {
-			assertThat(cursor.next()).isEqualTo(key1);
-			count++;
+		try (Cursor<K> cursor = redisTemplate.scan(ScanOptions.scanOptions().count(1).build())) {
+			while (cursor.hasNext()) {
+				assertThat(cursor.next()).isEqualTo(key1);
+				count++;
+			}
 		}
-		cursor.close();
 		assertThat(count).isEqualTo(1);
 	}
 

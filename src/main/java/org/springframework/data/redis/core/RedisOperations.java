@@ -262,10 +262,12 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Use a {@link Cursor} to iterate over keys. <br />
-	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
 	 *
 	 * @param options must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
+	 *         try-with-resources clause).
+	 * @since 2.7
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
 	Cursor<K> scan(ScanOptions options);

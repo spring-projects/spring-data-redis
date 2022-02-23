@@ -497,13 +497,13 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, values);
 
 		int count = 0;
-		Cursor<TypedTuple<V>> it = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build());
-		while (it.hasNext()) {
-			assertThat(it.next()).isIn(tuple1, tuple2, tuple3);
-			count++;
+		try (Cursor<TypedTuple<V>> it = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build())) {
+			while (it.hasNext()) {
+				assertThat(it.next()).isIn(tuple1, tuple2, tuple3);
+				count++;
+			}
 		}
 
-		it.close();
 		assertThat(count).isEqualTo(3);
 	}
 

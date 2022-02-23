@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -139,6 +140,14 @@ public class RedisClusterTemplateIntegrationTests<K, V> extends RedisTemplateInt
 	@Disabled("This one fails when using GET options on numbers")
 	public void testGetExpireMillisUsingPipelining() {
 		super.testGetExpireMillisUsingPipelining();
+	}
+
+	@ParameterizedRedisTest
+	void testScan() {
+
+		// Only Lettuce supports cluster-wide scanning
+		assumeThat(redisTemplate.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+		super.testScan();
 	}
 
 	@Parameters

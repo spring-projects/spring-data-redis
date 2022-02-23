@@ -947,12 +947,13 @@ public interface ZSetOperations<K, V> {
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
-	 * Iterate over elements in zset at {@code key}. <br />
-	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
+	 * Use a {@link Cursor} to iterate over entries zset at {@code key}. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
 	 *
 	 * @param key
-	 * @param options
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @param options must not be {@literal null}.
+	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
+	 *         try-with-resources clause).
 	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 1.4
 	 */
