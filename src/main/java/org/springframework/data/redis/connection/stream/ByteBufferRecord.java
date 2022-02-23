@@ -17,8 +17,8 @@ package org.springframework.data.redis.connection.stream;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -65,16 +65,17 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 	 * @param valueSerializer can be {@literal null} if the values suite already the target format.
 	 * @return new {@link MapRecord} holding the deserialized values.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	default <K, HK, HV> MapRecord<K, HK, HV> deserialize(@Nullable RedisSerializer<? extends K> streamSerializer,
 			@Nullable RedisSerializer<? extends HK> fieldSerializer,
 			@Nullable RedisSerializer<? extends HV> valueSerializer) {
 
-		return mapEntries(it -> Collections.<HK, HV> singletonMap(
-				fieldSerializer != null ? fieldSerializer.deserialize(ByteUtils.getBytes(it.getKey())) : (HK) it.getKey(),
-				valueSerializer != null ? valueSerializer.deserialize(ByteUtils.getBytes(it.getValue())) : (HV) it.getValue())
-				.entrySet().iterator().next()).withStreamKey(
-						streamSerializer != null ? streamSerializer.deserialize(ByteUtils.getBytes(getStream())) : (K) getStream());
+		return mapEntries(it -> {
+
+			Map<HK, HV> map = Collections.singletonMap(StreamSerialization.deserialize(fieldSerializer, it.getKey()),
+					StreamSerialization.deserialize(valueSerializer, it.getValue()));
+
+			return map.entrySet().iterator().next();
+		}).withStreamKey(StreamSerialization.deserialize(streamSerializer, getRequiredStream()));
 	}
 
 	/**
@@ -84,7 +85,7 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 	 * @return new instance of {@link ByteRecord}.
 	 */
 	static ByteBufferRecord of(MapRecord<ByteBuffer, ByteBuffer, ByteBuffer> source) {
-		return StreamRecords.newRecord().in(source.getStream()).withId(source.getId()).ofBuffer(source.getValue());
+		return StreamRecords.newRecord().in(source.getRequiredStream()).withId(source.getId()).ofBuffer(source.getValue());
 	}
 
 	/**
@@ -97,10 +98,13 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 	default <OV> ObjectRecord<ByteBuffer, OV> toObjectRecord(
 			HashMapper<? super OV, ? super ByteBuffer, ? super ByteBuffer> mapper) {
 
-		Map<byte[], byte[]> targetMap = getValue().entrySet().stream().collect(
-				Collectors.toMap(entry -> ByteUtils.getBytes(entry.getKey()), entry -> ByteUtils.getBytes(entry.getValue())));
+		Map<ByteBuffer, ByteBuffer> value = getValue();
+		Map<byte[], byte[]> targetMap = new LinkedHashMap<>(value.size());
+
+		value.forEach((k, v) -> targetMap.put(ByteUtils.getBytes(k), ByteUtils.getBytes(v)));
 
 		return Record.<ByteBuffer, OV> of((OV) (mapper).fromHash((Map) targetMap)).withId(getId())
-				.withStreamKey(getStream());
+				.withStreamKey(getRequiredStream());
 	}
+
 }

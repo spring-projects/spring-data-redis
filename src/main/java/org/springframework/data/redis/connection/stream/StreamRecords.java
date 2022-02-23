@@ -232,8 +232,8 @@ public class StreamRecords {
 	 */
 	static class MapBackedRecord<S, K, V> implements MapRecord<S, K, V> {
 
-		private @Nullable S stream;
-		private RecordId recordId;
+		private final @Nullable S stream;
+		private final RecordId recordId;
 		private final Map<K, V> kvMap;
 
 		MapBackedRecord(@Nullable S stream, RecordId recordId, Map<K, V> kvMap) {
@@ -249,7 +249,6 @@ public class StreamRecords {
 			return stream;
 		}
 
-		@Nullable
 		@Override
 		public RecordId getId() {
 			return recordId;
@@ -322,7 +321,7 @@ public class StreamRecords {
 	 */
 	static class ByteMapBackedRecord extends MapBackedRecord<byte[], byte[], byte[]> implements ByteRecord {
 
-		ByteMapBackedRecord(byte[] stream, RecordId recordId, Map<byte[], byte[]> map) {
+		ByteMapBackedRecord(@Nullable byte[] stream, RecordId recordId, Map<byte[], byte[]> map) {
 			super(stream, recordId, map);
 		}
 
@@ -343,7 +342,8 @@ public class StreamRecords {
 	static class ByteBufferMapBackedRecord extends MapBackedRecord<ByteBuffer, ByteBuffer, ByteBuffer>
 			implements ByteBufferRecord {
 
-		ByteBufferMapBackedRecord(ByteBuffer stream, RecordId recordId, Map<ByteBuffer, ByteBuffer> map) {
+		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, @Nullable RecordId recordId,
+				Map<ByteBuffer, ByteBuffer> map) {
 			super(stream, recordId, map);
 		}
 
@@ -363,7 +363,7 @@ public class StreamRecords {
 	 */
 	static class StringMapBackedRecord extends MapBackedRecord<String, String, String> implements StringRecord {
 
-		StringMapBackedRecord(String stream, RecordId recordId, Map<String, String> stringStringMap) {
+		StringMapBackedRecord(@Nullable String stream, @Nullable RecordId recordId, Map<String, String> stringStringMap) {
 			super(stream, recordId, stringStringMap);
 		}
 

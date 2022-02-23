@@ -16,8 +16,8 @@
 package org.springframework.data.redis.connection.stream;
 
 import java.util.Collections;
+import java.util.Map;
 
-import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 
@@ -65,11 +65,13 @@ public interface ByteRecord extends MapRecord<byte[], byte[], byte[]> {
 			@Nullable RedisSerializer<? extends HK> fieldSerializer,
 			@Nullable RedisSerializer<? extends HV> valueSerializer) {
 
-		return mapEntries(it -> Collections
-				.<HK, HV> singletonMap(fieldSerializer != null ? fieldSerializer.deserialize(it.getKey()) : (HK) it.getKey(),
-						valueSerializer != null ? valueSerializer.deserialize(it.getValue()) : (HV) it.getValue())
-				.entrySet().iterator().next())
-						.withStreamKey(streamSerializer != null ? streamSerializer.deserialize(getStream()) : (K) getStream());
+		return mapEntries(it -> {
+
+			Map<HK, HV> map = Collections.singletonMap(StreamSerialization.deserialize(fieldSerializer, it.getKey()),
+					StreamSerialization.deserialize(valueSerializer, it.getValue()));
+
+			return map.entrySet().iterator().next();
+		}).withStreamKey(StreamSerialization.deserialize(streamSerializer, getRequiredStream()));
 	}
 
 	/**
@@ -79,6 +81,6 @@ public interface ByteRecord extends MapRecord<byte[], byte[], byte[]> {
 	 * @return new instance of {@link ByteRecord}.
 	 */
 	static ByteRecord of(MapRecord<byte[], byte[], byte[]> source) {
-		return StreamRecords.newRecord().in(source.getStream()).withId(source.getId()).ofBytes(source.getValue());
+		return StreamRecords.newRecord().in(source.getRequiredStream()).withId(source.getId()).ofBytes(source.getValue());
 	}
 }

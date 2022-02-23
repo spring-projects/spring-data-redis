@@ -106,12 +106,11 @@ class StreamObjectMapper {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	static <K, V, HK, HV> MapRecord<K, HK, HV> toMapRecord(HashMapperProvider<HK, HV> provider, Record<K, V> source) {
 
-		if (source instanceof ObjectRecord) {
-
-			ObjectRecord entry = ((ObjectRecord) source);
+		if (source instanceof ObjectRecord entry) {
 
 			if (entry.getValue() instanceof Map) {
-				return StreamRecords.newRecord().in(source.getStream()).withId(source.getId()).ofMap((Map) entry.getValue());
+				return StreamRecords.newRecord().in(source.getRequiredStream()).withId(source.getId())
+						.ofMap((Map) entry.getValue());
 			}
 
 			return entry.toMapRecord(provider.getHashMapper(entry.getValue().getClass()));
@@ -122,7 +121,7 @@ class StreamObjectMapper {
 		}
 
 		return Record.of(((HashMapper) provider.getHashMapper(source.getClass())).toHash(source))
-				.withStreamKey(source.getStream());
+				.withStreamKey(source.getRequiredStream());
 	}
 
 	/**

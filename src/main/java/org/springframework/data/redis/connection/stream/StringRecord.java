@@ -54,6 +54,6 @@ public interface StringRecord extends MapRecord<String, String, String> {
 	 * @return new instance of {@link StringRecord}.
 	 */
 	static StringRecord of(MapRecord<String, String, String> source) {
-		return StreamRecords.newRecord().in(source.getStream()).withId(source.getId()).ofStrings(source.getValue());
+		return StreamRecords.newRecord().in(source.getRequiredStream()).withId(source.getId()).ofStrings(source.getValue());
 	}
 }

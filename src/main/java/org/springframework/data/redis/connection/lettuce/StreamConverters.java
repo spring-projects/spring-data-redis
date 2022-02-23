@@ -26,7 +26,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
@@ -38,6 +37,7 @@ import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.NumberUtils;
 
 /**
@@ -69,7 +69,7 @@ class StreamConverters {
 					return new org.springframework.data.redis.connection.stream.PendingMessage(id, consumer,
 							Duration.ofMillis(it.getMsSinceLastDelivery()), it.getRedeliveryCount());
 
-				}).collect(Collectors.toList());
+				}).toList();
 
 		return new org.springframework.data.redis.connection.stream.PendingMessages(groupName, messages);
 
@@ -111,16 +111,8 @@ class StreamConverters {
 		return (it) -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBytes(it.getBody());
 	}
 
-	static Converter<List<StreamMessage<byte[], byte[]>>, List<ByteRecord>> byteRecordListConverter() {
-		return new ListConverter<>(byteRecordConverter());
-	}
-
 	static Converter<StreamMessage<byte[], byte[]>, RecordId> messageToIdConverter() {
 		return (it) -> RecordId.of(it.getId());
-	}
-
-	static Converter<List<StreamMessage<byte[], byte[]>>, List<RecordId>> messagesToIds() {
-		return MESSAGEs_TO_IDs;
 	}
 
 	/**
@@ -157,7 +149,7 @@ class StreamConverters {
 	 * @param value dont't get me started om this.
 	 * @return preconverted values that Lettuce parsers are able to understand \ö/.
 	 */
-	private static Object preConvertNativeValues(Object value) {
+	private static Object preConvertNativeValues(@Nullable Object value) {
 
 		if (value instanceof ByteBuffer || value instanceof byte[]) {
 

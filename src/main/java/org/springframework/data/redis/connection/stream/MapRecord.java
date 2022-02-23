@@ -78,7 +78,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 			mapped.put(mappedPair.getKey(), mappedPair.getValue());
 		});
 
-		return StreamRecords.newRecord().in(getStream()).withId(getId()).ofMap(mapped);
+		return StreamRecords.newRecord().in(getRequiredStream()).withId(getId()).ofMap(mapped);
 	}
 
 	/**
@@ -121,7 +121,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 						StreamSerialization.serialize(valueSerializer, it.getValue())).entrySet().iterator().next());
 
 		return StreamRecords.newRecord() //
-				.in(streamSerializer != null ? streamSerializer.serialize(getStream()) : (byte[]) getStream()) //
+				.in(StreamSerialization.serialize(streamSerializer, getRequiredStream())) //
 				.withId(getId()) //
 				.ofBytes(binaryMap.getValue());
 	}
@@ -136,6 +136,6 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	default <OV> ObjectRecord<S, OV> toObjectRecord(HashMapper<? super OV, ? super K, ? super V> mapper) {
-		return Record.<S, OV> of((OV) mapper.fromHash((Map) getValue())).withId(getId()).withStreamKey(getStream());
+		return Record.<S, OV> of((OV) mapper.fromHash((Map) getValue())).withId(getId()).withStreamKey(getRequiredStream());
 	}
 }
