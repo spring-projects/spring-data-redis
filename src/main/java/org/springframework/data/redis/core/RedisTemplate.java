@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -552,105 +553,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// -------------------------------------------------------------------------
 
 	@Override
-	public Boolean copy(K source, K target, boolean replace) {
-
-		byte[] sourceKey = rawKey(source);
-		byte[] targetKey = rawKey(target);
-
-		return execute(connection -> connection.copy(sourceKey, targetKey, replace), true);
-	}
-
-	@Override
-	public Boolean delete(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		Long result = execute(connection -> connection.del(rawKey), true);
-		return result != null && result.intValue() == 1;
-	}
-
-	@Override
-	public Long delete(Collection<K> keys) {
-
-		if (CollectionUtils.isEmpty(keys)) {
-			return 0L;
-		}
-
-		byte[][] rawKeys = rawKeys(keys);
-
-		return execute(connection -> connection.del(rawKeys), true);
-	}
-
-	@Override
-	public Boolean unlink(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		Long result = execute(connection -> connection.unlink(rawKey), true);
-
-		return result != null && result.intValue() == 1;
-	}
-
-	@Override
-	public Long unlink(Collection<K> keys) {
-
-		if (CollectionUtils.isEmpty(keys)) {
-			return 0L;
-		}
-
-		byte[][] rawKeys = rawKeys(keys);
-
-		return execute(connection -> connection.unlink(rawKeys), true);
-	}
-
-	@Override
-	public Boolean hasKey(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		return execute(connection -> connection.exists(rawKey), true);
-	}
-
-	@Override
-	public Long countExistingKeys(Collection<K> keys) {
-
-		Assert.notNull(keys, "Keys must not be null!");
-
-		byte[][] rawKeys = rawKeys(keys);
-		return execute(connection -> connection.exists(rawKeys), true);
-	}
-
-	@Override
-	public Boolean expire(K key, final long timeout, final TimeUnit unit) {
-
-		byte[] rawKey = rawKey(key);
-		long rawTimeout = TimeoutUtils.toMillis(timeout, unit);
-
-		return execute(connection -> {
-			try {
-				return connection.pExpire(rawKey, rawTimeout);
-			} catch (Exception e) {
-				// Driver may not support pExpire or we may be running on Redis 2.4
-				return connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit));
-			}
-		}, true);
-	}
-
-	@Override
-	public Boolean expireAt(K key, final Date date) {
-
-		byte[] rawKey = rawKey(key);
-
-		return execute(connection -> {
-			try {
-				return connection.pExpireAt(rawKey, date.getTime());
-			} catch (Exception e) {
-				return connection.expireAt(rawKey, date.getTime() / 1000);
-			}
-		}, true);
-	}
-
-	@Override
 	public void convertAndSend(String channel, Object message) {
 
 		Assert.hasText(channel, "a non-empty channel is required");
@@ -664,29 +566,128 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	//
-	// Value operations
-	//
+	@Override
+	public Boolean copy(K source, K target, boolean replace) {
+
+		byte[] sourceKey = rawKey(source);
+		byte[] targetKey = rawKey(target);
+
+		return doWithKeys(connection -> connection.copy(sourceKey, targetKey, replace));
+	}
+
+	@Override
+	public Boolean delete(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		Long result = doWithKeys(connection -> connection.del(rawKey));
+		return result != null && result.intValue() == 1;
+	}
+
+	@Override
+	public Long delete(Collection<K> keys) {
+
+		if (CollectionUtils.isEmpty(keys)) {
+			return 0L;
+		}
+
+		byte[][] rawKeys = rawKeys(keys);
+
+		return doWithKeys(connection -> connection.del(rawKeys));
+	}
+
+	@Override
+	public Boolean unlink(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		Long result = doWithKeys(connection -> connection.unlink(rawKey));
+
+		return result != null && result.intValue() == 1;
+	}
+
+	@Override
+	public Long unlink(Collection<K> keys) {
+
+		if (CollectionUtils.isEmpty(keys)) {
+			return 0L;
+		}
+
+		byte[][] rawKeys = rawKeys(keys);
+
+		return doWithKeys(connection -> connection.unlink(rawKeys));
+	}
+
+	@Override
+	public Boolean hasKey(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return doWithKeys(connection -> connection.exists(rawKey));
+	}
+
+	@Override
+	public Long countExistingKeys(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		byte[][] rawKeys = rawKeys(keys);
+		return doWithKeys(connection -> connection.exists(rawKeys));
+	}
+
+	@Override
+	public Boolean expire(K key, final long timeout, final TimeUnit unit) {
+
+		byte[] rawKey = rawKey(key);
+		long rawTimeout = TimeoutUtils.toMillis(timeout, unit);
+
+		return doWithKeys(connection -> {
+			try {
+				return connection.pExpire(rawKey, rawTimeout);
+			} catch (Exception e) {
+				// Driver may not support pExpire or we may be running on Redis 2.4
+				return connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit));
+			}
+		});
+	}
+
+	@Override
+	public Boolean expireAt(K key, final Date date) {
+
+		byte[] rawKey = rawKey(key);
+
+		return doWithKeys(connection -> {
+			try {
+				return connection.pExpireAt(rawKey, date.getTime());
+			} catch (Exception e) {
+				return connection.expireAt(rawKey, date.getTime() / 1000);
+			}
+		});
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with value operations
+	// -------------------------------------------------------------------------
 
 	@Override
 	public Long getExpire(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.ttl(rawKey), true);
+		return doWithKeys(connection -> connection.ttl(rawKey));
 	}
 
 	@Override
 	public Long getExpire(K key, final TimeUnit timeUnit) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> {
+		return doWithKeys(connection -> {
 			try {
 				return connection.pTtl(rawKey, timeUnit);
 			} catch (Exception e) {
 				// Driver may not support pTtl or we may be running on Redis 2.4
 				return connection.ttl(rawKey, timeUnit);
 			}
-		}, true);
+		});
 	}
 
 	@Override
@@ -694,7 +695,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Set<K> keys(K pattern) {
 
 		byte[] rawKey = rawKey(pattern);
-		Set<byte[]> rawKeys = execute(connection -> connection.keys(rawKey), true);
+		Set<byte[]> rawKeys = doWithKeys(connection -> connection.keys(rawKey));
 
 		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : (Set<K>) rawKeys;
 	}
@@ -712,20 +713,20 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Boolean persist(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.persist(rawKey), true);
+		return doWithKeys(connection -> connection.persist(rawKey));
 	}
 
 	@Override
 	public Boolean move(K key, final int dbIndex) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.move(rawKey, dbIndex), true);
+		return doWithKeys(connection -> connection.move(rawKey, dbIndex));
 	}
 
 	@Override
 	public K randomKey() {
 
-		byte[] rawKey = execute(RedisKeyCommands::randomKey, true);
+		byte[] rawKey = doWithKeys(RedisKeyCommands::randomKey);
 		return deserializeKey(rawKey);
 	}
 
@@ -735,10 +736,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawOldKey = rawKey(oldKey);
 		byte[] rawNewKey = rawKey(newKey);
 
-		execute(connection -> {
+		doWithKeys(connection -> {
 			connection.rename(rawOldKey, rawNewKey);
 			return null;
-		}, true);
+		});
 	}
 
 	@Override
@@ -746,14 +747,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		byte[] rawOldKey = rawKey(oldKey);
 		byte[] rawNewKey = rawKey(newKey);
-		return execute(connection -> connection.renameNX(rawOldKey, rawNewKey), true);
+		return doWithKeys(connection -> connection.renameNX(rawOldKey, rawNewKey));
 	}
 
 	@Override
 	public DataType type(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.type(rawKey), true);
+		return doWithKeys(connection -> connection.type(rawKey));
 	}
 
 	/**
@@ -768,7 +769,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public byte[] dump(K key) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.dump(rawKey), true);
+		return doWithKeys(connection -> connection.dump(rawKey));
 	}
 
 	/**
@@ -784,18 +785,26 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 *           {@literal false}.
 	 */
 	@Override
-	public void restore(K key, final byte[] value, long timeToLive, TimeUnit unit, boolean replace) {
+	public void restore(K key, byte[] value, long timeToLive, TimeUnit unit, boolean replace) {
 
 		byte[] rawKey = rawKey(key);
 		long rawTimeout = TimeoutUtils.toMillis(timeToLive, unit);
 
-		execute(connection -> {
+		doWithKeys(connection -> {
 			connection.restore(rawKey, rawTimeout, value, replace);
 			return null;
-		}, true);
+		});
 	}
 
-	// Sort operations
+	@Nullable
+	private <T> T doWithKeys(Function<RedisKeyCommands, T> action) {
+		return execute((RedisCallback<? extends T>) connection -> action.apply(connection.keyCommands()), true);
+	}
+
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with sorting
+	// -------------------------------------------------------------------------
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -809,7 +818,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawKey = rawKey(query.getKey());
 		SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
 
-		List<byte[]> vals = execute(connection -> connection.sort(rawKey, params), true);
+		List<byte[]> vals = doWithKeys(connection -> connection.sort(rawKey, params));
 
 		return SerializationUtils.deserialize(vals, resultSerializer);
 	}
@@ -858,9 +867,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	// -------------------------------------------------------------------------
-	// Methods dealing with Redis Transactions
+	// Methods dealing with Transactions
 	// -------------------------------------------------------------------------
-
 
 	@Override
 	public void watch(K key) {
@@ -892,6 +900,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return null;
 		}, true);
 	}
+
 
 	@Override
 	public void multi() {
