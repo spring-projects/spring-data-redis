@@ -195,7 +195,6 @@ public interface RedisOperations<K, V> {
 	@Nullable
 	Long countExistingKeys(Collection<K> keys);
 
-
 	/**
 	 * Delete given {@code key}.
 	 *
@@ -368,6 +367,26 @@ public interface RedisOperations<K, V> {
 	Boolean persist(K key);
 
 	/**
+	 * Get the time to live for {@code key} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 */
+	@Nullable
+	Long getExpire(K key);
+
+	/**
+	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeUnit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 1.8
+	 */
+	@Nullable
+	Long getExpire(K key, TimeUnit timeUnit);
+	/**
 	 * Move given {@code key} to database with {@code index}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -413,27 +432,6 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
 	void restore(K key, byte[] value, long timeToLive, TimeUnit unit, boolean replace);
-
-	/**
-	 * Get the time to live for {@code key} in seconds.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
-	 */
-	@Nullable
-	Long getExpire(K key);
-
-	/**
-	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param timeUnit must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 1.8
-	 */
-	@Nullable
-	Long getExpire(K key, TimeUnit timeUnit);
 
 	/**
 	 * Sort the elements for {@code query}.

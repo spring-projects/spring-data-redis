@@ -445,8 +445,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		}
 
 		/**
-		 * Configure auto-acknowledgement for stream message consumption. This method is an alias for
-		 * {@link #autoAck(boolean)} for improved readability.
+		 * Configure auto-acknowledgement for stream message consumption.
 		 *
 		 * @param autoAck {@literal true} (default) to auto-acknowledge received messages or {@literal false} for external
 		 *          acknowledgement.

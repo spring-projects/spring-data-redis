@@ -71,10 +71,11 @@ import org.springframework.util.StringUtils;
  * {@link LettuceConnection}s share a single thread-safe native connection by default.
  * <p>
  * The shared native connection is never closed by {@link LettuceConnection}, therefore it is not validated by default
- * on {@link #getConnection()}. Use {@link #setValidateConnection(boolean)} to change this behavior if necessary. Inject
- * a {@link Pool} to pool dedicated connections. If shareNativeConnection is true, the pool will be used to select a
- * connection for blocking and tx operations only, which should not share a connection. If native connection sharing is
- * disabled, the selected connection will be used for all operations.
+ * on {@link #getConnection()}. Use {@link #setValidateConnection(boolean)} to change this behavior if necessary. If
+ * {@code shareNativeConnection} is {@literal true}, a shared connection will be used for regular operations and a
+ * {@link LettuceConnectionProvider} will be used to select a connection for blocking and tx operations only, which
+ * should not share a connection. If native connection sharing is disabled, new (or pooled) connections will be used for
+ * all operations.
  * <p>
  * {@link LettuceConnectionFactory} should be configured using an environmental configuration and the
  * {@link LettuceConnectionFactory client configuration}. Lettuce supports the following environmental configurations:
