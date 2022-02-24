@@ -182,9 +182,23 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @deprecated since 3.0, use {@link #difference(Object)} instead to follow a consistent method naming scheme.
 	 */
 	@Nullable
-	Set<V> diff(K key);
+	default Set<V> diff(K key) {
+		return difference(key);
+	}
+
+	/**
+	 * Diff all sets for given the bound key and {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(K key);
 
 	/**
 	 * Diff all sets for given the bound key and {@code keys}.
@@ -192,9 +206,23 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @deprecated since 3.0, use {@link #difference(Collection)} instead to follow a consistent method naming scheme.
 	 */
 	@Nullable
-	Set<V> diff(Collection<K> keys);
+	default Set<V> diff(Collection<K> keys) {
+		return difference(keys);
+	}
+
+	/**
+	 * Diff all sets for given the bound key and {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(Collection<K> keys);
 
 	/**
 	 * Diff all sets for given the bound key and {@code keys} and store result in {@code destKey}.
@@ -202,8 +230,23 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param keys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @deprecated since 3.0, use {@link #differenceAndStore(Object, Object)} instead to follow a consistent method naming
+	 *             scheme..
 	 */
-	void diffAndStore(K keys, K destKey);
+	@Deprecated
+	default void diffAndStore(K keys, K destKey) {
+		differenceAndStore(keys, destKey);
+	}
+
+	/**
+	 * Diff all sets for given the bound key and {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	void differenceAndStore(K keys, K destKey);
 
 	/**
 	 * Diff all sets for given the bound key and {@code keys} and store result in {@code destKey}.
@@ -211,8 +254,23 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param keys must not be {@literal null}.
 	 * @param destKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @deprecated since 3.0, use {@link #differenceAndStore(Collection, Object)} instead to follow a consistent method
+	 *             naming scheme.
 	 */
-	void diffAndStore(Collection<K> keys, K destKey);
+	@Deprecated
+	default void diffAndStore(Collection<K> keys, K destKey) {
+		differenceAndStore(keys, destKey);
+	}
+
+	/**
+	 * Diff all sets for given the bound key and {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	void differenceAndStore(Collection<K> keys, K destKey);
 
 	/**
 	 * Get all elements of set at the bound key.
