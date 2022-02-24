@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -46,7 +47,7 @@ class AbstractRedisCollectionUnitTests {
 	@SuppressWarnings("rawtypes")//
 	private RedisTemplate redisTemplateSpy;
 	private @Mock RedisConnectionFactory connectionFactoryMock;
-	private @Mock RedisConnection connectionMock;
+	private @Mock(answer = Answers.RETURNS_MOCKS) RedisConnection connectionMock;
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@BeforeEach
