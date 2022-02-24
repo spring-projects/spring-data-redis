@@ -64,7 +64,8 @@ import org.springframework.lang.Nullable;
  * @author ihaohong
  * @since 2.0
  */
-public interface DefaultedRedisConnection extends RedisConnection {
+@Deprecated
+public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsProvider {
 
 	// KEY COMMANDS
 

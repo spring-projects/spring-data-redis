@@ -58,12 +58,22 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @since 1.7
  */
-public class LettuceClusterConnection extends LettuceConnection implements DefaultedRedisClusterConnection {
+public class LettuceClusterConnection extends LettuceConnection
+		implements RedisClusterConnection, DefaultedRedisClusterConnection {
 
 	static final ExceptionTranslationStrategy exceptionConverter = new PassThroughExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
 
 	private final Log log = LogFactory.getLog(getClass());
+	private final LettuceClusterGeoCommands geoCommands = new LettuceClusterGeoCommands(this);
+	private final LettuceClusterHashCommands hashCommands = new LettuceClusterHashCommands(this);
+	private final LettuceClusterHyperLogLogCommands hllCommands = new LettuceClusterHyperLogLogCommands(this);
+	private final LettuceClusterKeyCommands keyCommands = new LettuceClusterKeyCommands(this);
+	private final LettuceClusterListCommands listCommands = new LettuceClusterListCommands(this);
+	private final LettuceClusterStringCommands stringCommands = new LettuceClusterStringCommands(this);
+	private final LettuceClusterSetCommands setCommands = new LettuceClusterSetCommands(this);
+	private final LettuceClusterZSetCommands zSetCommands = new LettuceClusterZSetCommands(this);
+	private final LettuceClusterServerCommands serverCommands = new LettuceClusterServerCommands(this);
 
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClusterTopologyProvider topologyProvider;
@@ -199,52 +209,53 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	}
 
 	@Override
+	public org.springframework.data.redis.connection.RedisClusterCommands clusterCommands() {
+		return this;
+	}
+
+	@Override
 	public RedisGeoCommands geoCommands() {
-		return new LettuceClusterGeoCommands(this);
+		return geoCommands;
 	}
 
 	@Override
 	public RedisHashCommands hashCommands() {
-		return new LettuceClusterHashCommands(this);
+		return hashCommands;
 	}
 
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
-		return new LettuceClusterHyperLogLogCommands(this);
+		return hllCommands;
 	}
 
 	@Override
 	public RedisKeyCommands keyCommands() {
-		return doGetClusterKeyCommands();
-	}
-
-	private LettuceClusterKeyCommands doGetClusterKeyCommands() {
-		return new LettuceClusterKeyCommands(this);
+		return keyCommands;
 	}
 
 	@Override
 	public RedisListCommands listCommands() {
-		return new LettuceClusterListCommands(this);
-	}
-
-	@Override
-	public RedisStringCommands stringCommands() {
-		return new LettuceClusterStringCommands(this);
+		return listCommands;
 	}
 
 	@Override
 	public RedisSetCommands setCommands() {
-		return new LettuceClusterSetCommands(this);
-	}
-
-	@Override
-	public RedisZSetCommands zSetCommands() {
-		return new LettuceClusterZSetCommands(this);
+		return setCommands;
 	}
 
 	@Override
 	public RedisClusterServerCommands serverCommands() {
-		return new LettuceClusterServerCommands(this);
+		return serverCommands;
+	}
+
+	@Override
+	public RedisStringCommands stringCommands() {
+		return stringCommands;
+	}
+
+	@Override
+	public RedisZSetCommands zSetCommands() {
+		return zSetCommands;
 	}
 
 	@Override
@@ -438,16 +449,16 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
-		return doGetClusterKeyCommands().keys(node, pattern);
+		return new LettuceClusterKeyCommands(this).keys(node, pattern);
 	}
 
 	@Override
 	public Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
-		return doGetClusterKeyCommands().scan(node, options);
+		return new LettuceClusterKeyCommands(this).scan(node, options);
 	}
 
 	public byte[] randomKey(RedisClusterNode node) {
-		return doGetClusterKeyCommands().randomKey(node);
+		return new LettuceClusterKeyCommands(this).randomKey(node);
 	}
 
 	@Override

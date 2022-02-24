@@ -72,7 +72,7 @@ import org.springframework.util.Assert;
  * @author Pavel Khokhlov
  * @since 1.7
  */
-public class JedisClusterConnection implements DefaultedRedisClusterConnection {
+public class JedisClusterConnection implements RedisClusterConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
@@ -82,6 +82,16 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	private final Log log = LogFactory.getLog(getClass());
 
 	private final JedisCluster cluster;
+	private final JedisClusterGeoCommands geoCommands = new JedisClusterGeoCommands(this);
+	private final JedisClusterHashCommands hashCommands = new JedisClusterHashCommands(this);
+	private final JedisClusterHyperLogLogCommands hllCommands = new JedisClusterHyperLogLogCommands(this);
+	private final JedisClusterKeyCommands keyCommands = new JedisClusterKeyCommands(this);
+	private final JedisClusterListCommands listCommands = new JedisClusterListCommands(this);
+	private final JedisClusterSetCommands setCommands = new JedisClusterSetCommands(this);
+	private final JedisClusterServerCommands serverCommands = new JedisClusterServerCommands(this);
+	private final JedisClusterStreamCommands streamCommands = new JedisClusterStreamCommands(this);
+	private final JedisClusterStringCommands stringCommands = new JedisClusterStringCommands(this);
+	private final JedisClusterZSetCommands zSetCommands = new JedisClusterZSetCommands(this);
 
 	private boolean closed;
 
@@ -233,53 +243,63 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 	}
 
 	@Override
+	public RedisCommands commands() {
+		return this;
+	}
+
+	@Override
+	public RedisClusterCommands clusterCommands() {
+		return this;
+	}
+
+	@Override
 	public RedisGeoCommands geoCommands() {
-		return new JedisClusterGeoCommands(this);
+		return geoCommands;
 	}
 
 	@Override
 	public RedisHashCommands hashCommands() {
-		return new JedisClusterHashCommands(this);
+		return hashCommands;
 	}
 
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
-		return new JedisClusterHyperLogLogCommands(this);
+		return hllCommands;
 	}
 
 	@Override
 	public RedisKeyCommands keyCommands() {
-		return doGetKeyCommands();
-	}
-
-	@Override
-	public RedisStringCommands stringCommands() {
-		return new JedisClusterStringCommands(this);
+		return keyCommands;
 	}
 
 	@Override
 	public RedisListCommands listCommands() {
-		return new JedisClusterListCommands(this);
+		return listCommands;
 	}
 
 	@Override
 	public RedisSetCommands setCommands() {
-		return new JedisClusterSetCommands(this);
-	}
-
-	@Override
-	public RedisStreamCommands streamCommands() {
-		return new JedisClusterStreamCommands(this);
-	}
-
-	@Override
-	public RedisZSetCommands zSetCommands() {
-		return new JedisClusterZSetCommands(this);
+		return setCommands;
 	}
 
 	@Override
 	public RedisClusterServerCommands serverCommands() {
-		return new JedisClusterServerCommands(this);
+		return serverCommands;
+	}
+
+	@Override
+	public RedisStreamCommands streamCommands() {
+		return streamCommands;
+	}
+
+	@Override
+	public RedisStringCommands stringCommands() {
+		return stringCommands;
+	}
+
+	@Override
+	public RedisZSetCommands zSetCommands() {
+		return zSetCommands;
 	}
 
 	@Override
@@ -287,23 +307,19 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 		return new JedisClusterScriptingCommands(this);
 	}
 
-	private JedisClusterKeyCommands doGetKeyCommands() {
-		return new JedisClusterKeyCommands(this);
-	}
-
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
-		return doGetKeyCommands().keys(node, pattern);
+		return keyCommands.keys(node, pattern);
 	}
 
 	@Override
 	public Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
-		return doGetKeyCommands().scan(node, options);
+		return keyCommands.scan(node, options);
 	}
 
 	@Override
 	public byte[] randomKey(RedisClusterNode node) {
-		return doGetKeyCommands().randomKey(node);
+		return keyCommands.randomKey(node);
 	}
 
 	@Override
@@ -451,12 +467,13 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 		RedisClusterNode node = clusterGetNodeForSlot(slot);
 
-		clusterCommandExecutor
+		NodeResult<List<byte[]>> result = clusterCommandExecutor
 				.executeCommandOnSingleNode(
 						(JedisClusterCommandCallback<List<byte[]>>) client -> JedisConverters.stringListToByteList()
 								.convert(client.clusterGetKeysInSlot(slot, count != null ? count.intValue() : Integer.MAX_VALUE)),
 						node);
-		return null;
+
+		return result.getValue();
 	}
 
 	@Override
@@ -481,7 +498,6 @@ public class JedisClusterConnection implements DefaultedRedisClusterConnection {
 
 		return clusterCommandExecutor.executeCommandOnSingleNode(
 				(JedisClusterCommandCallback<Long>) client -> client.clusterCountKeysInSlot(slot), node).getValue();
-
 	}
 
 	@Override

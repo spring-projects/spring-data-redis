@@ -21,6 +21,7 @@ import java.util.Set;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * {@link RedisClusterConnection} allows sending commands to dedicated nodes within the cluster. A
@@ -32,7 +33,8 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @since 1.7
  */
-public interface RedisClusterConnection extends RedisConnection, RedisClusterCommands, RedisClusterServerCommands {
+public interface RedisClusterConnection
+		extends RedisConnection, DefaultedRedisClusterConnection, RedisClusterCommandsProvider {
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -89,15 +91,22 @@ public interface RedisClusterConnection extends RedisConnection, RedisClusterCom
 	 * @since 2.1
 	 */
 	@Nullable
-	<T> T execute(String command, byte[] key, Collection<byte[]> args);
+	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
 
-	/**
-	 * Get {@link RedisClusterServerCommands}.
-	 *
-	 * @return never {@literal null}.
-	 * @since 2.0
-	 */
-	default RedisClusterServerCommands serverCommands() {
-		return this;
+		Assert.notNull(command, "Command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(args, "Args must not be null!");
+
+		byte[][] commandArgs = new byte[args.size() + 1][];
+
+		commandArgs[0] = key;
+		int targetIndex = 1;
+
+		for (byte[] binaryArgument : args) {
+			commandArgs[targetIndex++] = binaryArgument;
+		}
+
+		return (T) execute(command, commandArgs);
 	}
+
 }

@@ -79,6 +79,7 @@ import org.springframework.util.ObjectUtils;
  * @author dengliming
  * @author ihaohong
  */
+@SuppressWarnings({ "ConstantConditions", "deprecation" })
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
 	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
@@ -181,6 +182,66 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		this.delegate = connection;
 		this.serializer = serializer;
 		this.byteGeoResultsToStringGeoResults = Converters.deserializingGeoResultsConverter(serializer);
+	}
+
+	@Override
+	public RedisCommands commands() {
+		return this;
+	}
+
+	@Override
+	public RedisGeoCommands geoCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisHashCommands hashCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisHyperLogLogCommands hyperLogLogCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisKeyCommands keyCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisListCommands listCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisSetCommands setCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisScriptingCommands scriptingCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisServerCommands serverCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisStreamCommands streamCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisStringCommands stringCommands() {
+		return this;
+	}
+
+	@Override
+	public RedisZSetCommands zSetCommands() {
+		return this;
 	}
 
 	@Override
@@ -1000,6 +1061,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zInterWithScores(aggregate, weights, serializeMulti(sets)), tupleToStringTuple);
 	}
 
+	@Nullable
+	@Override
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return convertAndReturn(delegate.zInterStore(destKey, aggregate, Weights.of(weights), sets),
+				Converters.identityConverter());
+	}
+
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
 		return convertAndReturn(delegate.zInterStore(destKey, aggregate, weights, sets), Converters.identityConverter());
@@ -1200,6 +1268,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), Converters.identityConverter());
 	}
 
+	@Nullable
+	@Override
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, Weights.of(weights), sets),
+				Converters.identityConverter());
+	}
+
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 		return convertAndReturn(delegate.zUnionStore(destKey, sets), Converters.identityConverter());
 	}
@@ -1292,7 +1367,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 				: (GeoReference) data;
 	}
 
-	@SuppressWarnings("unchecked")
 	private StreamOffset<byte[]>[] serialize(StreamOffset<String>[] offsets) {
 
 		return Arrays.stream(offsets).map(it -> StreamOffset.create(serialize(it.getKey()), it.getOffset()))

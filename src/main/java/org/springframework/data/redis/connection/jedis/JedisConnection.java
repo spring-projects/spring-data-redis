@@ -70,10 +70,23 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final JedisInvoker statusInvoker = new JedisInvoker((directFunction, pipelineFunction, converter,
 			nullDefault) -> doInvoke(true, directFunction, pipelineFunction, converter, nullDefault));
 
+	private final JedisGeoCommands geoCommands = new JedisGeoCommands(this);
+	private final JedisHashCommands hashCommands = new JedisHashCommands(this);
+	private final JedisHyperLogLogCommands hllCommands = new JedisHyperLogLogCommands(this);
+	private final JedisKeyCommands keyCommands = new JedisKeyCommands(this);
+	private final JedisListCommands listCommands = new JedisListCommands(this);
+	private final JedisScriptingCommands scriptingCommands = new JedisScriptingCommands(this);
+	private final JedisServerCommands serverCommands = new JedisServerCommands(this);
+	private final JedisSetCommands setCommands = new JedisSetCommands(this);
+	private final JedisStreamCommands streamCommands = new JedisStreamCommands(this);
+	private final JedisStringCommands stringCommands = new JedisStringCommands(this);
+	private final JedisZSetCommands zSetCommands = new JedisZSetCommands(this);
+
 	private final @Nullable Pool<Jedis> pool;
 	private final String clientName;
 	private final JedisClientConfig nodeConfig;
 	private final JedisClientConfig sentinelConfig;
+
 
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
@@ -189,58 +202,63 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public RedisKeyCommands keyCommands() {
-		return new JedisKeyCommands(this);
-	}
-
-	@Override
-	public RedisStreamCommands streamCommands() {
-		return new JedisStreamCommands(this);
-	}
-
-	@Override
-	public RedisStringCommands stringCommands() {
-		return new JedisStringCommands(this);
-	}
-
-	@Override
-	public RedisListCommands listCommands() {
-		return new JedisListCommands(this);
-	}
-
-	@Override
-	public RedisSetCommands setCommands() {
-		return new JedisSetCommands(this);
-	}
-
-	@Override
-	public RedisZSetCommands zSetCommands() {
-		return new JedisZSetCommands(this);
-	}
-
-	@Override
-	public RedisHashCommands hashCommands() {
-		return new JedisHashCommands(this);
+	public RedisCommands commands() {
+		return this;
 	}
 
 	@Override
 	public RedisGeoCommands geoCommands() {
-		return new JedisGeoCommands(this);
+		return geoCommands;
 	}
 
 	@Override
-	public RedisScriptingCommands scriptingCommands() {
-		return new JedisScriptingCommands(this);
-	}
-
-	@Override
-	public RedisServerCommands serverCommands() {
-		return new JedisServerCommands(this);
+	public RedisHashCommands hashCommands() {
+		return hashCommands;
 	}
 
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
-		return new JedisHyperLogLogCommands(this);
+		return hllCommands;
+	}
+
+	@Override
+	public RedisKeyCommands keyCommands() {
+		return keyCommands;
+	}
+
+	@Override
+	public RedisListCommands listCommands() {
+		return listCommands;
+	}
+
+	@Override
+	public RedisSetCommands setCommands() {
+		return setCommands;
+	}
+
+	@Override
+	public RedisStreamCommands streamCommands() {
+		return streamCommands;
+	}
+
+	@Override
+	public RedisStringCommands stringCommands() {
+		return stringCommands;
+	}
+
+	@Override
+	public RedisZSetCommands zSetCommands() {
+		return zSetCommands;
+	}
+
+	@Override
+	public RedisScriptingCommands scriptingCommands() {
+		return scriptingCommands;
+	}
+
+	@Override
+	public RedisServerCommands serverCommands() {
+		return serverCommands;
 	}
 
 	@Override
