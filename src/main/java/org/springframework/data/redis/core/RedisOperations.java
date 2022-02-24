@@ -95,7 +95,7 @@ public interface RedisOperations<K, V> {
 	 *          values are hashes, this serializer will be used to deserialize both the key and value
 	 * @return list of objects returned by the pipeline
 	 */
-	List<Object> executePipelined(final RedisCallback<?> action, final RedisSerializer<?> resultSerializer);
+	List<Object> executePipelined(RedisCallback<?> action, RedisSerializer<?> resultSerializer);
 
 	/**
 	 * Executes the given Redis session on a pipelined connection. Allows transactions to be pipelined. Note that the
@@ -104,7 +104,7 @@ public interface RedisOperations<K, V> {
 	 * @param session Session callback
 	 * @return list of objects returned by the pipeline
 	 */
-	List<Object> executePipelined(final SessionCallback<?> session);
+	List<Object> executePipelined(SessionCallback<?> session);
 
 	/**
 	 * Executes the given Redis session on a pipelined connection, returning the results using a dedicated serializer.
@@ -115,7 +115,7 @@ public interface RedisOperations<K, V> {
 	 * @param resultSerializer
 	 * @return list of objects returned by the pipeline
 	 */
-	List<Object> executePipelined(final SessionCallback<?> session, final RedisSerializer<?> resultSerializer);
+	List<Object> executePipelined(SessionCallback<?> session, RedisSerializer<?> resultSerializer);
 
 	/**
 	 * Executes the given {@link RedisScript}

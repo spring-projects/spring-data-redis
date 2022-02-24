@@ -165,6 +165,192 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		initialized = true;
 	}
 
+	/**
+	 * Returns whether to expose the native Redis connection to RedisCallback code, or rather a connection proxy (the
+	 * default).
+	 *
+	 * @return whether to expose the native Redis connection or not
+	 */
+	public boolean isExposeConnection() {
+		return exposeConnection;
+	}
+
+	/**
+	 * Sets whether to expose the Redis connection to {@link RedisCallback} code. Default is "false": a proxy will be
+	 * returned, suppressing {@code quit} and {@code disconnect} calls.
+	 *
+	 * @param exposeConnection
+	 */
+	public void setExposeConnection(boolean exposeConnection) {
+		this.exposeConnection = exposeConnection;
+	}
+
+	/**
+	 * @return Whether or not the default serializer should be used. If not, any serializers not explicitly set will
+	 *         remain null and values will not be serialized or deserialized.
+	 */
+	public boolean isEnableDefaultSerializer() {
+		return enableDefaultSerializer;
+	}
+
+	/**
+	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not, any serializers not
+	 *          explicitly set will remain null and values will not be serialized or deserialized.
+	 */
+	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
+		this.enableDefaultSerializer = enableDefaultSerializer;
+	}
+
+	/**
+	 * If set to {@code true} {@link RedisTemplate} will participate in ongoing transactions using
+	 * {@literal MULTI...EXEC|DISCARD} to keep track of operations.
+	 *
+	 * @param enableTransactionSupport whether to participate in ongoing transactions.
+	 * @since 1.3
+	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, boolean)
+	 * @see TransactionSynchronizationManager#isActualTransactionActive()
+	 */
+	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
+		this.enableTransactionSupport = enableTransactionSupport;
+	}
+
+	/**
+	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
+	 * {@link RedisSerializer} is explicitly set as the default one.
+	 *
+	 * @param classLoader can be {@literal null}.
+	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader
+	 * @since 1.8
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	/**
+	 * Returns the default serializer used by this template.
+	 *
+	 * @return template default serializer
+	 */
+	@Nullable
+	public RedisSerializer<?> getDefaultSerializer() {
+		return defaultSerializer;
+	}
+
+	/**
+	 * Sets the default serializer to use for this template. All serializers (except the
+	 * {@link #setStringSerializer(RedisSerializer)}) are initialized to this value unless explicitly set. Defaults to
+	 * {@link JdkSerializationRedisSerializer}.
+	 *
+	 * @param serializer default serializer to use
+	 */
+	public void setDefaultSerializer(RedisSerializer<?> serializer) {
+		this.defaultSerializer = serializer;
+	}
+
+	/**
+	 * Sets the key serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
+	 *
+	 * @param serializer the key serializer to be used by this template.
+	 */
+	public void setKeySerializer(RedisSerializer<?> serializer) {
+		this.keySerializer = serializer;
+	}
+
+	/**
+	 * Returns the key serializer used by this template.
+	 *
+	 * @return the key serializer used by this template.
+	 */
+	@Override
+	public RedisSerializer<?> getKeySerializer() {
+		return keySerializer;
+	}
+
+	/**
+	 * Sets the value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
+	 *
+	 * @param serializer the value serializer to be used by this template.
+	 */
+	public void setValueSerializer(RedisSerializer<?> serializer) {
+		this.valueSerializer = serializer;
+	}
+
+	/**
+	 * Returns the value serializer used by this template.
+	 *
+	 * @return the value serializer used by this template.
+	 */
+	@Override
+	public RedisSerializer<?> getValueSerializer() {
+		return valueSerializer;
+	}
+
+	/**
+	 * Returns the hashKeySerializer.
+	 *
+	 * @return Returns the hashKeySerializer
+	 */
+	@Override
+	public RedisSerializer<?> getHashKeySerializer() {
+		return hashKeySerializer;
+	}
+
+	/**
+	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
+	 *
+	 * @param hashKeySerializer The hashKeySerializer to set.
+	 */
+	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
+		this.hashKeySerializer = hashKeySerializer;
+	}
+
+	/**
+	 * Returns the hashValueSerializer.
+	 *
+	 * @return Returns the hashValueSerializer
+	 */
+	@Override
+	public RedisSerializer<?> getHashValueSerializer() {
+		return hashValueSerializer;
+	}
+
+	/**
+	 * Sets the hash value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
+	 *
+	 * @param hashValueSerializer The hashValueSerializer to set.
+	 */
+	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
+		this.hashValueSerializer = hashValueSerializer;
+	}
+
+	/**
+	 * Returns the stringSerializer.
+	 *
+	 * @return Returns the stringSerializer
+	 */
+	public RedisSerializer<String> getStringSerializer() {
+		return stringSerializer;
+	}
+
+	/**
+	 * Sets the string value serializer to be used by this template (when the arguments or return types are always
+	 * strings). Defaults to {@link StringRedisSerializer}.
+	 *
+	 * @see ValueOperations#get(Object, long, long)
+	 * @param stringSerializer The stringValueSerializer to set.
+	 */
+	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
+		this.stringSerializer = stringSerializer;
+	}
+
+	/**
+	 * @param scriptExecutor The {@link ScriptExecutor} to use for executing Redis scripts
+	 */
+	public void setScriptExecutor(ScriptExecutor<K> scriptExecutor) {
+		this.scriptExecutor = scriptExecutor;
+	}
+
 	@Override
 	@Nullable
 	public <T> T execute(RedisCallback<T> action) {
@@ -361,299 +547,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result;
 	}
 
-	/**
-	 * Returns whether to expose the native Redis connection to RedisCallback code, or rather a connection proxy (the
-	 * default).
-	 *
-	 * @return whether to expose the native Redis connection or not
-	 */
-	public boolean isExposeConnection() {
-		return exposeConnection;
-	}
-
-	/**
-	 * Sets whether to expose the Redis connection to {@link RedisCallback} code. Default is "false": a proxy will be
-	 * returned, suppressing {@code quit} and {@code disconnect} calls.
-	 *
-	 * @param exposeConnection
-	 */
-	public void setExposeConnection(boolean exposeConnection) {
-		this.exposeConnection = exposeConnection;
-	}
-
-	/**
-	 * @return Whether or not the default serializer should be used. If not, any serializers not explicitly set will
-	 *         remain null and values will not be serialized or deserialized.
-	 */
-	public boolean isEnableDefaultSerializer() {
-		return enableDefaultSerializer;
-	}
-
-	/**
-	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not, any serializers not
-	 *          explicitly set will remain null and values will not be serialized or deserialized.
-	 */
-	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
-		this.enableDefaultSerializer = enableDefaultSerializer;
-	}
-
-	/**
-	 * Returns the default serializer used by this template.
-	 *
-	 * @return template default serializer
-	 */
-	@Nullable
-	public RedisSerializer<?> getDefaultSerializer() {
-		return defaultSerializer;
-	}
-
-	/**
-	 * Sets the default serializer to use for this template. All serializers (except the
-	 * {@link #setStringSerializer(RedisSerializer)}) are initialized to this value unless explicitly set. Defaults to
-	 * {@link JdkSerializationRedisSerializer}.
-	 *
-	 * @param serializer default serializer to use
-	 */
-	public void setDefaultSerializer(RedisSerializer<?> serializer) {
-		this.defaultSerializer = serializer;
-	}
-
-	/**
-	 * Sets the key serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param serializer the key serializer to be used by this template.
-	 */
-	public void setKeySerializer(RedisSerializer<?> serializer) {
-		this.keySerializer = serializer;
-	}
-
-	/**
-	 * Returns the key serializer used by this template.
-	 *
-	 * @return the key serializer used by this template.
-	 */
-	@Override
-	public RedisSerializer<?> getKeySerializer() {
-		return keySerializer;
-	}
-
-	/**
-	 * Sets the value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param serializer the value serializer to be used by this template.
-	 */
-	public void setValueSerializer(RedisSerializer<?> serializer) {
-		this.valueSerializer = serializer;
-	}
-
-	/**
-	 * Returns the value serializer used by this template.
-	 *
-	 * @return the value serializer used by this template.
-	 */
-	@Override
-	public RedisSerializer<?> getValueSerializer() {
-		return valueSerializer;
-	}
-
-	/**
-	 * Returns the hashKeySerializer.
-	 *
-	 * @return Returns the hashKeySerializer
-	 */
-	@Override
-	public RedisSerializer<?> getHashKeySerializer() {
-		return hashKeySerializer;
-	}
-
-	/**
-	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param hashKeySerializer The hashKeySerializer to set.
-	 */
-	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
-		this.hashKeySerializer = hashKeySerializer;
-	}
-
-	/**
-	 * Returns the hashValueSerializer.
-	 *
-	 * @return Returns the hashValueSerializer
-	 */
-	@Override
-	public RedisSerializer<?> getHashValueSerializer() {
-		return hashValueSerializer;
-	}
-
-	/**
-	 * Sets the hash value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param hashValueSerializer The hashValueSerializer to set.
-	 */
-	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
-		this.hashValueSerializer = hashValueSerializer;
-	}
-
-	/**
-	 * Returns the stringSerializer.
-	 *
-	 * @return Returns the stringSerializer
-	 */
-	public RedisSerializer<String> getStringSerializer() {
-		return stringSerializer;
-	}
-
-	/**
-	 * Sets the string value serializer to be used by this template (when the arguments or return types are always
-	 * strings). Defaults to {@link StringRedisSerializer}.
-	 *
-	 * @see ValueOperations#get(Object, long, long)
-	 * @param stringSerializer The stringValueSerializer to set.
-	 */
-	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
-		this.stringSerializer = stringSerializer;
-	}
-
-	/**
-	 * @param scriptExecutor The {@link ScriptExecutor} to use for executing Redis scripts
-	 */
-	public void setScriptExecutor(ScriptExecutor<K> scriptExecutor) {
-		this.scriptExecutor = scriptExecutor;
-	}
-
-	@SuppressWarnings("unchecked")
-	private byte[] rawKey(Object key) {
-		Assert.notNull(key, "non null key required");
-		if (keySerializer == null && key instanceof byte[]) {
-			return (byte[]) key;
-		}
-		return keySerializer.serialize(key);
-	}
-
-	private byte[] rawString(String key) {
-		return stringSerializer.serialize(key);
-	}
-
-	@SuppressWarnings("unchecked")
-	private byte[] rawValue(Object value) {
-		if (valueSerializer == null && value instanceof byte[]) {
-			return (byte[]) value;
-		}
-		return valueSerializer.serialize(value);
-	}
-
-	private byte[][] rawKeys(Collection<K> keys) {
-		final byte[][] rawKeys = new byte[keys.size()][];
-
-		int i = 0;
-		for (K key : keys) {
-			rawKeys[i++] = rawKey(key);
-		}
-
-		return rawKeys;
-	}
-
-	@SuppressWarnings("unchecked")
-	private K deserializeKey(byte[] value) {
-		return keySerializer != null ? (K) keySerializer.deserialize(value) : (K) value;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Nullable
-	private List<Object> deserializeMixedResults(@Nullable List<Object> rawValues,
-			@Nullable RedisSerializer valueSerializer, @Nullable RedisSerializer hashKeySerializer,
-			@Nullable RedisSerializer hashValueSerializer) {
-
-		if (rawValues == null) {
-			return null;
-		}
-
-		List<Object> values = new ArrayList<>();
-		for (Object rawValue : rawValues) {
-
-			if (rawValue instanceof byte[] && valueSerializer != null) {
-				values.add(valueSerializer.deserialize((byte[]) rawValue));
-			} else if (rawValue instanceof List) {
-				// Lists are the only potential Collections of mixed values....
-				values.add(deserializeMixedResults((List) rawValue, valueSerializer, hashKeySerializer, hashValueSerializer));
-			} else if (rawValue instanceof Set && !(((Set) rawValue).isEmpty())) {
-				values.add(deserializeSet((Set) rawValue, valueSerializer));
-			} else if (rawValue instanceof Map && !(((Map) rawValue).isEmpty())
-					&& ((Map) rawValue).values().iterator().next() instanceof byte[]) {
-				values.add(SerializationUtils.deserialize((Map) rawValue, hashKeySerializer, hashValueSerializer));
-			} else {
-				values.add(rawValue);
-			}
-		}
-
-		return values;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Set<?> deserializeSet(Set rawSet, @Nullable RedisSerializer valueSerializer) {
-
-		if (rawSet.isEmpty()) {
-			return rawSet;
-		}
-
-		Object setValue = rawSet.iterator().next();
-
-		if (setValue instanceof byte[] && valueSerializer != null) {
-			return (SerializationUtils.deserialize(rawSet, valueSerializer));
-		} else if (setValue instanceof Tuple) {
-			return convertTupleValues(rawSet, valueSerializer);
-		} else {
-			return rawSet;
-		}
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Set<TypedTuple<V>> convertTupleValues(Set<Tuple> rawValues, @Nullable RedisSerializer valueSerializer) {
-
-		Set<TypedTuple<V>> set = new LinkedHashSet<>(rawValues.size());
-		for (Tuple rawValue : rawValues) {
-			Object value = rawValue.getValue();
-			if (valueSerializer != null) {
-				value = valueSerializer.deserialize(rawValue.getValue());
-			}
-			set.add(new DefaultTypedTuple(value, rawValue.getScore()));
-		}
-		return set;
-	}
-
-	//
-	// RedisOperations
-	//
-
-	/**
-	 * Execute a transaction, using the default {@link RedisSerializer}s to deserialize any results that are byte[]s or
-	 * Collections or Maps of byte[]s or Tuples. Other result types (Long, Boolean, etc) are left as-is in the converted
-	 * results. If conversion of tx results has been disabled in the {@link RedisConnectionFactory}, the results of exec
-	 * will be returned without deserialization. This check is mostly for backwards compatibility with 1.0.
-	 *
-	 * @return The (possibly deserialized) results of transaction exec
-	 */
-	@Override
-	public List<Object> exec() {
-
-		List<Object> results = execRaw();
-		if (getRequiredConnectionFactory().getConvertPipelineAndTxResults()) {
-			return deserializeMixedResults(results, valueSerializer, hashKeySerializer, hashValueSerializer);
-		} else {
-			return results;
-		}
-	}
-
-	@Override
-	public List<Object> exec(RedisSerializer<?> valueSerializer) {
-		return deserializeMixedResults(execRaw(), valueSerializer, valueSerializer, valueSerializer);
-	}
-
-	protected List<Object> execRaw() {
-
-		List<Object> raw = execute(RedisTxCommands::exec);
-		return raw == null ? Collections.emptyList() : raw;
-	}
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Keys
+	// -------------------------------------------------------------------------
 
 	@Override
 	public Boolean copy(K source, K target, boolean replace) {
@@ -899,54 +795,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
-	public void multi() {
-		execute(connection -> {
-			connection.multi();
-			return null;
-		}, true);
-	}
-
-	@Override
-	public void discard() {
-
-		execute(connection -> {
-			connection.discard();
-			return null;
-		}, true);
-	}
-
-	@Override
-	public void watch(K key) {
-
-		byte[] rawKey = rawKey(key);
-
-		execute(connection -> {
-			connection.watch(rawKey);
-			return null;
-		}, true);
-	}
-
-	@Override
-	public void watch(Collection<K> keys) {
-
-		byte[][] rawKeys = rawKeys(keys);
-
-		execute(connection -> {
-			connection.watch(rawKeys);
-			return null;
-		}, true);
-	}
-
-	@Override
-	public void unwatch() {
-
-		execute(connection -> {
-			connection.unwatch();
-			return null;
-		}, true);
-	}
-
 	// Sort operations
 
 	@Override
@@ -1006,11 +854,103 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawKey = rawKey(query.getKey());
 		SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
 
-		return execute(connection -> connection.sort(rawKey, params, rawStoreKey), true);
+		return doWithKeys(connection -> connection.sort(rawKey, params, rawStoreKey));
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Transactions
+	// -------------------------------------------------------------------------
+
+
+	@Override
+	public void watch(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		execute(connection -> {
+			connection.watch(rawKey);
+			return null;
+		}, true);
 	}
 
 	@Override
-	public void killClient(final String host, final int port) {
+	public void watch(Collection<K> keys) {
+
+		byte[][] rawKeys = rawKeys(keys);
+
+		execute(connection -> {
+			connection.watch(rawKeys);
+			return null;
+		}, true);
+	}
+
+	@Override
+	public void unwatch() {
+
+		execute(connection -> {
+			connection.unwatch();
+			return null;
+		}, true);
+	}
+
+	@Override
+	public void multi() {
+		execute(connection -> {
+			connection.multi();
+			return null;
+		}, true);
+	}
+
+	@Override
+	public void discard() {
+
+		execute(connection -> {
+			connection.discard();
+			return null;
+		}, true);
+	}
+
+	/**
+	 * Execute a transaction, using the default {@link RedisSerializer}s to deserialize any results that are byte[]s or
+	 * Collections or Maps of byte[]s or Tuples. Other result types (Long, Boolean, etc) are left as-is in the converted
+	 * results. If conversion of tx results has been disabled in the {@link RedisConnectionFactory}, the results of exec
+	 * will be returned without deserialization. This check is mostly for backwards compatibility with 1.0.
+	 *
+	 * @return The (possibly deserialized) results of transaction exec
+	 */
+	@Override
+	public List<Object> exec() {
+
+		List<Object> results = execRaw();
+		if (getRequiredConnectionFactory().getConvertPipelineAndTxResults()) {
+			return deserializeMixedResults(results, valueSerializer, hashKeySerializer, hashValueSerializer);
+		} else {
+			return results;
+		}
+	}
+
+	@Override
+	public List<Object> exec(RedisSerializer<?> valueSerializer) {
+		return deserializeMixedResults(execRaw(), valueSerializer, valueSerializer, valueSerializer);
+	}
+
+	protected List<Object> execRaw() {
+
+		List<Object> raw = execute(RedisTxCommands::exec);
+		return raw == null ? Collections.emptyList() : raw;
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Server Commands
+	// -------------------------------------------------------------------------
+
+	@Override
+	public List<RedisClientInfo> getClientList() {
+		return execute(RedisServerCommands::getClientList);
+	}
+
+	@Override
+	public void killClient(String host, int port) {
 
 		execute((RedisCallback<Void>) connection -> {
 			connection.killClient(host, port);
@@ -1018,16 +958,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	@Override
-	public List<RedisClientInfo> getClientList() {
-		return execute(RedisServerCommands::getClientList);
-	}
-
 	/*
 	 * @see org.springframework.data.redis.core.RedisOperations#replicaOf(java.lang.String, int)
 	 */
 	@Override
-	public void replicaOf(final String host, final int port) {
+	public void replicaOf(String host, int port) {
 
 		execute((RedisCallback<Void>) connection -> {
 
@@ -1044,6 +979,24 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return null;
 		});
 	}
+
+	@Override
+	public void convertAndSend(String channel, Object message) {
+
+		Assert.hasText(channel, "a non-empty channel is required");
+
+		byte[] rawChannel = rawString(channel);
+		byte[] rawMessage = rawValue(message);
+
+		execute(connection -> {
+			connection.publish(rawChannel, rawMessage);
+			return null;
+		}, true);
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods to obtain specific operations interface objects.
+	// -------------------------------------------------------------------------
 
 	@Override
 	public ClusterOperations<K, V> opsForCluster() {
@@ -1133,29 +1086,104 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return zSetOps;
 	}
 
-	/**
-	 * If set to {@code true} {@link RedisTemplate} will participate in ongoing transactions using
-	 * {@literal MULTI...EXEC|DISCARD} to keep track of operations.
-	 *
-	 * @param enableTransactionSupport whether to participate in ongoing transactions.
-	 * @since 1.3
-	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, boolean)
-	 * @see TransactionSynchronizationManager#isActualTransactionActive()
-	 */
-	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
-		this.enableTransactionSupport = enableTransactionSupport;
+	@SuppressWarnings("unchecked")
+	private byte[] rawKey(Object key) {
+		Assert.notNull(key, "non null key required");
+		if (keySerializer == null && key instanceof byte[]) {
+			return (byte[]) key;
+		}
+		return keySerializer.serialize(key);
 	}
 
-	/**
-	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
-	 * {@link RedisSerializer} is explicitly set as the default one.
-	 *
-	 * @param classLoader can be {@literal null}.
-	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader
-	 * @since 1.8
-	 */
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
+	private byte[] rawString(String key) {
+		return stringSerializer.serialize(key);
 	}
+
+	@SuppressWarnings("unchecked")
+	private byte[] rawValue(Object value) {
+		if (valueSerializer == null && value instanceof byte[]) {
+			return (byte[]) value;
+		}
+		return valueSerializer.serialize(value);
+	}
+
+	private byte[][] rawKeys(Collection<K> keys) {
+		final byte[][] rawKeys = new byte[keys.size()][];
+
+		int i = 0;
+		for (K key : keys) {
+			rawKeys[i++] = rawKey(key);
+		}
+
+		return rawKeys;
+	}
+
+	@SuppressWarnings("unchecked")
+	private K deserializeKey(byte[] value) {
+		return keySerializer != null ? (K) keySerializer.deserialize(value) : (K) value;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Nullable
+	private List<Object> deserializeMixedResults(@Nullable List<Object> rawValues,
+			@Nullable RedisSerializer valueSerializer, @Nullable RedisSerializer hashKeySerializer,
+			@Nullable RedisSerializer hashValueSerializer) {
+
+		if (rawValues == null) {
+			return null;
+		}
+
+		List<Object> values = new ArrayList<>();
+		for (Object rawValue : rawValues) {
+
+			if (rawValue instanceof byte[] && valueSerializer != null) {
+				values.add(valueSerializer.deserialize((byte[]) rawValue));
+			} else if (rawValue instanceof List) {
+				// Lists are the only potential Collections of mixed values....
+				values.add(deserializeMixedResults((List) rawValue, valueSerializer, hashKeySerializer, hashValueSerializer));
+			} else if (rawValue instanceof Set && !(((Set) rawValue).isEmpty())) {
+				values.add(deserializeSet((Set) rawValue, valueSerializer));
+			} else if (rawValue instanceof Map && !(((Map) rawValue).isEmpty())
+					&& ((Map) rawValue).values().iterator().next() instanceof byte[]) {
+				values.add(SerializationUtils.deserialize((Map) rawValue, hashKeySerializer, hashValueSerializer));
+			} else {
+				values.add(rawValue);
+			}
+		}
+
+		return values;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private Set<?> deserializeSet(Set rawSet, @Nullable RedisSerializer valueSerializer) {
+
+		if (rawSet.isEmpty()) {
+			return rawSet;
+		}
+
+		Object setValue = rawSet.iterator().next();
+
+		if (setValue instanceof byte[] && valueSerializer != null) {
+			return (SerializationUtils.deserialize(rawSet, valueSerializer));
+		} else if (setValue instanceof Tuple) {
+			return convertTupleValues(rawSet, valueSerializer);
+		} else {
+			return rawSet;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Set<TypedTuple<V>> convertTupleValues(Set<Tuple> rawValues, @Nullable RedisSerializer valueSerializer) {
+
+		Set<TypedTuple<V>> set = new LinkedHashSet<>(rawValues.size());
+		for (Tuple rawValue : rawValues) {
+			Object value = rawValue.getValue();
+			if (valueSerializer != null) {
+				value = valueSerializer.deserialize(rawValue.getValue());
+			}
+			set.add(new DefaultTypedTuple(value, rawValue.getScore()));
+		}
+		return set;
+	}
+
 }
