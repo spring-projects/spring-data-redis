@@ -563,6 +563,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public Boolean hasKey(K key) {
+
+		byte[] rawKey = rawKey(key);
+
+		return doWithKeys(connection -> connection.exists(rawKey));
+	}
+
+	@Override
+	public Long countExistingKeys(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		byte[][] rawKeys = rawKeys(keys);
+		return doWithKeys(connection -> connection.exists(rawKeys));
+	}
+
+	@Override
 	public Boolean delete(K key) {
 
 		byte[] rawKey = rawKey(key);
@@ -606,20 +623,56 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public Boolean hasKey(K key) {
+	public DataType type(K key) {
 
 		byte[] rawKey = rawKey(key);
-
-		return doWithKeys(connection -> connection.exists(rawKey));
+		return doWithKeys(connection -> connection.type(rawKey));
 	}
 
 	@Override
-	public Long countExistingKeys(Collection<K> keys) {
+	@SuppressWarnings("unchecked")
+	public Set<K> keys(K pattern) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		byte[] rawKey = rawKey(pattern);
+		Set<byte[]> rawKeys = doWithKeys(connection -> connection.keys(rawKey));
 
-		byte[][] rawKeys = rawKeys(keys);
-		return doWithKeys(connection -> connection.exists(rawKeys));
+		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : (Set<K>) rawKeys;
+	}
+
+	@Override
+	public Cursor<K> scan(ScanOptions options) {
+		Assert.notNull(options, "ScanOptions must not be null!");
+
+		return executeWithStickyConnection(
+				(RedisCallback<Cursor<K>>) connection -> new ConvertingCursor<>(connection.scan(options),
+						this::deserializeKey));
+	}
+
+	@Override
+	public K randomKey() {
+
+		byte[] rawKey = doWithKeys(RedisKeyCommands::randomKey);
+		return deserializeKey(rawKey);
+	}
+
+	@Override
+	public void rename(K oldKey, K newKey) {
+
+		byte[] rawOldKey = rawKey(oldKey);
+		byte[] rawNewKey = rawKey(newKey);
+
+		doWithKeys(connection -> {
+			connection.rename(rawOldKey, rawNewKey);
+			return null;
+		});
+	}
+
+	@Override
+	public Boolean renameIfAbsent(K oldKey, K newKey) {
+
+		byte[] rawOldKey = rawKey(oldKey);
+		byte[] rawNewKey = rawKey(newKey);
+		return doWithKeys(connection -> connection.renameNX(rawOldKey, rawNewKey));
 	}
 
 	@Override
@@ -652,9 +705,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	// -------------------------------------------------------------------------
-	// Methods dealing with value operations
-	// -------------------------------------------------------------------------
+	@Override
+	public Boolean persist(K key) {
+
+		byte[] rawKey = rawKey(key);
+		return doWithKeys(connection -> connection.persist(rawKey));
+	}
 
 	@Override
 	public Long getExpire(K key) {
@@ -664,7 +720,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public Long getExpire(K key, final TimeUnit timeUnit) {
+	public Long getExpire(K key, TimeUnit timeUnit) {
 
 		byte[] rawKey = rawKey(key);
 		return doWithKeys(connection -> {
@@ -678,70 +734,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Set<K> keys(K pattern) {
-
-		byte[] rawKey = rawKey(pattern);
-		Set<byte[]> rawKeys = doWithKeys(connection -> connection.keys(rawKey));
-
-		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : (Set<K>) rawKeys;
-	}
-
-	@Override
-	public Cursor<K> scan(ScanOptions options) {
-		Assert.notNull(options, "ScanOptions must not be null!");
-
-		return executeWithStickyConnection(
-				(RedisCallback<Cursor<K>>) connection -> new ConvertingCursor<>(connection.scan(options),
-						this::deserializeKey));
-	}
-
-	@Override
-	public Boolean persist(K key) {
-
-		byte[] rawKey = rawKey(key);
-		return doWithKeys(connection -> connection.persist(rawKey));
-	}
-
-	@Override
 	public Boolean move(K key, final int dbIndex) {
 
 		byte[] rawKey = rawKey(key);
 		return doWithKeys(connection -> connection.move(rawKey, dbIndex));
-	}
-
-	@Override
-	public K randomKey() {
-
-		byte[] rawKey = doWithKeys(RedisKeyCommands::randomKey);
-		return deserializeKey(rawKey);
-	}
-
-	@Override
-	public void rename(K oldKey, K newKey) {
-
-		byte[] rawOldKey = rawKey(oldKey);
-		byte[] rawNewKey = rawKey(newKey);
-
-		doWithKeys(connection -> {
-			connection.rename(rawOldKey, rawNewKey);
-			return null;
-		});
-	}
-
-	@Override
-	public Boolean renameIfAbsent(K oldKey, K newKey) {
-
-		byte[] rawOldKey = rawKey(oldKey);
-		byte[] rawNewKey = rawKey(newKey);
-		return doWithKeys(connection -> connection.renameNX(rawOldKey, rawNewKey));
-	}
-
-	@Override
-	public DataType type(K key) {
-
-		byte[] rawKey = rawKey(key);
-		return doWithKeys(connection -> connection.type(rawKey));
 	}
 
 	/**
