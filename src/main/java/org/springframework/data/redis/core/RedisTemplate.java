@@ -105,6 +105,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	private @Nullable ScriptExecutor<K> scriptExecutor;
 
+	private final BoundOperationsProxyFactory boundOperations = new BoundOperationsProxyFactory();
 	private final ValueOperations<K, V> valueOps = new DefaultValueOperations<>(this);
 	private final ListOperations<K, V> listOps = new DefaultListOperations<>(this);
 	private final SetOperations<K, V> setOps = new DefaultSetOperations<>(this);
@@ -1056,12 +1057,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public BoundGeoOperations<K, V> boundGeoOps(K key) {
-		return new DefaultBoundGeoOperations<>(key, this);
+		return boundOperations.createProxy(BoundGeoOperations.class, key, DataType.ZSET, this, RedisOperations::opsForGeo);
 	}
 
 	@Override
 	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
-		return new DefaultBoundHashOperations<>(key, this);
+		return boundOperations.createProxy(BoundHashOperations.class, key, DataType.HASH, this, it -> it.opsForHash());
 	}
 
 	@Override
@@ -1081,12 +1082,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public BoundListOperations<K, V> boundListOps(K key) {
-		return new DefaultBoundListOperations<>(key, this);
+		return boundOperations.createProxy(BoundListOperations.class, key, DataType.LIST, this,
+				RedisOperations::opsForList);
 	}
 
 	@Override
 	public BoundSetOperations<K, V> boundSetOps(K key) {
-		return new DefaultBoundSetOperations<>(key, this);
+		return boundOperations.createProxy(BoundSetOperations.class, key, DataType.SET, this, RedisOperations::opsForSet);
 	}
 
 	@Override
@@ -1101,18 +1103,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper) {
-
 		return new DefaultStreamOperations<>(this, hashMapper);
 	}
 
 	@Override
 	public <HK, HV> BoundStreamOperations<K, HK, HV> boundStreamOps(K key) {
-		return new DefaultBoundStreamOperations<>(key, this);
+		return boundOperations.createProxy(BoundStreamOperations.class, key, DataType.STREAM, this, it -> opsForStream());
 	}
 
 	@Override
 	public BoundValueOperations<K, V> boundValueOps(K key) {
-		return new DefaultBoundValueOperations<>(key, this);
+		return boundOperations.createProxy(BoundValueOperations.class, key, DataType.STRING, this,
+				RedisOperations::opsForValue);
 	}
 
 	@Override
@@ -1122,7 +1124,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public BoundZSetOperations<K, V> boundZSetOps(K key) {
-		return new DefaultBoundZSetOperations<>(key, this);
+		return boundOperations.createProxy(BoundZSetOperations.class, key, DataType.ZSET, this,
+				RedisOperations::opsForZSet);
 	}
 
 	@Override
