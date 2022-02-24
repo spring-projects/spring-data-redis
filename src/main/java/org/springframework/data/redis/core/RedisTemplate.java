@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -553,20 +554,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// -------------------------------------------------------------------------
 
 	@Override
-	public void convertAndSend(String channel, Object message) {
-
-		Assert.hasText(channel, "a non-empty channel is required");
-
-		byte[] rawChannel = rawString(channel);
-		byte[] rawMessage = rawValue(message);
-
-		execute(connection -> {
-			connection.publish(rawChannel, rawMessage);
-			return null;
-		}, true);
-	}
-
-	@Override
 	public Boolean copy(K source, K target, boolean replace) {
 
 		byte[] sourceKey = rawKey(source);
@@ -801,7 +788,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute((RedisCallback<? extends T>) connection -> action.apply(connection.keyCommands()), true);
 	}
 
-
 	// -------------------------------------------------------------------------
 	// Methods dealing with sorting
 	// -------------------------------------------------------------------------
@@ -875,10 +861,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		byte[] rawKey = rawKey(key);
 
-		execute(connection -> {
-			connection.watch(rawKey);
-			return null;
-		}, true);
+		executeWithoutResult(connection -> connection.watch(rawKey));
 	}
 
 	@Override
@@ -886,37 +869,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		byte[][] rawKeys = rawKeys(keys);
 
-		execute(connection -> {
-			connection.watch(rawKeys);
-			return null;
-		}, true);
+		executeWithoutResult(connection -> connection.watch(rawKeys));
 	}
 
 	@Override
 	public void unwatch() {
 
-		execute(connection -> {
-			connection.unwatch();
-			return null;
-		}, true);
+		executeWithoutResult(RedisTxCommands::unwatch);
 	}
-
 
 	@Override
 	public void multi() {
-		execute(connection -> {
-			connection.multi();
-			return null;
-		}, true);
+		executeWithoutResult(RedisTxCommands::multi);
 	}
 
 	@Override
 	public void discard() {
-
-		execute(connection -> {
-			connection.discard();
-			return null;
-		}, true);
+		executeWithoutResult(RedisTxCommands::discard);
 	}
 
 	/**
@@ -960,11 +929,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public void killClient(String host, int port) {
-
-		execute((RedisCallback<Void>) connection -> {
-			connection.killClient(host, port);
-			return null;
-		});
+		executeWithoutResult(connection -> connection.killClient(host, port));
 	}
 
 	/*
@@ -972,21 +937,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	@Override
 	public void replicaOf(String host, int port) {
-
-		execute((RedisCallback<Void>) connection -> {
-
-			connection.replicaOf(host, port);
-			return null;
-		});
+		executeWithoutResult(connection -> connection.replicaOf(host, port));
 	}
 
 	@Override
 	public void replicaOfNoOne() {
-
-		execute((RedisCallback<Void>) connection -> {
-			connection.replicaOfNoOne();
-			return null;
-		});
+		executeWithoutResult(RedisServerCommands::replicaOfNoOne);
 	}
 
 	@Override
@@ -997,8 +953,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		byte[] rawChannel = rawString(channel);
 		byte[] rawMessage = rawValue(message);
 
-		execute(connection -> {
-			connection.publish(rawChannel, rawMessage);
+		executeWithoutResult(connection -> connection.publish(rawChannel, rawMessage));
+	}
+
+	private void executeWithoutResult(Consumer<RedisConnection> action) {
+		execute(it -> {
+
+			action.accept(it);
 			return null;
 		}, true);
 	}
