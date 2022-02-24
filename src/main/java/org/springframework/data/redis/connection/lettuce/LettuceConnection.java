@@ -95,6 +95,18 @@ public class LettuceConnection extends AbstractRedisConnection {
 			LettuceExceptionConverter.INSTANCE);
 	private static final TypeHints typeHints = new TypeHints();
 
+	private final LettuceGeoCommands geoCommands = new LettuceGeoCommands(this);
+	private final LettuceHashCommands hashCommands = new LettuceHashCommands(this);
+	private final LettuceHyperLogLogCommands hllCommands = new LettuceHyperLogLogCommands(this);
+	private final LettuceKeyCommands keyCommands = new LettuceKeyCommands(this);
+	private final LettuceListCommands listCommands = new LettuceListCommands(this);
+	private final LettuceScriptingCommands scriptingCommands = new LettuceScriptingCommands(this);
+	private final LettuceSetCommands setCommands = new LettuceSetCommands(this);
+	private final LettuceServerCommands serverCommands = new LettuceServerCommands(this);
+	private final LettuceStreamCommands streamCommands = new LettuceStreamCommands(this);
+	private final LettuceStringCommands stringCommands = new LettuceStringCommands(this);
+	private final LettuceZSetCommands zSetCommands = new LettuceZSetCommands(this);
+
 	private final int defaultDbIndex;
 	private int dbIndex;
 
@@ -232,58 +244,63 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@Override
+	public org.springframework.data.redis.connection.RedisCommands commands() {
+		return this;
+	}
+
+	@Override
 	public RedisGeoCommands geoCommands() {
-		return new LettuceGeoCommands(this);
+		return geoCommands;
 	}
 
 	@Override
 	public RedisHashCommands hashCommands() {
-		return new LettuceHashCommands(this);
+		return hashCommands;
 	}
 
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
-		return new LettuceHyperLogLogCommands(this);
+		return hllCommands;
 	}
 
 	@Override
 	public RedisKeyCommands keyCommands() {
-		return new LettuceKeyCommands(this);
+		return keyCommands;
 	}
 
 	@Override
 	public RedisListCommands listCommands() {
-		return new LettuceListCommands(this);
-	}
-
-	@Override
-	public RedisSetCommands setCommands() {
-		return new LettuceSetCommands(this);
+		return listCommands;
 	}
 
 	@Override
 	public RedisScriptingCommands scriptingCommands() {
-		return new LettuceScriptingCommands(this);
+		return scriptingCommands;
 	}
 
 	@Override
-	public RedisStreamCommands streamCommands() {
-		return new LettuceStreamCommands(this);
-	}
-
-	@Override
-	public RedisStringCommands stringCommands() {
-		return new LettuceStringCommands(this);
+	public RedisSetCommands setCommands() {
+		return setCommands;
 	}
 
 	@Override
 	public RedisServerCommands serverCommands() {
-		return new LettuceServerCommands(this);
+		return serverCommands;
+	}
+
+	@Override
+	public RedisStreamCommands streamCommands() {
+		return streamCommands;
+	}
+
+	@Override
+	public RedisStringCommands stringCommands() {
+		return stringCommands;
 	}
 
 	@Override
 	public RedisZSetCommands zSetCommands() {
-		return new LettuceZSetCommands(this);
+		return zSetCommands;
 	}
 
 	@Override

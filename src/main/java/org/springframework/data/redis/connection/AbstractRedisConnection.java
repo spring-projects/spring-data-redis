@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 1.4
  */
-public abstract class AbstractRedisConnection implements DefaultedRedisConnection {
+public abstract class AbstractRedisConnection implements RedisConnection {
 
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
 	private final Map<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<>();

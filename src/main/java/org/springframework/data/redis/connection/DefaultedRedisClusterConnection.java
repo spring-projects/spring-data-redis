@@ -15,14 +15,11 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.types.RedisClientInfo;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
  * @author Christoph Strobl
@@ -30,7 +27,9 @@ import org.springframework.util.Assert;
  * @author Dennis Neufeld
  * @since 2.0
  */
-public interface DefaultedRedisClusterConnection extends RedisClusterConnection, DefaultedRedisConnection {
+@Deprecated
+public interface DefaultedRedisClusterConnection
+		extends DefaultedRedisConnection, RedisClusterCommands, RedisClusterServerCommands, RedisClusterCommandsProvider {
 
 	/** @deprecated in favor of {@link RedisConnection#serverCommands()}. */
 	@Override
@@ -165,24 +164,4 @@ public interface DefaultedRedisClusterConnection extends RedisClusterConnection,
 		return serverCommands().getClientList(node);
 	}
 
-	@Nullable
-	@Override
-	@SuppressWarnings("unchecked")
-	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
-
-		Assert.notNull(command, "Command must not be null!");
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(args, "Args must not be null!");
-
-		byte[][] commandArgs = new byte[args.size() + 1][];
-
-		commandArgs[0] = key;
-		int targetIndex = 1;
-
-		for (byte[] binaryArgument : args) {
-			commandArgs[targetIndex++] = binaryArgument;
-		}
-
-		return (T) execute(command, commandArgs);
-	}
 }

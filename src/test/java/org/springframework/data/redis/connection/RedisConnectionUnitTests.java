@@ -102,6 +102,66 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
+		public RedisCommands commands() {
+			return null;
+		}
+
+		@Override
+		public RedisGeoCommands geoCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisHashCommands hashCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisHyperLogLogCommands hyperLogLogCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisKeyCommands keyCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisListCommands listCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisSetCommands setCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisScriptingCommands scriptingCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisServerCommands serverCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisStreamCommands streamCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisStringCommands stringCommands() {
+			return null;
+		}
+
+		@Override
+		public RedisZSetCommands zSetCommands() {
+			return null;
+		}
+
+		@Override
 		protected boolean isActive(RedisNode node) {
 			return ObjectUtils.nullSafeEquals(activeNode, node);
 		}
