@@ -118,7 +118,7 @@ Unfortunately, currently, not all connectors support all Redis features. When in
 
 | Other Connection Features
 | Singleton-connection sharing for non-blocking commands
-| `JedisShardInfo` support
+| Pipelining and Transactions mutually exclusive. Cannot use server/connection commands in pipeline/transactions.
 
 | SSL Support
 | X
@@ -130,11 +130,11 @@ Unfortunately, currently, not all connectors support all Redis features. When in
 
 | <<pipeline,Pipelining>>
 | X
-| X
+| X (Pipelining and Transactions mutually exclusive)
 
 | <<tx,Transactions>>
 | X
-| X
+| X (Pipelining and Transactions mutually exclusive)
 
 | Datatype support
 | Key, String, List, Set, Sorted Set, Hash, Server, Stream, Scripting, Geo, HyperLogLog
@@ -204,7 +204,7 @@ NOTE: Netty currently supports the epoll (Linux) and kqueue (BSD/macOS) interfac
 [[redis:connectors:jedis]]
 === Configuring the Jedis Connector
 
-https://github.com/xetorthio/jedis[Jedis] is a community-driven connector supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package.
+https://github.com/redis/jedis[Jedis] is a community-driven connector supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package.
 
 
 .Add the following to the pom.xml files `dependencies` element:
@@ -222,7 +222,6 @@ https://github.com/xetorthio/jedis[Jedis] is a community-driven connector suppor
 
 </dependencies>
 ----
-
 
 In its simplest form, the Jedis configuration looks as follow:
 
@@ -288,18 +287,6 @@ For dealing with high-availability Redis, Spring Data Redis has support for http
 [source,java]
 ----
 /**
- * Jedis
- */
-@Bean
-public RedisConnectionFactory jedisConnectionFactory() {
-  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
-  .master("mymaster")
-  .sentinel("127.0.0.1", 26379)
-  .sentinel("127.0.0.1", 26380);
-  return new JedisConnectionFactory(sentinelConfig);
-}
-
-/**
  * Lettuce
  */
 @Bean
@@ -309,6 +296,18 @@ public RedisConnectionFactory lettuceConnectionFactory() {
   .sentinel("127.0.0.1", 26379)
   .sentinel("127.0.0.1", 26380);
   return new LettuceConnectionFactory(sentinelConfig);
+}
+
+/**
+ * Jedis
+ */
+@Bean
+public RedisConnectionFactory jedisConnectionFactory() {
+  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
+  .master("mymaster")
+  .sentinel("127.0.0.1", 26379)
+  .sentinel("127.0.0.1", 26380);
+  return new JedisConnectionFactory(sentinelConfig);
 }
 ----
 
@@ -400,9 +399,9 @@ For cases where you need a certain template view, declare the view as a dependen
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" p:use-pool="true"/>
+  <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"/>
   <!-- redis template definition -->
-  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate" p:connection-factory-ref="jedisConnectionFactory"/>
+  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate" p:connection-factory-ref="redisConnectionFactory"/>
   ...
 
 </beans>
@@ -439,9 +438,9 @@ Since it is quite common for the keys and values stored in Redis to be `java.lan
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" p:use-pool="true"/>
+  <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"/>
 
-  <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" p:connection-factory-ref="jedisConnectionFactory"/>
+  <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" p:connection-factory-ref="redisConnectionFactory"/>
   ...
 </beans>
 ----
