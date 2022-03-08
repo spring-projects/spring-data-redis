@@ -178,8 +178,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	@Disabled
-	public void testRestoreExistingKey() {
-	}
+	public void testRestoreExistingKey() {}
 
 	@Test
 	public void testExecWithoutMulti() {

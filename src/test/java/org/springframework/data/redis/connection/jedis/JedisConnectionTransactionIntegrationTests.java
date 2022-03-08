@@ -60,23 +60,19 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	// Unsupported Ops
 	@Test
 	@Disabled
-	public void testScriptLoadEvalSha() {
-	}
+	public void testScriptLoadEvalSha() {}
 
 	@Test
 	@Disabled
-	public void testEvalShaArrayStrings() {
-	}
+	public void testEvalShaArrayStrings() {}
 
 	@Test
 	@Disabled
-	public void testEvalShaArrayBytes() {
-	}
+	public void testEvalShaArrayBytes() {}
 
 	@Test
 	@Disabled
-	public void testEvalShaNotFound() {
-	}
+	public void testEvalShaNotFound() {}
 
 	@Test
 	public void testEvalShaArrayError() {
@@ -92,93 +88,75 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 
 	@Test
 	@Disabled
-	public void testEvalReturnString() {
-	}
+	public void testEvalReturnString() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnNumber() {
-	}
+	public void testEvalReturnNumber() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnSingleOK() {
-	}
+	public void testEvalReturnSingleOK() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnSingleError() {
-	}
+	public void testEvalReturnSingleError() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnFalse() {
-	}
+	public void testEvalReturnFalse() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnTrue() {
-	}
+	public void testEvalReturnTrue() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnArrayStrings() {
-	}
+	public void testEvalReturnArrayStrings() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnArrayNumbers() {
-	}
+	public void testEvalReturnArrayNumbers() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnArrayOKs() {
-	}
+	public void testEvalReturnArrayOKs() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnArrayFalses() {
-	}
+	public void testEvalReturnArrayFalses() {}
 
 	@Test
 	@Disabled
-	public void testEvalReturnArrayTrues() {
-	}
+	public void testEvalReturnArrayTrues() {}
 
 	@Test
 	@Disabled
-	public void testScriptExists() {
-	}
+	public void testScriptExists() {}
 
 	@Test
 	@Disabled
-	public void testScriptKill() {
-	}
+	public void testScriptKill() {}
 
 	@Test
 	@Disabled
-	public void testScriptFlush() {
-	}
+	public void testScriptFlush() {}
 
 	@Test
 	@Disabled
-	public void testInfoBySection() {
-	}
+	public void testInfoBySection() {}
 
 	@Test
 	@Disabled
-	public void testRestoreBadData() {
-	}
+	public void testRestoreBadData() {}
 
 	@Test
 	@Disabled
-	public void testRestoreExistingKey() {
-	}
+	public void testRestoreExistingKey() {}
 
 	@Test // DATAREDIS-269
 	@Disabled
-	public void clientSetNameWorksCorrectly() {
-	}
+	public void clientSetNameWorksCorrectly() {}
 
 	@Test
 	@Override

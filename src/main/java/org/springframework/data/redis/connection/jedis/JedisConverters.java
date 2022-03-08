@@ -16,13 +16,8 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.GeoCoordinate;
-import redis.clients.jedis.GeoRadiusResponse;
-import redis.clients.jedis.GeoUnit;
-import redis.clients.jedis.ListPosition;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.SortingParams;
-import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.args.BitOP;
+import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.params.GeoRadiusParam;
@@ -39,7 +34,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +101,7 @@ import org.springframework.util.StringUtils;
  * @author dengliming
  */
 @SuppressWarnings("ConstantConditions")
-public abstract class JedisConverters extends Converters {
+abstract class JedisConverters extends Converters {
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -140,9 +134,6 @@ public abstract class JedisConverters extends Converters {
 		return new ListConverter<>(stringToBytes());
 	}
 
-	/**
-	 * @deprecated since 2.5
-	 */
 	static Set<Tuple> toTupleSet(Set<redis.clients.jedis.resps.Tuple> source) {
 		return new SetConverter<>(JedisConverters::toTuple).convert(source);
 	}
@@ -163,10 +154,8 @@ public abstract class JedisConverters extends Converters {
 		Assert.notNull(tuples, "Tuple set must not be null!");
 
 		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
-		Set<Double> scores = new HashSet<>(tuples.size(), 1);
 
 		for (Tuple tuple : tuples) {
-			scores.add(tuple.getScore());
 			args.put(tuple.getValue(), tuple.getScore());
 		}
 
@@ -251,7 +240,6 @@ public abstract class JedisConverters extends Converters {
 	 * @since 1.4
 	 */
 	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
-
 		return toList(it -> RedisServer.newServerFrom(Converters.toProperties(it)), source);
 	}
 
@@ -902,8 +890,7 @@ public abstract class JedisConverters extends Converters {
 			return new GeoResultConverter(metric);
 		}
 
-		private static class GeoResultConverter
-				implements Converter<GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> {
+		private static class GeoResultConverter implements Converter<GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> {
 
 			private final Metric metric;
 

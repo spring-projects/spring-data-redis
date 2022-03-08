@@ -58,9 +58,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-abstract public class Converters {
+public abstract class Converters {
 
-	// private static final Log LOGGER = LogFactory.getLog(Converters.class);
 	private static final Log LOGGER = LogFactory.getLog(Converters.class);
 
 	private static final byte[] ONE = new byte[] { '1' };

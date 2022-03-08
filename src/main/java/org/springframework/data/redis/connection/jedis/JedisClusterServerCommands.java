@@ -150,9 +150,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushAll(FlushOption option) {
-		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes(
-						(JedisClusterCommandCallback<String>) it -> it.flushAll(JedisConverters.toFlushMode(option)));
+		connection.getClusterCommandExecutor().executeCommandOnAllNodes(
+				(JedisClusterCommandCallback<String>) it -> it.flushAll(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -220,11 +219,10 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void shutdown() {
-		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) jedis -> {
-					jedis.shutdown();
-					return null;
-				});
+		connection.getClusterCommandExecutor().executeCommandOnAllNodes((JedisClusterCommandCallback<String>) jedis -> {
+			jedis.shutdown();
+			return null;
+		});
 	}
 
 	@Override

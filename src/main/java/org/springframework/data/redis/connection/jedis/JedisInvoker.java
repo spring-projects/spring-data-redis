@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.commands.DatabasePipelineCommands;
@@ -1017,25 +1018,23 @@ class JedisInvoker {
 
 		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> T invoke(Function<Jedis, I> callFunction,
-				Function<ResponseCommands, Response<I>> pipelineFunction) {
-			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, Converters.identityConverter(), () -> null);
+		default <I, T> T invoke(Function<Jedis, I> callFunction, Function<ResponseCommands, Response<I>> pipelineFunction) {
+			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, Converters.identityConverter(),
+					() -> null);
 		}
 
 		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> T invoke(Function<Jedis, I> callFunction,
-				Function<ResponseCommands, Response<I>> pipelineFunction, Converter<I, T> converter,
-				Supplier<T> nullDefault) {
+		default <I, T> T invoke(Function<Jedis, I> callFunction, Function<ResponseCommands, Response<I>> pipelineFunction,
+				Converter<I, T> converter, Supplier<T> nullDefault) {
 
 			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, (Converter<Object, Object>) converter,
 					(Supplier<Object>) nullDefault);
 		}
 
 		@Nullable
-		Object doInvoke(Function<Jedis, Object> callFunction,
-				Function<ResponseCommands, Response<Object>> pipelineFunction, Converter<Object, Object> converter,
-				Supplier<Object> nullDefault);
+		Object doInvoke(Function<Jedis, Object> callFunction, Function<ResponseCommands, Response<Object>> pipelineFunction,
+				Converter<Object, Object> converter, Supplier<Object> nullDefault);
 	}
 
 	interface ResponseCommands extends PipelineBinaryCommands, DatabasePipelineCommands {
@@ -1043,16 +1042,16 @@ class JedisInvoker {
 		Response<Long> publish(String channel, String message);
 	}
 
-	static ResponseCommands createCommands(Transaction transaction) {
+	/**
+	 * Create a proxy to invoke methods dynamically on {@link Pipeline} or {@link Transaction} as those share many
+	 * commands that are not defined on a common super-type.
+	 *
+	 * @param pipelineOrTransaction
+	 * @return
+	 */
+	static ResponseCommands createCommands(Queable pipelineOrTransaction) {
 
-		ProxyFactory proxyFactory = new ProxyFactory(transaction);
-		proxyFactory.addInterface(ResponseCommands.class);
-		return (ResponseCommands) proxyFactory.getProxy(JedisInvoker.class.getClassLoader());
-	}
-
-	static ResponseCommands createCommands(Pipeline pipeline) {
-
-		ProxyFactory proxyFactory = new ProxyFactory(pipeline);
+		ProxyFactory proxyFactory = new ProxyFactory(pipelineOrTransaction);
 		proxyFactory.addInterface(ResponseCommands.class);
 		return (ResponseCommands) proxyFactory.getProxy(JedisInvoker.class.getClassLoader());
 	}

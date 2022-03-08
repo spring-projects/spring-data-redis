@@ -76,8 +76,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
 
-	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
-
 	private final Log log = LogFactory.getLog(getClass());
 
 	private final JedisCluster cluster;
@@ -95,7 +93,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private boolean closed;
 
 	private final ClusterTopologyProvider topologyProvider;
-	private ClusterCommandExecutor clusterCommandExecutor;
+	private final ClusterCommandExecutor clusterCommandExecutor;
 	private final boolean disposeClusterCommandExecutorOnClose;
 
 	private volatile @Nullable JedisSubscription subscription;
@@ -116,7 +114,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
 				new JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
 		disposeClusterCommandExecutorOnClose = true;
-
 
 		try {
 
@@ -170,9 +167,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		Assert.notNull(command, "Command must not be null!");
 		Assert.notNull(args, "Args must not be null!");
 
-		return clusterCommandExecutor
-				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<Object>) client -> JedisClientUtils.execute(command,
-						EMPTY_2D_BYTE_ARRAY, args, () -> client))
+		return clusterCommandExecutor.executeCommandOnArbitraryNode(
+				(JedisClusterCommandCallback<Object>) client -> client.sendCommand(JedisClientUtils.getCommand(command), args))
 				.getValue();
 	}
 
@@ -189,7 +185,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		RedisClusterNode keyMaster = topologyProvider.getTopology().getKeyServingMasterNode(key);
 
 		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<T>) client -> {
-			return (T) client.sendCommand(() -> JedisConverters.toBytes(command), commandArgs);
+			return (T) client.sendCommand(JedisClientUtils.getCommand(command), commandArgs);
 		}, keyMaster).getValue();
 	}
 
@@ -236,9 +232,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		Assert.notNull(args, "Args must not be null!");
 
 		return clusterCommandExecutor.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<T>) (client, key) -> {
-			return JedisClientUtils.execute(command, new byte[][] { key }, args.toArray(new byte[args.size()][]),
-					() -> client);
+			return (T) client.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
 		}, keys).resultsAsList();
+
 	}
 
 	@Override
@@ -421,8 +417,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public String ping(RedisClusterNode node) {
 
-		return clusterCommandExecutor
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) Jedis::ping, node).getValue();
+		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) Jedis::ping, node)
+				.getValue();
 	}
 
 	/*

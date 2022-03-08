@@ -116,8 +116,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	@Test
 	@Disabled
-	public void testEvalReturnSingleError() {
-	}
+	public void testEvalReturnSingleError() {}
 
 	@Test
 	public void testEvalReturnFalse() {

@@ -167,8 +167,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
 
-		return connection.invoke().from(Jedis::georadius, PipelineBinaryCommands::georadius, key,
-				within.getCenter().getX(),
+		return connection.invoke()
+				.from(Jedis::georadius, PipelineBinaryCommands::georadius, key, within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
 						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam)
 				.get(converter);
@@ -185,8 +185,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
 
-		return connection.invoke().from(Jedis::georadiusByMember, PipelineBinaryCommands::georadiusByMember, key,
-				member, radius.getValue(), geoUnit).get(converter);
+		return connection.invoke().from(Jedis::georadiusByMember, PipelineBinaryCommands::georadiusByMember, key, member,
+				radius.getValue(), geoUnit).get(converter);
 	}
 
 	@Override
@@ -203,8 +203,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
 		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 
-		return connection.invoke().from(Jedis::georadiusByMember, PipelineBinaryCommands::georadiusByMember, key,
-				member, radius.getValue(), geoUnit, geoRadiusParam).get(converter);
+		return connection.invoke().from(Jedis::georadiusByMember, PipelineBinaryCommands::georadiusByMember, key, member,
+				radius.getValue(), geoUnit, geoRadiusParam).get(converter);
 	}
 
 	@Override

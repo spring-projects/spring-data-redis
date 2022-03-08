@@ -164,8 +164,7 @@ class JedisStringCommands implements RedisStringCommands {
 
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		return connection.invoke()
-				.from(Jedis::msetnx, PipelineBinaryCommands::msetnx, JedisConverters.toByteArrays(tuples))
+		return connection.invoke().from(Jedis::msetnx, PipelineBinaryCommands::msetnx, JedisConverters.toByteArrays(tuples))
 				.get(Converters.longToBoolean());
 	}
 
