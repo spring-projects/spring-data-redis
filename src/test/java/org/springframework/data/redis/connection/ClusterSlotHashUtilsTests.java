@@ -17,9 +17,9 @@ package org.springframework.data.redis.connection;
 
 import static org.assertj.core.api.Assertions.*;
 
+import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
 
 import java.util.Random;
 
@@ -47,8 +47,8 @@ public class ClusterSlotHashUtilsTests {
 	@Test
 	void localCalculationShouldMatchServers() {
 
-		JedisPool pool = cluster.getClusterNodes().values().iterator().next();
-		Jedis jedis = pool.getResource();
+		ConnectionPool pool = cluster.getClusterNodes().values().iterator().next();
+		Jedis jedis = new Jedis(pool.getResource());
 		for (int i = 0; i < 100; i++) {
 
 			String key = randomString();
@@ -66,8 +66,8 @@ public class ClusterSlotHashUtilsTests {
 	@Test
 	void localCalculationShoudMatchServersForPrefixedKeys() {
 
-		JedisPool pool = cluster.getClusterNodes().values().iterator().next();
-		Jedis jedis = pool.getResource();
+		ConnectionPool pool = cluster.getClusterNodes().values().iterator().next();
+		Jedis jedis = new Jedis(pool.getResource());
 		for (int i = 0; i < 100; i++) {
 
 			String slotPrefix = "{" + randomString() + "}";

@@ -15,12 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.domain.geo.GeoReference;
-import org.springframework.data.redis.domain.geo.GeoShape;
-import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.GeoCoordinate;
-import redis.clients.jedis.GeoUnit;
-import redis.clients.jedis.MultiKeyPipelineBase;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.args.GeoUnit;
+import redis.clients.jedis.commands.PipelineBinaryCommands;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +31,8 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.util.Assert;
 
 /**
@@ -55,7 +55,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(point, "Point must not be null!");
 		Assert.notNull(member, "Member must not be null!");
 
-		return connection.invoke().just(BinaryJedis::geoadd, MultiKeyPipelineBase::geoadd, key, point.getX(), point.getY(),
+		return connection.invoke().just(Jedis::geoadd, PipelineBinaryCommands::geoadd, key, point.getX(), point.getY(),
 				member);
 	}
 
@@ -71,7 +71,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			redisGeoCoordinateMap.put(mapKey, JedisConverters.toGeoCoordinate(memberCoordinateMap.get(mapKey)));
 		}
 
-		return connection.invoke().just(BinaryJedis::geoadd, MultiKeyPipelineBase::geoadd, key, redisGeoCoordinateMap);
+		return connection.invoke().just(Jedis::geoadd, PipelineBinaryCommands::geoadd, key, redisGeoCoordinateMap);
 	}
 
 	@Override
@@ -86,7 +86,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 			redisGeoCoordinateMap.put(location.getName(), JedisConverters.toGeoCoordinate(location.getPoint()));
 		}
 
-		return connection.invoke().just(BinaryJedis::geoadd, MultiKeyPipelineBase::geoadd, key, redisGeoCoordinateMap);
+		return connection.invoke().just(Jedis::geoadd, PipelineBinaryCommands::geoadd, key, redisGeoCoordinateMap);
 	}
 
 	@Override
@@ -98,7 +98,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 
 		Converter<Double, Distance> distanceConverter = JedisConverters.distanceConverterForMetric(DistanceUnit.METERS);
 
-		return connection.invoke().from(BinaryJedis::geodist, MultiKeyPipelineBase::geodist, key, member1, member2)
+		return connection.invoke().from(Jedis::geodist, PipelineBinaryCommands::geodist, key, member1, member2)
 				.get(distanceConverter);
 	}
 
@@ -113,7 +113,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(metric);
 		Converter<Double, Distance> distanceConverter = JedisConverters.distanceConverterForMetric(metric);
 
-		return connection.invoke().from(BinaryJedis::geodist, MultiKeyPipelineBase::geodist, key, member1, member2, geoUnit)
+		return connection.invoke().from(Jedis::geodist, PipelineBinaryCommands::geodist, key, member1, member2, geoUnit)
 				.get(distanceConverter);
 	}
 
@@ -124,7 +124,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(members, "Members must not be null!");
 		Assert.noNullElements(members, "Members must not contain null!");
 
-		return connection.invoke().fromMany(BinaryJedis::geohash, MultiKeyPipelineBase::geohash, key, members)
+		return connection.invoke().fromMany(Jedis::geohash, PipelineBinaryCommands::geohash, key, members)
 				.toList(JedisConverters::toString);
 	}
 
@@ -135,7 +135,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(members, "Members must not be null!");
 		Assert.noNullElements(members, "Members must not contain null!");
 
-		return connection.invoke().fromMany(BinaryJedis::geopos, MultiKeyPipelineBase::geopos, key, members)
+		return connection.invoke().fromMany(Jedis::geopos, PipelineBinaryCommands::geopos, key, members)
 				.toList(JedisConverters::toPoint);
 	}
 
@@ -145,11 +145,11 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(within, "Within must not be null!");
 
-		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
+		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
 
 		return connection.invoke()
-				.from(BinaryJedis::georadius, MultiKeyPipelineBase::georadius, key, within.getCenter().getX(),
+				.from(Jedis::georadius, PipelineBinaryCommands::georadius, key, within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
 						JedisConverters.toGeoUnit(within.getRadius().getMetric()))
 				.get(converter);
@@ -163,10 +163,10 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(args, "Args must not be null!");
 
 		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
-		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
+		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
 
-		return connection.invoke().from(BinaryJedis::georadius, MultiKeyPipelineBase::georadius, key,
+		return connection.invoke().from(Jedis::georadius, PipelineBinaryCommands::georadius, key,
 				within.getCenter().getX(),
 						within.getCenter().getY(), within.getRadius().getValue(),
 						JedisConverters.toGeoUnit(within.getRadius().getMetric()), geoRadiusParam)
@@ -181,10 +181,10 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(radius, "Radius must not be null!");
 
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(radius.getMetric());
-		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
+		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
 
-		return connection.invoke().from(BinaryJedis::georadiusByMember, MultiKeyPipelineBase::georadiusByMember, key,
+		return connection.invoke().from(Jedis::georadiusByMember, PipelineBinaryCommands::georadiusByMember, key,
 				member, radius.getValue(), geoUnit).get(converter);
 	}
 
@@ -198,11 +198,11 @@ class JedisGeoCommands implements RedisGeoCommands {
 		Assert.notNull(args, "Args must not be null!");
 
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(radius.getMetric());
-		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
+		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
 				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
 		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 
-		return connection.invoke().from(BinaryJedis::georadiusByMember, MultiKeyPipelineBase::georadiusByMember, key,
+		return connection.invoke().from(Jedis::georadiusByMember, PipelineBinaryCommands::georadiusByMember, key,
 				member, radius.getValue(), geoUnit, geoRadiusParam).get(converter);
 	}
 

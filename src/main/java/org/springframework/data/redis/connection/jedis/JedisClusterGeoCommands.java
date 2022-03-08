@@ -16,7 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.GeoCoordinate;
-import redis.clients.jedis.GeoUnit;
+import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.params.GeoRadiusParam;
 
 import java.util.HashMap;

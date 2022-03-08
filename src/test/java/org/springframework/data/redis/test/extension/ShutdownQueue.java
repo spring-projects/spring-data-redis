@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.test.extension;
 
+import redis.clients.jedis.util.IOUtils;
+
 import java.io.Closeable;
 import java.util.LinkedList;
 
@@ -51,5 +53,9 @@ public enum ShutdownQueue {
 
 	public static void register(Closeable closeable) {
 		INSTANCE.closeables.add(closeable);
+	}
+
+	public static void register(AutoCloseable closeable) {
+		INSTANCE.closeables.add(() -> IOUtils.closeQuietly(closeable));
 	}
 }

@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.MultiKeyPipelineBase;
 import redis.clients.jedis.args.SaveMode;
 
 import java.util.List;
@@ -46,32 +44,32 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void bgReWriteAof() {
-		connection.invoke().just(BinaryJedis::bgrewriteaof, MultiKeyPipelineBase::bgrewriteaof);
+		connection.invoke().just(Jedis::bgrewriteaof);
 	}
 
 	@Override
 	public void bgSave() {
-		connection.invokeStatus().just(BinaryJedis::bgsave, MultiKeyPipelineBase::bgsave);
+		connection.invokeStatus().just(Jedis::bgsave);
 	}
 
 	@Override
 	public Long lastSave() {
-		return connection.invoke().just(BinaryJedis::lastsave, MultiKeyPipelineBase::lastsave);
+		return connection.invoke().just(Jedis::lastsave);
 	}
 
 	@Override
 	public void save() {
-		connection.invokeStatus().just(BinaryJedis::save, MultiKeyPipelineBase::save);
+		connection.invokeStatus().just(Jedis::save);
 	}
 
 	@Override
 	public Long dbSize() {
-		return connection.invoke().just(BinaryJedis::dbSize, MultiKeyPipelineBase::dbSize);
+		return connection.invoke().just(Jedis::dbSize);
 	}
 
 	@Override
 	public void flushDb() {
-		connection.invokeStatus().just(BinaryJedis::flushDB, MultiKeyPipelineBase::flushDB);
+		connection.invokeStatus().just(Jedis::flushDB);
 	}
 
 	@Override
@@ -82,7 +80,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushAll() {
-		connection.invokeStatus().just(BinaryJedis::flushAll, MultiKeyPipelineBase::flushAll);
+		connection.invokeStatus().just(Jedis::flushAll);
 	}
 
 	@Override
@@ -93,7 +91,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public Properties info() {
-		return connection.invoke().from(BinaryJedis::info, MultiKeyPipelineBase::info).get(JedisConverters::toProperties);
+		return connection.invoke().from(Jedis::info).get(JedisConverters::toProperties);
 	}
 
 	@Override
@@ -101,13 +99,16 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(section, "Section must not be null!");
 
-		return connection.invoke().from(BinaryJedis::info, MultiKeyPipelineBase::info, section)
+		return connection.invoke().from(j -> j.info(section))
 				.get(JedisConverters::toProperties);
 	}
 
 	@Override
 	public void shutdown() {
-		connection.invokeStatus().just(BinaryJedis::shutdown, MultiKeyPipelineBase::shutdown);
+		connection.invokeStatus().just(jedis -> {
+			jedis.shutdown();
+			return null;
+		});
 	}
 
 	@Override
@@ -128,7 +129,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		return connection.invoke().from(Jedis::configGet, MultiKeyPipelineBase::configGet, pattern)
+		return connection.invoke().from(j -> j.configGet(pattern))
 				.get(Converters::toProperties);
 	}
 
@@ -138,12 +139,12 @@ class JedisServerCommands implements RedisServerCommands {
 		Assert.notNull(param, "Parameter must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		connection.invokeStatus().just(Jedis::configSet, MultiKeyPipelineBase::configSet, param, value);
+		connection.invokeStatus().just(j -> j.configSet(param, value));
 	}
 
 	@Override
 	public void resetConfigStats() {
-		connection.invokeStatus().just(BinaryJedis::configResetStat, MultiKeyPipelineBase::configResetStat);
+		connection.invokeStatus().just(Jedis::configResetStat);
 	}
 
 	@Override
@@ -156,7 +157,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(timeUnit, "TimeUnit must not be null.");
 
-		return connection.invoke().from(BinaryJedis::time, MultiKeyPipelineBase::time)
+		return connection.invoke().from(Jedis::time)
 				.get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
 	}
 
@@ -223,7 +224,7 @@ class JedisServerCommands implements RedisServerCommands {
 			throw new UnsupportedOperationException("'REPLICAOF' cannot be called in pipeline / transaction mode.");
 		}
 
-		connection.invokeStatus().just(BinaryJedis::slaveofNoOne);
+		connection.invokeStatus().just(Jedis::slaveofNoOne);
 	}
 
 	@Override
@@ -239,8 +240,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
-		connection.invokeStatus().just(BinaryJedis::migrate, MultiKeyPipelineBase::migrate, target.getHost(),
-				target.getPort(), key, dbIndex, timeoutToUse);
+		connection.invokeStatus().just(j -> j.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse));
 	}
 
 	private boolean isPipelined() {

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -23,7 +24,6 @@ import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
-import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.util.Pool;
 
@@ -401,7 +401,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @since 1.7
 	 */
 	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig,
-			GenericObjectPoolConfig<Jedis> poolConfig) {
+			GenericObjectPoolConfig<Connection> poolConfig) {
 
 		Assert.notNull(clusterConfig, "Cluster configuration must not be null!");
 
@@ -649,7 +649,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @return the poolConfig
 	 */
 	@Nullable
-	public GenericObjectPoolConfig<Jedis> getPoolConfig() {
+	public <T> GenericObjectPoolConfig<T> getPoolConfig() {
 		return clientConfiguration.getPoolConfig().orElse(null);
 	}
 
@@ -889,12 +889,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		private @Nullable String clientName;
 		private Duration readTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
-
-		public static JedisClientConfiguration create(JedisShardInfo shardInfo) {
-
-			MutableJedisClientConfiguration configuration = new MutableJedisClientConfiguration();
-			return configuration;
-		}
 
 		public static JedisClientConfiguration create(GenericObjectPoolConfig jedisPoolConfig) {
 

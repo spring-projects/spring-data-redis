@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.Connection;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
 import java.util.ArrayList;
@@ -116,7 +115,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) BinaryJedis::get, Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<byte[]>) Jedis::get, Arrays.asList(keys))
 				.resultsAsListSortBy(keys);
 	}
 
@@ -393,7 +392,7 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		byte[][] args = JedisConverters.toBitfieldCommandArguments(subCommands);
 
 		try {
-			return connection.execute("BITFIELD", key, Arrays.asList(args), Connection::getIntegerMultiBulkReply);
+			return connection.getCluster().bitfield(key, args);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

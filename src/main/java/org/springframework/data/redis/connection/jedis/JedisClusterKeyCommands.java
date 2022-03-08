@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -179,7 +180,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 						protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
 							ScanParams params = JedisConverters.toScanParams(options);
-							redis.clients.jedis.ScanResult<String> result = client.scan(Long.toString(cursorId), params);
+							ScanResult<String> result = client.scan(Long.toString(cursorId), params);
 							return new ScanIteration<>(Long.valueOf(result.getCursor()),
 									JedisConverters.stringListToByteList().convert(result.getResult()));
 						}
@@ -472,7 +473,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) BinaryJedis::exists, Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) Jedis::exists, Arrays.asList(keys))
 				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
 	}
 

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BitOP;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.GeoRadiusResponse;
 import redis.clients.jedis.GeoUnit;
@@ -23,10 +22,16 @@ import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.args.FlushMode;
+import redis.clients.jedis.args.BitOP;
+import redis.clients.jedis.args.GeoUnit;
+import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.GetExParams;
+import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
+import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -114,12 +119,12 @@ public abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * {@link ListConverter} converting jedis {@link redis.clients.jedis.Tuple} to {@link Tuple}.
+	 * {@link ListConverter} converting jedis {@link redis.clients.jedis.resps.Tuple} to {@link Tuple}.
 	 *
 	 * @return
 	 * @since 1.4
 	 */
-	static ListConverter<redis.clients.jedis.Tuple, Tuple> tuplesToTuples() {
+	static ListConverter<redis.clients.jedis.resps.Tuple, Tuple> tuplesToTuples() {
 		return new ListConverter<>(JedisConverters::toTuple);
 	}
 
@@ -130,11 +135,11 @@ public abstract class JedisConverters extends Converters {
 	/**
 	 * @deprecated since 2.5
 	 */
-	static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
+	static Set<Tuple> toTupleSet(Set<redis.clients.jedis.resps.Tuple> source) {
 		return new SetConverter<>(JedisConverters::toTuple).convert(source);
 	}
 
-	public static Tuple toTuple(redis.clients.jedis.Tuple source) {
+	public static Tuple toTuple(redis.clients.jedis.resps.Tuple source) {
 		return new DefaultTuple(source.getBinaryElement(), source.getScore());
 	}
 
@@ -586,7 +591,7 @@ public abstract class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.8
 	 */
-	public static Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> geoRadiusResponseToGeoResultsConverter(
+	public static Converter<List<GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> geoRadiusResponseToGeoResultsConverter(
 			Metric metric) {
 		return GeoResultsConverterFactory.INSTANCE.forMetric(metric);
 	}
@@ -767,13 +772,13 @@ public abstract class JedisConverters extends Converters {
 
 		INSTANCE;
 
-		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
+		Converter<List<GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
 			return new GeoResultsConverter(
 					ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
 
 		private static class GeoResultsConverter
-				implements Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> {
+				implements Converter<List<GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> {
 
 			private final Metric metric;
 
@@ -786,7 +791,7 @@ public abstract class JedisConverters extends Converters {
 
 				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<>(source.size());
 
-				Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> converter = GeoResultConverterFactory.INSTANCE
+				Converter<GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> converter = GeoResultConverterFactory.INSTANCE
 						.forMetric(metric);
 				for (GeoRadiusResponse result : source) {
 					results.add(converter.convert(result));
@@ -805,12 +810,12 @@ public abstract class JedisConverters extends Converters {
 
 		INSTANCE;
 
-		Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> forMetric(Metric metric) {
+		Converter<GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> forMetric(Metric metric) {
 			return new GeoResultConverter(metric);
 		}
 
 		private static class GeoResultConverter
-				implements Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> {
+				implements Converter<GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> {
 
 			private final Metric metric;
 
@@ -819,7 +824,7 @@ public abstract class JedisConverters extends Converters {
 			}
 
 			@Override
-			public GeoResult<GeoLocation<byte[]>> convert(redis.clients.jedis.GeoRadiusResponse source) {
+			public GeoResult<GeoLocation<byte[]>> convert(GeoRadiusResponse source) {
 
 				Point point = JedisConverters.toPoint(source.getCoordinate());
 

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.convert;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +46,10 @@ public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 
 	@Override
 	public Set<T> convert(Set<S> source) {
+		return source.stream().map(itemConverter::convert).collect(Collectors.toCollection(LinkedHashSet::new));
+	}
+
+	public Set<T> convert(Collection<S> source) {
 		return source.stream().map(itemConverter::convert).collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 

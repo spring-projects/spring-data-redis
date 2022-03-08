@@ -343,6 +343,9 @@ public class RedisTemplateIntegrationTests<K, V> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@ParameterizedRedisTest
 	public void testExecutePipelinedTx() {
+
+		assumeThat(redisTemplate.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
+
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		List<Object> pipelinedResults = redisTemplate.executePipelined(new SessionCallback() {
@@ -370,6 +373,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@ParameterizedRedisTest
 	void testExecutePipelinedTxCustomSerializer() {
+		assumeThat(redisTemplate.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
 		assumeThat(redisTemplate instanceof StringRedisTemplate).isTrue();
 		List<Object> pipelinedResults = redisTemplate.executePipelined(new SessionCallback() {
 			public Object execute(RedisOperations operations) throws DataAccessException {
@@ -580,9 +584,6 @@ public class RedisTemplateIntegrationTests<K, V> {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testGetExpireMillisUsingTransactions() {
 
-		assumeThat(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
-				|| redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory).isTrue();
-
 		K key = keyFactory.instance();
 		List<Object> result = redisTemplate.execute(new SessionCallback<List<Object>>() {
 
@@ -606,9 +607,6 @@ public class RedisTemplateIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-526
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testGetExpireMillisUsingPipelining() {
-
-		assumeThat(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
-				|| redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory).isTrue();
 
 		K key = keyFactory.instance();
 		List<Object> result = redisTemplate.executePipelined(new SessionCallback<Object>() {

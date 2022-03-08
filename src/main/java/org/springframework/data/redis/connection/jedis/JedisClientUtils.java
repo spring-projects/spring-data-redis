@@ -15,15 +15,13 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Builder;
-import redis.clients.jedis.Client;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Protocol.Command;
-import redis.clients.jedis.Queable;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.util.SafeEncoder;
+import redis.clients.jedis.Protocol;
+import redis.clients.jedis.Transaction;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Function;
@@ -43,26 +41,15 @@ import org.springframework.util.ReflectionUtils;
 @SuppressWarnings({ "unchecked", "ConstantConditions" })
 class JedisClientUtils {
 
-	private static final Method GET_RESPONSE;
+	private static final Field TRANSACTION;
 	private static final Set<String> KNOWN_COMMANDS;
-	private static final Builder<Object> OBJECT_BUILDER;
 
 	static {
 
-		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
-		ReflectionUtils.makeAccessible(GET_RESPONSE);
+		TRANSACTION = ReflectionUtils.findField(Jedis.class, "transaction");
+		ReflectionUtils.makeAccessible(TRANSACTION);
 
-		KNOWN_COMMANDS = Arrays.stream(Command.values()).map(Enum::name).collect(Collectors.toSet());
-
-		OBJECT_BUILDER = new Builder<Object>() {
-			public Object build(Object data) {
-				return data;
-			}
-
-			public String toString() {
-				return "Object";
-			}
-		};
+		KNOWN_COMMANDS = Arrays.stream(Protocol.Command.values()).map(Enum::name).collect(Collectors.toSet());
 	}
 
 	/**
@@ -72,7 +59,7 @@ class JedisClientUtils {
 	 * @param keys must not be {@literal null}, may be empty.
 	 * @param args must not be {@literal null}, may be empty.
 	 * @param jedis must not be {@literal null}.
-	 * @return the response, can be be {@literal null}.
+	 * @return the response, can be {@literal null}.
 	 */
 	static <T> T execute(String command, byte[][] keys, byte[][] args, Supplier<Jedis> jedis) {
 		return execute(command, keys, args, jedis, it -> (T) it.getOne());
@@ -86,42 +73,42 @@ class JedisClientUtils {
 	 * @param args must not be {@literal null}, may be empty.
 	 * @param jedis must not be {@literal null}.
 	 * @param responseMapper must not be {@literal null}.
-	 * @return the response, can be be {@literal null}.
+	 * @return the response, can be {@literal null}.
 	 * @since 2.1
 	 */
 	static <T> T execute(String command, byte[][] keys, byte[][] args, Supplier<Jedis> jedis,
-			Function<Client, T> responseMapper) {
+			Function<Connection, T> responseMapper) {
 
 		byte[][] commandArgs = getCommandArguments(keys, args);
 
-		Client client = sendCommand(command, commandArgs, jedis.get());
+		Connection Connection = sendCommand(command, commandArgs, jedis.get());
 
-		return responseMapper.apply(client);
+		return responseMapper.apply(Connection);
 	}
 
 	/**
-	 * Send a Redis command and retrieve the {@link Client} for response retrieval.
+	 * Send a Redis command and retrieve the {@link Connection} for response retrieval.
 	 *
 	 * @param command the command.
 	 * @param args must not be {@literal null}, may be empty.
 	 * @param jedis must not be {@literal null}.
-	 * @return the {@link Client} instance used to send the command.
+	 * @return the {@link Connection} instance used to send the command.
 	 */
-	static Client sendCommand(String command, byte[][] args, Jedis jedis) {
+	static Connection sendCommand(String command, byte[][] args, Jedis jedis) {
 
-		Client client = jedis.getClient();
+		Connection Connection = jedis.getConnection();
 
-		sendCommand(client, command, args);
+		sendCommand(Connection, command, args);
 
-		return client;
+		return Connection;
 	}
 
-	private static void sendCommand(Client client, String command, byte[][] args) {
+	private static void sendCommand(Connection Connection, String command, byte[][] args) {
 
 		if (isKnownCommand(command)) {
-			client.sendCommand(Command.valueOf(command.trim().toUpperCase()), args);
+			Connection.sendCommand(Protocol.Command.valueOf(command.trim().toUpperCase()), args);
 		} else {
-			client.sendCommand(() -> SafeEncoder.encode(command.trim().toUpperCase()), args);
+			Connection.sendCommand(() -> command.trim().toUpperCase().getBytes(StandardCharsets.UTF_8), args);
 		}
 	}
 
@@ -148,23 +135,13 @@ class JedisClientUtils {
 	}
 
 	/**
-	 * @param jedis the client instance.
+	 * @param jedis the Connection instance.
 	 * @return {@literal true} if the connection has entered {@literal MULTI} state.
 	 */
 	static boolean isInMulti(Jedis jedis) {
-		return jedis.getClient().isInMulti();
-	}
 
-	/**
-	 * Retrieve the {@link Response} object from a {@link redis.clients.jedis.Transaction} or a
-	 * {@link redis.clients.jedis.Pipeline} for response synchronization.
-	 *
-	 * @param target a {@link redis.clients.jedis.Transaction} or {@link redis.clients.jedis.Pipeline}, must not be
-	 *          {@literal null}.
-	 * @return the {@link Response} wrapper object.
-	 */
-	static Response<Object> getResponse(Object target) {
-		return (Response<Object>) ReflectionUtils.invokeMethod(GET_RESPONSE, target, OBJECT_BUILDER);
-	}
+		Object field = ReflectionUtils.getField(TRANSACTION, jedis);
 
+		return field instanceof Transaction;
+	}
 }

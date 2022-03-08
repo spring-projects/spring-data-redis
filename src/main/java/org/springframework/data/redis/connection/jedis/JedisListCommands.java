@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.MultiKeyPipelineBase;
-import redis.clients.jedis.Protocol;
 import redis.clients.jedis.args.ListDirection;
+import redis.clients.jedis.commands.JedisBinaryCommands;
+import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.LPosParams;
 
 import java.util.Collections;
@@ -47,7 +46,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::rpush, MultiKeyPipelineBase::rpush, key, values);
+		return connection.invoke().just(JedisBinaryCommands::rpush, PipelineBinaryCommands::rpush, key, values);
 	}
 
 	@Override
@@ -62,10 +61,11 @@ class JedisListCommands implements RedisListCommands {
 		}
 
 		if (count != null) {
-			return connection.invoke().just(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params, count);
+			return connection.invoke().just(JedisBinaryCommands::lpos, PipelineBinaryCommands::lpos, key, element, params,
+					count);
 		}
 
-		return connection.invoke().from(BinaryJedis::lpos, MultiKeyPipelineBase::lpos, key, element, params)
+		return connection.invoke().from(JedisBinaryCommands::lpos, PipelineBinaryCommands::lpos, key, element, params)
 				.getOrElse(Collections::singletonList, Collections::emptyList);
 	}
 
@@ -76,7 +76,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(values, "Values must not be null!");
 		Assert.noNullElements(values, "Values must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::lpush, MultiKeyPipelineBase::lpush, key, values);
+		return connection.invoke().just(JedisBinaryCommands::lpush, PipelineBinaryCommands::lpush, key, values);
 	}
 
 	@Override
@@ -85,7 +85,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().just(BinaryJedis::rpushx, MultiKeyPipelineBase::rpushx, key, value);
+		return connection.invoke().just(JedisBinaryCommands::rpushx, PipelineBinaryCommands::rpushx, key, value);
 	}
 
 	@Override
@@ -94,7 +94,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lpushx, MultiKeyPipelineBase::lpushx, key, value);
+		return connection.invoke().just(JedisBinaryCommands::lpushx, PipelineBinaryCommands::lpushx, key, value);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::llen, MultiKeyPipelineBase::llen, key);
+		return connection.invoke().just(JedisBinaryCommands::llen, PipelineBinaryCommands::llen, key);
 	}
 
 	@Override
@@ -110,7 +110,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lrange, MultiKeyPipelineBase::lrange, key, start, end);
+		return connection.invoke().just(JedisBinaryCommands::lrange, PipelineBinaryCommands::lrange, key, start, end);
 	}
 
 	@Override
@@ -118,7 +118,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		connection.invokeStatus().just(BinaryJedis::ltrim, MultiKeyPipelineBase::ltrim, key, start, end);
+		connection.invokeStatus().just(JedisBinaryCommands::ltrim, PipelineBinaryCommands::ltrim, key, start, end);
 	}
 
 	@Override
@@ -126,7 +126,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lindex, MultiKeyPipelineBase::lindex, key, index);
+		return connection.invoke().just(JedisBinaryCommands::lindex, PipelineBinaryCommands::lindex, key, index);
 	}
 
 	@Override
@@ -134,7 +134,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::linsert, MultiKeyPipelineBase::linsert, key,
+		return connection.invoke().just(JedisBinaryCommands::linsert, PipelineBinaryCommands::linsert, key,
 				JedisConverters.toListPosition(where), pivot, value);
 	}
 
@@ -146,7 +146,8 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(from, "From direction must not be null!");
 		Assert.notNull(to, "To direction must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lmove, MultiKeyPipelineBase::lmove, sourceKey, destinationKey,
+		return connection.invoke().just(JedisBinaryCommands::lmove, PipelineBinaryCommands::lmove, sourceKey,
+				destinationKey,
 				ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()));
 	}
 
@@ -158,7 +159,8 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(from, "From direction must not be null!");
 		Assert.notNull(to, "To direction must not be null!");
 
-		return connection.invoke().just(BinaryJedis::blmove, MultiKeyPipelineBase::blmove, sourceKey, destinationKey,
+		return connection.invoke().just(JedisBinaryCommands::blmove, PipelineBinaryCommands::blmove, sourceKey,
+				destinationKey,
 				ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()), timeout);
 	}
 
@@ -168,7 +170,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		connection.invokeStatus().just(BinaryJedis::lset, MultiKeyPipelineBase::lset, key, index, value);
+		connection.invokeStatus().just(JedisBinaryCommands::lset, PipelineBinaryCommands::lset, key, index, value);
 	}
 
 	@Override
@@ -177,7 +179,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lrem, MultiKeyPipelineBase::lrem, key, count, value);
+		return connection.invoke().just(JedisBinaryCommands::lrem, PipelineBinaryCommands::lrem, key, count, value);
 	}
 
 	@Override
@@ -185,7 +187,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lpop, MultiKeyPipelineBase::lpop, key);
+		return connection.invoke().just(JedisBinaryCommands::lpop, PipelineBinaryCommands::lpop, key);
 	}
 
 	@Override
@@ -193,7 +195,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::lpop, MultiKeyPipelineBase::lpop, key, (int) count);
+		return connection.invoke().just(JedisBinaryCommands::lpop, PipelineBinaryCommands::lpop, key, (int) count);
 	}
 
 	@Override
@@ -201,7 +203,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::rpop, MultiKeyPipelineBase::rpop, key);
+		return connection.invoke().just(JedisBinaryCommands::rpop, PipelineBinaryCommands::rpop, key);
 	}
 
 	@Override
@@ -209,7 +211,7 @@ class JedisListCommands implements RedisListCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::rpop, MultiKeyPipelineBase::rpop, key, (int) count);
+		return connection.invoke().just(JedisBinaryCommands::rpop, PipelineBinaryCommands::rpop, key, (int) count);
 	}
 
 	@Override
@@ -218,7 +220,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::blpop, MultiKeyPipelineBase::blpop, bXPopArgs(timeout, keys));
+		return connection.invoke().just(j -> j.blpop(timeout, keys), j -> j.blpop(timeout, keys));
 	}
 
 	@Override
@@ -227,7 +229,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(keys, "Key must not be null!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return connection.invoke().just(BinaryJedis::brpop, MultiKeyPipelineBase::brpop, bXPopArgs(timeout, keys));
+		return connection.invoke().just(j -> j.brpop(timeout, keys), j -> j.brpop(timeout, keys));
 	}
 
 	@Override
@@ -236,7 +238,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(srcKey, "Source key must not be null!");
 		Assert.notNull(dstKey, "Destination key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::rpoplpush, MultiKeyPipelineBase::rpoplpush, srcKey, dstKey);
+		return connection.invoke().just(JedisBinaryCommands::rpoplpush, PipelineBinaryCommands::rpoplpush, srcKey, dstKey);
 	}
 
 	@Override
@@ -245,16 +247,8 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(srcKey, "Source key must not be null!");
 		Assert.notNull(dstKey, "Destination key must not be null!");
 
-		return connection.invoke().just(BinaryJedis::brpoplpush, MultiKeyPipelineBase::brpoplpush, srcKey, dstKey, timeout);
-	}
-
-	private static byte[][] bXPopArgs(int timeout, byte[]... keys) {
-
-		byte[][] args = new byte[keys.length + 1][];
-		System.arraycopy(keys, 0, args, 0, keys.length);
-
-		args[args.length - 1] = Protocol.toByteArray(timeout);
-		return args;
+		return connection.invoke().just(JedisBinaryCommands::brpoplpush, PipelineBinaryCommands::brpoplpush, srcKey, dstKey,
+				timeout);
 	}
 
 }

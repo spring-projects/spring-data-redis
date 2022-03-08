@@ -27,10 +27,10 @@ import static org.springframework.data.redis.connection.RedisListCommands.*;
 import static org.springframework.data.redis.connection.RedisZSetCommands.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -121,8 +121,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@BeforeEach
 	void tearDown() throws IOException {
 
-		for (JedisPool pool : nativeConnection.getClusterNodes().values()) {
-			try (Jedis jedis = pool.getResource()) {
+		for (ConnectionPool pool : nativeConnection.getClusterNodes().values()) {
+			try (Jedis jedis = new Jedis(pool.getResource())) {
 				jedis.flushAll();
 			} catch (Exception e) {
 				// ignore this one since we cannot remove data from replicas
@@ -372,7 +372,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void echoShouldReturnInputCorrectly() {
-		assertThat(clusterConnection.echo(VALUE_1_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> clusterConnection.echo(VALUE_1_BYTES));
 	}
 
 	@Test // DATAREDIS-315
@@ -1986,7 +1987,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.milliseconds(500), SetOption.upsert());
 
 		assertThat(nativeConnection.exists(KEY_1_BYTES)).isTrue();
-		assertThat(nativeConnection.pttl(KEY_1).doubleValue()).isCloseTo(500d, offset(499d));
+		assertThat(nativeConnection.pttl(KEY_1)).isCloseTo(500L, offset(499L));
 	}
 
 	@Test // DATAREDIS-316

@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.MultiKeyPipelineBase;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.commands.PipelineBinaryCommands;
 
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.util.Assert;
@@ -40,7 +40,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
 		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
 
-		return connection.invoke().just(BinaryJedis::pfadd, MultiKeyPipelineBase::pfadd, key, values);
+		return connection.invoke().just(Jedis::pfadd, PipelineBinaryCommands::pfadd, key, values);
 	}
 
 	@Override
@@ -49,7 +49,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
 
-		return connection.invoke().just(BinaryJedis::pfcount, MultiKeyPipelineBase::pfcount, keys);
+		return connection.invoke().just(Jedis::pfcount, PipelineBinaryCommands::pfcount, keys);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 		Assert.notNull(sourceKeys, "Source keys must not be null");
 		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
 
-		connection.invoke().just(BinaryJedis::pfmerge, MultiKeyPipelineBase::pfmerge, destinationKey, sourceKeys);
+		connection.invoke().just(Jedis::pfmerge, PipelineBinaryCommands::pfmerge, destinationKey, sourceKeys);
 	}
 
 }

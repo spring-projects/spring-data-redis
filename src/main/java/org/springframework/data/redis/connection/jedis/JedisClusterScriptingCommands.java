@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 
 import java.util.List;
@@ -44,7 +44,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 		try {
 			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
-					(JedisClusterConnection.JedisClusterCommandCallback<String>) BinaryJedis::scriptFlush);
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptFlush);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -55,7 +55,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 		try {
 			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
-					(JedisClusterConnection.JedisClusterCommandCallback<String>) BinaryJedis::scriptKill);
+					(JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptKill);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -90,7 +90,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)
-					.convert(getCluster().eval(script, JedisConverters.toBytes(numKeys), keysAndArgs));
+					.convert(getCluster().eval(script, numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
