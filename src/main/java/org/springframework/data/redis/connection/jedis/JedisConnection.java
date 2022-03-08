@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * {@code RedisConnection} implementation on top of <a href="https://github.com/xetorthio/jedis">Jedis</a> library.
+ * {@code RedisConnection} implementation on top of <a href="https://github.com/redis/jedis">Jedis</a> library.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -96,7 +96,6 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private final @Nullable Pool<Jedis> pool;
 	private final JedisClientConfig sentinelConfig;
-
 
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
@@ -271,7 +270,6 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public Object execute(String command, byte[]... args) {
-
 
 		Assert.hasText(command, "A valid command needs to be specified!");
 		Assert.notNull(args, "Arguments must not be null!");
@@ -517,12 +515,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		return JedisResultBuilder.<T, T> forResponse(response).build();
 	}
 
-	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter) {
-
-		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
-				.convertPipelineAndTxResults(convertPipelineAndTxResults).build();
-	}
-
 	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
 
 		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
@@ -566,7 +558,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		doWithJedis(it -> {
 
 			for (byte[] key : keys) {
-					it.watch(key);
+				it.watch(key);
 			}
 		});
 	}

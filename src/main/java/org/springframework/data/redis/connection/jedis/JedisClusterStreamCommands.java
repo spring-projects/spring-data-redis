@@ -77,7 +77,7 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		Assert.notNull(record, "Record must not be null!");
 		Assert.notNull(record.getStream(), "Stream must not be null!");
 
-		XAddParams params = StreamConverters.toXAddParams(record, options);
+		XAddParams params = StreamConverters.toXAddParams(record.getId(), options);
 
 		try {
 			return RecordId
@@ -122,9 +122,8 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		XClaimParams xClaimParams = StreamConverters.toXClaimParams(options);
 		try {
-			return convertToByteRecord(key,
-					connection.getCluster().xclaim(key, JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner),
-							minIdleTime, xClaimParams, entryIdsToBytes(options.getIds())));
+			return convertToByteRecord(key, connection.getCluster().xclaim(key, JedisConverters.toBytes(group),
+					JedisConverters.toBytes(newOwner), minIdleTime, xClaimParams, entryIdsToBytes(options.getIds())));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

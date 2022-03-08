@@ -180,13 +180,11 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 			super(standaloneConfig, clientConfig);
 		}
 
-		ManagedJedisConnectionFactory(RedisSentinelConfiguration sentinelConfig,
-				JedisClientConfiguration clientConfig) {
+		ManagedJedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, JedisClientConfiguration clientConfig) {
 			super(sentinelConfig, clientConfig);
 		}
 
-		ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig,
-				JedisClientConfiguration clientConfig) {
+		ManagedJedisConnectionFactory(RedisClusterConfiguration clusterConfig, JedisClientConfiguration clientConfig) {
 			super(clusterConfig, clientConfig);
 		}
 

@@ -74,8 +74,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushDb(FlushOption option) {
-		connection.invokeStatus().just(BinaryJedis::flushDB, MultiKeyPipelineBase::flushDB,
-				JedisConverters.toFlushMode(option));
+		connection.invokeStatus().just(j -> j.flushDB(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -85,8 +84,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushAll(FlushOption option) {
-		connection.invokeStatus().just(BinaryJedis::flushAll, MultiKeyPipelineBase::flushAll,
-				JedisConverters.toFlushMode(option));
+		connection.invokeStatus().just(j -> j.flushAll(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -99,8 +97,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(section, "Section must not be null!");
 
-		return connection.invoke().from(j -> j.info(section))
-				.get(JedisConverters::toProperties);
+		return connection.invoke().from(j -> j.info(section)).get(JedisConverters::toProperties);
 	}
 
 	@Override
@@ -129,8 +126,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		return connection.invoke().from(j -> j.configGet(pattern))
-				.get(Converters::toProperties);
+		return connection.invoke().from(j -> j.configGet(pattern)).get(Converters::toProperties);
 	}
 
 	@Override
@@ -157,18 +153,13 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(timeUnit, "TimeUnit must not be null.");
 
-		return connection.invoke().from(Jedis::time)
-				.get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
+		return connection.invoke().from(Jedis::time).get((List<String> source) -> JedisConverters.toTime(source, timeUnit));
 	}
 
 	@Override
 	public void killClient(String host, int port) {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
-
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("'CLIENT KILL' is not supported in transaction / pipline mode.");
-		}
 
 		connection.invokeStatus().just(it -> it.clientKill(String.format("%s:%s", host, port)));
 	}
@@ -178,30 +169,16 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.notNull(name, "Name must not be null!");
 
-		if (isPipelined() || isQueueing()) {
-			throw new UnsupportedOperationException("'CLIENT SETNAME' is not suppored in transacton / pipeline mode.");
-		}
-
 		connection.invokeStatus().just(it -> it.clientSetname(name));
 	}
 
 	@Override
 	public String getClientName() {
-
-		if (isPipelined() || isQueueing()) {
-			throw new UnsupportedOperationException();
-		}
-
 		return connection.invokeStatus().just(Jedis::clientGetname);
 	}
 
 	@Override
 	public List<RedisClientInfo> getClientList() {
-
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("'CLIENT LIST' is not supported in in pipeline / multi mode.");
-		}
-
 		return connection.invokeStatus().from(Jedis::clientList).get(JedisConverters::toListOfRedisClientInformation);
 	}
 
@@ -210,21 +187,12 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command.");
 
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("'REPLICAOF' cannot be called in pipeline / transaction mode.");
-		}
-
-		connection.invokeStatus().just(it -> it.slaveof(host, port));
+		connection.invokeStatus().just(it -> it.replicaof(host, port));
 	}
 
 	@Override
 	public void replicaOfNoOne() {
-
-		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("'REPLICAOF' cannot be called in pipeline / transaction mode.");
-		}
-
-		connection.invokeStatus().just(Jedis::slaveofNoOne);
+		connection.invokeStatus().just(Jedis::replicaofNoOne);
 	}
 
 	@Override
@@ -241,14 +209,6 @@ class JedisServerCommands implements RedisServerCommands {
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
 		connection.invokeStatus().just(j -> j.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse));
-	}
-
-	private boolean isPipelined() {
-		return connection.isPipelined();
-	}
-
-	private boolean isQueueing() {
-		return connection.isQueueing();
 	}
 
 }

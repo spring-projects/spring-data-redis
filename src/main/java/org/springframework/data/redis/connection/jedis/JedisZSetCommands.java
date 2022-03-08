@@ -70,8 +70,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		return connection.invoke().just(Jedis::zadd, PipelineBinaryCommands::zadd, key,
-				JedisConverters.toTupleMap(tuples), JedisConverters.toZAddParams(args));
+		return connection.invoke().just(Jedis::zadd, PipelineBinaryCommands::zadd, key, JedisConverters.toTupleMap(tuples),
+				JedisConverters.toZAddParams(args));
 	}
 
 	@Override
@@ -106,8 +106,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().fromMany(Jedis::zrandmember, PipelineBinaryCommands::zrandmember, key, count)
-				.toList();
+		return connection.invoke().fromMany(Jedis::zrandmember, PipelineBinaryCommands::zrandmember, key, count).toList();
 	}
 
 	@Override
@@ -290,8 +289,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().from(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key)
-				.get(JedisConverters::toTuple);
+		return connection.invoke().from(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key).get(JedisConverters::toTuple);
 	}
 
 	@Nullable
@@ -300,8 +298,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke()
-				.fromMany(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key, Math.toIntExact(count))
+		return connection.invoke().fromMany(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key, Math.toIntExact(count))
 				.toSet(JedisConverters::toTuple);
 	}
 
@@ -323,8 +320,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().from(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key)
-				.get(JedisConverters::toTuple);
+		return connection.invoke().from(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key).get(JedisConverters::toTuple);
 	}
 
 	@Nullable
@@ -333,8 +329,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke()
-				.fromMany(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key, Math.toIntExact(count))
+		return connection.invoke().fromMany(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key, Math.toIntExact(count))
 				.toSet(JedisConverters::toTuple);
 	}
 
@@ -381,8 +376,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return connection.invoke().just(Jedis::zremrangeByRank, PipelineBinaryCommands::zremrangeByRank, key, start,
-				end);
+		return connection.invoke().just(Jedis::zremrangeByRank, PipelineBinaryCommands::zremrangeByRank, key, start, end);
 	}
 
 	@Override
@@ -406,8 +400,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getMin(), JedisConverters.NEGATIVE_INFINITY_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getMax(), JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		return connection.invoke().just(Jedis::zremrangeByScore, PipelineBinaryCommands::zremrangeByScore, key, min,
-				max);
+		return connection.invoke().just(Jedis::zremrangeByScore, PipelineBinaryCommands::zremrangeByScore, key, min, max);
 	}
 
 	@Override
@@ -477,8 +470,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		ZParams zparams = toZParams(aggregate, weights);
 
-		return connection.invoke().just(Jedis::zinterstore, PipelineBinaryCommands::zinterstore, destKey, zparams,
-				sets);
+		return connection.invoke().just(Jedis::zinterstore, PipelineBinaryCommands::zinterstore, destKey, zparams, sets);
 	}
 
 	@Override
@@ -533,8 +525,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		ZParams zparams = toZParams(aggregate, weights);
 
-		return connection.invoke().just(Jedis::zunionstore, PipelineBinaryCommands::zunionstore, destKey, zparams,
-				sets);
+		return connection.invoke().just(Jedis::zunionstore, PipelineBinaryCommands::zunionstore, destKey, zparams, sets);
 	}
 
 	@Override

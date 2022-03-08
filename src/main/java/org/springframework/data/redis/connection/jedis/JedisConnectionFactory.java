@@ -108,8 +108,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private boolean destroyed;
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance with default settings (default connection pooling, no
-	 * shard information).
+	 * Constructs a new {@link JedisConnectionFactory} instance with default settings (default connection pooling).
 	 */
 	public JedisConnectionFactory() {
 		this(new MutableJedisClientConfiguration());
@@ -129,7 +128,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance using the given pool configuration.
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given pool configuration.
 	 *
 	 * @param poolConfig pool configuration
 	 */
@@ -274,7 +273,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	private Jedis createJedis() {
-
 		return new Jedis(new HostAndPort(getHostName(), getPort()), this.clientConfig);
 	}
 
@@ -834,7 +832,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		throw new InvalidDataAccessResourceUsageException("No Sentinel found");
 	}
-
 
 	private static Set<HostAndPort> convertToJedisSentinelSet(Collection<RedisNode> nodes) {
 

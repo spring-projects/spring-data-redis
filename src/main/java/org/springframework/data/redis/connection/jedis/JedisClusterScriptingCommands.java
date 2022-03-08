@@ -43,8 +43,8 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	public void scriptFlush() {
 
 		try {
-			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
-					(JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptFlush);
+			connection.getClusterCommandExecutor()
+					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptFlush);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -54,8 +54,8 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	public void scriptKill() {
 
 		try {
-			connection.getClusterCommandExecutor().executeCommandOnAllNodes(
-					(JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptKill);
+			connection.getClusterCommandExecutor()
+					.executeCommandOnAllNodes((JedisClusterConnection.JedisClusterCommandCallback<String>) Jedis::scriptKill);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -89,8 +89,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 		Assert.notNull(script, "Script must not be null!");
 
 		try {
-			return (T) new JedisScriptReturnConverter(returnType)
-					.convert(getCluster().eval(script, numKeys, keysAndArgs));
+			return (T) new JedisScriptReturnConverter(returnType).convert(getCluster().eval(script, numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

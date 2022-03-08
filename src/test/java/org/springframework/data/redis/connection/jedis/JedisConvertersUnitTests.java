@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.jupiter.api.Test;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.SetParams;
 
@@ -28,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -217,16 +218,14 @@ class JedisConvertersUnitTests {
 	void convertsExpirationToSetPXAT() {
 
 		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS)))
-				.extracting(SetParams::toString)
-				.isEqualTo(SetParams.setParams().pxAt(10).toString());
+				.extracting(SetParams::toString).isEqualTo(SetParams.setParams().pxAt(10).toString());
 	}
 
 	@Test // GH-2050
 	void convertsExpirationToSetEXAT() {
 
 		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.unixTimestamp(1, TimeUnit.MINUTES)))
-				.extracting(SetParams::toString)
-				.isEqualTo(SetParams.setParams().exAt(60).toString());
+				.extracting(SetParams::toString).isEqualTo(SetParams.setParams().exAt(60).toString());
 	}
 
 	@Test // DATAREDIS-316, DATAREDIS-749
@@ -247,24 +246,21 @@ class JedisConvertersUnitTests {
 	@Test // GH-2050
 	void convertsExpirationToGetExEX() {
 
-		assertThat(JedisConverters.toGetExParams(Expiration.seconds(10)))
-				.extracting(GetExParams::toString)
+		assertThat(JedisConverters.toGetExParams(Expiration.seconds(10))).extracting(GetExParams::toString)
 				.isEqualTo(new GetExParams().ex(10).toString());
 	}
 
 	@Test // GH-2050
 	void convertsExpirationWithTimeUnitToGetExEX() {
 
-		assertThat(JedisConverters.toGetExParams(Expiration.from(1, TimeUnit.MINUTES)))
-				.extracting(GetExParams::toString)
+		assertThat(JedisConverters.toGetExParams(Expiration.from(1, TimeUnit.MINUTES))).extracting(GetExParams::toString)
 				.isEqualTo(new GetExParams().ex(60).toString());
 	}
 
 	@Test // GH-2050
 	void convertsExpirationToGetExPEX() {
 
-		assertThat(JedisConverters.toGetExParams(Expiration.milliseconds(10)))
-				.extracting(GetExParams::toString)
+		assertThat(JedisConverters.toGetExParams(Expiration.milliseconds(10))).extracting(GetExParams::toString)
 				.isEqualTo(new GetExParams().px(10).toString());
 	}
 
@@ -272,24 +268,21 @@ class JedisConvertersUnitTests {
 	void convertsExpirationToGetExEXAT() {
 
 		assertThat(JedisConverters.toGetExParams(Expiration.unixTimestamp(10, TimeUnit.SECONDS)))
-				.extracting(GetExParams::toString)
-				.isEqualTo(new GetExParams().exAt(10).toString());
+				.extracting(GetExParams::toString).isEqualTo(new GetExParams().exAt(10).toString());
 	}
 
 	@Test // GH-2050
 	void convertsExpirationWithTimeUnitToGetExEXAT() {
 
 		assertThat(JedisConverters.toGetExParams(Expiration.unixTimestamp(1, TimeUnit.MINUTES)))
-				.extracting(GetExParams::toString)
-				.isEqualTo(new GetExParams().exAt(60).toString());
+				.extracting(GetExParams::toString).isEqualTo(new GetExParams().exAt(60).toString());
 	}
 
 	@Test // GH-2050
 	void convertsExpirationToGetExPXAT() {
 
 		assertThat(JedisConverters.toGetExParams(Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS)))
-				.extracting(GetExParams::toString)
-				.isEqualTo(new GetExParams().pxAt(10).toString());
+				.extracting(GetExParams::toString).isEqualTo(new GetExParams().pxAt(10).toString());
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {

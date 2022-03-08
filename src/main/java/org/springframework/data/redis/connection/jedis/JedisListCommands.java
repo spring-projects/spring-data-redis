@@ -147,8 +147,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(to, "To direction must not be null!");
 
 		return connection.invoke().just(JedisBinaryCommands::lmove, PipelineBinaryCommands::lmove, sourceKey,
-				destinationKey,
-				ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()));
+				destinationKey, ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()));
 	}
 
 	@Override
@@ -160,8 +159,7 @@ class JedisListCommands implements RedisListCommands {
 		Assert.notNull(to, "To direction must not be null!");
 
 		return connection.invoke().just(JedisBinaryCommands::blmove, PipelineBinaryCommands::blmove, sourceKey,
-				destinationKey,
-				ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()), timeout);
+				destinationKey, ListDirection.valueOf(from.name()), ListDirection.valueOf(to.name()), timeout);
 	}
 
 	@Override

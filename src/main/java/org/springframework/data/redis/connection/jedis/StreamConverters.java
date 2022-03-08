@@ -24,7 +24,6 @@ import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
 import redis.clients.jedis.resps.StreamEntry;
 import redis.clients.jedis.resps.StreamPendingEntry;
-import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.time.Duration;
@@ -41,7 +40,6 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
@@ -206,7 +204,7 @@ class StreamConverters {
 		return new PendingMessages(groupName, messages).withinRange(range);
 	}
 
-	public static XAddParams toXAddParams(RedisStreamCommands.XAddOptions options, RecordId recordId) {
+	public static XAddParams toXAddParams(RecordId recordId, RedisStreamCommands.XAddOptions options) {
 
 		XAddParams params = new XAddParams();
 		params.id(toStreamEntryId(recordId.getValue()));

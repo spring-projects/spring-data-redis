@@ -78,8 +78,8 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		assertDirectMode();
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
-		return (T) connection.invoke().from(it -> it.eval(script, numKeys, keysAndArgs))
-				.getOrElse(converter, () -> converter.convert(null));
+		return (T) connection.invoke().from(it -> it.eval(script, numKeys, keysAndArgs)).getOrElse(converter,
+				() -> converter.convert(null));
 	}
 
 	@Override

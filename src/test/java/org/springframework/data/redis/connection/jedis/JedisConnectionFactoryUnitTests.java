@@ -27,7 +27,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -37,7 +36,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -93,8 +91,7 @@ class JedisConnectionFactoryUnitTests {
 		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
 
-		verify(connectionFactory, times(1)).createCluster(eq(CLUSTER_CONFIG),
-				any(GenericObjectPoolConfig.class));
+		verify(connectionFactory, times(1)).createCluster(eq(CLUSTER_CONFIG), any(GenericObjectPoolConfig.class));
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
