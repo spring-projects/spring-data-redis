@@ -15,10 +15,12 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ZParams;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.ZParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +51,7 @@ import org.springframework.util.Assert;
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
 
-	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_CONVERTER = new SetConverter<>(
+	private static final SetConverter<redis.clients.jedis.resps.Tuple, Tuple> TUPLE_SET_CONVERTER = new SetConverter<>(
 			JedisConverters::toTuple);
 	private final JedisClusterConnection connection;
 
@@ -142,7 +144,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			Set<redis.clients.jedis.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, 1);
+			List<redis.clients.jedis.resps.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, 1);
 
 			return tuples.isEmpty() ? null : JedisConverters.toTuple(tuples.iterator().next());
 		} catch (Exception ex) {
@@ -156,7 +158,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			Set<redis.clients.jedis.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, count);
+			List<redis.clients.jedis.resps.Tuple> tuples = connection.getCluster().zrandmemberWithScores(key, count);
 
 			return tuples.stream().map(JedisConverters::toTuple).collect(Collectors.toList());
 		} catch (Exception ex) {
@@ -196,7 +198,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().zrange(key, start, end);
+			return new LinkedHashSet<>(connection.getCluster().zrange(key, start, end));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -234,9 +236,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return connection.getCluster().zrevrangeByScore(key, max, min);
+				return new LinkedHashSet<>(connection.getCluster().zrevrangeByScore(key, max, min));
 			}
-			return connection.getCluster().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount());
+			return new LinkedHashSet<>(
+					connection.getCluster().zrevrangeByScore(key, max, min, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -302,7 +305,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			redis.clients.jedis.Tuple tuple = connection.getCluster().zpopmin(key);
+			redis.clients.jedis.resps.Tuple tuple = connection.getCluster().zpopmin(key);
 			return tuple != null ? JedisConverters.toTuple(tuple) : null;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -343,7 +346,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			redis.clients.jedis.Tuple tuple = connection.getCluster().zpopmax(key);
+			redis.clients.jedis.resps.Tuple tuple = connection.getCluster().zpopmax(key);
 			return tuple != null ? JedisConverters.toTuple(tuple) : null;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -405,9 +408,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return connection.getCluster().zrangeByScore(key, min, max);
+				return new LinkedHashSet<>(connection.getCluster().zrangeByScore(key, min, max));
 			}
-			return connection.getCluster().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount());
+			return new LinkedHashSet<>(
+					connection.getCluster().zrangeByScore(key, min, max, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -425,9 +429,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return connection.getCluster().zrangeByLex(key, min, max);
+				return new LinkedHashSet<>(connection.getCluster().zrangeByLex(key, min, max));
 			}
-			return connection.getCluster().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
+			return new LinkedHashSet<>(
+					connection.getCluster().zrangeByLex(key, min, max, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -461,9 +466,10 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			if (limit.isUnlimited()) {
-				return connection.getCluster().zrevrangeByLex(key, max, min);
+				return new LinkedHashSet<>(connection.getCluster().zrevrangeByLex(key, max, min));
 			}
-			return connection.getCluster().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount());
+			return new LinkedHashSet<>(
+					connection.getCluster().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -487,7 +493,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().zrangeByScore(key, min, max);
+			return new LinkedHashSet<>(connection.getCluster().zrangeByScore(key, min, max));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -515,8 +521,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 
 		try {
-			return connection.getCluster().zrangeByScore(key, min, max, Long.valueOf(offset).intValue(),
-					Long.valueOf(count).intValue());
+			return new LinkedHashSet<>(connection.getCluster().zrangeByScore(key, min, max, Long.valueOf(offset).intValue(),
+					Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -545,7 +551,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().zrevrange(key, start, end);
+			return new LinkedHashSet<>(connection.getCluster().zrevrange(key, start, end));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -569,7 +575,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().zrevrangeByScore(key, max, min);
+			return new LinkedHashSet<>(connection.getCluster().zrevrangeByScore(key, max, min));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -597,8 +603,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 
 		try {
-			return connection.getCluster().zrevrangeByScore(key, max, min, Long.valueOf(offset).intValue(),
-					Long.valueOf(count).intValue());
+			return new LinkedHashSet<>(connection.getCluster().zrevrangeByScore(key, max, min,
+					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -961,7 +967,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				redis.clients.jedis.ScanResult<redis.clients.jedis.Tuple> result = connection.getCluster().zscan(key,
+				ScanResult<redis.clients.jedis.resps.Tuple> result = connection.getCluster().zscan(key,
 						JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<>(Long.valueOf(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
@@ -975,7 +981,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
-			return connection.getCluster().zrangeByScore(key, JedisConverters.toBytes(min), JedisConverters.toBytes(max));
+			return new LinkedHashSet<>(
+					connection.getCluster().zrangeByScore(key, JedisConverters.toBytes(min), JedisConverters.toBytes(max)));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -991,8 +998,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 
 		try {
-			return connection.getCluster().zrangeByScore(key, JedisConverters.toBytes(min), JedisConverters.toBytes(max),
-					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue());
+			return new LinkedHashSet<>(connection.getCluster().zrangeByScore(key, JedisConverters.toBytes(min),
+					JedisConverters.toBytes(max), Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1002,7 +1009,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		return connection.convertJedisAccessException(ex);
 	}
 
-	private static Set<Tuple> toTupleSet(Set<redis.clients.jedis.Tuple> source) {
+	private static Set<Tuple> toTupleSet(List<redis.clients.jedis.resps.Tuple> source) {
 		return TUPLE_SET_CONVERTER.convert(source);
 	}
 

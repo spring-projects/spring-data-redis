@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -179,7 +180,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 						protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
 							ScanParams params = JedisConverters.toScanParams(options);
-							redis.clients.jedis.ScanResult<String> result = client.scan(Long.toString(cursorId), params);
+							ScanResult<String> result = client.scan(Long.toString(cursorId), params);
 							return new ScanIteration<>(Long.valueOf(result.getCursor()),
 									JedisConverters.stringListToByteList().convert(result.getResult()));
 						}
@@ -277,11 +278,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		if (seconds > Integer.MAX_VALUE) {
-			throw new UnsupportedOperationException("Jedis does not support seconds exceeding Integer.MAX_VALUE.");
-		}
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().expire(key, Long.valueOf(seconds).intValue()));
+			return JedisConverters.toBoolean(connection.getCluster().expire(key, seconds));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -404,14 +402,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
 
-		if (ttlInMillis > Integer.MAX_VALUE) {
-			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
-		}
-
 		connection.getClusterCommandExecutor().executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
 
 			if (!replace) {
-				return client.restore(key, Long.valueOf(ttlInMillis).intValue(), serializedValue);
+				return client.restore(key, ttlInMillis, serializedValue);
 			}
 
 			return JedisConverters.toString(this.connection.execute("RESTORE", key,
@@ -472,7 +466,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) BinaryJedis::exists, Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Boolean>) Jedis::exists, Arrays.asList(keys))
 				.resultsAsList().stream().mapToLong(val -> ObjectUtils.nullSafeEquals(val, Boolean.TRUE) ? 1 : 0).sum();
 	}
 

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.exceptions.JedisClusterMaxAttemptsException;
+import redis.clients.jedis.exceptions.JedisClusterOperationException;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.exceptions.JedisRedirectionException;
@@ -49,7 +49,11 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 			return (DataAccessException) ex;
 		}
 
-		if (ex instanceof JedisClusterMaxAttemptsException) {
+		if (ex instanceof UnsupportedOperationException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+
+		if (ex instanceof JedisClusterOperationException && "No more cluster attempts left.".equals(ex.getMessage())) {
 			return new TooManyClusterRedirectionsException(ex.getMessage(), ex);
 		}
 

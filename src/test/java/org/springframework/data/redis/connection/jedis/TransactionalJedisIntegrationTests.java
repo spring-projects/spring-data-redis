@@ -34,11 +34,7 @@ public class TransactionalJedisIntegrationTests extends AbstractTransactionalTes
 		@Override
 		@Bean
 		public JedisConnectionFactory redisConnectionFactory() {
-
-			JedisConnectionFactory factory = new JedisConnectionFactory();
-			factory.setHostName(SettingsUtils.getHost());
-			factory.setPort(SettingsUtils.getPort());
-			return factory;
+			return new JedisConnectionFactory(SettingsUtils.standaloneConfiguration());
 		}
 	}
 }

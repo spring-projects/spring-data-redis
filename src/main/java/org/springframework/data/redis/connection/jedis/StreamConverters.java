@@ -15,15 +15,22 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.StreamEntry;
+import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.StreamEntryID;
-import redis.clients.jedis.StreamPendingEntry;
+import redis.clients.jedis.params.XAddParams;
+import redis.clients.jedis.params.XClaimParams;
+import redis.clients.jedis.params.XPendingParams;
+import redis.clients.jedis.params.XReadGroupParams;
+import redis.clients.jedis.params.XReadParams;
+import redis.clients.jedis.resps.StreamEntry;
+import redis.clients.jedis.resps.StreamPendingEntry;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -37,8 +44,10 @@ import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 
 /**
@@ -103,9 +112,10 @@ class StreamConverters {
 		return sources;
 	}
 
-	static Map<byte[], byte[]> toStreamOffsets(StreamOffset<byte[]>[] streams) {
+	static Map.Entry<byte[], byte[]>[] toStreamOffsets(StreamOffset<byte[]>[] streams) {
 		return Arrays.stream(streams)
-				.collect(Collectors.toMap(StreamOffset::getKey, v -> JedisConverters.toBytes(v.getOffset().getOffset())));
+				.collect(Collectors.toMap(StreamOffset::getKey, v -> JedisConverters.toBytes(v.getOffset().getOffset())))
+				.entrySet().toArray(new Map.Entry[0]);
 	}
 
 	static List<ByteRecord> convertToByteRecord(byte[] key, Object source) {
@@ -150,6 +160,32 @@ class StreamConverters {
 		return result;
 	}
 
+	static PendingMessagesSummary toPendingMessagesSummary(String groupName, Object source) {
+
+		List<Object> objectList = (List<Object>) source;
+		long total = BuilderFactory.LONG.build(objectList.get(0));
+		Range.Bound<String> lower = objectList.get(1) != null
+				? Range.Bound.inclusive(SafeEncoder.encode((byte[]) objectList.get(1)))
+				: Range.Bound.unbounded();
+		Range.Bound<String> upper = objectList.get(2) != null
+				? Range.Bound.inclusive(SafeEncoder.encode((byte[]) objectList.get(2)))
+				: Range.Bound.unbounded();
+		List<List<Object>> consumerObjList = (List<List<Object>>) objectList.get(3);
+		Map<String, Long> map;
+
+		if (consumerObjList != null) {
+			map = new HashMap<>(consumerObjList.size());
+			for (List<Object> consumerObj : consumerObjList) {
+				map.put(SafeEncoder.encode((byte[]) consumerObj.get(0)),
+						Long.parseLong(SafeEncoder.encode((byte[]) consumerObj.get(1))));
+			}
+		} else {
+			map = Collections.emptyMap();
+		}
+
+		return new PendingMessagesSummary(groupName, total, Range.of(lower, upper), map);
+	}
+
 	/**
 	 * Convert the raw Jedis xpending result to {@link PendingMessages}.
 	 *
@@ -170,10 +206,10 @@ class StreamConverters {
 		return new PendingMessages(groupName, messages).withinRange(range);
 	}
 
-	static XAddParams toXAddParams(MapRecord<byte[], byte[], byte[]> record, RedisStreamCommands.XAddOptions options) {
+	public static XAddParams toXAddParams(RedisStreamCommands.XAddOptions options, RecordId recordId) {
 
-		XAddParams params = XAddParams.xAddParams();
-		params.id(record.getId().getValue());
+		XAddParams params = new XAddParams();
+		params.id(toStreamEntryId(recordId.getValue()));
 
 		if (options.hasMaxlen()) {
 			params.maxLen(options.getMaxlen());
@@ -193,4 +229,89 @@ class StreamConverters {
 
 		return params;
 	}
+
+	private static StreamEntryID toStreamEntryId(String value) {
+
+		if ("*".equals(value)) {
+			return StreamEntryID.NEW_ENTRY;
+		}
+
+		if ("$".equals(value)) {
+			return StreamEntryID.LAST_ENTRY;
+		}
+
+		if (">".equals(value)) {
+			return StreamEntryID.UNRECEIVED_ENTRY;
+		}
+
+		return new StreamEntryID(value);
+	}
+
+	public static XClaimParams toXClaimParams(RedisStreamCommands.XClaimOptions options) {
+
+		XClaimParams params = XClaimParams.xClaimParams();
+
+		if (options.isForce()) {
+			params.force();
+		}
+
+		if (options.getRetryCount() != null) {
+			params.retryCount(options.getRetryCount().intValue());
+		}
+
+		if (options.getUnixTime() != null) {
+			params.time(options.getUnixTime().toEpochMilli());
+		}
+
+		return params;
+	}
+
+	public static XReadParams toXReadParams(StreamReadOptions readOptions) {
+
+		XReadParams params = XReadParams.xReadParams();
+
+		if (readOptions.isBlocking()) {
+			params.block(readOptions.getBlock().intValue());
+		}
+
+		if (readOptions.getCount() != null) {
+			params.count(readOptions.getCount().intValue());
+		}
+
+		return params;
+	}
+
+	public static XReadGroupParams toXReadGroupParams(StreamReadOptions readOptions) {
+
+		XReadGroupParams params = XReadGroupParams.xReadGroupParams();
+
+		if (readOptions.isBlocking()) {
+			params.block(readOptions.getBlock().intValue());
+		}
+
+		if (readOptions.getCount() != null) {
+			params.count(readOptions.getCount().intValue());
+		}
+
+		if (readOptions.isNoack()) {
+			params.noAck();
+		}
+
+		return params;
+
+	}
+
+	public static XPendingParams toXPendingParams(RedisStreamCommands.XPendingOptions options) {
+
+		Range<String> range = (Range<String>) options.getRange();
+		XPendingParams xPendingParams = XPendingParams.xPendingParams(StreamConverters.getLowerValue(range),
+				StreamConverters.getUpperValue(range), options.getCount().intValue());
+
+		if (options.hasConsumer()) {
+			xPendingParams.consumer(options.getConsumerName());
+		}
+
+		return xPendingParams;
+	}
+
 }

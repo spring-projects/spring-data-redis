@@ -19,7 +19,11 @@ import static org.springframework.data.redis.connection.jedis.StreamConverters.*
 
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.params.XAddParams;
+import redis.clients.jedis.params.XClaimParams;
+import redis.clients.jedis.params.XReadGroupParams;
+import redis.clients.jedis.params.XReadParams;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -85,7 +89,26 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
-		throw new UnsupportedOperationException("JedisCluster does not support xClaimJustId.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(group, "Group must not be null!");
+		Assert.notNull(newOwner, "NewOwner must not be null!");
+
+		long minIdleTime = options.getMinIdleTime() == null ? -1L : options.getMinIdleTime().toMillis();
+
+		XClaimParams xClaimParams = StreamConverters.toXClaimParams(options);
+		try {
+
+			List<byte[]> ids = connection.getCluster().xclaimJustId(key, JedisConverters.toBytes(group),
+					JedisConverters.toBytes(newOwner), minIdleTime, xClaimParams, entryIdsToBytes(options.getIds()));
+
+			List<RecordId> recordIds = new ArrayList<>(ids.size());
+			ids.forEach(it -> recordIds.add(RecordId.of(JedisConverters.toString(it))));
+
+			return recordIds;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -96,13 +119,12 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		Assert.notNull(newOwner, "NewOwner must not be null!");
 
 		long minIdleTime = options.getMinIdleTime() == null ? -1L : options.getMinIdleTime().toMillis();
-		int retryCount = options.getRetryCount() == null ? -1 : options.getRetryCount().intValue();
-		long unixTime = options.getUnixTime() == null ? -1L : options.getUnixTime().toEpochMilli();
 
+		XClaimParams xClaimParams = StreamConverters.toXClaimParams(options);
 		try {
 			return convertToByteRecord(key,
 					connection.getCluster().xclaim(key, JedisConverters.toBytes(group), JedisConverters.toBytes(newOwner),
-							minIdleTime, unixTime, retryCount, options.isForce(), entryIdsToBytes(options.getIds())));
+							minIdleTime, xClaimParams, entryIdsToBytes(options.getIds())));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -170,17 +192,40 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public StreamInfo.XInfoStream xInfo(byte[] key) {
-		throw new UnsupportedOperationException("JedisCluster does not support XINFO.");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return StreamInfo.XInfoStream.fromList((List) connection.getCluster().xinfoStream(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public StreamInfo.XInfoGroups xInfoGroups(byte[] key) {
-		throw new UnsupportedOperationException("JedisCluster does not support XINFO.");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return StreamInfo.XInfoGroups.fromList(connection.getCluster().xinfoGroups(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public StreamInfo.XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
-		throw new UnsupportedOperationException("JedisCluster does not support XINFO.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		try {
+			return StreamInfo.XInfoConsumers.fromList(groupName,
+					connection.getCluster().xinfoConsumers(key, JedisConverters.toBytes(groupName)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -197,7 +242,21 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
-		throw new UnsupportedOperationException("Jedis does not support returning PendingMessagesSummary.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		byte[] group = JedisConverters.toBytes(groupName);
+
+		try {
+
+			Object response = connection.getCluster().xpending(key, group);
+
+			return StreamConverters.toPendingMessagesSummary(groupName, response);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+
 	}
 
 	@Override
@@ -245,12 +304,11 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
 		Assert.notNull(streams, "StreamOffsets must not be null!");
 
-		long block = readOptions.getBlock() == null ? -1L : readOptions.getBlock();
-		int count = readOptions.getCount() != null ? readOptions.getCount().intValue() : Integer.MAX_VALUE;
+		XReadParams xReadParams = StreamConverters.toXReadParams(readOptions);
 
 		try {
 
-			List<byte[]> xread = connection.getCluster().xread(count, block, toStreamOffsets(streams));
+			List<byte[]> xread = connection.getCluster().xread(xReadParams, toStreamOffsets(streams));
 
 			if (xread == null) {
 				return Collections.emptyList();
@@ -270,13 +328,12 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
 		Assert.notNull(streams, "StreamOffsets must not be null!");
 
-		long block = readOptions.getBlock() == null ? -1L : readOptions.getBlock();
-		int count = readOptions.getCount() == null ? -1 : readOptions.getCount().intValue();
+		XReadGroupParams xReadParams = StreamConverters.toXReadGroupParams(readOptions);
 
 		try {
 
 			List<byte[]> xread = connection.getCluster().xreadGroup(JedisConverters.toBytes(consumer.getGroup()),
-					JedisConverters.toBytes(consumer.getName()), count, block, readOptions.isNoack(), toStreamOffsets(streams));
+					JedisConverters.toBytes(consumer.getName()), xReadParams, toStreamOffsets(streams));
 
 			if (xread == null) {
 				return Collections.emptyList();

@@ -15,13 +15,12 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.Client;
+import redis.clients.jedis.Connection;
+import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisClusterConnectionHandler;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.providers.ClusterConnectionProvider;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -119,9 +117,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				new JedisClusterNodeResourceProvider(cluster, topologyProvider), EXCEPTION_TRANSLATION);
 		disposeClusterCommandExecutorOnClose = true;
 
+
 		try {
-			DirectFieldAccessor dfa = new DirectFieldAccessor(cluster);
-			clusterCommandExecutor.setMaxRedirects((Integer) dfa.getPropertyValue("maxRedirections"));
+
+			DirectFieldAccessor executorDfa = new DirectFieldAccessor(cluster);
+			Object custerCommandExecutor = executorDfa.getPropertyValue("executor");
+			DirectFieldAccessor dfa = new DirectFieldAccessor(custerCommandExecutor);
+			clusterCommandExecutor.setMaxRedirects((Integer) dfa.getPropertyValue("maxRedirects"));
 		} catch (Exception e) {
 			// ignore it and work with the executor default
 		}
@@ -177,11 +179,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Nullable
 	@Override
 	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
-		return execute(command, key, args, it -> (T) it.getOne());
-	}
-
-	@Nullable
-	<T> T execute(String command, byte[] key, Collection<byte[]> args, Function<Client, T> responseMapper) {
 
 		Assert.notNull(command, "Command must not be null!");
 		Assert.notNull(key, "Key must not be null!");
@@ -191,8 +188,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		RedisClusterNode keyMaster = topologyProvider.getTopology().getKeyServingMasterNode(key);
 
-		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<T>) client -> JedisClientUtils
-				.execute(command, EMPTY_2D_BYTE_ARRAY, commandArgs, () -> client, responseMapper), keyMaster).getValue();
+		return clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<T>) client -> {
+			return (T) client.sendCommand(() -> JedisConverters.toBytes(command), commandArgs);
+		}, keyMaster).getValue();
 	}
 
 	private static byte[][] getCommandArguments(byte[] key, Collection<byte[]> args) {
@@ -409,18 +407,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public byte[] echo(byte[] message) {
-
-		try {
-			return cluster.echo(message);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
+		throw new InvalidDataAccessApiUsageException("Echo not supported in cluster mode.");
 	}
 
 	@Override
 	public String ping() {
 
-		return !clusterCommandExecutor.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) BinaryJedis::ping)
+		return !clusterCommandExecutor.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) Jedis::ping)
 				.resultsAsList().isEmpty() ? "PONG" : null;
 
 	}
@@ -429,7 +422,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public String ping(RedisClusterNode node) {
 
 		return clusterCommandExecutor
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) BinaryJedis::ping, node).getValue();
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) Jedis::ping, node).getValue();
 	}
 
 	/*
@@ -552,8 +545,10 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Integer clusterGetSlotForKey(byte[] key) {
 
-		return clusterCommandExecutor.executeCommandOnArbitraryNode((JedisClusterCommandCallback<Integer>) client -> client
-				.clusterKeySlot(JedisConverters.toString(key)).intValue()).getValue();
+		return clusterCommandExecutor
+				.executeCommandOnArbitraryNode(
+						(JedisClusterCommandCallback<Integer>) client -> (int) client.clusterKeySlot(JedisConverters.toString(key)))
+				.getValue();
 	}
 
 	@Override
@@ -709,7 +704,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		private final JedisCluster cluster;
 		private final ClusterTopologyProvider topologyProvider;
-		private final JedisClusterConnectionHandler connectionHandler;
+		private final ClusterConnectionProvider connectionHandler;
 
 		/**
 		 * Creates new {@link JedisClusterNodeResourceProvider}.
@@ -726,7 +721,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
 				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
-						? (JedisClusterConnectionHandler) accessor.getPropertyValue("connectionHandler")
+						? (ClusterConnectionProvider) accessor.getPropertyValue("connectionHandler")
 						: null;
 			} else {
 				this.connectionHandler = null;
@@ -739,23 +734,23 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 			Assert.notNull(node, "Cannot get Pool for 'null' node!");
 
-			JedisPool pool = getResourcePoolForSpecificNode(node);
+			ConnectionPool pool = getResourcePoolForSpecificNode(node);
 			if (pool != null) {
-				return pool.getResource();
+				return new Jedis(pool.getResource());
 			}
 
-			Jedis connection = getConnectionForSpecificNode(node);
+			Connection connection = getConnectionForSpecificNode(node);
 
 			if (connection != null) {
-				return connection;
+				return new Jedis(connection);
 			}
 
 			throw new DataAccessResourceFailureException(String.format("Node %s is unknown to cluster", node));
 		}
 
-		private JedisPool getResourcePoolForSpecificNode(RedisClusterNode node) {
+		private ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
 
-			Map<String, JedisPool> clusterNodes = cluster.getClusterNodes();
+			Map<String, ConnectionPool> clusterNodes = cluster.getClusterNodes();
 			if (clusterNodes.containsKey(node.asString())) {
 				return clusterNodes.get(node.asString());
 			}
@@ -763,7 +758,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			return null;
 		}
 
-		private Jedis getConnectionForSpecificNode(RedisClusterNode node) {
+		private Connection getConnectionForSpecificNode(RedisClusterNode node) {
 
 			RedisClusterNode member = topologyProvider.getTopology().lookup(node);
 
@@ -773,7 +768,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			}
 
 			if (member != null && connectionHandler != null) {
-				return connectionHandler.getConnectionFromNode(new HostAndPort(member.getHost(), member.getPort()));
+				return connectionHandler.getConnection(new HostAndPort(member.getHost(), member.getPort()));
 			}
 
 			return null;
@@ -835,15 +830,15 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 			Map<String, Exception> errors = new LinkedHashMap<>();
 
-			List<Entry<String, JedisPool>> list = new ArrayList<>(cluster.getClusterNodes().entrySet());
+			List<Entry<String, ConnectionPool>> list = new ArrayList<>(cluster.getClusterNodes().entrySet());
 			Collections.shuffle(list);
 
-			for (Entry<String, JedisPool> entry : list) {
+			for (Entry<String, ConnectionPool> entry : list) {
 
-				try (Jedis jedis = entry.getValue().getResource()) {
+				try (Connection connection = entry.getValue().getResource()) {
 
 					time = System.currentTimeMillis();
-					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(jedis.clusterNodes());
+					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(new Jedis(connection).clusterNodes());
 
 					synchronized (lock) {
 						cached = new ClusterTopology(nodes);

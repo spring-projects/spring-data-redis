@@ -16,8 +16,9 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.GeoCoordinate;
-import redis.clients.jedis.GeoUnit;
+import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.GeoSearchParam;
 
 import java.util.HashMap;
 import java.util.List;
@@ -238,13 +239,37 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
-		throw new UnsupportedOperationException("GEOSEARCH not supported through Jedis");
+
+		Assert.notNull(key, "Key must not be null!");
+		GeoSearchParam params = JedisConverters.toGeoSearchParams(reference, predicate, args);
+
+		try {
+
+			return JedisConverters.geoRadiusResponseToGeoResultsConverter(predicate.getMetric())
+					.convert(connection.getCluster().geosearch(key, params));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
-		throw new UnsupportedOperationException("GEOSEARCHSTORE not supported through Jedis");
+
+		Assert.notNull(destKey, "Destination Key must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		GeoSearchParam params = JedisConverters.toGeoSearchParams(reference, predicate, args);
+
+		try {
+
+			if (args.isStoreDistance()) {
+				return connection.getCluster().geosearchStoreStoreDist(destKey, key, params);
+			}
+
+			return connection.getCluster().geosearchStore(destKey, key, params);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {

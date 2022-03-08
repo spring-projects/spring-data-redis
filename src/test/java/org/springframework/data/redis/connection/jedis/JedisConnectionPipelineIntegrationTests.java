@@ -19,9 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -29,9 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
-import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -59,47 +54,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 			// sending QUIT to Redis
 		}
 		connection = null;
-	}
-
-	@Test
-	public void testWatch() {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		// Jedis doesn't actually send commands until you close the pipeline
-		getResults();
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		conn2.close();
-		// Reopen the pipeline
-		initConnection();
-		connection.multi();
-		connection.set("testitnow", "somethingelse");
-		actual.add(connection.exec());
-		actual.add(connection.get("testitnow"));
-		verifyResults(Arrays.asList(new Object[] { null, "something" }));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testUnwatch() throws Exception {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		// Jedis doesn't actually send commands until you close the pipeline
-		getResults();
-		initConnection();
-		connection.unwatch();
-		// Jedis doesn't actually send commands until you close the pipeline
-		getResults();
-		initConnection();
-		connection.multi();
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		connection.set("testitnow", "somethingelse");
-		connection.get("testitnow");
-		actual.add(connection.exec());
-		List<Object> results = getResults();
-		List<Object> execResults = (List<Object>) results.get(0);
-		assertThat(execResults).isEqualTo(Arrays.asList(new Object[] { true, "somethingelse" }));
 	}
 
 	@Test
@@ -219,108 +173,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::clientSetNameWorksCorrectly);
 	}
 
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xReadShouldReadMessage() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xReadShouldReadMessage);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xReadGroupShouldReadMessage() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xReadGroupShouldReadMessage);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(super::xGroupCreateShouldWorkWithAndWithoutExistingStream);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xPendingShouldLoadPendingMessages() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xPendingShouldLoadPendingMessages);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xPendingShouldWorkWithBoundedRange() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(super::xPendingShouldWorkWithBoundedRange);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xPendingShouldLoadPendingMessagesForConsumer() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(super::xPendingShouldLoadPendingMessagesForConsumer);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xPendingShouldLoadPendingMessagesForNonExistingConsumer() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(super::xPendingShouldLoadPendingMessagesForNonExistingConsumer);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfo() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfo);
-	}
-
-	@Test
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfoNoGroup() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoNoGroup);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfoGroups() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoGroups);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfoGroupsNoGroup() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoGroupsNoGroup);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfoGroupsNoConsumer() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoGroupsNoConsumer);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfoConsumers() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoConsumers);
-	}
-
-	@Test // GH-1711
-	@EnabledOnCommand("XADD")
-	@Override
-	public void xinfoConsumersNoConsumer() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::xinfoConsumersNoConsumer);
-	}
-
 	@Test
 	@Override
 	// DATAREDIS-268
@@ -332,4 +184,86 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	@Test // DATAREDIS-296
 	@Disabled
 	public void testExecWithoutMulti() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testMultiExec() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testMultiDiscard() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testErrorInTx() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testWatch() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testUnwatch() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testMultiAlreadyInTx() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testPingPong() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testFlushDb() {}
+
+	@Override
+	@Disabled
+	public void testEcho() {}
+
+	@Override
+	@Disabled
+	public void testInfo() {}
+
+	@Override
+	@Disabled
+	public void testInfoBySection() {}
+
+	@Override
+	@Disabled
+	public void testMove() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testGetConfig() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testLastSave() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testGetTimeShouldRequestServerTime() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testGetTimeShouldRequestServerTimeAsMicros() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void testDbSize() {}
+
 }

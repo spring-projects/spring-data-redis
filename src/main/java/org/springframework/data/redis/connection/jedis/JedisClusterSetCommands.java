@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -396,7 +397,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
-				redis.clients.jedis.ScanResult<byte[]> result = connection.getCluster().sscan(key,
+				ScanResult<byte[]> result = connection.getCluster().sscan(key,
 						JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<>(Long.parseLong(result.getCursor()), result.getResult());
 			}

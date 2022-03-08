@@ -18,18 +18,19 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import redis.clients.jedis.Client;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.args.SaveMode;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +41,6 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Christoph Strobl
@@ -48,7 +48,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class JedisConnectionUnitTests {
 
 	@Nested
-	public class BasicUnitTests extends AbstractConnectionUnitTestBase<Client> {
+	public class BasicUnitTests extends AbstractConnectionUnitTestBase<Connection> {
 
 		protected JedisConnection connection;
 		private Jedis jedisSpy;
@@ -56,7 +56,7 @@ class JedisConnectionUnitTests {
 		@BeforeEach
 		public void setUp() {
 
-			jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+			jedisSpy = spy(new Jedis(getNativeRedisConnectionMock()));
 			connection = new JedisConnection(jedisSpy);
 		}
 
@@ -69,7 +69,7 @@ class JedisConnectionUnitTests {
 				// all good. Sometimes it throws an Exception.
 			}
 
-			verifyNativeConnectionInvocation().shutdown();
+			verify(jedisSpy).shutdown();
 		}
 
 		@Test // DATAREDIS-184, GH-2153
@@ -77,7 +77,7 @@ class JedisConnectionUnitTests {
 
 			assertThatExceptionOfType(JedisException.class).isThrownBy(() -> connection.shutdown(ShutdownOption.NOSAVE));
 
-			verifyNativeConnectionInvocation().shutdown(SaveMode.NOSAVE);
+			verify(jedisSpy).shutdown(SaveMode.NOSAVE);
 		}
 
 		@Test // DATAREDIS-184, GH-2153
@@ -85,21 +85,21 @@ class JedisConnectionUnitTests {
 
 			assertThatExceptionOfType(JedisException.class).isThrownBy(() -> connection.shutdown(ShutdownOption.SAVE));
 
-			verifyNativeConnectionInvocation().shutdown(SaveMode.SAVE);
+			verify(jedisSpy).shutdown(SaveMode.SAVE);
 		}
 
 		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 
 			connection.killClient("127.0.0.1", 1001);
-			verifyNativeConnectionInvocation().clientKill(eq("127.0.0.1:1001"));
+			verify(jedisSpy).clientKill(eq("127.0.0.1:1001"));
 		}
 
 		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
-			verifyNativeConnectionInvocation().clientGetname();
+			verify(jedisSpy).clientGetname();
 		}
 
 		@Test // DATAREDIS-277
@@ -111,14 +111,14 @@ class JedisConnectionUnitTests {
 		public void replicaOfShouldBeSentCorrectly() {
 
 			connection.replicaOf("127.0.0.1", 1001);
-			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
+			verify(jedisSpy).replicaof(eq("127.0.0.1"), eq(1001));
 		}
 
 		@Test // DATAREDIS-277
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 
 			connection.replicaOfNoOne();
-			verifyNativeConnectionInvocation().slaveofNoOne();
+			verify(jedisSpy).replicaofNoOne();
 		}
 
 		@Test // DATAREDIS-330
@@ -252,7 +252,7 @@ class JedisConnectionUnitTests {
 		@Test // DATAREDIS-714
 		void doesNotSelectDbWhenCurrentDbMatchesDesiredOne() {
 
-			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+			Jedis jedisSpy = spy(new Jedis(getNativeRedisConnectionMock()));
 			new JedisConnection(jedisSpy);
 
 			verify(jedisSpy, never()).select(anyInt());
@@ -261,7 +261,7 @@ class JedisConnectionUnitTests {
 		@Test // DATAREDIS-714
 		void doesNotSelectDbWhenCurrentDbDoesNotMatchDesiredOne() {
 
-			Jedis jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+			Jedis jedisSpy = spy(new Jedis(getNativeRedisConnectionMock()));
 			when(jedisSpy.getDB()).thenReturn(3);
 
 			new JedisConnection(jedisSpy);
@@ -279,9 +279,24 @@ class JedisConnectionUnitTests {
 			connection.openPipeline();
 		}
 
+		@Test
+		@Disabled
+		@Override
+		void shutdownWithNullShouldDelegateCommandCorrectly() {}
+
+		@Test
+		@Disabled
+		@Override
+		void shutdownNosaveShouldBeSentCorrectly() {}
+
+		@Test
+		@Disabled
+		@Override
+		void shutdownSaveShouldBeSentCorrectly() {}
+
 		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.killClientShouldDelegateCallCorrectly());
 		}
 
@@ -289,7 +304,7 @@ class JedisConnectionUnitTests {
 		@Override
 		// DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.getClientNameShouldSendRequestCorrectly());
 		}
 
@@ -297,74 +312,64 @@ class JedisConnectionUnitTests {
 		@Override
 		// DATAREDIS-277
 		public void replicaOfShouldBeSentCorrectly() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.replicaOfShouldBeSentCorrectly());
 		}
 
 		@Test // DATAREDIS-277
 		public void replicaOfNoOneShouldBeSentCorrectly() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.replicaOfNoOneShouldBeSentCorrectly());
 		}
 
 		@Test // DATAREDIS-531
 		public void scanShouldKeepTheConnectionOpen() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.scanShouldKeepTheConnectionOpen());
 		}
 
 		@Test // DATAREDIS-531
 		public void scanShouldCloseTheConnectionWhenCursorIsClosed() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.scanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
 		@Test // DATAREDIS-531
 		public void sScanShouldKeepTheConnectionOpen() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.sScanShouldKeepTheConnectionOpen());
 		}
 
 		@Test // DATAREDIS-531
 		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.sScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
 		@Test // DATAREDIS-531
 		public void zScanShouldKeepTheConnectionOpen() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.zScanShouldKeepTheConnectionOpen());
 		}
 
 		@Test // DATAREDIS-531
 		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.zScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
 		@Test // DATAREDIS-531
 		public void hScanShouldKeepTheConnectionOpen() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.hScanShouldKeepTheConnectionOpen());
 		}
 
 		@Test // DATAREDIS-531
 		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() {
-			assertThatExceptionOfType(UnsupportedOperationException.class)
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.hScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
 	}
 
-	/**
-	 * {@link Jedis} extension allowing to use mocked object as {@link Client}.
-	 */
-	private static class MockedClientJedis extends Jedis {
-
-		MockedClientJedis(String host, Client client) {
-			super(host);
-			ReflectionTestUtils.setField(this, "client", client);
-		}
-	}
 }
