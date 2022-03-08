@@ -58,7 +58,7 @@ public class ApplicationConfig {
 
   @Bean
   public RedisConnectionFactory connectionFactory() {
-    return new JedisConnectionFactory();
+    return new LettuceConnectionFactory();
   }
 
   @Bean
@@ -843,10 +843,10 @@ class RedisOperationsProducer {
   @Produces
   RedisConnectionFactory redisConnectionFactory() {
 
-    JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration());
-    jedisConnectionFactory.afterPropertiesSet();
+    LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration());
+    connectionFactory.afterPropertiesSet();
 
-    return jedisConnectionFactory;
+    return connectionFactory;
   }
 
   void disposeRedisConnectionFactory(@Disposes RedisConnectionFactory redisConnectionFactory) throws Exception {

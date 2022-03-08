@@ -3,7 +3,12 @@
 
 This section briefly covers items that are new and noteworthy in the latest releases.
 
-[[new-in-2.7.0]]
+[[new-in-3.0.0]]
+== New in Spring Data Redis 3.0
+
+* Upgrade to Jedis 4.1. Jedis 4 imposes certain limitations on transactions and pipelines and commands used in pipelines/transactions, see <<redis:connectors:overview>>.
+
+
 == New in Spring Data Redis 2.7
 
 * Sentinel ACL authentication considering a sentinel-specific username. Setting a username enables username and password authentication requiring Redis 6.

@@ -47,7 +47,7 @@ public class AppConfig {
 
     public @Bean RedisConnectionFactory connectionFactory() {
 
-        return new JedisConnectionFactory(
+        return new LettuceConnectionFactory(
             new RedisClusterConfiguration(clusterProperties.getNodes()));
     }
 }
