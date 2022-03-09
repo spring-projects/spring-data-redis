@@ -121,16 +121,19 @@ public interface RedisStreamCommands {
 	 */
 	class XAddOptions {
 
-		private static final XAddOptions NONE = new XAddOptions(null, false, false);
+		private static final XAddOptions NONE = new XAddOptions(null, false, false, null);
 
 		private final @Nullable Long maxlen;
 		private final boolean nomkstream;
 		private final boolean approximateTrimming;
+		private final @Nullable RecordId minId;
 
-		private XAddOptions(@Nullable Long maxlen, boolean nomkstream, boolean approximateTrimming) {
+		private XAddOptions(@Nullable Long maxlen, boolean nomkstream, boolean approximateTrimming,
+				@Nullable RecordId minId) {
 			this.maxlen = maxlen;
 			this.nomkstream = nomkstream;
 			this.approximateTrimming = approximateTrimming;
+			this.minId = minId;
 		}
 
 		/**
@@ -141,22 +144,13 @@ public interface RedisStreamCommands {
 		}
 
 		/**
-		 * Limit the size of the stream to the given maximum number of elements.
-		 *
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public static XAddOptions maxlen(long maxlen) {
-			return new XAddOptions(maxlen, false, false);
-		}
-
-		/**
 		 * Disable creation of stream if it does not already exist.
 		 *
 		 * @return new instance of {@link XAddOptions}.
 		 * @since 2.6
 		 */
 		public static XAddOptions makeNoStream() {
-			return new XAddOptions(null, true, false);
+			return new XAddOptions(null, true, false, null);
 		}
 
 		/**
@@ -167,7 +161,27 @@ public interface RedisStreamCommands {
 		 * @since 2.6
 		 */
 		public static XAddOptions makeNoStream(boolean makeNoStream) {
-			return new XAddOptions(null, makeNoStream, false);
+			return new XAddOptions(null, makeNoStream, false, null);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions maxlen(long maxlen) {
+			return new XAddOptions(maxlen, false, false, null);
+		}
+
+		/**
+		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
+		 *
+		 * @param minId the minimum record Id to retain.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.7
+		 */
+		public XAddOptions minId(RecordId minId) {
+			return new XAddOptions(maxlen, nomkstream, approximateTrimming, minId);
 		}
 
 		/**
@@ -176,14 +190,15 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XAddOptions}.
 		 */
 		public XAddOptions approximateTrimming(boolean approximateTrimming) {
-			return new XAddOptions(null, nomkstream, approximateTrimming);
+			return new XAddOptions(maxlen, nomkstream, approximateTrimming, minId);
 		}
 
 		/**
-		 * @return {@literal true} if {@literal approximateTrimming} is set.
+		 * @return {@literal true} if {@literal NOMKSTREAM} is set.
+		 * @since 2.6
 		 */
-		public boolean isApproximateTrimming() {
-			return approximateTrimming;
+		public boolean isNoMkStream() {
+			return nomkstream;
 		}
 
 		/**
@@ -204,11 +219,27 @@ public interface RedisStreamCommands {
 		}
 
 		/**
-		 * @return {@literal true} if {@literal NOMKSTREAM} is set.
-		 * @since 2.6
+		 * @return {@literal true} if {@literal approximateTrimming} is set.
 		 */
-		public boolean isNoMkStream() {
-			return nomkstream;
+		public boolean isApproximateTrimming() {
+			return approximateTrimming;
+		}
+
+		/**
+		 * @return the minimum record Id to retain during trimming.
+		 * @since 2.7
+		 */
+		@Nullable
+		public RecordId getMinId() {
+			return minId;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MINID} is set.
+		 * @since 2.7
+		 */
+		public boolean hasMinId() {
+			return minId != null;
 		}
 
 		@Override
@@ -216,20 +247,28 @@ public interface RedisStreamCommands {
 			if (this == o) {
 				return true;
 			}
-			if (o == null || getClass() != o.getClass()) {
+			if (!(o instanceof XAddOptions)) {
 				return false;
 			}
 			XAddOptions that = (XAddOptions) o;
-			if (this.nomkstream != that.nomkstream) return false;
-			if (this.approximateTrimming != that.approximateTrimming) return false;
-			return ObjectUtils.nullSafeEquals(this.maxlen, that.maxlen);
+			if (nomkstream != that.nomkstream) {
+				return false;
+			}
+			if (approximateTrimming != that.approximateTrimming) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(maxlen, that.maxlen)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(minId, that.minId);
 		}
 
 		@Override
 		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(this.maxlen);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(this.nomkstream);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(this.approximateTrimming);
+			int result = ObjectUtils.nullSafeHashCode(maxlen);
+			result = 31 * result + (nomkstream ? 1 : 0);
+			result = 31 * result + (approximateTrimming ? 1 : 0);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(minId);
 			return result;
 		}
 	}

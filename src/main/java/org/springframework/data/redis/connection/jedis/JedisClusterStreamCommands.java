@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import static org.springframework.data.redis.connection.jedis.StreamConverters.*;
 
 import redis.clients.jedis.BuilderFactory;
+import redis.clients.jedis.params.XAddParams;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -80,15 +81,11 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		Assert.notNull(record, "Record must not be null!");
 		Assert.notNull(record.getStream(), "Stream must not be null!");
 
-		byte[] id = JedisConverters.toBytes(record.getId().getValue());
-		long maxLength = Long.MAX_VALUE;
-		if (options.hasMaxlen()) {
-			maxLength = options.getMaxlen();
-		}
+		XAddParams params = StreamConverters.toXAddParams(record, options);
 
 		try {
-			return RecordId.of(JedisConverters
-					.toString(connection.getCluster().xadd(record.getStream(), id, record.getValue(), maxLength, false)));
+			return RecordId
+					.of(JedisConverters.toString(connection.getCluster().xadd(record.getStream(), record.getValue(), params)));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

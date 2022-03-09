@@ -76,6 +76,7 @@ import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
@@ -3600,6 +3601,44 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results).hasSize(2);
 		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
 		assertThat(results.get(1)).isEqualTo(DataType.STREAM);
+	}
+
+	@Test // GH-2247
+	@EnabledOnCommand("XADD")
+	void xAddShouldTrimStreamExactly() {
+
+		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(1);
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
+		assertThat((Long) results.get(3)).isEqualTo(1);
+	}
+
+	@Test // GH-2247
+	@EnabledOnCommand("XADD")
+	void xAddShouldTrimStreamApprox() {
+
+		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(1).approximateTrimming(true);
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		assertThat(((RecordId) results.get(0)).getValue()).contains("-");
+		assertThat((Long) results.get(3)).isBetween(1L, 3L);
 	}
 
 	@Test // DATAREDIS-864

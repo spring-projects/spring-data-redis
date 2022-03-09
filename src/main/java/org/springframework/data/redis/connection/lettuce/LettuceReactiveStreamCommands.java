@@ -111,6 +111,9 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			if (command.hasMaxlen()) {
 				args.maxlen(command.getMaxlen());
 			}
+			if (command.hasMinId()) {
+				args.minId(command.getMinId().getValue());
+			}
 			args.nomkstream(command.isNoMkStream());
 			args.approximateTrimming(command.isApproximateTrimming());
 
@@ -154,7 +157,6 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			Flux<ByteBufferRecord> result = cmd.xclaim(command.getKey(), from, args, ids)
 					.map(it -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBuffer(it.getBody()));
 			return new CommandResponse<>(command, result);
-
 		}));
 	}
 

@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.StreamEntry;
 import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.StreamPendingEntry;
+import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.time.Duration;
@@ -30,8 +31,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -165,5 +168,29 @@ class StreamConverters {
 				.collect(Collectors.toList());
 
 		return new PendingMessages(groupName, messages).withinRange(range);
+	}
+
+	static XAddParams toXAddParams(MapRecord<byte[], byte[], byte[]> record, RedisStreamCommands.XAddOptions options) {
+
+		XAddParams params = XAddParams.xAddParams();
+		params.id(record.getId().getValue());
+
+		if (options.hasMaxlen()) {
+			params.maxLen(options.getMaxlen());
+		}
+
+		if (options.hasMinId()) {
+			params.minId(options.getMinId().getValue());
+		}
+
+		if (options.isNoMkStream()) {
+			params.noMkStream();
+		}
+
+		if (options.isApproximateTrimming()) {
+			params.approximateTrimming();
+		}
+
+		return params;
 	}
 }

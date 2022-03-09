@@ -91,6 +91,9 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		if (options.hasMaxlen()) {
 			args.maxlen(options.getMaxlen());
 		}
+		if (options.hasMinId()) {
+			args.minId(options.getMinId().toString());
+		}
 		args.nomkstream(options.isNoMkStream());
 		args.approximateTrimming(options.isApproximateTrimming());
 
