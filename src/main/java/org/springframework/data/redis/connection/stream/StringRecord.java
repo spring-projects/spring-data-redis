@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.stream;
 
+import java.util.Map;
+
 /**
  * A {@link Record} within the stream backed by a collection of {@link String} {@literal field/value} paris.
  *
@@ -33,6 +35,17 @@ public interface StringRecord extends MapRecord<String, String, String> {
 	 * @return a new {@link StringRecord}.
 	 */
 	StringRecord withStreamKey(String key);
+
+	/**
+	 * Create a {@link StringRecord} from a {@link Map} of {@link String strings}.
+	 *
+	 * @param source must not be {@literal null}.
+	 * @return new instance of {@link StringRecord}.
+	 * @since 2.7
+	 */
+	static StringRecord of(Map<String, String> source) {
+		return StreamRecords.newRecord().ofStrings(source);
+	}
 
 	/**
 	 * Convert a {@link MapRecord} of {@link String strings} into a {@link StringRecord}.
