@@ -89,7 +89,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 	@Override
 	public Mono<Void> unsubscribe() {
-		return unsubscribe(channelState.getTargets().toArray(new ByteBuffer[channelState.getTargets().size()]));
+		return unsubscribe(channelState.getTargets().toArray(new ByteBuffer[0]));
 	}
 
 	@Override
@@ -103,7 +103,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 	@Override
 	public Mono<Void> pUnsubscribe() {
-		return pUnsubscribe(patternState.getTargets().toArray(new ByteBuffer[patternState.getTargets().size()]));
+		return pUnsubscribe(patternState.getTargets().toArray(new ByteBuffer[0]));
 	}
 
 	@Override
