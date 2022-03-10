@@ -42,8 +42,8 @@ public interface ReactiveZSetOperations<K, V> {
 	 * Add {@code value} to a sorted set at {@code key}, or update its {@code score} if it already exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param score the score.
 	 * @param value the value.
+	 * @param score the score.
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
@@ -73,8 +73,8 @@ public interface ReactiveZSetOperations<K, V> {
 	 * Increment the score of element with {@code value} in sorted set by {@code increment}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param delta
 	 * @param value the value.
+	 * @param delta the delta to add. Can be negative.
 	 * @return
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */

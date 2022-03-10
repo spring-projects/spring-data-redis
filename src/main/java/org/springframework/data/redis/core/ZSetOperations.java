@@ -126,7 +126,7 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
-	 * @param delta
+	 * @param delta the delta to add. Can be negative.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
