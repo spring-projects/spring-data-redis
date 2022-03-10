@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.MultiKeyPipelineBase;
-import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.args.SaveMode;
 
 import java.util.List;
@@ -38,8 +37,6 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 class JedisServerCommands implements RedisServerCommands {
-
-	private static final String SHUTDOWN_SCRIPT = "return redis.call('SHUTDOWN','%s')";
 
 	private final JedisConnection connection;
 
@@ -79,9 +76,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushDb(FlushOption option) {
-
-		FlushMode flushMode = JedisClusterServerCommands.toFlushMode(option);
-		connection.invokeStatus().just(it -> it.flushDB(flushMode), it -> it.flushDB(flushMode));
+		connection.invokeStatus().just(BinaryJedis::flushDB, MultiKeyPipelineBase::flushDB,
+				JedisConverters.toFlushMode(option));
 	}
 
 	@Override
@@ -91,9 +87,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 	@Override
 	public void flushAll(FlushOption option) {
-
-		FlushMode flushMode = JedisClusterServerCommands.toFlushMode(option);
-		connection.invokeStatus().just(it -> it.flushAll(flushMode), it -> it.flushAll(flushMode));
+		connection.invokeStatus().just(BinaryJedis::flushAll, MultiKeyPipelineBase::flushAll,
+				JedisConverters.toFlushMode(option));
 	}
 
 	@Override

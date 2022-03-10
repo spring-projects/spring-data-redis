@@ -99,7 +99,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	@Override
 	public void flushDb(FlushOption option) {
-		executeCommandOnAllNodes(it -> it.flushdb(toFlushMode(option)));
+		executeCommandOnAllNodes(it -> it.flushdb(LettuceConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -109,7 +109,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	@Override
 	public void flushDb(RedisClusterNode node, FlushOption option) {
-		executeCommandOnSingleNode(it -> it.flushdb(toFlushMode(option)), node);
+		executeCommandOnSingleNode(it -> it.flushdb(LettuceConverters.toFlushMode(option)), node);
 	}
 
 	@Override
@@ -119,7 +119,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	@Override
 	public void flushAll(FlushOption option) {
-		executeCommandOnAllNodes(it -> it.flushall(toFlushMode(option)));
+		executeCommandOnAllNodes(it -> it.flushall(LettuceConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -129,7 +129,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	@Override
 	public void flushAll(RedisClusterNode node, FlushOption option) {
-		executeCommandOnSingleNode(it -> it.flushall(toFlushMode(option)), node);
+		executeCommandOnSingleNode(it -> it.flushall(LettuceConverters.toFlushMode(option)), node);
 	}
 
 	@Override

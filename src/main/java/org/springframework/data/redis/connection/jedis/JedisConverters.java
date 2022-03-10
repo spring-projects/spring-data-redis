@@ -22,6 +22,7 @@ import redis.clients.jedis.GeoUnit;
 import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
+import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.SetParams;
@@ -59,6 +60,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
@@ -436,10 +438,12 @@ public abstract class JedisConverters extends Converters {
 		}
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime()) : paramsToUse.px(expiration.getExpirationTime());
+			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime())
+					: paramsToUse.px(expiration.getExpirationTime());
 		}
 
-		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS)) : paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
+		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
 	/**
@@ -812,6 +816,22 @@ public abstract class JedisConverters extends Converters {
 		}
 
 		return args.toArray(new byte[0][0]);
+	}
+
+	static FlushMode toFlushMode(@Nullable RedisServerCommands.FlushOption option) {
+
+		if (option == null) {
+			return FlushMode.SYNC;
+		}
+
+		switch (option) {
+			case ASYNC:
+				return FlushMode.ASYNC;
+			case SYNC:
+				return FlushMode.SYNC;
+			default:
+				throw new IllegalArgumentException("Flush option " + option + " is not supported.");
+		}
 	}
 
 	/**

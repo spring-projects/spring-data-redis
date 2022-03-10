@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.args.FlushMode;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,7 +130,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushDb(FlushOption option) {
-		executeCommandOnAllNodes(it -> it.flushDB(toFlushMode(option)));
+		executeCommandOnAllNodes(it -> it.flushDB(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -141,7 +140,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushDb(RedisClusterNode node, FlushOption option) {
-		executeCommandOnSingleNode(it -> it.flushDB(toFlushMode(option)), node);
+		executeCommandOnSingleNode(it -> it.flushDB(JedisConverters.toFlushMode(option)), node);
 	}
 
 	@Override
@@ -153,7 +152,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void flushAll(FlushOption option) {
 		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) it -> it.flushAll(toFlushMode(option)));
+				.executeCommandOnAllNodes(
+						(JedisClusterCommandCallback<String>) it -> it.flushAll(JedisConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -163,7 +163,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void flushAll(RedisClusterNode node, FlushOption option) {
-		executeCommandOnSingleNode(it -> it.flushAll(toFlushMode(option)), node);
+		executeCommandOnSingleNode(it -> it.flushAll(JedisConverters.toFlushMode(option)), node);
 	}
 
 	@Override
@@ -319,16 +319,18 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public Long time(TimeUnit timeUnit) {
 
-		return convertListOfStringToTime(connection.getClusterCommandExecutor()
-				.executeCommandOnArbitraryNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time).getValue(),
+		return convertListOfStringToTime(
+				connection.getClusterCommandExecutor()
+						.executeCommandOnArbitraryNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time).getValue(),
 				timeUnit);
 	}
 
 	@Override
 	public Long time(RedisClusterNode node, TimeUnit timeUnit) {
 
-		return convertListOfStringToTime(connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time, node).getValue(),
+		return convertListOfStringToTime(
+				connection.getClusterCommandExecutor()
+						.executeCommandOnSingleNode((JedisClusterCommandCallback<List<String>>) BinaryJedis::time, node).getValue(),
 				timeUnit);
 	}
 
@@ -419,18 +421,4 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(cmd);
 	}
 
-	static FlushMode toFlushMode(@Nullable FlushOption option) {
-
-		if (option == null) {
-			return FlushMode.SYNC;
-		}
-
-		switch (option) {
-			case ASYNC:
-				return FlushMode.ASYNC;
-			case SYNC:
-				return FlushMode.SYNC;
-		}
-		throw new UnsupportedOperationException("Flush option " + option + " is not implemented.");
-	}
 }

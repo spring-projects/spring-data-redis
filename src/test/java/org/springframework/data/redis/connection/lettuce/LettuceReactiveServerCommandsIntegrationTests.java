@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
 
-import org.junit.jupiter.api.Disabled;
 import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -73,7 +72,6 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
 	@ParameterizedRedisTest // GH-2187
 	void flushDbSyncShouldRespondCorrectly() {
 
@@ -91,7 +89,6 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
 	@ParameterizedRedisTest // GH-2187
 	void flushDbAsyncShouldRespondCorrectly() {
 
@@ -124,7 +121,6 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
 	@ParameterizedRedisTest // GH-2187
 	void flushAllSyncShouldRespondCorrectly() {
 
@@ -140,7 +136,6 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@Disabled("Wait for https://github.com/lettuce-io/lettuce-core/pull/1908")
 	@ParameterizedRedisTest // GH-2187
 	void flushAllAsyncShouldRespondCorrectly() {
 

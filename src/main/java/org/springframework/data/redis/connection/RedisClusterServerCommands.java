@@ -70,7 +70,7 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @param node must not be {@literal null}.
 	 * @param option
 	 * @see RedisServerCommands#flushDb(FlushOption)
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	void flushDb(RedisClusterNode node, FlushOption option);
 
@@ -84,7 +84,7 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @param node must not be {@literal null}.
 	 * @param option
 	 * @see RedisServerCommands#flushAll(FlushOption)
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	void flushAll(RedisClusterNode node, FlushOption option);
 

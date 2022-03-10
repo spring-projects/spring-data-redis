@@ -896,10 +896,9 @@ public abstract class LettuceConverters extends Converters {
 
 		if (args.hasFlags()) {
 			for (GeoCommandArgs.GeoCommandFlag flag : args.getFlags()) {
-				if(flag.equals(GeoRadiusCommandArgs.Flag.WITHCOORD)) {
+				if (flag.equals(GeoRadiusCommandArgs.Flag.WITHCOORD)) {
 					geoArgs.withCoordinates();
-				}
-				else if(flag.equals(GeoRadiusCommandArgs.Flag.WITHDIST)) {
+				} else if (flag.equals(GeoRadiusCommandArgs.Flag.WITHDIST)) {
 					geoArgs.withDistance();
 				}
 			}
@@ -1169,6 +1168,22 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoRef", reference));
+	}
+
+	static FlushMode toFlushMode(@Nullable RedisServerCommands.FlushOption option) {
+
+		if (option == null) {
+			return FlushMode.SYNC;
+		}
+
+		switch (option) {
+			case ASYNC:
+				return FlushMode.ASYNC;
+			case SYNC:
+				return FlushMode.SYNC;
+			default:
+				throw new IllegalArgumentException("Flush option " + option + " is not supported.");
+		}
 	}
 
 	/**
