@@ -45,7 +45,7 @@ public interface RedisServerCommands {
 	}
 
 	/**
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	enum FlushOption {
 		SYNC, ASYNC
@@ -110,11 +110,11 @@ public interface RedisServerCommands {
 	void flushDb();
 
 	/**
-	 * Delete all keys of the currently selected database using the specified flush option.
+	 * Delete all keys of the currently selected database using the specified {@link FlushOption}.
 	 *
 	 * @param option
 	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	void flushDb(FlushOption option);
 
@@ -126,11 +126,11 @@ public interface RedisServerCommands {
 	void flushAll();
 
 	/**
-	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified flush option.
+	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified {@link FlushOption}.
 	 *
 	 * @param option
 	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	void flushAll(FlushOption option);
 

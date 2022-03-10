@@ -120,12 +120,12 @@ public interface ClusterOperations<K, V> {
 	void flushDb(RedisClusterNode node);
 
 	/**
-	 * Flush db on node using the specified flush option.
+	 * Flush db on node using the specified {@link FlushOption}.
 	 *
 	 * @param node must not be {@literal null}.
-	 * @param option
+	 * @param option must not be {@literal null}.
 	 * @see RedisConnection#flushDb(FlushOption)
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	void flushDb(RedisClusterNode node, FlushOption option);
 

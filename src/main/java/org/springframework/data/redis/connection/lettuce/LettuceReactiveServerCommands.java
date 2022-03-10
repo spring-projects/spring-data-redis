@@ -114,7 +114,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	 */
 	@Override
 	public Mono<String> flushDb(FlushOption option) {
-		return connection.execute(it -> it.flushdb(LettuceServerCommands.toFlushMode(option))).next();
+		return connection.execute(it -> it.flushdb(LettuceConverters.toFlushMode(option))).next();
 	}
 
 	/*
@@ -132,7 +132,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	 */
 	@Override
 	public Mono<String> flushAll(FlushOption option) {
-		return connection.execute(it -> it.flushall(LettuceServerCommands.toFlushMode(option))).next();
+		return connection.execute(it -> it.flushall(LettuceConverters.toFlushMode(option))).next();
 	}
 
 	/*

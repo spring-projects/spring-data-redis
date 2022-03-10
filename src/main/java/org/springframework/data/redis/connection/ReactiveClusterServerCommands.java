@@ -94,13 +94,13 @@ public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
 	Mono<String> flushDb(RedisClusterNode node);
 
 	/**
-	 * Delete all keys of the currently selected database using the specified flush option.
+	 * Delete all keys of the currently selected database using the specified {@link FlushOption}.
 	 *
 	 * @param node must not be {@literal null}. {@link Mono} indicating command completion.
 	 * @param option
 	 * @throws IllegalArgumentException when {@code node} is {@literal null}.
 	 * @see RedisServerCommands#flushDb(FlushOption)
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	Mono<String> flushDb(RedisClusterNode node, FlushOption option);
 
@@ -115,14 +115,14 @@ public interface ReactiveClusterServerCommands extends ReactiveServerCommands {
 	Mono<String> flushAll(RedisClusterNode node);
 
 	/**
-	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified flush option.
+	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified {@link FlushOption}.
 	 *
 	 * @param node must not be {@literal null}.
 	 * @param option
 	 * @return {@link Mono} indicating command completion.
 	 * @throws IllegalArgumentException when {@code node} is {@literal null}.
 	 * @see RedisServerCommands#flushAll(FlushOption)
-	 * @since 2.6
+	 * @since 2.7
 	 */
 	Mono<String> flushAll(RedisClusterNode node, FlushOption option);
 

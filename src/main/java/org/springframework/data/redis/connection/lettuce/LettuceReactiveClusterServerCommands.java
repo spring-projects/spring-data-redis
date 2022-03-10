@@ -137,7 +137,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	 */
 	@Override
 	public Mono<String> flushDb(RedisClusterNode node, FlushOption option) {
-		return connection.execute(node, it -> it.flushdb(LettuceServerCommands.toFlushMode(option))).next();
+		return connection.execute(node, it -> it.flushdb(LettuceConverters.toFlushMode(option))).next();
 	}
 
 	/*
@@ -155,7 +155,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	 */
 	@Override
 	public Mono<String> flushAll(RedisClusterNode node, FlushOption option) {
-		return connection.execute(node, it -> it.flushall(LettuceServerCommands.toFlushMode(option))).next();
+		return connection.execute(node, it -> it.flushall(LettuceConverters.toFlushMode(option))).next();
 	}
 
 	/*
