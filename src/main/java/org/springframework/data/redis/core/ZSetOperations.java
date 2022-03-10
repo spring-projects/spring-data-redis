@@ -131,7 +131,7 @@ public interface ZSetOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value the value.
-	 * @param delta
+	 * @param delta the delta to add. Can be negative.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
@@ -152,7 +152,7 @@ public interface ZSetOperations<K, V> {
 	 * Get {@code count} distinct random elements from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count nr of members to return
+	 * @param count number of members to return.
 	 * @return empty {@link Set} if {@code key} does not exist.
 	 * @throws IllegalArgumentException if count is negative.
 	 * @since 2.6
@@ -165,7 +165,7 @@ public interface ZSetOperations<K, V> {
 	 * Get {@code count} random elements from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count nr of members to return.
+	 * @param count number of members to return.
 	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if count is negative.
 	 * @since 2.6
@@ -188,7 +188,7 @@ public interface ZSetOperations<K, V> {
 	 * Get {@code count} distinct random elements with their score from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count nr of members to return
+	 * @param count number of members to return.
 	 * @return empty {@link Set} if {@code key} does not exist.
 	 * @throws IllegalArgumentException if count is negative.
 	 * @since 2.6
@@ -201,7 +201,7 @@ public interface ZSetOperations<K, V> {
 	 * Get {@code count} random elements with their score from set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param count nr of members to return.
+	 * @param count number of members to return.
 	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if count is negative.
 	 * @since 2.6
