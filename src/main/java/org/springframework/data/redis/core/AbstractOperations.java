@@ -389,6 +389,10 @@ abstract class AbstractOperations<K, V> {
 	 */
 	GeoResults<GeoLocation<V>> deserializeGeoResults(GeoResults<GeoLocation<byte[]>> source) {
 
+		if (source == null) {
+			return null;
+		}
+
 		if (valueSerializer() == null) {
 			return (GeoResults<GeoLocation<V>>) (Object) source;
 		}
