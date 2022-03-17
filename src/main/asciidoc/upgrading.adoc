@@ -1,0 +1,233 @@
+[[upgrading]]
+= Upgrading
+
+=== Re-/moved Types
+
+|===
+|Type |Replacement
+
+|o.s.d.redis.Version
+|o.s.d.util.Version
+
+|o.s.d.redis.VersionParser
+|-
+
+|o.s.d.redis.connection.RedisZSetCommands.Tuple
+|o.s.d.redis.connection.zset.Tuple
+
+|o.s.d.redis.connection.RedisZSetCommands.Weights
+|o.s.d.redis.connection.zset.Weights
+
+|o.s.d.redis.connection.RedisZSetCommands.Limit
+|o.s.d.redis.connection.Limit.java
+
+|o.s.d.redis.connection.jedis.JedisUtils
+|-
+
+|o.s.d.redis.connection.jedis.JedisVersionUtil
+|-
+
+|o.s.d.redis.core.convert.CustomConversions
+|o.s.d.convert.CustomConversions
+
+|===
+
+== Changed Methods and Types
+
+.Core
+|===
+|Type |Method |Replacement
+
+|o.s.d.redis.core.Cursor
+|open
+|-
+
+|o.s.d.redis.core.RedisTemplate
+|execute
+|doWithKeys
+
+|o.s.d.redis.stream.StreamMessageListenerContainer
+|isAutoAck
+|isAutoAcknowledge
+
+|o.s.d.redis.stream.StreamMessageListenerContainer
+|autoAck
+|autoAcknowledge
+
+|===
+
+.Redis Connection
+|===
+|Type |Method |Replacement
+
+|o.s.d.redis.connection.ClusterCommandExecutionFailureException
+|getCauses
+|getSuppressed
+
+|o.s.d.redis.connection.RedisConnection
+|bgWriteAof
+|bgReWriteAof
+
+|o.s.d.redis.connection.RedisConnection
+|slaveOf
+|replicaOf
+
+|o.s.d.redis.connection.RedisConnection
+|slaveOfNoOne
+|replicaOfNoOne
+
+|o.s.d.redis.connection.ReactiveClusterCommands
+|clusterGetSlaves
+|clusterGetReplicas
+
+|o.s.d.redis.connection.ReactiveClusterCommands
+|clusterGetMasterSlaveMap
+|clusterGetMasterReplicaMap
+
+|o.s.d.redis.connection.ReactiveKeyCommands
+|getNewName
+|getNewKey
+
+|o.s.d.redis.connection.RedisClusterNode.Flag
+|SLAVE
+|REPLICA
+
+|o.s.d.redis.connection.RedisClusterNode.Builder
+|slaveOf
+|replicaOf
+
+|o.s.d.redis.connection.RedisNode
+|isSlave
+|isReplica
+
+|o.s.d.redis.connection.RedisSentinelCommands
+|slaves
+|replicas
+
+|o.s.d.redis.connection.RedisServer
+|getNumberSlaves
+|getNumberReplicas
+
+|o.s.d.redis.connection.RedisServerCommands
+|slaveOf
+|replicaOf
+
+|o.s.d.redis.core.ClusterOperations
+|getSlaves
+|getReplicas
+
+|o.s.d.redis.core.RedisOperations
+|slaveOf
+|replicaOf
+
+|===
+
+.Redis Operations
+|===
+|Type |Method |Replacement
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoAdd
+|add
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoDist
+|distance
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoHash
+|hash
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoPos
+|position
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoRadius
+|radius
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoRadiusByMember
+|radius
+
+|o.s.d.redis.core.GeoOperations & BoundGeoOperations
+|geoRemove
+|remove
+
+|===
+
+.Redis Cache
+|===
+|Type |Method |Replacement
+
+|o.s.d.redis.cache.RedisCacheConfiguration
+|prefixKeysWith
+|prefixCacheNameWith
+
+|o.s.d.redis.cache.RedisCacheConfiguration
+|getKeyPrefix
+|getKeyPrefixFor
+
+|===
+
+== Jedis
+
+.Jedis Redis Connection
+|===
+|Type |Method |Replacement
+
+|o.s.d.redis.connection.jedis.JedisConnectionFactory
+|getShardInfo
+|_can be obtained via JedisClientConfiguration_
+
+|o.s.d.redis.connection.jedis.JedisConnectionFactory
+|setShardInfo
+|_can be set via JedisClientConfiguration_
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|tuplesToTuples
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|tuplesToTuples
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|stringListToByteList
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|stringSetToByteSet
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|stringMapToByteMap
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|tupleSetToTupleSet
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|toTupleSet
+|-
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|toDataAccessException
+|o.s.d.redis.connection.jedis.JedisExceptionConverter#convert
+
+|===
+
+== Lettuce
+
+=== Lettuce Pool
+
+`LettucePool` and its implementation `DefaultLettucePool` have been removed without replacement.
+Please refer to the https://lettuce.io/core/release/reference/index.html#_connection_pooling[driver documentation] for driver native pooling capabilities.
+Methods accepting pooling parameters have been updated.
+This effects methods on `LettuceConnectionFactory` and `LettuceConnection`.
+
+=== Lettuce Authentication
+
+`AuthenticatingRedisClient` has been removed without replacement.
+Please refer to the https://lettuce.io/core/release/reference/index.html#basic.redisuri[driver documentation] for `RedisURI` to set authentication data.
