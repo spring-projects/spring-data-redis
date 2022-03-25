@@ -25,11 +25,9 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
-import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
@@ -52,39 +50,6 @@ import org.springframework.util.NumberUtils;
  */
 @SuppressWarnings({ "rawtypes" })
 class StreamConverters {
-
-	private static final Converter<List<StreamMessage<byte[], byte[]>>, List<RecordId>> MESSAGEs_TO_IDs = new ListConverter<>(
-			messageToIdConverter());
-
-	private static final BiFunction<List<PendingMessage>, String, org.springframework.data.redis.connection.stream.PendingMessages> PENDING_MESSAGES_CONVERTER = (
-			source, groupName) -> {
-
-
-		List<org.springframework.data.redis.connection.stream.PendingMessage> messages = source.stream()
-				.map(it -> {
-
-					RecordId id = RecordId.of(it.getId());
-					Consumer consumer = Consumer.from(groupName, it.getConsumer());
-
-					return new org.springframework.data.redis.connection.stream.PendingMessage(id, consumer,
-							Duration.ofMillis(it.getMsSinceLastDelivery()), it.getRedeliveryCount());
-
-				}).toList();
-
-		return new org.springframework.data.redis.connection.stream.PendingMessages(groupName, messages);
-
-	};
-
-	private static final BiFunction<PendingMessages, String, PendingMessagesSummary> PENDING_MESSAGES_SUMMARY_CONVERTER = (
-			source, groupName) -> {
-
-		org.springframework.data.domain.Range<String> range = source.getMessageIds().isUnbounded()
-				? org.springframework.data.domain.Range.unbounded()
-				: org.springframework.data.domain.Range.open(source.getMessageIds().getLower().getValue(),
-						source.getMessageIds().getUpper().getValue());
-
-		return new PendingMessagesSummary(groupName, source.getCount(), range, source.getConsumerMessageCount());
-	};
 
 	/**
 	 * Convert {@link StreamReadOptions} to Lettuce's {@link XReadArgs}.
@@ -126,7 +91,18 @@ class StreamConverters {
 	 */
 	static org.springframework.data.redis.connection.stream.PendingMessages toPendingMessages(String groupName,
 			org.springframework.data.domain.Range<?> range, List<PendingMessage> source) {
-		return PENDING_MESSAGES_CONVERTER.apply(source, groupName).withinRange(range);
+
+		List<org.springframework.data.redis.connection.stream.PendingMessage> messages = source.stream().map(it -> {
+
+			RecordId id = RecordId.of(it.getId());
+			Consumer consumer = Consumer.from(groupName, it.getConsumer());
+
+			return new org.springframework.data.redis.connection.stream.PendingMessage(id, consumer,
+					Duration.ofMillis(it.getMsSinceLastDelivery()), it.getRedeliveryCount());
+
+		}).toList();
+
+		return new org.springframework.data.redis.connection.stream.PendingMessages(groupName, messages).withinRange(range);
 	}
 
 	/**
@@ -138,7 +114,13 @@ class StreamConverters {
 	 * @since 2.3
 	 */
 	static PendingMessagesSummary toPendingMessagesInfo(String groupName, PendingMessages source) {
-		return PENDING_MESSAGES_SUMMARY_CONVERTER.apply(source, groupName);
+
+		org.springframework.data.domain.Range<String> range = source.getMessageIds().isUnbounded()
+				? org.springframework.data.domain.Range.unbounded()
+				: org.springframework.data.domain.Range.open(source.getMessageIds().getLower().getValue(),
+						source.getMessageIds().getUpper().getValue());
+
+		return new PendingMessagesSummary(groupName, source.getCount(), range, source.getConsumerMessageCount());
 	}
 
 	/**

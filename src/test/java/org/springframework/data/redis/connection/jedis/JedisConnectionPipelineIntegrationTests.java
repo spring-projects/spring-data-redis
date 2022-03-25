@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -78,17 +79,17 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	// Unsupported Ops
 	@Test
 	public void testScriptLoadEvalSha() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testScriptLoadEvalSha);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testScriptLoadEvalSha);
 	}
 
 	@Test
 	public void testEvalShaArrayStrings() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalShaArrayStrings);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalShaArrayStrings);
 	}
 
 	@Test
 	public void testEvalShaArrayBytes() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalShaArrayBytes);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalShaArrayBytes);
 	}
 
 	@Test
@@ -101,17 +102,17 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	@Test
 	public void testEvalReturnString() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnString);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnString);
 	}
 
 	@Test
 	public void testEvalReturnNumber() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnNumber);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnNumber);
 	}
 
 	@Test
 	public void testEvalReturnSingleOK() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnSingleOK);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnSingleOK);
 	}
 
 	@Test
@@ -120,47 +121,47 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	@Test
 	public void testEvalReturnFalse() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnFalse);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnFalse);
 	}
 
 	@Test
 	public void testEvalReturnTrue() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnTrue);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnTrue);
 	}
 
 	@Test
 	public void testEvalReturnArrayStrings() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayStrings);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayStrings);
 	}
 
 	@Test
 	public void testEvalReturnArrayNumbers() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayNumbers);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayNumbers);
 	}
 
 	@Test
 	public void testEvalReturnArrayOKs() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayOKs);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayOKs);
 	}
 
 	@Test
 	public void testEvalReturnArrayFalses() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayFalses);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayFalses);
 	}
 
 	@Test
 	public void testEvalReturnArrayTrues() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testEvalReturnArrayTrues);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayTrues);
 	}
 
 	@Test
 	public void testScriptExists() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::testScriptExists);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testScriptExists);
 	}
 
 	@Test
 	public void testScriptKill() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.scriptKill());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.scriptKill());
 	}
 
 	@Test
@@ -169,14 +170,14 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(super::clientSetNameWorksCorrectly);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::clientSetNameWorksCorrectly);
 	}
 
 	@Test
 	@Override
 	// DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(super::testListClientsContainsAtLeastOneElement);
 	}
 

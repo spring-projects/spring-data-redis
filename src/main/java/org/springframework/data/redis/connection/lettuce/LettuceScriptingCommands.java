@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.util.Assert;
@@ -46,7 +47,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	public void scriptKill() {
 
 		if (connection.isQueueing()) {
-			throw new UnsupportedOperationException("Script kill not permitted in a transaction");
+			throw new InvalidDataAccessApiUsageException("Script kill not permitted in a transaction");
 		}
 
 		connection.invoke().just(RedisScriptingAsyncCommands::scriptKill);

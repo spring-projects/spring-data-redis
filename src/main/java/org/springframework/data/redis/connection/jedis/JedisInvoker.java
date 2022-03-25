@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -82,7 +83,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return synchronizer.invoke(function::apply, it -> {
-			throw new UnsupportedOperationException("Operation not supported by Jedis in pipelining/transaction mode");
+			throw new InvalidDataAccessApiUsageException("Operation not supported by Jedis in pipelining/transaction mode");
 		}, Converters.identityConverter(), () -> null);
 	}
 
@@ -231,7 +232,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return from(function, connection -> {
-			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
+			throw new InvalidDataAccessApiUsageException("Operation not supported in pipelining/transaction mode");
 		});
 	}
 
@@ -379,7 +380,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null!");
 
 		return fromMany(function, connection -> {
-			throw new UnsupportedOperationException("Operation not supported in pipelining/transaction mode");
+			throw new InvalidDataAccessApiUsageException("Operation not supported in pipelining/transaction mode");
 		});
 	}
 

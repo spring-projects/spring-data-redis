@@ -21,6 +21,7 @@ import io.lettuce.core.api.async.RedisStringAsyncCommands;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -275,7 +276,7 @@ class LettuceStringCommands implements RedisStringCommands {
 		Assert.notNull(destination, "Destination key must not be null!");
 
 		if (op == BitOperation.NOT && keys.length > 1) {
-			throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+			throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 		}
 
 		return connection.invoke().just(it -> {
@@ -289,7 +290,7 @@ class LettuceStringCommands implements RedisStringCommands {
 					return it.bitopXor(destination, keys);
 				case NOT:
 					if (keys.length != 1) {
-						throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+						throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 					}
 					return it.bitopNot(destination, keys[0]);
 				default:

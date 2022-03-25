@@ -24,6 +24,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
+
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterKeyCommands;
@@ -122,6 +124,6 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 	@Override
 	public Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands) {
-		throw new UnsupportedOperationException("MOVE not supported in CLUSTER mode!");
+		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode!");
 	}
 }

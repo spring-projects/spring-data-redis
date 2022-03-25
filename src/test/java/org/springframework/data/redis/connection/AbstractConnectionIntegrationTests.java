@@ -527,7 +527,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	void testBitOpNotMultipleSources() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(IllegalArgumentException.class)
 				.isThrownBy(() -> connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
 	}
 

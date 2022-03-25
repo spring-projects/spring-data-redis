@@ -24,6 +24,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -139,7 +140,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 	@Test
 	public void testSelect() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testSelect());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> super.testSelect());
 	}
 
 	@Test

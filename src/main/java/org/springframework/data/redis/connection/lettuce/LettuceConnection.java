@@ -547,7 +547,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public void select(int dbIndex) {
 
 		if (asyncSharedConn != null) {
-			throw new UnsupportedOperationException("Selecting a new database not supported due to shared connection. "
+			throw new InvalidDataAccessApiUsageException("Selecting a new database not supported due to shared connection. "
 					+ "Use separate ConnectionFactorys to work with multiple databases");
 		}
 
@@ -578,7 +578,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@Override
 	public void watch(byte[]... keys) {
 		if (isQueueing()) {
-			throw new UnsupportedOperationException();
+			throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
 		}
 		try {
 			if (isPipelined()) {
@@ -620,7 +620,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		checkSubscription();
 
 		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+			throw new InvalidDataAccessApiUsageException(
+					"Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
 		}
 
 		try {
@@ -637,7 +638,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		checkSubscription();
 
 		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException("Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+			throw new InvalidDataAccessApiUsageException(
+					"Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
 		}
 
 		try {

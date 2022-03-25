@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.SortParameters;
@@ -134,7 +135,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		throw new UnsupportedOperationException("MOVE not supported in CLUSTER mode!");
+		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode!");
 	}
 
 	@Nullable

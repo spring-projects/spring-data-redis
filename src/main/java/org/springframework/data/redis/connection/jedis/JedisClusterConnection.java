@@ -653,17 +653,17 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void openPipeline() {
-		throw new UnsupportedOperationException("Pipeline is currently not supported for JedisClusterConnection.");
+		throw new InvalidDataAccessApiUsageException("Pipeline is not supported for JedisClusterConnection.");
 	}
 
 	@Override
 	public List<Object> closePipeline() throws RedisPipelineException {
-		throw new UnsupportedOperationException("Pipeline is currently not supported for JedisClusterConnection.");
+		throw new InvalidDataAccessApiUsageException("Pipeline is not supported for JedisClusterConnection.");
 	}
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-		throw new UnsupportedOperationException("Sentinel is currently not supported for JedisClusterConnection.");
+		throw new InvalidDataAccessApiUsageException("Sentinel is not supported for JedisClusterConnection.");
 	}
 
 	@Override

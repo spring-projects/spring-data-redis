@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.context.ContextConfiguration;
@@ -76,13 +77,13 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 
 	@Test
 	public void testEvalShaArrayError() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1"));
 	}
 
 	@Test
 	public void testEvalArrayScriptError() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar"));
 	}
 
@@ -162,7 +163,7 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	@Override
 	// DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(super::testListClientsContainsAtLeastOneElement);
 	}
 
