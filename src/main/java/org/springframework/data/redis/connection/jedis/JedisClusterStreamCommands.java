@@ -23,6 +23,7 @@ import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -88,7 +89,26 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
-		throw new UnsupportedOperationException("JedisCluster does not support xClaimJustId.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(group, "Group must not be null!");
+		Assert.notNull(newOwner, "NewOwner must not be null!");
+
+		long minIdleTime = options.getMinIdleTime() == null ? -1L : options.getMinIdleTime().toMillis();
+
+		XClaimParams xClaimParams = StreamConverters.toXClaimParams(options);
+		try {
+
+			List<byte[]> ids = connection.getCluster().xclaimJustId(key, JedisConverters.toBytes(group),
+					JedisConverters.toBytes(newOwner), minIdleTime, xClaimParams, entryIdsToBytes(options.getIds()));
+
+			List<RecordId> recordIds = new ArrayList<>(ids.size());
+			ids.forEach(it -> recordIds.add(RecordId.of(JedisConverters.toString(it))));
+
+			return recordIds;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -172,17 +192,40 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public StreamInfo.XInfoStream xInfo(byte[] key) {
-		throw new UnsupportedOperationException("JedisCluster does not support XINFO.");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return StreamInfo.XInfoStream.fromList((List) connection.getCluster().xinfoStream(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public StreamInfo.XInfoGroups xInfoGroups(byte[] key) {
-		throw new UnsupportedOperationException("JedisCluster does not support XINFO.");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return StreamInfo.XInfoGroups.fromList(connection.getCluster().xinfoGroups(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public StreamInfo.XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
-		throw new UnsupportedOperationException("JedisCluster does not support XINFO.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		try {
+			return StreamInfo.XInfoConsumers.fromList(groupName,
+					connection.getCluster().xinfoConsumers(key, JedisConverters.toBytes(groupName)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -199,7 +242,21 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
-		throw new UnsupportedOperationException("Jedis does not support returning PendingMessagesSummary.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(groupName, "GroupName must not be null!");
+
+		byte[] group = JedisConverters.toBytes(groupName);
+
+		try {
+
+			Object response = connection.getCluster().xpending(key, group);
+
+			return StreamConverters.toPendingMessagesSummary(groupName, response);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+
 	}
 
 	@Override

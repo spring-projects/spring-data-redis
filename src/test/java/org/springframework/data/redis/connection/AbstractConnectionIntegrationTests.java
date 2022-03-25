@@ -3301,7 +3301,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2043
 	@EnabledOnCommand("GEOSEARCH")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void geoSearchByMemberShouldReturnMembersCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3319,7 +3318,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2043
 	@EnabledOnCommand("GEOSEARCH")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void geoSearchByPointShouldReturnMembersCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3337,7 +3335,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2043
 	@EnabledOnCommand("GEOSEARCH")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void geoSearchShouldConsiderDistanceCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3357,7 +3354,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2043
 	@EnabledOnCommand("GEOSEARCHSTORE")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void geoSearchStoreByMemberShouldStoreResult() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3377,7 +3373,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2043
 	@EnabledOnCommand("GEOSEARCHSTORE")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void geoSearchStoreByPointShouldStoreResult() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3759,7 +3754,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void xPendingShouldLoadOverviewCorrectly() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
@@ -3781,7 +3775,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
-	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void xPendingShouldLoadEmptyOverviewCorrectly() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));

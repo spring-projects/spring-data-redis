@@ -278,11 +278,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		if (seconds > Integer.MAX_VALUE) {
-			throw new UnsupportedOperationException("Jedis does not support seconds exceeding Integer.MAX_VALUE.");
-		}
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().expire(key, Long.valueOf(seconds).intValue()));
+			return JedisConverters.toBoolean(connection.getCluster().expire(key, seconds));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -405,14 +402,10 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(serializedValue, "Serialized value must not be null!");
 
-		if (ttlInMillis > Integer.MAX_VALUE) {
-			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
-		}
-
 		connection.getClusterCommandExecutor().executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
 
 			if (!replace) {
-				return client.restore(key, Long.valueOf(ttlInMillis).intValue(), serializedValue);
+				return client.restore(key, ttlInMillis, serializedValue);
 			}
 
 			return JedisConverters.toString(this.connection.execute("RESTORE", key,

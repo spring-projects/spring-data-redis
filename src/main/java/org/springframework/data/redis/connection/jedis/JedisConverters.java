@@ -26,6 +26,7 @@ import redis.clients.jedis.args.BitOP;
 import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.GeoSearchParam;
 import redis.clients.jedis.params.GetExParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -57,6 +59,7 @@ import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldInc
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
@@ -81,6 +84,11 @@ import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.domain.geo.BoundingBox;
+import org.springframework.data.redis.domain.geo.BoxShape;
+import org.springframework.data.redis.domain.geo.GeoReference;
+import org.springframework.data.redis.domain.geo.GeoShape;
+import org.springframework.data.redis.domain.geo.RadiusShape;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -762,6 +770,86 @@ public abstract class JedisConverters extends Converters {
 			default:
 				throw new IllegalArgumentException("Flush option " + option + " is not supported.");
 		}
+	}
+
+	static GeoSearchParam toGeoSearchParams(GeoReference<byte[]> reference, GeoShape predicate,
+			RedisGeoCommands.GeoCommandArgs args) {
+
+		Assert.notNull(reference, "GeoReference must not be null!");
+		Assert.notNull(predicate, "GeoShape must not be null!");
+		Assert.notNull(args, "GeoSearchCommandArgs must not be null!");
+
+		GeoSearchParam param = GeoSearchParam.geoSearchParam();
+
+		configureGeoReference(reference, param);
+
+		if (args.getLimit() != null) {
+
+			boolean hasAnyLimit = args.getFlags().contains(Flag.ANY);
+			param.count(Math.toIntExact(args.getLimit()), hasAnyLimit);
+		}
+
+		if (args.getSortDirection() != null) {
+
+			if (args.getSortDirection() == Sort.Direction.ASC) {
+				param.asc();
+			} else {
+				param.desc();
+			}
+		}
+
+		if (args.getFlags().contains(Flag.WITHDIST)) {
+			param.withDist();
+		}
+
+		if (args.getFlags().contains(Flag.WITHCOORD)) {
+			param.withCoord();
+		}
+
+		return getGeoSearchParam(predicate, param);
+	}
+
+	private static GeoSearchParam getGeoSearchParam(GeoShape predicate, GeoSearchParam param) {
+
+		if (predicate instanceof RadiusShape) {
+
+			Distance radius = ((RadiusShape) predicate).getRadius();
+
+			param.byRadius(radius.getValue(), toGeoUnit(radius.getMetric()));
+
+			return param;
+		}
+
+		if (predicate instanceof BoxShape) {
+
+			BoxShape boxPredicate = (BoxShape) predicate;
+			BoundingBox boundingBox = boxPredicate.getBoundingBox();
+
+			param.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
+					toGeoUnit(boxPredicate.getMetric()));
+
+			return param;
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot convert %s to Jedis GeoSearchParam", predicate));
+	}
+
+	private static void configureGeoReference(GeoReference<byte[]> reference, GeoSearchParam param) {
+
+		if (reference instanceof GeoReference.GeoMemberReference) {
+
+			param.fromMember(toString(((GeoReference.GeoMemberReference<byte[]>) reference).getMember()));
+			return;
+		}
+
+		if (reference instanceof GeoReference.GeoCoordinateReference) {
+
+			GeoReference.GeoCoordinateReference<?> coordinates = (GeoReference.GeoCoordinateReference<?>) reference;
+			param.fromLonLat(coordinates.getLongitude(), coordinates.getLatitude());
+			return;
+		}
+
+		throw new IllegalArgumentException(String.format("Cannot extract Geo Reference from %s", reference));
 	}
 
 	/**

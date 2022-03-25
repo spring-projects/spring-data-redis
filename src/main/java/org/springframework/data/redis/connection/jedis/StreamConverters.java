@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XClaimParams;
@@ -29,6 +30,7 @@ import redis.clients.jedis.util.SafeEncoder;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +44,7 @@ import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessage;
 import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
@@ -155,6 +158,32 @@ class StreamConverters {
 		}
 
 		return result;
+	}
+
+	static PendingMessagesSummary toPendingMessagesSummary(String groupName, Object source) {
+
+		List<Object> objectList = (List<Object>) source;
+		long total = BuilderFactory.LONG.build(objectList.get(0));
+		Range.Bound<String> lower = objectList.get(1) != null
+				? Range.Bound.inclusive(SafeEncoder.encode((byte[]) objectList.get(1)))
+				: Range.Bound.unbounded();
+		Range.Bound<String> upper = objectList.get(2) != null
+				? Range.Bound.inclusive(SafeEncoder.encode((byte[]) objectList.get(2)))
+				: Range.Bound.unbounded();
+		List<List<Object>> consumerObjList = (List<List<Object>>) objectList.get(3);
+		Map<String, Long> map;
+
+		if (consumerObjList != null) {
+			map = new HashMap<>(consumerObjList.size());
+			for (List<Object> consumerObj : consumerObjList) {
+				map.put(SafeEncoder.encode((byte[]) consumerObj.get(0)),
+						Long.parseLong(SafeEncoder.encode((byte[]) consumerObj.get(1))));
+			}
+		} else {
+			map = Collections.emptyMap();
+		}
+
+		return new PendingMessagesSummary(groupName, total, Range.of(lower, upper), map);
 	}
 
 	/**
@@ -284,4 +313,5 @@ class StreamConverters {
 
 		return xPendingParams;
 	}
+
 }

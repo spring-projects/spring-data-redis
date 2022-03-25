@@ -19,6 +19,7 @@ import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
+import redis.clients.jedis.params.GeoSearchParam;
 
 import java.util.HashMap;
 import java.util.List;
@@ -214,12 +215,30 @@ class JedisGeoCommands implements RedisGeoCommands {
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
-		throw new UnsupportedOperationException("GEOSEARCH not supported through Jedis");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		GeoSearchParam param = JedisConverters.toGeoSearchParams(reference, predicate, args);
+		Converter<List<redis.clients.jedis.resps.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> converter = JedisConverters
+				.geoRadiusResponseToGeoResultsConverter(predicate.getMetric());
+
+		return connection.invoke().from(Jedis::geosearch, PipelineBinaryCommands::geosearch, key, param).get(converter);
 	}
 
 	@Override
 	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
-		throw new UnsupportedOperationException("GEOSEARCHSTORE not supported through Jedis");
+
+		Assert.notNull(destKey, "Destination Key must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+
+		GeoSearchParam param = JedisConverters.toGeoSearchParams(reference, predicate, args);
+
+		if (args.isStoreDistance()) {
+			return connection.invoke().just(Jedis::geosearchStoreStoreDist, PipelineBinaryCommands::geosearchStoreStoreDist,
+					destKey, key, param);
+		}
+
+		return connection.invoke().just(Jedis::geosearchStore, PipelineBinaryCommands::geosearchStore, destKey, key, param);
 	}
 }

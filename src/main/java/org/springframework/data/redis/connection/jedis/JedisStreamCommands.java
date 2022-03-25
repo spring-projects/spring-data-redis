@@ -86,7 +86,18 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
-		throw new UnsupportedOperationException("Jedis does not support xClaimJustId.");
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(group, "Group must not be null!");
+		Assert.notNull(newOwner, "NewOwner must not be null!");
+
+		XClaimParams params = StreamConverters.toXClaimParams(options);
+
+		return connection.invoke()
+				.fromMany(Jedis::xclaimJustId, ResponseCommands::xclaimJustId, key, JedisConverters.toBytes(group),
+						JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(), params,
+						StreamConverters.entryIdsToBytes(options.getIds()))
+				.toList(it -> RecordId.of(JedisConverters.toString(it)));
 	}
 
 	@Override
@@ -207,7 +218,12 @@ class JedisStreamCommands implements RedisStreamCommands {
 
 	@Override
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
-		throw new UnsupportedOperationException("Jedis does not support returning PendingMessagesSummary.");
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return connection.invoke()
+				.from(Jedis::xpending, PipelineBinaryCommands::xpending, key, JedisConverters.toBytes(groupName))
+				.get(it -> StreamConverters.toPendingMessagesSummary(groupName, it));
 	}
 
 	@Override
