@@ -24,6 +24,6 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Mark Paluch
  */
 @ContextConfiguration("LettuceConnectionPipelineFlushOnEndIntegrationTests-context.xml")
-public class LettuceConnectionPipelineTxFlushOnEndIntegrationTests extends LettuceConnectionPipelineTxIntegrationTests {
+class LettuceConnectionPipelineTxFlushOnEndIntegrationTests extends LettuceConnectionPipelineTxIntegrationTests {
 
 }

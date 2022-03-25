@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -192,11 +193,6 @@ class LettuceServerCommands implements RedisServerCommands {
 
 	@Override
 	public List<RedisClientInfo> getClientList() {
-
-		if (connection.isPipelined()) {
-			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
-		}
-
 		return connection.invoke().from(RedisServerAsyncCommands::clientList)
 				.get(LettuceConverters.stringToRedisClientListConverter());
 	}

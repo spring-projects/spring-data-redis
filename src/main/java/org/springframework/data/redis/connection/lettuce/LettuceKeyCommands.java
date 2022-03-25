@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
@@ -149,7 +150,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 			protected LettuceScanIteration<byte[]> doScan(ScanCursor cursor, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
 				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);

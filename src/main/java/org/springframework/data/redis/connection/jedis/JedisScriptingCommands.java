@@ -19,6 +19,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.List;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.util.Assert;
@@ -101,7 +102,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 	private void assertDirectMode() {
 		if (connection.isQueueing() || connection.isPipelined()) {
-			throw new UnsupportedOperationException("Scripting commands not supported in pipelining/transaction mode");
+			throw new InvalidDataAccessApiUsageException("Scripting commands not supported in pipelining/transaction mode");
 		}
 	}
 

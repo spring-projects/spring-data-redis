@@ -43,6 +43,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -1402,7 +1403,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void moveShouldNotBeSupported() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> clusterConnection.move(KEY_1_BYTES, 3));
 	}
 

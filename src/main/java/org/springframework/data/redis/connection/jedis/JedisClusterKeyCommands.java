@@ -335,7 +335,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		throw new UnsupportedOperationException("Cluster mode does not allow moving keys.");
+		throw new InvalidDataAccessApiUsageException("Cluster mode does not allow moving keys.");
 	}
 
 	@Override

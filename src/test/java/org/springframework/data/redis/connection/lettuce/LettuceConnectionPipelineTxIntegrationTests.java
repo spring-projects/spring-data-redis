@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
-public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnectionTransactionIntegrationTests {
+class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnectionTransactionIntegrationTests {
 
 	@Test
 	@Disabled("Different exception")
@@ -74,14 +74,6 @@ public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnecti
 		List<Object> txResults = (List<Object>) pipelined.get(0);
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;
-	}
-
-	@Test
-	@Override
-	// DATAREDIS-268
-	public void testListClientsContainsAtLeastOneElement() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(super::testListClientsContainsAtLeastOneElement);
 	}
 
 }

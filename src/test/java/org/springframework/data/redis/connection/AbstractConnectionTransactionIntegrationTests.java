@@ -23,6 +23,8 @@ import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+
 /**
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -128,14 +130,15 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 
 	@Test
 	public void testWatchWhileInTx() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.watch("foo".getBytes()));
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> connection.watch("foo".getBytes()));
 	}
 
 	@Test
 	public void testScriptKill() {
 		// Impossible to call script kill in a tx because you can't issue the
 		// exec command while Redis is running a script
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> connection.scriptKill());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.scriptKill());
 	}
 
 	@Test // DATAREDIS-417

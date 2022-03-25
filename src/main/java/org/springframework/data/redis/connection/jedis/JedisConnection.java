@@ -553,7 +553,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public void watch(byte[]... keys) {
 		if (isQueueing()) {
-			throw new UnsupportedOperationException();
+			throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
 		}
 		doWithJedis(it -> {
 
@@ -591,7 +591,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
+			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
 		}
 
 		doWithJedis(it -> {
@@ -612,7 +612,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		if (isQueueing() || isPipelined()) {
-			throw new UnsupportedOperationException();
+			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
 		}
 
 		doWithJedis(it -> {

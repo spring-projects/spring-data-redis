@@ -283,7 +283,7 @@ class JedisStringCommands implements RedisStringCommands {
 		Assert.notNull(destination, "Destination key must not be null!");
 
 		if (op == BitOperation.NOT && keys.length > 1) {
-			throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+			throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 		}
 
 		return connection.invoke().just(Jedis::bitop, PipelineBinaryCommands::bitop, JedisConverters.toBitOp(op),

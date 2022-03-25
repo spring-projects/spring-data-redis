@@ -1368,7 +1368,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	@Test // DATAREDIS-315
 	public void moveShouldNotBeSupported() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> clusterConnection.move(KEY_1_BYTES, 3));
 	}
 

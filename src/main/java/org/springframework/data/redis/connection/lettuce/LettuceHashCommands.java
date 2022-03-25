@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
@@ -223,7 +224,7 @@ class LettuceHashCommands implements RedisHashCommands {
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);

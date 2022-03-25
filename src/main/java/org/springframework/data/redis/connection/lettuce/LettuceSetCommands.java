@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
@@ -220,7 +221,7 @@ class LettuceSetCommands implements RedisSetCommands {
 			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new UnsupportedOperationException("'SSCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);

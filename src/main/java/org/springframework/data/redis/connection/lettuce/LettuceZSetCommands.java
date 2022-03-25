@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -546,7 +547,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'ZSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);

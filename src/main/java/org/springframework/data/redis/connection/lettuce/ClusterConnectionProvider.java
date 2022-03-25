@@ -26,6 +26,7 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -110,7 +111,7 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 		}
 
 		return LettuceFutureUtils
-				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported!"));
+				.failed(new InvalidDataAccessApiUsageException("Connection type " + connectionType + " not supported!"));
 	}
 
 	@Override
