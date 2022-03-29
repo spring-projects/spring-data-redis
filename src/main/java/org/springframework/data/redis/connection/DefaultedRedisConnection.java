@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -967,7 +968,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zLexCount(byte[] key, Range range) {
+	default Long zLexCount(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return zSetCommands().zLexCount(key, range);
 	}
 
@@ -1016,7 +1017,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zCount(byte[] key, Range range) {
+	default Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return zSetCommands().zCount(key, range);
 	}
 
@@ -1142,28 +1143,31 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	default Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByLex(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRevRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	default Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByLex(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	default Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByScore(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByScoreWithScores(key, range, limit);
 	}
@@ -1178,14 +1182,15 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRevRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	default Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByScore(key, range, limit);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByScoreWithScores(key, range, limit);
 	}
@@ -1214,14 +1219,14 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zRemRangeByLex(byte[] key, Range range) {
+	default Long zRemRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return zSetCommands().zRemRangeByLex(key, range);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zRemRangeByScore(byte[] key, Range range) {
+	default Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return zSetCommands().zRemRangeByScore(key, range);
 	}
 

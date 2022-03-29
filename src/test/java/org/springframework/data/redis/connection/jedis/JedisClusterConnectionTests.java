@@ -2342,23 +2342,23 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.zadd(KEY_1, 0, "f");
 		nativeConnection.zadd(KEY_1, 0, "g");
 
-		Set<byte[]> values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lte("c"));
+		Set<byte[]> values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lte("c").toRange());
 
 		assertThat(values).contains(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"),
 				JedisConverters.toBytes("c"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("d"), JedisConverters.toBytes("e"),
 				JedisConverters.toBytes("f"), JedisConverters.toBytes("g"));
 
-		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
+		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lt("c").toRange());
 		assertThat(values).contains(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("c"));
 
-		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
+		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g").toRange());
 		assertThat(values).contains(JedisConverters.toBytes("b"), JedisConverters.toBytes("c"),
 				JedisConverters.toBytes("d"), JedisConverters.toBytes("e"), JedisConverters.toBytes("f"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("g"));
 
-		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("e"));
+		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("e").toRange());
 		assertThat(values).contains(JedisConverters.toBytes("e"), JedisConverters.toBytes("f"),
 				JedisConverters.toBytes("g"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"),
@@ -2376,23 +2376,24 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.zadd(KEY_1, 0, "f");
 		nativeConnection.zadd(KEY_1, 0, "g");
 
-		Set<byte[]> values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("c"));
+		Set<byte[]> values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("c").toRange());
 
 		assertThat(values).containsExactly(JedisConverters.toBytes("c"), JedisConverters.toBytes("b"),
 				JedisConverters.toBytes("a"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("d"), JedisConverters.toBytes("e"),
 				JedisConverters.toBytes("f"), JedisConverters.toBytes("g"));
 
-		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lt("c").toRange());
 		assertThat(values).containsExactly(JedisConverters.toBytes("b"), JedisConverters.toBytes("a"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("c"));
 
-		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g").toRange());
 		assertThat(values).containsExactly(JedisConverters.toBytes("f"), JedisConverters.toBytes("e"),
 				JedisConverters.toBytes("d"), JedisConverters.toBytes("c"), JedisConverters.toBytes("b"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("g"));
 
-		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("d"), Limit.limit().count(2).offset(1));
+		values = clusterConnection.zRevRangeByLex(KEY_1_BYTES, Range.range().lte("d").toRange(),
+				Limit.limit().count(2).offset(1));
 
 		assertThat(values).hasSize(2).containsExactly(JedisConverters.toBytes("c"), JedisConverters.toBytes("b"));
 		assertThat(values).doesNotContain(JedisConverters.toBytes("a"), JedisConverters.toBytes("d"),

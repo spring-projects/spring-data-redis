@@ -63,7 +63,6 @@ import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -304,7 +303,7 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link Boundary} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
+	 * Converts a given {@link Bound} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
 	 * {@literal ZRANGEBYLEX}.
 	 *
 	 * @param boundary
@@ -312,9 +311,10 @@ abstract class JedisConverters extends Converters {
 	 * @return
 	 * @since 1.6
 	 */
-	public static byte[] boundaryToBytesForZRange(@Nullable Boundary boundary, byte[] defaultValue) {
+	public static byte[] boundaryToBytesForZRange(@Nullable org.springframework.data.domain.Range.Bound<?> boundary,
+			byte[] defaultValue) {
 
-		if (boundary == null || boundary.getValue() == null) {
+		if (boundary == null || !boundary.isBounded()) {
 			return defaultValue;
 		}
 
@@ -322,15 +322,16 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link Boundary} to its binary representation suitable for ZRANGEBYLEX command.
+	 * Converts a given {@link Bound} to its binary representation suitable for ZRANGEBYLEX command.
 	 *
 	 * @param boundary
 	 * @return
 	 * @since 1.6
 	 */
-	public static byte[] boundaryToBytesForZRangeByLex(@Nullable Boundary boundary, byte[] defaultValue) {
+	public static byte[] boundaryToBytesForZRangeByLex(
+			@Nullable org.springframework.data.domain.Range.Bound<byte[]> boundary, byte[] defaultValue) {
 
-		if (boundary == null || boundary.getValue() == null) {
+		if (boundary == null || !boundary.isBounded()) {
 			return defaultValue;
 		}
 
@@ -471,20 +472,22 @@ abstract class JedisConverters extends Converters {
 		}
 	}
 
-	private static byte[] boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {
+	private static byte[] boundaryToBytes(org.springframework.data.domain.Range.Bound<?> boundary, byte[] inclPrefix,
+			byte[] exclPrefix) {
 
-		byte[] prefix = boundary.isIncluding() ? inclPrefix : exclPrefix;
+		byte[] prefix = boundary.isInclusive() ? inclPrefix : exclPrefix;
 		byte[] value = null;
-		if (boundary.getValue() instanceof byte[]) {
-			value = (byte[]) boundary.getValue();
-		} else if (boundary.getValue() instanceof Double) {
-			value = toBytes((Double) boundary.getValue());
-		} else if (boundary.getValue() instanceof Long) {
-			value = toBytes((Long) boundary.getValue());
-		} else if (boundary.getValue() instanceof Integer) {
-			value = toBytes((Integer) boundary.getValue());
-		} else if (boundary.getValue() instanceof String) {
-			value = toBytes((String) boundary.getValue());
+		Object theValue = boundary.getValue().get();
+		if (theValue instanceof byte[]) {
+			value = (byte[]) theValue;
+		} else if (theValue instanceof Double) {
+			value = toBytes((Double) theValue);
+		} else if (theValue instanceof Long) {
+			value = toBytes((Long) theValue);
+		} else if (theValue instanceof Integer) {
+			value = toBytes((Integer) theValue);
+		} else if (theValue instanceof String) {
+			value = toBytes((String) theValue);
 		} else {
 			throw new IllegalArgumentException(String.format("Cannot convert %s to binary format", boundary.getValue()));
 		}

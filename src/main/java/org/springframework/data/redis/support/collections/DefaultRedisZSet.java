@@ -21,9 +21,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.ConvertingCursor;
 import org.springframework.data.redis.core.Cursor;
@@ -221,12 +221,12 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public Set<E> rangeByLex(Range range, Limit limit) {
+	public Set<E> rangeByLex(Range<String> range, Limit limit) {
 		return boundZSetOps.rangeByLex(range, limit);
 	}
 
 	@Override
-	public Set<E> reverseRangeByLex(Range range, Limit limit) {
+	public Set<E> reverseRangeByLex(Range<String> range, Limit limit) {
 		return boundZSetOps.reverseRangeByLex(range, limit);
 	}
 
@@ -267,7 +267,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public Set<E> removeByLex(Range range) {
+	public Set<E> removeByLex(Range<String> range) {
 		boundZSetOps.removeRangeByLex(range);
 		return this;
 	}
@@ -424,7 +424,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public Long lexCount(Range range) {
+	public Long lexCount(Range<String> range) {
 		return boundZSetOps.lexCount(range);
 	}
 

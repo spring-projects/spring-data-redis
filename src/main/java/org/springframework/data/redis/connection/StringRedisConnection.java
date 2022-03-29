@@ -1538,7 +1538,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zLexCount(byte[], Range)
 	 */
 	@Nullable
-	Long zLexCount(String key, Range range);
+	Long zLexCount(String key, org.springframework.data.domain.Range<String> range);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
@@ -1669,7 +1669,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
-	Long zRemRangeByLex(String key, Range range);
+	Long zRemRangeByLex(String key, org.springframework.data.domain.Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with {@code key}.
@@ -1927,7 +1927,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], Range)
 	 */
-	Set<String> zRangeByLex(String key, Range range);
+	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range);
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is
@@ -1941,7 +1941,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], Range, Limit)
 	 */
-	Set<String> zRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit);
+	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
@@ -1953,7 +1954,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[])
 	 */
 	default Set<String> zRevRangeByLex(String key) {
-		return zRevRangeByLex(key, Range.unbounded());
+		return zRevRangeByLex(key, org.springframework.data.domain.Range.unbounded());
 	}
 
 	/**
@@ -1966,7 +1967,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range)
 	 */
-	default Set<String> zRevRangeByLex(String key, Range range) {
+	default Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range) {
 		return zRevRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -1982,7 +1983,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range, Limit)
 	 */
-	Set<String> zRevRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit);
+	Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Hashes

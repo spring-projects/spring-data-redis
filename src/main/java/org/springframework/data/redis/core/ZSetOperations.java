@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.lang.Nullable;
@@ -402,8 +402,8 @@ public interface ZSetOperations<K, V> {
 	Long count(K key, double min, double max);
 
 	/**
-	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
-	 * lexicographical ordering.
+	 * Count number of elements within sorted set with value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()} applying lexicographical ordering.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -412,7 +412,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
 	@Nullable
-	Long lexCount(K key, Range range);
+	Long lexCount(K key, Range<String> range);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
@@ -595,7 +595,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
 	@Nullable
-	Long removeRangeByLex(K key, Range range);
+	Long removeRangeByLex(K key, org.springframework.data.domain.Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with {@code key}.
@@ -970,7 +970,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	default Set<V> rangeByLex(K key, Range range) {
+	default Set<V> rangeByLex(K key, org.springframework.data.domain.Range<String> range) {
 		return rangeByLex(key, range, Limit.unlimited());
 	}
 
@@ -987,7 +987,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<V> rangeByLex(K key, Range range, Limit limit);
+	Set<V> rangeByLex(K key, org.springframework.data.domain.Range<String> range, Limit limit);
 
 	/**
 	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
@@ -1000,7 +1000,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable
-	default Set<V> reverseRangeByLex(K key, Range range) {
+	default Set<V> reverseRangeByLex(K key, org.springframework.data.domain.Range<String> range) {
 		return reverseRangeByLex(key, range, Limit.unlimited());
 	}
 
@@ -1017,7 +1017,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<V> reverseRangeByLex(K key, Range range, Limit limit);
+	Set<V> reverseRangeByLex(K key, org.springframework.data.domain.Range<String> range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -303,7 +303,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
 	@Nullable
-	Long lexCount(Range range);
+	Long lexCount(Range<String> range);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at the bound key.
@@ -472,7 +472,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
 	@Nullable
-	Long removeRangeByLex(Range range);
+	Long removeRangeByLex(Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.
@@ -805,8 +805,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Cursor<TypedTuple<V>> scan(ScanOptions options);
 
 	/**
-	 * Get all elements with lexicographical ordering with a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * Get all elements with lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -814,14 +814,14 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	default Set<V> rangeByLex(Range range) {
+	default Set<V> rangeByLex(Range<String> range) {
 		return rangeByLex(range, Limit.unlimited());
 	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
@@ -830,11 +830,11 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<V> rangeByLex(Range range, Limit limit);
+	Set<V> rangeByLex(Range<String> range, Limit limit);
 
 	/**
-	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -842,14 +842,14 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable
-	default Set<V> reverseRangeByLex(Range range) {
+	default Set<V> reverseRangeByLex(Range<String> range) {
 		return reverseRangeByLex(range, Limit.unlimited());
 	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
@@ -858,7 +858,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable
-	Set<V> reverseRangeByLex(Range range, Limit limit);
+	Set<V> reverseRangeByLex(Range<String> range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.
