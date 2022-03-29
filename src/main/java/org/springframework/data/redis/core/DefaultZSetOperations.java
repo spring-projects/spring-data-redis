@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
@@ -209,19 +209,19 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Set<V> rangeByLex(K key, Range range, Limit limit) {
+	public Set<V> rangeByLex(K key, Range<String> range, Limit limit) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRangeByLex(rawKey, range, limit));
+		Set<byte[]> rawValues = execute(connection -> connection.zRangeByLex(rawKey, serialize(range), limit));
 
 		return deserializeValues(rawValues);
 	}
 
 	@Override
-	public Set<V> reverseRangeByLex(K key, Range range, Limit limit) {
+	public Set<V> reverseRangeByLex(K key, Range<String> range, Limit limit) {
 
 		byte[] rawKey = rawKey(key);
-		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByLex(rawKey, range, limit));
+		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByLex(rawKey, serialize(range), limit));
 
 		return deserializeValues(rawValues);
 	}
@@ -340,10 +340,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Long removeRangeByLex(K key, Range range) {
+	public Long removeRangeByLex(K key, Range<String> range) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zRemRangeByLex(rawKey, range));
+		return execute(connection -> connection.zRemRangeByLex(rawKey, serialize(range)));
 	}
 
 	@Override
@@ -377,10 +377,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Long lexCount(K key, Range range) {
+	public Long lexCount(K key, Range<String> range) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.zLexCount(rawKey, range));
+		return execute(connection -> connection.zLexCount(rawKey, serialize(range)));
 	}
 
 	@Nullable
@@ -397,7 +397,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[] rawKey = rawKey(key);
 		Set<Tuple> result = execute(connection -> connection.zPopMin(rawKey, count));
-		return deserializeTupleValues(new LinkedHashSet<> (result));
+		return deserializeTupleValues(new LinkedHashSet<>(result));
 	}
 
 	@Nullable
@@ -538,8 +538,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<Tuple> result = execute(connection -> connection.zUnionWithScores(aggregate, weights, rawKeys));
-		return deserializeTupleValues(
-				result);
+		return deserializeTupleValues(result);
 	}
 
 	@Override
@@ -585,6 +584,24 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		byte[] rawKey = rawKey(key);
 
 		return execute(connection -> connection.zRangeByScore(rawKey, min, max, offset, count));
+	}
+
+	private Range<byte[]> serialize(Range<String> range) {
+
+		if (!range.getLowerBound().isBounded() && !range.getUpperBound().isBounded()) {
+			return Range.unbounded();
+		}
+
+		Range.Bound<byte[]> lower = rawBound(range.getLowerBound());
+		Range.Bound<byte[]> upper = rawBound(range.getUpperBound());
+
+		return Range.of(lower, upper);
+	}
+
+	private Range.Bound<byte[]> rawBound(Range.Bound<String> source) {
+		return source.getValue().map(this::rawString)
+				.map(it -> source.isInclusive() ? Range.Bound.inclusive(it) : Range.Bound.exclusive(it))
+				.orElseGet(Range.Bound::unbounded);
 	}
 
 }

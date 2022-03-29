@@ -23,8 +23,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
@@ -263,22 +263,22 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<E> reverseRange(long start, long end);
 
 	/**
-	 * Get all elements with lexicographical ordering with a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * Get all elements with lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return
 	 * @see BoundZSetOperations#rangeByLex(Range)
 	 * @since 1.7
 	 */
-	default Set<E> rangeByLex(Range range) {
+	default Set<E> rangeByLex(Range<String> range) {
 		return rangeByLex(range, Limit.unlimited());
 	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
@@ -286,25 +286,25 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 1.7
 	 * @see BoundZSetOperations#rangeByLex(Range, Limit)
 	 */
-	Set<E> rangeByLex(Range range, Limit limit);
+	Set<E> rangeByLex(Range<String> range, Limit limit);
 
 	/**
-	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return
 	 * @since 2.4
 	 * @see BoundZSetOperations#reverseRangeByLex(Range)
 	 */
-	default Set<E> reverseRangeByLex(Range range) {
+	default Set<E> reverseRangeByLex(Range<String> range) {
 		return reverseRangeByLex(range, Limit.unlimited());
 	}
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between {@link Range#getMin()} and
-	 * {@link Range#getMax()}.
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
@@ -312,7 +312,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 2.4
 	 * @see BoundZSetOperations#reverseRangeByLex(Range, Limit)
 	 */
-	Set<E> reverseRangeByLex(Range range, Limit limit);
+	Set<E> reverseRangeByLex(Range<String> range, Limit limit);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
@@ -386,7 +386,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 2.5
 	 */
 	// TODO: Switch to RedisZSet
-	Set<E> removeByLex(Range range);
+	Set<E> removeByLex(Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.
@@ -413,7 +413,8 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	boolean add(E e);
 
 	/**
-	 * Adds an element to the set using the {@link #getDefaultScore() default score} if the element does not already exists.
+	 * Adds an element to the set using the {@link #getDefaultScore() default score} if the element does not already
+	 * exists.
 	 *
 	 * @param e element to add
 	 * @return true if a new element was added, false otherwise (only the score has been updated)
@@ -442,7 +443,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
-	Long lexCount(Range range);
+	Long lexCount(Range<String> range);
 
 	/**
 	 * Returns the score of the given element. Returns null if the element is not contained by the set.

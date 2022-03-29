@@ -1000,70 +1000,72 @@ class RedisConnectionUnitTests {
 		}
 
 		@Override
-		public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		public Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 			return delegate.zRangeByLex(key, range);
 		}
 
 		@Override
-		public Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+		public Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
+				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRangeByLex(key, range, limit);
 		}
 
 		@Override
-		public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+		public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
 				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRangeByScoreWithScores(key, range, limit);
 		}
 
 		@Override
-		public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+		public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 			return delegate.zRevRangeByScore(key, range);
 		}
 
 		@Override
-		public Set<byte[]> zRevRangeByScore(byte[] key, Range range,
+		public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
 				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRevRangeByScore(key, range, limit);
 		}
 
 		@Override
-		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
 				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRevRangeByScoreWithScores(key, range, limit);
 		}
 
 		@Override
-		public Long zCount(byte[] key, Range range) {
+		public Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range) {
 			return delegate.zCount(key, range);
 		}
 
 		@Override
-		public Long zRemRangeByScore(byte[] key, Range range) {
+		public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 			return delegate.zRemRangeByScore(key, range);
 		}
 
 		@Override
-		public Long zRemRangeByLex(byte[] key, Range range) {
+		public Long zRemRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 			return delegate.zRemRangeByLex(key, range);
 		}
 
 		@Override
-		public Set<byte[]> zRangeByScore(byte[] key, Range range) {
+		public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 			return delegate.zRangeByScore(key, range);
 		}
 
 		@Override
-		public Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+		public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+				org.springframework.data.redis.connection.Limit limit) {
 			return delegate.zRangeByScore(key, range, limit);
 		}
 
 		@Override
-		public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+		public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
 			return delegate.zRangeByScoreWithScores(key, range);
 		}
 
 		@Override
-		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
 			return delegate.zRevRangeByScoreWithScores(key, range);
 		}
 

@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.DefaultTypedTuple;
@@ -260,7 +260,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t2, 1);
 		zSet.add(t3, 1);
 
-		assertThat(zSet.lexCount(RedisZSetCommands.Range.unbounded())).isEqualTo(Long.valueOf(3));
+		assertThat(zSet.lexCount(Range.unbounded())).isEqualTo(Long.valueOf(3));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-729
@@ -277,7 +277,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t2, 1);
 		zSet.add(t3, 1);
 
-		assertThat(zSet.lexCount(RedisZSetCommands.Range.range().gt(t1))).isEqualTo(Long.valueOf(2));
+		assertThat(zSet.lexCount(Range.rightUnbounded(Range.Bound.exclusive(t1.toString())))).isEqualTo(Long.valueOf(2));
 	}
 
 	@ParameterizedRedisTest
@@ -401,7 +401,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded());
+		Set<T> tuples = zSet.rangeByLex(Range.unbounded());
 
 		assertThat(tuples).hasSize(3);
 		T tuple = tuples.iterator().next();
@@ -421,7 +421,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gt(t1).lt(t3));
+		Set<T> tuples = zSet.rangeByLex(Range.open(t1.toString(), t3.toString()));
 
 		assertThat(tuples).hasSize(1);
 		T tuple = tuples.iterator().next();
@@ -441,8 +441,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded(),
-				Limit.limit().count(1).offset(1));
+		Set<T> tuples = zSet.rangeByLex(Range.unbounded(), Limit.limit().count(1).offset(1));
 
 		assertThat(tuples).hasSize(1);
 		T tuple = tuples.iterator().next();
@@ -452,8 +451,8 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	@ParameterizedRedisTest // DATAREDIS-407
 	void testRangeByLexBoundedWithLimit() {
 
-		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class,
-				LongAsStringObjectFactory.class, LongObjectFactory.class);
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, LongAsStringObjectFactory.class,
+				LongObjectFactory.class);
 
 		T t1 = getT();
 		T t2 = getT();
@@ -462,7 +461,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1),
+		Set<T> tuples = zSet.rangeByLex(Range.rightUnbounded(Range.Bound.inclusive(t1.toString())),
 				Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
@@ -481,7 +480,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.reverseRangeByLex(RedisZSetCommands.Range.range().gte(t1),
+		Set<T> tuples = zSet.reverseRangeByLex(Range.rightUnbounded(Range.Bound.inclusive(t1.toString())),
 				Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(t2, t1);
@@ -863,7 +862,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	@EnabledOnCommand("ZRANDMEMBER")
 	void randMemberReturnsSomething() {
 
-		Object[] valuesArray = new Object[]{getT(), getT(), getT()};
+		Object[] valuesArray = new Object[] { getT(), getT(), getT() };
 
 		collection.addAll((List<T>) Arrays.asList(valuesArray));
 

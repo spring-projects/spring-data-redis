@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -990,7 +991,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zCount(byte[] key, Range range) {
+	public Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return convertAndReturn(delegate.zCount(key, range), Converters.identityConverter());
 	}
 
@@ -1100,17 +1101,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
+	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return convertAndReturn(delegate.zRangeByScore(key, range), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range), Converters.identityConverter());
 	}
 
@@ -1126,7 +1128,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range,
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
@@ -1147,7 +1149,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return convertAndReturn(delegate.zRevRangeByScore(key, range), Converters.identityConverter());
 	}
 
@@ -1157,7 +1159,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
@@ -1168,12 +1171,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range,
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
@@ -1199,7 +1202,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zRemRangeByLex(byte[] key, Range range) {
+	public Long zRemRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return convertAndReturn(delegate.zRemRangeByLex(key, range), Converters.identityConverter());
 	}
 
@@ -1209,7 +1212,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zRemRangeByScore(byte[] key, Range range) {
+	public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
 		return convertAndReturn(delegate.zRemRangeByScore(key, range), Converters.identityConverter());
 	}
 
@@ -1291,8 +1294,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zLexCount(String key, Range range) {
-		return delegate.zLexCount(serialize(key), range);
+	public Long zLexCount(String key, org.springframework.data.domain.Range<String> range) {
+		return delegate.zLexCount(serialize(key), serialize(range));
 	}
 
 	@Override
@@ -1368,6 +1371,26 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	private byte[] serialize(String data) {
 		return serializer.serialize(data);
+	}
+
+	private org.springframework.data.domain.Range<byte[]> serialize(org.springframework.data.domain.Range<String> range) {
+
+		if (!range.getLowerBound().isBounded() && !range.getUpperBound().isBounded()) {
+			return org.springframework.data.domain.Range.unbounded();
+		}
+
+		org.springframework.data.domain.Range.Bound<byte[]> lower = rawBound(range.getLowerBound());
+		org.springframework.data.domain.Range.Bound<byte[]> upper = rawBound(range.getUpperBound());
+
+		return org.springframework.data.domain.Range.of(lower, upper);
+	}
+
+	private org.springframework.data.domain.Range.Bound<byte[]> rawBound(
+			org.springframework.data.domain.Range.Bound<String> source) {
+		return source.getValue().map(this::serialize)
+				.map(it -> source.isInclusive() ? org.springframework.data.domain.Range.Bound.inclusive(it)
+						: org.springframework.data.domain.Range.Bound.exclusive(it))
+				.orElseGet(org.springframework.data.domain.Range.Bound::unbounded);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1987,7 +2010,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zLexCount(byte[] key, Range range) {
+	public Long zLexCount(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return delegate.zLexCount(key, range);
 	}
 
@@ -2165,8 +2188,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zRemRangeByLex(String key, Range range) {
-		return zRemRangeByLex(serialize(key), range);
+	public Long zRemRangeByLex(String key, org.springframework.data.domain.Range<String> range) {
+		return zRemRangeByLex(serialize(key), serialize(range));
 	}
 
 	@Override
@@ -2655,38 +2678,42 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+	public Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return convertAndReturn(delegate.zRangeByLex(key, range), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<byte[]> zRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByLex(key, range, limit), Converters.identityConverter());
 	}
 
 	@Override
 	public Set<String> zRangeByLex(String key) {
-		return zRangeByLex(key, Range.unbounded());
+		return zRangeByLex(key, org.springframework.data.domain.Range.unbounded());
 	}
 
 	@Override
-	public Set<String> zRangeByLex(String key, Range range) {
+	public Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range) {
 		return zRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
 	@Override
-	public Set<String> zRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit) {
-		return convertAndReturn(delegate.zRangeByLex(serialize(key), range, limit), byteSetToStringSet);
+	public Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeByLex(serialize(key), serialize(range), limit), byteSetToStringSet);
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByLex(byte[] key, Range range, org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByLex(key, range, limit), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<String> zRevRangeByLex(String key, Range range, org.springframework.data.redis.connection.Limit limit) {
-		return convertAndReturn(delegate.zRevRangeByLex(serialize(key), range, limit), byteSetToStringSet);
+	public Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRevRangeByLex(serialize(key), serialize(range), limit), byteSetToStringSet);
 	}
 
 	@Override

@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -59,7 +60,6 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptio
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -1938,10 +1938,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myzset", 0, "g"));
 
 		actual.add(connection.zLexCount("myzset", Range.unbounded()));
-		actual.add(connection.zLexCount("myzset", Range.range().lt("c")));
-		actual.add(connection.zLexCount("myzset", Range.range().lte("c")));
-		actual.add(connection.zLexCount("myzset", Range.range().gte("aaa").lt("g")));
-		actual.add(connection.zLexCount("myzset", Range.range().gte("e")));
+		actual.add(connection.zLexCount("myzset", Range.leftUnbounded(Bound.exclusive("c"))));
+		actual.add(connection.zLexCount("myzset", Range.leftUnbounded(Bound.inclusive("c"))));
+		actual.add(connection.zLexCount("myzset", Range.rightOpen("aaa", "g")));
+		actual.add(connection.zLexCount("myzset", Range.rightUnbounded(Bound.inclusive("e"))));
 
 		List<Object> results = getResults();
 
@@ -2300,7 +2300,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 0, "zip"));
 		actual.add(connection.zAdd("myset", 0, "ALPHA"));
 		actual.add(connection.zAdd("myset", 0, "alpha"));
-		actual.add(connection.zRemRangeByLex("myset", Range.range().gte("alpha").lte("omega")));
+		actual.add(connection.zRemRangeByLex("myset", Range.closed("alpha", "omega")));
 
 		actual.add(connection.zRange("myset", 0L, -1L));
 		verifyResults(Arrays.asList(true, true, true, true, true, true, true, true, true, true, 6L,
@@ -2815,14 +2815,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myzset", 0, "f"));
 		actual.add(connection.zAdd("myzset", 0, "g"));
 
-		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c")));
-		actual.add(connection.zRangeByLex("myzset", Range.range().lt("c")));
-		actual.add(connection.zRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
-		actual.add(connection.zRangeByLex("myzset", Range.range().gte("e")));
+		actual.add(connection.zRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("c"))));
+		actual.add(connection.zRangeByLex("myzset", Range.leftUnbounded(Bound.exclusive("c"))));
+		actual.add(connection.zRangeByLex("myzset", Range.rightOpen("aaa", "g")));
+		actual.add(connection.zRangeByLex("myzset", Range.rightUnbounded(Bound.inclusive("e"))));
 
-		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
-		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1)));
-		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c"), Limit.limit().count(1).offset(1)));
+		actual.add(connection.zRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("c")), Limit.unlimited()));
+		actual.add(connection.zRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("c")), Limit.limit().count(1)));
+		actual.add(
+				connection.zRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("c")), Limit.limit().count(1).offset(1)));
 
 		List<Object> results = getResults();
 
@@ -2847,14 +2848,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myzset", 0, "f"));
 		actual.add(connection.zAdd("myzset", 0, "g"));
 
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c")));
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().lt("c")));
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().gte("e")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("c"))));
+		actual.add(connection.zRevRangeByLex("myzset", Range.leftUnbounded(Bound.exclusive("c"))));
+		actual.add(connection.zRevRangeByLex("myzset", Range.rightOpen("aaa", "g")));
+		actual.add(connection.zRevRangeByLex("myzset", Range.rightUnbounded(Bound.inclusive("e"))));
 
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("c"), Limit.unlimited()));
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2)));
-		actual.add(connection.zRevRangeByLex("myzset", Range.range().lte("d"), Limit.limit().count(2).offset(1)));
+		actual.add(connection.zRevRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("c")), Limit.unlimited()));
+		actual.add(connection.zRevRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("d")), Limit.limit().count(2)));
+		actual.add(connection.zRevRangeByLex("myzset", Range.leftUnbounded(Bound.inclusive("d")),
+				Limit.limit().count(2).offset(1)));
 
 		List<Object> results = getResults();
 

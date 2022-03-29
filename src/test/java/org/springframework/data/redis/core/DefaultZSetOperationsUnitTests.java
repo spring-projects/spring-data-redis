@@ -22,7 +22,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
+
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
@@ -46,10 +47,10 @@ class DefaultZSetOperationsUnitTests {
 	@Test // GH-1816
 	void delegatesRemoveRangeByLex() {
 
-		Range range = Range.range().gte("alpha").lte("omega");
+		Range<String> range = Range.closed("alpha", "omega");
 		zSetOperations.removeRangeByLex("key", range);
 
-		template.verify().zRemRangeByLex(eq(template.serializeKey("key")), eq(range));
+		template.verify().zRemRangeByLex(eq(template.serializeKey("key")), any(Range.class));
 	}
 
 	@Test // GH-1794

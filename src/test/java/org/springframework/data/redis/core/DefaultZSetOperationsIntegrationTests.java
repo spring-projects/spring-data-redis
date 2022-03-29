@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
@@ -112,7 +113,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value2, 0);
 		zSetOps.add(key, value3, 0);
 
-		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.unbounded())).isEqualTo(3);
+		assertThat(zSetOps.lexCount(key, Range.unbounded())).isEqualTo(3);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-729
@@ -130,7 +131,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value2, 0);
 		zSetOps.add(key, value3, 0);
 
-		assertThat(zSetOps.lexCount(key, RedisZSetCommands.Range.range().gt(value1))).isEqualTo(2);
+		assertThat(zSetOps.lexCount(key, Range.rightUnbounded(Range.Bound.exclusive(value1.toString())))).isEqualTo(2);
 	}
 
 	@ParameterizedRedisTest // GH-2007
@@ -310,7 +311,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded());
+		Set<V> tuples = zSetOps.rangeByLex(key, Range.unbounded());
 
 		assertThat(tuples).hasSize(3).contains(value1);
 	}
@@ -329,7 +330,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gt(value1).lt(value3));
+		Set<V> tuples = zSetOps.rangeByLex(key, Range.open(value1.toString(), value3.toString()));
 
 		assertThat(tuples).hasSize(1).contains(value2);
 	}
@@ -348,8 +349,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded(),
-				Limit.limit().count(2).offset(1));
+		Set<V> tuples = zSetOps.rangeByLex(key, Range.unbounded(), Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(value2, value3);
 	}
@@ -368,8 +368,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.reverseRangeByLex(key, RedisZSetCommands.Range.unbounded(),
-				Limit.limit().count(2).offset(1));
+		Set<V> tuples = zSetOps.reverseRangeByLex(key, Range.unbounded(), Limit.limit().count(2).offset(1));
 
 		assertThat(tuples).hasSize(2).containsSequence(value2, value1);
 	}
@@ -388,7 +387,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1),
+		Set<V> tuples = zSetOps.rangeByLex(key, Range.rightUnbounded(Range.Bound.inclusive(value1.toString())),
 				Limit.limit().count(1).offset(1));
 
 		assertThat(tuples).hasSize(1).startsWith(value2);
