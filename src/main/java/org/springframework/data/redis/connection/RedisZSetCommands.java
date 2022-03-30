@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -41,14 +42,8 @@ import org.springframework.util.ObjectUtils;
 public interface RedisZSetCommands {
 
 	/**
-	 * Sort aggregation operations.
-	 */
-	enum Aggregate {
-		SUM, MIN, MAX;
-	}
-
-	/**
-	 * {@link Range} defines {@literal min} and {@literal max} values to retrieve from a {@literal ZSET}.
+	 * {@link org.springframework.data.domain.Range} defines {@literal min} and {@literal max} values to retrieve from a
+	 * {@literal ZSET}.
 	 *
 	 * @author Christoph Strobl
 	 * @since 1.6
@@ -61,14 +56,15 @@ public interface RedisZSetCommands {
 		@Nullable Boundary max;
 
 		/**
-		 * @return new {@link Range}
+		 * @return new {@link org.springframework.data.domain.Range}
 		 */
 		public static Range range() {
 			return new Range();
 		}
 
 		/**
-		 * @return new {@link Range} with {@literal min} and {@literal max} set to {@link Boundary#infinite()}.
+		 * @return new {@link org.springframework.data.domain.Range} with {@literal min} and {@literal max} set to
+		 *         {@link Boundary#infinite()}.
 		 */
 		public static Range unbounded() {
 
@@ -963,7 +959,7 @@ public interface RedisZSetCommands {
 	Long zRemRange(byte[] key, long start, long end);
 
 	/**
-	 * Remove all elements between the lexicographical {@link Range}.
+	 * Remove all elements between the lexicographical {@link org.springframework.data.domain.Range}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -1299,7 +1295,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering.
+	 * Get all the elements in {@link org.springframework.data.domain.Range} from the sorted set at {@literal key} in
+	 * lexicographical ordering.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -1313,8 +1310,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is
-	 * limited via {@link Limit}.
+	 * Get all the elements in {@link org.springframework.data.domain.Range} from the sorted set at {@literal key} in
+	 * lexicographical ordering. Result is limited via {@link Limit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -1341,7 +1338,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
+	 * Get all the elements in {@link org.springframework.data.domain.Range} from the sorted set at {@literal key} in
+	 * reversed lexicographical ordering.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
@@ -1355,8 +1353,8 @@ public interface RedisZSetCommands {
 	}
 
 	/**
-	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in reversed lexicographical ordering.
-	 * Result is limited via {@link Limit}.
+	 * Get all the elements in {@link org.springframework.data.domain.Range} from the sorted set at {@literal key} in
+	 * reversed lexicographical ordering. Result is limited via {@link Limit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.

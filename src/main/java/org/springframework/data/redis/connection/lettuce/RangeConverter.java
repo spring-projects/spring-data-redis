@@ -19,8 +19,6 @@ import io.lettuce.core.Range;
 import io.lettuce.core.Range.Boundary;
 import io.lettuce.core.codec.StringCodec;
 
-import java.nio.ByteBuffer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.data.domain.Range.Bound;
@@ -79,45 +77,50 @@ class RangeConverter {
 	@SuppressWarnings("unchecked")
 	private static <T> Boundary<T> lowerBoundArgOf(org.springframework.data.domain.Range<?> range,
 			@Nullable T lowerDefault, Function<String, ? extends Object> stringEncoder) {
-		return (Boundary<T>) rangeToBoundArgumentConverter(false, stringEncoder).apply(range, lowerDefault);
+		return (Boundary<T>) convertBound(range.getLowerBound(), false, lowerDefault, stringEncoder);
 	}
 
 	@SuppressWarnings("unchecked")
 	private static <T> Boundary<T> upperBoundArgOf(org.springframework.data.domain.Range<?> range,
 			@Nullable T upperDefault, Function<String, ? extends Object> stringEncoder) {
-		return (Boundary<T>) rangeToBoundArgumentConverter(true, stringEncoder).apply(range, upperDefault);
+		return (Boundary<T>) convertBound(range.getUpperBound(), false, upperDefault, stringEncoder);
 	}
 
-	private static BiFunction<org.springframework.data.domain.Range, Object, Boundary<?>> rangeToBoundArgumentConverter(
-			boolean upper, Function<String, ? extends Object> stringEncoder) {
+	static Boundary<?> convertBound(org.springframework.data.domain.Range.Bound source, boolean convertNumberToBytes,
+			Object defaultValue, Function<String, ? extends Object> stringEncoder) {
 
-		return (source, defaultValue) -> {
+		if (!source.isBounded()) {
+			return Boundary.unbounded();
+		}
 
-			Boolean inclusive = upper ? source.getUpperBound().isInclusive() : source.getLowerBound().isInclusive();
-			Object value = upper ? source.getUpperBound().getValue().orElse(defaultValue)
-					: source.getLowerBound().getValue().orElse(defaultValue);
+		Boolean inclusive = source.isInclusive();
+		Object value = source.getValue().orElse(defaultValue);
 
-			if (value instanceof Number) {
+		if (value instanceof Number) {
+
+			if (convertNumberToBytes) {
+				value = value.toString();
+			} else {
 				return inclusive ? Boundary.including((Number) value) : Boundary.excluding((Number) value);
 			}
+		}
 
-			if (value instanceof String) {
+		if (value instanceof String) {
 
-				if (!StringUtils.hasText((String) value) || ObjectUtils.nullSafeEquals(value, "+")
-						|| ObjectUtils.nullSafeEquals(value, "-")) {
-					return Boundary.unbounded();
-				}
-
-				Object encoded = stringEncoder.apply((String) value);
-				return inclusive ? Boundary.including(encoded) : Boundary.excluding(encoded);
-
-			}
-
-			if (value == null) {
+			if (!StringUtils.hasText((String) value) || ObjectUtils.nullSafeEquals(value, "+")
+					|| ObjectUtils.nullSafeEquals(value, "-")) {
 				return Boundary.unbounded();
 			}
 
-			return inclusive ? Boundary.including((ByteBuffer) value) : Boundary.excluding((ByteBuffer) value);
-		};
+			Object encoded = stringEncoder.apply((String) value);
+			return inclusive ? Boundary.including(encoded) : Boundary.excluding(encoded);
+
+		}
+
+		if (value == null) {
+			return Boundary.unbounded();
+		}
+
+		return inclusive ? Boundary.including(value) : Boundary.excluding(value);
 	}
 }
