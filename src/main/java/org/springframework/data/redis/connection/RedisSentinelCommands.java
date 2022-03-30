@@ -46,8 +46,21 @@ public interface RedisSentinelCommands {
 	 *
 	 * @param master must not be {@literal null}.
 	 * @return Collection of {@link RedisServer}s. Never {@literal null}.
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #replicas(NamedNode)} instead.
 	 */
+	@Deprecated
 	Collection<RedisServer> slaves(NamedNode master);
+
+	/**
+	 * Show list of slaves for given {@literal master}.
+	 *
+	 * @param master must not be {@literal null}.
+	 * @return Collection of {@link RedisServer}s. Never {@literal null}.
+	 * @since 2.7
+	 */
+	default Collection<RedisServer> replicas(NamedNode master) {
+		return slaves(master);
+	}
 
 	/**
 	 * Removes given {@literal master}. The server will no longer be monitored and will no longer be returned by

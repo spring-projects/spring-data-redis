@@ -94,9 +94,9 @@ class JedisSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-330
-	void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
+	void shouldReadReplicasCorrectlyWhenGivenNamedNode() {
 
-		connection.slaves(new RedisNodeBuilder().withName("mymaster").build());
+		connection.replicas(new RedisNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelSlaves(eq("mymaster"));
 	}
 
@@ -106,13 +106,13 @@ class JedisSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-330
-	void readSlavesShouldThrowExceptionWhenGivenNull() {
-		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves((RedisNode) null));
+	void readReplicasShouldThrowExceptionWhenGivenNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas((RedisNode) null));
 	}
 
 	@Test // DATAREDIS-330
-	void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
-		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves(new RedisNodeBuilder().build()));
+	void readReplicasShouldThrowExceptionWhenNodeWithoutName() {
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-330

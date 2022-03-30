@@ -195,7 +195,6 @@ public interface RedisOperations<K, V> {
 	@Nullable
 	Long countExistingKeys(Collection<K> keys);
 
-
 	/**
 	 * Delete given {@code key}.
 	 *
@@ -577,16 +576,42 @@ public interface RedisOperations<K, V> {
 	 * @param port
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #replicaOf(String, int)} instead.
 	 */
+	@Deprecated
 	void slaveOf(String host, int port);
+
+	/**
+	 * Change redis replication setting to new master.
+	 *
+	 * @param host must not be {@literal null}.
+	 * @param port
+	 * @since 2.7
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 */
+	default void replicaOf(String host, int port) {
+		slaveOf(host, port);
+	}
 
 	/**
 	 * Change server into master.
 	 *
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #replicaOfNoOne()} instead.
 	 */
+	@Deprecated
 	void slaveOfNoOne();
+
+	/**
+	 * Change server into master.
+	 *
+	 * @since 2.7
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 */
+	default void replicaOfNoOne() {
+		slaveOfNoOne();
+	}
 
 	/**
 	 * Publishes the given message to the given channel.

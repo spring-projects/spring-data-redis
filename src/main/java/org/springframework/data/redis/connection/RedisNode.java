@@ -145,7 +145,9 @@ public class RedisNode implements NamedNode {
 	/**
 	 * @return
 	 * @since 1.7
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #isReplica()} instead.
 	 */
+	@Deprecated
 	public boolean isSlave() {
 		return isReplica();
 	}

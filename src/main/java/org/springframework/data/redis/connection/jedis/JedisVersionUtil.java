@@ -27,7 +27,9 @@ import org.springframework.util.StringUtils;
 /**
  * @author Christoph Strobl
  * @since 1.3
+ * @deprecated since 2.7, will be removed with the next major revision.
  */
+@Deprecated
 public class JedisVersionUtil {
 
 	private static Version jedisVersion = parseVersion(resolveJedisVersion());

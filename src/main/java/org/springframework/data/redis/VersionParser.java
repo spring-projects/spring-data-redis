@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * @since 1.3
  * @deprecated since 2.0, use {@link org.springframework.data.util.Version}.
  */
+@Deprecated
 public class VersionParser {
 
 	private static final Pattern VERSION_MATCHER = Pattern.compile("([0-9]+)\\.([0-9]+)(\\.([0-9]+))?(.*)");

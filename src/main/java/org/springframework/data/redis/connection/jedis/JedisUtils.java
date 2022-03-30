@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @deprecated will be removed with the next major revision.
  */
 @Deprecated
 public abstract class JedisUtils {

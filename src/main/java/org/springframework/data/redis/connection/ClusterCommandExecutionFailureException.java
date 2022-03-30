@@ -62,6 +62,7 @@ public class ClusterCommandExecutionFailureException extends UncategorizedDataAc
 	 * @return never {@literal null}.
 	 * @deprecated since 2.0, use {@link #getSuppressed()}.
 	 */
+	@Deprecated
 	public Collection<? extends Throwable> getCauses() {
 		return causes;
 	}

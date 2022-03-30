@@ -105,10 +105,10 @@ class LettuceSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-348
-	void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
+	void shouldReadReplicasCorrectlyWhenGivenNamedNode() {
 
 		when(sentinelCommandsMock.slaves(MASTER_ID)).thenReturn(Collections.<Map<String, String>> emptyList());
-		connection.slaves(new RedisNodeBuilder().withName(MASTER_ID).build());
+		connection.replicas(new RedisNodeBuilder().withName(MASTER_ID).build());
 		verify(sentinelCommandsMock, times(1)).slaves(eq(MASTER_ID));
 	}
 
@@ -118,13 +118,13 @@ class LettuceSentinelConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-348
-	void readSlavesShouldThrowExceptionWhenGivenNull() {
-		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves((RedisNode) null));
+	void readReplicasShouldThrowExceptionWhenGivenNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas((RedisNode) null));
 	}
 
 	@Test // DATAREDIS-348
-	void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
-		assertThatIllegalArgumentException().isThrownBy(() -> connection.slaves(new RedisNodeBuilder().build()));
+	void readReplicasShouldThrowExceptionWhenNodeWithoutName() {
+		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas(new RedisNodeBuilder().build()));
 	}
 
 	@Test // DATAREDIS-348

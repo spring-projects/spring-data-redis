@@ -26,9 +26,9 @@ import org.springframework.data.redis.connection.RedisServerCommands.FlushOption
 
 /**
  * Redis operations for cluster specific operations. A {@link RedisClusterNode} can be obtained from
- * {@link RedisClusterCommands#clusterGetNodes() a connection} or it can be
- * constructed using either {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} or the
- * {@link RedisClusterNode#getId() node Id}.
+ * {@link RedisClusterCommands#clusterGetNodes() a connection} or it can be constructed using either
+ * {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} or the {@link RedisClusterNode#getId()
+ * node Id}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -132,8 +132,20 @@ public interface ClusterOperations<K, V> {
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #getReplicas(RedisClusterNode)}
+	 *             instead.
 	 */
+	@Deprecated
 	Collection<RedisClusterNode> getSlaves(RedisClusterNode node);
+
+	/**
+	 * @param node must not be {@literal null}.
+	 * @return
+	 * @since 2.7
+	 */
+	default Collection<RedisClusterNode> getReplicas(RedisClusterNode node) {
+		return getSlaves(node);
+	}
 
 	/**
 	 * Synchronous save current db snapshot on server.

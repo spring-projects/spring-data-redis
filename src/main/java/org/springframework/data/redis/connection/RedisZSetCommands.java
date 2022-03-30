@@ -47,7 +47,10 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Sort aggregation operations.
+	 *
+	 * @deprecated since 2.7, will be moved to a top-level type with the next major revision.
 	 */
+	@Deprecated
 	enum Aggregate {
 		SUM, MIN, MAX;
 	}
@@ -59,7 +62,9 @@ public interface RedisZSetCommands {
 	 * @author Mark Paluch
 	 * @author Christoph Strobl
 	 * @since 2.1
+	 * @deprecated since 2.7, will be moved to a top-level type with the next major revision.
 	 */
+	@Deprecated
 	class Weights {
 
 		private final List<Double> weights;
@@ -200,7 +205,10 @@ public interface RedisZSetCommands {
 
 	/**
 	 * ZSet tuple.
+	 *
+	 * @deprecated since 2.7, will be moved to a top-level type with the next major revision.
 	 */
+	@Deprecated
 	interface Tuple extends Comparable<Double> {
 
 		/**
@@ -344,7 +352,9 @@ public interface RedisZSetCommands {
 	/**
 	 * @author Christoph Strobl
 	 * @since 1.6
+	 * @deprecated since 2.7, will be moved to a top-level type with the next major revision.
 	 */
+	@Deprecated
 	class Limit {
 
 		private static final Limit UNLIMITED = new Limit() {

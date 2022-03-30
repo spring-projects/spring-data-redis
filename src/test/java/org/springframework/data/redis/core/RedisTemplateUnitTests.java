@@ -60,16 +60,16 @@ class RedisTemplateUnitTests {
 	}
 
 	@Test // DATAREDIS-277
-	void slaveOfIsDelegatedToConnectionCorrectly() {
+	void replicaOfIsDelegatedToConnectionCorrectly() {
 
-		template.slaveOf("127.0.0.1", 1001);
+		template.replicaOf("127.0.0.1", 1001);
 		verify(redisConnectionMock, times(1)).slaveOf(eq("127.0.0.1"), eq(1001));
 	}
 
 	@Test // DATAREDIS-277
-	void slaveOfNoOneIsDelegatedToConnectionCorrectly() {
+	void replicaOfNoOneIsDelegatedToConnectionCorrectly() {
 
-		template.slaveOfNoOne();
+		template.replicaOfNoOne();
 		verify(redisConnectionMock, times(1)).slaveOfNoOne();
 	}
 

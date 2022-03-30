@@ -159,15 +159,15 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	// DATAREDIS-348
-	void shouldReadSlavesOfMastersCorrectly() {
+	void shouldReadReplicasOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
 		assertThat(servers.size()).isEqualTo(1);
 
-		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves).containsAnyOf(SLAVE_0, SLAVE_1);
+		Collection<RedisServer> replicas = sentinelConnection.replicas(servers.get(0));
+		assertThat(replicas).containsAnyOf(SLAVE_0, SLAVE_1);
 	}
 
 	@Test // DATAREDIS-462

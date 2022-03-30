@@ -22,6 +22,7 @@ package org.springframework.data.redis;
  * @author Christoph Strobl
  * @deprecated since 2.0, use {@link org.springframework.data.util.Version}.
  */
+@Deprecated
 public class Version implements Comparable<Version> {
 
 	public static final Version UNKNOWN = new Version(0, 0, 0);

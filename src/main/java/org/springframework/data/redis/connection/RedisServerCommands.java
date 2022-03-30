@@ -276,16 +276,42 @@ public interface RedisServerCommands {
 	 * @param port
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #replicaOf(String, int)} instead.
 	 */
+	@Deprecated
 	void slaveOf(String host, int port);
+
+	/**
+	 * Change redis replication setting to new master.
+	 *
+	 * @param host must not be {@literal null}.
+	 * @param port
+	 * @since 2.7
+	 * @see <a href="https://redis.io/commands/replicaof">Redis Documentation: REPLICAOF</a>
+	 */
+	default void replicaOf(String host, int port) {
+		slaveOf(host, port);
+	}
 
 	/**
 	 * Change server into master.
 	 *
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 * @deprecated since 2.7, will be removed with the next major release. Use {@link #replicaOfNoOne()} instead.
 	 */
+	@Deprecated
 	void slaveOfNoOne();
+
+	/**
+	 * Change server into master.
+	 *
+	 * @since 2.7
+	 * @see <a href="https://redis.io/commands/slaveof">Redis Documentation: REPLICAOF</a>
+	 */
+	default void replicaOfNoOne() {
+		slaveOfNoOne();
+	}
 
 	/**
 	 * Atomically transfer a key from a source Redis instance to a destination Redis instance. On success the key is
