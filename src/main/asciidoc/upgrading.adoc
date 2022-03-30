@@ -1,7 +1,10 @@
 [[upgrading]]
 = Upgrading
 
-The following section provides information about changes that are likely to have an effect on the application and might even prevent it from compiling.
+This section contains details about migration steps, deprecations, and removals.
+
+[[upgrading.2-to-3]]
+== Upgrading from 2.x to 3.x
 
 === Re-/moved Types
 
@@ -14,11 +17,17 @@ The following section provides information about changes that are likely to have
 |o.s.d.redis.VersionParser
 |-
 
+|o.s.d.redis.connection.RedisZSetCommands.Aggregate
+|o.s.d.redis.connection.zset.Aggregate
+
 |o.s.d.redis.connection.RedisZSetCommands.Tuple
 |o.s.d.redis.connection.zset.Tuple
 
 |o.s.d.redis.connection.RedisZSetCommands.Weights
 |o.s.d.redis.connection.zset.Weights
+
+|o.s.d.redis.connection.RedisZSetCommands.Range
+|o.s.d.domain.Range
 
 |o.s.d.redis.connection.RedisZSetCommands.Limit
 |o.s.d.redis.connection.Limit.java
@@ -228,16 +237,16 @@ The following section provides information about changes that are likely to have
 
 |===
 
-== Lettuce
+=== Lettuce
 
-=== Lettuce Pool
+==== Lettuce Pool
 
 `LettucePool` and its implementation `DefaultLettucePool` have been removed without replacement.
 Please refer to the https://lettuce.io/core/release/reference/index.html#_connection_pooling[driver documentation] for driver native pooling capabilities.
 Methods accepting pooling parameters have been updated.
 This effects methods on `LettuceConnectionFactory` and `LettuceConnection`.
 
-=== Lettuce Authentication
+==== Lettuce Authentication
 
 `AuthenticatingRedisClient` has been removed without replacement.
 Please refer to the https://lettuce.io/core/release/reference/index.html#basic.redisuri[driver documentation] for `RedisURI` to set authentication data.
