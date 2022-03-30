@@ -21,7 +21,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.Limit
-import org.springframework.data.redis.connection.RedisZSetCommands
+import org.springframework.data.redis.connection.zset.Aggregate
 import org.springframework.data.redis.connection.zset.Weights
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple
 
@@ -229,8 +229,13 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwai
  * @author Mark Paluch
  * @since 2.2
  */
-suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate): Long =
-		unionAndStore(key, otherKeys, destKey, aggregate).awaitSingle()
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwait(
+	key: K,
+	otherKeys: Collection<K>,
+	destKey: K,
+	aggregate: Aggregate
+): Long =
+	unionAndStore(key, otherKeys, destKey, aggregate).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.unionAndStore].
@@ -242,7 +247,7 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.unionAndStoreAndAwai
 	key: K,
 	otherKeys: Collection<K>,
 	destKey: K,
-	aggregate: RedisZSetCommands.Aggregate,
+	aggregate: Aggregate,
 	weights: Weights
 ): Long =
 	unionAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()
@@ -271,8 +276,13 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAnd
  * @author Mark Paluch
  * @since 2.2
  */
-suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(key: K, otherKeys: Collection<K>, destKey: K, aggregate: RedisZSetCommands.Aggregate): Long =
-		intersectAndStore(key, otherKeys, destKey, aggregate).awaitSingle()
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAndAwait(
+	key: K,
+	otherKeys: Collection<K>,
+	destKey: K,
+	aggregate: Aggregate
+): Long =
+	intersectAndStore(key, otherKeys, destKey, aggregate).awaitSingle()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.intersectAndStore].
@@ -284,7 +294,7 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.intersectAndStoreAnd
 	key: K,
 	otherKeys: Collection<K>,
 	destKey: K,
-	aggregate: RedisZSetCommands.Aggregate,
+	aggregate: Aggregate,
 	weights: Weights
 ): Long =
 	intersectAndStore(key, otherKeys, destKey, aggregate, weights).awaitSingle()

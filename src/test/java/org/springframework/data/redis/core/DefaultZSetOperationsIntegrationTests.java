@@ -37,7 +37,7 @@ import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -576,10 +576,10 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key1, value2, 2.0);
 		zSetOps.add(key2, value2, 3.0);
 
-		assertThat(zSetOps.intersectWithScores(key1, Collections.singletonList(key2), RedisZSetCommands.Aggregate.MIN))
+		assertThat(zSetOps.intersectWithScores(key1, Collections.singletonList(key2), Aggregate.MIN))
 				.contains(new DefaultTypedTuple<>(value2, 2d));
 
-		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MIN);
 		assertThat(zSetOps.score(key1, value2)).isCloseTo(2.0, offset(0.1));
 	}
 
@@ -593,7 +593,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key1, value1, 4.0);
 		zSetOps.add(key2, value1, 3.0);
 
-		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX,
 				Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
@@ -633,7 +633,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.unionWithScores(key1, Collections.singletonList(key2)))
 				.containsOnly(new DefaultTypedTuple<>(value1, 1d), new DefaultTypedTuple<>(value2, 5d));
 
-		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MIN);
+		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MIN);
 
 		assertThat(zSetOps.score(key1, value2)).isCloseTo(2.0, offset(0.1));
 	}
@@ -648,7 +648,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key1, value1, 4.0);
 		zSetOps.add(key2, value1, 3.0);
 
-		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, RedisZSetCommands.Aggregate.MAX,
+		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX,
 				Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));

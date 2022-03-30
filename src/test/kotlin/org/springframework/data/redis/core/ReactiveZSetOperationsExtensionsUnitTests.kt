@@ -24,7 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.Limit
-import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate
+import org.springframework.data.redis.connection.zset.Aggregate
 import org.springframework.data.redis.connection.zset.Weights
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple
 import reactor.core.publisher.Flux

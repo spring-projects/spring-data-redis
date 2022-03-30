@@ -48,7 +48,6 @@ import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -257,19 +256,6 @@ public abstract class LettuceConverters extends Converters {
 		return StringToRedisClientInfoConverter.INSTANCE.convert(clientList.split("\\r?\\n"));
 	}
 
-	private static String boundaryToString(Boundary boundary, String inclPrefix, String exclPrefix) {
-
-		String prefix = boundary.isIncluding() ? inclPrefix : exclPrefix;
-		String value = null;
-		if (boundary.getValue() instanceof byte[]) {
-			value = toString((byte[]) boundary.getValue());
-		} else {
-			value = boundary.getValue().toString();
-		}
-
-		return prefix + value;
-	}
-
 	/**
 	 * Convert a {@link Limit} to a Lettuce {@link io.lettuce.core.Limit}.
 	 *
@@ -290,81 +276,44 @@ public abstract class LettuceConverters extends Converters {
 	 * @since 2.0
 	 */
 	public static <T> Range<T> toRange(org.springframework.data.domain.Range<T> range) {
-		return Range.from(lowerBoundaryOf(range, false), upperBoundaryOf(range, false));
+		return toRange(range, false);
 	}
 
 	/**
-	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Range} to a lettuce {@link Range}.
+	 * Convert a {@link org.springframework.data.domain.Range} to a lettuce {@link Range}.
 	 *
 	 * @param range
 	 * @param convertNumberToBytes
 	 * @return
 	 * @since 2.2
 	 */
-	public static <T> Range<T> toRange(org.springframework.data.domain.Range<T> range,
-			boolean convertNumberToBytes) {
-		return Range.from(lowerBoundaryOf(range, convertNumberToBytes), upperBoundaryOf(range, convertNumberToBytes));
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T> Range<T> toRange(org.springframework.data.domain.Range<T> range, boolean convertNumberToBytes) {
+
+		Range.Boundary upper = RangeConverter.convertBound(range.getUpperBound(), convertNumberToBytes, null,
+				it -> it.getBytes(StandardCharsets.UTF_8));
+		Range.Boundary lower = RangeConverter.convertBound(range.getLowerBound(), convertNumberToBytes, null,
+				it -> it.getBytes(StandardCharsets.UTF_8));
+
+		return Range.from(lower, upper);
 	}
 
 	/**
-	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Range} to a lettuce {@link Range} and
-	 * reverse boundaries.
+	 * Convert a {@link org.springframework.data.domain.Range} to a lettuce {@link Range} and reverse boundaries.
 	 *
 	 * @param range
 	 * @return
 	 * @since 2.0
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T> Range<T> toRevRange(org.springframework.data.domain.Range<T> range) {
-		return Range.from(upperBoundaryOf(range, false), lowerBoundaryOf(range, false));
-	}
 
-	@SuppressWarnings("unchecked")
-	private static <T> Range.Boundary<T> lowerBoundaryOf(
-			org.springframework.data.domain.Range<T> range, boolean convertNumberToBytes) {
-		return (Range.Boundary<T>) rangeToBoundaryArgumentConverter(false, convertNumberToBytes).convert(range);
-	}
+		Range.Boundary upper = RangeConverter.convertBound(range.getUpperBound(), false, null,
+				it -> it.getBytes(StandardCharsets.UTF_8));
+		Range.Boundary lower = RangeConverter.convertBound(range.getLowerBound(), false, null,
+				it -> it.getBytes(StandardCharsets.UTF_8));
 
-	@SuppressWarnings("unchecked")
-	private static <T> Range.Boundary<T> upperBoundaryOf(
-			org.springframework.data.domain.Range<T> range, boolean convertNumberToBytes) {
-		return (Range.Boundary<T>) rangeToBoundaryArgumentConverter(true, convertNumberToBytes).convert(range);
-	}
-
-	private static Converter<org.springframework.data.domain.Range<?>, Range.Boundary<?>> rangeToBoundaryArgumentConverter(
-			boolean upper, boolean convertNumberToBytes) {
-
-		return (source) -> {
-
-			org.springframework.data.domain.Range.Bound<?> sourceBoundary = upper ? source.getUpperBound()
-					: source.getLowerBound();
-			if (sourceBoundary == null || !sourceBoundary.isBounded()) {
-				return Range.Boundary.unbounded();
-			}
-
-			boolean inclusive = sourceBoundary.isInclusive();
-			Object value = sourceBoundary.getValue().get();
-
-			if (value instanceof Number) {
-
-				if (convertNumberToBytes) {
-					value = value.toString();
-				} else {
-					return inclusive ? Range.Boundary.including((Number) value) : Range.Boundary.excluding((Number) value);
-				}
-			}
-
-			if (value instanceof String) {
-
-				if (!StringUtils.hasText((String) value) || ObjectUtils.nullSafeEquals(value, "+")
-						|| ObjectUtils.nullSafeEquals(value, "-")) {
-					return Range.Boundary.unbounded();
-				}
-				return inclusive ? Range.Boundary.including(value.toString().getBytes(StandardCharsets.UTF_8))
-						: Range.Boundary.excluding(value.toString().getBytes(StandardCharsets.UTF_8));
-			}
-
-			return inclusive ? Range.Boundary.including((byte[]) value) : Range.Boundary.excluding((byte[]) value);
-		};
+		return Range.from(upper, lower);
 	}
 
 	/**
