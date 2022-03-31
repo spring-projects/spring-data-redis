@@ -25,14 +25,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -82,33 +79,18 @@ public class PubSubTests<T> {
 	}
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		bag.clear();
 
 		adapter.setSerializer(template.getValueSerializer());
 		adapter.afterPropertiesSet();
 
-		Phaser phaser = new Phaser(1);
-
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
 		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
-		container.setTaskExecutor(new SyncTaskExecutor());
-		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor() {
-			@Override
-			protected void doExecute(Runnable task) {
-				super.doExecute(() -> {
-					phaser.arriveAndDeregister();
-					task.run();
-				});
-			}
-		});
 		container.afterPropertiesSet();
 		container.start();
-
-		phaser.arriveAndAwaitAdvance();
-		Thread.sleep(250);
 	}
 
 	@AfterEach
@@ -130,17 +112,18 @@ public class PubSubTests<T> {
 		T payload1 = getT();
 		T payload2 = getT();
 
-		assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
-		assertThat(template.convertAndSend(CHANNEL, payload2)).isEqualTo(1L);
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(CHANNEL, payload2);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload1) && bag.contains(payload2));
 	}
 
 	@ParameterizedRedisTest
 	void testMessageBatch() throws Exception {
+
 		int COUNT = 10;
 		for (int i = 0; i < COUNT; i++) {
-			assertThat(template.convertAndSend(CHANNEL, getT())).isEqualTo(1L);
+			template.convertAndSend(CHANNEL, getT());
 		}
 
 		for (int i = 0; i < COUNT; i++) {
@@ -155,8 +138,8 @@ public class PubSubTests<T> {
 		T payload2 = getT();
 
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
-		assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
-		assertThat(template.convertAndSend(CHANNEL, payload2)).isEqualTo(1L);
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(CHANNEL, payload2);
 
 		assertThat(bag.poll(200, TimeUnit.MILLISECONDS)).isNull();
 	}

@@ -45,7 +45,7 @@ class NamespaceIntegrationTests {
 
 	@Test
 	void testWithMessages() {
-		assertThat(template.convertAndSend("x1", "[X]test")).isEqualTo(1L);
-		assertThat(template.convertAndSend("z1", "[Z]test")).isEqualTo(1L);
+		assertThat(template.convertAndSend("x1", "[X]test")).isGreaterThanOrEqualTo(1L);
+		assertThat(template.convertAndSend("z1", "[Z]test")).isGreaterThanOrEqualTo(1L);
 	}
 }

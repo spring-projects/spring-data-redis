@@ -387,6 +387,7 @@ public interface RedisOperations<K, V> {
 	 */
 	@Nullable
 	Long getExpire(K key, TimeUnit timeUnit);
+
 	/**
 	 * Move given {@code key} to database with {@code index}.
 	 *
@@ -591,8 +592,8 @@ public interface RedisOperations<K, V> {
 	 * Publishes the given message to the given channel.
 	 *
 	 * @param destination the channel to publish to, must not be {@literal null}.
-	 * @param message message to publish
-	 * @return the number of clients that received the message
+	 * @param message message to publish.
+	 * @return the number of clients that received the message. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	@Nullable
