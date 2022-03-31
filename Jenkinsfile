@@ -53,7 +53,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-openjdk11-with-redis-6.2:${p['java.11.tag']}", "--build-arg BASE=${p['docker.java.11.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk11-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.11.tag']}", "--build-arg BASE=${p['docker.java.11.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk11-redis-6.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
