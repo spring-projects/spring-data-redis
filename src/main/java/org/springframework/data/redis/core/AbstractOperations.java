@@ -387,7 +387,8 @@ abstract class AbstractOperations<K, V> {
 	 * @return converted or {@literal null}.
 	 * @since 1.8
 	 */
-	GeoResults<GeoLocation<V>> deserializeGeoResults(GeoResults<GeoLocation<byte[]>> source) {
+	@Nullable
+	GeoResults<GeoLocation<V>> deserializeGeoResults(@Nullable GeoResults<GeoLocation<byte[]>> source) {
 
 		if (source == null) {
 			return null;
