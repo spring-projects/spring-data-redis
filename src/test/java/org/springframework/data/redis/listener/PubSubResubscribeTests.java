@@ -145,11 +145,9 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(anotherListener, new PatternTopic(PATTERN));
 
 		// Wait for async subscription tasks to setup
-		await().atMost(Duration.ofMillis(600)).untilAsserted(() -> {
-			// test no messages are sent just to patterns
-			assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
-			assertThat(template.convertAndSend(ANOTHER_CHANNEL, payload2)).isEqualTo(1L);
-		});
+		// test no messages are sent just to patterns
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 
@@ -157,10 +155,8 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
 
 		// Wait for async subscription tasks to setup
-		await().atMost(Duration.ofMillis(400)).untilAsserted(() -> {
-			assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(1L);
-			assertThat(template.convertAndSend(ANOTHER_CHANNEL, payload2)).isEqualTo(2L);
-		});
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload2));
 
@@ -183,17 +179,13 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
 		container.removeMessageListener(null, new ChannelTopic(CHANNEL));
 
-		// timing: There's currently no other way to synchronize
-		// than to hope the subscribe/unsubscribe are executed within the time.
-		await().atMost(Duration.ofMillis(400)).untilAsserted(() -> {
-			// Listener removed from channel
-			assertThat(template.convertAndSend(CHANNEL, payload1)).isEqualTo(0L);
-			assertThat(template.convertAndSend(CHANNEL, payload2)).isEqualTo(0L);
+		// Listener removed from channel
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(CHANNEL, payload2);
 
-			// Listener receives messages on another channel
-			assertThat(template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1)).isEqualTo(1L);
-			assertThat(template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2)).isEqualTo(1L);
-		});
+		// Listener receives messages on another channel
+		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
+		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(anotherPayload1) && bag.contains(anotherPayload2));
 	}
@@ -215,12 +207,8 @@ public class PubSubResubscribeTests {
 				Arrays.asList(new Topic[] { new ChannelTopic(uniqueChannel), new PatternTopic("s*") }));
 		container.start();
 
-		// timing: There's currently no other way to synchronize
-		// than to hope the subscribe/unsubscribe are executed within the time.
-		await().atMost(Duration.ofMillis(250)).untilAsserted(() -> {
-			assertThat(template.convertAndSend("somechannel", "HELLO")).isEqualTo(1L);
-			assertThat(template.convertAndSend(uniqueChannel, "WORLD")).isEqualTo(1L);
-		});
+		assertThat(template.convertAndSend("somechannel", "HELLO")).isEqualTo(1L);
+		assertThat(template.convertAndSend(uniqueChannel, "WORLD")).isEqualTo(1L);
 
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains("HELLO") && bag.contains("WORLD"));
 	}
