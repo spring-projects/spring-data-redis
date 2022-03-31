@@ -21,7 +21,7 @@
 		<jta>1.1</jta>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.19</xstream>
-		<pool>2.9.0</pool>
+		<pool>2.11.1</pool>
 		<lettuce>6.1.8.RELEASE</lettuce>
 		<jedis>3.8.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
