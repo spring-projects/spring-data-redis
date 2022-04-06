@@ -90,10 +90,10 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 			CompletableFuture<? extends StatefulRedisMasterReplicaConnection<?, ?>> connection = MasterReplica
 					.connectAsync(client, codec, nodes);
 
-			connection.thenApply(it -> {
+			return connection.thenApply(it -> {
 
-				readFrom.ifPresent(readFrom -> it.setReadFrom(readFrom));
-				return connectionType.cast(connection);
+				readFrom.ifPresent(it::setReadFrom);
+				return connectionType.cast(it);
 			});
 		}
 
