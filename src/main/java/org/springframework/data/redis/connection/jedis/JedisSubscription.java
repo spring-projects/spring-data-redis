@@ -42,11 +42,13 @@ class JedisSubscription extends AbstractSubscription {
 	 */
 	@Override
 	protected void doClose() {
-		if (!getChannels().isEmpty()) {
-			jedisPubSub.unsubscribe();
-		}
-		if (!getPatterns().isEmpty()) {
-			jedisPubSub.punsubscribe();
+		synchronized (this) {
+			if (!getChannels().isEmpty()) {
+				jedisPubSub.unsubscribe();
+			}
+			if (!getPatterns().isEmpty()) {
+				jedisPubSub.punsubscribe();
+			}
 		}
 	}
 
@@ -56,7 +58,9 @@ class JedisSubscription extends AbstractSubscription {
 	 */
 	@Override
 	protected void doPsubscribe(byte[]... patterns) {
-		jedisPubSub.psubscribe(patterns);
+		synchronized (this) {
+			jedisPubSub.psubscribe(patterns);
+		}
 	}
 
 	/*
@@ -65,10 +69,12 @@ class JedisSubscription extends AbstractSubscription {
 	 */
 	@Override
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
-		if (all) {
-			jedisPubSub.punsubscribe();
-		} else {
-			jedisPubSub.punsubscribe(patterns);
+		synchronized (this) {
+			if (all) {
+				jedisPubSub.punsubscribe();
+			} else {
+				jedisPubSub.punsubscribe(patterns);
+			}
 		}
 	}
 
@@ -78,7 +84,9 @@ class JedisSubscription extends AbstractSubscription {
 	 */
 	@Override
 	protected void doSubscribe(byte[]... channels) {
-		jedisPubSub.subscribe(channels);
+		synchronized (this) {
+			jedisPubSub.subscribe(channels);
+		}
 	}
 
 	/*
@@ -87,10 +95,12 @@ class JedisSubscription extends AbstractSubscription {
 	 */
 	@Override
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
-		if (all) {
-			jedisPubSub.unsubscribe();
-		} else {
-			jedisPubSub.unsubscribe(channels);
+		synchronized (this) {
+			if (all) {
+				jedisPubSub.unsubscribe();
+			} else {
+				jedisPubSub.unsubscribe(channels);
+			}
 		}
 	}
 }

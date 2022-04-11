@@ -18,12 +18,16 @@ package org.springframework.data.redis.listener;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
@@ -98,5 +102,187 @@ class RedisMessageListenerContainerUnitTests {
 
 		assertThat(container.isRunning()).isFalse();
 		verify(subscriptionMock).close();
+	}
+
+	@Test // GH-964
+	void testConnectionErrorOnPatternSubscribedIsRetried() throws InterruptedException {
+		container.setRecoveryInterval(1);
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		when(connectionMock.getSubscription()).thenReturn(subscriptionMock);
+		doThrow(new RedisConnectionFailureException("")).doNothing().when(subscriptionMock).pSubscribe(any());
+
+		List<Thread> threads = new ArrayList<>();
+
+		doAnswer(it -> {
+
+			Runnable r = it.getArgument(0);
+			Thread thread = new Thread(r);
+			threads.add(thread);
+			thread.start();
+			return null;
+		}).when(executorMock).execute(any());
+
+		doAnswer(it -> {
+
+			when(connectionMock.isSubscribed()).thenReturn(true);
+			return null;
+		}).when(connectionMock).subscribe(any(), any());
+
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		container.addMessageListener(adapter, new PatternTopic("foo.pattern.*"));
+		container.start();
+
+		threads.forEach(thread -> {
+			try {
+				thread.join(5000);
+			} catch (InterruptedException e) {}
+		});
+
+		container.stop();
+
+		assertThat(container.isRunning()).isFalse();
+		verify(subscriptionMock).close();
+		verify(subscriptionMock, times(2)).pSubscribe(any());
+		verify(connectionMock).subscribe(any(), any());
+	}
+
+	@Test // GH-964
+	void testUnexpectedErrorOnPatternSubscribedIsNotRetried() throws InterruptedException {
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		when(connectionMock.getSubscription()).thenReturn(subscriptionMock);
+		doThrow(new RuntimeException()).when(subscriptionMock).pSubscribe(any());
+
+		List<Thread> threads = new ArrayList<>();
+
+		doAnswer(it -> {
+
+			Runnable r = it.getArgument(0);
+			Thread thread = new Thread(r);
+			threads.add(thread);
+			thread.start();
+			return null;
+		}).when(executorMock).execute(any());
+
+		doAnswer(it -> {
+
+			when(connectionMock.isSubscribed()).thenReturn(true);
+			return null;
+		}).when(connectionMock).subscribe(any(), any());
+
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		container.addMessageListener(adapter, new PatternTopic("foo.pattern.*"));
+		container.start();
+
+		threads.forEach(thread -> {
+			try {
+				thread.join(5000);
+			} catch (InterruptedException e) {}
+		});
+
+		container.stop();
+
+		assertThat(container.isRunning()).isFalse();
+		verify(subscriptionMock).close();
+		verify(subscriptionMock).pSubscribe(any());
+		verify(connectionMock).subscribe(any(), any());
+	}
+
+	@Test // GH-964
+	void testConnectionErrorOnPatternSubscribedIsNotRetriedWhenThreadIsCancelled() throws InterruptedException {
+		container.setRecoveryInterval(10);
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		when(connectionMock.getSubscription()).thenReturn(subscriptionMock);
+		doThrow(new RedisConnectionFailureException("")).when(subscriptionMock).pSubscribe(any());
+
+		List<Thread> threads = new ArrayList<>();
+
+		doAnswer(it -> {
+
+			Runnable r = it.getArgument(0);
+			Thread thread = new Thread(r);
+			threads.add(thread);
+			thread.start();
+			return null;
+		}).when(executorMock).execute(any());
+
+		doAnswer(it -> {
+
+			when(connectionMock.isSubscribed()).thenReturn(true);
+			return null;
+		}).when(connectionMock).subscribe(any(), any());
+
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		container.addMessageListener(adapter, new PatternTopic("foo.pattern.*"));
+		container.start();
+
+		threads.forEach(thread -> {
+			try {
+				thread.join(1000);
+			} catch (InterruptedException e) {}
+		});
+
+		container.stop();
+
+		threads.forEach(thread -> {
+			try {
+				thread.join(5000);
+			} catch (InterruptedException e) {}
+		});
+
+		assertThat(container.isRunning()).isFalse();
+		verify(subscriptionMock).close();
+		verify(subscriptionMock, atLeastOnce()).pSubscribe(any());
+		verify(connectionMock).subscribe(any(), any());
+		assertThat(threads).allMatch(thread -> !thread.isAlive());
+	}
+
+	@Test // GH-964
+	void testConnectionErrorOnMainSubcriptionThreadCancelsPatternSubscriptionThread() throws InterruptedException {
+		Map<Thread, Boolean> threads = new HashMap<>();
+		container.setRecoveryInterval(10);
+		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
+		when(connectionMock.getSubscription()).thenReturn(subscriptionMock);
+
+		doAnswer(it -> {
+
+			if (threads.get(Thread.currentThread())) {
+				throw new RedisConnectionFailureException("");
+			}
+			when(connectionMock.isSubscribed()).thenReturn(true);
+			return null;
+		}).when(connectionMock).subscribe(any(), any());
+
+		doAnswer(it -> {
+
+			Runnable r = it.getArgument(0);
+			Thread thread = new Thread(r);
+			threads.put(thread, threads.size() >= 2 ? Boolean.FALSE : Boolean.TRUE);
+			thread.start();
+			return null;
+		}).when(executorMock).execute(any());
+
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		container.addMessageListener(adapter, new PatternTopic("foo.pattern.*"));
+		container.start();
+
+		threads.keySet().forEach(thread -> {
+			try {
+				thread.join(1000);
+			} catch (InterruptedException e) {}
+		});
+
+		container.stop();
+
+		threads.keySet().forEach(thread -> {
+			try {
+				thread.join(5000);
+			} catch (InterruptedException e) {}
+		});
+
+		assertThat(container.isRunning()).isFalse();
+		verify(subscriptionMock).close();
+		verify(subscriptionMock, atLeastOnce()).pSubscribe(any());
+		verify(connectionMock, times(2)).subscribe(any(), any());
+		assertThat(threads.keySet()).allMatch(thread -> !thread.isAlive());
 	}
 }

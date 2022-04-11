@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ObjectFactory;
@@ -55,12 +54,14 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
 public class PubSubTests<T> {
 
 	private static final String CHANNEL = "pubsub::test";
+	private static final String PATTERN = "pattern::pubsub::test";
 
 	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
 	@SuppressWarnings("rawtypes") protected RedisTemplate template;
 
 	private final BlockingDeque<Object> bag = new LinkedBlockingDeque<>(99);
+	private final BlockingDeque<Object> patternBag = new LinkedBlockingDeque<>(99);
 
 	private final Object handler = new Object() {
 		@SuppressWarnings("unused")
@@ -69,7 +70,15 @@ public class PubSubTests<T> {
 		}
 	};
 
+	private final Object patternHandler = new Object() {
+		@SuppressWarnings("unused")
+		public void handleMessage(Object message) {
+			patternBag.add(message);
+		}
+	};
+
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
+	private final MessageListenerAdapter patternAdapter = new MessageListenerAdapter(patternHandler);
 
 	@SuppressWarnings("rawtypes")
 	public PubSubTests(ObjectFactory<T> factory, RedisTemplate template) {
@@ -84,9 +93,13 @@ public class PubSubTests<T> {
 	@BeforeEach
 	void setUp() throws Exception {
 		bag.clear();
+		patternBag.clear();
 
 		adapter.setSerializer(template.getValueSerializer());
 		adapter.afterPropertiesSet();
+
+		patternAdapter.setSerializer(template.getValueSerializer());
+		patternAdapter.afterPropertiesSet();
 
 		Phaser phaser = new Phaser(1);
 
@@ -196,6 +209,34 @@ public class PubSubTests<T> {
 		set.add((T) bag.poll(3, TimeUnit.SECONDS));
 
 		assertThat(set).contains(payload);
+	}
+
+	@SuppressWarnings("unchecked")
+	@ParameterizedRedisTest // GH-964
+	void testStartListenersToBothChannelsAndPatternTopics() throws InterruptedException {
+
+		assumeThat(isClusterAware(template.getConnectionFactory())).isFalse();
+		assumeThat(ConnectionUtils.isJedis(template.getConnectionFactory())).isTrue();
+
+		PubSubAwaitUtil.runAndAwaitPatternSubscription(template.getRequiredConnectionFactory(), () -> {
+
+			container.addMessageListener(patternAdapter, Collections.singletonList(new PatternTopic(PATTERN + "*")));
+			container.start();
+		});
+
+		T payload = getT();
+
+		template.convertAndSend(PATTERN, payload);
+		template.convertAndSend(CHANNEL, payload);
+
+		Set<T> patternSet = new LinkedHashSet<>();
+		patternSet.add((T) patternBag.poll(3, TimeUnit.SECONDS));
+
+		Set<T> channelSet = new LinkedHashSet<>();
+		channelSet.add((T) bag.poll(3, TimeUnit.SECONDS));
+
+		assertThat(channelSet).contains(payload);
+		assertThat(patternSet).contains(payload);
 	}
 
 	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {

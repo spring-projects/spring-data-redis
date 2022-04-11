@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,6 +70,7 @@ import org.springframework.util.ErrorHandler;
  * @author Way Joke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Jacques-Etienne Beaudet
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
@@ -678,7 +680,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @author Costin Leau
 	 */
 	private class SubscriptionTask implements SchedulingAwareRunnable {
-
 		/**
 		 * Runnable used, on a parallel thread, to do the initial pSubscribe. This is required since, during initialization,
 		 * both subscribe and pSubscribe might be needed but since the first call is blocking, the second call needs to
@@ -689,36 +690,55 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private class PatternSubscriptionTask implements SchedulingAwareRunnable {
 
 			private long WAIT = 500;
-			private long ROUNDS = 3;
+			private AtomicBoolean isThreadRunning = new AtomicBoolean(true);
+
 
 			public boolean isLongLived() {
 				return false;
+			}
+
+			void cancel() {
+				isThreadRunning.set(false);
 			}
 
 			public void run() {
 				// wait for subscription to be initialized
 				boolean done = false;
 				// wait 3 rounds for subscription to be initialized
-				for (int i = 0; i < ROUNDS && !done; i++) {
+				while(!done && isThreadRunning.get() && !Thread.currentThread().isInterrupted()) {
 					if (connection != null) {
-						synchronized (localMonitor) {
-							if (connection.isSubscribed()) {
-								done = true;
-								connection.getSubscription().pSubscribe(unwrap(patternMapping.keySet()));
-							} else {
-								try {
-									Thread.sleep(WAIT);
-								} catch (InterruptedException ex) {
-									Thread.currentThread().interrupt();
+							try {
+								if (connection.isSubscribed()) {
+									synchronized (localMonitor) {
+										connection.getSubscription().pSubscribe(unwrap(patternMapping.keySet()));
+										done = true;
+									}
+								} else {
+									try {
+										Thread.sleep(WAIT);
+									} catch (InterruptedException ex) {
+										logger.info("PatternSubscriptionTask was interrupted, exiting.");
+										Thread.currentThread().interrupt();
+										return;
+									}
+								}
+							} catch(Throwable e) {
+								if (e instanceof RedisConnectionFailureException) {
+									if (isRunning() && isThreadRunning.get()) {
+										logger.error("Connection failure occurred on pattern subscription task. Restarting subscription task after " + recoveryInterval + " ms");
+										sleepBeforeRecoveryAttempt();
+									}
+								} else {
+									logger.error("PatternSubscriptionTask aborted with exception:", e);
 									return;
 								}
 							}
-						}
 					}
 				}
 			}
 		}
 
+		private volatile @Nullable PatternSubscriptionTask patternSubscriptionTask;
 		private volatile @Nullable RedisConnection connection;
 		private boolean subscriptionTaskRunning = false;
 		private final Object localMonitor = new Object();
@@ -759,6 +779,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					}
 				}
 			} catch (Throwable t) {
+				cancelPatternSubscriptionTask();
 				handleSubscriptionException(t);
 			} finally {
 				// this block is executed once the subscription thread has ended, this may or may not mean
@@ -789,7 +810,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					condition = new SubscriptionPresentCondition();
 				} else {
 					// schedule the rest of the subscription
-					subscriptionExecutor.execute(new PatternSubscriptionTask());
+					patternSubscriptionTask = new PatternSubscriptionTask();
+					subscriptionExecutor.execute(patternSubscriptionTask);
 					condition = new PatternSubscriptionPresentCondition();
 				}
 
@@ -815,7 +837,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		 * Checks whether the current connection has an associated pattern subscription.
 		 *
 		 * @author Thomas Darimont
-		 * @see org.springframework.data.redis.listener.RedisMessageListenerContainer.SubscriptionTask.SubscriptionPresentTestCondition
+		 * @see org.springframework.data.redis.listener.RedisMessageListenerContainer.SubscriptionTask.SubscriptionPresentCondition
 		 */
 		private class PatternSubscriptionPresentCondition extends SubscriptionPresentCondition {
 
@@ -840,7 +862,17 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			return unwrapped;
 		}
 
+		private void cancelPatternSubscriptionTask() {
+			if(patternSubscriptionTask != null) {
+				synchronized (localMonitor) {
+					patternSubscriptionTask.cancel();
+					patternSubscriptionTask = null;
+				}
+			}
+		}
+
 		void cancel() {
+			cancelPatternSubscriptionTask();
 
 			if (!listening || connection == null) {
 				return;
