@@ -323,6 +323,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return null;
 		}
 
+		if (customConversions.hasCustomReadTarget(byte[].class, persistentProperty.getType())) {
+			return fromBytes(sourceBytes, persistentProperty.getType());
+		}
+
 		Class<?> typeToUse = getTypeHint(currentPath, source.getBucket(), persistentProperty.getType());
 		return fromBytes(sourceBytes, typeToUse);
 	}
@@ -736,8 +740,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param sink
 	 */
 	private void writeCollection(@Nullable String keyspace, String path, @Nullable Iterable<?> values,
-			TypeInformation<?> typeHint,
-			RedisData sink) {
+			TypeInformation<?> typeHint, RedisData sink) {
 
 		if (values == null) {
 			return;
