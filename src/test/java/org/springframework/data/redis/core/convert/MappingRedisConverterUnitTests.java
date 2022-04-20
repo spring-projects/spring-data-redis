@@ -696,11 +696,14 @@ class MappingRedisConverterUnitTests {
 		assertThat(write(rand)).containsEntry("zoneId", "Europe/Paris");
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, GH-2307
 	void readsZoneIdValuesCorrectly() {
 
-		Person target = converter.read(Person.class,
-				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("zoneId", "Europe/Paris"))));
+		Map<String, String> map = new HashMap<>();
+		map.put("zoneId", "Europe/Paris");
+		map.put("zoneId._class", "java.time.ZoneRegion");
+
+		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
 		assertThat(target.zoneId).isEqualTo(ZoneId.of("Europe/Paris"));
 	}
@@ -1790,7 +1793,6 @@ class MappingRedisConverterUnitTests {
 	@Test // DATAREDIS-471
 	void writeShouldThrowExceptionForUpdateValueInCollectionNotAssignableToDomainTypeProperty() {
 
-
 		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class) //
 				.set("coworkers", Collections.singletonList("foo"));
 
@@ -1928,7 +1930,7 @@ class MappingRedisConverterUnitTests {
 	// FIXME: https://github.com/spring-projects/spring-data-redis/issues/2168
 	void writePlainList() {
 
-		List<Object> source =  Arrays.asList("Hello", "stream", "message", 100L);
+		List<Object> source = Arrays.asList("Hello", "stream", "message", 100L);
 		RedisTestData target = write(source);
 
 		assertThat(target).containsEntry("[0]", "Hello") //
