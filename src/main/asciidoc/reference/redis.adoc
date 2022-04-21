@@ -74,11 +74,11 @@ One of the first tasks when using Redis and Spring is to connect to the store th
 [[redis:connectors:connection]]
 === RedisConnection and RedisConnectionFactory
 
-`RedisConnection` provides the core building block for Redis communication, as it handles the communication with the Redis back end. It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[hierarchy] so that you can switch the connectors without any code changes, as the operation semantics remain the same.
+`RedisConnection` provides the core building block for Redis communication, as it handles the communication with the Redis back end. It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception {spring-framework-reference}/data-access.html#dao-exceptions[hierarchy] so that you can switch the connectors without any code changes, as the operation semantics remain the same.
 
 NOTE: For the corner cases where the native library API is required, `RedisConnection` provides a dedicated method (`getNativeConnection`) that returns the raw, underlying object used for communication.
 
-Active `RedisConnection` objects are created through `RedisConnectionFactory`. In addition, the factory acts as `PersistenceExceptionTranslator` objects, meaning that, once declared, they let you do transparent exception translation. For example, you can do exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
+Active `RedisConnection` objects are created through `RedisConnectionFactory`. In addition, the factory acts as `PersistenceExceptionTranslator` objects, meaning that, once declared, they let you do transparent exception translation. For example, you can do exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated {spring-framework-reference}/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
 
 NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection (when a pool or shared native connection is used).
 
@@ -494,7 +494,7 @@ Multiple implementations are available (including two that have been already men
 * `JdkSerializationRedisSerializer`, which is used by default for `RedisCache` and `RedisTemplate`.
 * the `StringRedisSerializer`.
 
-However one can use `OxmSerializer` for Object/XML mapping through Spring https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#oxm[OXM] support or `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
+However one can use `OxmSerializer` for Object/XML mapping through Spring {spring-framework-reference}/data-access.html#oxm[OXM] support or `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
 
 Do note that the storage format is not limited only to values. It can be used for keys, values, or hashes without any restrictions.
 
@@ -524,7 +524,7 @@ Hash mappers are converters of map objects to a `Map<K, V>` and back. `HashMappe
 
 Multiple implementations are available:
 
-* `BeanUtilsHashMapper` using Spring's https://docs.spring.io/spring/docs/{springVersion}/javadoc-api/org/springframework/beans/BeanUtils.html[BeanUtils].
+* `BeanUtilsHashMapper` using Spring's {spring-framework-javadoc}/org/springframework/beans/BeanUtils.html[BeanUtils].
 * `ObjectHashMapper` using <<redis.repositories.mapping>>.
 * <<redis.hashmappers.jackson2,`Jackson2HashMapper`>> using https://github.com/FasterXML/jackson[FasterXML Jackson].
 

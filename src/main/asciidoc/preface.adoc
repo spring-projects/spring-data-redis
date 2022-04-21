@@ -10,13 +10,15 @@ This section provides an easy-to-follow guide for getting started with the Sprin
 [[get-started:first-steps:spring]]
 == Learning Spring
 
-Spring Data uses Spring framework's https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html[core] functionality, including:
+Spring Data uses Spring framework's
+{spring-framework-reference}/core.html[core] functionality, including:
 
-* https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#beans[IoC] container
-* https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#validation[type conversion system]
-* https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#expressions[expression language]
-* https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/integration.html#jmx[JMX integration]
-* https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[DAO exception hierarchy].
+
+* {spring-framework-reference}/core.html#beans[IoC] container
+* {spring-framework-reference}/core.html#validation[type conversion system]
+* {spring-framework-reference}/core.html#expressions[expression language]
+* {spring-framework-reference}/integration.html#jmx[JMX integration]
+* {spring-framework-reference}/data-access.html#dao-exceptions[DAO exception hierarchy].
 
 While you need not know the Spring APIs, understanding the concepts behind them is important.
 At a minimum, the idea behind Inversion of Control (IoC) should be familiar, and you should be familiar with whatever IoC container you choose to use.

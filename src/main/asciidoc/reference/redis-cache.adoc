@@ -3,7 +3,7 @@
 
 NOTE: Changed in 2.0
 
-Spring Redis provides an implementation for the Spring https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/integration.html#cache[cache abstraction] through the `org.springframework.data.redis.cache` package. To use Redis as a backing implementation, add `RedisCacheManager` to your configuration, as follows:
+Spring Redis provides an implementation for the Spring {spring-framework-reference}/integration.html#cache[cache abstraction] through the `org.springframework.data.redis.cache` package. To use Redis as a backing implementation, add `RedisCacheManager` to your configuration, as follows:
 
 [source,java]
 ----
