@@ -75,7 +75,7 @@ public class RedisTxContextConfiguration {
   }
 }
 ----
-<1> Configures a Spring Context to enable https://docs.spring.io/spring-framework/docs/{springVersion}/reference/html/data-access.html#transaction-declarative[declarative transaction management].
+<1> Configures a Spring Context to enable {spring-framework-reference}/data-access.html#transaction-declarative[declarative transaction management].
 <2> Configures `RedisTemplate` to participate in transactions by binding connections to the current thread.
 <3> Transaction management requires a `PlatformTransactionManager`.
 Spring Data Redis does not ship with a `PlatformTransactionManager` implementation.
