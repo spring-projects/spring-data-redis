@@ -19,11 +19,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Shane Lee
  * @since 2.0
  */
 class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
@@ -283,10 +285,9 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	private List<HV> deserializeHashValues(List<ByteBuffer> source) {
 
-		List<HV> values = new ArrayList<>(source.size());
-		for (ByteBuffer byteBuffer : source) {
-			values.add(readHashValue(byteBuffer));
-		}
-		return values;
+		return source.stream()
+			.filter(Objects::nonNull)
+			.map(this::readHashValue)
+			.collect(Collectors.toList());
 	}
 }
