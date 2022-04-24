@@ -48,6 +48,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Shane Lee
  */
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
@@ -190,7 +191,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-824
+	@ParameterizedRedisTest // DATAREDIS-2309
 	void multiGetAbsentKeys() {
 
 		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
@@ -199,7 +200,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		hashOperations.multiGet(keyFactory.instance(), Arrays.asList(hashKeyFactory.instance(), hashKeyFactory.instance()))
 				.as(StepVerifier::create) //
 				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(2).containsSequence(null, null);
+					assertThat(actual).isEmpty();
 				}) //
 				.verifyComplete();
 	}
