@@ -843,11 +843,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (CollectionUtils.isEmpty(holders)) {
 				return new byte[0][];
 			}
-
-			byte[][] unwrapped = new byte[holders.size()][];
+			List<ByteArrayWrapper> holdersCopy = new ArrayList<>(holders);
+			byte[][] unwrapped = new byte[holdersCopy.size()][];
 
 			int index = 0;
-			for (ByteArrayWrapper arrayHolder : holders) {
+			for (ByteArrayWrapper arrayHolder : holdersCopy) {
 				unwrapped[index++] = arrayHolder.getArray();
 			}
 
