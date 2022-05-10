@@ -8,6 +8,8 @@
 	<version>2.7.0-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
+	<description>Spring Data module for Redis</description>
+	<url>https://spring.io/projects/spring-data-redis</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
@@ -28,6 +30,17 @@
 		<netty>4.1.72.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
+
+	<scm>
+		<connection>scm:git:https://github.com/spring-projects/spring-data-redis.git</connection>
+		<developerConnection>scm:git:git@github.com:spring-projects/spring-data-redis.git</developerConnection>
+		<url>https://github.com/spring-projects/spring-data-redis</url>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/spring-projects/spring-data-redis/issues</url>
+	</issueManagement>
 
 	<dependencyManagement>
 		<dependencies>
