@@ -1,6 +1,6 @@
 SPRING DATA REDIS $version (March 31, 2014)
 -------------------------------------------
-https://projects.spring.io/spring-data-redis/
+https://spring.io/projects/spring-data-redis/
 
 1. INTRODUCTION
 
@@ -23,6 +23,6 @@ Please see the reference documentation.
 Additionally the blog at https://spring.io/blog as well as sections of interest in the reference documentation.
 
 5. ADDITIONAL RESOURCES
-Spring Data Homepage:			https://projects.spring.io/spring-data-redis/
+Spring Data Homepage:			https://spring.io/projects/spring-data-redis/
 Spring Data on Stackoverflow:	https://stackoverflow.com/questions/tagged/spring-data
 Redis Homepage:					https://redis.io
