@@ -49,4 +49,4 @@ TIP: It is ideal to configure a single instance of `DefaultRedisScript` in your 
 
 The `checkAndSet` method above then runs the scripts. Scripts can be run within a `SessionCallback` as part of a transaction or pipeline. See "`<<tx>>`" and "`<<pipeline>>`" for more information.
 
-The scripting support provided by Spring Data Redis also lets you schedule Redis scripts for periodic running by using the Spring Task and Scheduler abstractions. See the https://projects.spring.io/spring-framework/[Spring Framework] documentation for more details.
+The scripting support provided by Spring Data Redis also lets you schedule Redis scripts for periodic running by using the Spring Task and Scheduler abstractions. See the https://spring.io/projects/spring-framework/[Spring Framework] documentation for more details.
