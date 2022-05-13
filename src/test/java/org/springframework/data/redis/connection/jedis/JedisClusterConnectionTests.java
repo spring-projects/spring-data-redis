@@ -2155,6 +2155,9 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnCommand("BZPOPMIN")
 	public void bzPopMinShouldWorkCorrectly() {
 
+		assertThat(clusterConnection.bZPopMin(KEY_1_BYTES, 1, TimeUnit.MILLISECONDS))
+				.isNull();
+
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
 		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
 		nativeConnection.zadd(KEY_1_BYTES, 30D, VALUE_3_BYTES);
@@ -2179,6 +2182,9 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test // GH-2007
 	@EnabledOnCommand("BZPOPMAX")
 	public void bzPopMaxShouldWorkCorrectly() {
+
+		assertThat(clusterConnection.bZPopMax(KEY_1_BYTES, 1, TimeUnit.MILLISECONDS))
+				.isNull();
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
 		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
