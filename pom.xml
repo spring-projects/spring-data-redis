@@ -1,532 +1,797 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  	
-  <modelVersion>4.0.0</modelVersion>
-  	
-  <groupId>org.springframework.data</groupId>
-  	
-  <artifactId>spring-data-redis</artifactId>
-  	
-  <version>3.0.0-SNAPSHOT</version>
-  	
-  <name>Spring Data Redis</name>
-  	
-  <description>Spring Data module for Redis</description>
-  	
-  <url>https://spring.io/projects/spring-data-redis</url>
-  	
-  <parent>
-    		
-    <groupId>org.springframework.data.build</groupId>
-    		
-    <artifactId>spring-data-parent</artifactId>
-    		
-    <version>3.0.0-M4</version>
     	
-  </parent>
-  	
-  <properties>
-    		
-    <springdata.keyvalue>3.0.0-M4</springdata.keyvalue>
-    		
-    <awaitility>4.0.2</awaitility>
-    		
-    <beanutils>1.9.4</beanutils>
-    		
-    <xstream>1.4.19</xstream>
-    		
-    <pool>2.11.1</pool>
-    		
-    <lettuce>6.1.8.RELEASE</lettuce>
-    		
-    <jedis>3.8.0</jedis>
-    		
-    <multithreadedtc>1.01</multithreadedtc>
-    		
-    <netty>4.1.72.Final</netty>
-    		
-    <java-module-name>spring.data.redis</java-module-name>
-    	
-  </properties>
-  	
-  <scm>
-    		
-    <connection>scm:git:https://github.com/spring-projects/spring-data-redis.git</connection>
-    		
-    <developerConnection>scm:git:git@github.com:spring-projects/spring-data-redis.git</developerConnection>
-    		
-    <url>https://github.com/spring-projects/spring-data-redis</url>
-    	
-  </scm>
-  	
-  <issueManagement>
-    		
-    <system>GitHub</system>
-    		
-    <url>https://github.com/spring-projects/spring-data-redis/issues</url>
-    	
-  </issueManagement>
-  	
-  <dependencyManagement>
-    		
-    <dependencies>
-      			
-      <dependency>
-        				
-        <groupId>org.apache.commons</groupId>
-        				
-        <artifactId>commons-pool2</artifactId>
-        				
-        <version>${pool}</version>
-        			
-      </dependency>
-      		
-    </dependencies>
-    	
-  </dependencyManagement>
-  	
-  <dependencies>
-    		
-    <!-- Spring -->
-    		
-    <dependency>
-      			
-      <groupId>org.springframework.data</groupId>
-      			
-      <artifactId>spring-data-keyvalue</artifactId>
-      			
-      <version>${springdata.keyvalue}</version>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.springframework</groupId>
-      			
-      <artifactId>spring-tx</artifactId>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.springframework</groupId>
-      			
-      <artifactId>spring-oxm</artifactId>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.springframework</groupId>
-      			
-      <artifactId>spring-aop</artifactId>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.springframework</groupId>
-      			
-      <artifactId>spring-context-support</artifactId>
-      		
-    </dependency>
-    		
-    <!-- REDIS Drivers -->
-    		
-    <dependency>
-      			
-      <groupId>redis.clients</groupId>
-      			
-      <artifactId>jedis</artifactId>
-      			
-      <version>${jedis}</version>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>io.lettuce</groupId>
-      			
-      <artifactId>lettuce-core</artifactId>
-      			
-      <version>${lettuce}</version>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>io.netty</groupId>
-      			
-      <artifactId>netty-transport-native-epoll</artifactId>
-      			
-      <classifier>linux-x86_64</classifier>
-      			
-      <version>${netty}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>io.netty</groupId>
-      			
-      <artifactId>netty-transport-native-kqueue</artifactId>
-      			
-      <classifier>osx-x86_64</classifier>
-      			
-      <version>${netty}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <!-- reactive -->
-    		
-    <dependency>
-      			
-      <groupId>io.projectreactor</groupId>
-      			
-      <artifactId>reactor-core</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <!--Mapper -->
-    		
-    <dependency>
-      			
-      <groupId>com.fasterxml.jackson.core</groupId>
-      			
-      <artifactId>jackson-core</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      			
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>com.fasterxml.jackson.core</groupId>
-      			
-      <artifactId>jackson-databind</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>commons-beanutils</groupId>
-      			
-      <artifactId>commons-beanutils</artifactId>
-      			
-      <version>${beanutils}</version>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <!-- Pool -->
-    		
-    <dependency>
-      			
-      <groupId>org.apache.commons</groupId>
-      			
-      <artifactId>commons-pool2</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <!-- CDI -->
-    		
-    <!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
-    		
-    <dependency>
-      			
-      <groupId>jakarta.enterprise</groupId>
-      			
-      <artifactId>jakarta.enterprise.cdi-api</artifactId>
-      			
-      <version>${cdi}</version>
-      			
-      <scope>provided</scope>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.apache.openwebbeans</groupId>
-      			
-      <artifactId>openwebbeans-se</artifactId>
-      			
-      <classifier>jakarta</classifier>
-      			
-      <version>${webbeans}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.apache.openwebbeans</groupId>
-      			
-      <artifactId>openwebbeans-spi</artifactId>
-      			
-      <classifier>jakarta</classifier>
-      			
-      <version>${webbeans}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.apache.openwebbeans</groupId>
-      			
-      <artifactId>openwebbeans-impl</artifactId>
-      			
-      <classifier>jakarta</classifier>
-      			
-      <version>${webbeans}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <!-- Kotlin extension -->
-    		
-    <dependency>
-      			
-      <groupId>org.jetbrains.kotlin</groupId>
-      			
-      <artifactId>kotlin-stdlib</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.jetbrains.kotlin</groupId>
-      			
-      <artifactId>kotlin-reflect</artifactId>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.jetbrains.kotlinx</groupId>
-      			
-      <artifactId>kotlinx-coroutines-core</artifactId>
-      			
-      <version>${kotlin-coroutines}</version>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.jetbrains.kotlinx</groupId>
-      			
-      <artifactId>kotlinx-coroutines-reactor</artifactId>
-      			
-      <version>${kotlin-coroutines}</version>
-      			
-      <optional>true</optional>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>io.mockk</groupId>
-      			
-      <artifactId>mockk</artifactId>
-      			
-      <version>${mockk}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <!-- Test -->
-    		
-    <dependency>
-      			
-      <groupId>org.springframework</groupId>
-      			
-      <artifactId>spring-jdbc</artifactId>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>org.awaitility</groupId>
-      			
-      <artifactId>awaitility</artifactId>
-      			
-      <version>${awaitility}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>com.thoughtworks.xstream</groupId>
-      			
-      <artifactId>xstream</artifactId>
-      			
-      <version>${xstream}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>edu.umd.cs.mtc</groupId>
-      			
-      <artifactId>multithreadedtc</artifactId>
-      			
-      <version>${multithreadedtc}</version>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    		
-    <dependency>
-      			
-      <groupId>io.projectreactor</groupId>
-      			
-      <artifactId>reactor-test</artifactId>
-      			
-      <scope>test</scope>
-      		
-    </dependency>
-    	
-  </dependencies>
-  	
-  <build>
-    		
-    <plugins>
-      			
-      <plugin>
-        				
-        <groupId>org.apache.maven.plugins</groupId>
-        				
-        <artifactId>maven-surefire-plugin</artifactId>
-        				
-        <configuration>
-          					
-          <!-- Retain stack traces -->
-          					
-          <argLine>-XX:-OmitStackTraceInFastThrow</argLine>
-          					
-          <useSystemClassLoader>false</useSystemClassLoader>
-          					
-          <includes>
-            						
-            <include>**/*Tests.java</include>
-            						
-            <include>**/*Test.java</include>
-            					
-          </includes>
-          				
-        </configuration>
-        			
-      </plugin>
-      			
-      <plugin>
-        				
-        <groupId>org.apache.maven.plugins</groupId>
-        				
-        <artifactId>maven-assembly-plugin</artifactId>
-        			
-      </plugin>
-      			
-      <plugin>
-        				
-        <groupId>org.asciidoctor</groupId>
-        				
-        <artifactId>asciidoctor-maven-plugin</artifactId>
-        				
-        <configuration>
-          					
-          <attributes>
-            						
-            <lettuce>${lettuce}</lettuce>
-            						
-            <jedis>${jedis}</jedis>
-            					
-          </attributes>
-          				
-        </configuration>
-        			
-      </plugin>
-      		
-    </plugins>
-    	
-  </build>
-  	
-  <repositories>
-    		
-    <repository>
-      			
-      <id>spring-libs-milestone</id>
-      			
-      <url>https://repo.spring.io/libs-milestone</url>
-      		
-    </repository>
-    	
-  </repositories>
-  	
-  <pluginRepositories>
-    		
-    <pluginRepository>
-      			
-      <id>spring-plugins-release</id>
-      			
-      <url>https://repo.spring.io/plugins-release</url>
-      		
-    </pluginRepository>
-    	
-  </pluginRepositories>
-  	
-  <profiles>
-    		
-    <profile>
-      			
-      <!-- placeholder for no profile -->
-      			
-      <id>none</id>
-      		
-    </profile>
-    	
-  </profiles>
   
+  <modelVersion>4.0.0</modelVersion>
+    	
+  
+  <groupId>org.springframework.data</groupId>
+    	
+  
+  <artifactId>spring-data-redis</artifactId>
+    	
+  
+  <version>3.0.0-SNAPSHOT</version>
+    	
+  
+  <name>Spring Data Redis</name>
+    	
+  
+  <description>Spring Data module for Redis</description>
+    	
+  
+  <url>https://spring.io/projects/spring-data-redis</url>
+    	
+  
+  <parent>
+        		
+    
+    <groupId>org.springframework.data.build</groupId>
+        		
+    
+    <artifactId>spring-data-parent</artifactId>
+        		
+    
+    <version>3.0.0-SNAPSHOT</version>
+        	
+  
+  </parent>
+    	
+  
+  <properties>
+        		
+    
+    <springdata.keyvalue>3.0.0-SNAPSHOT</springdata.keyvalue>
+        		
+    
+    <awaitility>4.0.2</awaitility>
+        		
+    
+    <beanutils>1.9.4</beanutils>
+        		
+    
+    <xstream>1.4.19</xstream>
+        		
+    
+    <pool>2.11.1</pool>
+        		
+    
+    <lettuce>6.1.8.RELEASE</lettuce>
+        		
+    
+    <jedis>3.8.0</jedis>
+        		
+    
+    <multithreadedtc>1.01</multithreadedtc>
+        		
+    
+    <netty>4.1.72.Final</netty>
+        		
+    
+    <java-module-name>spring.data.redis</java-module-name>
+        	
+  
+  </properties>
+    	
+  
+  <scm>
+        		
+    
+    <connection>scm:git:https://github.com/spring-projects/spring-data-redis.git</connection>
+        		
+    
+    <developerConnection>scm:git:git@github.com:spring-projects/spring-data-redis.git</developerConnection>
+        		
+    
+    <url>https://github.com/spring-projects/spring-data-redis</url>
+        	
+  
+  </scm>
+    	
+  
+  <issueManagement>
+        		
+    
+    <system>GitHub</system>
+        		
+    
+    <url>https://github.com/spring-projects/spring-data-redis/issues</url>
+        	
+  
+  </issueManagement>
+    	
+  
+  <dependencyManagement>
+        		
+    
+    <dependencies>
+            			
+      
+      <dependency>
+                				
+        
+        <groupId>org.apache.commons</groupId>
+                				
+        
+        <artifactId>commons-pool2</artifactId>
+                				
+        
+        <version>${pool}</version>
+                			
+      
+      </dependency>
+            		
+    
+    </dependencies>
+        	
+  
+  </dependencyManagement>
+    	
+  
+  <dependencies>
+        		
+    
+    <!-- Spring -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.springframework.data</groupId>
+            			
+      
+      <artifactId>spring-data-keyvalue</artifactId>
+            			
+      
+      <version>${springdata.keyvalue}</version>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.springframework</groupId>
+            			
+      
+      <artifactId>spring-tx</artifactId>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.springframework</groupId>
+            			
+      
+      <artifactId>spring-oxm</artifactId>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.springframework</groupId>
+            			
+      
+      <artifactId>spring-aop</artifactId>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.springframework</groupId>
+            			
+      
+      <artifactId>spring-context-support</artifactId>
+            		
+    
+    </dependency>
+        		
+    
+    <!-- REDIS Drivers -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>redis.clients</groupId>
+            			
+      
+      <artifactId>jedis</artifactId>
+            			
+      
+      <version>${jedis}</version>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>io.lettuce</groupId>
+            			
+      
+      <artifactId>lettuce-core</artifactId>
+            			
+      
+      <version>${lettuce}</version>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>io.netty</groupId>
+            			
+      
+      <artifactId>netty-transport-native-epoll</artifactId>
+            			
+      
+      <classifier>linux-x86_64</classifier>
+            			
+      
+      <version>${netty}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>io.netty</groupId>
+            			
+      
+      <artifactId>netty-transport-native-kqueue</artifactId>
+            			
+      
+      <classifier>osx-x86_64</classifier>
+            			
+      
+      <version>${netty}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <!-- reactive -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>io.projectreactor</groupId>
+            			
+      
+      <artifactId>reactor-core</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <!--Mapper -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>com.fasterxml.jackson.core</groupId>
+            			
+      
+      <artifactId>jackson-core</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+            			
+      
+      <artifactId>jackson-datatype-jsr310</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>com.fasterxml.jackson.core</groupId>
+            			
+      
+      <artifactId>jackson-databind</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>commons-beanutils</groupId>
+            			
+      
+      <artifactId>commons-beanutils</artifactId>
+            			
+      
+      <version>${beanutils}</version>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <!-- Pool -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.apache.commons</groupId>
+            			
+      
+      <artifactId>commons-pool2</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <!-- CDI -->
+        		
+    
+    <!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>jakarta.enterprise</groupId>
+            			
+      
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            			
+      
+      <version>${cdi}</version>
+            			
+      
+      <scope>provided</scope>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.apache.openwebbeans</groupId>
+            			
+      
+      <artifactId>openwebbeans-se</artifactId>
+            			
+      
+      <classifier>jakarta</classifier>
+            			
+      
+      <version>${webbeans}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.apache.openwebbeans</groupId>
+            			
+      
+      <artifactId>openwebbeans-spi</artifactId>
+            			
+      
+      <classifier>jakarta</classifier>
+            			
+      
+      <version>${webbeans}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.apache.openwebbeans</groupId>
+            			
+      
+      <artifactId>openwebbeans-impl</artifactId>
+            			
+      
+      <classifier>jakarta</classifier>
+            			
+      
+      <version>${webbeans}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <!-- Kotlin extension -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.jetbrains.kotlin</groupId>
+            			
+      
+      <artifactId>kotlin-stdlib</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.jetbrains.kotlin</groupId>
+            			
+      
+      <artifactId>kotlin-reflect</artifactId>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.jetbrains.kotlinx</groupId>
+            			
+      
+      <artifactId>kotlinx-coroutines-core</artifactId>
+            			
+      
+      <version>${kotlin-coroutines}</version>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.jetbrains.kotlinx</groupId>
+            			
+      
+      <artifactId>kotlinx-coroutines-reactor</artifactId>
+            			
+      
+      <version>${kotlin-coroutines}</version>
+            			
+      
+      <optional>true</optional>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>io.mockk</groupId>
+            			
+      
+      <artifactId>mockk</artifactId>
+            			
+      
+      <version>${mockk}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <!-- Test -->
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.springframework</groupId>
+            			
+      
+      <artifactId>spring-jdbc</artifactId>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>org.awaitility</groupId>
+            			
+      
+      <artifactId>awaitility</artifactId>
+            			
+      
+      <version>${awaitility}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>com.thoughtworks.xstream</groupId>
+            			
+      
+      <artifactId>xstream</artifactId>
+            			
+      
+      <version>${xstream}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>edu.umd.cs.mtc</groupId>
+            			
+      
+      <artifactId>multithreadedtc</artifactId>
+            			
+      
+      <version>${multithreadedtc}</version>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        		
+    
+    <dependency>
+            			
+      
+      <groupId>io.projectreactor</groupId>
+            			
+      
+      <artifactId>reactor-test</artifactId>
+            			
+      
+      <scope>test</scope>
+            		
+    
+    </dependency>
+        	
+  
+  </dependencies>
+    	
+  
+  <build>
+        		
+    
+    <plugins>
+            			
+      
+      <plugin>
+                				
+        
+        <groupId>org.apache.maven.plugins</groupId>
+                				
+        
+        <artifactId>maven-surefire-plugin</artifactId>
+                				
+        
+        <configuration>
+                    					
+          
+          <!-- Retain stack traces -->
+                    					
+          
+          <argLine>-XX:-OmitStackTraceInFastThrow</argLine>
+                    					
+          
+          <useSystemClassLoader>false</useSystemClassLoader>
+                    					
+          
+          <includes>
+                        						
+            
+            <include>**/*Tests.java</include>
+                        						
+            
+            <include>**/*Test.java</include>
+                        					
+          
+          </includes>
+                    				
+        
+        </configuration>
+                			
+      
+      </plugin>
+            			
+      
+      <plugin>
+                				
+        
+        <groupId>org.apache.maven.plugins</groupId>
+                				
+        
+        <artifactId>maven-assembly-plugin</artifactId>
+                			
+      
+      </plugin>
+            			
+      
+      <plugin>
+                				
+        
+        <groupId>org.asciidoctor</groupId>
+                				
+        
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+                				
+        
+        <configuration>
+                    					
+          
+          <attributes>
+                        						
+            
+            <lettuce>${lettuce}</lettuce>
+                        						
+            
+            <jedis>${jedis}</jedis>
+                        					
+          
+          </attributes>
+                    				
+        
+        </configuration>
+                			
+      
+      </plugin>
+            		
+    
+    </plugins>
+        	
+  
+  </build>
+    	
+  
+  <repositories>
+        		
+    
+    <repository>
+            			
+      
+      <id>spring-libs-snapshot</id>
+            			
+      
+      <url>https://repo.spring.io/libs-snapshot</url>
+            		
+    
+    </repository>
+        	
+  
+  </repositories>
+    	
+  
+  <pluginRepositories>
+        		
+    
+    <pluginRepository>
+            			
+      
+      <id>spring-plugins-release</id>
+            			
+      
+      <url>https://repo.spring.io/plugins-release</url>
+            		
+    
+    </pluginRepository>
+        	
+  
+  </pluginRepositories>
+    	
+  
+  <profiles>
+        		
+    
+    <profile>
+            			
+      
+      <!-- placeholder for no profile -->
+            			
+      
+      <id>none</id>
+            		
+    
+    </profile>
+        	
+  
+  </profiles>
+    
+
 </project>
