@@ -1020,7 +1020,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	@SuppressWarnings("unchecked")
 	private static Tuple toTuple(List<?> bytes) {
 
-		if (bytes.isEmpty()) {
+		if (bytes == null || bytes.isEmpty()) {
 			return null;
 		}
 
