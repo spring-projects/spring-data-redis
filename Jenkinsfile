@@ -99,10 +99,8 @@ pipeline {
 			}
 			steps {
 				script {
-					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.basic']) {
-							sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
-						}
+					docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.basic']) {
+						sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
 					}
 				}
 			}
@@ -126,10 +124,8 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.11.tag']}").inside(p['docker.java.inside.basic']) {
-									sh 'PROFILE=none ci/test.sh'
-								}
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.11.tag']}").inside(p['docker.java.inside.basic']) {
+								sh 'PROFILE=none ci/test.sh'
 							}
 						}
 					}
@@ -144,10 +140,8 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.lts.tag']}").inside(p['docker.java.inside.basic']) {
-									sh 'PROFILE=none ci/test.sh'
-								}
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.lts.tag']}").inside(p['docker.java.inside.basic']) {
+								sh 'PROFILE=none ci/test.sh'
 							}
 						}
 					}
@@ -173,17 +167,15 @@ pipeline {
 
 			steps {
 				script {
-					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
-									'-Dartifactory.server=https://repo.spring.io ' +
-									"-Dartifactory.username=${ARTIFACTORY_USR} " +
-									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-									"-Dartifactory.staging-repository=libs-snapshot-local " +
-									"-Dartifactory.build-name=spring-data-redis " +
-									"-Dartifactory.build-number=${BUILD_NUMBER} " +
-									'-Dmaven.test.skip=true clean deploy -U -B'
-						}
+					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
+								'-Dartifactory.server=https://repo.spring.io ' +
+								"-Dartifactory.username=${ARTIFACTORY_USR} " +
+								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
+								"-Dartifactory.staging-repository=libs-snapshot-local " +
+								"-Dartifactory.build-name=spring-data-redis " +
+								"-Dartifactory.build-number=${BUILD_NUMBER} " +
+								'-Dmaven.test.skip=true clean deploy -U -B'
 					}
 				}
 			}
