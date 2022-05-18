@@ -1,6 +1,8 @@
 [[upgrading]]
 = Upgrading
 
+The following section provides information about changes that are likely to have an effect on the application and might even prevent it from compiling.
+
 === Re-/moved Types
 
 |===
@@ -184,6 +186,14 @@
 |setShardInfo
 |_can be set via JedisClientConfiguration_
 
+|o.s.d.redis.connection.jedis.JedisConnectionFactory
+|createCluster
+|_now requires a `Connection` instead of `Jedis` instance_
+
+|o.s.d.redis.connection.jedis.JedisConverters
+|
+|has package visibility now
+
 |o.s.d.redis.connection.jedis.JedisConverters
 |tuplesToTuples
 |-
@@ -231,3 +241,12 @@ This effects methods on `LettuceConnectionFactory` and `LettuceConnection`.
 
 `AuthenticatingRedisClient` has been removed without replacement.
 Please refer to the https://lettuce.io/core/release/reference/index.html#basic.redisuri[driver documentation] for `RedisURI` to set authentication data.
+
+== Jedis
+
+Please read the Jedis https://github.com/redis/jedis/blob/v4.0.0/docs/3to4.md[upgrading guide] which covers important driver changes.
+
+=== Transactions / Pipelining
+
+Pipelining and Transactions are now mutually exclusive.
+The usage of server or connection commands in pipeline/transactions mode is no longer possible.

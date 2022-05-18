@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.lang.Nullable;
 
 /**
