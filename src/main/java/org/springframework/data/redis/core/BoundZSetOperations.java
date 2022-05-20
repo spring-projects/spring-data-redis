@@ -301,6 +301,22 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
+	 * @deprecated since 3.0. Please use {@link #lexCount(Range)} instead.
+	 */
+	@Nullable
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Long lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return lexCount(range.toRange());
+	}
+
+	/**
+	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
+	 * lexicographical ordering.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
 	@Nullable
 	Long lexCount(Range<String> range);
@@ -469,6 +485,21 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.5
+	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
+	 * @deprecated since 3.0. Please use {@link #removeRangeByLex(Range)}.
+	 */
+	@Nullable
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Long removeRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return removeRangeByLex(range.toRange());
+	}
+
+	/**
+	 * Remove elements in {@link Range} from sorted set with the bound key.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
 	@Nullable
@@ -812,6 +843,22 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @deprecated since 3.0. Please use {@link #rangeByLex(Range)} instead.
+	 */
+	@Nullable
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<V> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return rangeByLex(range.toRange());
+	}
+
+	/**
+	 * Get all elements with lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
 	default Set<V> rangeByLex(Range<String> range) {
@@ -828,6 +875,24 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
+	 * @deprecated since 3.0. Please use {@link #rangeByLex(Range, Limit)} instead.
+	 */
+	@Nullable
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<V> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range, Limit limit) {
+		return rangeByLex(range.toRange(), limit);
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
 	@Nullable
 	Set<V> rangeByLex(Range<String> range, Limit limit);
@@ -839,6 +904,22 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Range)} instead.
+	 */
+	@Nullable
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<V> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return reverseRangeByLex(range);
+	}
+
+	/**
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable
@@ -855,6 +936,24 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param limit can be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Range, Limit)} instead.
+	 */
+	@Nullable
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<V> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range, Limit limit) {
+		return reverseRangeByLex(range.toRange(), limit);
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
 	@Nullable

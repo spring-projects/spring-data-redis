@@ -1536,7 +1536,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
-	 * @see RedisZSetCommands#zLexCount(byte[], Range)
+	 * @see RedisZSetCommands#zLexCount(byte[], org.springframework.data.domain.Range)
 	 */
 	@Nullable
 	Long zLexCount(String key, org.springframework.data.domain.Range<String> range);
@@ -1926,7 +1926,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
-	 * @see RedisZSetCommands#zRangeByLex(byte[], Range)
+	 * @see RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.domain.Range)
 	 */
 	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range);
 
@@ -1940,7 +1940,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
-	 * @see RedisZSetCommands#zRangeByLex(byte[], Range, Limit)
+	 * @see RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.Limit)
 	 */
 	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range,
 			org.springframework.data.redis.connection.Limit limit);
@@ -1966,7 +1966,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range)
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.domain.Range)
 	 */
 	default Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range) {
 		return zRevRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
@@ -1982,7 +1982,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 * @see RedisZSetCommands#zRevRangeByLex(byte[], Range, Limit)
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.Limit)
 	 */
 	Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range,
 			org.springframework.data.redis.connection.Limit limit);

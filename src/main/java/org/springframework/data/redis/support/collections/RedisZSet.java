@@ -270,6 +270,21 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return
 	 * @see BoundZSetOperations#rangeByLex(Range)
 	 * @since 1.7
+	 * @deprecated since 3.0. Please use {@link #rangeByLex(Range)} instead.
+	 */
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<E> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return rangeByLex(range.toRange());
+	}
+
+	/**
+	 * Get all elements with lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @see BoundZSetOperations#rangeByLex(Range)
+	 * @since 3.0
 	 */
 	default Set<E> rangeByLex(Range<String> range) {
 		return rangeByLex(range, Limit.unlimited());
@@ -285,6 +300,23 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return
 	 * @since 1.7
 	 * @see BoundZSetOperations#rangeByLex(Range, Limit)
+	 * @deprecated since 3.0. Please use {@link #rangeByLex(Range, Limit)} instead.
+	 */
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<E> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range, Limit limit) {
+		return rangeByLex(range.toRange(), limit);
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return
+	 * @since 3.0
+	 * @see BoundZSetOperations#rangeByLex(Range, Limit)
 	 */
 	Set<E> rangeByLex(Range<String> range, Limit limit);
 
@@ -295,6 +327,21 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @param range must not be {@literal null}.
 	 * @return
 	 * @since 2.4
+	 * @see BoundZSetOperations#reverseRangeByLex(Range)
+	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Range, Limit)} instead.
+	 */
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<E> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return reverseRangeByLex(range.toRange());
+	}
+
+	/**
+	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 3.0
 	 * @see BoundZSetOperations#reverseRangeByLex(Range)
 	 */
 	default Set<E> reverseRangeByLex(Range<String> range) {
@@ -310,6 +357,24 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @param limit can be {@literal null}.
 	 * @return
 	 * @since 2.4
+	 * @see BoundZSetOperations#reverseRangeByLex(Range, Limit)
+	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Range, Limit)} instead.
+	 */
+	@Deprecated(since = "3.0", forRemoval = true)
+	default Set<E> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range,
+			Limit limit) {
+		return reverseRangeByLex(range.toRange(), limit);
+	}
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return
+	 * @since 3.0
 	 * @see BoundZSetOperations#reverseRangeByLex(Range, Limit)
 	 */
 	Set<E> reverseRangeByLex(Range<String> range, Limit limit);
