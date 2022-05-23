@@ -310,8 +310,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	}
 
 	/**
-	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
-	 * lexicographical ordering.
+	 * Count number of elements within sorted set with value between {@link Range#getLowerBound()} and
+	 * {@link Range#getUpperBound()} applying lexicographical ordering.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -836,8 +836,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Cursor<TypedTuple<V>> scan(ScanOptions options);
 
 	/**
-	 * Get all elements with lexicographical ordering with a value between {@link Range#getLowerBound()} and
-	 * {@link Range#getUpperBound()}.
+	 * Get all elements with lexicographical ordering with a value between
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -867,8 +868,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with lexicographical ordering having a value between {@link Range#getLowerBound()} and
-	 * {@link Range#getUpperBound()}.
+	 * {@link Limit#getOffset()} with lexicographical ordering from {@literal ZSET} at {@code key} with a value between
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
@@ -898,8 +900,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Set<V> rangeByLex(Range<String> range, Limit limit);
 
 	/**
-	 * Get all elements with reverse lexicographical ordering with a value between {@link Range#getLowerBound()} and
-	 * {@link Range#getUpperBound()}.
+	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} with a value between
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -929,8 +932,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with reverse lexicographical ordering having a value between
-	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} having a value
+	 * between {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
+	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
 	 *
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
