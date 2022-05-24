@@ -364,6 +364,15 @@ public class LettuceConnectionFactory
 
 		resetConnection();
 
+		if (clusterCommandExecutor != null) {
+
+			try {
+				clusterCommandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+
 		dispose(connectionProvider);
 		dispose(reactiveConnectionProvider);
 
@@ -376,15 +385,6 @@ public class LettuceConnectionFactory
 			if (log.isWarnEnabled()) {
 				log.warn((client != null ? ClassUtils.getShortName(client.getClass()) : "LettuceClient")
 						+ " did not shut down gracefully.", e);
-			}
-		}
-
-		if (clusterCommandExecutor != null) {
-
-			try {
-				clusterCommandExecutor.destroy();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
 
