@@ -26,11 +26,13 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -162,6 +164,24 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		assertThat(serializer.deserialize(serializer.serialize(source))).isEqualTo(source);
 	}
 
+	@Test // GH-2322
+	void shouldConsiderWriter() {
+
+		User user = new User();
+		user.email = "walter@heisenberg.com";
+		user.id = 42;
+		user.name = "Walter White";
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer((String) null,
+				JacksonObjectReader.create(), (mapper, source) -> {
+					return mapper.writerWithView(Views.Basic.class).writeValueAsBytes(source);
+				});
+
+		byte[] result = serializer.serialize(user);
+
+		assertThat(new String(result)).contains("id").contains("name").doesNotContain("email");
+	}
+
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
@@ -250,6 +270,20 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 			SimpleObject other = (SimpleObject) obj;
 			return nullSafeEquals(this.longValue, other.longValue);
 		}
+	}
+
+	public class User {
+		@JsonView(Views.Basic.class) public int id;
+		@JsonView(Views.Basic.class) public String name;
+		@JsonView(Views.Detailed.class) public String email;
+		@JsonView(Views.Detailed.class) public String mobile;
+	}
+
+	public class Views {
+		interface Basic {}
+
+		interface Detailed {}
+
 	}
 
 }
