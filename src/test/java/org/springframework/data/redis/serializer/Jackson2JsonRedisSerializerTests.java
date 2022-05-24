@@ -25,8 +25,11 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 
 /**
+ * Unit tests for {@link Jackson2JsonRedisSerializer}.
+ *
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class Jackson2JsonRedisSerializerTests {
 
@@ -62,6 +65,14 @@ class Jackson2JsonRedisSerializerTests {
 	@Test // DTATREDIS-241
 	void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
 		assertThatIllegalArgumentException().isThrownBy(() -> serializer.setObjectMapper(null));
+	}
+
+	@Test // GH-2322
+	void shouldConsiderWriter() {
+
+		Person person = new PersonObjectFactory().instance();
+		serializer.setWriter((mapper, source) -> "foo".getBytes());
+		assertThat(serializer.serialize(person)).isEqualTo("foo".getBytes());
 	}
 
 }

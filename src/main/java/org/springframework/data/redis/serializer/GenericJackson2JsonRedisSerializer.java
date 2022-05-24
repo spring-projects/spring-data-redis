@@ -25,7 +25,6 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -37,6 +36,9 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
  * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to JSON using dynamic typing.
+ * <p>
+ * JSON reading and writing can be customized by configuring {@link JacksonObjectReader} respective
+ * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -46,6 +48,10 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 
 	private final ObjectMapper mapper;
+
+	private final JacksonObjectReader reader;
+
+	private final JacksonObjectWriter writer;
 
 	/**
 	 * Creates {@link GenericJackson2JsonRedisSerializer} and configures {@link ObjectMapper} for default typing.
@@ -59,13 +65,30 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * given {@literal name}. In case of an {@literal empty} or {@literal null} String the default
 	 * {@link JsonTypeInfo.Id#CLASS} will be used.
 	 *
-	 * @param classPropertyTypeName Name of the JSON property holding type information. Can be {@literal null}.
+	 * @param classPropertyTypeName name of the JSON property holding type information. Can be {@literal null}.
 	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
 	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
 	 */
 	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName) {
+		this(classPropertyTypeName, JacksonObjectReader.create(), JacksonObjectWriter.create());
+	}
 
-		this(new ObjectMapper());
+	/**
+	 * Creates {@link GenericJackson2JsonRedisSerializer} and configures {@link ObjectMapper} for default typing using the
+	 * given {@literal name}. In case of an {@literal empty} or {@literal null} String the default
+	 * {@link JsonTypeInfo.Id#CLASS} will be used.
+	 *
+	 * @param classPropertyTypeName name of the JSON property holding type information. Can be {@literal null}.
+	 * @param reader the {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
+	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
+	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
+	 * @since 3.0
+	 */
+	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
+
+		this(new ObjectMapper(), reader, writer);
 
 		// simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here since we need
 		// the type hint embedded for deserialization using the default typing feature.
@@ -87,9 +110,29 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @param mapper must not be {@literal null}.
 	 */
 	public GenericJackson2JsonRedisSerializer(ObjectMapper mapper) {
+		this(mapper, JacksonObjectReader.create(), JacksonObjectWriter.create());
+	}
+
+	/**
+	 * Setting a custom-configured {@link ObjectMapper} is one way to take further control of the JSON serialization
+	 * process. For example, an extended {@link SerializerFactory} can be configured that provides custom serializers for
+	 * specific types.
+	 *
+	 * @param mapper must not be {@literal null}.
+	 * @param reader the {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
+	 * @since 3.0
+	 */
+	public GenericJackson2JsonRedisSerializer(ObjectMapper mapper, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null");
+		Assert.notNull(reader, "Reader must not be null");
+		Assert.notNull(writer, "Writer must not be null");
+
 		this.mapper = mapper;
+		this.reader = reader;
+		this.writer = writer;
 	}
 
 	/**
@@ -116,8 +159,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		try {
-			return mapper.writeValueAsBytes(source);
-		} catch (JsonProcessingException e) {
+			return writer.write(mapper, source);
+		} catch (IOException e) {
 			throw new SerializationException("Could not write JSON: " + e.getMessage(), e);
 		}
 	}
@@ -134,6 +177,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @throws SerializationException
 	 */
 	@Nullable
+	@SuppressWarnings("unchecked")
 	public <T> T deserialize(@Nullable byte[] source, Class<T> type) throws SerializationException {
 
 		Assert.notNull(type,
@@ -144,7 +188,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		try {
-			return mapper.readValue(source, type);
+			return (T) reader.read(mapper, source, mapper.getTypeFactory().constructType(type));
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
@@ -172,8 +216,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		@Override
-		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider)
-				throws IOException {
+		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 
 			jgen.writeStartObject();
 			jgen.writeStringField(classIdentifier, NullValue.class.getName());
@@ -186,4 +229,5 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			serialize(value, gen, serializers);
 		}
 	}
+
 }
