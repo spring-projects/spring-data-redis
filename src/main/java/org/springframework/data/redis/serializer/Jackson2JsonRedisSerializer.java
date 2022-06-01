@@ -43,31 +43,86 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
+	/**
+	 * @deprecated since 3.0 for removal.
+	 */
+	@Deprecated(since = "3.0", forRemoval = true) //
 	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
 	private final JavaType javaType;
 
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private ObjectMapper mapper;
 
-	private JacksonObjectReader reader = JacksonObjectReader.create();
+	private final JacksonObjectReader reader;
 
-	private JacksonObjectWriter writer = JacksonObjectWriter.create();
+	private final JacksonObjectWriter writer;
 
 	/**
 	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
 	 *
-	 * @param type
+	 * @param type must not be {@literal null}.
 	 */
 	public Jackson2JsonRedisSerializer(Class<T> type) {
-		this.javaType = getJavaType(type);
+		this(new ObjectMapper(), type);
 	}
 
 	/**
 	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
 	 *
-	 * @param javaType
+	 * @param javaType must not be {@literal null}.
 	 */
 	public Jackson2JsonRedisSerializer(JavaType javaType) {
+		this(new ObjectMapper(), javaType);
+	}
+
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
+	 *
+	 * @param mapper must not be {@literal null}.
+	 * @param type must not be {@literal null}.
+	 * @since 3.0
+	 */
+	public Jackson2JsonRedisSerializer(ObjectMapper mapper, Class<T> type) {
+
+		Assert.notNull(mapper, "ObjectMapper must not be null");
+		Assert.notNull(type, "Java type must not be null");
+
+		this.javaType = getJavaType(type);
+		this.mapper = mapper;
+		this.reader = JacksonObjectReader.create();
+		this.writer = JacksonObjectWriter.create();
+	}
+
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 *
+	 * @param mapper must not be {@literal null}.
+	 * @param javaType must not be {@literal null}.
+	 * @since 3.0
+	 */
+	public Jackson2JsonRedisSerializer(ObjectMapper mapper, JavaType javaType) {
+		this(mapper, javaType, JacksonObjectReader.create(), JacksonObjectWriter.create());
+	}
+
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 *
+	 * @param mapper must not be {@literal null}.
+	 * @param javaType must not be {@literal null}.
+	 * @param reader the {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
+	 * @since 3.0
+	 */
+	public Jackson2JsonRedisSerializer(ObjectMapper mapper, JavaType javaType, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
+
+		Assert.notNull(mapper, "ObjectMapper must not be null!");
+		Assert.notNull(reader, "Reader must not be null!");
+		Assert.notNull(writer, "Writer must not be null!");
+
+		this.mapper = mapper;
+		this.reader = reader;
+		this.writer = writer;
 		this.javaType = javaType;
 	}
 
@@ -78,7 +133,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 			return null;
 		}
 		try {
-			return (T) this.reader.read(this.objectMapper, bytes, javaType);
+			return (T) this.reader.read(this.mapper, bytes, javaType);
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
@@ -91,7 +146,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 			return SerializationUtils.EMPTY_ARRAY;
 		}
 		try {
-			return this.writer.write(this.objectMapper, t);
+			return this.writer.write(this.mapper, t);
 		} catch (Exception ex) {
 			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
 		}
@@ -105,31 +160,15 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * process. For example, an extended {@link SerializerFactory} can be configured that provides custom serializers for
 	 * specific types. The other option for refining the serialization process is to use Jackson's provided annotations on
 	 * the types to be serialized, in which case a custom-configured ObjectMapper is unnecessary.
-	 */
-	public void setObjectMapper(ObjectMapper objectMapper) {
-
-		Assert.notNull(objectMapper, "'objectMapper' must not be null");
-		this.objectMapper = objectMapper;
-	}
-
-	/**
-	 * Sets the {@link JacksonObjectReader} for this serializer. Setting the reader allows customization of the JSON
-	 * deserialization.
 	 *
-	 * @since 3.0
+	 * @deprecated since 3.0, use {@link #Jackson2JsonRedisSerializer(ObjectMapper, Class) constructor creation} to
+	 *             configure the object mapper.
 	 */
-	public void setReader(JacksonObjectReader reader) {
-		this.reader = reader;
-	}
+	@Deprecated(since = "3.0", forRemoval = true)
+	public void setObjectMapper(ObjectMapper mapper) {
 
-	/**
-	 * Sets the {@link JacksonObjectWriter} for this serializer. Setting the reader allows customization of the JSON
-	 * serialization.
-	 *
-	 * @since 3.0
-	 */
-	public void setWriter(JacksonObjectWriter writer) {
-		this.writer = writer;
+		Assert.notNull(mapper, "'objectMapper' must not be null");
+		this.mapper = mapper;
 	}
 
 	/**
