@@ -25,12 +25,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
 
 /**
  * Unit tests for {@link RedisMessageListenerContainer}.
@@ -104,6 +106,46 @@ class RedisMessageListenerContainerUnitTests {
 
 		assertThat(container.isRunning()).isFalse();
 		verify(connectionMock).close();
+	}
+
+	@Test // GH-2335
+	void containerStartShouldReportFailureOnRedisUnavailability() {
+
+		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh!"));
+
+		doAnswer(it -> {
+
+			Runnable r = it.getArgument(0);
+			r.run();
+			return null;
+		}).when(executorMock).execute(any());
+
+		container.addMessageListener(adapter, new ChannelTopic("a"));
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class).isThrownBy(() -> container.start());
+
+		assertThat(container.isRunning()).isTrue();
+		assertThat(container.isListening()).isFalse();
+	}
+
+	@Test // GH-2335
+	void containerListenShouldReportFailureOnRedisUnavailability() {
+
+		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh!"));
+
+		doAnswer(it -> {
+
+			Runnable r = it.getArgument(0);
+			r.run();
+			return null;
+		}).when(executorMock).execute(any());
+
+		container.start();
+
+		assertThatExceptionOfType(RedisListenerExecutionFailedException.class)
+				.isThrownBy(() -> container.addMessageListener(adapter, new ChannelTopic("a")));
+
+		assertThat(container.isRunning()).isTrue();
+		assertThat(container.isListening()).isFalse();
 	}
 
 	@Test // GH-964
