@@ -44,6 +44,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.Message;
@@ -53,6 +54,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
+import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
@@ -181,7 +183,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			subscriptionExecutor = taskExecutor;
 		}
 
-
 		this.subscriber = createSubscriber(connectionFactory, this.subscriptionExecutor);
 
 		afterPropertiesSet = true;
@@ -269,6 +270,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		} catch (ExecutionException e) {
+
+			if (e.getCause() instanceof DataAccessException) {
+				throw new RedisListenerExecutionFailedException(e.getMessage(), e.getCause());
+			}
+
 			throw new CompletionException(e.getCause());
 		} catch (TimeoutException e) {
 			throw new IllegalStateException("Subscription registration timeout exceeded.", e);
@@ -670,7 +676,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				getRequiredSubscriber().subscribeChannel(channels.toArray(new byte[channels.size()][]));
 				getRequiredSubscriber().subscribePattern(patterns.toArray(new byte[patterns.size()][]));
 
-				future.join();
+				try {
+					future.join();
+				} catch (CompletionException e) {
+
+					if (e.getCause() instanceof DataAccessException) {
+						throw new RedisListenerExecutionFailedException(e.getMessage(), e.getCause());
+					}
+
+					throw e;
+				}
 			}
 		}
 	}
@@ -1166,23 +1181,25 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			synchronized (localMonitor) {
 
-				RedisConnection connection = connectionFactory.getConnection();
-				this.connection = connection;
-
-				if (connection.isSubscribed()) {
-
-					CompletableFuture<Void> failure = new CompletableFuture<>();
-					failure.completeExceptionally(
-							new IllegalStateException("Retrieved connection is already subscribed; aborting listening"));
-					return failure;
-				}
-
 				CompletableFuture<Void> initFuture = new CompletableFuture<>();
-
 				try {
-					eventuallyPerformSubscription(connection, backOffExecution, initFuture, patterns, channels);
-				} catch (Throwable t) {
-					handleSubscriptionException(initFuture, backOffExecution, t);
+					RedisConnection connection = connectionFactory.getConnection();
+					this.connection = connection;
+
+					if (connection.isSubscribed()) {
+
+						initFuture.completeExceptionally(
+								new IllegalStateException("Retrieved connection is already subscribed; aborting listening"));
+						return initFuture;
+					}
+
+					try {
+						eventuallyPerformSubscription(connection, backOffExecution, initFuture, patterns, channels);
+					} catch (Throwable t) {
+						handleSubscriptionException(initFuture, backOffExecution, t);
+					}
+				} catch (RuntimeException e) {
+					initFuture.completeExceptionally(e);
 				}
 
 				return initFuture;
