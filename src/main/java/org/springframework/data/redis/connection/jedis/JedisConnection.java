@@ -331,11 +331,18 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		super.close();
 
+		JedisSubscription subscription = this.subscription;
+		if (subscription != null) {
+			subscription.close();
+			this.subscription = null;
+		}
+
 		// return the connection to the pool
 		if (pool != null) {
 			jedis.close();
 			return;
 		}
+
 		// else close the connection normally (doing the try/catch dance)
 		Exception exc = null;
 		try {
@@ -348,8 +355,10 @@ public class JedisConnection extends AbstractRedisConnection {
 		} catch (Exception ex) {
 			exc = ex;
 		}
-		if (exc != null)
+
+		if (exc != null) {
 			throw convertJedisAccessException(exc);
+		}
 	}
 
 	/*

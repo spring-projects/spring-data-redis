@@ -155,10 +155,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		// Use the connection to make sure the channel is initialized, else nothing happens on close
 		connection.ping();
 		connection.close();
-		// The dedicated connection should not be closed
-		connection.ping();
-
-		connection.close();
 		factory2.destroy();
 		pool.destroy();
 	}
