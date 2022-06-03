@@ -62,6 +62,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
@@ -351,22 +352,29 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		isClosed = true;
 
+		reset();
+	}
+
+	private void reset() {
+
 		if (asyncDedicatedConn != null) {
 			try {
 				if (customizedDatabaseIndex()) {
 					potentiallySelectDatabase(defaultDbIndex);
 				}
 				connectionProvider.release(asyncDedicatedConn);
+				asyncDedicatedConn = null;
 			} catch (RuntimeException ex) {
 				throw convertLettuceAccessException(ex);
 			}
 		}
 
+		LettuceSubscription subscription = this.subscription;
 		if (subscription != null) {
 			if (subscription.isAlive()) {
 				subscription.doClose();
 			}
-			subscription = null;
+			this.subscription = null;
 		}
 
 		this.dbIndex = defaultDbIndex;
@@ -381,7 +389,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
 
 		LettuceSubscription subscription = this.subscription;
-		return (subscription != null ? subscription.getNativeConnection().async() : getAsyncConnection());
+		return (subscription != null && subscription.isAlive() ? subscription.getNativeConnection().async()
+				: getAsyncConnection());
 	}
 
 	@Override
@@ -509,8 +518,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				LettuceTransactionResultConverter resultConverter = new LettuceTransactionResultConverter(
 						new LinkedList<>(txResults), exceptionConverter);
 
-				pipeline(newLettuceResult(exec, source -> resultConverter
-						.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
+				pipeline(newLettuceResult(exec,
+						source -> resultConverter.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
 				return null;
 			}
 
@@ -695,7 +704,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@SuppressWarnings("unchecked")
 	protected StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
 
-		close();
+		checkSubscription();
+		reset();
 		return connectionProvider.getConnection(StatefulRedisPubSubConnection.class);
 	}
 
@@ -869,6 +879,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
+
+		if (isClosed()) {
+			throw new RedisSystemException("Connection is closed", null);
+		}
 
 		StatefulConnection<byte[], byte[]> connection = getOrCreateDedicatedConnection();
 

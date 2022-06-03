@@ -100,6 +100,7 @@ public abstract class AbstractSubscription implements Subscription {
 	@Override
 	public void close() {
 		doClose();
+		alive.set(false);
 	}
 
 	/**
@@ -231,8 +232,7 @@ public abstract class AbstractSubscription implements Subscription {
 
 	private void closeIfUnsubscribed() {
 		if (channels.isEmpty() && patterns.isEmpty()) {
-			alive.set(false);
-			doClose();
+			close();
 		}
 	}
 
