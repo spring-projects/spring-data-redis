@@ -1189,9 +1189,9 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
 
-		clusterConnection.lInsert(KEY_1_BYTES, Position.AFTER, VALUE_2_BYTES, LettuceConverters.toBytes("booh!"));
+		clusterConnection.lInsert(KEY_1_BYTES, Position.AFTER, VALUE_2_BYTES, LettuceConverters.toBytes("booh"));
 
-		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(2)).isEqualTo("booh!");
+		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(2)).isEqualTo("booh");
 	}
 
 	@Test // GH-2039

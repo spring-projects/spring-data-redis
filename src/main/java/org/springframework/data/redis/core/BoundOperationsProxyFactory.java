@@ -78,7 +78,7 @@ class BoundOperationsProxyFactory {
 		Method target = lookupMethod(method, targetClass, considerKeyArgument);
 
 		if (target == null) {
-			throw new IllegalArgumentException("Cannot lookup target method for %s in class %s. This appears to be a bug."
+			throw new IllegalArgumentException("Cannot lookup target method for %s in class %s; This appears to be a bug"
 					.formatted(method, targetClass.getName()));
 		}
 

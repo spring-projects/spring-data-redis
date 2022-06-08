@@ -37,7 +37,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 	public Long pfAdd(byte[] key, byte[]... values) {
 
 		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
-		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
+		Assert.noNullElements(values, "Values for PFADD must not contain 'null'");
 
 		return connection.invoke().just(RedisHLLAsyncCommands::pfadd, key, values);
 	}
@@ -46,7 +46,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 	public Long pfCount(byte[]... keys) {
 
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
-		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
+		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'");
 
 		return connection.invoke().just(RedisHLLAsyncCommands::pfcount, keys);
 	}
@@ -56,7 +56,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		Assert.notNull(destinationKey, "Destination key must not be null");
 		Assert.notNull(sourceKeys, "Source keys must not be null");
-		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
+		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'");
 
 		connection.invoke().just(RedisHLLAsyncCommands::pfmerge, destinationKey, sourceKeys);
 	}

@@ -51,7 +51,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 
 	public GenericToStringSerializer(Class<T> type, Charset charset) {
 
-		Assert.notNull(type, "Type must not be null!");
+		Assert.notNull(type, "Type must not be null");
 
 		this.type = type;
 		this.charset = charset;

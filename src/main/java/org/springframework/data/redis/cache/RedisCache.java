@@ -69,9 +69,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		super(cacheConfig.getAllowCacheNullValues());
 
-		Assert.notNull(name, "Name must not be null!");
-		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
-		Assert.notNull(cacheConfig, "CacheConfig must not be null!");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(cacheWriter, "CacheWriter must not be null");
+		Assert.notNull(cacheConfig, "CacheConfig must not be null");
 
 		this.name = name;
 		this.cacheWriter = cacheWriter;
@@ -141,7 +141,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		if (!isAllowNullValues() && cacheValue == null) {
 
 			throw new IllegalArgumentException(String.format(
-					"Cache '%s' does not allow 'null' values. Avoid storing null via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null' via RedisCacheConfiguration.",
+					"Cache '%s' does not allow 'null' values; Avoid storing null via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null' via RedisCacheConfiguration",
 					name));
 		}
 
@@ -319,7 +319,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		throw new IllegalStateException(String.format(
-				"Cannot convert cache key %s to String. Please register a suitable Converter via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'.",
+				"Cannot convert cache key %s to String; Please register a suitable Converter via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
 				source, key.getClass().getSimpleName()));
 	}
 
@@ -348,7 +348,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return "[" + sj.toString() + "]";
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert cache key %s to String.", key));
+		throw new IllegalArgumentException(String.format("Cannot convert cache key %s to String", key));
 	}
 
 	private boolean isCollectionLikeOrMap(TypeDescriptor source) {

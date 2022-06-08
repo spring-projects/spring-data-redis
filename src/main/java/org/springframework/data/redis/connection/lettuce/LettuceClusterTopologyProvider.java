@@ -39,7 +39,7 @@ class LettuceClusterTopologyProvider implements ClusterTopologyProvider {
 	 */
 	LettuceClusterTopologyProvider(RedisClusterClient client) {
 
-		Assert.notNull(client, "RedisClusterClient must not be null.");
+		Assert.notNull(client, "RedisClusterClient must not be null");
 
 		this.client = client;
 	}

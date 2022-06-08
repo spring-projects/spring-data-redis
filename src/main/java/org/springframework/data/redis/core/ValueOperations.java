@@ -67,7 +67,7 @@ public interface ValueOperations<K, V> {
 	 */
 	default void set(K key, V value, Duration timeout) {
 
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
 			set(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -115,7 +115,7 @@ public interface ValueOperations<K, V> {
 	@Nullable
 	default Boolean setIfAbsent(K key, V value, Duration timeout) {
 
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
 			return setIfAbsent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -166,7 +166,7 @@ public interface ValueOperations<K, V> {
 	@Nullable
 	default Boolean setIfPresent(K key, V value, Duration timeout) {
 
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
 			return setIfPresent(key, value, timeout.toMillis(), TimeUnit.MILLISECONDS);

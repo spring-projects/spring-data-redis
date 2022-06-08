@@ -37,7 +37,7 @@ class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 			return super.pfCount(keys);
 		}
 
-		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode");
 	}
 
 	@Override
@@ -50,6 +50,6 @@ class LettuceClusterHyperLogLogCommands extends LettuceHyperLogLogCommands {
 			return;
 		}
 
-		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode");
 	}
 }

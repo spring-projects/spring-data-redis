@@ -82,8 +82,8 @@ public class StreamReadOptions {
 	 */
 	public StreamReadOptions block(Duration timeout) {
 
-		Assert.notNull(timeout, "Block timeout must not be null!");
-		Assert.isTrue(!timeout.isNegative(), "Block timeout must not be negative!");
+		Assert.notNull(timeout, "Block timeout must not be null");
+		Assert.isTrue(!timeout.isNegative(), "Block timeout must not be negative");
 
 		return new StreamReadOptions(timeout.toMillis(), count, noack);
 	}
@@ -96,7 +96,7 @@ public class StreamReadOptions {
 	 */
 	public StreamReadOptions count(long count) {
 
-		Assert.isTrue(count > 0, "Count must be greater or equal to zero!");
+		Assert.isTrue(count > 0, "Count must be greater or equal to zero");
 
 		return new StreamReadOptions(block, count, noack);
 	}

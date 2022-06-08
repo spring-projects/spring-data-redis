@@ -113,7 +113,7 @@ import org.springframework.util.comparator.NullSafeComparator;
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
-	private static final String INVALID_TYPE_ASSIGNMENT = "Value of type %s cannot be assigned to property %s of type %s.";
+	private static final String INVALID_TYPE_ASSIGNMENT = "Value of type %s cannot be assigned to property %s of type %s";
 
 	private final RedisMappingContext mappingContext;
 	private final GenericConversionService conversionService;
@@ -266,7 +266,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			Class<?> mapValueType = persistentProperty.getMapValueType();
 
 			if (mapValueType == null) {
-				throw new IllegalArgumentException("Unable to retrieve MapValueType!");
+				throw new IllegalArgumentException("Unable to retrieve MapValueType");
 			}
 
 			if (conversionService.canConvert(byte[].class, mapValueType)) {
@@ -534,7 +534,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				map.put(((Entry<?, ?>) pUpdate.getValue()).getKey(), ((Entry<?, ?>) pUpdate.getValue()).getValue());
 			} else {
 				throw new MappingException(
-						String.format("Cannot set update value for map property '%s' to '%s'. Please use a Map or Map.Entry.",
+						String.format("Cannot set update value for map property '%s' to '%s'; Please use a Map or Map.Entry",
 								pUpdate.getPropertyPath(), pUpdate.getValue()));
 			}
 
@@ -792,7 +792,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				sink.getBucket().put(path, toBytes(value));
 			} else {
 				throw new IllegalArgumentException(
-						String.format("Cannot convert value '%s' of type %s to bytes.", value, value.getClass()));
+						String.format("Cannot convert value '%s' of type %s to bytes", value, value.getClass()));
 			}
 		}
 	}

@@ -54,7 +54,7 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 	@Override
 	public Flux<Long> publish(Publisher<ChannelMessage<ByteBuffer, ByteBuffer>> messageStream) {
 
-		Assert.notNull(messageStream, "ChannelMessage stream must not be null!");
+		Assert.notNull(messageStream, "ChannelMessage stream must not be null");
 
 		return connection.getCommands().flatMapMany(commands -> Flux.from(messageStream)
 				.flatMap(message -> commands.publish(message.getChannel(), message.getMessage())));
@@ -63,7 +63,7 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 	@Override
 	public Mono<Void> subscribe(ByteBuffer... channels) {
 
-		Assert.notNull(channels, "Channels must not be null!");
+		Assert.notNull(channels, "Channels must not be null");
 
 		return doWithPubSub(commands -> commands.subscribe(channels));
 	}
@@ -71,7 +71,7 @@ class LettuceReactivePubSubCommands implements ReactivePubSubCommands {
 	@Override
 	public Mono<Void> pSubscribe(ByteBuffer... patterns) {
 
-		Assert.notNull(patterns, "Patterns must not be null!");
+		Assert.notNull(patterns, "Patterns must not be null");
 
 		return doWithPubSub(commands -> commands.psubscribe(patterns));
 	}

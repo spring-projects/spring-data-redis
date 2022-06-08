@@ -38,8 +38,8 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
 
-		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
-		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
+		Assert.notEmpty(values, "PFADD requires at least one non 'null' value");
+		Assert.noNullElements(values, "Values for PFADD must not contain 'null'");
 
 		try {
 			return connection.getCluster().pfadd(key, values);
@@ -51,8 +51,8 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public Long pfCount(byte[]... keys) {
 
-		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
-		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
+		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key");
+		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 
@@ -63,7 +63,7 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 			}
 
 		}
-		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfcount in cluster mode");
 	}
 
 	@Override
@@ -71,7 +71,7 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		Assert.notNull(destinationKey, "Destination key must not be null");
 		Assert.notNull(sourceKeys, "Source keys must not be null");
-		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
+		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
 
@@ -84,7 +84,7 @@ class JedisClusterHyperLogLogCommands implements RedisHyperLogLogCommands {
 			}
 		}
 
-		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("All keys must map to same slot for pfmerge in cluster mode");
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {

@@ -51,7 +51,7 @@ public class RedisKeyValueTemplateBean extends CdiBean<KeyValueOperations> {
 			BeanManager beanManager) {
 
 		super(qualifiers, KeyValueOperations.class, beanManager);
-		Assert.notNull(keyValueAdapter, "KeyValueAdapter bean must not be null!");
+		Assert.notNull(keyValueAdapter, "KeyValueAdapter bean must not be null");
 		this.keyValueAdapter = keyValueAdapter;
 	}
 

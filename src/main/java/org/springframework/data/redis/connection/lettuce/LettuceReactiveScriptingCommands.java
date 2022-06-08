@@ -49,7 +49,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	 */
 	LettuceReactiveScriptingCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 
 		this.connection = connection;
 	}
@@ -67,7 +67,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	@Override
 	public Mono<String> scriptLoad(ByteBuffer script) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 
 		return connection.execute(cmd -> cmd.scriptLoad(ByteUtils.getBytes(script))).next();
 	}
@@ -75,7 +75,7 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	@Override
 	public Flux<Boolean> scriptExists(List<String> scriptShas) {
 
-		Assert.notEmpty(scriptShas, "Script digests must not be empty!");
+		Assert.notEmpty(scriptShas, "Script digests must not be empty");
 
 		return connection.execute(cmd -> cmd.scriptExists(scriptShas.toArray(new String[scriptShas.size()])));
 	}
@@ -83,9 +83,9 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	@Override
 	public <T> Flux<T> eval(ByteBuffer script, ReturnType returnType, int numKeys, ByteBuffer... keysAndArgs) {
 
-		Assert.notNull(script, "Script must not be null!");
-		Assert.notNull(returnType, "ReturnType must not be null!");
-		Assert.notNull(keysAndArgs, "Keys and args must not be null!");
+		Assert.notNull(script, "Script must not be null");
+		Assert.notNull(returnType, "ReturnType must not be null");
+		Assert.notNull(keysAndArgs, "Keys and args must not be null");
 
 		ByteBuffer[] keys = extractScriptKeys(numKeys, keysAndArgs);
 		ByteBuffer[] args = extractScriptArgs(numKeys, keysAndArgs);
@@ -100,9 +100,9 @@ class LettuceReactiveScriptingCommands implements ReactiveScriptingCommands {
 	@Override
 	public <T> Flux<T> evalSha(String scriptSha, ReturnType returnType, int numKeys, ByteBuffer... keysAndArgs) {
 
-		Assert.notNull(scriptSha, "Script digest must not be null!");
-		Assert.notNull(returnType, "ReturnType must not be null!");
-		Assert.notNull(keysAndArgs, "Keys and args must not be null!");
+		Assert.notNull(scriptSha, "Script digest must not be null");
+		Assert.notNull(returnType, "ReturnType must not be null");
+		Assert.notNull(keysAndArgs, "Keys and args must not be null");
 
 		ByteBuffer[] keys = extractScriptKeys(numKeys, keysAndArgs);
 		ByteBuffer[] args = extractScriptArgs(numKeys, keysAndArgs);

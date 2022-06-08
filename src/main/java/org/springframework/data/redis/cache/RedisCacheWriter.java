@@ -57,8 +57,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-		Assert.notNull(batchStrategy, "BatchStrategy must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+		Assert.notNull(batchStrategy, "BatchStrategy must not be null");
 
 		return new DefaultRedisCacheWriter(connectionFactory, batchStrategy);
 	}
@@ -84,7 +84,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
 		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50), batchStrategy);
 	}

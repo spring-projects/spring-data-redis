@@ -224,7 +224,7 @@ public abstract class Converters {
 	 */
 	public static long secondsToTimeUnit(long seconds, TimeUnit targetUnit) {
 
-		Assert.notNull(targetUnit, "TimeUnit must not be null!");
+		Assert.notNull(targetUnit, "TimeUnit must not be null");
 
 		if (seconds > 0) {
 			return targetUnit.convert(seconds, TimeUnit.SECONDS);
@@ -254,7 +254,7 @@ public abstract class Converters {
 	 */
 	public static long millisecondsToTimeUnit(long milliseconds, TimeUnit targetUnit) {
 
-		Assert.notNull(targetUnit, "TimeUnit must not be null!");
+		Assert.notNull(targetUnit, "TimeUnit must not be null");
 
 		if (milliseconds > 0) {
 			return targetUnit.convert(milliseconds, TimeUnit.MILLISECONDS);
@@ -307,8 +307,8 @@ public abstract class Converters {
 	 */
 	public static Properties toProperties(List<String> input) {
 
-		Assert.notNull(input, "Input list must not be null!");
-		Assert.isTrue(input.size() % 2 == 0, "Input list must contain an even number of entries!");
+		Assert.notNull(input, "Input list must not be null");
+		Assert.isTrue(input.size() % 2 == 0, "Input list must contain an even number of entries");
 
 		Properties properties = new Properties();
 
@@ -406,7 +406,7 @@ public abstract class Converters {
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(String.format("parsing %s (%s) as %s.", sourcePath, path, targetType));
+			LOGGER.debug(String.format("parsing %s (%s) as %s", sourcePath, path, targetType));
 		}
 
 		if (targetType == Object.class) {
@@ -556,7 +556,7 @@ public abstract class Converters {
 			String[] args = source.split(" ");
 			String[] hostAndPort = StringUtils.split(args[HOST_PORT_INDEX], ":");
 
-			Assert.notNull(hostAndPort, "ClusterNode information does not define host and port!");
+			Assert.notNull(hostAndPort, "ClusterNode information does not define host and port");
 
 			SlotRange range = parseSlotRange(args);
 			Set<Flag> flags = parseFlags(args);

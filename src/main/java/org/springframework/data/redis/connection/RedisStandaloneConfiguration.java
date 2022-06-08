@@ -64,9 +64,9 @@ public class RedisStandaloneConfiguration
 	 */
 	public RedisStandaloneConfiguration(String hostName, int port) {
 
-		Assert.hasText(hostName, "Host name must not be null or empty!");
+		Assert.hasText(hostName, "Host name must not be null or empty");
 		Assert.isTrue(port >= 1 && port <= 65535,
-				() -> String.format("Port %d must be a valid TCP port in the range between 1-65535!", port));
+				() -> String.format("Port %d must be a valid TCP port in the range between 1-65535", port));
 
 		this.hostName = hostName;
 		this.port = port;
@@ -123,7 +123,7 @@ public class RedisStandaloneConfiguration
 	@Override
 	public void setPassword(RedisPassword password) {
 
-		Assert.notNull(password, "RedisPassword must not be null!");
+		Assert.notNull(password, "RedisPassword must not be null");
 
 		this.password = password;
 	}

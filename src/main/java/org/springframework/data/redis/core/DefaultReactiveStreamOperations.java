@@ -122,10 +122,10 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<Long> acknowledge(K key, String group, RecordId... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.hasText(group, "Group must not be null or empty!");
-		Assert.notNull(recordIds, "MessageIds must not be null!");
-		Assert.notEmpty(recordIds, "MessageIds must not be empty!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.hasText(group, "Group must not be null or empty");
+		Assert.notNull(recordIds, "MessageIds must not be null");
+		Assert.notEmpty(recordIds, "MessageIds must not be empty");
 
 		return createMono(connection -> connection.xAck(rawKey(key), group, recordIds));
 	}
@@ -133,8 +133,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<RecordId> add(Record<K, ?> record) {
 
-		Assert.notNull(record.getStream(), "Key must not be null!");
-		Assert.notNull(record.getValue(), "Body must not be null!");
+		Assert.notNull(record.getStream(), "Key must not be null");
+		Assert.notNull(record.getValue(), "Body must not be null");
 
 		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
 
@@ -144,8 +144,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<Long> delete(K key, RecordId... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(recordIds, "MessageIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "MessageIds must not be null");
 
 		return createMono(connection -> connection.xDel(rawKey(key), recordIds));
 	}
@@ -153,9 +153,9 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<String> createGroup(K key, ReadOffset readOffset, String group) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(readOffset, "ReadOffset must not be null!");
-		Assert.notNull(group, "Group must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(readOffset, "ReadOffset must not be null");
+		Assert.notNull(group, "Group must not be null");
 
 		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset, true));
 	}
@@ -163,8 +163,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<String> deleteConsumer(K key, Consumer consumer) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(consumer, "Consumer must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(consumer, "Consumer must not be null");
 
 		return createMono(connection -> connection.xGroupDelConsumer(rawKey(key), consumer));
 	}
@@ -172,8 +172,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<String> destroyGroup(K key, String group) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(group, "Group must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
 
 		return createMono(connection -> connection.xGroupDestroy(rawKey(key), group));
 	}
@@ -181,8 +181,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Flux<XInfoConsumer> consumers(K key, String group) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(group, "Group must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
 
 		return createFlux(connection -> connection.xInfoConsumers(rawKey(key), group));
 	}
@@ -190,7 +190,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<XInfoStream> info(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.xInfo(rawKey(key)));
 	}
@@ -198,7 +198,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Flux<XInfoGroup> groups(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createFlux(connection -> connection.xInfoGroups(rawKey(key)));
 	}
@@ -227,7 +227,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Mono<Long> size(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.xLen(rawKey(key)));
 	}
@@ -235,9 +235,9 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Flux<MapRecord<K, HK, HV>> range(K key, Range<String> range, Limit limit) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
 
 		return createFlux(connection -> connection.xRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
@@ -245,8 +245,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Flux<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
-		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
-		Assert.notNull(streams, "Streams must not be null!");
+		Assert.notNull(readOptions, "StreamReadOptions must not be null");
+		Assert.notNull(streams, "Streams must not be null");
 
 		return createFlux(connection -> {
 
@@ -259,9 +259,9 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
-		Assert.notNull(consumer, "Consumer must not be null!");
-		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
-		Assert.notNull(streams, "Streams must not be null!");
+		Assert.notNull(consumer, "Consumer must not be null");
+		Assert.notNull(readOptions, "StreamReadOptions must not be null");
+		Assert.notNull(streams, "Streams must not be null");
 
 		return createFlux(connection -> {
 
@@ -274,9 +274,9 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	@Override
 	public Flux<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range, Limit limit) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
 
 		return createFlux(connection -> connection.xRevRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
@@ -288,7 +288,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	@Override
 	public Mono<Long> trim(K key, long count, boolean approximateTrimming) {
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.xTrim(rawKey(key), count, approximateTrimming));
 	}
@@ -307,14 +307,14 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	private <T> Mono<T> createMono(Function<ReactiveStreamCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateMono(connection -> function.apply(connection.streamCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveStreamCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateFlux(connection -> function.apply(connection.streamCommands()));
 	}

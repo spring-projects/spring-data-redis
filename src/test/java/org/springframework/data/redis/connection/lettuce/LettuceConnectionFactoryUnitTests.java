@@ -872,7 +872,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
 
-		when(connectionProviderMock.getConnection(any())).thenThrow(new PoolException("error!"));
+		when(connectionProviderMock.getConnection(any())).thenThrow(new PoolException("error"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory() {
 			@Override

@@ -52,7 +52,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Keys must not be null!");
+			Assert.notNull(command.getKeys(), "Keys must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKeys())) {
 				return super.sUnion(Mono.just(command));
@@ -70,8 +70,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Source keys must not be null!");
-			Assert.notNull(command.getKey(), "Destination key must not be null!");
+			Assert.notNull(command.getKeys(), "Source keys must not be null");
+			Assert.notNull(command.getKey(), "Destination key must not be null");
 
 			List<ByteBuffer> keys = new ArrayList<>(command.getKeys());
 			keys.add(command.getKey());
@@ -98,7 +98,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Keys must not be null!");
+			Assert.notNull(command.getKeys(), "Keys must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKeys())) {
 				return super.sInter(Mono.just(command));
@@ -130,8 +130,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Source keys must not be null!");
-			Assert.notNull(command.getKey(), "Destination key must not be null!");
+			Assert.notNull(command.getKeys(), "Source keys must not be null");
+			Assert.notNull(command.getKey(), "Destination key must not be null");
 
 			List<ByteBuffer> keys = new ArrayList<>(command.getKeys());
 			keys.add(command.getKey());
@@ -158,7 +158,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Keys must not be null!");
+			Assert.notNull(command.getKeys(), "Keys must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKeys())) {
 				return super.sDiff(Mono.just(command));
@@ -192,8 +192,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Source keys must not be null!");
-			Assert.notNull(command.getKey(), "Destination key must not be null!");
+			Assert.notNull(command.getKeys(), "Source keys must not be null");
+			Assert.notNull(command.getKey(), "Destination key must not be null");
 
 			List<ByteBuffer> keys = new ArrayList<>(command.getKeys());
 			keys.add(command.getKey());
@@ -220,8 +220,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Source key must not be null!");
-			Assert.notNull(command.getDestination(), "Destination key must not be null!");
+			Assert.notNull(command.getKey(), "Source key must not be null");
+			Assert.notNull(command.getDestination(), "Destination key must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getDestination())) {
 				return super.sMove(Mono.just(command));

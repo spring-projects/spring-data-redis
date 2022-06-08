@@ -94,7 +94,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
 
-		Assert.notNull(propertySource, "PropertySource must not be null!");
+		Assert.notNull(propertySource, "PropertySource must not be null");
 
 		this.sentinels = new LinkedHashSet<>();
 
@@ -123,7 +123,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void setSentinels(Iterable<RedisNode> sentinels) {
 
-		Assert.notNull(sentinels, "Cannot set sentinels to 'null'.");
+		Assert.notNull(sentinels, "Cannot set sentinels to 'null'");
 
 		this.sentinels.clear();
 
@@ -143,13 +143,13 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void addSentinel(RedisNode sentinel) {
 
-		Assert.notNull(sentinel, "Sentinel must not be 'null'.");
+		Assert.notNull(sentinel, "Sentinel must not be 'null'");
 		this.sentinels.add(sentinel);
 	}
 
 	public void setMaster(NamedNode master) {
 
-		Assert.notNull(master, "Sentinel master node must not be 'null'.");
+		Assert.notNull(master, "Sentinel master node must not be 'null'");
 		this.master = master;
 	}
 
@@ -236,7 +236,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	@Override
 	public void setPassword(RedisPassword password) {
 
-		Assert.notNull(password, "RedisPassword must not be null!");
+		Assert.notNull(password, "RedisPassword must not be null");
 
 		this.dataNodePassword = password;
 	}
@@ -255,7 +255,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	@Override
 	public void setSentinelPassword(RedisPassword sentinelPassword) {
 
-		Assert.notNull(sentinelPassword, "SentinelPassword must not be null!");
+		Assert.notNull(sentinelPassword, "SentinelPassword must not be null");
 		this.sentinelPassword = sentinelPassword;
 	}
 
@@ -310,7 +310,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 
 		String[] args = split(hostAndPort, ":");
 
-		Assert.notNull(args, "HostAndPort need to be seperated by  ':'.");
+		Assert.notNull(args, "HostAndPort need to be separated by ':'");
 		Assert.isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
 		return new RedisNode(args[0], Integer.valueOf(args[1]).intValue());
 	}
@@ -322,9 +322,9 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	private static Map<String, Object> asMap(String master, Set<String> sentinelHostAndPorts) {
 
-		Assert.hasText(master, "Master address must not be null or empty!");
-		Assert.notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
-		Assert.noNullElements(sentinelHostAndPorts, "ClusterHostAndPorts must not contain null elements!");
+		Assert.hasText(master, "Master address must not be null or empty");
+		Assert.notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null");
+		Assert.noNullElements(sentinelHostAndPorts, "ClusterHostAndPorts must not contain null elements");
 
 		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);

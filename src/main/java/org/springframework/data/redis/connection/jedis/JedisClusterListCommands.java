@@ -48,7 +48,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long rPush(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().rpush(key, values);
@@ -60,8 +60,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(element, "Element must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(element, "Element must not be null");
 
 		LPosParams params = new LPosParams();
 		if (rank != null) {
@@ -84,9 +84,9 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lPush(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		try {
 			return connection.getCluster().lpush(key, values);
@@ -98,8 +98,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long rPushX(byte[] key, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		try {
 			return connection.getCluster().rpushx(key, value);
@@ -111,8 +111,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lPushX(byte[] key, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		try {
 			return connection.getCluster().lpushx(key, value);
@@ -124,7 +124,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lLen(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().llen(key);
@@ -136,7 +136,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().lrange(key, start, end);
@@ -148,7 +148,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public void lTrim(byte[] key, long start, long end) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			connection.getCluster().ltrim(key, start, end);
@@ -160,7 +160,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] lIndex(byte[] key, long index) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().lindex(key, index);
@@ -172,7 +172,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().linsert(key, JedisConverters.toListPosition(where), pivot, value);
@@ -184,10 +184,10 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(destinationKey, "Destination key must not be null!");
-		Assert.notNull(from, "From direction must not be null!");
-		Assert.notNull(to, "To direction must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(from, "From direction must not be null");
+		Assert.notNull(to, "To direction must not be null");
 
 		try {
 			return connection.getCluster().lmove(sourceKey, destinationKey, ListDirection.valueOf(from.name()),
@@ -200,10 +200,10 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(destinationKey, "Destination key must not be null!");
-		Assert.notNull(from, "From direction must not be null!");
-		Assert.notNull(to, "To direction must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(from, "From direction must not be null");
+		Assert.notNull(to, "To direction must not be null");
 
 		try {
 			return connection.getCluster().blmove(sourceKey, destinationKey, ListDirection.valueOf(from.name()),
@@ -216,8 +216,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		try {
 			connection.getCluster().lset(key, index, value);
@@ -229,8 +229,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		try {
 			return connection.getCluster().lrem(key, count, value);
@@ -242,7 +242,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] lPop(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().lpop(key);
@@ -254,7 +254,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> lPop(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().lpop(key, (int) count);
@@ -266,7 +266,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] rPop(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().rpop(key);
@@ -278,7 +278,7 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> rPop(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().rpop(key, (int) count);
@@ -290,8 +290,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 
-		Assert.notNull(keys, "Key must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Key must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -311,8 +311,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 
-		Assert.notNull(keys, "Key must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Key must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -332,8 +332,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(dstKey, "Destination key must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			try {
@@ -351,8 +351,8 @@ class JedisClusterListCommands implements RedisListCommands {
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(dstKey, "Destination key must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			try {

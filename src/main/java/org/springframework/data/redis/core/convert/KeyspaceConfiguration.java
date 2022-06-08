@@ -53,7 +53,7 @@ public class KeyspaceConfiguration {
 	 */
 	public boolean hasSettingsFor(Class<?> type) {
 
-		Assert.notNull(type, "Type to lookup must not be null!");
+		Assert.notNull(type, "Type to lookup must not be null");
 
 		if (settingsMap.containsKey(type)) {
 
@@ -113,7 +113,7 @@ public class KeyspaceConfiguration {
 	 */
 	public void addKeyspaceSettings(KeyspaceSettings keyspaceSettings) {
 
-		Assert.notNull(keyspaceSettings, "KeyspaceSettings must not be null!");
+		Assert.notNull(keyspaceSettings, "KeyspaceSettings must not be null");
 		this.settingsMap.put(keyspaceSettings.getType(), keyspaceSettings);
 	}
 

@@ -204,7 +204,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	 */
 	public Jackson2HashMapper(ObjectMapper mapper, boolean flatten) {
 
-		Assert.notNull(mapper, "Mapper must not be null!");
+		Assert.notNull(mapper, "Mapper must not be null");
 		this.typingMapper = mapper;
 		this.flatten = flatten;
 

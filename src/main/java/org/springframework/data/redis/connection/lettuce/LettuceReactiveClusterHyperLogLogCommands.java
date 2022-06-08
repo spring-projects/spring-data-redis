@@ -53,7 +53,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null for PFMERGE");
-			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty for PFMERGE!");
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty for PFMERGE");
 
 			List<ByteBuffer> keys = new ArrayList<>(command.getSourceKeys());
 			keys.add(command.getKey());
@@ -63,7 +63,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 			}
 
 			return Mono
-					.error(new InvalidDataAccessApiUsageException("All keys must map to same slot for PFMERGE in cluster mode."));
+					.error(new InvalidDataAccessApiUsageException("All keys must map to same slot for PFMERGE in cluster mode"));
 		}));
 	}
 
@@ -72,7 +72,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notEmpty(command.getKeys(), "Keys must be null or empty for PFCOUNT!");
+			Assert.notEmpty(command.getKeys(), "Keys must be null or empty for PFCOUNT");
 
 			if (ClusterSlotHashUtil
 					.isSameSlotForAllKeys(command.getKeys().toArray(new ByteBuffer[command.getKeys().size()]))) {
@@ -80,7 +80,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 			}
 
 			return Mono
-					.error(new InvalidDataAccessApiUsageException("All keys must map to same slot for PFCOUNT in cluster mode."));
+					.error(new InvalidDataAccessApiUsageException("All keys must map to same slot for PFCOUNT in cluster mode"));
 		}));
 	}
 }

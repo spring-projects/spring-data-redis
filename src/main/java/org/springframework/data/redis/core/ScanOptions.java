@@ -162,7 +162,7 @@ public class ScanOptions {
 		 */
 		public ScanOptionsBuilder type(DataType type) {
 
-			Assert.notNull(type, "Type must not be null! Use NONE instead.");
+			Assert.notNull(type, "Type must not be null Use NONE instead");
 
 			this.type = type;
 			return this;
@@ -177,7 +177,7 @@ public class ScanOptions {
 		 */
 		public ScanOptionsBuilder type(String type) {
 
-			Assert.notNull(type, "Type must not be null!");
+			Assert.notNull(type, "Type must not be null");
 			return type(DataType.fromCode(type));
 		}
 

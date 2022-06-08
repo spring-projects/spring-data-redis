@@ -130,7 +130,7 @@ public interface RedisConfiguration {
 	 */
 	static Integer getDatabaseOrElse(@Nullable RedisConfiguration configuration, Supplier<Integer> other) {
 
-		Assert.notNull(other, "Other must not be null!");
+		Assert.notNull(other, "Other must not be null");
 		return isDatabaseIndexAware(configuration) ? ((WithDatabaseIndex) configuration).getDatabase() : other.get();
 	}
 
@@ -144,7 +144,7 @@ public interface RedisConfiguration {
 	@Nullable
 	static String getUsernameOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
 
-		Assert.notNull(other, "Other must not be null!");
+		Assert.notNull(other, "Other must not be null");
 		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getUsername() : other.get();
 	}
 
@@ -157,7 +157,7 @@ public interface RedisConfiguration {
 	 */
 	static RedisPassword getPasswordOrElse(@Nullable RedisConfiguration configuration, Supplier<RedisPassword> other) {
 
-		Assert.notNull(other, "Other must not be null!");
+		Assert.notNull(other, "Other must not be null");
 		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getPassword() : other.get();
 	}
 
@@ -171,7 +171,7 @@ public interface RedisConfiguration {
 	 */
 	static int getPortOrElse(@Nullable RedisConfiguration configuration, IntSupplier other) {
 
-		Assert.notNull(other, "Other must not be null!");
+		Assert.notNull(other, "Other must not be null");
 		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getPort() : other.getAsInt();
 	}
 
@@ -185,7 +185,7 @@ public interface RedisConfiguration {
 	 */
 	static String getHostOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
 
-		Assert.notNull(other, "Other must not be null!");
+		Assert.notNull(other, "Other must not be null");
 		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getHostName() : other.get();
 	}
 
@@ -352,7 +352,7 @@ public interface RedisConfiguration {
 		 */
 		default void setMaster(String name) {
 
-			Assert.notNull(name, "Name of sentinel master must not be null.");
+			Assert.notNull(name, "Name of sentinel master must not be null");
 
 			setMaster(new SentinelMasterId(name));
 		}

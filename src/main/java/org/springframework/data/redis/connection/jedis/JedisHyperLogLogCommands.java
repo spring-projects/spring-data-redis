@@ -37,8 +37,8 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
 
-		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
-		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
+		Assert.notEmpty(values, "PFADD requires at least one non 'null' value");
+		Assert.noNullElements(values, "Values for PFADD must not contain 'null'");
 
 		return connection.invoke().just(Jedis::pfadd, PipelineBinaryCommands::pfadd, key, values);
 	}
@@ -46,8 +46,8 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 	@Override
 	public Long pfCount(byte[]... keys) {
 
-		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
-		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
+		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key");
+		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'");
 
 		return connection.invoke().just(Jedis::pfcount, PipelineBinaryCommands::pfcount, keys);
 	}
@@ -57,7 +57,7 @@ class JedisHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 		Assert.notNull(destinationKey, "Destination key must not be null");
 		Assert.notNull(sourceKeys, "Source keys must not be null");
-		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'.");
+		Assert.noNullElements(sourceKeys, "Keys for PFMERGE must not contain 'null'");
 
 		connection.invoke().just(Jedis::pfmerge, PipelineBinaryCommands::pfmerge, destinationKey, sourceKeys);
 	}

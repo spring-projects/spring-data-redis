@@ -71,7 +71,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public static CopyCommand key(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new CopyCommand(key, null, false, null);
 		}
@@ -85,7 +85,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public CopyCommand to(ByteBuffer targetKey) {
 
-			Assert.notNull(targetKey, "Key must not be null!");
+			Assert.notNull(targetKey, "Key must not be null");
 
 			return new CopyCommand(getKey(), targetKey, isReplace(), database);
 		}
@@ -145,8 +145,8 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> copy(ByteBuffer sourceKey, ByteBuffer targetKey, boolean replace) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Targetk ey must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(targetKey, "Targetk ey must not be null");
 
 		return copy(Mono.just(CopyCommand.key(sourceKey).to(targetKey).replace(replace))).next()
 				.map(BooleanResponse::getOutput);
@@ -171,7 +171,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> exists(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return exists(Mono.just(new KeyCommand(key))).next().map(BooleanResponse::getOutput);
 	}
@@ -194,7 +194,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<DataType> type(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return type(Mono.just(new KeyCommand(key))).next().map(CommandResponse::getOutput);
 	}
@@ -241,7 +241,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<List<ByteBuffer>> keys(ByteBuffer pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		return keys(Mono.just(pattern)).next().map(MultiValueResponse::getOutput);
 	}
@@ -328,7 +328,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public static RenameCommand key(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new RenameCommand(key, null);
 		}
@@ -341,7 +341,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public RenameCommand to(ByteBuffer newKey) {
 
-			Assert.notNull(newKey, "New key name must not be null!");
+			Assert.notNull(newKey, "New key name must not be null");
 
 			return new RenameCommand(getKey(), newKey);
 		}
@@ -366,7 +366,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> rename(ByteBuffer oldKey, ByteBuffer newKey) {
 
-		Assert.notNull(oldKey, "Key must not be null!");
+		Assert.notNull(oldKey, "Key must not be null");
 
 		return rename(Mono.just(RenameCommand.key(oldKey).to(newKey))).next().map(BooleanResponse::getOutput);
 	}
@@ -390,7 +390,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> renameNX(ByteBuffer key, ByteBuffer newKey) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return renameNX(Mono.just(RenameCommand.key(key).to(newKey))).next().map(BooleanResponse::getOutput);
 	}
@@ -413,7 +413,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Long> del(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return del(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -436,7 +436,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Long> mDel(List<ByteBuffer> keys) {
 
-		Assert.notEmpty(keys, "Keys must not be empty or null!");
+		Assert.notEmpty(keys, "Keys must not be empty or null");
 
 		return mDel(Mono.just(keys)).next().map(NumericResponse::getOutput);
 	}
@@ -461,7 +461,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Long> unlink(ByteBuffer key) {
 
-		Assert.notNull(key, "Keys must not be null!");
+		Assert.notNull(key, "Keys must not be null");
 
 		return unlink(Mono.just(key).map(KeyCommand::new)).next().map(NumericResponse::getOutput);
 	}
@@ -488,7 +488,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Long> mUnlink(List<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return mUnlink(Mono.just(keys)).next().map(NumericResponse::getOutput);
 	}
@@ -530,7 +530,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public static ExpireCommand key(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new ExpireCommand(key, null);
 		}
@@ -543,7 +543,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public ExpireCommand timeout(Duration timeout) {
 
-			Assert.notNull(timeout, "Timeout must not be null!");
+			Assert.notNull(timeout, "Timeout must not be null");
 
 			return new ExpireCommand(getKey(), timeout);
 		}
@@ -567,8 +567,8 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> expire(ByteBuffer key, Duration timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		return expire(Mono.just(new ExpireCommand(key, timeout))).next().map(BooleanResponse::getOutput);
 	}
@@ -593,8 +593,8 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> pExpire(ByteBuffer key, Duration timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		return pExpire(Mono.just(new ExpireCommand(key, timeout))).next().map(BooleanResponse::getOutput);
 	}
@@ -635,7 +635,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public static ExpireAtCommand key(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new ExpireAtCommand(key, null);
 		}
@@ -648,7 +648,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public ExpireAtCommand timeout(Instant expireAt) {
 
-			Assert.notNull(expireAt, "Expire at must not be null!");
+			Assert.notNull(expireAt, "Expire at must not be null");
 
 			return new ExpireAtCommand(getKey(), expireAt);
 		}
@@ -672,8 +672,8 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> expireAt(ByteBuffer key, Instant expireAt) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(expireAt, "Expire at must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expireAt, "Expire at must not be null");
 
 		return expireAt(Mono.just(new ExpireAtCommand(key, expireAt))).next().map(BooleanResponse::getOutput);
 	}
@@ -698,8 +698,8 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> pExpireAt(ByteBuffer key, Instant expireAt) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(expireAt, "Expire at must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expireAt, "Expire at must not be null");
 
 		return pExpireAt(Mono.just(new ExpireAtCommand(key, expireAt))).next().map(BooleanResponse::getOutput);
 	}
@@ -723,7 +723,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> persist(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return persist(Mono.just(new KeyCommand(key))).next().map(BooleanResponse::getOutput);
 	}
@@ -746,7 +746,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Long> ttl(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return ttl(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -769,7 +769,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Long> pTtl(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return pTtl(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -808,7 +808,7 @@ public interface ReactiveKeyCommands {
 		 */
 		public static MoveCommand key(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new MoveCommand(key, null);
 		}
@@ -842,7 +842,7 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> move(ByteBuffer key, int database) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return move(Mono.just(new MoveCommand(key, database))).next().map(BooleanResponse::getOutput);
 	}

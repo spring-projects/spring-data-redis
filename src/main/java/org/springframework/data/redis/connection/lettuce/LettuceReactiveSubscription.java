@@ -72,8 +72,8 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	@Override
 	public Mono<Void> subscribe(ByteBuffer... channels) {
 
-		Assert.notNull(channels, "Channels must not be null!");
-		Assert.noNullElements(channels, "Channels must not contain null elements!");
+		Assert.notNull(channels, "Channels must not be null");
+		Assert.noNullElements(channels, "Channels must not contain null elements");
 
 		return channelState.subscribe(channels, commands::subscribe);
 	}
@@ -81,8 +81,8 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	@Override
 	public Mono<Void> pSubscribe(ByteBuffer... patterns) {
 
-		Assert.notNull(patterns, "Patterns must not be null!");
-		Assert.noNullElements(patterns, "Patterns must not contain null elements!");
+		Assert.notNull(patterns, "Patterns must not be null");
+		Assert.noNullElements(patterns, "Patterns must not contain null elements");
 
 		return patternState.subscribe(patterns, commands::psubscribe);
 	}
@@ -95,8 +95,8 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	@Override
 	public Mono<Void> unsubscribe(ByteBuffer... channels) {
 
-		Assert.notNull(channels, "Channels must not be null!");
-		Assert.noNullElements(channels, "Channels must not contain null elements!");
+		Assert.notNull(channels, "Channels must not be null");
+		Assert.noNullElements(channels, "Channels must not contain null elements");
 
 		return ObjectUtils.isEmpty(channels) ? Mono.empty() : channelState.unsubscribe(channels, commands::unsubscribe);
 	}
@@ -109,8 +109,8 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	@Override
 	public Mono<Void> pUnsubscribe(ByteBuffer... patterns) {
 
-		Assert.notNull(patterns, "Patterns must not be null!");
-		Assert.noNullElements(patterns, "Patterns must not contain null elements!");
+		Assert.notNull(patterns, "Patterns must not be null");
+		Assert.noNullElements(patterns, "Patterns must not contain null elements");
 
 		return ObjectUtils.isEmpty(patterns) ? Mono.empty() : patternState.unsubscribe(patterns, commands::punsubscribe);
 	}

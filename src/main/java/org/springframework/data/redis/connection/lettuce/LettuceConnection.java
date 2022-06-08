@@ -231,7 +231,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
 			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
-		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null.");
+		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null");
 
 		this.asyncSharedConn = sharedConnection;
 		this.connectionProvider = connectionProvider;
@@ -556,8 +556,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public void select(int dbIndex) {
 
 		if (asyncSharedConn != null) {
-			throw new InvalidDataAccessApiUsageException("Selecting a new database not supported due to shared connection. "
-					+ "Use separate ConnectionFactorys to work with multiple databases");
+			throw new InvalidDataAccessApiUsageException("Selecting a new database not supported due to shared connection;"
+					+ " Use separate ConnectionFactorys to work with multiple databases");
 		}
 
 		this.dbIndex = dbIndex;
@@ -630,7 +630,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (isQueueing() || isPipelined()) {
 			throw new InvalidDataAccessApiUsageException(
-					"Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+					"Transaction/Pipelining is not supported for Pub/Sub subscriptions");
 		}
 
 		try {
@@ -648,7 +648,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (isQueueing() || isPipelined()) {
 			throw new InvalidDataAccessApiUsageException(
-					"Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+					"Transaction/Pipelining is not supported for Pub/Sub subscriptions");
 		}
 
 		try {
@@ -691,7 +691,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
 
-		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null!");
+		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null");
 
 		this.pipeliningFlushPolicy = pipeliningFlushPolicy;
 	}
@@ -875,7 +875,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		throw new IllegalStateException(
-				String.format("%s is not a supported connection type.", connection.getClass().getName()));
+				String.format("%s is not a supported connection type", connection.getClass().getName()));
 	}
 
 	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
@@ -894,7 +894,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		throw new IllegalStateException(
-				String.format("%s is not a supported connection type.", connection.getClass().getName()));
+				String.format("%s is not a supported connection type", connection.getClass().getName()));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1018,7 +1018,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			try {
 				redisCommand.validateArgumentCount(args != null ? args.length : 0);
 			} catch (IllegalArgumentException e) {
-				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command.", cmd), e);
+				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command", cmd), e);
 			}
 		}
 	}

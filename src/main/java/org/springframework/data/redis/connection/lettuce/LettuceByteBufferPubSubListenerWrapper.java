@@ -35,7 +35,7 @@ class LettuceByteBufferPubSubListenerWrapper implements RedisPubSubListener<Byte
 
 	LettuceByteBufferPubSubListenerWrapper(RedisPubSubListener<byte[], byte[]> delegate) {
 
-		Assert.notNull(delegate, "RedisPubSubListener must not be null!");
+		Assert.notNull(delegate, "RedisPubSubListener must not be null");
 
 		this.delegate = delegate;
 	}

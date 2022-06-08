@@ -46,9 +46,9 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, destKey)) {
 			return super.sMove(srcKey, destKey, value);
@@ -65,8 +65,8 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			return super.sInter(keys);
@@ -101,9 +101,9 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
@@ -121,8 +121,8 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			return super.sUnion(keys);
@@ -148,9 +148,9 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
@@ -168,8 +168,8 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			return super.sDiff(keys);
@@ -198,9 +198,9 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 

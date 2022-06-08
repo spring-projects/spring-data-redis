@@ -53,9 +53,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		try {
 			return connection.getCluster().sadd(key, values);
@@ -67,9 +67,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		try {
 			return connection.getCluster().srem(key, values);
@@ -81,7 +81,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public byte[] sPop(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().spop(key);
@@ -93,7 +93,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return new ArrayList<>(connection.getCluster().spop(key, count));
@@ -105,9 +105,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, destKey)) {
 			try {
@@ -128,7 +128,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Long sCard(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().scard(key);
@@ -140,8 +140,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		try {
 			return connection.getCluster().sismember(key, value);
@@ -153,9 +153,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Value must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Value must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		try {
 			return connection.getCluster().smismember(key, values);
@@ -167,8 +167,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -209,9 +209,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
@@ -233,8 +233,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -265,9 +265,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
@@ -289,8 +289,8 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -324,9 +324,9 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
@@ -349,7 +349,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().smembers(key);
@@ -361,7 +361,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public byte[] sRandMember(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().srandmember(key);
@@ -373,10 +373,10 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		if (count > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Count cannot exceed Integer.MAX_VALUE!");
+			throw new IllegalArgumentException("Count cannot exceed Integer.MAX_VALUE");
 		}
 
 		try {
@@ -389,7 +389,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return new ScanCursor<byte[]>(options) {
 

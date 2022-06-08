@@ -81,7 +81,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 	void executeShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(
-				Flux.error(new RedisSystemException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
+				Flux.error(new RedisSystemException("NOSCRIPT No matching script; Please use EVAL.", new Exception())));
 
 		when(scriptingCommandsMock.eval(any(), any(ReturnType.class), anyInt()))
 				.thenReturn(Flux.just(ByteBuffer.wrap("FOO".getBytes())));
@@ -96,7 +96,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 	void executeShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(Flux
-				.error(new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception())));
+				.error(new UnsupportedOperationException("NOSCRIPT No matching script; Please use EVAL.", new Exception())));
 
 		executor.execute(SCRIPT).as(StepVerifier::create).verifyError(UnsupportedOperationException.class);
 	}

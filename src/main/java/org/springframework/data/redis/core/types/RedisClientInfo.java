@@ -56,7 +56,7 @@ public class RedisClientInfo {
 	 */
 	public RedisClientInfo(Properties properties) {
 
-		Assert.notNull(properties, "Cannot initialize client information for given 'null' properties.");
+		Assert.notNull(properties, "Cannot initialize client information for given 'null' properties");
 
 		this.clientProperties = new Properties();
 		this.clientProperties.putAll(properties);
@@ -221,7 +221,7 @@ public class RedisClientInfo {
 	 */
 	public String get(INFO info) {
 
-		Assert.notNull(info, "Cannot retrieve client information for 'null'.");
+		Assert.notNull(info, "Cannot retrieve client information for 'null'");
 		return this.clientProperties.getProperty(info.key);
 	}
 
@@ -232,7 +232,7 @@ public class RedisClientInfo {
 	@Nullable
 	public String get(String key) {
 
-		Assert.hasText(key, "Cannot get client information for 'empty' / 'null' key.");
+		Assert.hasText(key, "Cannot get client information for 'empty' / 'null' key");
 		return this.clientProperties.getProperty(key);
 	}
 
@@ -269,12 +269,12 @@ public class RedisClientInfo {
 
 		public static RedisClientInfo fromString(String source) {
 
-			Assert.notNull(source, "Cannot read client properties form 'null'.");
+			Assert.notNull(source, "Cannot read client properties form 'null'");
 			Properties properties = new Properties();
 			try {
 				properties.load(new StringReader(source.replace(' ', '\n')));
 			} catch (IOException e) {
-				throw new IllegalArgumentException(String.format("Properties could not be loaded from String '%s'.", source),
+				throw new IllegalArgumentException(String.format("Properties could not be loaded from String '%s'", source),
 						e);
 			}
 			return new RedisClientInfo(properties);

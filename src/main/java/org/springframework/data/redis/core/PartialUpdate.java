@@ -60,8 +60,8 @@ public class PartialUpdate<T> {
 	@SuppressWarnings("unchecked")
 	public PartialUpdate(Object id, Class<T> targetType) {
 
-		Assert.notNull(id, "Id must not be null!");
-		Assert.notNull(targetType, "TargetType must not be null!");
+		Assert.notNull(id, "Id must not be null");
+		Assert.notNull(targetType, "TargetType must not be null");
 
 		this.id = id;
 		this.target = (Class<T>) ClassUtils.getUserClass(targetType);
@@ -77,8 +77,8 @@ public class PartialUpdate<T> {
 	@SuppressWarnings("unchecked")
 	public PartialUpdate(Object id, T value) {
 
-		Assert.notNull(id, "Id must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(id, "Id must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		this.id = id;
 		this.target = (Class<T>) ClassUtils.getUserClass(value.getClass());
@@ -112,7 +112,7 @@ public class PartialUpdate<T> {
 	 */
 	public PartialUpdate<T> set(String path, Object value) {
 
-		Assert.hasText(path, "Path to set must not be null or empty!");
+		Assert.hasText(path, "Path to set must not be null or empty");
 
 		PartialUpdate<T> update = new PartialUpdate<>(this.id, this.target, this.value, this.refreshTtl,
 				this.propertyUpdates);
@@ -129,7 +129,7 @@ public class PartialUpdate<T> {
 	 */
 	public PartialUpdate<T> del(String path) {
 
-		Assert.hasText(path, "Path to remove must not be null or empty!");
+		Assert.hasText(path, "Path to remove must not be null or empty");
 
 		PartialUpdate<T> update = new PartialUpdate<>(this.id, this.target, this.value, this.refreshTtl,
 				this.propertyUpdates);

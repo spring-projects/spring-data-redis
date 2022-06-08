@@ -119,7 +119,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 			}, new MostSpecificMethodFilter(methodName, c));
 
 			Assert.isTrue(lenient || !methods.isEmpty(), "Cannot find a suitable method named [" + c.getName() + "#"
-					+ methodName + "] - is the method public and has the proper arguments?");
+					+ methodName + "] - is the method public and has the proper arguments");
 		}
 
 		void invoke(Object[] arguments) throws InvocationTargetException, IllegalAccessException {
@@ -271,7 +271,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		if (!StringUtils.hasText(methodName)) {
 			throw new InvalidDataAccessApiUsageException("No default listener method specified: "
 					+ "Either specify a non-null value for the 'defaultListenerMethod' property or "
-					+ "override the 'getListenerMethodName' method.");
+					+ "override the 'getListenerMethodName' method");
 		}
 
 		invoker = new MethodInvoker(delegate, methodName);

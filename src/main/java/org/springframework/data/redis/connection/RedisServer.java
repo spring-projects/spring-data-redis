@@ -197,7 +197,7 @@ public class RedisServer extends RedisNode {
 	 */
 	public String get(INFO info) {
 
-		Assert.notNull(info, "Cannot retrieve client information for 'null'.");
+		Assert.notNull(info, "Cannot retrieve client information for 'null'");
 		return get(info.key);
 	}
 

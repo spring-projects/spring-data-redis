@@ -135,7 +135,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		@Override
 		public String resolveKeySpace(Class<?> type) {
 
-			Assert.notNull(type, "Type must not be null!");
+			Assert.notNull(type, "Type must not be null");
 			if (keyspaceConfig.hasSettingsFor(type)) {
 
 				String value = keyspaceConfig.getKeyspaceSettings(type).getKeyspace();
@@ -161,7 +161,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		@Override
 		public String resolveKeySpace(Class<?> type) {
 
-			Assert.notNull(type, "Type must not be null!");
+			Assert.notNull(type, "Type must not be null");
 			return ClassUtils.getUserClass(type).getName();
 		}
 	}
@@ -188,8 +188,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		 */
 		ConfigAwareTimeToLiveAccessor(KeyspaceConfiguration keyspaceConfig, RedisMappingContext mappingContext) {
 
-			Assert.notNull(keyspaceConfig, "KeyspaceConfiguration must not be null!");
-			Assert.notNull(mappingContext, "MappingContext must not be null!");
+			Assert.notNull(keyspaceConfig, "KeyspaceConfiguration must not be null");
+			Assert.notNull(mappingContext, "MappingContext must not be null");
 
 			this.defaultTimeouts = new HashMap<>();
 			this.timeoutProperties = new HashMap<>();
@@ -202,7 +202,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		@SuppressWarnings({ "rawtypes" })
 		public Long getTimeToLive(Object source) {
 
-			Assert.notNull(source, "Source must not be null!");
+			Assert.notNull(source, "Source must not be null");
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source
 					: (source instanceof PartialUpdate ? ((PartialUpdate) source).getTarget() : source.getClass());
 

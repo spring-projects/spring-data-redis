@@ -291,7 +291,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 				if (logger.isDebugEnabled()) {
 					logger.debug(String
-							.format("[stream: %s] scheduleIfRequired(): Subscriber has no demand. Suspending subscription.", key));
+							.format("[stream: %s] scheduleIfRequired(): Subscriber has no demand; Suspending subscription", key));
 				}
 				return;
 			}

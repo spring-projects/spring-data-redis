@@ -154,7 +154,7 @@ public class LettuceConnectionFactory
 	 */
 	private LettuceConnectionFactory(LettuceClientConfiguration clientConfig) {
 
-		Assert.notNull(clientConfig, "LettuceClientConfiguration must not be null!");
+		Assert.notNull(clientConfig, "LettuceClientConfiguration must not be null");
 
 		this.clientConfiguration = clientConfig;
 		this.configuration = this.standaloneConfig;
@@ -211,7 +211,7 @@ public class LettuceConnectionFactory
 
 		this(clientConfig);
 
-		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null!");
+		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null");
 
 		this.standaloneConfig = standaloneConfig;
 		this.configuration = this.standaloneConfig;
@@ -229,7 +229,7 @@ public class LettuceConnectionFactory
 
 		this(clientConfig);
 
-		Assert.notNull(redisConfiguration, "RedisConfiguration must not be null!");
+		Assert.notNull(redisConfiguration, "RedisConfiguration must not be null");
 
 		this.configuration = redisConfiguration;
 	}
@@ -247,7 +247,7 @@ public class LettuceConnectionFactory
 
 		this(clientConfig);
 
-		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null!");
+		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null");
 
 		this.configuration = sentinelConfiguration;
 	}
@@ -265,7 +265,7 @@ public class LettuceConnectionFactory
 
 		this(clientConfig);
 
-		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null!");
+		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null");
 
 		this.configuration = clusterConfiguration;
 	}
@@ -406,7 +406,7 @@ public class LettuceConnectionFactory
 		assertInitialized();
 
 		if (!isClusterAware()) {
-			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
+			throw new InvalidDataAccessApiUsageException("Cluster is not configured");
 		}
 
 		RedisClusterClient clusterClient = (RedisClusterClient) client;
@@ -485,7 +485,7 @@ public class LettuceConnectionFactory
 		assertInitialized();
 
 		if (!isClusterAware()) {
-			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
+			throw new InvalidDataAccessApiUsageException("Cluster is not configured");
 		}
 
 		RedisClusterClient client = (RedisClusterClient) this.client;
@@ -619,7 +619,7 @@ public class LettuceConnectionFactory
 	 */
 	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
 
-		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null!");
+		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null");
 
 		this.pipeliningFlushPolicy = pipeliningFlushPolicy;
 	}
@@ -861,7 +861,7 @@ public class LettuceConnectionFactory
 
 		AbstractRedisClient client = getNativeClient();
 
-		Assert.state(client != null, "Client not yet initialized. Did you forget to call initialize the bean?");
+		Assert.state(client != null, "Client not yet initialized; Did you forget to call initialize the bean");
 
 		return client;
 	}
@@ -1371,7 +1371,7 @@ public class LettuceConnectionFactory
 
 				if (!valid) {
 
-					log.info("Validation of shared connection failed. Creating a new connection.");
+					log.info("Validation of shared connection failed; Creating a new connection.");
 					resetConnection();
 					this.connection = getNativeConnection();
 				}

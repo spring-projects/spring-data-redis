@@ -87,7 +87,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static AcknowledgeCommand stream(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new AcknowledgeCommand(key, null, Collections.emptyList());
 		}
@@ -100,7 +100,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public AcknowledgeCommand forRecords(String... recordIds) {
 
-			Assert.notNull(recordIds, "recordIds must not be null!");
+			Assert.notNull(recordIds, "recordIds must not be null");
 
 			return forRecords(Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 		}
@@ -113,7 +113,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public AcknowledgeCommand forRecords(RecordId... recordIds) {
 
-			Assert.notNull(recordIds, "recordIds must not be null!");
+			Assert.notNull(recordIds, "recordIds must not be null");
 
 			List<RecordId> newrecordIds = new ArrayList<>(getRecordIds().size() + recordIds.length);
 			newrecordIds.addAll(getRecordIds());
@@ -130,7 +130,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public AcknowledgeCommand inGroup(String group) {
 
-			Assert.notNull(group, "Group must not be null!");
+			Assert.notNull(group, "Group must not be null");
 
 			return new AcknowledgeCommand(getKey(), group, getRecordIds());
 		}
@@ -156,8 +156,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<Long> xAck(ByteBuffer key, String group, String... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(recordIds, "recordIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
 
 		return xAck(Mono.just(AcknowledgeCommand.stream(key).inGroup(group).forRecords(recordIds))).next()
 				.map(NumericResponse::getOutput);
@@ -174,8 +174,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<Long> xAck(ByteBuffer key, String group, RecordId... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(recordIds, "recordIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
 
 		return xAck(Mono.just(AcknowledgeCommand.stream(key).inGroup(group).forRecords(recordIds))).next()
 				.map(NumericResponse::getOutput);
@@ -222,7 +222,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static AddStreamRecord of(ByteBufferRecord record) {
 
-			Assert.notNull(record, "Record must not be null!");
+			Assert.notNull(record, "Record must not be null");
 
 			return new AddStreamRecord(record, null, false, false, null);
 		}
@@ -235,7 +235,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static AddStreamRecord body(Map<ByteBuffer, ByteBuffer> body) {
 
-			Assert.notNull(body, "Body must not be null!");
+			Assert.notNull(body, "Body must not be null");
 
 			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false, false, null);
 		}
@@ -374,8 +374,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<RecordId> xAdd(ByteBuffer key, Map<ByteBuffer, ByteBuffer> body) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(body, "Body must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(body, "Body must not be null");
 
 		return xAdd(StreamRecords.newRecord().in(key).ofBuffer(body));
 	}
@@ -389,7 +389,7 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<RecordId> xAdd(ByteBufferRecord record) {
 
-		Assert.notNull(record, "Record must not be null!");
+		Assert.notNull(record, "Record must not be null");
 
 		return xAdd(Mono.just(AddStreamRecord.of(record))).next().map(CommandResponse::getOutput);
 	}
@@ -533,7 +533,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static DeleteCommand stream(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new DeleteCommand(key, Collections.emptyList());
 		}
@@ -546,7 +546,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public DeleteCommand records(String... recordIds) {
 
-			Assert.notNull(recordIds, "RecordIds must not be null!");
+			Assert.notNull(recordIds, "RecordIds must not be null");
 
 			return records(Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 		}
@@ -559,7 +559,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public DeleteCommand records(RecordId... recordIds) {
 
-			Assert.notNull(recordIds, "RecordIds must not be null!");
+			Assert.notNull(recordIds, "RecordIds must not be null");
 
 			List<RecordId> newrecordIds = new ArrayList<>(getRecordIds().size() + recordIds.length);
 			newrecordIds.addAll(getRecordIds());
@@ -584,8 +584,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<Long> xDel(ByteBuffer key, String... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(recordIds, "RecordIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
 
 		return xDel(Mono.just(DeleteCommand.stream(key).records(recordIds))).next().map(CommandResponse::getOutput);
 	}
@@ -601,8 +601,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<Long> xDel(ByteBuffer key, RecordId... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(recordIds, "RecordIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
 
 		return xDel(Mono.just(DeleteCommand.stream(key).records(recordIds))).next().map(CommandResponse::getOutput);
 	}
@@ -626,7 +626,7 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<Long> xLen(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return xLen(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -651,8 +651,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<PendingMessagesSummary> xPending(ByteBuffer key, String groupName) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(groupName, "GroupName must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(groupName, "GroupName must not be null");
 
 		return xPendingSummary(Mono.just(new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null))).next()
 				.map(CommandResponse::getOutput);
@@ -902,7 +902,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public RangeCommand within(Range<String> range) {
 
-			Assert.notNull(range, "Range must not be null!");
+			Assert.notNull(range, "Range must not be null");
 
 			return new RangeCommand(getKey(), range, getLimit());
 		}
@@ -925,7 +925,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public RangeCommand limit(Limit limit) {
 
-			Assert.notNull(limit, "Limit must not be null!");
+			Assert.notNull(limit, "Limit must not be null");
 
 			return new RangeCommand(getKey(), range, limit);
 		}
@@ -968,9 +968,9 @@ public interface ReactiveStreamCommands {
 	 */
 	default Flux<ByteBufferRecord> xRange(ByteBuffer key, Range<String> range, Limit limit) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
 
 		return xRange(Mono.just(RangeCommand.stream(key).within(range).limit(limit))).next()
 				.flatMapMany(CommandResponse::getOutput);
@@ -1018,7 +1018,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static ReadCommand from(StreamOffset<ByteBuffer> streamOffset) {
 
-			Assert.notNull(streamOffset, "StreamOffset must not be null!");
+			Assert.notNull(streamOffset, "StreamOffset must not be null");
 
 			return new ReadCommand(Collections.singletonList(streamOffset), StreamReadOptions.empty(), null);
 		}
@@ -1031,7 +1031,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static ReadCommand from(StreamOffset<ByteBuffer>... streamOffsets) {
 
-			Assert.notNull(streamOffsets, "StreamOffsets must not be null!");
+			Assert.notNull(streamOffsets, "StreamOffsets must not be null");
 
 			return new ReadCommand(Arrays.asList(streamOffsets), StreamReadOptions.empty(), null);
 		}
@@ -1044,7 +1044,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public ReadCommand as(Consumer consumer) {
 
-			Assert.notNull(consumer, "Consumer must not be null!");
+			Assert.notNull(consumer, "Consumer must not be null");
 
 			return new ReadCommand(getStreamOffsets(), getReadOptions(), consumer);
 		}
@@ -1058,7 +1058,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public ReadCommand withOptions(StreamReadOptions options) {
 
-			Assert.notNull(options, "StreamReadOptions must not be null!");
+			Assert.notNull(options, "StreamReadOptions must not be null");
 
 			return new ReadCommand(getStreamOffsets(), options, getConsumer());
 		}
@@ -1099,8 +1099,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Flux<ByteBufferRecord> xRead(StreamReadOptions readOptions, StreamOffset<ByteBuffer>... streams) {
 
-		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
-		Assert.notNull(streams, "StreamOffsets must not be null!");
+		Assert.notNull(readOptions, "StreamReadOptions must not be null");
+		Assert.notNull(streams, "StreamOffsets must not be null");
 
 		return read(Mono.just(ReadCommand.from(streams).withOptions(readOptions))).next()
 				.flatMapMany(CommandResponse::getOutput);
@@ -1402,9 +1402,9 @@ public interface ReactiveStreamCommands {
 	default Flux<ByteBufferRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<ByteBuffer>... streams) {
 
-		Assert.notNull(consumer, "Consumer must not be null!");
-		Assert.notNull(streams, "StreamOffsets must not be null!");
-		Assert.notNull(streams, "StreamOffsets must not be null!");
+		Assert.notNull(consumer, "Consumer must not be null");
+		Assert.notNull(streams, "StreamOffsets must not be null");
+		Assert.notNull(streams, "StreamOffsets must not be null");
 
 		return read(Mono.just(ReadCommand.from(streams).withOptions(readOptions).as(consumer))).next()
 				.flatMapMany(CommandResponse::getOutput);
@@ -1433,9 +1433,9 @@ public interface ReactiveStreamCommands {
 	 */
 	default Flux<ByteBufferRecord> xRevRange(ByteBuffer key, Range<String> range, Limit limit) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
 
 		return xRevRange(Mono.just(RangeCommand.stream(key).within(range).limit(limit))).next()
 				.flatMapMany(CommandResponse::getOutput);
@@ -1474,7 +1474,7 @@ public interface ReactiveStreamCommands {
 		 */
 		public static TrimCommand stream(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new TrimCommand(key, null, false);
 		}
@@ -1548,7 +1548,7 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<Long> xTrim(ByteBuffer key, long count, boolean approximateTrimming) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return xTrim(Mono.just(TrimCommand.stream(key).to(count).approximate(approximateTrimming))).next()
 				.map(NumericResponse::getOutput);

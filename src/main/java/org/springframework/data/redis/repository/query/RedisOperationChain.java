@@ -76,7 +76,7 @@ public class RedisOperationChain {
 
 	public void near(NearPath near) {
 
-		Assert.notNull(near, "Near must not be null!");
+		Assert.notNull(near, "Near must not be null");
 		this.near = near;
 	}
 

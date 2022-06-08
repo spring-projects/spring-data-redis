@@ -81,7 +81,7 @@ public interface Record<S, V> {
 	 */
 	static <S, K, V> MapRecord<S, K, V> of(Map<K, V> map) {
 
-		Assert.notNull(map, "Map must not be null!");
+		Assert.notNull(map, "Map must not be null");
 		return StreamRecords.mapBacked(map);
 	}
 
@@ -96,7 +96,7 @@ public interface Record<S, V> {
 	 */
 	static <S, V> ObjectRecord<S, V> of(V value) {
 
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(value, "Value must not be null");
 		return StreamRecords.objectBacked(value);
 	}
 

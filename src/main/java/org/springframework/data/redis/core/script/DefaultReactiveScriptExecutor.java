@@ -57,8 +57,8 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	public DefaultReactiveScriptExecutor(ReactiveRedisConnectionFactory connectionFactory,
 			RedisSerializationContext<K, ?> serializationContext) {
 
-		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null!");
-		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
+		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null");
 
 		this.connectionFactory = connectionFactory;
 		this.serializationContext = serializationContext;
@@ -68,9 +68,9 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	@SuppressWarnings("unchecked")
 	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args) {
 
-		Assert.notNull(script, "RedisScript must not be null!");
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(script, "RedisScript must not be null");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		SerializationPair<?> serializationPair = serializationContext.getValueSerializationPair();
 
@@ -83,11 +83,11 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,
 			RedisElementReader<T> resultReader) {
 
-		Assert.notNull(script, "RedisScript must not be null!");
-		Assert.notNull(argsWriter, "Argument Writer must not be null!");
-		Assert.notNull(resultReader, "Result Reader must not be null!");
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(script, "RedisScript must not be null");
+		Assert.notNull(argsWriter, "Argument Writer must not be null");
+		Assert.notNull(resultReader, "Result Reader must not be null");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		return execute(connection -> {
 

@@ -46,7 +46,7 @@ public interface RedisElementWriter<T> {
 	 */
 	static <T> RedisElementWriter<T> from(RedisSerializer<T> serializer) {
 
-		Assert.notNull(serializer, "Serializer must not be null!");
+		Assert.notNull(serializer, "Serializer must not be null");
 		return new DefaultRedisElementWriter<>(serializer);
 	}
 }

@@ -78,7 +78,7 @@ class DefaultScriptExecutorUnitTests {
 	void excuteShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
-				new RedisSystemException("NOSCRIPT No matching script. Please use EVAL.", new Exception()));
+				new RedisSystemException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
 
 		executor.execute(SCRIPT, null);
 
@@ -89,7 +89,7 @@ class DefaultScriptExecutorUnitTests {
 	void excuteShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
-				new UnsupportedOperationException("NOSCRIPT No matching script. Please use EVAL.", new Exception()));
+				new UnsupportedOperationException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> executor.execute(SCRIPT, null));
 	}

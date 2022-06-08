@@ -76,7 +76,7 @@ public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 
 	public void addIndexDefinition(IndexDefinition indexDefinition) {
 
-		Assert.notNull(indexDefinition, "RedisIndexDefinition must not be null in order to be added.");
+		Assert.notNull(indexDefinition, "RedisIndexDefinition must not be null in order to be added");
 		this.definitions.add(indexDefinition);
 	}
 

@@ -43,7 +43,7 @@ public class RedisNode implements NamedNode {
 	 */
 	public RedisNode(String host, int port) {
 
-		Assert.notNull(host, "host must not be null!");
+		Assert.notNull(host, "host must not be null");
 
 		this.host = host;
 		this.port = port;
@@ -240,7 +240,7 @@ public class RedisNode implements NamedNode {
 		 */
 		public RedisNodeBuilder listeningAt(String host, int port) {
 
-			Assert.notNull(host, "Hostname must not be null.");
+			Assert.notNull(host, "Hostname must not be null");
 			node.host = host;
 			node.port = port;
 			return this;

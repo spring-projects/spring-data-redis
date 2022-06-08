@@ -78,8 +78,8 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 	LettucePoolingConnectionProvider(LettuceConnectionProvider connectionProvider,
 			LettucePoolingClientConfiguration clientConfiguration) {
 
-		Assert.notNull(connectionProvider, "ConnectionProvider must not be null!");
-		Assert.notNull(clientConfiguration, "ClientConfiguration must not be null!");
+		Assert.notNull(connectionProvider, "ConnectionProvider must not be null");
+		Assert.notNull(clientConfiguration, "ClientConfiguration must not be null");
 
 		this.connectionProvider = connectionProvider;
 		this.poolConfig = clientConfiguration.getPoolConfig();
@@ -137,7 +137,7 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 		}
 
 		throw new IllegalStateException(
-				String.format("Underlying connection provider %s does not implement RedisClientProvider!",
+				String.format("Underlying connection provider %s does not implement RedisClientProvider",
 						connectionProvider.getClass().getName()));
 	}
 

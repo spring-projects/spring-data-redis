@@ -68,8 +68,8 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 	 */
 	ClusterConnectionProvider(RedisClusterClient client, RedisCodec<?, ?> codec, @Nullable ReadFrom readFrom) {
 
-		Assert.notNull(client, "Client must not be null!");
-		Assert.notNull(codec, "Codec must not be null!");
+		Assert.notNull(client, "Client must not be null");
+		Assert.notNull(codec, "Codec must not be null");
 
 		this.client = client;
 		this.codec = codec;
@@ -111,7 +111,7 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 		}
 
 		return LettuceFutureUtils
-				.failed(new InvalidDataAccessApiUsageException("Connection type " + connectionType + " not supported!"));
+				.failed(new InvalidDataAccessApiUsageException("Connection type " + connectionType + " not supported"));
 	}
 
 	@Override

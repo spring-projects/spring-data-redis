@@ -64,7 +64,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public static PfAddCommand value(ByteBuffer value) {
 
-			Assert.notNull(value, "Value must not be null!");
+			Assert.notNull(value, "Value must not be null");
 
 			return values(Collections.singletonList(value));
 		}
@@ -77,7 +77,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public static PfAddCommand values(Collection<ByteBuffer> values) {
 
-			Assert.notNull(values, "Values must not be null!");
+			Assert.notNull(values, "Values must not be null");
 
 			return new PfAddCommand(null, new ArrayList<>(values));
 		}
@@ -90,7 +90,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public PfAddCommand to(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new PfAddCommand(key, values);
 		}
@@ -113,7 +113,7 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Long> pfAdd(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(value, "Value must not be null");
 
 		return pfAdd(key, Collections.singletonList(value));
 	}
@@ -128,8 +128,8 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Long> pfAdd(ByteBuffer key, Collection<ByteBuffer> values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
 
 		return pfAdd(Mono.just(PfAddCommand.values(values).to(key))).next().map(NumericResponse::getOutput);
 	}
@@ -167,7 +167,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public static PfCountCommand valueIn(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return valuesIn(Collections.singletonList(key));
 		}
@@ -180,7 +180,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public static PfCountCommand valuesIn(Collection<ByteBuffer> keys) {
 
-			Assert.notNull(keys, "Keys must not be null!");
+			Assert.notNull(keys, "Keys must not be null");
 
 			return new PfCountCommand(new ArrayList<>(keys));
 		}
@@ -207,7 +207,7 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Long> pfCount(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return pfCount(Collections.singletonList(key));
 	}
@@ -221,7 +221,7 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Long> pfCount(Collection<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return pfCount(Mono.just(PfCountCommand.valuesIn(keys))).next().map(NumericResponse::getOutput);
 	}
@@ -259,7 +259,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public static PfMergeCommand valuesIn(Collection<ByteBuffer> sourceKeys) {
 
-			Assert.notNull(sourceKeys, "Source keys must not be null!");
+			Assert.notNull(sourceKeys, "Source keys must not be null");
 
 			return new PfMergeCommand(null, new ArrayList<>(sourceKeys));
 		}
@@ -273,7 +273,7 @@ public interface ReactiveHyperLogLogCommands {
 		 */
 		public PfMergeCommand into(ByteBuffer destinationKey) {
 
-			Assert.notNull(destinationKey, "Destination key must not be null!");
+			Assert.notNull(destinationKey, "Destination key must not be null");
 
 			return new PfMergeCommand(destinationKey, sourceKeys);
 		}
@@ -296,8 +296,8 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Boolean> pfMerge(ByteBuffer destinationKey, Collection<ByteBuffer> sourceKeys) {
 
-		Assert.notNull(destinationKey, "DestinationKey must not be null!");
-		Assert.notNull(sourceKeys, "SourceKeys must not be null!");
+		Assert.notNull(destinationKey, "DestinationKey must not be null");
+		Assert.notNull(sourceKeys, "SourceKeys must not be null");
 
 		return pfMerge(Mono.just(PfMergeCommand.valuesIn(sourceKeys).into(destinationKey))).next()
 				.map(BooleanResponse::getOutput);

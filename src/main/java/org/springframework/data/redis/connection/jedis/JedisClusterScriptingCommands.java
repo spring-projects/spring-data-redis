@@ -64,7 +64,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public String scriptLoad(byte[] script) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 
 		try {
 			ClusterCommandExecutor.MultiNodeResult<byte[]> multiNodeResult = connection.getClusterCommandExecutor()
@@ -79,14 +79,14 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 	@Override
 	public List<Boolean> scriptExists(String... scriptShas) {
-		throw new InvalidDataAccessApiUsageException("ScriptExists is not supported in cluster environment.");
+		throw new InvalidDataAccessApiUsageException("ScriptExists is not supported in cluster environment");
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 
 		try {
 			return (T) new JedisScriptReturnConverter(returnType).convert(getCluster().eval(script, numKeys, keysAndArgs));
@@ -104,7 +104,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(scriptSha, "Script digest must not be null!");
+		Assert.notNull(scriptSha, "Script digest must not be null");
 
 		try {
 			return (T) new JedisScriptReturnConverter(returnType)

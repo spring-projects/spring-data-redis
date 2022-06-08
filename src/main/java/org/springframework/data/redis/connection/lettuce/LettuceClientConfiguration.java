@@ -216,7 +216,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder clientResources(ClientResources clientResources) {
 
-			Assert.notNull(clientResources, "ClientResources must not be null!");
+			Assert.notNull(clientResources, "ClientResources must not be null");
 
 			this.clientResources = clientResources;
 			return this;
@@ -231,7 +231,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder clientOptions(ClientOptions clientOptions) {
 
-			Assert.notNull(clientOptions, "ClientOptions must not be null!");
+			Assert.notNull(clientOptions, "ClientOptions must not be null");
 
 			this.clientOptions = clientOptions;
 			return this;
@@ -247,7 +247,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder readFrom(ReadFrom readFrom) {
 
-			Assert.notNull(readFrom, "ReadFrom must not be null!");
+			Assert.notNull(readFrom, "ReadFrom must not be null");
 
 			this.readFrom = readFrom;
 			return this;
@@ -263,7 +263,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder clientName(String clientName) {
 
-			Assert.hasText(clientName, "Client name must not be null or empty!");
+			Assert.hasText(clientName, "Client name must not be null or empty");
 
 			this.clientName = clientName;
 			return this;
@@ -278,7 +278,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder commandTimeout(Duration timeout) {
 
-			Assert.notNull(timeout, "Duration must not be null!");
+			Assert.notNull(timeout, "Duration must not be null");
 
 			this.timeout = timeout;
 			return this;
@@ -293,7 +293,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder shutdownTimeout(Duration shutdownTimeout) {
 
-			Assert.notNull(shutdownTimeout, "Duration must not be null!");
+			Assert.notNull(shutdownTimeout, "Duration must not be null");
 
 			this.shutdownTimeout = shutdownTimeout;
 			return this;
@@ -309,7 +309,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfigurationBuilder shutdownQuietPeriod(Duration shutdownQuietPeriod) {
 
-			Assert.notNull(shutdownQuietPeriod, "Duration must not be null!");
+			Assert.notNull(shutdownQuietPeriod, "Duration must not be null");
 
 			this.shutdownQuietPeriod = shutdownQuietPeriod;
 			return this;
@@ -336,7 +336,7 @@ public interface LettuceClientConfiguration {
 
 		LettuceSslClientConfigurationBuilder(LettuceClientConfigurationBuilder delegate) {
 
-			Assert.notNull(delegate, "Delegate client configuration builder must not be null!");
+			Assert.notNull(delegate, "Delegate client configuration builder must not be null");
 			this.delegate = delegate;
 		}
 

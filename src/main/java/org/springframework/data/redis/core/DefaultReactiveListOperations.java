@@ -56,7 +56,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Flux<V> range(K key, long start, long end) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createFlux(connection -> connection.lRange(rawKey(key), start, end).map(this::readValue));
 	}
@@ -64,7 +64,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Boolean> trim(K key, long start, long end) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lTrim(rawKey(key), start, end));
 	}
@@ -72,7 +72,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> size(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lLen(rawKey(key)));
 	}
@@ -86,7 +86,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@SafeVarargs
 	public final Mono<Long> leftPushAll(K key, V... values) {
 
-		Assert.notEmpty(values, "Values must not be null or empty!");
+		Assert.notEmpty(values, "Values must not be null or empty");
 
 		return leftPushAll(key, Arrays.asList(values));
 	}
@@ -94,8 +94,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> leftPushAll(K key, Collection<V> values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notEmpty(values, "Values must not be null or empty!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notEmpty(values, "Values must not be null or empty");
 
 		return createMono(connection -> Flux.fromIterable(values) //
 				.map(this::rawValue) //
@@ -106,7 +106,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> leftPushIfPresent(K key, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lPushX(rawKey(key), rawValue(value)));
 	}
@@ -114,7 +114,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> leftPush(K key, V pivot, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
 	}
@@ -128,7 +128,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@SafeVarargs
 	public final Mono<Long> rightPushAll(K key, V... values) {
 
-		Assert.notNull(values, "Values must not be null!");
+		Assert.notNull(values, "Values must not be null");
 
 		return rightPushAll(key, Arrays.asList(values));
 	}
@@ -136,8 +136,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> rightPushAll(K key, Collection<V> values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notEmpty(values, "Values must not be null or empty!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notEmpty(values, "Values must not be null or empty");
 
 		return createMono(connection -> Flux.fromIterable(values) //
 				.map(this::rawValue) //
@@ -148,7 +148,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> rightPushIfPresent(K key, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.rPushX(rawKey(key), rawValue(value)));
 	}
@@ -156,7 +156,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> rightPush(K key, V pivot, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
 	}
@@ -164,10 +164,10 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> move(K sourceKey, Direction from, K destinationKey, Direction to) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(destinationKey, "Destination key must not be null!");
-		Assert.notNull(from, "From direction must not be null!");
-		Assert.notNull(to, "To direction must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(from, "From direction must not be null");
+		Assert.notNull(to, "To direction must not be null");
 
 		return createMono(
 				connection -> connection.lMove(rawKey(sourceKey), rawKey(destinationKey), from, to).map(this::readValue));
@@ -176,11 +176,11 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(destinationKey, "Destination key must not be null!");
-		Assert.notNull(from, "From direction must not be null!");
-		Assert.notNull(to, "To direction must not be null!");
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(from, "From direction must not be null");
+		Assert.notNull(to, "To direction must not be null");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		return createMono(connection -> connection.bLMove(rawKey(sourceKey), rawKey(destinationKey), from, to, timeout)
 				.map(this::readValue));
@@ -189,7 +189,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Boolean> set(K key, long index, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lSet(rawKey(key), index, rawValue(value)));
 	}
@@ -198,7 +198,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@SuppressWarnings("unchecked")
 	public Mono<Long> remove(K key, long count, Object value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lRem(rawKey(key), count, rawValue((V) value)));
 	}
@@ -206,7 +206,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> index(K key, long index) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lIndex(rawKey(key), index).map(this::readValue));
 	}
@@ -214,7 +214,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> indexOf(K key, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lPos(rawKey(key), rawValue(value)));
 	}
@@ -222,7 +222,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Long> lastIndexOf(K key, V value) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
 	}
@@ -230,7 +230,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> leftPop(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.lPop(rawKey(key)).map(this::readValue));
 
@@ -239,9 +239,9 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> leftPop(K key, Duration timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(timeout, "Duration must not be null!");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(connection -> connection.blPop(Collections.singletonList(rawKey(key)), timeout)
 				.map(popResult -> readValue(popResult.getValue())));
@@ -250,7 +250,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> rightPop(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.rPop(rawKey(key)).map(this::readValue));
 	}
@@ -258,9 +258,9 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> rightPop(K key, Duration timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(timeout, "Duration must not be null!");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(connection -> connection.brPop(Collections.singletonList(rawKey(key)), timeout)
 				.map(popResult -> readValue(popResult.getValue())));
@@ -269,8 +269,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(destinationKey, "Destination key must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(destinationKey, "Destination key must not be null");
 
 		return createMono(
 				connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey)).map(this::readValue));
@@ -279,10 +279,10 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(destinationKey, "Destination key must not be null!");
-		Assert.notNull(timeout, "Duration must not be null!");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(destinationKey, "Destination key must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(
 				connection -> connection.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
@@ -291,21 +291,21 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	@Override
 	public Mono<Boolean> delete(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveListCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateMono(connection -> function.apply(connection.listCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveListCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateFlux(connection -> function.apply(connection.listCommands()));
 	}

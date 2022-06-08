@@ -66,7 +66,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 				sink.near(getNearPath(part, iterator));
 				break;
 			default:
-				throw new IllegalArgumentException(String.format("%s is not supported for Redis query derivation!", part.getType()));
+				throw new IllegalArgumentException(String.format("%s is not supported for Redis query derivation", part.getType()));
 		}
 
 		return sink;
@@ -120,7 +120,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 			if (!iterator.hasNext()) {
 				throw new InvalidDataAccessApiUsageException(
-						"Expected to find distance value for geo query. Are you missing a parameter?");
+						"Expected to find distance value for geo query; Are you missing a parameter");
 			}
 
 			Object distObject = iterator.next();
@@ -130,7 +130,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 				distance = new Distance(((Number) distObject).doubleValue(), Metrics.KILOMETERS);
 			} else {
 				throw new InvalidDataAccessApiUsageException(String
-						.format("Expected to find Distance or Numeric value for geo query but was %s.", distObject.getClass()));
+						.format("Expected to find Distance or Numeric value for geo query but was %s", distObject.getClass()));
 			}
 		} else {
 			throw new InvalidDataAccessApiUsageException(

@@ -630,9 +630,9 @@ public abstract class LettuceConverters extends Converters {
 
 		return source -> {
 
-			Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+			Assert.notEmpty(source, "Received invalid result from server; Expected 2 items in collection");
 			Assert.isTrue(source.size() == 2,
-					"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+					"Received invalid nr of arguments from redis server; Expected 2 received " + source.size());
 
 			return toTimeMillis(toString(source.get(0)), toString(source.get(1)), timeUnit);
 		};
@@ -749,7 +749,7 @@ public abstract class LettuceConverters extends Converters {
 							break;
 						default:
 							throw new IllegalArgumentException(
-									String.format("Invalid OVERFLOW. Expected one the following %s but got %s.",
+									String.format("Invalid OVERFLOW; Expected one the following %s but got %s",
 											Arrays.toString(Overflow.values()), overflow));
 					}
 					args = args.overflow(type);
@@ -943,7 +943,7 @@ public abstract class LettuceConverters extends Converters {
 			case SYNC:
 				return FlushMode.SYNC;
 			default:
-				throw new IllegalArgumentException("Flush option " + option + " is not supported.");
+				throw new IllegalArgumentException("Flush option " + option + " is not supported");
 		}
 	}
 

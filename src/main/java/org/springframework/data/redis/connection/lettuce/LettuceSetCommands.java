@@ -48,9 +48,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Long sAdd(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sadd, key, values);
 	}
@@ -58,7 +58,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Long sCard(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::scard, key);
 	}
@@ -66,8 +66,8 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sdiff, keys);
 	}
@@ -75,9 +75,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sdiffstore, destKey, keys);
 	}
@@ -85,8 +85,8 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sinter, keys);
 	}
@@ -94,9 +94,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sinterstore, destKey, keys);
 	}
@@ -104,8 +104,8 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sismember, key, value);
 	}
@@ -113,9 +113,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::smismember, key, values);
 	}
@@ -123,7 +123,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::smembers, key);
 	}
@@ -131,9 +131,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::smove, srcKey, destKey, value);
 	}
@@ -141,7 +141,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public byte[] sPop(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::spop, key);
 	}
@@ -149,7 +149,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public List<byte[]> sPop(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(RedisSetAsyncCommands::spop, key, count).get(ArrayList::new);
 	}
@@ -157,7 +157,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public byte[] sRandMember(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::srandmember, key);
 	}
@@ -165,7 +165,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisSetAsyncCommands::srandmember, key, count);
 	}
@@ -173,9 +173,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Long sRem(byte[] key, byte[]... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(values, "Values must not be null");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::srem, key, values);
 	}
@@ -183,8 +183,8 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sunion, keys);
 	}
@@ -192,9 +192,9 @@ class LettuceSetCommands implements RedisSetCommands {
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		Assert.notNull(destKey, "Destination key must not be null!");
-		Assert.notNull(keys, "Source keys must not be null!");
-		Assert.noNullElements(keys, "Source keys must not contain null elements!");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(keys, "Source keys must not be null");
+		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sunionstore, destKey, keys);
 	}
@@ -213,7 +213,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	 */
 	public Cursor<byte[]> sScan(byte[] key, long cursorId, ScanOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
 
@@ -221,7 +221,7 @@ class LettuceSetCommands implements RedisSetCommands {
 			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);

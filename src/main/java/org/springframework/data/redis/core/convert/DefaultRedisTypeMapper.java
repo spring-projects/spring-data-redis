@@ -123,7 +123,7 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 
 		BucketTypeAliasAccessor(@Nullable String typeKey, ConversionService conversionService) {
 
-			Assert.notNull(conversionService, "ConversionService must not be null!");
+			Assert.notNull(conversionService, "ConversionService must not be null");
 
 			this.typeKey = typeKey;
 			this.conversionService = conversionService;

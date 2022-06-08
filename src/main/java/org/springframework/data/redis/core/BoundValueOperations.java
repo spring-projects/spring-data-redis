@@ -60,7 +60,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 */
 	default void set(V value, Duration timeout) {
 
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
 			set(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -105,7 +105,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	@Nullable
 	default Boolean setIfAbsent(V value, Duration timeout) {
 
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
 			return setIfAbsent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -153,7 +153,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	@Nullable
 	default Boolean setIfPresent(V value, Duration timeout) {
 
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (TimeoutUtils.hasMillis(timeout)) {
 			return setIfPresent(value, timeout.toMillis(), TimeUnit.MILLISECONDS);

@@ -41,7 +41,7 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 	 */
 	LettuceReactiveHyperLogLogCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 
 		this.connection = connection;
 	}
@@ -51,7 +51,7 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "key must not be null!");
+			Assert.notNull(command.getKey(), "key must not be null");
 
 			return cmd.pfadd(command.getKey(), command.getValues().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));

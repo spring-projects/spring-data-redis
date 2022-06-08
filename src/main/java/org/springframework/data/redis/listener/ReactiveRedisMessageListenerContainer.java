@@ -84,7 +84,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	public ReactiveRedisMessageListenerContainer(ReactiveRedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null");
 		this.connection = connectionFactory.getReactiveConnection();
 	}
 
@@ -151,8 +151,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	public Flux<Message<String, String>> receive(ChannelTopic... channelTopics) {
 
-		Assert.notNull(channelTopics, "ChannelTopics must not be null!");
-		Assert.noNullElements(channelTopics, "ChannelTopics must not contain null elements!");
+		Assert.notNull(channelTopics, "ChannelTopics must not be null");
+		Assert.noNullElements(channelTopics, "ChannelTopics must not contain null elements");
 
 		return receive(Arrays.asList(channelTopics), stringSerializationPair, stringSerializationPair);
 	}
@@ -173,8 +173,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	public Mono<Flux<Message<String, String>>> receiveLater(ChannelTopic... channelTopics) {
 
-		Assert.notNull(channelTopics, "ChannelTopics must not be null!");
-		Assert.noNullElements(channelTopics, "ChannelTopics must not contain null elements!");
+		Assert.notNull(channelTopics, "ChannelTopics must not be null");
+		Assert.noNullElements(channelTopics, "ChannelTopics must not contain null elements");
 
 		return receiveLater(Arrays.asList(channelTopics), stringSerializationPair, stringSerializationPair);
 	}
@@ -193,8 +193,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	@SuppressWarnings("unchecked")
 	public Flux<PatternMessage<String, String, String>> receive(PatternTopic... patternTopics) {
 
-		Assert.notNull(patternTopics, "PatternTopic must not be null!");
-		Assert.noNullElements(patternTopics, "PatternTopic must not contain null elements!");
+		Assert.notNull(patternTopics, "PatternTopic must not be null");
+		Assert.noNullElements(patternTopics, "PatternTopic must not contain null elements");
 
 		return receive(Arrays.asList(patternTopics), stringSerializationPair, stringSerializationPair)
 				.map(m -> (PatternMessage<String, String, String>) m);
@@ -217,8 +217,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	@SuppressWarnings("unchecked")
 	public Mono<Flux<PatternMessage<String, String, String>>> receiveLater(PatternTopic... patternTopics) {
 
-		Assert.notNull(patternTopics, "PatternTopic must not be null!");
-		Assert.noNullElements(patternTopics, "PatternTopic must not contain null elements!");
+		Assert.notNull(patternTopics, "PatternTopic must not be null");
+		Assert.noNullElements(patternTopics, "PatternTopic must not contain null elements");
 
 		return receiveLater(Arrays.asList(patternTopics), stringSerializationPair, stringSerializationPair)
 				.map(it -> it.map(m -> (PatternMessage<String, String, String>) m));
@@ -280,10 +280,10 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	public <C, B> Flux<Message<C, B>> receive(Iterable<? extends Topic> topics, SerializationPair<C> channelSerializer,
 			SerializationPair<B> messageSerializer, SubscriptionListener subscriptionListener) {
 
-		Assert.notNull(topics, "Topics must not be null!");
-		Assert.notNull(channelSerializer, "Channel serializer must not be null!");
-		Assert.notNull(messageSerializer, "Message serializer must not be null!");
-		Assert.notNull(subscriptionListener, "SubscriptionListener must not be null!");
+		Assert.notNull(topics, "Topics must not be null");
+		Assert.notNull(channelSerializer, "Channel serializer must not be null");
+		Assert.notNull(messageSerializer, "Message serializer must not be null");
+		Assert.notNull(subscriptionListener, "SubscriptionListener must not be null");
 
 		verifyConnection();
 
@@ -291,7 +291,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		ByteBuffer[] channels = getTargets(topics, ChannelTopic.class);
 
 		if (ObjectUtils.isEmpty(patterns) && ObjectUtils.isEmpty(channels)) {
-			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to.");
+			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to");
 		}
 
 		return doReceive(channelSerializer, messageSerializer,
@@ -342,9 +342,9 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	public <C, B> Mono<Flux<Message<C, B>>> receiveLater(Iterable<? extends Topic> topics,
 			SerializationPair<C> channelSerializer, SerializationPair<B> messageSerializer) {
 
-		Assert.notNull(topics, "Topics must not be null!");
-		Assert.notNull(channelSerializer, "Channel serializer must not be null!");
-		Assert.notNull(messageSerializer, "Message serializer must not be null!");
+		Assert.notNull(topics, "Topics must not be null");
+		Assert.notNull(channelSerializer, "Channel serializer must not be null");
+		Assert.notNull(messageSerializer, "Message serializer must not be null");
 
 		verifyConnection();
 
@@ -352,7 +352,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		ByteBuffer[] channels = getTargets(topics, ChannelTopic.class);
 
 		if (ObjectUtils.isEmpty(patterns) && ObjectUtils.isEmpty(channels)) {
-			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to.");
+			throw new InvalidDataAccessApiUsageException("No channels or patterns to subscribe to");
 		}
 
 		return Mono.defer(() -> {
@@ -392,7 +392,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	private static Mono<Void> subscribe(ByteBuffer[] patterns, ByteBuffer[] channels, ReactiveSubscription it) {
 
 		Assert.isTrue(!ObjectUtils.isEmpty(channels) || !ObjectUtils.isEmpty(patterns),
-				"Must provide either channels or patterns!");
+				"Must provide either channels or patterns");
 
 		Mono<Void> subscribe = null;
 
@@ -421,7 +421,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	private void verifyConnection() {
 
 		if (!isActive()) {
-			throw new IllegalStateException("ReactiveRedisMessageListenerContainer is already disposed!");
+			throw new IllegalStateException("ReactiveRedisMessageListenerContainer is already disposed");
 		}
 	}
 

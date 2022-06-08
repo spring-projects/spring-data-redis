@@ -69,8 +69,8 @@ public class SpelIndexResolver implements IndexResolver {
 	 */
 	public SpelIndexResolver(RedisMappingContext mappingContext, SpelExpressionParser parser) {
 
-		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
-		Assert.notNull(parser, "SpelExpressionParser must not be null!");
+		Assert.notNull(mappingContext, "RedisMappingContext must not be null");
+		Assert.notNull(parser, "SpelExpressionParser must not be null");
 		this.mappingContext = mappingContext;
 		this.settings = mappingContext.getMappingConfiguration().getIndexConfiguration();
 		this.expressionCache = new HashMap<>();

@@ -76,8 +76,8 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	DefaultStreamMessageListenerContainer(RedisConnectionFactory connectionFactory,
 			StreamMessageListenerContainerOptions<K, V> containerOptions) {
 
-		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
-		Assert.notNull(containerOptions, "StreamMessageListenerContainerOptions must not be null!");
+		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null");
+		Assert.notNull(containerOptions, "StreamMessageListenerContainerOptions must not be null");
 
 		this.taskExecutor = containerOptions.getExecutor();
 		this.errorHandler = containerOptions.getErrorHandler();
@@ -337,7 +337,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		public void handleError(Throwable t) {
 
 			if (this.logger.isErrorEnabled()) {
-				this.logger.error("Unexpected error occurred in scheduled task.", t);
+				this.logger.error("Unexpected error occurred in scheduled task", t);
 			}
 		}
 	}

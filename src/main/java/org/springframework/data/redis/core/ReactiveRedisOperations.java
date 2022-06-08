@@ -104,7 +104,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	default Flux<? extends Message<String, V>> listenToChannel(String... channels) {
 
-		Assert.notNull(channels, "Channels must not be null!");
+		Assert.notNull(channels, "Channels must not be null");
 
 		return listenTo(Arrays.stream(channels).map(ChannelTopic::of).toArray(ChannelTopic[]::new));
 	}
@@ -119,7 +119,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	default Flux<? extends Message<String, V>> listenToPattern(String... patterns) {
 
-		Assert.notNull(patterns, "Patterns must not be null!");
+		Assert.notNull(patterns, "Patterns must not be null");
 		return listenTo(Arrays.stream(patterns).map(PatternTopic::of).toArray(PatternTopic[]::new));
 	}
 
@@ -144,7 +144,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	default Mono<Flux<? extends Message<String, V>>> listenToChannelLater(String... channels) {
 
-		Assert.notNull(channels, "Channels must not be null!");
+		Assert.notNull(channels, "Channels must not be null");
 
 		return listenToLater(Arrays.stream(channels).map(ChannelTopic::of).toArray(ChannelTopic[]::new));
 	}
@@ -160,7 +160,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	default Mono<Flux<? extends Message<String, V>>> listenToPatternLater(String... patterns) {
 
-		Assert.notNull(patterns, "Patterns must not be null!");
+		Assert.notNull(patterns, "Patterns must not be null");
 		return listenToLater(Arrays.stream(patterns).map(PatternTopic::of).toArray(PatternTopic[]::new));
 	}
 

@@ -138,7 +138,7 @@ public final class ByteUtils {
 	 */
 	public static byte[] getBytes(ByteBuffer byteBuffer) {
 
-		Assert.notNull(byteBuffer, "ByteBuffer must not be null!");
+		Assert.notNull(byteBuffer, "ByteBuffer must not be null");
 
 		ByteBuffer duplicate = byteBuffer.duplicate();
 		byte[] bytes = new byte[duplicate.remaining()];
@@ -228,8 +228,8 @@ public final class ByteUtils {
 	 */
 	public static ByteBuffer getByteBuffer(String theString, Charset charset) {
 
-		Assert.notNull(theString, "The String must not be null!");
-		Assert.notNull(charset, "The String must not be null!");
+		Assert.notNull(theString, "The String must not be null");
+		Assert.notNull(charset, "The String must not be null");
 
 		return charset.encode(theString);
 	}

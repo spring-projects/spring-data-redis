@@ -34,8 +34,8 @@ public class DefaultMessage implements Message {
 
 	public DefaultMessage(byte[] channel, byte[] body) {
 
-		Assert.notNull(channel, "Channel must not be null!");
-		Assert.notNull(body, "Body must not be null!");
+		Assert.notNull(channel, "Channel must not be null");
+		Assert.notNull(body, "Body must not be null");
 
 		this.body = body;
 		this.channel = channel;

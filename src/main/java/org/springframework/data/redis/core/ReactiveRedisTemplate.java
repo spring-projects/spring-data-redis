@@ -101,8 +101,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	public ReactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory,
 			RedisSerializationContext<K, V> serializationContext, boolean exposeConnection) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-		Assert.notNull(serializationContext, "SerializationContext must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+		Assert.notNull(serializationContext, "SerializationContext must not be null");
 
 		this.connectionFactory = connectionFactory;
 		this.serializationContext = serializationContext;
@@ -169,7 +169,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	public <T> Flux<T> createFlux(ReactiveRedisCallback<T> callback) {
 
-		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
+		Assert.notNull(callback, "ReactiveRedisCallback must not be null");
 
 		return Flux.from(doInConnection(callback, exposeConnection));
 	}
@@ -185,7 +185,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	<T> Flux<T> doCreateFlux(ReactiveRedisCallback<T> callback) {
 
-		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
+		Assert.notNull(callback, "ReactiveRedisCallback must not be null");
 
 		return Flux.from(doInConnection(callback, true));
 	}
@@ -199,7 +199,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	public <T> Mono<T> createMono(ReactiveRedisCallback<T> callback) {
 
-		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
+		Assert.notNull(callback, "ReactiveRedisCallback must not be null");
 
 		return Mono.from(doInConnection(callback, exposeConnection));
 	}
@@ -215,7 +215,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	 */
 	<T> Mono<T> doCreateMono(ReactiveRedisCallback<T> callback) {
 
-		Assert.notNull(callback, "ReactiveRedisCallback must not be null!");
+		Assert.notNull(callback, "ReactiveRedisCallback must not be null");
 
 		return Mono.from(doInConnection(callback, true));
 	}
@@ -264,8 +264,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Long> convertAndSend(String destination, V message) {
 
-		Assert.hasText(destination, "Destination channel must not be empty!");
-		Assert.notNull(message, "Message must not be null!");
+		Assert.hasText(destination, "Destination channel must not be empty");
+		Assert.notNull(message, "Message must not be null");
 
 		return doCreateMono(connection -> connection.pubSubCommands().publish(
 				getSerializationContext().getStringSerializationPair().write(destination),
@@ -301,8 +301,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> copy(K sourceKey, K targetKey, boolean replace) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(targetKey, "Target key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().copy(rawKey(sourceKey), rawKey(targetKey), replace));
 	}
@@ -310,7 +310,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> hasKey(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().exists(rawKey(key)));
 	}
@@ -318,7 +318,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<DataType> type(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().type(rawKey(key)));
 	}
@@ -326,7 +326,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Flux<K> keys(K pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		return doCreateFlux(connection -> connection.keyCommands().keys(rawKey(pattern))) //
 				.flatMap(Flux::fromIterable) //
@@ -336,7 +336,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Flux<K> scan(ScanOptions options) {
 
-		Assert.notNull(options, "ScanOptions must not be null!");
+		Assert.notNull(options, "ScanOptions must not be null");
 
 		return doCreateFlux(connection -> connection.keyCommands().scan(options)) //
 				.map(this::readKey);
@@ -350,8 +350,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> rename(K oldKey, K newKey) {
 
-		Assert.notNull(oldKey, "Old key must not be null!");
-		Assert.notNull(newKey, "New Key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null");
+		Assert.notNull(newKey, "New Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().rename(rawKey(oldKey), rawKey(newKey)));
 	}
@@ -359,8 +359,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> renameIfAbsent(K oldKey, K newKey) {
 
-		Assert.notNull(oldKey, "Old key must not be null!");
-		Assert.notNull(newKey, "New Key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null");
+		Assert.notNull(newKey, "New Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().renameNX(rawKey(oldKey), rawKey(newKey)));
 	}
@@ -369,9 +369,9 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@SafeVarargs
 	public final Mono<Long> delete(K... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.notEmpty(keys, "Keys must not be empty!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.notEmpty(keys, "Keys must not be empty");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (keys.length == 1) {
 			return doCreateMono(connection -> connection.keyCommands().del(rawKey(keys[0])));
@@ -384,7 +384,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Long> delete(Publisher<K> keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return doCreateFlux(connection -> connection.keyCommands() //
 				.mDel(Flux.from(keys).map(this::rawKey).buffer(128)) //
@@ -396,9 +396,9 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@SafeVarargs
 	public final Mono<Long> unlink(K... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.notEmpty(keys, "Keys must not be empty!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.notEmpty(keys, "Keys must not be empty");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (keys.length == 1) {
 			return doCreateMono(connection -> connection.keyCommands().unlink(rawKey(keys[0])));
@@ -411,7 +411,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Long> unlink(Publisher<K> keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return doCreateFlux(connection -> connection.keyCommands() //
 				.mUnlink(Flux.from(keys).map(this::rawKey).buffer(128)) //
@@ -422,8 +422,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> expire(K key, Duration timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(timeout, "Timeout must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(timeout, "Timeout must not be null");
 
 		if (timeout.getNano() == 0) {
 			return doCreateMono(connection -> connection.keyCommands() //
@@ -436,8 +436,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> expireAt(K key, Instant expireAt) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(expireAt, "Expire at must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expireAt, "Expire at must not be null");
 
 		if (expireAt.getNano() == 0) {
 			return doCreateMono(connection -> connection.keyCommands() //
@@ -450,7 +450,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> persist(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().persist(rawKey(key)));
 	}
@@ -458,7 +458,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Duration> getExpire(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().pTtl(rawKey(key)).flatMap(expiry -> {
 
@@ -477,7 +477,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	@Override
 	public Mono<Boolean> move(K key, int dbIndex) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
 	}

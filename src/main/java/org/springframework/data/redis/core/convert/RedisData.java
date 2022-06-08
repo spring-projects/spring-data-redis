@@ -65,7 +65,7 @@ public class RedisData {
 	 */
 	public RedisData(Bucket bucket) {
 
-		Assert.notNull(bucket, "Bucket must not be null!");
+		Assert.notNull(bucket, "Bucket must not be null");
 
 		this.bucket = bucket;
 		this.indexedData = new HashSet<>();
@@ -103,7 +103,7 @@ public class RedisData {
 	 */
 	public void addIndexedData(IndexedData index) {
 
-		Assert.notNull(index, "IndexedData to add must not be null!");
+		Assert.notNull(index, "IndexedData to add must not be null");
 		this.indexedData.add(index);
 	}
 
@@ -112,7 +112,7 @@ public class RedisData {
 	 */
 	public void addIndexedData(Collection<IndexedData> indexes) {
 
-		Assert.notNull(indexes, "IndexedData to add must not be null!");
+		Assert.notNull(indexes, "IndexedData to add must not be null");
 		this.indexedData.addAll(indexes);
 	}
 
@@ -162,8 +162,8 @@ public class RedisData {
 	 */
 	public void setTimeToLive(Long timeToLive, TimeUnit timeUnit) {
 
-		Assert.notNull(timeToLive, "TimeToLive must not be null when used with TimeUnit!");
-		Assert.notNull(timeToLive, "TimeUnit must not be null!");
+		Assert.notNull(timeToLive, "TimeToLive must not be null when used with TimeUnit");
+		Assert.notNull(timeToLive, "TimeUnit must not be null");
 
 		setTimeToLive(TimeUnit.SECONDS.convert(timeToLive, timeUnit));
 	}

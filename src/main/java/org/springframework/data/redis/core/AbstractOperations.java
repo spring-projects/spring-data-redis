@@ -146,8 +146,8 @@ abstract class AbstractOperations<K, V> {
 	 */
 	byte[][] rawValues(Collection<V> values) {
 
-		Assert.notEmpty(values, "Values must not be 'null' or empty.");
-		Assert.noNullElements(values.toArray(), "Values must not contain 'null' value.");
+		Assert.notEmpty(values, "Values must not be 'null' or empty");
+		Assert.noNullElements(values.toArray(), "Values must not contain 'null' value");
 
 		byte[][] rawValues = new byte[values.size()][];
 		int i = 0;

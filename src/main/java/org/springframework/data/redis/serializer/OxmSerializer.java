@@ -62,7 +62,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 	 */
 	public void setMarshaller(Marshaller marshaller) {
 
-		Assert.notNull(marshaller, "Marshaller must not be null!");
+		Assert.notNull(marshaller, "Marshaller must not be null");
 
 		this.marshaller = marshaller;
 	}
@@ -72,7 +72,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 	 */
 	public void setUnmarshaller(Unmarshaller unmarshaller) {
 
-		Assert.notNull(unmarshaller, "Unmarshaller must not be null!");
+		Assert.notNull(unmarshaller, "Unmarshaller must not be null");
 
 		this.unmarshaller = unmarshaller;
 	}

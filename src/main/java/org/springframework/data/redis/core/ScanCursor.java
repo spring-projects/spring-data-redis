@@ -105,7 +105,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	public final ScanCursor<T> open() {
 
 		if (!isReady()) {
-			throw new InvalidDataAccessApiUsageException("Cursor already " + state + ". Cannot (re)open it.");
+			throw new InvalidDataAccessApiUsageException("Cursor already " + state + "; Cannot (re)open it");
 		}
 
 		state = CursorState.OPEN;
@@ -177,7 +177,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	private void assertCursorIsOpen() {
 
 		if (isReady() || isClosed()) {
-			throw new InvalidDataAccessApiUsageException("Cannot access closed cursor. Did you forget to call open()?");
+			throw new InvalidDataAccessApiUsageException("Cannot access closed cursor; Did you forget to call open()");
 		}
 	}
 
@@ -187,7 +187,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		assertCursorIsOpen();
 
 		if (!hasNext()) {
-			throw new NoSuchElementException("No more elements available for cursor " + cursorId + ".");
+			throw new NoSuchElementException("No more elements available for cursor " + cursorId);
 		}
 
 		T next = moveNext(delegate);

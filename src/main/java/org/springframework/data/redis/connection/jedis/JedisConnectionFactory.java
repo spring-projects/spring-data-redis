@@ -122,7 +122,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	private JedisConnectionFactory(JedisClientConfiguration clientConfig) {
 
-		Assert.notNull(clientConfig, "JedisClientConfiguration must not be null!");
+		Assert.notNull(clientConfig, "JedisClientConfiguration must not be null");
 
 		this.clientConfiguration = clientConfig;
 	}
@@ -182,7 +182,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public JedisConnectionFactory(RedisClusterConfiguration clusterConfig, JedisPoolConfig poolConfig) {
 
-		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null!");
+		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null");
 
 		this.configuration = clusterConfig;
 		this.clientConfiguration = MutableJedisClientConfiguration.create(poolConfig);
@@ -210,7 +210,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this(clientConfig);
 
-		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null!");
+		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null");
 
 		this.standaloneConfig = standaloneConfig;
 	}
@@ -227,7 +227,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this(clientConfig);
 
-		Assert.notNull(sentinelConfig, "RedisSentinelConfiguration must not be null!");
+		Assert.notNull(sentinelConfig, "RedisSentinelConfiguration must not be null");
 
 		this.configuration = sentinelConfig;
 	}
@@ -244,7 +244,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this(clientConfig);
 
-		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null!");
+		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null");
 
 		this.configuration = clusterConfig;
 	}
@@ -401,7 +401,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig,
 			GenericObjectPoolConfig<Connection> poolConfig) {
 
-		Assert.notNull(clusterConfig, "Cluster configuration must not be null!");
+		Assert.notNull(clusterConfig, "Cluster configuration must not be null");
 
 		Set<HostAndPort> hostAndPort = new HashSet<>();
 		for (RedisNode node : clusterConfig.getClusterNodes()) {
@@ -471,7 +471,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		assertInitialized();
 
 		if (!isRedisClusterAware()) {
-			throw new InvalidDataAccessApiUsageException("Cluster is not configured!");
+			throw new InvalidDataAccessApiUsageException("Cluster is not configured");
 		}
 		return new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider);
 	}
@@ -635,7 +635,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setUsePool(boolean usePool) {
 
 		if (isRedisSentinelAware() && !usePool) {
-			throw new IllegalStateException("Jedis requires pooling for Redis Sentinel use!");
+			throw new IllegalStateException("Jedis requires pooling for Redis Sentinel use");
 		}
 
 		getMutableConfiguration().setUsePooling(usePool);
@@ -805,7 +805,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private Jedis getActiveSentinel() {
 
-		Assert.isTrue(RedisConfiguration.isSentinelConfiguration(configuration), "SentinelConfig must not be null!");
+		Assert.isTrue(RedisConfiguration.isSentinelConfiguration(configuration), "SentinelConfig must not be null");
 		SentinelConfiguration sentinelConfiguration = (SentinelConfiguration) configuration;
 
 		JedisClientConfig clientConfig = createSentinelClientConfig(sentinelConfiguration);

@@ -291,7 +291,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
 
-			Assert.notNull(sslSocketFactory, "SSLSocketFactory must not be null!");
+			Assert.notNull(sslSocketFactory, "SSLSocketFactory must not be null");
 
 			this.sslSocketFactory = sslSocketFactory;
 			return this;
@@ -300,7 +300,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
 
-			Assert.notNull(sslParameters, "SSLParameters must not be null!");
+			Assert.notNull(sslParameters, "SSLParameters must not be null");
 
 			this.sslParameters = sslParameters;
 			return this;
@@ -309,7 +309,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisSslClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
 
-			Assert.notNull(hostnameVerifier, "HostnameVerifier must not be null!");
+			Assert.notNull(hostnameVerifier, "HostnameVerifier must not be null");
 
 			this.hostnameVerifier = hostnameVerifier;
 			return this;
@@ -325,7 +325,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
 
-			Assert.notNull(poolConfig, "GenericObjectPoolConfig must not be null!");
+			Assert.notNull(poolConfig, "GenericObjectPoolConfig must not be null");
 
 			this.poolConfig = poolConfig;
 			return this;
@@ -339,7 +339,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisClientConfigurationBuilder clientName(String clientName) {
 
-			Assert.hasText(clientName, "Client name must not be null or empty!");
+			Assert.hasText(clientName, "Client name must not be null or empty");
 
 			this.clientName = clientName;
 			return this;
@@ -348,7 +348,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisClientConfigurationBuilder readTimeout(Duration readTimeout) {
 
-			Assert.notNull(readTimeout, "Duration must not be null!");
+			Assert.notNull(readTimeout, "Duration must not be null");
 
 			this.readTimeout = readTimeout;
 			return this;
@@ -357,7 +357,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout) {
 
-			Assert.notNull(connectTimeout, "Duration must not be null!");
+			Assert.notNull(connectTimeout, "Duration must not be null");
 
 			this.connectTimeout = connectTimeout;
 			return this;

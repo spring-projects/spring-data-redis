@@ -73,7 +73,7 @@ public class StreamInfo {
 			T value = get(entry, type);
 
 			if (value == null) {
-				throw new IllegalStateException("Value for entry '%s' is null.".formatted(entry));
+				throw new IllegalStateException("Value for entry '%s' is null".formatted(entry));
 			}
 			return value;
 		}

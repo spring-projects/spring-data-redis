@@ -91,7 +91,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 */
 	public ObjectHashMapper(RedisConverter converter) {
 
-		Assert.notNull(converter, "Converter must not be null!");
+		Assert.notNull(converter, "Converter must not be null");
 		this.converter = converter;
 	}
 

@@ -574,7 +574,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@Override
 	public Long countExistingKeys(Collection<K> keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		byte[][] rawKeys = rawKeys(keys);
 		return doWithKeys(connection -> connection.exists(rawKeys));
@@ -642,7 +642,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public Cursor<K> scan(ScanOptions options) {
-		Assert.notNull(options, "ScanOptions must not be null!");
+		Assert.notNull(options, "ScanOptions must not be null");
 
 		return executeWithStickyConnection(
 				(RedisCallback<Cursor<K>>) connection -> new ConvertingCursor<>(connection.scan(options),

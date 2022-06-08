@@ -93,9 +93,9 @@ public interface RedisClusterConnection
 	@Nullable
 	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
 
-		Assert.notNull(command, "Command must not be null!");
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(command, "Command must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		byte[][] commandArgs = new byte[args.size() + 1][];
 

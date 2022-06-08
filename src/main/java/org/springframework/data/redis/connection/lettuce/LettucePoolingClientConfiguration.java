@@ -158,7 +158,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		 */
 		public LettucePoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
 
-			Assert.notNull(poolConfig, "PoolConfig must not be null!");
+			Assert.notNull(poolConfig, "PoolConfig must not be null");
 
 			this.poolConfig = poolConfig;
 			return this;

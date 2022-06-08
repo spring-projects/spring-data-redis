@@ -115,7 +115,7 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 			return ReflectionUtils.newInstance(clazz);
 		} catch (Exception ex) {
 			if (ex instanceof NoSuchMethodException) {
-				String message = String.format("Failed to find a no-argument constructor for ArgumentsProvider [%s]. "
+				String message = String.format("Failed to find a no-argument constructor for ArgumentsProvider [%s]; "
 						+ "Please ensure that a no-argument constructor exists and "
 						+ "that the class is either a top-level class or a static nested class", clazz.getName());
 				throw new JUnitException(message, ex);

@@ -130,7 +130,7 @@ public class ClusterTopology {
 	 */
 	public RedisClusterNode getKeyServingMasterNode(byte[] key) {
 
-		Assert.notNull(key, "Key for node lookup must not be null!");
+		Assert.notNull(key, "Key for node lookup must not be null");
 
 		int slot = ClusterSlotHashUtil.calculateSlot(key);
 
@@ -161,7 +161,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find node at %s:%s. Is your cluster info up to date?", host, port));
+				String.format("Could not find node at %s:%s; Is your cluster info up to date", host, port));
 	}
 
 	/**
@@ -173,7 +173,7 @@ public class ClusterTopology {
 	 */
 	public RedisClusterNode lookup(String nodeId) {
 
-		Assert.notNull(nodeId, "NodeId must not be null!");
+		Assert.notNull(nodeId, "NodeId must not be null");
 
 		for (RedisClusterNode node : nodes) {
 			if (nodeId.equals(node.getId())) {
@@ -182,7 +182,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find node at %s. Is your cluster info up to date?", nodeId));
+				String.format("Could not find node at %s; Is your cluster info up to date", nodeId));
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class ClusterTopology {
 	 */
 	public RedisClusterNode lookup(RedisClusterNode node) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null!");
+		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		if (nodes.contains(node) && node.hasValidHost() && StringUtils.hasText(node.getId())) {
 			return node;
@@ -210,7 +210,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find node at %s. Have you provided either host and port or the nodeId?", node));
+				String.format("Could not find node at %s; Have you provided either host and port or the nodeId", node));
 	}
 
 	/**

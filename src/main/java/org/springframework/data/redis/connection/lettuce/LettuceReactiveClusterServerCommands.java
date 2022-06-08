@@ -138,7 +138,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	@Override
 	public Mono<Properties> info(String section) {
 
-		Assert.hasText(section, "Section must not be null or empty!");
+		Assert.hasText(section, "Section must not be null or empty");
 
 		return Flux.merge(executeOnAllNodes(redisClusterNode -> info(redisClusterNode, section)))
 				.collect(PropertiesCollector.INSTANCE);
@@ -147,7 +147,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	@Override
 	public Mono<Properties> info(RedisClusterNode node, String section) {
 
-		Assert.hasText(section, "Section must not be null or empty!");
+		Assert.hasText(section, "Section must not be null or empty");
 
 		return connection.execute(node, c -> c.info(section)) //
 				.map(LettuceConverters::toProperties).next();
@@ -156,7 +156,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	@Override
 	public Mono<Properties> getConfig(String pattern) {
 
-		Assert.hasText(pattern, "Pattern must not be null or empty!");
+		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		return Flux.merge(executeOnAllNodes(node -> getConfig(node, pattern))) //
 				.collect(PropertiesCollector.INSTANCE);
@@ -165,7 +165,7 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	@Override
 	public Mono<Properties> getConfig(RedisClusterNode node, String pattern) {
 
-		Assert.hasText(pattern, "Pattern must not be null or empty!");
+		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		return connection.execute(node, c -> c.configGet(pattern)) //
 				.map(LettuceConverters::toProperties) //
@@ -180,8 +180,8 @@ class LettuceReactiveClusterServerCommands extends LettuceReactiveServerCommands
 	@Override
 	public Mono<String> setConfig(RedisClusterNode node, String param, String value) {
 
-		Assert.hasText(param, "Parameter must not be null or empty!");
-		Assert.hasText(value, "Value must not be null or empty!");
+		Assert.hasText(param, "Parameter must not be null or empty");
+		Assert.hasText(value, "Value must not be null or empty");
 
 		return connection.execute(node, c -> c.configSet(param, value)).next();
 	}

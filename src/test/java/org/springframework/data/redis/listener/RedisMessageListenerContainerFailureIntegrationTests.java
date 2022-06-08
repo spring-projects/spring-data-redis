@@ -111,7 +111,7 @@ class RedisMessageListenerContainerFailureIntegrationTests {
 		// interrupt thread once Executor.execute is called
 		doAnswer(invocationOnMock -> {
 
-			throw new RedisConnectionFailureException("I want to break free!");
+			throw new RedisConnectionFailureException("I want to break free");
 		}).when(executorMock).execute(any(Runnable.class));
 
 		container.setRecoveryBackoff(new FixedBackOff(1, 5));

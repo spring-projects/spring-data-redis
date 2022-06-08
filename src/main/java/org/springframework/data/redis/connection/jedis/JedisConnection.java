@@ -271,8 +271,8 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public Object execute(String command, byte[]... args) {
 
-		Assert.hasText(command, "A valid command needs to be specified!");
-		Assert.notNull(args, "Arguments must not be null!");
+		Assert.hasText(command, "A valid command needs to be specified");
+		Assert.notNull(args, "Arguments must not be null");
 
 		return doWithJedis(it -> {
 
@@ -447,7 +447,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		try {
 
 			if (transaction == null) {
-				throw new InvalidDataAccessApiUsageException("No ongoing transaction. Did you forget to call multi?");
+				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
 			}
 
 			List<Object> results = transaction.exec();

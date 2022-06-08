@@ -63,7 +63,7 @@ class JedisExceptionConverterUnitTests {
 	void shouldConvertMaxRedirectException() {
 
 		DataAccessException converted = converter
-				.convert(new JedisClusterOperationException("No more cluster attempts left."));
+				.convert(new JedisClusterOperationException("No more cluster attempts left"));
 
 		assertThat(converted).isInstanceOf(TooManyClusterRedirectionsException.class);
 	}

@@ -123,7 +123,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	@Override
 	public Set<V> distinctRandomMembers(K key, long count) {
 
-		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+		Assert.isTrue(count > 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
 
 		byte[] rawKey = rawKey(key);
 
@@ -134,7 +134,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	@Override
 	public List<V> randomMembers(K key, long count) {
 
-		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+		Assert.isTrue(count > 0, "Use a positive number for count; This method is already allowing duplicate elements");
 
 		byte[] rawKey = rawKey(key);
 
@@ -153,7 +153,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	@Override
 	public Set<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count) {
 
-		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
+		Assert.isTrue(count > 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
 
 		byte[] rawKey = rawKey(key);
 
@@ -164,7 +164,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	@Override
 	public List<TypedTuple<V>> randomMembersWithScore(K key, long count) {
 
-		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
+		Assert.isTrue(count > 0, "Use a positive number for count; This method is already allowing duplicate elements");
 
 		byte[] rawKey = rawKey(key);
 

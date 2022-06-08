@@ -51,7 +51,7 @@ public class Weights {
 	 */
 	public static Weights of(int... weights) {
 
-		Assert.notNull(weights, "Weights must not be null!");
+		Assert.notNull(weights, "Weights must not be null");
 		return new Weights(Arrays.stream(weights).mapToDouble(value -> value).boxed().collect(Collectors.toList()));
 	}
 
@@ -63,7 +63,7 @@ public class Weights {
 	 */
 	public static Weights of(double... weights) {
 
-		Assert.notNull(weights, "Weights must not be null!");
+		Assert.notNull(weights, "Weights must not be null");
 
 		return new Weights(DoubleStream.of(weights).boxed().collect(Collectors.toList()));
 	}
@@ -76,7 +76,7 @@ public class Weights {
 	 */
 	public static Weights fromSetCount(int count) {
 
-		Assert.isTrue(count >= 0, "Count of input sorted sets must be greater or equal to zero!");
+		Assert.isTrue(count >= 0, "Count of input sorted sets must be greater or equal to zero");
 
 		return new Weights(IntStream.range(0, count).mapToDouble(value -> 1).boxed().collect(Collectors.toList()));
 	}

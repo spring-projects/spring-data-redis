@@ -136,7 +136,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration entryTtl(Duration ttl) {
 
-		Assert.notNull(ttl, "TTL duration must not be null!");
+		Assert.notNull(ttl, "TTL duration must not be null");
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
@@ -167,7 +167,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration computePrefixWith(CacheKeyPrefix cacheKeyPrefix) {
 
-		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null!");
+		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null");
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, true, cacheKeyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
@@ -207,7 +207,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration withConversionService(ConversionService conversionService) {
 
-		Assert.notNull(conversionService, "ConversionService must not be null!");
+		Assert.notNull(conversionService, "ConversionService must not be null");
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
@@ -221,7 +221,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration serializeKeysWith(SerializationPair<String> keySerializationPair) {
 
-		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null!");
+		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null");
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
@@ -235,7 +235,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration serializeValuesWith(SerializationPair<?> valueSerializationPair) {
 
-		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null!");
+		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null");
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
@@ -249,7 +249,7 @@ public class RedisCacheConfiguration {
 	 */
 	public String getKeyPrefixFor(String cacheName) {
 
-		Assert.notNull(cacheName, "Cache name must not be null!");
+		Assert.notNull(cacheName, "Cache name must not be null");
 
 		return keyPrefix.compute(cacheName);
 	}
@@ -320,8 +320,8 @@ public class RedisCacheConfiguration {
 
 		if (!(getConversionService() instanceof ConverterRegistry)) {
 			throw new IllegalStateException(String.format(
-					"'%s' returned by getConversionService() does not allow converter registration." //
-							+ " Please make sure to provide a ConversionService that implements ConverterRegistry.",
+					"'%s' returned by getConversionService() does not allow converter registration;" //
+							+ " Please make sure to provide a ConversionService that implements ConverterRegistry",
 					getConversionService().getClass().getSimpleName()));
 		}
 
@@ -339,7 +339,7 @@ public class RedisCacheConfiguration {
 	 */
 	public static void registerDefaultConverters(ConverterRegistry registry) {
 
-		Assert.notNull(registry, "ConverterRegistry must not be null!");
+		Assert.notNull(registry, "ConverterRegistry must not be null");
 
 		registry.addConverter(String.class, byte[].class, source -> source.getBytes(StandardCharsets.UTF_8));
 		registry.addConverter(SimpleKey.class, String.class, SimpleKey::toString);

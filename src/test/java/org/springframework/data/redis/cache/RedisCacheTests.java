@@ -308,7 +308,7 @@ public class RedisCacheTests {
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
 
 		cache.get(key, () -> {
-			throw new IllegalStateException("Why call the value loader when we've got a cache entry?");
+			throw new IllegalStateException("Why call the value loader when we've got a cache entry");
 		});
 
 		doWithConnection(connection -> {

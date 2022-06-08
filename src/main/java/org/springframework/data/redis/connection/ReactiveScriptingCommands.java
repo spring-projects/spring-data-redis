@@ -65,7 +65,7 @@ public interface ReactiveScriptingCommands {
 	 */
 	default Mono<Boolean> scriptExists(String scriptSha) {
 
-		Assert.notNull(scriptSha, "ScriptSha must not be null!");
+		Assert.notNull(scriptSha, "ScriptSha must not be null");
 		return scriptExists(Collections.singletonList(scriptSha)).singleOrEmpty();
 	}
 

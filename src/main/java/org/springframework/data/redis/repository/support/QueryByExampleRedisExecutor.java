@@ -94,9 +94,9 @@ public class QueryByExampleRedisExecutor<T>
 	public QueryByExampleRedisExecutor(EntityInformation<T, ?> entityInformation, RedisKeyValueTemplate keyValueTemplate,
 			IndexResolver indexResolver) {
 
-		Assert.notNull(entityInformation, "EntityInformation must not be null!");
-		Assert.notNull(keyValueTemplate, "RedisKeyValueTemplate must not be null!");
-		Assert.notNull(indexResolver, "IndexResolver must not be null!");
+		Assert.notNull(entityInformation, "EntityInformation must not be null");
+		Assert.notNull(keyValueTemplate, "RedisKeyValueTemplate must not be null");
+		Assert.notNull(indexResolver, "IndexResolver must not be null");
 
 		this.entityInformation = entityInformation;
 		this.keyValueTemplate = keyValueTemplate;
@@ -162,7 +162,7 @@ public class QueryByExampleRedisExecutor<T>
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		Assert.notNull(pageable, "Pageable must not be null!");
+		Assert.notNull(pageable, "Pageable must not be null");
 
 		RedisOperationChain operationChain = createQuery(example);
 
@@ -193,15 +193,15 @@ public class QueryByExampleRedisExecutor<T>
 	public <S extends T, R> R findBy(Example<S> example,
 			Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(example, "Example must not be null!");
-		Assert.notNull(queryFunction, "Query function must not be null!");
+		Assert.notNull(example, "Example must not be null");
+		Assert.notNull(queryFunction, "Query function must not be null");
 
 		return queryFunction.apply(new FluentQueryByExample<>(example, example.getProbeType()));
 	}
 
 	private <S extends T> RedisOperationChain createQuery(Example<S> example) {
 
-		Assert.notNull(example, "Example must not be null!");
+		Assert.notNull(example, "Example must not be null");
 
 		return mapper.getMappedExample(example);
 	}
@@ -279,7 +279,7 @@ public class QueryByExampleRedisExecutor<T>
 		@Override
 		public Page<R> page(Pageable pageable) {
 
-			Assert.notNull(pageable, "Pageable must not be null!");
+			Assert.notNull(pageable, "Pageable must not be null");
 
 			Function<Object, R> conversionFunction = getConversionFunction(entityInformation.getJavaType(), resultType);
 

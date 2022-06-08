@@ -72,7 +72,7 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	@Nullable
 	protected RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
 
-		Assert.notNull(property, "Property must not be null!");
+		Assert.notNull(property, "Property must not be null");
 
 		if (!property.isIdProperty()) {
 			return null;
@@ -91,14 +91,14 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 		if (currentIdPropertyIsExplicit && newIdPropertyIsExplicit) {
 			throw new MappingException(String.format(
 					"Attempt to add explicit id property %s but already have an property %s registered "
-							+ "as explicit id. Check your mapping configuration!",
+							+ "as explicit id; Check your mapping configuration",
 					property.getField(), currentIdProperty.getField()));
 		}
 
 		if (!currentIdPropertyIsExplicit && !newIdPropertyIsExplicit) {
 			throw new MappingException(
 					String.format("Attempt to add id property %s but already have an property %s registered "
-							+ "as id. Check your mapping configuration!", property.getField(), currentIdProperty.getField()));
+							+ "as id; Check your mapping configuration", property.getField(), currentIdProperty.getField()));
 		}
 
 		if (newIdPropertyIsExplicit) {

@@ -52,7 +52,7 @@ public class ClusterInfo {
 	 */
 	public ClusterInfo(Properties clusterProperties) {
 
-		Assert.notNull(clusterProperties, "ClusterProperties must not be null!");
+		Assert.notNull(clusterProperties, "ClusterProperties must not be null");
 		this.clusterProperties = clusterProperties;
 	}
 
@@ -153,7 +153,7 @@ public class ClusterInfo {
 	@Nullable
 	public String get(Info info) {
 
-		Assert.notNull(info, "Cannot retrieve cluster information for 'null'.");
+		Assert.notNull(info, "Cannot retrieve cluster information for 'null'");
 		return get(info.key);
 	}
 

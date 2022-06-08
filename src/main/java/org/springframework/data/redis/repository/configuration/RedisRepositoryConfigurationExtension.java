@@ -74,7 +74,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 		if (!StringUtils.hasText(redisTemplateRef)) {
 			throw new IllegalStateException(
-					"@EnableRedisRepositories(redisTemplateRef = … ) must be configured to a non empty value!");
+					"@EnableRedisRepositories(redisTemplateRef = … ) must be configured to a non empty value");
 		}
 
 		registerIfNotAlreadyRegistered(() -> createRedisMappingContext(configuration), registry, MAPPING_CONTEXT_BEAN_NAME,

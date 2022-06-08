@@ -55,7 +55,7 @@ public interface RedisSerializationContext<K, V> {
 	 */
 	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext(RedisSerializer<?> defaultSerializer) {
 
-		Assert.notNull(defaultSerializer, "DefaultSerializer must not be null!");
+		Assert.notNull(defaultSerializer, "DefaultSerializer must not be null");
 
 		return newSerializationContext(SerializationPair.fromSerializer(defaultSerializer));
 	}
@@ -71,7 +71,7 @@ public interface RedisSerializationContext<K, V> {
 	@SuppressWarnings("unchecked")
 	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext(SerializationPair<?> serializationPair) {
 
-		Assert.notNull(serializationPair, "SerializationPair must not be null!");
+		Assert.notNull(serializationPair, "SerializationPair must not be null");
 
 		return new DefaultRedisSerializationContext.DefaultRedisSerializationContextBuilder() //
 				.key(serializationPair).value(serializationPair) //
@@ -205,7 +205,7 @@ public interface RedisSerializationContext<K, V> {
 		 */
 		static <T> SerializationPair<T> fromSerializer(RedisSerializer<T> serializer) {
 
-			Assert.notNull(serializer, "RedisSerializer must not be null!");
+			Assert.notNull(serializer, "RedisSerializer must not be null");
 
 			return new RedisSerializerToSerializationPairAdapter<>(serializer);
 		}
@@ -220,8 +220,8 @@ public interface RedisSerializationContext<K, V> {
 		static <T> SerializationPair<T> just(RedisElementReader<? extends T> reader,
 				RedisElementWriter<? extends T> writer) {
 
-			Assert.notNull(reader, "RedisElementReader must not be null!");
-			Assert.notNull(writer, "RedisElementWriter must not be null!");
+			Assert.notNull(reader, "RedisElementReader must not be null");
+			Assert.notNull(writer, "RedisElementWriter must not be null");
 
 			return new DefaultSerializationPair<>(reader, writer);
 		}

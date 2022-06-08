@@ -88,7 +88,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContextBuilder<K, V> key(SerializationPair<K> tuple) {
 
-			Assert.notNull(tuple, "SerializationPair must not be null!");
+			Assert.notNull(tuple, "SerializationPair must not be null");
 
 			this.keyTuple = tuple;
 			return this;
@@ -97,7 +97,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContextBuilder<K, V> value(SerializationPair<V> tuple) {
 
-			Assert.notNull(tuple, "SerializationPair must not be null!");
+			Assert.notNull(tuple, "SerializationPair must not be null");
 
 			this.valueTuple = tuple;
 			return this;
@@ -106,7 +106,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContextBuilder<K, V> hashKey(SerializationPair<?> tuple) {
 
-			Assert.notNull(tuple, "SerializationPair must not be null!");
+			Assert.notNull(tuple, "SerializationPair must not be null");
 
 			this.hashKeyTuple = tuple;
 			return this;
@@ -115,7 +115,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContextBuilder<K, V> hashValue(SerializationPair<?> tuple) {
 
-			Assert.notNull(tuple, "SerializationPair must not be null!");
+			Assert.notNull(tuple, "SerializationPair must not be null");
 
 			this.hashValueTuple = tuple;
 			return this;
@@ -124,7 +124,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContextBuilder<K, V> string(SerializationPair<String> tuple) {
 
-			Assert.notNull(tuple, "SerializationPair must not be null!");
+			Assert.notNull(tuple, "SerializationPair must not be null");
 
 			this.hashValueTuple = tuple;
 			return this;
@@ -133,10 +133,10 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContext<K, V> build() {
 
-			Assert.notNull(keyTuple, "Key SerializationPair must not be null!");
-			Assert.notNull(valueTuple, "Value SerializationPair must not be null!");
-			Assert.notNull(hashKeyTuple, "HashKey SerializationPair must not be null!");
-			Assert.notNull(hashValueTuple, "ValueKey SerializationPair must not be null!");
+			Assert.notNull(keyTuple, "Key SerializationPair must not be null");
+			Assert.notNull(valueTuple, "Value SerializationPair must not be null");
+			Assert.notNull(hashKeyTuple, "HashKey SerializationPair must not be null");
+			Assert.notNull(hashValueTuple, "ValueKey SerializationPair must not be null");
 
 			return new DefaultRedisSerializationContext<>(keyTuple, valueTuple, hashKeyTuple, hashValueTuple,
 					stringTuple);

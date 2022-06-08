@@ -81,10 +81,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
 			CacheStatisticsCollector cacheStatisticsCollector, BatchStrategy batchStrategy) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
-		Assert.notNull(sleepTime, "SleepTime must not be null!");
-		Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null!");
-		Assert.notNull(batchStrategy, "BatchStrategy must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+		Assert.notNull(sleepTime, "SleepTime must not be null");
+		Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null");
+		Assert.notNull(batchStrategy, "BatchStrategy must not be null");
 
 		this.connectionFactory = connectionFactory;
 		this.sleepTime = sleepTime;
@@ -95,9 +95,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@Override
 	public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
-		Assert.notNull(name, "Name must not be null!");
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		execute(name, connection -> {
 
@@ -116,8 +116,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@Override
 	public byte[] get(String name, byte[] key) {
 
-		Assert.notNull(name, "Name must not be null!");
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
 
 		byte[] result = execute(name, connection -> connection.get(key));
 
@@ -135,9 +135,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@Override
 	public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
-		Assert.notNull(name, "Name must not be null!");
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return execute(name, connection -> {
 
@@ -173,8 +173,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@Override
 	public void remove(String name, byte[] key) {
 
-		Assert.notNull(name, "Name must not be null!");
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
 
 		execute(name, connection -> connection.del(key));
 		statistics.incDeletes(name);
@@ -183,8 +183,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@Override
 	public void clean(String name, byte[] pattern) {
 
-		Assert.notNull(name, "Name must not be null!");
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		execute(name, connection -> {
 

@@ -76,7 +76,7 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	 */
 	public StringRedisSerializer(Charset charset) {
 
-		Assert.notNull(charset, "Charset must not be null!");
+		Assert.notNull(charset, "Charset must not be null");
 		this.charset = charset;
 	}
 

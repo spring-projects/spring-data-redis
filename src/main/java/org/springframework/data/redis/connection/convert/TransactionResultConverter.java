@@ -51,7 +51,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 		if (execResults.size() != txResults.size()) {
 
 			throw new IllegalArgumentException(
-					"Incorrect number of transaction results. Expected: " + txResults.size() + " Actual: " + execResults.size());
+					"Incorrect number of transaction results; Expected: " + txResults.size() + " Actual: " + execResults.size());
 		}
 
 		List<Object> convertedResults = new ArrayList<>();
@@ -63,7 +63,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 				Exception source = (Exception) result;
 				DataAccessException convertedException = exceptionConverter.convert(source);
 				throw convertedException != null ? convertedException
-						: new RedisSystemException("Error reading future result.", source);
+						: new RedisSystemException("Error reading future result", source);
 			}
 			if (!(futureResult.isStatus())) {
 				convertedResults.add(futureResult.conversionRequired() ? futureResult.convert(result) : result);

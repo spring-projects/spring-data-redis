@@ -56,7 +56,7 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 		super(qualifiers, repositoryType, beanManager, Optional.ofNullable(detector));
 
-		Assert.notNull(keyValueTemplate, "Bean holding keyvalue template must not be null!");
+		Assert.notNull(keyValueTemplate, "Bean holding keyvalue template must not be null");
 		this.keyValueTemplate = keyValueTemplate;
 	}
 

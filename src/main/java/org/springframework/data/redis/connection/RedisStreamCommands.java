@@ -479,7 +479,7 @@ public interface RedisStreamCommands {
 
 			XClaimOptionsBuilder(Duration minIdleTime) {
 
-				Assert.notNull(minIdleTime, "Min idle time must not be null!");
+				Assert.notNull(minIdleTime, "Min idle time must not be null");
 
 				this.minIdleTime = minIdleTime;
 			}

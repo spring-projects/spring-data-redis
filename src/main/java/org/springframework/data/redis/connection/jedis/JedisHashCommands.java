@@ -52,9 +52,9 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(Jedis::hset, PipelineBinaryCommands::hset, key, field, value)
 				.get(JedisConverters.longToBoolean());
@@ -63,9 +63,9 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().from(Jedis::hsetnx, PipelineBinaryCommands::hsetnx, key, field, value)
 				.get(JedisConverters.longToBoolean());
@@ -74,8 +74,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(fields, "Fields must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
 		return connection.invoke().just(Jedis::hdel, PipelineBinaryCommands::hdel, key, fields);
 	}
@@ -83,8 +83,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Fields must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Fields must not be null");
 
 		return connection.invoke().just(Jedis::hexists, PipelineBinaryCommands::hexists, key, field);
 	}
@@ -92,8 +92,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(Jedis::hget, PipelineBinaryCommands::hget, key, field);
 	}
@@ -101,7 +101,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::hgetAll, PipelineBinaryCommands::hgetAll, key);
 	}
@@ -110,7 +110,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public byte[] hRandField(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::hrandfield, PipelineBinaryCommands::hrandfield, key);
 	}
@@ -119,7 +119,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, 1L)
 				.get(it -> it.isEmpty() ? null : it.entrySet().iterator().next());
@@ -129,7 +129,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public List<byte[]> hRandField(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::hrandfield, PipelineBinaryCommands::hrandfield, key, count);
 	}
@@ -138,7 +138,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke()
 				.from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, count).get(it -> {
@@ -153,8 +153,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(Jedis::hincrBy, PipelineBinaryCommands::hincrBy, key, field, delta);
 	}
@@ -162,8 +162,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(Jedis::hincrByFloat, PipelineBinaryCommands::hincrByFloat, key, field, delta);
 	}
@@ -171,7 +171,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::hkeys, PipelineBinaryCommands::hkeys, key);
 	}
@@ -179,7 +179,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Long hLen(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::hlen, PipelineBinaryCommands::hlen, key);
 	}
@@ -187,8 +187,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(fields, "Fields must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
 		return connection.invoke().just(Jedis::hmget, PipelineBinaryCommands::hmget, key, fields);
 	}
@@ -196,8 +196,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(hashes, "Hashes must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashes, "Hashes must not be null");
 
 		connection.invokeStatus().just(Jedis::hmset, PipelineBinaryCommands::hmset, key, hashes);
 	}
@@ -205,7 +205,7 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public List<byte[]> hVals(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::hvals, PipelineBinaryCommands::hvals, key);
 	}
@@ -224,7 +224,7 @@ class JedisHashCommands implements RedisHashCommands {
 	 */
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
 
@@ -232,7 +232,7 @@ class JedisHashCommands implements RedisHashCommands {
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
-					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
 				}
 
 				ScanParams params = JedisConverters.toScanParams(options);
@@ -254,8 +254,8 @@ class JedisHashCommands implements RedisHashCommands {
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(Jedis::hstrlen, PipelineBinaryCommands::hstrlen, key, field);
 	}

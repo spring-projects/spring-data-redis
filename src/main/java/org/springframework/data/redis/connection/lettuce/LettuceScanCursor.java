@@ -59,7 +59,7 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 			}
 		}
 
-		throw new IllegalArgumentException(String.format("Current scan %s state and cursor %d do not match!",
+		throw new IllegalArgumentException(String.format("Current scan %s state and cursor %d do not match",
 				state != null ? state.getCursor() : "(none)", cursorId));
 	}
 

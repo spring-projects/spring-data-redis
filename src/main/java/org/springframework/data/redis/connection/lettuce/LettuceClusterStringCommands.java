@@ -34,7 +34,7 @@ class LettuceClusterStringCommands extends LettuceStringCommands {
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 
-		Assert.notNull(tuples, "Tuples must not be null!");
+		Assert.notNull(tuples, "Tuples must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(tuples.keySet().toArray(new byte[tuples.keySet().size()][]))) {
 			return super.mSetNX(tuples);

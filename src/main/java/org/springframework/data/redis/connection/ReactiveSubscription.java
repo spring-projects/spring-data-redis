@@ -168,8 +168,8 @@ public interface ReactiveSubscription {
 		 */
 		public ChannelMessage(C channel, M message) {
 
-			Assert.notNull(channel, "Channel must not be null!");
-			Assert.notNull(message, "Message must not be null!");
+			Assert.notNull(channel, "Channel must not be null");
+			Assert.notNull(message, "Message must not be null");
 
 			this.channel = channel;
 			this.message = message;
@@ -238,7 +238,7 @@ public interface ReactiveSubscription {
 
 			super(channel, message);
 
-			Assert.notNull(pattern, "Pattern must not be null!");
+			Assert.notNull(pattern, "Pattern must not be null");
 			this.pattern = pattern;
 		}
 

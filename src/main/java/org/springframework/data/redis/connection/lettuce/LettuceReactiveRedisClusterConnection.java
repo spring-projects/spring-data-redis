@@ -170,7 +170,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Flux<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
 
-		Assert.notNull(master, "Master must not be null!");
+		Assert.notNull(master, "Master must not be null");
 
 		return Mono.fromSupplier(() -> lookup(master))
 				.flatMapMany(nodeToUse -> execute(nodeToUse, cmd -> cmd.clusterSlaves(nodeToUse.getId()) //
@@ -203,7 +203,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<RedisClusterNode> clusterGetNodeForKey(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null.");
+		Assert.notNull(key, "Key must not be null");
 
 		return clusterGetSlotForKey(key).flatMap(this::clusterGetNodeForSlot);
 	}
@@ -225,7 +225,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<Void> clusterAddSlots(RedisClusterNode node, RedisClusterNode.SlotRange range) {
 
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(range, "Range must not be null");
 
 		return execute(node, cmd -> cmd.clusterAddSlots(range.getSlotsArray())).then();
 	}
@@ -243,7 +243,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<Void> clusterDeleteSlotsInRange(RedisClusterNode node, RedisClusterNode.SlotRange range) {
 
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(range, "Range must not be null");
 
 		return execute(node, cmd -> cmd.clusterDelSlots(range.getSlotsArray())).then();
 	}
@@ -264,9 +264,9 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<Void> clusterMeet(RedisClusterNode node) {
 
-		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command!");
-		Assert.hasText(node.getHost(), "Node to meet cluster must have a host!");
-		Assert.isTrue(node.getPort() != null && node.getPort() > 0, "Node to meet cluster must have a port greater 0!");
+		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command");
+		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
+		Assert.isTrue(node.getPort() != null && node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
 		return clusterGetNodes()
 				.flatMap(actualNode -> execute(node, cmd -> cmd.clusterMeet(node.getHost(), node.getPort()))).then();
@@ -275,8 +275,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	@Override
 	public Mono<Void> clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
 
-		Assert.notNull(node, "Node must not be null.");
-		Assert.notNull(mode, "AddSlots mode must not be null.");
+		Assert.notNull(node, "Node must not be null");
+		Assert.notNull(mode, "AddSlots mode must not be null");
 
 		return execute(node, cmd -> {
 
@@ -318,7 +318,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 */
 	public <T> Flux<T> executeCommandOnArbitraryNode(LettuceReactiveCallback<T> callback) {
 
-		Assert.notNull(callback, "ReactiveCallback must not be null!");
+		Assert.notNull(callback, "ReactiveCallback must not be null");
 
 		return Mono.fromSupplier(() -> {
 
@@ -339,8 +339,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 */
 	public <T> Flux<T> execute(RedisNode node, LettuceReactiveCallback<T> callback) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(callback, "ReactiveCallback must not be null!");
+		Assert.notNull(node, "RedisClusterNode must not be null");
+		Assert.notNull(callback, "ReactiveCallback must not be null");
 
 		return getCommands(node).flatMapMany(callback::doWithCommands).onErrorMap(translateException());
 	}

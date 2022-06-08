@@ -191,7 +191,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public Properties info(String section) {
 
-		Assert.notNull(section, "Section must not be null!");
+		Assert.notNull(section, "Section must not be null");
 
 		Properties infos = new Properties();
 
@@ -212,7 +212,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public Properties info(RedisClusterNode node, String section) {
 
-		Assert.notNull(section, "Section must not be null!");
+		Assert.notNull(section, "Section must not be null");
 
 		return JedisConverters.toProperties(executeCommandOnSingleNode(client -> client.info(section), node).getValue());
 	}
@@ -241,13 +241,13 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 			return;
 		}
 
-		throw new IllegalArgumentException("Shutdown with options is not supported for jedis.");
+		throw new IllegalArgumentException("Shutdown with options is not supported for jedis");
 	}
 
 	@Override
 	public Properties getConfig(String pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		List<NodeResult<List<String>>> mapResult = connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<List<String>>) client -> client.configGet(pattern))
@@ -269,7 +269,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public Properties getConfig(RedisClusterNode node, String pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode(
@@ -281,8 +281,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void setConfig(String param, String value) {
 
-		Assert.notNull(param, "Parameter must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(param, "Parameter must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.configSet(param, value));
@@ -291,8 +291,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void setConfig(RedisClusterNode node, String param, String value) {
 
-		Assert.notNull(param, "Parameter must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(param, "Parameter must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		executeCommandOnSingleNode(client -> client.configSet(param, value), node);
 	}
@@ -340,7 +340,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void killClient(String host, int port) {
 
-		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
+		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 		String hostAndPort = String.format("%s:%s", host, port);
 
 		connection.getClusterCommandExecutor()
@@ -349,12 +349,12 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	@Override
 	public void setClientName(byte[] name) {
-		throw new InvalidDataAccessApiUsageException("CLIENT SETNAME is not supported in cluster environment.");
+		throw new InvalidDataAccessApiUsageException("CLIENT SETNAME is not supported in cluster environment");
 	}
 
 	@Override
 	public String getClientName() {
-		throw new InvalidDataAccessApiUsageException("CLIENT GETNAME is not supported in cluster environment.");
+		throw new InvalidDataAccessApiUsageException("CLIENT GETNAME is not supported in cluster environment");
 	}
 
 	@Override
@@ -380,13 +380,13 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void replicaOf(String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
-				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment; Please use CLUSTER REPLICATE");
 	}
 
 	@Override
 	public void replicaOfNoOne() {
 		throw new InvalidDataAccessApiUsageException(
-				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment; Please use CLUSTER REPLICATE");
 	}
 
 	@Override
@@ -397,8 +397,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(target, "Target node must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(target, "Target node must not be null");
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
 		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getHost(), target.getPort());
@@ -409,9 +409,9 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 	private Long convertListOfStringToTime(List<String> serverTimeInformation, TimeUnit timeUnit) {
 
-		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
+		Assert.notEmpty(serverTimeInformation, "Received invalid result from server; Expected 2 items in collection");
 		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+				"Received invalid number of arguments from redis server; Expected 2 received " + serverTimeInformation.size());
 
 		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1), timeUnit);
 	}

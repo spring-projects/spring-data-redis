@@ -1126,7 +1126,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-693
 	void unlinkReturnsNrOfKeysRemoved() {
 
-		actual.add(connection.set("unlink.this", "Can't track this!"));
+		actual.add(connection.set("unlink.this", "Can't track this"));
 
 		actual.add(connection.unlink("unlink.this", "unlink.that"));
 
@@ -2596,7 +2596,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		if (connection.isPipelined() || connection.isQueueing()) {
-			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode.");
+			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode");
 		}
 
 		connection.set("spring", "data");
@@ -2623,7 +2623,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	void scanWithType() {
 
 		assumeThat(connection.isPipelined() || connection.isQueueing())
-				.describedAs("SCAN is only available in non pipeline | queue mode.").isFalse();
+				.describedAs("SCAN is only available in non pipeline | queue mode").isFalse();
 
 		connection.set("key", "data");
 		connection.lPush("list", "foo");
@@ -2670,7 +2670,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		if (connection.isPipelined() || connection.isQueueing()) {
-			throw new AssumptionViolatedException("ZSCAN is only available in non pipeline | queue mode.");
+			throw new AssumptionViolatedException("ZSCAN is only available in non pipeline | queue mode");
 		}
 
 		connection.zAdd("myset", 2, "Bob");
@@ -2701,7 +2701,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		if (connection.isPipelined() || connection.isQueueing()) {
-			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode.");
+			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode");
 		}
 
 		connection.sAdd("sscankey", "bar");
@@ -2726,7 +2726,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		if (connection.isPipelined() || connection.isQueueing()) {
-			throw new AssumptionViolatedException("HSCAN is only available in non pipeline | queue mode.");
+			throw new AssumptionViolatedException("HSCAN is only available in non pipeline | queue mode");
 		}
 
 		connection.hSet("hscankey", "bar", "foobar");
@@ -3422,7 +3422,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 
-		actual.add(connection.set("touch.this", "Can't touch this! - oh-oh oh oh oh-oh-oh"));
+		actual.add(connection.set("touch.this", "Can't touch this; - oh-oh oh oh oh-oh-oh"));
 		actual.add(connection.touch("touch.this", "touch.that"));
 
 		verifyResults(Arrays.asList(new Object[] { Boolean.TRUE, 1L }));

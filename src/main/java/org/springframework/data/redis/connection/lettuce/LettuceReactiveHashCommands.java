@@ -55,7 +55,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	 */
 	LettuceReactiveHashCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 		this.connection = connection;
 	}
 
@@ -64,8 +64,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null");
 
 			Mono<Boolean> result;
 
@@ -91,8 +91,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getFields(), "Fields must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
 
 			Mono<List<KeyValue<ByteBuffer, ByteBuffer>>> result;
 
@@ -114,8 +114,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getName(), "Name must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getName(), "Name must not be null");
 
 			return cmd.hexists(command.getKey(), command.getField()).map(value -> new BooleanResponse<>(command, value));
 		}));
@@ -126,8 +126,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getFields(), "Fields must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
 
 			return cmd.hdel(command.getKey(), command.getFields().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
@@ -139,7 +139,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
+			Assert.notNull(command.getKey(), "Command.getKey() must not be null");
 
 			return cmd.hlen(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
@@ -150,7 +150,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).map(command -> {
 
-			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
+			Assert.notNull(command.getKey(), "Command.getKey() must not be null");
 
 			return new CommandResponse<>(command, cmd.hrandfield(command.getKey(), command.getCount()));
 		}));
@@ -162,7 +162,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).map(command -> {
 
-			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
+			Assert.notNull(command.getKey(), "Command.getKey() must not be null");
 
 			Flux<Entry<ByteBuffer, ByteBuffer>> flux = cmd.hrandfieldWithvalues(command.getKey(), command.getCount())
 					.handle((it, sink) -> {
@@ -183,7 +183,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			Flux<ByteBuffer> result = cmd.hkeys(command.getKey());
 
@@ -196,7 +196,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			Flux<ByteBuffer> result = cmd.hvals(command.getKey());
 
@@ -210,7 +210,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			Flux<KeyValue<ByteBuffer, ByteBuffer>> result = cmd.hgetall(command.getKey());
 
@@ -224,8 +224,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getOptions(), "ScanOptions must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getOptions(), "ScanOptions must not be null");
 
 			Flux<KeyValue<ByteBuffer, ByteBuffer>> result = ScanStream.hscan(cmd, command.getKey(),
 					LettuceConverters.toScanArgs(command.getOptions()));
@@ -257,8 +257,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getField(), "Field must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getField(), "Field must not be null");
 
 			return cmd.hstrlen(command.getKey(), command.getField()).map(value -> new NumericResponse<>(command, value));
 		}));
