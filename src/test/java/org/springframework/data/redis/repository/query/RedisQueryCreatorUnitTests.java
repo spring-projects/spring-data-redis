@@ -162,7 +162,7 @@ class RedisQueryCreatorUnitTests {
 				SampleRepository.class.getMethod("findByLocationNear", Shape.class), new Object[] { new Point(0, 0) });
 
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(creator::createQuery)
-				.withMessageContaining("Are you missing a parameter?");
+				.withMessageContaining("Are you missing a parameter");
 	}
 
 	@Test // DATAREDIS-771

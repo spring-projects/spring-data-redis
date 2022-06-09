@@ -75,7 +75,7 @@ class LettuceInvoker {
 	@Nullable
 	<R> R just(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(() -> function.apply(connection), Converters.identityConverter(), () -> null);
 	}
@@ -89,7 +89,7 @@ class LettuceInvoker {
 	@Nullable
 	<R, T1> R just(ConnectionFunction1<T1, R> function, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1));
 	}
@@ -104,7 +104,7 @@ class LettuceInvoker {
 	@Nullable
 	<R, T1, T2> R just(ConnectionFunction2<T1, T2, R> function, T1 t1, T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2));
 	}
@@ -120,7 +120,7 @@ class LettuceInvoker {
 	@Nullable
 	<R, T1, T2, T3> R just(ConnectionFunction3<T1, T2, T3, R> function, T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2, t3));
 	}
@@ -137,7 +137,7 @@ class LettuceInvoker {
 	@Nullable
 	<R, T1, T2, T3, T4> R just(ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2, t3, t4));
 	}
@@ -156,7 +156,7 @@ class LettuceInvoker {
 	<R, T1, T2, T3, T4, T5> R just(ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1, T2 t2, T3 t3, T4 t4,
 			T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(() -> function.apply(connection, t1, t2, t3, t4, t5));
 	}
@@ -169,7 +169,7 @@ class LettuceInvoker {
 	 */
 	<R> SingleInvocationSpec<R> from(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return new DefaultSingleInvocationSpec<>(() -> function.apply(connection), synchronizer);
 	}
@@ -183,7 +183,7 @@ class LettuceInvoker {
 	 */
 	<R, T1> SingleInvocationSpec<R> from(ConnectionFunction1<T1, R> function, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return from(it -> function.apply(it, t1));
 	}
@@ -198,7 +198,7 @@ class LettuceInvoker {
 	 */
 	<R, T1, T2> SingleInvocationSpec<R> from(ConnectionFunction2<T1, T2, R> function, T1 t1, T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2));
 	}
@@ -214,7 +214,7 @@ class LettuceInvoker {
 	 */
 	<R, T1, T2, T3> SingleInvocationSpec<R> from(ConnectionFunction3<T1, T2, T3, R> function, T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3));
 	}
@@ -232,7 +232,7 @@ class LettuceInvoker {
 	<R, T1, T2, T3, T4> SingleInvocationSpec<R> from(ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3,
 			T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4));
 	}
@@ -251,7 +251,7 @@ class LettuceInvoker {
 	<R, T1, T2, T3, T4, T5> SingleInvocationSpec<R> from(ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1,
 			T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4, t5));
 	}
@@ -264,7 +264,7 @@ class LettuceInvoker {
 	 */
 	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return new DefaultManyInvocationSpec<>(() -> function.apply(connection), synchronizer);
 	}
@@ -278,7 +278,7 @@ class LettuceInvoker {
 	 */
 	<R extends Collection<E>, E, T1> ManyInvocationSpec<E> fromMany(ConnectionFunction1<T1, R> function, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1));
 	}
@@ -294,7 +294,7 @@ class LettuceInvoker {
 	<R extends Collection<E>, E, T1, T2> ManyInvocationSpec<E> fromMany(ConnectionFunction2<T1, T2, R> function, T1 t1,
 			T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2));
 	}
@@ -311,7 +311,7 @@ class LettuceInvoker {
 	<R extends Collection<E>, E, T1, T2, T3> ManyInvocationSpec<E> fromMany(ConnectionFunction3<T1, T2, T3, R> function,
 			T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3));
 	}
@@ -329,7 +329,7 @@ class LettuceInvoker {
 	<R extends Collection<E>, E, T1, T2, T3, T4> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4));
 	}
@@ -348,7 +348,7 @@ class LettuceInvoker {
 	<R extends Collection<E>, E, T1, T2, T3, T4, T5> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4, t5));
 	}
@@ -593,7 +593,7 @@ class LettuceInvoker {
 		@Override
 		public <T> T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault) {
 
-			Assert.notNull(converter, "Converter must not be null!");
+			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parent, converter, nullDefault);
 		}
@@ -613,7 +613,7 @@ class LettuceInvoker {
 		@Override
 		public <T> List<T> toList(Converter<S, T> converter) {
 
-			Assert.notNull(converter, "Converter must not be null!");
+			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parent, source -> {
 
@@ -634,7 +634,7 @@ class LettuceInvoker {
 		@Override
 		public <T> Set<T> toSet(Converter<S, T> converter) {
 
-			Assert.notNull(converter, "Converter must not be null!");
+			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parent, source -> {
 

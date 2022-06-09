@@ -48,8 +48,8 @@ class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands imp
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKeys(), "Keys must not be null!");
-			Assert.notNull(command.getDirection(), "Direction must not be null!");
+			Assert.notNull(command.getKeys(), "Keys must not be null");
+			Assert.notNull(command.getDirection(), "Direction must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKeys())) {
 				return super.bPop(Mono.just(command));
@@ -64,8 +64,8 @@ class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands imp
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getDestination(), "Destination key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getDestination(), "Destination key must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getDestination())) {
 				return super.rPopLPush(Mono.just(command));

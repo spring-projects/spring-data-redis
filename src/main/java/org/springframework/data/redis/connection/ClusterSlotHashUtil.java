@@ -64,7 +64,7 @@ public final class ClusterSlotHashUtil {
 	 */
 	public static boolean isSameSlotForAllKeys(Collection<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		if (keys.size() <= 1) {
 			return true;
@@ -83,7 +83,7 @@ public final class ClusterSlotHashUtil {
 	 */
 	public static boolean isSameSlotForAllKeys(ByteBuffer... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 		return isSameSlotForAllKeys(Arrays.asList(keys));
 	}
 
@@ -93,7 +93,7 @@ public final class ClusterSlotHashUtil {
 	 */
 	public static boolean isSameSlotForAllKeys(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		if (keys.length <= 1) {
 			return true;
@@ -116,7 +116,7 @@ public final class ClusterSlotHashUtil {
 	 */
 	public static int calculateSlot(String key) {
 
-		Assert.hasText(key, "Key must not be null or empty!");
+		Assert.hasText(key, "Key must not be null or empty");
 		return calculateSlot(key.getBytes());
 	}
 
@@ -128,7 +128,7 @@ public final class ClusterSlotHashUtil {
 	 */
 	public static int calculateSlot(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		byte[] finalKey = key;
 		int start = indexOf(key, SUBKEY_START);

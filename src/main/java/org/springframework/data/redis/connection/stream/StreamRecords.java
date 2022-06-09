@@ -216,7 +216,7 @@ public class StreamRecords {
 			} else if (stream instanceof byte[]) {
 				streamKey = ByteBuffer.wrap((byte[]) stream);
 			} else {
-				throw new IllegalArgumentException(String.format("Stream key %s cannot be converted to byte buffer.", stream));
+				throw new IllegalArgumentException(String.format("Stream key %s cannot be converted to byte buffer", stream));
 			}
 
 			return new ByteBufferMapBackedRecord(streamKey, id, value);

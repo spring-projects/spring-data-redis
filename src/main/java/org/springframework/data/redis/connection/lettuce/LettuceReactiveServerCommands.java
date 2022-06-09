@@ -49,7 +49,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	 */
 	LettuceReactiveServerCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 
 		this.connection = connection;
 	}
@@ -110,7 +110,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	@Override
 	public Mono<Properties> info(String section) {
 
-		Assert.hasText(section, "Section must not be null or empty!");
+		Assert.hasText(section, "Section must not be null or empty");
 
 		return connection.execute(c -> c.info(section)) //
 				.map(LettuceConverters::toProperties) //
@@ -120,7 +120,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	@Override
 	public Mono<Properties> getConfig(String pattern) {
 
-		Assert.hasText(pattern, "Pattern must not be null or empty!");
+		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		return connection.execute(c -> c.configGet(pattern)) //
 				.map(LettuceConverters::toProperties).next();
@@ -129,8 +129,8 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	@Override
 	public Mono<String> setConfig(String param, String value) {
 
-		Assert.hasText(param, "Parameter must not be null or empty!");
-		Assert.hasText(value, "Value must not be null or empty!");
+		Assert.hasText(param, "Parameter must not be null or empty");
+		Assert.hasText(value, "Value must not be null or empty");
 
 		return connection.execute(c -> c.configSet(param, value)).next();
 	}
@@ -152,7 +152,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	@Override
 	public Mono<String> killClient(String host, int port) {
 
-		Assert.notNull(host, "Host must not be null or empty!");
+		Assert.notNull(host, "Host must not be null or empty");
 
 		return connection.execute(c -> c.clientKill(String.format("%s:%s", host, port))).next();
 	}
@@ -160,7 +160,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	@Override
 	public Mono<String> setClientName(String name) {
 
-		Assert.hasText(name, "Name must not be null or empty!");
+		Assert.hasText(name, "Name must not be null or empty");
 
 		return connection.execute(c -> c.clientSetname(ByteBuffer.wrap(LettuceConverters.toBytes(name)))).next();
 	}

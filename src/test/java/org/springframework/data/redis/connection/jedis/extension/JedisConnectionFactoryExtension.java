@@ -193,7 +193,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 
 			if (!mayClose) {
 				throw new IllegalStateException(
-						"Prematurely attempted to close ManagedJedisConnectionFactory. Shutdown hook didn't run yet which means that the test run isn't finished yet. Please fix the tests so that they don't close this connection factory.");
+						"Prematurely attempted to close ManagedJedisConnectionFactory; Shutdown hook didn't run yet which means that the test run isn't finished yet; Please fix the tests so that they don't close this connection factory.");
 			}
 
 			super.destroy();

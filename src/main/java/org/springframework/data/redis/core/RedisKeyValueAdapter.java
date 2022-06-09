@@ -152,8 +152,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		super(new RedisQueryEngine());
 
-		Assert.notNull(redisOps, "RedisOperations must not be null!");
-		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
+		Assert.notNull(redisOps, "RedisOperations must not be null");
+		Assert.notNull(mappingContext, "RedisMappingContext must not be null");
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
 				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(redisOps));
@@ -175,7 +175,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		super(new RedisQueryEngine());
 
-		Assert.notNull(redisOps, "RedisOperations must not be null!");
+		Assert.notNull(redisOps, "RedisOperations must not be null");
 
 		this.converter = redisConverter;
 		this.redisOps = redisOps;

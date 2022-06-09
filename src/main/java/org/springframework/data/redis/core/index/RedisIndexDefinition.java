@@ -82,7 +82,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 
 	protected void addCondition(Condition<?> condition) {
 
-		Assert.notNull(condition, "Condition must not be null!");
+		Assert.notNull(condition, "Condition must not be null");
 		this.conditions.add(condition);
 	}
 

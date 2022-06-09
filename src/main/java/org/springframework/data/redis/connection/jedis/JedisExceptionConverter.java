@@ -53,7 +53,7 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 
-		if (ex instanceof JedisClusterOperationException && "No more cluster attempts left.".equals(ex.getMessage())) {
+		if (ex instanceof JedisClusterOperationException && "No more cluster attempts left".equals(ex.getMessage())) {
 			return new TooManyClusterRedirectionsException(ex.getMessage(), ex);
 		}
 

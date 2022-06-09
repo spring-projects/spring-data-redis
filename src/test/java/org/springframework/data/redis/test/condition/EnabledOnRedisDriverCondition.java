@@ -59,7 +59,7 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 
 		if (annotatedFields.isEmpty()) {
 			throw new IllegalStateException(
-					"@EnabledOnRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier!");
+					"@EnabledOnRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier");
 		}
 
 		for (Field field : annotatedFields) {
@@ -76,7 +76,7 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 			}
 
 			if (!foundMatch) {
-				return disabled(String.format("Driver %s not supported. Supported driver(s): %s", value,
+				return disabled(String.format("Driver %s not supported; Supported driver(s): %s", value,
 						Arrays.toString(annotation.value())));
 			}
 		}

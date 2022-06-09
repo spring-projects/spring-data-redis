@@ -117,7 +117,7 @@ public class RedisPassword {
 	 */
 	public <R> Optional<R> map(Function<char[], R> mapper) {
 
-		Assert.notNull(mapper, "Mapper function must not be null!");
+		Assert.notNull(mapper, "Mapper function must not be null");
 
 		return toOptional().map(mapper);
 	}

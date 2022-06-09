@@ -62,6 +62,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
@@ -230,7 +231,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
 			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
-		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null.");
+		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null");
 
 		this.asyncSharedConn = sharedConnection;
 		this.connectionProvider = connectionProvider;
@@ -351,22 +352,29 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		isClosed = true;
 
+		reset();
+	}
+
+	private void reset() {
+
 		if (asyncDedicatedConn != null) {
 			try {
 				if (customizedDatabaseIndex()) {
 					potentiallySelectDatabase(defaultDbIndex);
 				}
 				connectionProvider.release(asyncDedicatedConn);
+				asyncDedicatedConn = null;
 			} catch (RuntimeException ex) {
 				throw convertLettuceAccessException(ex);
 			}
 		}
 
+		LettuceSubscription subscription = this.subscription;
 		if (subscription != null) {
 			if (subscription.isAlive()) {
 				subscription.doClose();
 			}
-			subscription = null;
+			this.subscription = null;
 		}
 
 		this.dbIndex = defaultDbIndex;
@@ -381,7 +389,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
 
 		LettuceSubscription subscription = this.subscription;
-		return (subscription != null ? subscription.getNativeConnection().async() : getAsyncConnection());
+		return (subscription != null && subscription.isAlive() ? subscription.getNativeConnection().async()
+				: getAsyncConnection());
 	}
 
 	@Override
@@ -509,8 +518,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				LettuceTransactionResultConverter resultConverter = new LettuceTransactionResultConverter(
 						new LinkedList<>(txResults), exceptionConverter);
 
-				pipeline(newLettuceResult(exec, source -> resultConverter
-						.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
+				pipeline(newLettuceResult(exec,
+						source -> resultConverter.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
 				return null;
 			}
 
@@ -547,8 +556,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public void select(int dbIndex) {
 
 		if (asyncSharedConn != null) {
-			throw new InvalidDataAccessApiUsageException("Selecting a new database not supported due to shared connection. "
-					+ "Use separate ConnectionFactorys to work with multiple databases");
+			throw new InvalidDataAccessApiUsageException("Selecting a new database not supported due to shared connection;"
+					+ " Use separate ConnectionFactorys to work with multiple databases");
 		}
 
 		this.dbIndex = dbIndex;
@@ -621,7 +630,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (isQueueing() || isPipelined()) {
 			throw new InvalidDataAccessApiUsageException(
-					"Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+					"Transaction/Pipelining is not supported for Pub/Sub subscriptions");
 		}
 
 		try {
@@ -639,7 +648,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (isQueueing() || isPipelined()) {
 			throw new InvalidDataAccessApiUsageException(
-					"Transaction/Pipelining is not supported for Pub/Sub subscriptions!");
+					"Transaction/Pipelining is not supported for Pub/Sub subscriptions");
 		}
 
 		try {
@@ -682,7 +691,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	public void setPipeliningFlushPolicy(PipeliningFlushPolicy pipeliningFlushPolicy) {
 
-		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null!");
+		Assert.notNull(pipeliningFlushPolicy, "PipeliningFlushingPolicy must not be null");
 
 		this.pipeliningFlushPolicy = pipeliningFlushPolicy;
 	}
@@ -695,7 +704,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@SuppressWarnings("unchecked")
 	protected StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
 
-		close();
+		checkSubscription();
+		reset();
 		return connectionProvider.getConnection(StatefulRedisPubSubConnection.class);
 	}
 
@@ -865,10 +875,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		throw new IllegalStateException(
-				String.format("%s is not a supported connection type.", connection.getClass().getName()));
+				String.format("%s is not a supported connection type", connection.getClass().getName()));
 	}
 
 	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
+
+		if (isClosed()) {
+			throw new RedisSystemException("Connection is closed", null);
+		}
 
 		StatefulConnection<byte[], byte[]> connection = getOrCreateDedicatedConnection();
 
@@ -880,7 +894,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		throw new IllegalStateException(
-				String.format("%s is not a supported connection type.", connection.getClass().getName()));
+				String.format("%s is not a supported connection type", connection.getClass().getName()));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1004,7 +1018,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			try {
 				redisCommand.validateArgumentCount(args != null ? args.length : 0);
 			} catch (IllegalArgumentException e) {
-				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command.", cmd), e);
+				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command", cmd), e);
 			}
 		}
 	}

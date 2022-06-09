@@ -41,7 +41,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 	 */
 	public ReferenceResolverImpl(RedisOperations<?, ?> redisOperations) {
 
-		Assert.notNull(redisOperations, "RedisOperations must not be null!");
+		Assert.notNull(redisOperations, "RedisOperations must not be null");
 
 		this.redisOps = redisOperations;
 		this.converter = new StringToBytesConverter();

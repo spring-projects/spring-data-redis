@@ -59,7 +59,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 		return connection.execute(node, cmd -> {
 
-			Assert.notNull(pattern, "Pattern must not be null!");
+			Assert.notNull(pattern, "Pattern must not be null");
 
 			return cmd.keys(pattern).collectList();
 		}).next();
@@ -76,8 +76,8 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Old key must not be null.");
-			Assert.notNull(command.getNewKey(), "New key must not be null!");
+			Assert.notNull(command.getKey(), "Old key must not be null");
+			Assert.notNull(command.getNewKey(), "New key must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getNewKey())) {
 				return super.rename(Mono.just(command));
@@ -98,8 +98,8 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null.");
-			Assert.notNull(command.getNewKey(), "NewName must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getNewKey(), "NewName must not be null");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getNewKey())) {
 				return super.renameNX(Mono.just(command));
@@ -124,6 +124,6 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 
 	@Override
 	public Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands) {
-		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode!");
+		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode");
 	}
 }

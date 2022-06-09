@@ -49,7 +49,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	 */
 	public RedisSocketConfiguration(String socket) {
 
-		Assert.hasText(socket, "Socket path must not be null nor empty!");
+		Assert.hasText(socket, "Socket path must not be null nor empty");
 
 		this.socket = socket;
 	}
@@ -62,7 +62,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	@Override
 	public void setSocket(String socket) {
 
-		Assert.hasText(socket, "Socket must not be null nor empty!");
+		Assert.hasText(socket, "Socket must not be null nor empty");
 		this.socket = socket;
 	}
 
@@ -98,7 +98,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	@Override
 	public void setPassword(RedisPassword password) {
 
-		Assert.notNull(password, "RedisPassword must not be null!");
+		Assert.notNull(password, "RedisPassword must not be null");
 
 		this.password = password;
 	}

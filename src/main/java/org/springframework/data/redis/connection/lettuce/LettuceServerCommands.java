@@ -99,7 +99,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public Properties info(String section) {
 
-		Assert.hasText(section, "Section must not be null or empty!");
+		Assert.hasText(section, "Section must not be null or empty");
 
 		return connection.invoke().from(RedisServerAsyncCommands::info, section).get(LettuceConverters.stringToProps());
 	}
@@ -135,7 +135,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public Properties getConfig(String pattern) {
 
-		Assert.hasText(pattern, "Pattern must not be null or empty!");
+		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		return connection.invoke().from(RedisServerAsyncCommands::configGet, pattern)
 				.get(LettuceConverters.mapToPropertiesConverter());
@@ -144,8 +144,8 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public void setConfig(String param, String value) {
 
-		Assert.hasText(param, "Parameter must not be null or empty!");
-		Assert.hasText(value, "Value must not be null or empty!");
+		Assert.hasText(param, "Parameter must not be null or empty");
+		Assert.hasText(value, "Value must not be null or empty");
 
 		connection.invokeStatus().just(RedisServerAsyncCommands::configSet, param, value);
 	}
@@ -163,7 +163,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public Long time(TimeUnit timeUnit) {
 
-		Assert.notNull(timeUnit, "TimeUnit must not be null.");
+		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
 		return connection.invoke().from(RedisServerAsyncCommands::time).get(LettuceConverters.toTimeConverter(timeUnit));
 	}
@@ -171,7 +171,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public void killClient(String host, int port) {
 
-		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
+		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
 		String client = String.format("%s:%s", host, port);
 
@@ -181,7 +181,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public void setClientName(byte[] name) {
 
-		Assert.notNull(name, "Name must not be null!");
+		Assert.notNull(name, "Name must not be null");
 
 		connection.invoke().just(RedisServerAsyncCommands::clientSetname, name);
 	}
@@ -200,7 +200,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public void replicaOf(String host, int port) {
 
-		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command.");
+		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command");
 
 		connection.invoke().just(RedisServerAsyncCommands::slaveof, host, port);
 	}
@@ -218,8 +218,8 @@ class LettuceServerCommands implements RedisServerCommands {
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(target, "Target node must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(target, "Target node must not be null");
 
 		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getHost(), target.getPort(), key, dbIndex, timeout);
 	}

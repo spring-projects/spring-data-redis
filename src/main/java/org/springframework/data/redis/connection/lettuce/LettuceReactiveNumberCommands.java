@@ -41,7 +41,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 	 */
 	LettuceReactiveNumberCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 
 		this.connection = connection;
 	}
@@ -51,7 +51,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.incr(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
@@ -62,8 +62,8 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getValue(), "Value for INCRBY must not be null.");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getValue(), "Value for INCRBY must not be null");
 
 			T incrBy = command.getValue();
 
@@ -84,7 +84,7 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.decr(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
@@ -95,8 +95,8 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getValue(), "Value for DECRBY must not be null.");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getValue(), "Value for DECRBY must not be null");
 
 			T decrBy = command.getValue();
 
@@ -117,8 +117,8 @@ class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getValue(), "Value must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getValue(), "Value must not be null");
 
 			T incrBy = command.getValue();
 

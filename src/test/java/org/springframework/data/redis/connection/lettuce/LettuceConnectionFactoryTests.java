@@ -22,14 +22,12 @@ import io.lettuce.core.EpollProvider;
 import io.lettuce.core.KqueueProvider;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisException;
-import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.reactive.BaseRedisReactiveCommands;
 import reactor.test.StepVerifier;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -225,19 +223,11 @@ class LettuceConnectionFactoryTests {
 		factory.setShareNativeConnection(false);
 		RedisConnection conn2 = factory.getConnection();
 		assertThat(conn2.getNativeConnection()).isNotSameAs(connection.getNativeConnection());
-		// Give some time for native connection to asynchronously initialize, else close doesn't work
 		Thread.sleep(100);
 		conn2.close();
 		assertThat(conn2.isClosed()).isTrue();
-		// Give some time for native connection to asynchronously close
-		Thread.sleep(100);
-		RedisFuture<String> future = ((RedisAsyncCommands<byte[], byte[]>) conn2.getNativeConnection()).ping();
-		try {
-			future.get();
-			fail("The native connection should be closed");
-		} catch (ExecutionException e) {
-			// expected, Lettuce async failures are signalled on the Future
-		}
+
+		assertThatExceptionOfType(RedisSystemException.class).isThrownBy(conn2::getNativeConnection);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -33,7 +33,7 @@ public class HexStringUtils {
 	 */
 	public static byte[] hexToBytes(String source) {
 
-		Assert.notNull(source, "Source must not be null!");
+		Assert.notNull(source, "Source must not be null");
 		int len = source.length();
 
 		byte[] data = new byte[len / 2];

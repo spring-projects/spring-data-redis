@@ -126,7 +126,7 @@ public class LettuceClusterConnection extends LettuceConnection
 		super(null, connectionProvider, RedisURI.DEFAULT_TIMEOUT_DURATION.toMillis(), 0);
 
 		Assert.isTrue(connectionProvider instanceof ClusterConnectionProvider,
-				"LettuceConnectionProvider must be a ClusterConnectionProvider.");
+				"LettuceConnectionProvider must be a ClusterConnectionProvider");
 
 		this.topologyProvider = new LettuceClusterTopologyProvider(getClient());
 		this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
@@ -160,9 +160,9 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		super(null, connectionProvider, timeout.toMillis(), 0);
 
-		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
+		Assert.notNull(executor, "ClusterCommandExecutor must not be null");
 		Assert.isTrue(connectionProvider instanceof ClusterConnectionProvider,
-				"LettuceConnectionProvider must be a ClusterConnectionProvider.");
+				"LettuceConnectionProvider must be a ClusterConnectionProvider");
 
 		this.topologyProvider = new LettuceClusterTopologyProvider(getClient());
 		this.clusterCommandExecutor = executor;
@@ -186,7 +186,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		super(sharedConnection, connectionProvider, timeout.toMillis(), 0);
 
-		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
+		Assert.notNull(executor, "ClusterCommandExecutor must not be null");
 
 		this.topologyProvider = clusterTopologyProvider;
 		this.clusterCommandExecutor = executor;
@@ -204,7 +204,7 @@ public class LettuceClusterConnection extends LettuceConnection
 			return (RedisClusterClient) ((RedisClientProvider) getConnectionProvider()).getRedisClient();
 		}
 
-		throw new IllegalStateException(String.format("Connection provider %s does not implement RedisClientProvider!",
+		throw new IllegalStateException(String.format("Connection provider %s does not implement RedisClientProvider",
 				connectionProvider.getClass().getName()));
 	}
 
@@ -287,7 +287,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public Set<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
 
-		Assert.notNull(master, "Master must not be null!");
+		Assert.notNull(master, "Master must not be null");
 
 		RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(master);
 
@@ -353,7 +353,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public void clusterAddSlots(RedisClusterNode node, SlotRange range) {
 
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(range, "Range must not be null");
 
 		clusterAddSlots(node, range.getSlotsArray());
 	}
@@ -377,7 +377,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public void clusterDeleteSlotsInRange(RedisClusterNode node, SlotRange range) {
 
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(range, "Range must not be null");
 
 		clusterDeleteSlots(node, range.getSlotsArray());
 	}
@@ -396,9 +396,9 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public void clusterMeet(RedisClusterNode node) {
 
-		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command!");
-		Assert.hasText(node.getHost(), "Node to meet cluster must have a host!");
-		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0!");
+		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command");
+		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
+		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
 		this.clusterCommandExecutor.executeCommandOnAllNodes(
 				(LettuceClusterCommandCallback<String>) client -> client.clusterMeet(node.getHost(), node.getPort()));
@@ -407,8 +407,8 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public void clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
 
-		Assert.notNull(node, "Node must not be null.");
-		Assert.notNull(mode, "AddSlots mode must not be null.");
+		Assert.notNull(node, "Node must not be null");
+		Assert.notNull(mode, "AddSlots mode must not be null");
 
 		RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(node);
 		String nodeId = nodeToUse.getId();
@@ -465,7 +465,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	public void select(int dbIndex) {
 
 		if (dbIndex != 0) {
-			throw new InvalidDataAccessApiUsageException("Cannot SELECT non zero index in cluster mode.");
+			throw new InvalidDataAccessApiUsageException("Cannot SELECT non zero index in cluster mode");
 		}
 	}
 
@@ -473,17 +473,17 @@ public class LettuceClusterConnection extends LettuceConnection
 
 	@Override
 	public void watch(byte[]... keys) {
-		throw new InvalidDataAccessApiUsageException("WATCH is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("WATCH is currently not supported in cluster mode");
 	}
 
 	@Override
 	public void unwatch() {
-		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode");
 	}
 
 	@Override
 	public void multi() {
-		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode");
 	}
 
 
@@ -544,7 +544,7 @@ public class LettuceClusterConnection extends LettuceConnection
 		@SuppressWarnings("unchecked")
 		public RedisClusterCommands<byte[], byte[]> getResourceForSpecificNode(RedisClusterNode node) {
 
-			Assert.notNull(node, "Node must not be null!");
+			Assert.notNull(node, "Node must not be null");
 
 			if (connection == null) {
 				synchronized (this) {

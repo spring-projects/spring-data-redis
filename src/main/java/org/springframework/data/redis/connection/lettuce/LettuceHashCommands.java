@@ -51,9 +51,9 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hset, key, field, value);
 	}
@@ -61,9 +61,9 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hsetnx, key, field, value);
 	}
@@ -71,8 +71,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(fields, "Fields must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hdel, key, fields);
 	}
@@ -80,8 +80,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Fields must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Fields must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hexists, key, field);
 	}
@@ -89,8 +89,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hget, key, field);
 	}
@@ -98,7 +98,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hgetall, key);
 	}
@@ -107,7 +107,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public byte[] hRandField(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hrandfield, key);
 	}
@@ -116,7 +116,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(RedisHashAsyncCommands::hrandfieldWithvalues, key)
 				.get(LettuceHashCommands::toEntry);
@@ -126,7 +126,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public List<byte[]> hRandField(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hrandfield, key, count);
 	}
@@ -135,7 +135,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hrandfieldWithvalues, key, count)
 				.toList(LettuceHashCommands::toEntry);
@@ -144,8 +144,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hincrby, key, field, delta);
 	}
@@ -153,8 +153,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hincrbyfloat, key, field, delta);
 	}
@@ -162,7 +162,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hkeys, key).toSet();
 	}
@@ -170,7 +170,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Long hLen(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hlen, key);
 	}
@@ -178,8 +178,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(fields, "Fields must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hmget, key, fields)
 				.toList(source -> source.getValueOrElse(null));
@@ -188,8 +188,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(hashes, "Hashes must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashes, "Hashes must not be null");
 
 		connection.invokeStatus().just(RedisHashAsyncCommands::hmset, key, hashes);
 	}
@@ -197,7 +197,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public List<byte[]> hVals(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hvals, key);
 	}
@@ -216,7 +216,7 @@ class LettuceHashCommands implements RedisHashCommands {
 	 */
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
 
@@ -224,7 +224,7 @@ class LettuceHashCommands implements RedisHashCommands {
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
 				}
 
 				io.lettuce.core.ScanCursor scanCursor = connection.getScanCursor(cursorId);
@@ -250,8 +250,8 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
 
 		return connection.invoke().just(RedisHashAsyncCommands::hstrlen, key, field);
 	}

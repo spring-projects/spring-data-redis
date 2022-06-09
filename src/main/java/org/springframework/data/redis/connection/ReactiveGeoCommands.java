@@ -80,7 +80,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoAddCommand location(GeoLocation<ByteBuffer> geoLocation) {
 
-			Assert.notNull(geoLocation, "GeoLocation must not be null!");
+			Assert.notNull(geoLocation, "GeoLocation must not be null");
 
 			return new GeoAddCommand(null, Collections.singletonList(geoLocation));
 		}
@@ -93,7 +93,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoAddCommand locations(Collection<GeoLocation<ByteBuffer>> geoLocations) {
 
-			Assert.notNull(geoLocations, "GeoLocations must not be null!");
+			Assert.notNull(geoLocations, "GeoLocations must not be null");
 
 			return new GeoAddCommand(null, new ArrayList<>(geoLocations));
 		}
@@ -127,9 +127,9 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Long> geoAdd(ByteBuffer key, Point point, ByteBuffer member) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(point, "Point must not be null!");
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(point, "Point must not be null");
+		Assert.notNull(member, "Member must not be null");
 
 		return geoAdd(key, new GeoLocation<>(member, point));
 	}
@@ -144,8 +144,8 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Long> geoAdd(ByteBuffer key, GeoLocation<ByteBuffer> location) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(location, "Location must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(location, "Location must not be null");
 
 		return geoAdd(key, Collections.singletonList(location));
 	}
@@ -160,8 +160,8 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Long> geoAdd(ByteBuffer key, Collection<GeoLocation<ByteBuffer>> locations) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(locations, "Locations must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(locations, "Locations must not be null");
 
 		return geoAdd(Mono.just(GeoAddCommand.locations(locations).to(key))).next().map(NumericResponse::getOutput);
 	}
@@ -245,7 +245,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoDistCommand between(ByteBuffer from) {
 
-			Assert.notNull(from, "From member must not be null!");
+			Assert.notNull(from, "From member must not be null");
 
 			return new GeoDistCommand(getKey(), from, to, metric);
 		}
@@ -272,7 +272,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoDistCommand forKey(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new GeoDistCommand(key, from, to, metric);
 		}
@@ -326,10 +326,10 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Distance> geoDist(ByteBuffer key, ByteBuffer from, ByteBuffer to, Metric metric) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(from, "From must not be null!");
-		Assert.notNull(to, "To must not be null!");
-		Assert.notNull(metric, "Metric must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(from, "From must not be null");
+		Assert.notNull(to, "To must not be null");
+		Assert.notNull(metric, "Metric must not be null");
 
 		return geoDist(Mono.just(GeoDistCommand.units(metric).between(from).and(to).forKey(key))) //
 				.next() //
@@ -370,7 +370,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoHashCommand member(ByteBuffer member) {
 
-			Assert.notNull(member, "Member must not be null!");
+			Assert.notNull(member, "Member must not be null");
 
 			return new GeoHashCommand(null, Collections.singletonList(member));
 		}
@@ -383,7 +383,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoHashCommand members(Collection<ByteBuffer> members) {
 
-			Assert.notNull(members, "Members must not be null!");
+			Assert.notNull(members, "Members must not be null");
 
 			return new GeoHashCommand(null, new ArrayList<>(members));
 		}
@@ -396,7 +396,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoHashCommand of(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new GeoHashCommand(key, members);
 		}
@@ -419,7 +419,7 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<String> geoHash(ByteBuffer key, ByteBuffer member) {
 
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(member, "Member must not be null");
 
 		return geoHash(key, Collections.singletonList(member)) //
 				.flatMap(vals -> vals.isEmpty() ? Mono.empty() : Mono.justOrEmpty(vals.iterator().next()));
@@ -435,8 +435,8 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<List<String>> geoHash(ByteBuffer key, Collection<ByteBuffer> members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Members must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(members, "Members must not be null");
 
 		return geoHash(Mono.just(GeoHashCommand.members(members).of(key))) //
 				.next() //
@@ -477,7 +477,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoPosCommand member(ByteBuffer member) {
 
-			Assert.notNull(member, "Member must not be null!");
+			Assert.notNull(member, "Member must not be null");
 
 			return new GeoPosCommand(null, Collections.singletonList(member));
 		}
@@ -490,7 +490,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoPosCommand members(Collection<ByteBuffer> members) {
 
-			Assert.notNull(members, "Members must not be null!");
+			Assert.notNull(members, "Members must not be null");
 
 			return new GeoPosCommand(null, new ArrayList<>(members));
 		}
@@ -503,7 +503,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoPosCommand of(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new GeoPosCommand(key, members);
 		}
@@ -526,7 +526,7 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Point> geoPos(ByteBuffer key, ByteBuffer member) {
 
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(member, "Member must not be null");
 
 		return geoPos(key, Collections.singletonList(member))
 				.flatMap(vals -> vals.isEmpty() ? Mono.empty() : Mono.justOrEmpty(vals.iterator().next()));
@@ -542,8 +542,8 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<List<Point>> geoPos(ByteBuffer key, Collection<ByteBuffer> members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Members must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(members, "Members must not be null");
 
 		return geoPos(Mono.just(GeoPosCommand.members(members).of(key))).next().map(MultiValueResponse::getOutput);
 	}
@@ -591,7 +591,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoRadiusCommand within(Distance distance) {
 
-			Assert.notNull(distance, "Distance must not be null!");
+			Assert.notNull(distance, "Distance must not be null");
 
 			return new GeoRadiusCommand(null, null, distance, GeoRadiusCommandArgs.newGeoRadiusArgs(), null, null);
 		}
@@ -644,7 +644,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoRadiusCommand within(Circle circle) {
 
-			Assert.notNull(circle, "Circle must not be null!");
+			Assert.notNull(circle, "Circle must not be null");
 
 			return within(circle.getRadius()).from(circle.getCenter());
 		}
@@ -658,7 +658,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand from(Point center) {
 
-			Assert.notNull(center, "Center point must not be null!");
+			Assert.notNull(center, "Center point must not be null");
 
 			return new GeoRadiusCommand(getKey(), center, distance, args, store, storeDist);
 		}
@@ -671,7 +671,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand withFlag(Flag flag) {
 
-			Assert.notNull(flag, "Flag must not be null!");
+			Assert.notNull(flag, "Flag must not be null");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.getFlags().add(flag);
@@ -706,7 +706,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand withArgs(GeoRadiusCommandArgs args) {
 
-			Assert.notNull(args, "Args must not be null!");
+			Assert.notNull(args, "Args must not be null");
 			return new GeoRadiusCommand(getKey(), point, distance,
 					args == null ? GeoRadiusCommandArgs.newGeoRadiusArgs() : args, store, storeDist);
 		}
@@ -734,7 +734,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand sort(Direction direction) {
 
-			Assert.notNull(direction, "Direction must not be null!");
+			Assert.notNull(direction, "Direction must not be null");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.sort(direction);
@@ -768,7 +768,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand forKey(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new GeoRadiusCommand(key, point, distance, args, store, storeDist);
 		}
@@ -781,7 +781,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand storeAt(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 			return new GeoRadiusCommand(getKey(), point, distance, args, key, storeDist);
 		}
 
@@ -793,7 +793,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusCommand storeDistAt(@Nullable ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, key);
 		}
 
@@ -888,9 +888,9 @@ public interface ReactiveGeoCommands {
 	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle,
 			GeoRadiusCommandArgs geoRadiusArgs) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(circle, "Circle must not be null!");
-		Assert.notNull(geoRadiusArgs, "GeoRadiusArgs must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(circle, "Circle must not be null");
+		Assert.notNull(geoRadiusArgs, "GeoRadiusArgs must not be null");
 
 		return geoRadius(Mono.just(GeoRadiusCommand.within(circle).withArgs(geoRadiusArgs).forKey(key)))
 				.flatMap(CommandResponse::getOutput);
@@ -940,7 +940,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoRadiusByMemberCommand within(Distance distance) {
 
-			Assert.notNull(distance, "Distance must not be null!");
+			Assert.notNull(distance, "Distance must not be null");
 
 			return new GeoRadiusByMemberCommand(null, null, distance, GeoRadiusCommandArgs.newGeoRadiusArgs(), null, null);
 		}
@@ -993,7 +993,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand from(ByteBuffer member) {
 
-			Assert.notNull(member, "Member must not be null!");
+			Assert.notNull(member, "Member must not be null");
 
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
@@ -1006,7 +1006,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand withFlag(Flag flag) {
 
-			Assert.notNull(flag, "Flag must not be null!");
+			Assert.notNull(flag, "Flag must not be null");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.getFlags().add(flag);
@@ -1041,7 +1041,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand withArgs(GeoRadiusCommandArgs args) {
 
-			Assert.notNull(args, "Args must not be null!");
+			Assert.notNull(args, "Args must not be null");
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
 
@@ -1068,7 +1068,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand sort(Direction direction) {
 
-			Assert.notNull(direction, "Direction must not be null!");
+			Assert.notNull(direction, "Direction must not be null");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.sort(direction);
@@ -1102,7 +1102,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand forKey(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 			return new GeoRadiusByMemberCommand(key, member, distance, args, store, storeDist);
 		}
 
@@ -1114,7 +1114,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand storeAt(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, key, storeDist);
 		}
 
@@ -1126,7 +1126,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoRadiusByMemberCommand storeDistAt(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, key);
 		}
 
@@ -1222,10 +1222,10 @@ public interface ReactiveGeoCommands {
 	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member,
 			Distance distance, GeoRadiusCommandArgs geoRadiusArgs) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
-		Assert.notNull(distance, "Distance must not be null!");
-		Assert.notNull(geoRadiusArgs, "GeoRadiusArgs must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
+		Assert.notNull(distance, "Distance must not be null");
+		Assert.notNull(geoRadiusArgs, "GeoRadiusArgs must not be null");
 
 		return geoRadiusByMember(
 				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs)))
@@ -1271,7 +1271,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoSearchCommand within(GeoShape shape) {
 
-			Assert.notNull(shape, "GeoShape must not be null!");
+			Assert.notNull(shape, "GeoShape must not be null");
 
 			return new GeoSearchCommand(null, null, shape, null);
 		}
@@ -1284,7 +1284,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchCommand at(GeoReference<ByteBuffer> reference) {
 
-			Assert.notNull(reference, "GeoReference must not be null!");
+			Assert.notNull(reference, "GeoReference must not be null");
 
 			return new GeoSearchCommand(getKey(), reference, getShape(), args);
 		}
@@ -1297,7 +1297,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchCommand in(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new GeoSearchCommand(key, getReference(), getShape(), args);
 		}
@@ -1310,7 +1310,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchCommand with(GeoSearchCommandArgs args) {
 
-			Assert.notNull(args, "Args must not be null!");
+			Assert.notNull(args, "Args must not be null");
 
 			return new GeoSearchCommand(getKey(), getReference(), getShape(), args);
 		}
@@ -1362,7 +1362,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public static GeoSearchStoreCommand within(GeoShape shape) {
 
-			Assert.notNull(shape, "GeoShape must not be null!");
+			Assert.notNull(shape, "GeoShape must not be null");
 
 			return new GeoSearchStoreCommand(null, null, null, shape, null);
 		}
@@ -1375,7 +1375,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchStoreCommand at(GeoReference<ByteBuffer> reference) {
 
-			Assert.notNull(reference, "GeoReference must not be null!");
+			Assert.notNull(reference, "GeoReference must not be null");
 
 			return new GeoSearchStoreCommand(getKey(), getDestKey(), reference, getShape(), args);
 		}
@@ -1388,7 +1388,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchStoreCommand in(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new GeoSearchStoreCommand(key, getDestKey(), getReference(), getShape(), args);
 		}
@@ -1401,7 +1401,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchStoreCommand storeAt(ByteBuffer destKey) {
 
-			Assert.notNull(destKey, "Destination key must not be null!");
+			Assert.notNull(destKey, "Destination key must not be null");
 
 			return new GeoSearchStoreCommand(getKey(), destKey, getReference(), getShape(), args);
 		}
@@ -1414,7 +1414,7 @@ public interface ReactiveGeoCommands {
 		 */
 		public GeoSearchStoreCommand with(GeoSearchStoreCommandArgs args) {
 
-			Assert.notNull(args, "Args must not be null!");
+			Assert.notNull(args, "Args must not be null");
 
 			return new GeoSearchStoreCommand(getKey(), getDestKey(), getReference(), getShape(), args);
 		}

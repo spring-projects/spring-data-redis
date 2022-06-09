@@ -131,7 +131,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	static StreamMessageListenerContainer<String, MapRecord<String, String, String>> create(
 			RedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null");
 
 		return create(connectionFactory,
 				StreamMessageListenerContainerOptions.builder().serializer(StringRedisSerializer.UTF_8).build());
@@ -148,8 +148,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	static <K, V extends Record<K, ?>> StreamMessageListenerContainer<K, V> create(
 			RedisConnectionFactory connectionFactory, StreamMessageListenerContainerOptions<K, V> options) {
 
-		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null!");
-		Assert.notNull(options, "StreamMessageListenerContainerOptions must not be null!");
+		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null");
+		Assert.notNull(options, "StreamMessageListenerContainerOptions must not be null");
 
 		return new DefaultStreamMessageListenerContainer<>(connectionFactory, options);
 	}
@@ -612,8 +612,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamMessageListenerContainerOptionsBuilder<K, V> pollTimeout(Duration pollTimeout) {
 
-			Assert.notNull(pollTimeout, "Poll timeout must not be null!");
-			Assert.isTrue(!pollTimeout.isNegative(), "Poll timeout must not be negative!");
+			Assert.notNull(pollTimeout, "Poll timeout must not be null");
+			Assert.isTrue(!pollTimeout.isNegative(), "Poll timeout must not be negative");
 
 			this.pollTimeout = pollTimeout;
 			return this;
@@ -627,7 +627,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamMessageListenerContainerOptionsBuilder<K, V> batchSize(int messagesPerPoll) {
 
-			Assert.isTrue(messagesPerPoll > 0, "Batch size must be greater zero!");
+			Assert.isTrue(messagesPerPoll > 0, "Batch size must be greater zero");
 
 			this.batchSize = messagesPerPoll;
 			return this;
@@ -641,7 +641,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamMessageListenerContainerOptionsBuilder<K, V> executor(Executor executor) {
 
-			Assert.notNull(executor, "Executor must not be null!");
+			Assert.notNull(executor, "Executor must not be null");
 
 			this.executor = executor;
 			return this;
@@ -655,7 +655,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamMessageListenerContainerOptionsBuilder<K, V> errorHandler(ErrorHandler errorHandler) {
 
-			Assert.notNull(errorHandler, "ErrorHandler must not be null!");
+			Assert.notNull(errorHandler, "ErrorHandler must not be null");
 
 			this.errorHandler = errorHandler;
 			return this;

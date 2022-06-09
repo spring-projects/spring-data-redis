@@ -48,8 +48,8 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	 */
 	public AbstractRedisCollection(String key, RedisOperations<String, E> operations) {
 
-		Assert.hasText(key, "Key must not be empty!");
-		Assert.notNull(operations, "RedisOperations must not be null!");
+		Assert.hasText(key, "Key must not be empty");
+		Assert.notNull(operations, "RedisOperations must not be null");
 
 		this.key = key;
 		this.operations = operations;

@@ -226,7 +226,7 @@ public interface ReactiveRedisConnection extends Closeable {
 
 			super(key);
 
-			Assert.notNull(options, "ScanOptions must not be null!");
+			Assert.notNull(options, "ScanOptions must not be null");
 			this.options = options;
 		}
 
@@ -297,7 +297,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		 */
 		public RangeCommand within(Range<Long> range) {
 
-			Assert.notNull(range, "Range must not be null!");
+			Assert.notNull(range, "Range must not be null");
 
 			return new RangeCommand(getKey(), range);
 		}

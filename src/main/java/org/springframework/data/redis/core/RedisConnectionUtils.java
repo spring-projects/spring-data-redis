@@ -248,7 +248,7 @@ public abstract class RedisConnectionUtils {
 			if (conHolder.isTransactionActive()) {
 				if (connectionEquals(conHolder, conn)) {
 					if (log.isDebugEnabled()) {
-						log.debug("RedisConnection will be closed when transaction finished.");
+						log.debug("RedisConnection will be closed when transaction finished");
 					}
 
 					// It's the transactional Connection: Don't close it.
@@ -324,12 +324,12 @@ public abstract class RedisConnectionUtils {
 		}
 
 		if (log.isDebugEnabled()) {
-			log.debug("Unbinding Redis Connection.");
+			log.debug("Unbinding Redis Connection");
 		}
 
 		if (conHolder.isTransactionActive()) {
 			if (log.isDebugEnabled()) {
-				log.debug("Redis Connection will be closed when outer transaction finished.");
+				log.debug("Redis Connection will be closed when outer transaction finished");
 			}
 		} else {
 
@@ -370,7 +370,7 @@ public abstract class RedisConnectionUtils {
 		}
 
 		if (log.isDebugEnabled()) {
-			log.debug("Closing Redis Connection.");
+			log.debug("Closing Redis Connection");
 		}
 
 		try {

@@ -251,14 +251,14 @@ public class RedisKeyValueTemplateTests {
 		template.insert(source);
 
 		PartialUpdate<VariousTypes> update = new PartialUpdate<>(source.id, VariousTypes.class) //
-				.set("stringValue", "hooya!");
+				.set("stringValue", "hooya");
 
 		template.doPartialUpdate(update);
 
 		nativeTemplate.execute((RedisCallback<Void>) connection -> {
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "stringValue".getBytes()))
-					.isEqualTo("hooya!".getBytes());
+					.isEqualTo("hooya".getBytes());
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
 					"simpleTypedMap._class".getBytes())).isFalse();
 			return null;

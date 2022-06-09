@@ -66,8 +66,8 @@ public class ExampleQueryMapper {
 	public ExampleQueryMapper(MappingContext<RedisPersistentEntity<?>, RedisPersistentProperty> mappingContext,
 			IndexResolver indexResolver) {
 
-		Assert.notNull(mappingContext, "MappingContext must not be null!");
-		Assert.notNull(indexResolver, "IndexResolver must not be null!");
+		Assert.notNull(mappingContext, "MappingContext must not be null");
+		Assert.notNull(indexResolver, "IndexResolver must not be null");
 
 		this.mappingContext = mappingContext;
 		this.indexResolver = indexResolver;
@@ -139,7 +139,7 @@ public class ExampleQueryMapper {
 
 		if (!SUPPORTED_MATCHERS.contains(stringMatcher)) {
 			throw new InvalidDataAccessApiUsageException(
-					String.format("Redis Query-by-Example does not support string matcher %s. Supported matchers are: %s.",
+					String.format("Redis Query-by-Example does not support string matcher %s; Supported matchers are: %s.",
 							stringMatcher, SUPPORTED_MATCHERS));
 		}
 

@@ -49,9 +49,9 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 	@SafeVarargs
 	public final Mono<Long> add(K key, V... values) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notEmpty(values, "Values must not be null or empty!");
-		Assert.noNullElements(values, "Values must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notEmpty(values, "Values must not be null or empty");
+		Assert.noNullElements(values, "Values must not contain null elements");
 
 		return createMono(connection -> Flux.fromArray(values) //
 				.map(this::rawValue) //
@@ -63,8 +63,8 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 	@SafeVarargs
 	public final Mono<Long> size(K... keys) {
 
-		Assert.notEmpty(keys, "Keys must not be null or empty!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notEmpty(keys, "Keys must not be null or empty");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return createMono(connection -> Flux.fromArray(keys) //
 				.map(this::rawKey) //
@@ -76,9 +76,9 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 	@SafeVarargs
 	public final Mono<Boolean> union(K destination, K... sourceKeys) {
 
-		Assert.notNull(destination, "Destination key must not be null!");
-		Assert.notEmpty(sourceKeys, "Source keys must not be null or empty!");
-		Assert.noNullElements(sourceKeys, "Source keys must not contain null elements!");
+		Assert.notNull(destination, "Destination key must not be null");
+		Assert.notEmpty(sourceKeys, "Source keys must not be null or empty");
+		Assert.noNullElements(sourceKeys, "Source keys must not contain null elements");
 
 		return createMono(connection -> Flux.fromArray(sourceKeys) //
 				.map(this::rawKey) //
@@ -89,14 +89,14 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 	@Override
 	public Mono<Boolean> delete(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveHyperLogLogCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateMono(connection -> function.apply(connection.hyperLogLogCommands()));
 	}

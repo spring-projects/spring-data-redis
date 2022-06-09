@@ -67,8 +67,8 @@ public interface RedisGeoCommands {
 	@Nullable
 	default Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(location, "Location must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(location, "Location must not be null");
 
 		return geoAdd(key, location.getPoint(), location.getName());
 	}
@@ -418,7 +418,7 @@ public interface RedisGeoCommands {
 		 */
 		public GeoSearchCommandArgs limit(long count, boolean any) {
 
-			Assert.isTrue(count > 0, "Count has to positive value.");
+			Assert.isTrue(count > 0, "Count has to positive value");
 			limit = count;
 			if (any) {
 				flags.add(GeoCommandFlag.any());
@@ -550,7 +550,7 @@ public interface RedisGeoCommands {
 		 */
 		public GeoSearchStoreCommandArgs limit(long count, boolean any) {
 
-			Assert.isTrue(count > 0, "Count has to positive value.");
+			Assert.isTrue(count > 0, "Count has to positive value");
 			this.limit = count;
 			if (any) {
 				flags.add(GeoCommandFlag.any());

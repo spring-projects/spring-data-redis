@@ -63,9 +63,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public ClusterCommandExecutor(ClusterTopologyProvider topologyProvider, ClusterNodeResourceProvider resourceProvider,
 			ExceptionTranslationStrategy exceptionTranslation) {
 
-		Assert.notNull(topologyProvider, "ClusterTopologyProvider must not be null!");
-		Assert.notNull(resourceProvider, "ClusterNodeResourceProvider must not be null!");
-		Assert.notNull(exceptionTranslation, "ExceptionTranslationStrategy must not be null!");
+		Assert.notNull(topologyProvider, "ClusterTopologyProvider must not be null");
+		Assert.notNull(resourceProvider, "ClusterNodeResourceProvider must not be null");
+		Assert.notNull(exceptionTranslation, "ExceptionTranslationStrategy must not be null");
 
 		this.topologyProvider = topologyProvider;
 		this.resourceProvider = resourceProvider;
@@ -101,7 +101,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 */
 	public <T> NodeResult<T> executeCommandOnArbitraryNode(ClusterCommandCallback<?, T> cmd) {
 
-		Assert.notNull(cmd, "ClusterCommandCallback must not be null!");
+		Assert.notNull(cmd, "ClusterCommandCallback must not be null");
 		List<RedisClusterNode> nodes = new ArrayList<>(getClusterTopology().getActiveNodes());
 		return executeCommandOnSingleNode(cmd, nodes.get(new Random().nextInt(nodes.size())));
 	}
@@ -121,19 +121,19 @@ public class ClusterCommandExecutor implements DisposableBean {
 	private <S, T> NodeResult<T> executeCommandOnSingleNode(ClusterCommandCallback<S, T> cmd, RedisClusterNode node,
 			int redirectCount) {
 
-		Assert.notNull(cmd, "ClusterCommandCallback must not be null!");
-		Assert.notNull(node, "RedisClusterNode must not be null!");
+		Assert.notNull(cmd, "ClusterCommandCallback must not be null");
+		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		if (redirectCount > maxRedirects) {
 			throw new TooManyClusterRedirectionsException(String.format(
-					"Cannot follow Cluster Redirects over more than %s legs. Please consider increasing the number of redirects to follow. Current value is: %s.",
+					"Cannot follow Cluster Redirects over more than %s legs; Please consider increasing the number of redirects to follow; Current value is: %s.",
 					redirectCount, maxRedirects));
 		}
 
 		RedisClusterNode nodeToUse = lookupNode(node);
 
 		S client = this.resourceProvider.getResourceForSpecificNode(nodeToUse);
-		Assert.notNull(client, "Could not acquire resource for node. Is your cluster info up to date?");
+		Assert.notNull(client, "Could not acquire resource for node; Is your cluster info up to date");
 
 		try {
 			return new NodeResult<>(node, cmd.doInCluster(client));
@@ -188,8 +188,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(ClusterCommandCallback<S, T> callback,
 			Iterable<RedisClusterNode> nodes) {
 
-		Assert.notNull(callback, "Callback must not be null!");
-		Assert.notNull(nodes, "Nodes must not be null!");
+		Assert.notNull(callback, "Callback must not be null");
+		Assert.notNull(nodes, "Nodes must not be null");
 
 		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<>();
 		ClusterTopology topology = topologyProvider.getTopology();
@@ -305,12 +305,12 @@ public class ClusterCommandExecutor implements DisposableBean {
 	private <S, T> NodeResult<T> executeMultiKeyCommandOnSingleNode(MultiKeyClusterCommandCallback<S, T> cmd,
 			RedisClusterNode node, byte[] key) {
 
-		Assert.notNull(cmd, "MultiKeyCommandCallback must not be null!");
-		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(key, "Keys for execution must not be null!");
+		Assert.notNull(cmd, "MultiKeyCommandCallback must not be null");
+		Assert.notNull(node, "RedisClusterNode must not be null");
+		Assert.notNull(key, "Keys for execution must not be null");
 
 		S client = this.resourceProvider.getResourceForSpecificNode(node);
-		Assert.notNull(client, "Could not acquire resource for node. Is your cluster info up to date?");
+		Assert.notNull(client, "Could not acquire resource for node; Is your cluster info up to date");
 
 		try {
 			return new NodeResult<>(node, cmd.doInCluster(client, key), key);
@@ -497,7 +497,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		@Nullable
 		public <U> U mapValue(Function<? super T, ? extends U> mapper) {
 
-			Assert.notNull(mapper, "Mapper function must not be null!");
+			Assert.notNull(mapper, "Mapper function must not be null");
 
 			return mapper.apply(getValue());
 		}

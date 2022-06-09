@@ -207,7 +207,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	@Override
 	public Set<V> distinctRandomMembers(K key, long count) {
 
-		Assert.isTrue(count >= 0, "Negative count not supported. " + "Use randomMembers to allow duplicate elements.");
+		Assert.isTrue(count >= 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
 
 		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(
@@ -220,7 +220,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public List<V> randomMembers(K key, long count) {
 
 		Assert.isTrue(count >= 0,
-				"Use a positive number for count. " + "This method is already allowing duplicate elements.");
+				"Use a positive number for count; This method is already allowing duplicate elements");
 
 		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.sRandMember(rawKey, -count));

@@ -61,7 +61,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean exists(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::exists, PipelineBinaryCommands::exists, key);
 	}
@@ -70,8 +70,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long exists(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return connection.invoke().just(JedisBinaryCommands::exists, PipelineBinaryCommands::exists, keys);
 	}
@@ -79,16 +79,16 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long del(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		return connection.invoke().just(JedisBinaryCommands::del, PipelineBinaryCommands::del, keys);
 	}
 
 	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
 
-		Assert.notNull(sourceKey, "source key must not be null!");
-		Assert.notNull(targetKey, "target key must not be null!");
+		Assert.notNull(sourceKey, "source key must not be null");
+		Assert.notNull(targetKey, "target key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::copy, PipelineBinaryCommands::copy, sourceKey, targetKey,
 				replace);
@@ -98,7 +98,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long unlink(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::unlink, PipelineBinaryCommands::unlink, keys);
 	}
@@ -106,7 +106,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public DataType type(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::type, PipelineBinaryCommands::type, key)
 				.get(JedisConverters.stringToDataType());
@@ -116,7 +116,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long touch(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::touch, PipelineBinaryCommands::touch, keys);
 	}
@@ -124,7 +124,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::keys, PipelineBinaryCommands::keys, pattern);
 	}
@@ -148,7 +148,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
-					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode.");
+					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
 				}
 
 				ScanParams params = JedisConverters.toScanParams(options);
@@ -187,8 +187,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public void rename(byte[] oldKey, byte[] newKey) {
 
-		Assert.notNull(oldKey, "Old key must not be null!");
-		Assert.notNull(newKey, "New key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null");
+		Assert.notNull(newKey, "New key must not be null");
 
 		connection.invokeStatus().just(JedisBinaryCommands::rename, PipelineBinaryCommands::rename, oldKey, newKey);
 	}
@@ -196,8 +196,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(targetKey, "Target key must not be null");
 
 		return connection.invoke()
 				.from(JedisBinaryCommands::renamenx, PipelineBinaryCommands::renamenx, sourceKey, targetKey)
@@ -207,7 +207,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		if (seconds > Integer.MAX_VALUE) {
 			return pExpire(key, TimeUnit.SECONDS.toMillis(seconds));
@@ -220,7 +220,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean pExpire(byte[] key, long millis) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::pexpire, PipelineBinaryCommands::pexpire, key, millis)
 				.get(JedisConverters.longToBoolean());
@@ -229,7 +229,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::expireAt, PipelineBinaryCommands::expireAt, key, unixTime)
 				.get(JedisConverters.longToBoolean());
@@ -238,7 +238,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke()
 				.from(JedisBinaryCommands::pexpireAt, PipelineBinaryCommands::pexpireAt, key, unixTimeInMillis)
@@ -248,7 +248,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean persist(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::persist, PipelineBinaryCommands::persist, key)
 				.get(JedisConverters.longToBoolean());
@@ -257,7 +257,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(j -> j.move(key, dbIndex)).get(JedisConverters.longToBoolean());
 	}
@@ -265,7 +265,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long ttl(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::ttl, PipelineBinaryCommands::ttl, key);
 	}
@@ -273,7 +273,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::ttl, PipelineBinaryCommands::ttl, key)
 				.get(Converters.secondsToTimeUnit(timeUnit));
@@ -282,7 +282,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long pTtl(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::pttl, PipelineBinaryCommands::pttl, key);
 	}
@@ -290,7 +290,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::pttl, PipelineBinaryCommands::pttl, key)
 				.get(Converters.millisecondsToTimeUnit(timeUnit));
@@ -299,7 +299,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		SortingParams sortParams = JedisConverters.toSortingParams(params);
 
@@ -313,7 +313,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long sort(byte[] key, @Nullable SortParameters params, byte[] storeKey) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		SortingParams sortParams = JedisConverters.toSortingParams(params);
 
@@ -328,7 +328,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public byte[] dump(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::dump, PipelineBinaryCommands::dump, key);
 	}
@@ -336,8 +336,8 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(serializedValue, "Serialized value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(serializedValue, "Serialized value must not be null");
 
 		if (replace) {
 
@@ -347,7 +347,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 
 		if (ttlInMillis > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis.");
+			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis");
 		}
 
 		connection.invokeStatus().just(JedisBinaryCommands::restore, PipelineBinaryCommands::restore, key,
@@ -358,7 +358,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::objectEncoding, PipelineBinaryCommands::objectEncoding, key)
 				.getOrElse(JedisConverters::toEncoding, () -> RedisValueEncoding.VACANT);
@@ -368,7 +368,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Duration idletime(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(JedisBinaryCommands::objectIdletime, PipelineBinaryCommands::objectIdletime, key)
 				.get(Converters::secondsToDuration);
@@ -378,7 +378,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long refcount(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(JedisBinaryCommands::objectRefcount, PipelineBinaryCommands::objectRefcount, key);
 	}

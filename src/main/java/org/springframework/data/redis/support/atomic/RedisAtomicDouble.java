@@ -162,7 +162,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 			return value;
 		}
 
-		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
+		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist", key));
 	}
 
 	/**
@@ -238,7 +238,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public double getAndUpdate(DoubleUnaryOperator updateFunction) {
 
-		Assert.notNull(updateFunction, "Update function must not be null!");
+		Assert.notNull(updateFunction, "Update function must not be null");
 
 		double previousValue, newValue;
 
@@ -263,7 +263,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public double getAndAccumulate(double updateValue, DoubleBinaryOperator accumulatorFunction) {
 
-		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null");
 
 		double previousValue, newValue;
 
@@ -314,7 +314,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public double updateAndGet(DoubleUnaryOperator updateFunction) {
 
-		Assert.notNull(updateFunction, "Update function must not be null!");
+		Assert.notNull(updateFunction, "Update function must not be null");
 
 		double previousValue, newValue;
 
@@ -339,7 +339,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 */
 	public double accumulateAndGet(double updateValue, DoubleBinaryOperator accumulatorFunction) {
 
-		Assert.notNull(accumulatorFunction, "Accumulator function must not be null!");
+		Assert.notNull(accumulatorFunction, "Accumulator function must not be null");
 
 		double previousValue, newValue;
 

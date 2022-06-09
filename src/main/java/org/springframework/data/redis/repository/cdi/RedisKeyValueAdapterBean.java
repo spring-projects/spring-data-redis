@@ -51,7 +51,7 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 			BeanManager beanManager) {
 
 		super(qualifiers, RedisKeyValueAdapter.class, beanManager);
-		Assert.notNull(redisOperations, "RedisOperations Bean must not be null!");
+		Assert.notNull(redisOperations, "RedisOperations Bean must not be null");
 		this.redisOperations = redisOperations;
 	}
 

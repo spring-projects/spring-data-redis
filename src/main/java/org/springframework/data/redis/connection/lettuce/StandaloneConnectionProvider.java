@@ -111,7 +111,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 					.orElseGet(() -> client.connect(codec)));
 		}
 
-		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported!");
+		throw new UnsupportedOperationException("Connection type " + connectionType + " not supported");
 	}
 
 	@Override
@@ -139,7 +139,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 		}
 
 		return LettuceFutureUtils
-				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported!"));
+				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported"));
 	}
 
 	private StatefulRedisConnection masterReplicaConnection(RedisURI redisUri, ReadFrom readFrom) {

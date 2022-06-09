@@ -80,7 +80,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	 */
 	private void addNode(RedisStandaloneConfiguration node) {
 
-		Assert.notNull(node, "RedisStandaloneConfiguration must not be null!");
+		Assert.notNull(node, "RedisStandaloneConfiguration must not be null");
 
 		node.setPassword(password);
 		node.setDatabase(database);
@@ -143,7 +143,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	@Override
 	public void setPassword(RedisPassword password) {
 
-		Assert.notNull(password, "RedisPassword must not be null!");
+		Assert.notNull(password, "RedisPassword must not be null");
 
 		this.password = password;
 		this.nodes.forEach(it -> it.setPassword(password));

@@ -83,7 +83,7 @@ public class RecordId {
 		}
 
 		Assert.isTrue(value.contains(DELIMITER),
-				"Invalid id format. Please use the 'millisecondsTime-sequenceNumber' format.");
+				"Invalid id format; Please use the 'millisecondsTime-sequenceNumber' format");
 		return new RecordId(value);
 	}
 

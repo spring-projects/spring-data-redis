@@ -46,7 +46,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 
 		this(subCommands);
 
-		Assert.notNull(subCommand, "SubCommand must not be null!");
+		Assert.notNull(subCommand, "SubCommand must not be null");
 		this.subCommands.add(subCommand);
 	}
 
@@ -208,7 +208,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 */
 		public BitFieldSetBuilder valueAt(Offset offset) {
 
-			Assert.notNull(offset, "Offset must not be null!");
+			Assert.notNull(offset, "Offset must not be null");
 
 			this.set.offset = offset;
 			return this;
@@ -263,7 +263,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 */
 		public BitFieldSubCommands valueAt(Offset offset) {
 
-			Assert.notNull(offset, "Offset must not be null!");
+			Assert.notNull(offset, "Offset must not be null");
 
 			this.get.offset = offset;
 			return ref.get(this.get);
@@ -306,7 +306,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 */
 		public BitFieldIncrByBuilder valueAt(Offset offset) {
 
-			Assert.notNull(offset, "Offset must not be null!");
+			Assert.notNull(offset, "Offset must not be null");
 			this.incrBy.offset = offset;
 			return this;
 		}

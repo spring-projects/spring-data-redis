@@ -150,7 +150,7 @@ class MessageListenerUnitTests {
 		MessageListener listenerAdapter = new MessageListenerAdapter(listener) {
 			@Override
 			public void setDefaultListenerMethod(String defaultListenerMethod) {
-				throw new RuntimeException("Boom!");
+				throw new RuntimeException("Boom");
 			}
 		};
 

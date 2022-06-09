@@ -80,7 +80,7 @@ class JedisInvoker {
 	@Nullable
 	<R> R just(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return synchronizer.invoke(function::apply, it -> {
 			throw new InvalidDataAccessApiUsageException("Operation not supported by Jedis in pipelining/transaction mode");
@@ -96,8 +96,8 @@ class JedisInvoker {
 	@Nullable
 	<R> R just(ConnectionFunction0<R> function, PipelineFunction0<R> pipelineFunction) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(function::apply, pipelineFunction::apply, Converters.identityConverter(), () -> null);
 	}
@@ -112,8 +112,8 @@ class JedisInvoker {
 	@Nullable
 	<R, T1> R just(ConnectionFunction1<T1, R> function, PipelineFunction1<T1, R> pipelineFunction, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(it -> function.apply(it, t1), it -> pipelineFunction.apply(it, t1));
 	}
@@ -130,8 +130,8 @@ class JedisInvoker {
 	<R, T1, T2> R just(ConnectionFunction2<T1, T2, R> function, PipelineFunction2<T1, T2, R> pipelineFunction, T1 t1,
 			T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2), it -> pipelineFunction.apply(it, t1, t2));
 	}
@@ -149,8 +149,8 @@ class JedisInvoker {
 	<R, T1, T2, T3> R just(ConnectionFunction3<T1, T2, T3, R> function, PipelineFunction3<T1, T2, T3, R> pipelineFunction,
 			T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3), it -> pipelineFunction.apply(it, t1, t2, t3));
 	}
@@ -169,8 +169,8 @@ class JedisInvoker {
 	<R, T1, T2, T3, T4> R just(ConnectionFunction4<T1, T2, T3, T4, R> function,
 			PipelineFunction4<T1, T2, T3, T4, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4));
@@ -191,8 +191,8 @@ class JedisInvoker {
 	<R, T1, T2, T3, T4, T5> R just(ConnectionFunction5<T1, T2, T3, T4, T5, R> function,
 			PipelineFunction5<T1, T2, T3, T4, T5, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4, t5),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5));
@@ -214,8 +214,8 @@ class JedisInvoker {
 	<R, T1, T2, T3, T4, T5, T6> R just(ConnectionFunction6<T1, T2, T3, T4, T5, T6, R> function,
 			PipelineFunction6<T1, T2, T3, T4, T5, T6, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
@@ -229,7 +229,7 @@ class JedisInvoker {
 	 */
 	<R> SingleInvocationSpec<R> from(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return from(function, connection -> {
 			throw new InvalidDataAccessApiUsageException("Operation not supported in pipelining/transaction mode");
@@ -245,8 +245,8 @@ class JedisInvoker {
 	 */
 	<R> SingleInvocationSpec<R> from(ConnectionFunction0<R> function, PipelineFunction0<R> pipelineFunction) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return new DefaultSingleInvocationSpec<>(function::apply, pipelineFunction::apply, synchronizer);
 	}
@@ -262,8 +262,8 @@ class JedisInvoker {
 	<R, T1> SingleInvocationSpec<R> from(ConnectionFunction1<T1, R> function, PipelineFunction1<T1, R> pipelineFunction,
 			T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return from(it -> function.apply(it, t1), it -> pipelineFunction.apply(it, t1));
 	}
@@ -280,8 +280,8 @@ class JedisInvoker {
 	<R, T1, T2> SingleInvocationSpec<R> from(ConnectionFunction2<T1, T2, R> function,
 			PipelineFunction2<T1, T2, R> pipelineFunction, T1 t1, T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2), it -> pipelineFunction.apply(it, t1, t2));
 	}
@@ -299,8 +299,8 @@ class JedisInvoker {
 	<R, T1, T2, T3> SingleInvocationSpec<R> from(ConnectionFunction3<T1, T2, T3, R> function,
 			PipelineFunction3<T1, T2, T3, R> pipelineFunction, T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3), it -> pipelineFunction.apply(it, t1, t2, t3));
 	}
@@ -319,8 +319,8 @@ class JedisInvoker {
 	<R, T1, T2, T3, T4> SingleInvocationSpec<R> from(ConnectionFunction4<T1, T2, T3, T4, R> function,
 			PipelineFunction4<T1, T2, T3, T4, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4), it -> pipelineFunction.apply(it, t1, t2, t3, t4));
 	}
@@ -340,8 +340,8 @@ class JedisInvoker {
 	<R, T1, T2, T3, T4, T5> SingleInvocationSpec<R> from(ConnectionFunction5<T1, T2, T3, T4, T5, R> function,
 			PipelineFunction5<T1, T2, T3, T4, T5, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4, t5), it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5));
 	}
@@ -362,8 +362,8 @@ class JedisInvoker {
 	<R, T1, T2, T3, T4, T5, T6> SingleInvocationSpec<R> from(ConnectionFunction6<T1, T2, T3, T4, T5, T6, R> function,
 			PipelineFunction6<T1, T2, T3, T4, T5, T6, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return from(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
@@ -377,7 +377,7 @@ class JedisInvoker {
 	 */
 	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
 
 		return fromMany(function, connection -> {
 			throw new InvalidDataAccessApiUsageException("Operation not supported in pipelining/transaction mode");
@@ -394,8 +394,8 @@ class JedisInvoker {
 	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function,
 			PipelineFunction0<R> pipelineFunction) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return new DefaultManyInvocationSpec<>((Function<Jedis, R>) function::apply, pipelineFunction::apply, synchronizer);
 	}
@@ -411,8 +411,8 @@ class JedisInvoker {
 	<R extends Collection<E>, E, T1> ManyInvocationSpec<E> fromMany(ConnectionFunction1<T1, R> function,
 			PipelineFunction1<T1, R> pipelineFunction, T1 t1) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1), it -> pipelineFunction.apply(it, t1));
 	}
@@ -429,8 +429,8 @@ class JedisInvoker {
 	<R extends Collection<E>, E, T1, T2> ManyInvocationSpec<E> fromMany(ConnectionFunction2<T1, T2, R> function,
 			PipelineFunction2<T1, T2, R> pipelineFunction, T1 t1, T2 t2) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2), it -> pipelineFunction.apply(it, t1, t2));
 	}
@@ -448,8 +448,8 @@ class JedisInvoker {
 	<R extends Collection<E>, E, T1, T2, T3> ManyInvocationSpec<E> fromMany(ConnectionFunction3<T1, T2, T3, R> function,
 			PipelineFunction3<T1, T2, T3, R> pipelineFunction, T1 t1, T2 t2, T3 t3) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3), it -> pipelineFunction.apply(it, t1, t2, t3));
 	}
@@ -469,8 +469,8 @@ class JedisInvoker {
 			ConnectionFunction4<T1, T2, T3, T4, R> function, PipelineFunction4<T1, T2, T3, T4, R> pipelineFunction, T1 t1,
 			T2 t2, T3 t3, T4 t4) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4), it -> pipelineFunction.apply(it, t1, t2, t3, t4));
 	}
@@ -491,8 +491,8 @@ class JedisInvoker {
 			ConnectionFunction5<T1, T2, T3, T4, T5, R> function, PipelineFunction5<T1, T2, T3, T4, T5, R> pipelineFunction,
 			T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4, t5), it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5));
 	}
@@ -514,8 +514,8 @@ class JedisInvoker {
 			ConnectionFunction6<T1, T2, T3, T4, T5, T6, R> function,
 			PipelineFunction6<T1, T2, T3, T4, T5, T6, R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) {
 
-		Assert.notNull(function, "ConnectionFunction must not be null!");
-		Assert.notNull(pipelineFunction, "PipelineFunction must not be null!");
+		Assert.notNull(function, "ConnectionFunction must not be null");
+		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
 		return fromMany(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
@@ -947,7 +947,7 @@ class JedisInvoker {
 		@Override
 		public <T> T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault) {
 
-			Assert.notNull(converter, "Converter must not be null!");
+			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parentFunction, parentPipelineFunction, converter, nullDefault);
 		}
@@ -971,7 +971,7 @@ class JedisInvoker {
 		@Override
 		public <T> List<T> toList(Converter<S, T> converter) {
 
-			Assert.notNull(converter, "Converter must not be null!");
+			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parentFunction, parentPipelineFunction, source -> {
 
@@ -992,7 +992,7 @@ class JedisInvoker {
 		@Override
 		public <T> Set<T> toSet(Converter<S, T> converter) {
 
-			Assert.notNull(converter, "Converter must not be null!");
+			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parentFunction, parentPipelineFunction, source -> {
 

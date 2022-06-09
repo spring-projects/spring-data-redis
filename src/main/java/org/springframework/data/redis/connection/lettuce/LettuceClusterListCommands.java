@@ -44,8 +44,8 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			return super.bLPop(timeout, keys);
@@ -67,8 +67,8 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			return super.bRPop(timeout, keys);
@@ -90,8 +90,8 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(dstKey, "Destination key must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			return super.rPopLPush(srcKey, dstKey);
@@ -105,8 +105,8 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 
-		Assert.notNull(srcKey, "Source key must not be null!");
-		Assert.notNull(dstKey, "Destination key must not be null!");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			return super.bRPopLPush(timeout, srcKey, dstKey);

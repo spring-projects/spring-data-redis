@@ -157,7 +157,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public Properties info(String section) {
 
-		Assert.hasText(section, "Section must not be null or empty!");
+		Assert.hasText(section, "Section must not be null or empty");
 
 		Properties infos = new Properties();
 		List<NodeResult<Properties>> nodeResults = executeCommandOnAllNodes(
@@ -175,7 +175,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public Properties info(RedisClusterNode node, String section) {
 
-		Assert.hasText(section, "Section must not be null or empty!");
+		Assert.hasText(section, "Section must not be null or empty");
 
 		return LettuceConverters.toProperties(executeCommandOnSingleNode(client -> client.info(section), node).getValue());
 	}
@@ -192,7 +192,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public Properties getConfig(String pattern) {
 
-		Assert.hasText(pattern, "Pattern must not be null or empty!");
+		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		List<NodeResult<Map<String, String>>> mapResult = executeCommandOnAllNodes(client -> client.configGet(pattern))
 				.getResults();
@@ -211,7 +211,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public Properties getConfig(RedisClusterNode node, String pattern) {
 
-		Assert.hasText(pattern, "Pattern must not be null or empty!");
+		Assert.hasText(pattern, "Pattern must not be null or empty");
 
 		return executeCommandOnSingleNode(client -> Converters.toProperties(client.configGet(pattern)), node).getValue();
 	}
@@ -219,8 +219,8 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public void setConfig(String param, String value) {
 
-		Assert.hasText(param, "Parameter must not be null or empty!");
-		Assert.hasText(value, "Value must not be null or empty!");
+		Assert.hasText(param, "Parameter must not be null or empty");
+		Assert.hasText(value, "Value must not be null or empty");
 
 		executeCommandOnAllNodes(client -> client.configSet(param, value));
 	}
@@ -228,8 +228,8 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public void setConfig(RedisClusterNode node, String param, String value) {
 
-		Assert.hasText(param, "Parameter must not be null or empty!");
-		Assert.hasText(value, "Value must not be null or empty!");
+		Assert.hasText(param, "Parameter must not be null or empty");
+		Assert.hasText(value, "Value must not be null or empty");
 
 		executeCommandOnSingleNode(client -> client.configSet(param, value), node);
 	}
@@ -281,13 +281,13 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public void replicaOf(String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
-				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment; Please use CLUSTER REPLICATE.");
 	}
 
 	@Override
 	public void replicaOfNoOne() {
 		throw new InvalidDataAccessApiUsageException(
-				"REPLICAOF is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"REPLICAOF is not supported in cluster environment; Please use CLUSTER REPLICATE.");
 	}
 
 	private <T> NodeResult<T> executeCommandOnSingleNode(LettuceClusterCommandCallback<T> command,
@@ -301,9 +301,9 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 
 	private static Long convertListOfStringToTime(List<byte[]> serverTimeInformation, TimeUnit timeUnit) {
 
-		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
+		Assert.notEmpty(serverTimeInformation, "Received invalid result from server; Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+				"Received invalid number of arguments from redis server; Expected 2 received " + serverTimeInformation.size());
 
 		return Converters.toTimeMillis(LettuceConverters.toString(serverTimeInformation.get(0)),
 				LettuceConverters.toString(serverTimeInformation.get(1)), timeUnit);

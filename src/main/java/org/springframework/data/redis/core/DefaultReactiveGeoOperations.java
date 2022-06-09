@@ -64,9 +64,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Long> add(K key, Point point, V member) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(point, "Point must not be null!");
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(point, "Point must not be null");
+		Assert.notNull(member, "Member must not be null");
 
 		return createMono(connection -> connection.geoAdd(rawKey(key), point, rawValue(member)));
 	}
@@ -74,8 +74,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Long> add(K key, GeoLocation<V> location) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(location, "GeoLocation must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(location, "GeoLocation must not be null");
 
 		return createMono(connection -> connection.geoAdd(rawKey(key),
 				new GeoLocation<>(rawValue(location.getName()), location.getPoint())));
@@ -84,8 +84,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Long> add(K key, Map<V, Point> memberCoordinateMap) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null");
 
 		return createMono(connection -> {
 
@@ -100,8 +100,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Long> add(K key, Iterable<GeoLocation<V>> geoLocations) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(geoLocations, "GeoLocations must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(geoLocations, "GeoLocations must not be null");
 
 		return createMono(connection -> {
 
@@ -115,8 +115,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Flux<Long> add(K key, Publisher<? extends Collection<GeoLocation<V>>> locations) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(locations, "Locations must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(locations, "Locations must not be null");
 
 		return createFlux(connection -> Flux.from(locations)
 				.map(locationList -> locationList.stream()
@@ -128,9 +128,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Distance> distance(K key, V member1, V member2) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member1, "Member 1 must not be null!");
-		Assert.notNull(member2, "Member 2 must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member1, "Member 1 must not be null");
+		Assert.notNull(member2, "Member 2 must not be null");
 
 		return createMono(connection -> connection.geoDist(rawKey(key), rawValue(member1), rawValue(member2)));
 	}
@@ -138,10 +138,10 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Distance> distance(K key, V member1, V member2, Metric metric) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member1, "Member 1 must not be null!");
-		Assert.notNull(member2, "Member 2 must not be null!");
-		Assert.notNull(metric, "Metric must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member1, "Member 1 must not be null");
+		Assert.notNull(member2, "Member 2 must not be null");
+		Assert.notNull(metric, "Metric must not be null");
 
 		return createMono(connection -> connection.geoDist(rawKey(key), rawValue(member1), rawValue(member2), metric));
 	}
@@ -149,8 +149,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<String> hash(K key, V member) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
 
 		return createMono(connection -> connection.geoHash(rawKey(key), rawValue(member)));
 	}
@@ -159,9 +159,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@SafeVarargs
 	public final Mono<List<String>> hash(K key, V... members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notEmpty(members, "Members must not be null or empty!");
-		Assert.noNullElements(members, "Members must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notEmpty(members, "Members must not be null or empty");
+		Assert.noNullElements(members, "Members must not contain null elements");
 
 		return createMono(connection -> Flux.fromArray(members) //
 				.map(this::rawValue) //
@@ -172,8 +172,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Point> position(K key, V member) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
 
 		return createMono(connection -> connection.geoPos(rawKey(key), rawValue(member)));
 	}
@@ -182,9 +182,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@SafeVarargs
 	public final Mono<List<Point>> position(K key, V... members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notEmpty(members, "Members must not be null or empty!");
-		Assert.noNullElements(members, "Members must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notEmpty(members, "Members must not be null or empty");
+		Assert.noNullElements(members, "Members must not contain null elements");
 
 		return createMono(connection -> Flux.fromArray(members) //
 				.map(this::rawValue) //
@@ -195,8 +195,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, Circle within) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(within, "Circle must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(within, "Circle must not be null");
 
 		return createFlux(connection -> connection.geoRadius(rawKey(key), within).map(this::readGeoResult));
 	}
@@ -204,9 +204,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, Circle within, GeoRadiusCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(within, "Circle must not be null!");
-		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(within, "Circle must not be null");
+		Assert.notNull(args, "GeoRadiusCommandArgs must not be null");
 
 		return createFlux(connection -> connection.geoRadius(rawKey(key), within, args) //
 				.map(this::readGeoResult));
@@ -215,8 +215,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, V member, double radius) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
 
 		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
 				.map(this::readGeoResult));
@@ -225,9 +225,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, V member, Distance distance) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
-		Assert.notNull(distance, "Distance must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
+		Assert.notNull(distance, "Distance must not be null");
 
 		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
 				.map(this::readGeoResult));
@@ -236,10 +236,10 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Flux<GeoResult<GeoLocation<V>>> radius(K key, V member, Distance distance, GeoRadiusCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
-		Assert.notNull(distance, "Distance must not be null!");
-		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
+		Assert.notNull(distance, "Distance must not be null");
+		Assert.notNull(args, "GeoRadiusCommandArgs must not be null");
 
 		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args))
 				.map(this::readGeoResult);
@@ -249,9 +249,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@SafeVarargs
 	public final Mono<Long> remove(K key, V... members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notEmpty(members, "Members must not be null or empty!");
-		Assert.noNullElements(members, "Members must not contain null elements!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notEmpty(members, "Members must not be null or empty");
+		Assert.noNullElements(members, "Members must not contain null elements");
 
 		return template.doCreateMono(connection -> Flux.fromArray(members) //
 				.map(this::rawValue) //
@@ -262,7 +262,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@Override
 	public Mono<Boolean> delete(K key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
@@ -271,8 +271,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	public Flux<GeoResult<GeoLocation<V>>> search(K key, GeoReference<V> reference,
 			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(reference, "GeoReference must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(reference, "GeoReference must not be null");
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
 		return template.doCreateFlux(connection -> connection.geoCommands()
@@ -283,8 +283,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	public Mono<Long> searchAndStore(K key, K destKey, GeoReference<V> reference,
 			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(reference, "GeoReference must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(reference, "GeoReference must not be null");
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
 		return template.doCreateMono(connection -> connection.geoCommands().geoSearchStore(rawKey(destKey), rawKey(key),
@@ -293,14 +293,14 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 	private <T> Mono<T> createMono(Function<ReactiveGeoCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateMono(connection -> function.apply(connection.geoCommands()));
 	}
 
 	private <T> Flux<T> createFlux(Function<ReactiveGeoCommands, Publisher<T>> function) {
 
-		Assert.notNull(function, "Function must not be null!");
+		Assert.notNull(function, "Function must not be null");
 
 		return template.doCreateFlux(connection -> function.apply(connection.geoCommands()));
 	}

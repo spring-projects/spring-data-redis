@@ -53,7 +53,7 @@ class ParameterizedTestNameFormatter {
 		try {
 			return formatSafely(invocationIndex, arguments);
 		} catch (Exception ex) {
-			String message = "The display name pattern defined for the parameterized test is invalid. "
+			String message = "The display name pattern defined for the parameterized test is invalid; "
 					+ "See nested exception for further details.";
 			throw new JUnitException(message, ex);
 		}

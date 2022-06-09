@@ -78,7 +78,7 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	 */
 	public static <T> SerializationPair<T> from(RedisSerializer<T> redisSerializer) {
 
-		Assert.notNull(redisSerializer, "RedisSerializer must not be null!");
+		Assert.notNull(redisSerializer, "RedisSerializer must not be null");
 
 		return new RedisSerializerToSerializationPairAdapter<>(redisSerializer);
 	}

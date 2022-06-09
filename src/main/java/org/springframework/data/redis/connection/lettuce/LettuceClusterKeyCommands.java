@@ -78,7 +78,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		Collection<List<byte[]>> keysPerNode = connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((LettuceClusterCommandCallback<List<byte[]>>) connection -> connection.keys(pattern))
@@ -95,8 +95,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	@Override
 	public void rename(byte[] oldKey, byte[] newKey) {
 
-		Assert.notNull(oldKey, "Old key must not be null!");
-		Assert.notNull(newKey, "New key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null");
+		Assert.notNull(newKey, "New key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldKey, newKey)) {
 			super.rename(oldKey, newKey);
@@ -115,8 +115,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(targetKey, "Target key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sourceKey, targetKey)) {
 			return super.renameNX(sourceKey, targetKey);
@@ -135,7 +135,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode!");
+		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode");
 	}
 
 	@Nullable
@@ -149,7 +149,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	@Nullable
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		return LettuceConverters.toBytesSet(connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keys(pattern), node)
@@ -166,8 +166,8 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 */
 	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(options, "Options must not be null!");
+		Assert.notNull(node, "RedisClusterNode must not be null");
+		Assert.notNull(options, "Options must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<ScanCursor<byte[]>>) client -> {
@@ -191,7 +191,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(key, storeKey)) {
 			return super.sort(key, params, storeKey);

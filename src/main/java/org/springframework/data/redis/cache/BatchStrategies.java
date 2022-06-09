@@ -63,7 +63,7 @@ public abstract class BatchStrategies {
 	 */
 	public static BatchStrategy scan(int batchSize) {
 
-		Assert.isTrue(batchSize > 0, "Batch size must be greater than zero!");
+		Assert.isTrue(batchSize > 0, "Batch size must be greater than zero");
 
 		return new Scan(batchSize);
 	}

@@ -77,8 +77,8 @@ public interface RedisScript<T> {
 	 */
 	static <T> RedisScript<T> of(String script, Class<T> resultType) {
 
-		Assert.notNull(script, "Script must not be null!");
-		Assert.notNull(resultType, "ResultType must not be null!");
+		Assert.notNull(script, "Script must not be null");
+		Assert.notNull(resultType, "ResultType must not be null");
 
 		return new DefaultRedisScript<>(script, resultType);
 	}
@@ -93,7 +93,7 @@ public interface RedisScript<T> {
 	 */
 	static <T> RedisScript<T> of(Resource resource) {
 
-		Assert.notNull(resource, "Resource must not be null!");
+		Assert.notNull(resource, "Resource must not be null");
 
 		DefaultRedisScript<T> script = new DefaultRedisScript<>();
 		script.setLocation(resource);
@@ -112,8 +112,8 @@ public interface RedisScript<T> {
 	 */
 	static <T> RedisScript<T> of(Resource resource, Class<T> resultType) {
 
-		Assert.notNull(resource, "Resource must not be null!");
-		Assert.notNull(resultType, "ResultType must not be null!");
+		Assert.notNull(resource, "Resource must not be null");
+		Assert.notNull(resultType, "ResultType must not be null");
 
 		DefaultRedisScript<T> script = new DefaultRedisScript<>();
 		script.setResultType(resultType);

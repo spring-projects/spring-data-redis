@@ -58,7 +58,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 	 */
 	LettuceReactiveGeoCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 		this.connection = connection;
 	}
 
@@ -67,14 +67,14 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getGeoLocations(), "Locations must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getGeoLocations(), "Locations must not be null");
 
 			List<Object> values = new ArrayList<>();
 			for (GeoLocation<ByteBuffer> location : command.getGeoLocations()) {
 
-				Assert.notNull(location.getName(), "Location.Name must not be null!");
-				Assert.notNull(location.getPoint(), "Location.Point must not be null!");
+				Assert.notNull(location.getName(), "Location.Name must not be null");
+				Assert.notNull(location.getPoint(), "Location.Point must not be null");
 
 				values.add(location.getPoint().getX());
 				values.add(location.getPoint().getY());
@@ -90,9 +90,9 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getFrom(), "From member must not be null!");
-			Assert.notNull(command.getTo(), "To member must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFrom(), "From member must not be null");
+			Assert.notNull(command.getTo(), "To member must not be null");
 
 			Metric metric = command.getMetric().isPresent() ? command.getMetric().get()
 					: RedisGeoCommands.DistanceUnit.METERS;
@@ -112,8 +112,8 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getMembers(), "Members must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getMembers(), "Members must not be null");
 
 			return cmd.geohash(command.getKey(), command.getMembers().stream().toArray(ByteBuffer[]::new)).collectList()
 					.map(value -> new MultiValueResponse<>(command,
@@ -126,8 +126,8 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getMembers(), "Members must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getMembers(), "Members must not be null");
 
 			Mono<List<Value<GeoCoordinates>>> result = cmd
 					.geopos(command.getKey(), command.getMembers().stream().toArray(ByteBuffer[]::new)).collectList();
@@ -143,9 +143,9 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getPoint(), "Point must not be null!");
-			Assert.notNull(command.getDistance(), "Distance must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getPoint(), "Point must not be null");
+			Assert.notNull(command.getDistance(), "Distance must not be null");
 
 			GeoArgs geoArgs = command.getArgs().isPresent() ? LettuceConverters.toGeoArgs(command.getArgs().get())
 					: new GeoArgs();
@@ -166,9 +166,9 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getMember(), "Member must not be null!");
-			Assert.notNull(command.getDistance(), "Distance must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getMember(), "Member must not be null");
+			Assert.notNull(command.getDistance(), "Distance must not be null");
 
 			GeoArgs geoArgs = command.getArgs().isPresent() ? LettuceConverters.toGeoArgs(command.getArgs().get())
 					: new GeoArgs();
@@ -188,10 +188,10 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).map(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getReference(), "GeoReference must not be null!");
-			Assert.notNull(command.getShape(), "GeoShape must not be null!");
-			Assert.notNull(command.getArgs(), "Command args must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getReference(), "GeoReference must not be null");
+			Assert.notNull(command.getShape(), "GeoShape must not be null");
+			Assert.notNull(command.getArgs(), "Command args must not be null");
 
 			GeoArgs geoArgs = command.getArgs().map(LettuceConverters::toGeoArgs).orElseGet(GeoArgs::new);
 			GeoSearch.GeoRef<ByteBuffer> ref = LettuceConverters.toGeoRef(command.getReference());
@@ -209,11 +209,11 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getDestKey(), "Destination key must not be null!");
-			Assert.notNull(command.getReference(), "GeoReference must not be null!");
-			Assert.notNull(command.getShape(), "GeoShape must not be null!");
-			Assert.notNull(command.getArgs(), "Command args must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getDestKey(), "Destination key must not be null");
+			Assert.notNull(command.getReference(), "GeoReference must not be null");
+			Assert.notNull(command.getShape(), "GeoShape must not be null");
+			Assert.notNull(command.getArgs(), "Command args must not be null");
 
 			GeoArgs geoArgs = command.getArgs().map(LettuceConverters::toGeoArgs).orElseGet(GeoArgs::new);
 			Boolean storeDist = command.getArgs().map(RedisGeoCommands.GeoSearchStoreCommandArgs::isStoreDistance)

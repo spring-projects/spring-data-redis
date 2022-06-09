@@ -56,7 +56,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public String scriptLoad(byte[] script) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 
 		return connection.invoke().just(RedisScriptingAsyncCommands::scriptLoad, script);
 	}
@@ -64,8 +64,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
 
-		Assert.notNull(scriptSha1, "Script digests must not be null!");
-		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements!");
+		Assert.notNull(scriptSha1, "Script digests must not be null");
+		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements");
 
 		return connection.invoke().just(RedisScriptingAsyncCommands::scriptExists, scriptSha1);
 	}
@@ -73,7 +73,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 
 		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
 		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
@@ -88,7 +88,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(scriptSha1, "Script digest must not be null!");
+		Assert.notNull(scriptSha1, "Script digest must not be null");
 
 		byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
 		byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
@@ -102,7 +102,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(scriptSha1, "Script digest must not be null!");
+		Assert.notNull(scriptSha1, "Script digest must not be null");
 
 		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
 	}

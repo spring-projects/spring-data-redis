@@ -78,10 +78,10 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 */
 	public CdiBean(Set<Annotation> qualifiers, Set<Type> types, Class<T> beanClass, BeanManager beanManager) {
 
-		Assert.notNull(qualifiers, "Qualifier annotations must not be null!");
-		Assert.notNull(beanManager, "BeanManager must not be null!");
-		Assert.notNull(types, "Types must not be null!");
-		Assert.notNull(beanClass, "Bean class mast not be null!");
+		Assert.notNull(qualifiers, "Qualifier annotations must not be null");
+		Assert.notNull(beanManager, "BeanManager must not be null");
+		Assert.notNull(types, "Types must not be null");
+		Assert.notNull(beanClass, "Bean class mast not be null");
 
 		this.qualifiers = qualifiers;
 		this.types = types;

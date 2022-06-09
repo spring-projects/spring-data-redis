@@ -44,9 +44,9 @@ public class BoundingBox implements Shape {
 	 */
 	public BoundingBox(Distance width, Distance height) {
 
-		Assert.notNull(width, "Width must not be null!");
-		Assert.notNull(height, "Height must not be null!");
-		Assert.isTrue(width.getMetric().equals(height.getMetric()), "Metric for width and height must be the same!");
+		Assert.notNull(width, "Width must not be null");
+		Assert.notNull(height, "Height must not be null");
+		Assert.isTrue(width.getMetric().equals(height.getMetric()), "Metric for width and height must be the same");
 
 		this.width = width;
 		this.height = height;

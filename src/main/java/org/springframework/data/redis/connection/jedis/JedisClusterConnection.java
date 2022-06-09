@@ -105,7 +105,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 */
 	public JedisClusterConnection(JedisCluster cluster) {
 
-		Assert.notNull(cluster, "JedisCluster must not be null.");
+		Assert.notNull(cluster, "JedisCluster must not be null");
 
 		this.cluster = cluster;
 
@@ -149,9 +149,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public JedisClusterConnection(JedisCluster cluster, ClusterCommandExecutor executor,
 			ClusterTopologyProvider topologyProvider) {
 
-		Assert.notNull(cluster, "JedisCluster must not be null.");
-		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
-		Assert.notNull(topologyProvider, "ClusterTopologyProvider must not be null.");
+		Assert.notNull(cluster, "JedisCluster must not be null");
+		Assert.notNull(executor, "ClusterCommandExecutor must not be null");
+		Assert.notNull(topologyProvider, "ClusterTopologyProvider must not be null");
 
 		this.closed = false;
 		this.cluster = cluster;
@@ -164,8 +164,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Object execute(String command, byte[]... args) {
 
-		Assert.notNull(command, "Command must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(command, "Command must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		return clusterCommandExecutor.executeCommandOnArbitraryNode(
 				(JedisClusterCommandCallback<Object>) client -> client.sendCommand(JedisClientUtils.getCommand(command), args))
@@ -176,9 +176,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
 
-		Assert.notNull(command, "Command must not be null!");
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(command, "Command must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		byte[][] commandArgs = getCommandArguments(key, args);
 
@@ -227,9 +227,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Nullable
 	public <T> List<T> execute(String command, Collection<byte[]> keys, Collection<byte[]> args) {
 
-		Assert.notNull(command, "Command must not be null!");
-		Assert.notNull(keys, "Key must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(command, "Command must not be null");
+		Assert.notNull(keys, "Key must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		return clusterCommandExecutor.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<T>) (client, key) -> {
 			return (T) client.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
@@ -319,27 +319,27 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void multi() {
-		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("MULTI is currently not supported in cluster mode");
 	}
 
 	@Override
 	public List<Object> exec() {
-		throw new InvalidDataAccessApiUsageException("EXEC is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("EXEC is currently not supported in cluster mode");
 	}
 
 	@Override
 	public void discard() {
-		throw new InvalidDataAccessApiUsageException("DISCARD is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("DISCARD is currently not supported in cluster mode");
 	}
 
 	@Override
 	public void watch(byte[]... keys) {
-		throw new InvalidDataAccessApiUsageException("WATCH is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("WATCH is currently not supported in cluster mode");
 	}
 
 	@Override
 	public void unwatch() {
-		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode");
 	}
 
 	@Override
@@ -397,13 +397,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public void select(int dbIndex) {
 
 		if (dbIndex != 0) {
-			throw new InvalidDataAccessApiUsageException("Cannot SELECT non zero index in cluster mode.");
+			throw new InvalidDataAccessApiUsageException("Cannot SELECT non zero index in cluster mode");
 		}
 	}
 
 	@Override
 	public byte[] echo(byte[] message) {
-		throw new InvalidDataAccessApiUsageException("Echo not supported in cluster mode.");
+		throw new InvalidDataAccessApiUsageException("Echo not supported in cluster mode");
 	}
 
 	@Override
@@ -428,8 +428,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
 
-		Assert.notNull(node, "Node must not be null.");
-		Assert.notNull(mode, "AddSlots mode must not be null.");
+		Assert.notNull(node, "Node must not be null");
+		Assert.notNull(mode, "AddSlots mode must not be null");
 
 		RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(node);
 		String nodeId = nodeToUse.getId();
@@ -447,7 +447,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 					return client.clusterSetSlotNode(slot, nodeId);
 			}
 
-			throw new IllegalArgumentException(String.format("Unknown AddSlots mode '%s'.", mode));
+			throw new IllegalArgumentException(String.format("Unknown AddSlots mode '%s'", mode));
 		}, node);
 
 	}
@@ -476,7 +476,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterAddSlots(RedisClusterNode node, SlotRange range) {
 
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(range, "Range must not be null");
 
 		clusterAddSlots(node, range.getSlotsArray());
 	}
@@ -501,7 +501,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterDeleteSlotsInRange(RedisClusterNode node, SlotRange range) {
 
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(range, "Range must not be null");
 
 		clusterDeleteSlots(node, range.getSlotsArray());
 	}
@@ -520,9 +520,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterMeet(RedisClusterNode node) {
 
-		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command!");
-		Assert.hasText(node.getHost(), "Node to meet cluster must have a host!");
-		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0!");
+		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command");
+		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
+		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
 		clusterCommandExecutor.executeCommandOnAllNodes(
 				(JedisClusterCommandCallback<String>) client -> client.clusterMeet(node.getHost(), node.getPort()));
@@ -572,7 +572,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Set<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
 
-		Assert.notNull(master, "Master cannot be null!");
+		Assert.notNull(master, "Master cannot be null");
 
 		RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(master);
 
@@ -653,17 +653,17 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void openPipeline() {
-		throw new InvalidDataAccessApiUsageException("Pipeline is not supported for JedisClusterConnection.");
+		throw new InvalidDataAccessApiUsageException("Pipeline is not supported for JedisClusterConnection");
 	}
 
 	@Override
 	public List<Object> closePipeline() throws RedisPipelineException {
-		throw new InvalidDataAccessApiUsageException("Pipeline is not supported for JedisClusterConnection.");
+		throw new InvalidDataAccessApiUsageException("Pipeline is not supported for JedisClusterConnection");
 	}
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-		throw new InvalidDataAccessApiUsageException("Sentinel is not supported for JedisClusterConnection.");
+		throw new InvalidDataAccessApiUsageException("Sentinel is not supported for JedisClusterConnection");
 	}
 
 	@Override
@@ -728,7 +728,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		@SuppressWarnings("unchecked")
 		public Jedis getResourceForSpecificNode(RedisClusterNode node) {
 
-			Assert.notNull(node, "Cannot get Pool for 'null' node!");
+			Assert.notNull(node, "Cannot get Pool for 'null' node");
 
 			ConnectionPool pool = getResourcePoolForSpecificNode(node);
 			if (pool != null) {
@@ -760,7 +760,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 			if (!member.hasValidHost()) {
 				throw new DataAccessResourceFailureException(String
-						.format("Cannot obtain connection to node %ss as it is not associated with a hostname!", node.getId()));
+						.format("Cannot obtain connection to node %ss as it is not associated with a hostname", node.getId()));
 			}
 
 			if (member != null && connectionHandler != null) {
@@ -809,9 +809,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		 */
 		public JedisClusterTopologyProvider(JedisCluster cluster, Duration cacheTimeout) {
 
-			Assert.notNull(cluster, "JedisCluster must not be null!");
-			Assert.notNull(cacheTimeout, "Cache timeout must not be null!");
-			Assert.isTrue(!cacheTimeout.isNegative(), "Cache timeout must not be negative.");
+			Assert.notNull(cluster, "JedisCluster must not be null");
+			Assert.notNull(cacheTimeout, "Cache timeout must not be null");
+			Assert.isTrue(!cacheTimeout.isNegative(), "Cache timeout must not be negative");
 
 			this.cluster = cluster;
 			this.cacheTimeMs = cacheTimeout.toMillis();
@@ -852,7 +852,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			}
 
 			throw new ClusterStateFailureException(
-					"Could not retrieve cluster information. CLUSTER NODES returned with error." + sb.toString());
+					"Could not retrieve cluster information; CLUSTER NODES returned with error" + sb.toString());
 		}
 
 		/**

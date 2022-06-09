@@ -55,7 +55,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	 */
 	LettuceReactiveKeyCommands(LettuceReactiveRedisConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 
 		this.connection = connection;
 	}
@@ -65,7 +65,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			CopyArgs copyArgs = CopyArgs.Builder.replace(command.isReplace());
 			if (command.getDatabase() != null) {
@@ -82,7 +82,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.exists(command.getKey()).map(LettuceConverters.longToBooleanConverter()::convert)
 					.map((value) -> new BooleanResponse<>(command, value));
@@ -94,7 +94,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.type(command.getKey()).map(LettuceConverters::toDataType)
 					.map(respValue -> new CommandResponse<>(command, respValue));
@@ -106,7 +106,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
-			Assert.notEmpty(keys, "Keys must not be null!");
+			Assert.notEmpty(keys, "Keys must not be null");
 
 			return cmd.touch(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
@@ -117,7 +117,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(patterns).concatMap(pattern -> {
 
-			Assert.notNull(pattern, "Pattern must not be null!");
+			Assert.notNull(pattern, "Pattern must not be null");
 			// TODO: stream elements instead of collection
 			return cmd.keys(pattern).collectList().map(value -> new MultiValueResponse<>(pattern, value));
 		}));
@@ -126,7 +126,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	@Override
 	public Flux<ByteBuffer> scan(ScanOptions options) {
 
-		Assert.notNull(options, "ScanOptions must not be null!");
+		Assert.notNull(options, "ScanOptions must not be null");
 
 		return connection.execute(cmd -> ScanStream.scan(cmd, LettuceConverters.toScanArgs(options)));
 	}
@@ -141,8 +141,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getNewKey(), "New name must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getNewKey(), "New name must not be null");
 
 			return cmd.rename(command.getKey(), command.getNewKey()).map(LettuceConverters::stringToBoolean)
 					.map(value -> new BooleanResponse<>(command, value));
@@ -154,8 +154,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getNewKey(), "New name must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getNewKey(), "New name must not be null");
 
 			return cmd.renamenx(command.getKey(), command.getNewKey()).map(value -> new BooleanResponse<>(command, value));
 		}));
@@ -166,7 +166,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.del(command.getKey()).map((value) -> new NumericResponse<>(command, value));
 		}));
@@ -177,7 +177,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
-			Assert.notEmpty(keys, "Keys must not be null!");
+			Assert.notEmpty(keys, "Keys must not be null");
 
 			return cmd.del(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
@@ -188,7 +188,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap((command) -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.unlink(command.getKey()).map((value) -> new NumericResponse<>(command, value));
 		}));
@@ -199,7 +199,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(keysCollection).concatMap((keys) -> {
 
-			Assert.notEmpty(keys, "Keys must not be null!");
+			Assert.notEmpty(keys, "Keys must not be null");
 
 			return cmd.unlink(keys.toArray(new ByteBuffer[keys.size()])).map((value) -> new NumericResponse<>(keys, value));
 		}));
@@ -210,8 +210,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getTimeout(), "Timeout must not be null");
 
 			return cmd.expire(command.getKey(), command.getTimeout().getSeconds())
 					.map(value -> new BooleanResponse<>(command, value));
@@ -223,8 +223,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getTimeout(), "Timeout must not be null");
 
 			return cmd.pexpire(command.getKey(), command.getTimeout().toMillis())
 					.map(value -> new BooleanResponse<>(command, value));
@@ -236,8 +236,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getExpireAt(), "Expire at must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getExpireAt(), "Expire at must not be null");
 
 			return cmd.expireat(command.getKey(), command.getExpireAt().getEpochSecond())
 					.map(value -> new BooleanResponse<>(command, value));
@@ -249,8 +249,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getExpireAt(), "Expire at must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getExpireAt(), "Expire at must not be null");
 
 			return cmd.pexpireat(command.getKey(), command.getExpireAt().toEpochMilli())
 					.map(value -> new BooleanResponse<>(command, value));
@@ -262,7 +262,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.persist(command.getKey()).map(value -> new BooleanResponse<>(command, value));
 		}));
@@ -273,7 +273,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.ttl(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
@@ -284,7 +284,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
 
 			return cmd.pttl(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
@@ -295,8 +295,8 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notNull(command.getDatabase(), "Database must not be null!");
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getDatabase(), "Database must not be null");
 
 			return cmd.move(command.getKey(), command.getDatabase()).map(value -> new BooleanResponse<>(command, value));
 		}));

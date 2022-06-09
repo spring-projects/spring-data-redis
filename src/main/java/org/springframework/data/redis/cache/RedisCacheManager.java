@@ -65,8 +65,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
 			boolean allowInFlightCacheCreation) {
 
-		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
-		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
+		Assert.notNull(cacheWriter, "CacheWriter must not be null");
+		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null");
 
 		this.cacheWriter = cacheWriter;
 		this.defaultCacheConfig = defaultCacheConfiguration;
@@ -159,7 +159,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		this(cacheWriter, defaultCacheConfiguration, allowInFlightCacheCreation);
 
-		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null!");
+		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null");
 
 		this.initialCacheConfiguration.putAll(initialCacheConfigurations);
 	}
@@ -186,7 +186,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public static RedisCacheManager create(RedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
 		return new RedisCacheManager(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 				RedisCacheConfiguration.defaultCacheConfig());
@@ -210,7 +210,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public static RedisCacheManagerBuilder builder(RedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
 		return RedisCacheManagerBuilder.fromConnectionFactory(connectionFactory);
 	}
@@ -223,7 +223,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public static RedisCacheManagerBuilder builder(RedisCacheWriter cacheWriter) {
 
-		Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+		Assert.notNull(cacheWriter, "CacheWriter must not be null");
 
 		return RedisCacheManagerBuilder.fromCacheWriter(cacheWriter);
 	}
@@ -303,7 +303,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public static RedisCacheManagerBuilder fromConnectionFactory(RedisConnectionFactory connectionFactory) {
 
-			Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+			Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
 			return new RedisCacheManagerBuilder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory));
 		}
@@ -316,7 +316,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public static RedisCacheManagerBuilder fromCacheWriter(RedisCacheWriter cacheWriter) {
 
-			Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+			Assert.notNull(cacheWriter, "CacheWriter must not be null");
 
 			return new RedisCacheManagerBuilder(cacheWriter);
 		}
@@ -329,7 +329,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder cacheDefaults(RedisCacheConfiguration defaultCacheConfiguration) {
 
-			Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null!");
+			Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null");
 
 			this.defaultCacheConfiguration = defaultCacheConfiguration;
 
@@ -345,7 +345,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder cacheWriter(RedisCacheWriter cacheWriter) {
 
-			Assert.notNull(cacheWriter, "CacheWriter must not be null!");
+			Assert.notNull(cacheWriter, "CacheWriter must not be null");
 
 			this.cacheWriter = cacheWriter;
 
@@ -374,7 +374,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder initialCacheNames(Set<String> cacheNames) {
 
-			Assert.notNull(cacheNames, "CacheNames must not be null!");
+			Assert.notNull(cacheNames, "CacheNames must not be null");
 
 			cacheNames.forEach(it -> withCacheConfiguration(it, defaultCacheConfiguration));
 			return this;
@@ -389,9 +389,9 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		public RedisCacheManagerBuilder withInitialCacheConfigurations(
 				Map<String, RedisCacheConfiguration> cacheConfigurations) {
 
-			Assert.notNull(cacheConfigurations, "CacheConfigurations must not be null!");
+			Assert.notNull(cacheConfigurations, "CacheConfigurations must not be null");
 			cacheConfigurations.forEach((cacheName, configuration) -> Assert.notNull(configuration,
-					String.format("RedisCacheConfiguration for cache %s must not be null!", cacheName)));
+					String.format("RedisCacheConfiguration for cache %s must not be null", cacheName)));
 
 			this.initialCaches.putAll(cacheConfigurations);
 			return this;
@@ -406,8 +406,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		public RedisCacheManagerBuilder withCacheConfiguration(String cacheName,
 				RedisCacheConfiguration cacheConfiguration) {
 
-			Assert.notNull(cacheName, "CacheName must not be null!");
-			Assert.notNull(cacheConfiguration, "CacheConfiguration must not be null!");
+			Assert.notNull(cacheName, "CacheName must not be null");
+			Assert.notNull(cacheConfiguration, "CacheConfiguration must not be null");
 
 			this.initialCaches.put(cacheName, cacheConfiguration);
 			return this;
@@ -469,7 +469,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		public RedisCacheManager build() {
 
 			Assert.state(cacheWriter != null,
-					"CacheWriter must not be null! You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'.");
+					"CacheWriter must not be null You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'");
 
 			RedisCacheWriter theCacheWriter = cacheWriter;
 

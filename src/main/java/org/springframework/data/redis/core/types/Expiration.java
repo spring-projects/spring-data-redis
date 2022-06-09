@@ -91,7 +91,7 @@ public class Expiration {
 	 */
 	public long getConverted(TimeUnit targetTimeUnit) {
 
-		Assert.notNull(targetTimeUnit, "TargetTimeUnit must not be null!");
+		Assert.notNull(targetTimeUnit, "TargetTimeUnit must not be null");
 		return targetTimeUnit.convert(expirationTime, timeUnit);
 	}
 
@@ -175,7 +175,7 @@ public class Expiration {
 	 */
 	public static Expiration from(Duration duration) {
 
-		Assert.notNull(duration, "Duration must not be null!");
+		Assert.notNull(duration, "Duration must not be null");
 
 		if (duration.toMillis() % 1000 == 0) {
 			return new Expiration(duration.getSeconds(), TimeUnit.SECONDS);

@@ -2271,7 +2271,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long geoAdd(String key, GeoLocation<String> location) {
 
-		Assert.notNull(location, "Location must not be null!");
+		Assert.notNull(location, "Location must not be null");
 		return geoAdd(key, location.getPoint(), location.getName());
 	}
 
@@ -2288,7 +2288,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long geoAdd(String key, Map<String, Point> memberCoordinateMap) {
 
-		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
+		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null");
 
 		Map<byte[], Point> byteMap = new HashMap<>();
 		for (Entry<String, Point> entry : memberCoordinateMap.entrySet()) {
@@ -2301,7 +2301,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long geoAdd(String key, Iterable<GeoLocation<String>> locations) {
 
-		Assert.notNull(locations, "Locations must not be null!");
+		Assert.notNull(locations, "Locations must not be null");
 
 		Map<byte[], Point> byteMap = new HashMap<>();
 		for (GeoLocation<String> location : locations) {
@@ -3011,7 +3011,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 		if (results.size() != converters.size()) {
 			// Some of the commands were done directly on the delegate, don't attempt to convert
-			log.warn("Delegate returned an unexpected number of results. Abandoning type conversion.");
+			log.warn("Delegate returned an unexpected number of results; Abandoning type conversion.");
 			return results;
 		}
 		List<Object> convertedResults = new ArrayList<>(results.size());

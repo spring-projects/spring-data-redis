@@ -168,7 +168,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	@Override
 	public void afterPropertiesSet() {
 
-		Assert.state(!afterPropertiesSet, "Container already initialized.");
+		Assert.state(!afterPropertiesSet, "Container already initialized");
 
 		if (this.connectionFactory == null) {
 			throw new IllegalArgumentException("RedisConnectionFactory is not set");
@@ -217,7 +217,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				((DisposableBean) taskExecutor).destroy();
 
 				if (logger.isDebugEnabled()) {
-					logger.debug("Stopped internally-managed task executor.");
+					logger.debug("Stopped internally-managed task executor");
 				}
 			}
 		}
@@ -277,7 +277,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			throw new CompletionException(e.getCause());
 		} catch (TimeoutException e) {
-			throw new IllegalStateException("Subscription registration timeout exceeded.", e);
+			throw new IllegalStateException("Subscription registration timeout exceeded", e);
 		}
 	}
 
@@ -287,7 +287,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private CompletableFuture<Void> lazyListen(BackOffExecution backOffExecution) {
 
 		if (!hasTopics()) {
-			logger.debug("Postpone listening for Redis messages until actual listeners are added.");
+			logger.debug("Postpone listening for Redis messages until actual listeners are added");
 			return CompletableFuture.completedFuture(null);
 		}
 
@@ -321,10 +321,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		listenFuture.whenComplete((unused, throwable) -> {
 
 			if (throwable == null) {
-				logger.debug("RedisMessageListenerContainer listeners registered successfully.");
+				logger.debug("RedisMessageListenerContainer listeners registered successfully");
 				this.state.set(State.listening());
 			} else {
-				logger.debug("Failed to start RedisMessageListenerContainer listeners.", throwable);
+				logger.debug("Failed to start RedisMessageListenerContainer listeners", throwable);
 				this.state.set(State.notListening());
 			}
 
@@ -336,7 +336,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		});
 
-		logger.debug("Subscribing to topics for RedisMessageListenerContainer.");
+		logger.debug("Subscribing to topics for RedisMessageListenerContainer");
 
 		return true;
 	}
@@ -376,7 +376,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			stopListening();
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("Stopped RedisMessageListenerContainer.");
+				logger.debug("Stopped RedisMessageListenerContainer");
 			}
 
 			callback.run();
@@ -411,7 +411,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			this.unsubscribeFuture = new CompletableFuture<>();
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("Stopped listening.");
+				logger.debug("Stopped listening");
 			}
 
 			return true;
@@ -461,7 +461,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 		this.connectionFactory = connectionFactory;
 	}
 
@@ -877,7 +877,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		if (this.errorHandler != null) {
 			this.errorHandler.handleError(ex);
 		} else if (logger.isWarnEnabled()) {
-			logger.warn("Execution of message listener failed, and no ErrorHandler has been set.", ex);
+			logger.warn("Execution of message listener failed, and no ErrorHandler has been set", ex);
 		}
 	}
 
@@ -899,7 +899,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				long recoveryInterval = backOffExecution.nextBackOff();
 
 				if (recoveryInterval != BackOffExecution.STOP) {
-					logger.error(String.format("Connection failure occurred: %s. Restarting subscription task after %s ms.", ex,
+					logger.error(String.format("Connection failure occurred: %s; Restarting subscription task after %s ms", ex,
 							recoveryInterval), ex);
 				}
 
@@ -1002,7 +1002,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		if (this.subscriber == null) {
 			throw new IllegalStateException(
-					"Subscriber not created. Configure RedisConnectionFactory to create a Subscriber.");
+					"Subscriber not created; Configure RedisConnectionFactory to create a Subscriber");
 		}
 
 		return subscriber;

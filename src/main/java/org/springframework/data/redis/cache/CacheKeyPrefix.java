@@ -64,7 +64,7 @@ public interface CacheKeyPrefix {
 	 */
 	static CacheKeyPrefix prefixed(String prefix) {
 
-		Assert.notNull(prefix, "Prefix must not be null!");
+		Assert.notNull(prefix, "Prefix must not be null");
 		return name -> prefix + name + SEPARATOR;
 	}
 }

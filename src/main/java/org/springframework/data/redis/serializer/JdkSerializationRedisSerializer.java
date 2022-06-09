@@ -65,8 +65,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 */
 	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer, Converter<byte[], Object> deserializer) {
 
-		Assert.notNull(serializer, "Serializer must not be null!");
-		Assert.notNull(deserializer, "Deserializer must not be null!");
+		Assert.notNull(serializer, "Serializer must not be null");
+		Assert.notNull(deserializer, "Deserializer must not be null");
 
 		this.serializer = serializer;
 		this.deserializer = deserializer;

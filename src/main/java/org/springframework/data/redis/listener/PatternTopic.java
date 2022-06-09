@@ -36,7 +36,7 @@ public class PatternTopic implements Topic {
 	 */
 	public PatternTopic(String pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		this.channelPattern = pattern;
 	}

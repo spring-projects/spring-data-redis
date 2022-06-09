@@ -44,7 +44,7 @@ public interface ReactiveNumberCommands {
 	 */
 	default Mono<Long> incr(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return incr(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -82,7 +82,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public static <T extends Number> IncrByCommand<T> incr(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new IncrByCommand<>(key, null);
 		}
@@ -96,7 +96,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public IncrByCommand<T> by(T value) {
 
-			Assert.notNull(value, "Value must not be null!");
+			Assert.notNull(value, "Value must not be null");
 
 			return new IncrByCommand<>(getKey(), value);
 		}
@@ -121,8 +121,8 @@ public interface ReactiveNumberCommands {
 	 */
 	default <T extends Number> Mono<T> incrBy(ByteBuffer key, T value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return incrBy(Mono.just(IncrByCommand.<T> incr(key).by(value))).next().map(NumericResponse::getOutput);
 	}
@@ -161,7 +161,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public static <T extends Number> DecrByCommand<T> decr(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new DecrByCommand<>(key, null);
 		}
@@ -175,7 +175,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public DecrByCommand<T> by(T value) {
 
-			Assert.notNull(value, "Value must not be null!");
+			Assert.notNull(value, "Value must not be null");
 
 			return new DecrByCommand<>(getKey(), value);
 		}
@@ -198,7 +198,7 @@ public interface ReactiveNumberCommands {
 	 */
 	default Mono<Long> decr(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return decr(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -222,8 +222,8 @@ public interface ReactiveNumberCommands {
 	 */
 	default <T extends Number> Mono<T> decrBy(ByteBuffer key, T value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return decrBy(Mono.just(DecrByCommand.<T> decr(key).by(value))).next().map(NumericResponse::getOutput);
 	}
@@ -263,7 +263,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public static <T extends Number> HIncrByCommand<T> incr(ByteBuffer field) {
 
-			Assert.notNull(field, "Field must not be null!");
+			Assert.notNull(field, "Field must not be null");
 
 			return new HIncrByCommand<>(null, field, null);
 		}
@@ -277,7 +277,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public HIncrByCommand<T> by(T value) {
 
-			Assert.notNull(value, "Value must not be null!");
+			Assert.notNull(value, "Value must not be null");
 
 			return new HIncrByCommand<>(getKey(), field, value);
 		}
@@ -290,7 +290,7 @@ public interface ReactiveNumberCommands {
 		 */
 		public HIncrByCommand<T> forKey(ByteBuffer key) {
 
-			Assert.notNull(key, "Key must not be null!");
+			Assert.notNull(key, "Key must not be null");
 
 			return new HIncrByCommand<>(key, field, value);
 		}
@@ -322,9 +322,9 @@ public interface ReactiveNumberCommands {
 	 */
 	default <T extends Number> Mono<T> hIncrBy(ByteBuffer key, ByteBuffer field, T value) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(field, "Field must not be null!");
-		Assert.notNull(value, "Value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+		Assert.notNull(value, "Value must not be null");
 
 		return hIncrBy(Mono.just(HIncrByCommand.<T> incr(field).by(value).forKey(key))).next()
 				.map(NumericResponse::getOutput);

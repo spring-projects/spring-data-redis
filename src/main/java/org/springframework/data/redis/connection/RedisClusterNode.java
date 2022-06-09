@@ -61,7 +61,7 @@ public class RedisClusterNode extends RedisNode {
 	public RedisClusterNode(String id) {
 
 		this(SlotRange.empty());
-		Assert.notNull(id, "Id must not be null!");
+		Assert.notNull(id, "Id must not be null");
 		this.id = id;
 	}
 
@@ -76,7 +76,7 @@ public class RedisClusterNode extends RedisNode {
 
 		super(host, port);
 
-		Assert.notNull(slotRange, "SlotRange must not be null!");
+		Assert.notNull(slotRange, "SlotRange must not be null");
 		this.slotRange = slotRange;
 	}
 
@@ -89,7 +89,7 @@ public class RedisClusterNode extends RedisNode {
 
 		super();
 
-		Assert.notNull(slotRange, "SlotRange must not be null!");
+		Assert.notNull(slotRange, "SlotRange must not be null");
 
 		this.slotRange = slotRange;
 	}
@@ -178,8 +178,8 @@ public class RedisClusterNode extends RedisNode {
 		 */
 		public SlotRange(Integer lowerBound, Integer upperBound) {
 
-			Assert.notNull(lowerBound, "LowerBound must not be null!");
-			Assert.notNull(upperBound, "UpperBound must not be null!");
+			Assert.notNull(lowerBound, "LowerBound must not be null");
+			Assert.notNull(upperBound, "UpperBound must not be null");
 
 			this.range = new LinkedHashSet<>();
 			for (int i = lowerBound; i <= upperBound; i++) {

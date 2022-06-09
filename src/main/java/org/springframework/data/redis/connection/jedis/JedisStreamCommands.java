@@ -63,9 +63,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public Long xAck(byte[] key, String group, RecordId... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.hasText(group, "Group name must not be null or empty!");
-		Assert.notNull(recordIds, "recordIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.hasText(group, "Group name must not be null or empty");
+		Assert.notNull(recordIds, "recordIds must not be null");
 
 		return connection.invoke().just(Jedis::xack, PipelineBinaryCommands::xack, key, JedisConverters.toBytes(group),
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
@@ -74,8 +74,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, XAddOptions options) {
 
-		Assert.notNull(record, "Record must not be null!");
-		Assert.notNull(record.getStream(), "Stream must not be null!");
+		Assert.notNull(record, "Record must not be null");
+		Assert.notNull(record.getStream(), "Stream must not be null");
 
 		XAddParams params = StreamConverters.toXAddParams(record.getId(), options);
 
@@ -87,9 +87,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public List<RecordId> xClaimJustId(byte[] key, String group, String newOwner, XClaimOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(group, "Group must not be null!");
-		Assert.notNull(newOwner, "NewOwner must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(newOwner, "NewOwner must not be null");
 
 		XClaimParams params = StreamConverters.toXClaimParams(options);
 
@@ -103,9 +103,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(group, "Group must not be null!");
-		Assert.notNull(newOwner, "NewOwner must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(newOwner, "NewOwner must not be null");
 
 		XClaimParams params = StreamConverters.toXClaimParams(options);
 
@@ -119,8 +119,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public Long xDel(byte[] key, RecordId... recordIds) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(recordIds, "recordIds must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
 
 		return connection.invoke().just(Jedis::xdel, PipelineBinaryCommands::xdel, key,
 				StreamConverters.entryIdsToBytes(Arrays.asList(recordIds)));
@@ -134,9 +134,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset, boolean mkStream) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.hasText(groupName, "Group name must not be null or empty!");
-		Assert.notNull(readOffset, "ReadOffset must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.hasText(groupName, "Group name must not be null or empty");
+		Assert.notNull(readOffset, "ReadOffset must not be null");
 
 		return connection.invoke().just(Jedis::xgroupCreate, PipelineBinaryCommands::xgroupCreate, key,
 				JedisConverters.toBytes(groupName), JedisConverters.toBytes(readOffset.getOffset()), mkStream);
@@ -145,8 +145,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public Boolean xGroupDelConsumer(byte[] key, Consumer consumer) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(consumer, "Consumer must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(consumer, "Consumer must not be null");
 
 		return connection.invoke().from(Jedis::xgroupDelConsumer, PipelineBinaryCommands::xgroupDelConsumer, key,
 				JedisConverters.toBytes(consumer.getGroup()), JedisConverters.toBytes(consumer.getName())).get(r -> r > 0);
@@ -155,8 +155,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public Boolean xGroupDestroy(byte[] key, String groupName) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.hasText(groupName, "Group name must not be null or empty!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.hasText(groupName, "Group name must not be null or empty");
 
 		return connection.invoke()
 				.from(Jedis::xgroupDestroy, PipelineBinaryCommands::xgroupDestroy, key, JedisConverters.toBytes(groupName))
@@ -166,7 +166,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public StreamInfo.XInfoStream xInfo(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Jedis::xinfoStream, ResponseCommands::xinfoStream, key).get(it -> {
 			redis.clients.jedis.resps.StreamInfo streamInfo = BuilderFactory.STREAM_INFO.build(it);
@@ -177,7 +177,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public StreamInfo.XInfoGroups xInfoGroups(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Jedis::xinfoGroups, StreamPipelineBinaryCommands::xinfoGroups, key).get(it -> {
 			List<StreamGroupInfo> streamGroupInfos = BuilderFactory.STREAM_GROUP_INFO_LIST.build(it);
@@ -191,8 +191,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public StreamInfo.XInfoConsumers xInfoConsumers(byte[] key, String groupName) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.hasText(groupName, "Group name must not be null or empty!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.hasText(groupName, "Group name must not be null or empty");
 
 		return connection.invoke()
 				.from(Jedis::xinfoConsumers, ResponseCommands::xinfoConsumers, key, JedisConverters.toBytes(groupName))
@@ -208,7 +208,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public Long xLen(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::xlen, PipelineBinaryCommands::xlen, key);
 	}
@@ -216,7 +216,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public PendingMessagesSummary xPending(byte[] key, String groupName) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke()
 				.from(Jedis::xpending, PipelineBinaryCommands::xpending, key, JedisConverters.toBytes(groupName))
@@ -226,8 +226,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(groupName, "GroupName must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(groupName, "GroupName must not be null");
 
 		Range<String> range = (Range<String>) options.getRange();
 		XPendingParams xPendingParams = StreamConverters.toXPendingParams(options);
@@ -241,9 +241,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public List<ByteRecord> xRange(byte[] key, Range<String> range, Limit limit) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
 
 		int count = limit.isUnlimited() ? Integer.MAX_VALUE : limit.getCount();
 
@@ -257,8 +257,8 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public List<ByteRecord> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
 
-		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
-		Assert.notNull(streams, "StreamOffsets must not be null!");
+		Assert.notNull(readOptions, "StreamReadOptions must not be null");
+		Assert.notNull(streams, "StreamOffsets must not be null");
 
 		XReadParams params = StreamConverters.toXReadParams(readOptions);
 
@@ -271,9 +271,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	public List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<byte[]>... streams) {
 
-		Assert.notNull(consumer, "Consumer must not be null!");
-		Assert.notNull(readOptions, "StreamReadOptions must not be null!");
-		Assert.notNull(streams, "StreamOffsets must not be null!");
+		Assert.notNull(consumer, "Consumer must not be null");
+		Assert.notNull(readOptions, "StreamReadOptions must not be null");
+		Assert.notNull(streams, "StreamOffsets must not be null");
 
 		XReadGroupParams params = StreamConverters.toXReadGroupParams(readOptions);
 
@@ -286,9 +286,9 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public List<ByteRecord> xRevRange(byte[] key, Range<String> range, Limit limit) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(range, "Range must not be null!");
-		Assert.notNull(limit, "Limit must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
 
 		int count = limit.isUnlimited() ? Integer.MAX_VALUE : limit.getCount();
 		return connection.invoke()
@@ -306,7 +306,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 	@Override
 	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, count, approximateTrimming);
 	}

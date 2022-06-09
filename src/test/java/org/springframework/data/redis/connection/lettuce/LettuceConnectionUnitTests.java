@@ -153,7 +153,7 @@ public class LettuceConnectionUnitTests {
 		@Test // DATAREDIS-603
 		void translatesUnknownExceptions() {
 
-			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
 
 			when(syncCommandsMock.set(any(), any())).thenThrow(exception);
 			connection = new LettuceConnection(null, 0, clientMock, 1);
@@ -165,7 +165,7 @@ public class LettuceConnectionUnitTests {
 		@Test // DATAREDIS-603
 		void translatesPipelineUnknownExceptions() throws Exception {
 
-			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap!");
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
 
 			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenThrow(exception);
 			connection = new LettuceConnection(null, 0, clientMock, 1);

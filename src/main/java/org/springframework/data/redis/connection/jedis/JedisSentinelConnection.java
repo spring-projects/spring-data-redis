@@ -45,7 +45,7 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 
 	public JedisSentinelConnection(Jedis jedis) {
 
-		Assert.notNull(jedis, "Cannot created JedisSentinelConnection using 'null' as client.");
+		Assert.notNull(jedis, "Cannot created JedisSentinelConnection using 'null' as client");
 		this.jedis = jedis;
 		init();
 	}
@@ -53,8 +53,8 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	@Override
 	public void failover(NamedNode master) {
 
-		Assert.notNull(master, "Redis node master must not be 'null' for failover.");
-		Assert.hasText(master.getName(), "Redis master name must not be 'null' or empty for failover.");
+		Assert.notNull(master, "Redis node master must not be 'null' for failover");
+		Assert.hasText(master.getName(), "Redis master name must not be 'null' or empty for failover");
 		jedis.sentinelFailover(master.getName());
 	}
 
@@ -66,7 +66,7 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	@Override
 	public List<RedisServer> replicas(NamedNode master) {
 
-		Assert.notNull(master, "Master node cannot be 'null' when loading replicas.");
+		Assert.notNull(master, "Master node cannot be 'null' when loading replicas");
 		return replicas(master.getName());
 	}
 
@@ -77,14 +77,14 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	 */
 	public List<RedisServer> replicas(String masterName) {
 
-		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading replicas.");
+		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading replicas");
 		return JedisConverters.toListOfRedisServer(jedis.sentinelReplicas(masterName));
 	}
 
 	@Override
 	public void remove(NamedNode master) {
 
-		Assert.notNull(master, "Master node cannot be 'null' when trying to remove.");
+		Assert.notNull(master, "Master node cannot be 'null' when trying to remove");
 		remove(master.getName());
 	}
 
@@ -94,18 +94,18 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	 */
 	public void remove(String masterName) {
 
-		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when trying to remove.");
+		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when trying to remove");
 		jedis.sentinelRemove(masterName);
 	}
 
 	@Override
 	public void monitor(RedisServer server) {
 
-		Assert.notNull(server, "Cannot monitor 'null' server.");
-		Assert.hasText(server.getName(), "Name of server to monitor must not be 'null' or empty.");
-		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor.");
-		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor.");
-		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor.");
+		Assert.notNull(server, "Cannot monitor 'null' server");
+		Assert.hasText(server.getName(), "Name of server to monitor must not be 'null' or empty");
+		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor");
+		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor");
+		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor");
 		jedis.sentinelMonitor(server.getName(), server.getHost(), server.getPort().intValue(),
 				server.getQuorum().intValue());
 	}

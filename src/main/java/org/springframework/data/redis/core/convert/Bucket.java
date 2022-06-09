@@ -67,7 +67,7 @@ public class Bucket {
 
 	Bucket(Map<String, byte[]> data) {
 
-		Assert.notNull(data, "Initial data must not be null!");
+		Assert.notNull(data, "Initial data must not be null");
 		this.data.putAll(data);
 	}
 
@@ -79,7 +79,7 @@ public class Bucket {
 	 */
 	public void put(String path, @Nullable byte[] value) {
 
-		Assert.hasText(path, "Path to property must not be null or empty.");
+		Assert.hasText(path, "Path to property must not be null or empty");
 		data.put(path, value);
 	}
 
@@ -90,7 +90,7 @@ public class Bucket {
 	 */
 	public void remove(String path) {
 
-		Assert.hasText(path, "Path to property must not be null or empty.");
+		Assert.hasText(path, "Path to property must not be null or empty");
 		data.remove(path);
 	}
 
@@ -103,7 +103,7 @@ public class Bucket {
 	@Nullable
 	public byte[] get(String path) {
 
-		Assert.hasText(path, "Path to property must not be null or empty.");
+		Assert.hasText(path, "Path to property must not be null or empty");
 		return data.get(path);
 	}
 
@@ -326,7 +326,7 @@ public class Bucket {
 
 		private BucketPropertyPath(Bucket bucket, String prefix) {
 
-			Assert.notNull(bucket, "Bucket must not be null!");
+			Assert.notNull(bucket, "Bucket must not be null");
 
 			this.bucket = bucket;
 			this.prefix = prefix;

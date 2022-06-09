@@ -55,7 +55,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public Set<K> keys(RedisClusterNode node, K pattern) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		return doInCluster(connection -> deserializeKeys(connection.keys(node, rawKey(pattern))));
 	}
@@ -63,7 +63,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public K randomKey(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		return doInCluster(connection -> deserializeKey(connection.randomKey(node)));
 	}
@@ -71,7 +71,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public String ping(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		return doInCluster(connection -> connection.ping(node));
 	}
@@ -79,7 +79,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void addSlots(RedisClusterNode node, int... slots) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.clusterAddSlots(node, slots);
@@ -90,8 +90,8 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void addSlots(RedisClusterNode node, SlotRange range) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
-		Assert.notNull(range, "Range must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
+		Assert.notNull(range, "Range must not be null");
 
 		addSlots(node, range.getSlotsArray());
 	}
@@ -99,7 +99,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void bgReWriteAof(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.bgReWriteAof(node);
@@ -110,7 +110,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void bgSave(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.bgSave(node);
@@ -121,7 +121,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void meet(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.clusterMeet(node);
@@ -132,7 +132,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void forget(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.clusterForget(node);
@@ -143,7 +143,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void flushDb(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.flushDb(node);
@@ -154,7 +154,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void flushDb(RedisClusterNode node, FlushOption option) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.flushDb(node, option);
@@ -165,7 +165,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public Collection<RedisClusterNode> getReplicas(final RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		return doInCluster(connection -> connection.clusterGetReplicas(node));
 	}
@@ -173,7 +173,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void save(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.save(node);
@@ -184,7 +184,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void shutdown(RedisClusterNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be null.");
+		Assert.notNull(node, "ClusterNode must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 			connection.shutdown(node);
@@ -195,8 +195,8 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Override
 	public void reshard(RedisClusterNode source, int slot, RedisClusterNode target) {
 
-		Assert.notNull(source, "Source node must not be null.");
-		Assert.notNull(target, "Target node must not be null.");
+		Assert.notNull(source, "Source node must not be null");
+		Assert.notNull(target, "Target node must not be null");
 
 		doInCluster((RedisClusterCallback<Void>) connection -> {
 
@@ -221,7 +221,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	@Nullable
 	<T> T doInCluster(RedisClusterCallback<T> callback) {
 
-		Assert.notNull(callback, "ClusterCallback must not be null!");
+		Assert.notNull(callback, "ClusterCallback must not be null");
 
 		try (RedisClusterConnection connection = template.getConnectionFactory().getClusterConnection()) {
 			return callback.doInRedis(connection);

@@ -111,7 +111,7 @@ class RedisMessageListenerContainerUnitTests {
 	@Test // GH-2335
 	void containerStartShouldReportFailureOnRedisUnavailability() {
 
-		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh!"));
+		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh"));
 
 		doAnswer(it -> {
 
@@ -130,7 +130,7 @@ class RedisMessageListenerContainerUnitTests {
 	@Test // GH-2335
 	void containerListenShouldReportFailureOnRedisUnavailability() {
 
-		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh!"));
+		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh"));
 
 		doAnswer(it -> {
 

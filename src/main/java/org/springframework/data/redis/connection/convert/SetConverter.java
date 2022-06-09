@@ -40,7 +40,7 @@ public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 	 */
 	public SetConverter(Converter<S, T> itemConverter) {
 
-		Assert.notNull(itemConverter, "ItemConverter must not be null!");
+		Assert.notNull(itemConverter, "ItemConverter must not be null");
 		this.itemConverter = itemConverter;
 	}
 

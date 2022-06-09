@@ -58,7 +58,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 			if (isEligibleAttribute(attribute, parserContext)) {
 				String propertyName = extractPropertyName(attribute.getLocalName());
 				Assert.state(StringUtils.hasText(propertyName),
-						"Illegal property name returned from 'extractPropertyName(String)': cannot be null or empty.");
+						"Illegal property name returned from 'extractPropertyName(String)': cannot be null or empty");
 				builder.addPropertyReference(propertyName, attribute.getValue());
 			}
 		}

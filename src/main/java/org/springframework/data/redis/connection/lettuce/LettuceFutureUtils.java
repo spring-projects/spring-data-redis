@@ -41,7 +41,7 @@ class LettuceFutureUtils {
 	 */
 	static <T> CompletableFuture<T> failed(Throwable throwable) {
 
-		Assert.notNull(throwable, "Throwable must not be null!");
+		Assert.notNull(throwable, "Throwable must not be null");
 
 		CompletableFuture<T> future = new CompletableFuture<>();
 		future.completeExceptionally(throwable);
@@ -62,7 +62,7 @@ class LettuceFutureUtils {
 	@Nullable
 	static <T> T join(CompletionStage<T> future) throws RuntimeException, CompletionException {
 
-		Assert.notNull(future, "CompletableFuture must not be null!");
+		Assert.notNull(future, "CompletableFuture must not be null");
 
 		try {
 			return future.toCompletableFuture().join();

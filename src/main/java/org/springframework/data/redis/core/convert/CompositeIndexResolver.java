@@ -48,7 +48,7 @@ public class CompositeIndexResolver implements IndexResolver {
 	 */
 	public CompositeIndexResolver(Collection<IndexResolver> resolvers) {
 
-		Assert.notNull(resolvers, "Resolvers must not be null!");
+		Assert.notNull(resolvers, "Resolvers must not be null");
 		if (CollectionUtils.contains(resolvers.iterator(), null)) {
 			throw new IllegalArgumentException("Resolvers must no contain null values");
 		}

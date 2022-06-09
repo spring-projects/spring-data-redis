@@ -91,7 +91,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 */
 	public <T> List<T> find(RedisCallback<?> callback, Class<T> type) {
 
-		Assert.notNull(callback, "Callback must not be null.");
+		Assert.notNull(callback, "Callback must not be null");
 
 		return execute(new RedisKeyValueCallback<List<T>>() {
 

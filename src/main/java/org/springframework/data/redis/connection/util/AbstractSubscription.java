@@ -55,7 +55,7 @@ public abstract class AbstractSubscription implements Subscription {
 	 */
 	protected AbstractSubscription(MessageListener listener, @Nullable byte[][] channels, @Nullable byte[][] patterns) {
 
-		Assert.notNull(listener, "MessageListener must not be null!");
+		Assert.notNull(listener, "MessageListener must not be null");
 
 		this.listener = listener;
 
@@ -100,6 +100,7 @@ public abstract class AbstractSubscription implements Subscription {
 	@Override
 	public void close() {
 		doClose();
+		alive.set(false);
 	}
 
 	/**
@@ -231,8 +232,7 @@ public abstract class AbstractSubscription implements Subscription {
 
 	private void closeIfUnsubscribed() {
 		if (channels.isEmpty() && patterns.isEmpty()) {
-			alive.set(false);
-			doClose();
+			close();
 		}
 	}
 

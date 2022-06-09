@@ -35,8 +35,8 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 
 	LettuceMessageListener(MessageListener listener, SubscriptionListener subscriptionListener) {
 
-		Assert.notNull(listener, "MessageListener must not be null!");
-		Assert.notNull(subscriptionListener, "SubscriptionListener must not be null!");
+		Assert.notNull(listener, "MessageListener must not be null");
+		Assert.notNull(subscriptionListener, "SubscriptionListener must not be null");
 
 		this.listener = listener;
 		this.subscriptionListener = subscriptionListener;

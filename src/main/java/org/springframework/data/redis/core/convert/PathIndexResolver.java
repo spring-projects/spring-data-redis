@@ -76,7 +76,7 @@ public class PathIndexResolver implements IndexResolver {
 	 */
 	public PathIndexResolver(RedisMappingContext mappingContext) {
 
-		Assert.notNull(mappingContext, "MappingContext must not be null!");
+		Assert.notNull(mappingContext, "MappingContext must not be null");
 
 		this.mappingContext = mappingContext;
 		this.indexConfiguration = mappingContext.getMappingConfiguration().getIndexConfiguration();

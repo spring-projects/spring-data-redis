@@ -271,8 +271,8 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public Object execute(String command, byte[]... args) {
 
-		Assert.hasText(command, "A valid command needs to be specified!");
-		Assert.notNull(args, "Arguments must not be null!");
+		Assert.hasText(command, "A valid command needs to be specified");
+		Assert.notNull(args, "Arguments must not be null");
 
 		return doWithJedis(it -> {
 
@@ -299,11 +299,18 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		super.close();
 
+		JedisSubscription subscription = this.subscription;
+		if (subscription != null) {
+			subscription.close();
+			this.subscription = null;
+		}
+
 		// return the connection to the pool
 		if (pool != null) {
 			jedis.close();
 			return;
 		}
+
 		// else close the connection normally (doing the try/catch dance)
 		Exception exc = null;
 		try {
@@ -316,8 +323,10 @@ public class JedisConnection extends AbstractRedisConnection {
 		} catch (Exception ex) {
 			exc = ex;
 		}
-		if (exc != null)
+
+		if (exc != null) {
 			throw convertJedisAccessException(exc);
+		}
 	}
 
 	@Override
@@ -438,7 +447,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		try {
 
 			if (transaction == null) {
-				throw new InvalidDataAccessApiUsageException("No ongoing transaction. Did you forget to call multi?");
+				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
 			}
 
 			List<Object> results = transaction.exec();

@@ -49,7 +49,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	 */
 	public KeyspaceEventMessageListener(RedisMessageListenerContainer listenerContainer) {
 
-		Assert.notNull(listenerContainer, "RedisMessageListenerContainer to run in must not be null!");
+		Assert.notNull(listenerContainer, "RedisMessageListenerContainer to run in must not be null");
 		this.listenerContainer = listenerContainer;
 	}
 

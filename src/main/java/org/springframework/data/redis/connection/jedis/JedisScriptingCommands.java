@@ -55,7 +55,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public String scriptLoad(byte[] script) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 		assertDirectMode();
 
 		return connection.invoke().from(it -> it.scriptLoad(script)).get(JedisConverters::toString);
@@ -64,8 +64,8 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@Override
 	public List<Boolean> scriptExists(String... scriptSha1) {
 
-		Assert.notNull(scriptSha1, "Script digests must not be null!");
-		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements!");
+		Assert.notNull(scriptSha1, "Script digests must not be null");
+		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements");
 		assertDirectMode();
 
 		return connection.invoke().just(it -> it.scriptExists(scriptSha1));
@@ -75,7 +75,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@SuppressWarnings("unchecked")
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(script, "Script must not be null!");
+		Assert.notNull(script, "Script must not be null");
 		assertDirectMode();
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
@@ -92,7 +92,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	@SuppressWarnings("unchecked")
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
-		Assert.notNull(scriptSha, "Script digest must not be null!");
+		Assert.notNull(scriptSha, "Script digest must not be null");
 		assertDirectMode();
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);

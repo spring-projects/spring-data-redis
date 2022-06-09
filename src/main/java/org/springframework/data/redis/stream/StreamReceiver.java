@@ -118,7 +118,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	static StreamReceiver<String, MapRecord<String, String, String>> create(
 			ReactiveRedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null!");
+		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null");
 
 		SerializationPair<String> serializationPair = SerializationPair.fromSerializer(StringRedisSerializer.UTF_8);
 		return create(connectionFactory, StreamReceiverOptions.builder().serializer(serializationPair).build());
@@ -134,8 +134,8 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 	static <K, V extends Record<K, ?>> StreamReceiver<K, V> create(ReactiveRedisConnectionFactory connectionFactory,
 			StreamReceiverOptions<K, V> options) {
 
-		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null!");
-		Assert.notNull(options, "StreamReceiverOptions must not be null!");
+		Assert.notNull(connectionFactory, "ReactiveRedisConnectionFactory must not be null");
+		Assert.notNull(options, "StreamReceiverOptions must not be null");
 
 		return new DefaultStreamReceiver<>(connectionFactory, options);
 	}
@@ -331,8 +331,8 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 */
 		public StreamReceiverOptionsBuilder<K, V> pollTimeout(Duration pollTimeout) {
 
-			Assert.notNull(pollTimeout, "Poll timeout must not be null!");
-			Assert.isTrue(!pollTimeout.isNegative(), "Poll timeout must not be negative!");
+			Assert.notNull(pollTimeout, "Poll timeout must not be null");
+			Assert.isTrue(!pollTimeout.isNegative(), "Poll timeout must not be negative");
 
 			this.pollTimeout = pollTimeout;
 			return this;
@@ -346,7 +346,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 */
 		public StreamReceiverOptionsBuilder<K, V> batchSize(int recordsPerPoll) {
 
-			Assert.isTrue(recordsPerPoll > 0, "Batch size must be greater zero!");
+			Assert.isTrue(recordsPerPoll > 0, "Batch size must be greater zero");
 
 			this.batchSize = recordsPerPoll;
 			return this;

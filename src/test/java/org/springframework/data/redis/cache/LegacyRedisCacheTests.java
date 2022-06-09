@@ -354,7 +354,7 @@ public class LegacyRedisCacheTests {
 
 		assertThatExceptionOfType(ValueRetrievalException.class).isThrownBy(() -> {
 			cache.get(key, () -> {
-				throw new RuntimeException("doh!");
+				throw new RuntimeException("doh");
 			});
 		});
 	}
@@ -362,7 +362,7 @@ public class LegacyRedisCacheTests {
 	@ParameterizedRedisTest // DATAREDIS-553
 	void testCacheGetSynchronizedNullWithStoredNull() {
 
-		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
+		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values").isTrue();
 
 		Object key = getKey();
 		cache.put(key, null);

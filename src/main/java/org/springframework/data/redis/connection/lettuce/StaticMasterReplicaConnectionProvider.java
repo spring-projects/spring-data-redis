@@ -79,7 +79,7 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 			return connectionType.cast(connection);
 		}
 
-		throw new UnsupportedOperationException(String.format("Connection type %s not supported!", connectionType));
+		throw new UnsupportedOperationException(String.format("Connection type %s not supported", connectionType));
 	}
 
 	@Override
@@ -97,6 +97,6 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 			});
 		}
 
-		throw new UnsupportedOperationException(String.format("Connection type %s not supported!", connectionType));
+		throw new UnsupportedOperationException(String.format("Connection type %s not supported", connectionType));
 	}
 }

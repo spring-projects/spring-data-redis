@@ -47,7 +47,7 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty.");
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getSourceKeys())) {
 				return super.zUnionStore(Mono.just(command));
@@ -63,7 +63,7 @@ class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetCommands imp
 			Publisher<? extends ZAggregateStoreCommand> commands) {
 		return getConnection().execute(cmd -> Flux.from(commands).concatMap(command -> {
 
-			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty.");
+			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getSourceKeys())) {
 				return super.zInterStore(Mono.just(command));

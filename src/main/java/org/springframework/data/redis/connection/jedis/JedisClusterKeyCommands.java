@@ -69,8 +69,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
 
-		Assert.notNull(sourceKey, "source key must not be null!");
-		Assert.notNull(targetKey, "target key must not be null!");
+		Assert.notNull(sourceKey, "source key must not be null");
+		Assert.notNull(targetKey, "target key must not be null");
 
 		return connection.getCluster().copy(sourceKey, targetKey, replace);
 	}
@@ -78,8 +78,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long del(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -99,7 +99,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long unlink(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return connection.<Long> execute("UNLINK", Arrays.asList(keys), Collections.emptyList()).stream()
 				.mapToLong(val -> val).sum();
@@ -108,7 +108,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public DataType type(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return JedisConverters.toDataType(connection.getCluster().type(key));
@@ -121,7 +121,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long touch(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(keys, "Keys must not be null");
 
 		return connection.<Long> execute("TOUCH", Arrays.asList(keys), Collections.emptyList()).stream()
 				.mapToLong(val -> val).sum();
@@ -130,7 +130,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		Collection<Set<byte[]>> keysPerNode = connection.getClusterCommandExecutor()
 				.executeCommandOnAllNodes((JedisClusterCommandCallback<Set<byte[]>>) client -> client.keys(pattern))
@@ -145,8 +145,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(pattern, "Pattern must not be null!");
+		Assert.notNull(node, "RedisClusterNode must not be null");
+		Assert.notNull(pattern, "Pattern must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Set<byte[]>>) client -> client.keys(pattern), node)
@@ -168,8 +168,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	 */
 	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null!");
-		Assert.notNull(options, "Options must not be null!");
+		Assert.notNull(node, "RedisClusterNode must not be null");
+		Assert.notNull(options, "Options must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Cursor<byte[]>>) client -> {
@@ -215,7 +215,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	public byte[] randomKey(RedisClusterNode node) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null!");
+		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.randomBinaryKey(), node)
@@ -225,8 +225,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public void rename(byte[] oldKey, byte[] newKey) {
 
-		Assert.notNull(oldKey, "Old key must not be null!");
-		Assert.notNull(newKey, "New key must not be null!");
+		Assert.notNull(oldKey, "Old key must not be null");
+		Assert.notNull(newKey, "New key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(oldKey, newKey)) {
 
@@ -250,8 +250,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
-		Assert.notNull(sourceKey, "Source key must not be null!");
-		Assert.notNull(targetKey, "Target key must not be null!");
+		Assert.notNull(sourceKey, "Source key must not be null");
+		Assert.notNull(targetKey, "Target key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sourceKey, targetKey)) {
 
@@ -276,7 +276,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return JedisConverters.toBoolean(connection.getCluster().expire(key, seconds));
@@ -288,7 +288,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean pExpire(byte[] key, long millis) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return JedisConverters.toBoolean(connection.getCluster().pexpire(key, millis));
@@ -300,7 +300,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return JedisConverters.toBoolean(connection.getCluster().expireAt(key, unixTime));
@@ -312,7 +312,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return JedisConverters.toBoolean(connection.getCluster().pexpireAt(key, unixTimeInMillis));
@@ -324,7 +324,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Boolean persist(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return JedisConverters.toBoolean(connection.getCluster().persist(key));
@@ -335,13 +335,13 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		throw new InvalidDataAccessApiUsageException("Cluster mode does not allow moving keys.");
+		throw new InvalidDataAccessApiUsageException("Cluster mode does not allow moving keys");
 	}
 
 	@Override
 	public Long ttl(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().ttl(key);
@@ -353,7 +353,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return Converters.secondsToTimeUnit(connection.getCluster().ttl(key), timeUnit);
@@ -365,7 +365,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long pTtl(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.pttl(key),
@@ -376,7 +376,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode(
@@ -388,7 +388,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public byte[] dump(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.dump(key),
@@ -399,8 +399,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(serializedValue, "Serialized value must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(serializedValue, "Serialized value must not be null");
 
 		connection.getClusterCommandExecutor().executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
 
@@ -417,7 +417,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		try {
 			return connection.getCluster().sort(key, JedisConverters.toSortingParams(params));
@@ -429,7 +429,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		List<byte[]> sorted = sort(key, params);
 		if (!CollectionUtils.isEmpty(sorted)) {
@@ -454,8 +454,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long exists(byte[]... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.noNullElements(keys, "Keys must not contain null elements!");
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
@@ -474,7 +474,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.objectEncoding(key),
@@ -486,7 +486,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Duration idletime(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectIdletime(key),
@@ -498,7 +498,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	@Override
 	public Long refcount(byte[] key) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectRefcount(key),

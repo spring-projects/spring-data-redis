@@ -46,16 +46,16 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 
 	JedisClusterGeoCommands(JedisClusterConnection connection) {
 
-		Assert.notNull(connection, "Connection must not be null!");
+		Assert.notNull(connection, "Connection must not be null");
 		this.connection = connection;
 	}
 
 	@Override
 	public Long geoAdd(byte[] key, Point point, byte[] member) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(point, "Point must not be null!");
-		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(point, "Point must not be null");
+		Assert.notNull(member, "Member must not be null");
 
 		try {
 			return connection.getCluster().geoadd(key, point.getX(), point.getY(), member);
@@ -67,8 +67,8 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null");
 
 		Map<byte[], GeoCoordinate> redisGeoCoordinateMap = new HashMap<>();
 		for (byte[] mapKey : memberCoordinateMap.keySet()) {
@@ -85,8 +85,8 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(locations, "Locations must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(locations, "Locations must not be null");
 
 		Map<byte[], redis.clients.jedis.GeoCoordinate> redisGeoCoordinateMap = new HashMap<>();
 		for (GeoLocation<byte[]> location : locations) {
@@ -103,9 +103,9 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member1, "Member1 must not be null!");
-		Assert.notNull(member2, "Member2 must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member1, "Member1 must not be null");
+		Assert.notNull(member2, "Member2 must not be null");
 
 		try {
 			return JedisConverters.distanceConverterForMetric(DistanceUnit.METERS)
@@ -118,10 +118,10 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member1, "Member1 must not be null!");
-		Assert.notNull(member2, "Member2 must not be null!");
-		Assert.notNull(metric, "Metric must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member1, "Member1 must not be null");
+		Assert.notNull(member2, "Member2 must not be null");
+		Assert.notNull(metric, "Metric must not be null");
 
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(metric);
 		try {
@@ -135,9 +135,9 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public List<String> geoHash(byte[] key, byte[]... members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Members must not be null!");
-		Assert.noNullElements(members, "Members must not contain null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(members, "Members must not be null");
+		Assert.noNullElements(members, "Members must not contain null");
 
 		try {
 			return JedisConverters.toStrings(connection.getCluster().geohash(key, members));
@@ -149,9 +149,9 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public List<Point> geoPos(byte[] key, byte[]... members) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Members must not be null!");
-		Assert.noNullElements(members, "Members must not contain null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(members, "Members must not be null");
+		Assert.noNullElements(members, "Members must not contain null");
 
 		try {
 			return JedisConverters.geoCoordinateToPointConverter().convert(connection.getCluster().geopos(key, members));
@@ -163,8 +163,8 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(within, "Within must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(within, "Within must not be null");
 
 		try {
 			return JedisConverters.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric())
@@ -178,9 +178,9 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(within, "Within must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(within, "Within must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
 
@@ -197,9 +197,9 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
-		Assert.notNull(radius, "Radius must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
+		Assert.notNull(radius, "Radius must not be null");
 
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(radius.getMetric());
 		try {
@@ -214,10 +214,10 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
 			GeoRadiusCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(member, "Member must not be null!");
-		Assert.notNull(radius, "Radius must not be null!");
-		Assert.notNull(args, "Args must not be null!");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(member, "Member must not be null");
+		Assert.notNull(radius, "Radius must not be null");
+		Assert.notNull(args, "Args must not be null");
 
 		GeoUnit geoUnit = JedisConverters.toGeoUnit(radius.getMetric());
 		redis.clients.jedis.params.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(args);
@@ -240,7 +240,7 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchCommandArgs args) {
 
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(key, "Key must not be null");
 		GeoSearchParam params = JedisConverters.toGeoSearchParams(reference, predicate, args);
 
 		try {
@@ -256,8 +256,8 @@ class JedisClusterGeoCommands implements RedisGeoCommands {
 	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
 			GeoSearchStoreCommandArgs args) {
 
-		Assert.notNull(destKey, "Destination Key must not be null!");
-		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(destKey, "Destination Key must not be null");
+		Assert.notNull(key, "Key must not be null");
 		GeoSearchParam params = JedisConverters.toGeoSearchParams(reference, predicate, args);
 
 		try {

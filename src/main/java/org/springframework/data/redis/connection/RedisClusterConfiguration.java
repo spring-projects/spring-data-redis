@@ -89,7 +89,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public RedisClusterConfiguration(PropertySource<?> propertySource) {
 
-		Assert.notNull(propertySource, "PropertySource must not be null!");
+		Assert.notNull(propertySource, "PropertySource must not be null");
 
 		this.clusterNodes = new LinkedHashSet<>();
 
@@ -110,7 +110,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public void setClusterNodes(Iterable<RedisNode> nodes) {
 
-		Assert.notNull(nodes, "Cannot set cluster nodes to 'null'.");
+		Assert.notNull(nodes, "Cannot set cluster nodes to 'null'");
 
 		this.clusterNodes.clear();
 
@@ -131,7 +131,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public void addClusterNode(RedisNode node) {
 
-		Assert.notNull(node, "ClusterNode must not be 'null'.");
+		Assert.notNull(node, "ClusterNode must not be 'null'");
 		this.clusterNodes.add(node);
 	}
 
@@ -193,7 +193,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	@Override
 	public void setPassword(RedisPassword password) {
 
-		Assert.notNull(password, "RedisPassword must not be null!");
+		Assert.notNull(password, "RedisPassword must not be null");
 
 		this.password = password;
 	}
@@ -244,8 +244,8 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, int redirects) {
 
-		Assert.notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
-		Assert.noNullElements(clusterHostAndPorts, "ClusterHostAndPorts must not contain null elements!");
+		Assert.notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null");
+		Assert.noNullElements(clusterHostAndPorts, "ClusterHostAndPorts must not contain null elements");
 
 		Map<String, Object> map = new HashMap<>();
 		map.put(REDIS_CLUSTER_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(clusterHostAndPorts));

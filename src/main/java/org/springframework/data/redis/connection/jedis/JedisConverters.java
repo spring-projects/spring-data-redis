@@ -150,7 +150,7 @@ abstract class JedisConverters extends Converters {
 	 */
 	public static Map<byte[], Double> toTupleMap(Set<Tuple> tuples) {
 
-		Assert.notNull(tuples, "Tuple set must not be null!");
+		Assert.notNull(tuples, "Tuple set must not be null");
 
 		Map<byte[], Double> args = new LinkedHashMap<>(tuples.size(), 1);
 
@@ -523,10 +523,10 @@ abstract class JedisConverters extends Converters {
 
 	static Long toTime(List<String> source, TimeUnit timeUnit) {
 
-		Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+		Assert.notEmpty(source, "Received invalid result from server; Expected 2 items in collection");
 		Assert.isTrue(source.size() == 2,
-				"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
-		Assert.notNull(timeUnit, "TimeUnit must not be null.");
+				"Received invalid nr of arguments from redis server; Expected 2 received " + source.size());
+		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
 		return toTimeMillis(source.get(0), source.get(1), timeUnit);
 	}
@@ -759,16 +759,16 @@ abstract class JedisConverters extends Converters {
 			case SYNC:
 				return FlushMode.SYNC;
 			default:
-				throw new IllegalArgumentException("Flush option " + option + " is not supported.");
+				throw new IllegalArgumentException("Flush option " + option + " is not supported");
 		}
 	}
 
 	static GeoSearchParam toGeoSearchParams(GeoReference<byte[]> reference, GeoShape predicate,
 			RedisGeoCommands.GeoCommandArgs args) {
 
-		Assert.notNull(reference, "GeoReference must not be null!");
-		Assert.notNull(predicate, "GeoShape must not be null!");
-		Assert.notNull(args, "GeoSearchCommandArgs must not be null!");
+		Assert.notNull(reference, "GeoReference must not be null");
+		Assert.notNull(predicate, "GeoShape must not be null");
+		Assert.notNull(args, "GeoSearchCommandArgs must not be null");
 
 		GeoSearchParam param = GeoSearchParam.geoSearchParam();
 

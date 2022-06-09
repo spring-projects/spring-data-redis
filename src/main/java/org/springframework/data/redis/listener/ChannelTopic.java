@@ -35,7 +35,7 @@ public class ChannelTopic implements Topic {
 	 */
 	public ChannelTopic(String name) {
 
-		Assert.notNull(name, "Topic name must not be null!");
+		Assert.notNull(name, "Topic name must not be null");
 
 		this.channelName = name;
 	}
