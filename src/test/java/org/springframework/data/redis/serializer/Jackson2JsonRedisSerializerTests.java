@@ -24,6 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+
 /**
  * Unit tests for {@link Jackson2JsonRedisSerializer}.
  *
@@ -70,8 +73,10 @@ class Jackson2JsonRedisSerializerTests {
 	@Test // GH-2322
 	void shouldConsiderWriter() {
 
+		serializer = new Jackson2JsonRedisSerializer<>(new ObjectMapper(),
+				TypeFactory.defaultInstance().constructType(Person.class), JacksonObjectReader.create(),
+				(mapper, source) -> "foo".getBytes());
 		Person person = new PersonObjectFactory().instance();
-		serializer.setWriter((mapper, source) -> "foo".getBytes());
 		assertThat(serializer.serialize(person)).isEqualTo("foo".getBytes());
 	}
 
