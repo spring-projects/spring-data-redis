@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 
+import lombok.AllArgsConstructor;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -1925,6 +1927,38 @@ class MappingRedisConverterUnitTests {
 		assertThat(target.getAccountName()).isEqualTo("Golam Mazid Sajib");
 	}
 
+	@Test // GH-2349
+	void writeGenericEntity() {
+
+		WithGenericEntity<User> generic = new WithGenericEntity<>();
+		generic.entity = new User("hello");
+
+		assertThat(write(generic)).hasSize(3) //
+				.containsEntry("_class",
+						"org.springframework.data.redis.core.convert.MappingRedisConverterUnitTests$WithGenericEntity")
+				.containsEntry("entity.name", "hello") //
+				.containsEntry("entity._class",
+						"org.springframework.data.redis.core.convert.MappingRedisConverterUnitTests$User");
+	}
+
+	@Test // GH-2349
+	void readGenericEntity() {
+
+		Bucket bucket = new Bucket();
+		bucket.put("entity.name", "hello".getBytes());
+		bucket.put("entity._class",
+				"org.springframework.data.redis.core.convert.MappingRedisConverterUnitTests$User".getBytes());
+
+		RedisData redisData = new RedisData(bucket);
+		redisData.setKeyspace(KEYSPACE_ACCOUNT);
+		redisData.setId("ai-id-1");
+
+		WithGenericEntity<User> generic = converter.read(WithGenericEntity.class, redisData);
+
+		assertThat(generic.entity).isNotNull();
+		assertThat(generic.entity.name).isEqualTo("hello");
+	}
+
 	@Test // DATAREDIS-1175
 	@EnabledOnJre(JRE.JAVA_8)
 	// FIXME: https://github.com/spring-projects/spring-data-redis/issues/2168
@@ -2081,6 +2115,15 @@ class MappingRedisConverterUnitTests {
 			accountInfo.setAccountName(values[2]);
 			return accountInfo;
 		}
+	}
+
+	static class WithGenericEntity<T> {
+		T entity;
+	}
+
+	@AllArgsConstructor
+	static class User {
+		String name;
 	}
 
 }
