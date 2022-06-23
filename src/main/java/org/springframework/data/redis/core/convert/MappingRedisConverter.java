@@ -56,6 +56,7 @@ import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -258,12 +259,20 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	protected Object readProperty(String path, RedisData source, RedisPersistentProperty persistentProperty) {
 
 		String currentPath = !path.isEmpty() ? path + "." + persistentProperty.getName() : persistentProperty.getName();
+		TypeInformation<?> typeInformation = typeMapper.readType(source.getBucket().getPropertyPath(currentPath),
+				persistentProperty.getTypeInformation());
 
-		TypeInformation<?> typeInformation = persistentProperty.getTypeInformation();
+		if (typeInformation.isMap()) {
 
-		if (persistentProperty.isMap()) {
+			Class<?> mapValueType = null;
 
-			Class<?> mapValueType = persistentProperty.getMapValueType();
+			if (typeInformation.getMapValueType() != null) {
+				mapValueType = typeInformation.getMapValueType().getType();
+			}
+
+			if (mapValueType == null && persistentProperty.isMap()) {
+				mapValueType = persistentProperty.getMapValueType();
+			}
 
 			if (mapValueType == null) {
 				throw new IllegalArgumentException("Unable to retrieve MapValueType");
@@ -293,16 +302,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			}
 		}
 
-		if (persistentProperty.isEntity()
+		if (mappingContext.getPersistentEntity(typeInformation) != null
 				&& !conversionService.canConvert(byte[].class, typeInformation.getRequiredActualType().getType())) {
 
 			Bucket bucket = source.getBucket().extract(currentPath + ".");
 
 			RedisData newBucket = new RedisData(bucket);
-			TypeInformation<?> typeToRead = typeMapper.readType(bucket.getPropertyPath(currentPath),
-					typeInformation);
 
-			return readInternal(currentPath, typeToRead.getType(), newBucket);
+			return readInternal(currentPath, typeInformation.getType(), newBucket);
 		}
 
 		byte[] sourceBytes = source.getBucket().get(currentPath);
@@ -580,8 +587,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param sink
 	 */
 	private void writeInternal(@Nullable String keyspace, String path, @Nullable Object value,
-			TypeInformation<?> typeHint,
-			RedisData sink) {
+			TypeInformation<?> typeHint, RedisData sink) {
 
 		if (value == null) {
 			return;
@@ -656,16 +662,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					}
 				}
 
-			} else if (persistentProperty.isEntity()) {
+			} else if (propertyValue != null) {
 
-				if (propertyValue != null) {
+				if (customConversions.isSimpleType(ProxyUtils.getUserClass(propertyValue.getClass()))) {
+
+					writeToBucket(propertyStringPath, propertyValue, sink, persistentProperty.getType());
+				} else {
 					writeInternal(keyspace, propertyStringPath, propertyValue,
 							persistentProperty.getTypeInformation().getRequiredActualType(), sink);
-				}
-			} else {
-
-				if (propertyValue != null) {
-					writeToBucket(propertyStringPath, propertyValue, sink, persistentProperty.getType());
 				}
 			}
 		});
