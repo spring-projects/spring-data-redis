@@ -22,6 +22,7 @@ import java.util.Collections;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
@@ -51,6 +52,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 	private static final String REDIS_REFERENCE_RESOLVER_BEAN_NAME = "redisReferenceResolver";
 	private static final String REDIS_ADAPTER_BEAN_NAME = "redisKeyValueAdapter";
 	private static final String REDIS_CUSTOM_CONVERSIONS_BEAN_NAME = "redisCustomConversions";
+	private static final String REDIS_MAPPING_CONFIG_BEAN_NAME = "redisMappingConfiguration";
 
 	@Override
 	public String getModuleName() {
@@ -77,8 +79,29 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 					"@EnableRedisRepositories(redisTemplateRef = … ) must be configured to a non empty value");
 		}
 
-		registerIfNotAlreadyRegistered(() -> createRedisMappingContext(configuration), registry, MAPPING_CONTEXT_BEAN_NAME,
-				configuration.getSource());
+		// Mapping config
+
+		String mappingConfigBeanName = BeanDefinitionReaderUtils.uniqueBeanName(REDIS_MAPPING_CONFIG_BEAN_NAME, registry);
+		String indexConfigurationBeanName = BeanDefinitionReaderUtils.uniqueBeanName("redisIndexConfiguration", registry);
+		String keyspaceConfigurationBeanName = BeanDefinitionReaderUtils.uniqueBeanName("redisKeyspaceConfiguration",
+				registry);
+
+		registerIfNotAlreadyRegistered(() -> BeanDefinitionBuilder
+				.rootBeanDefinition(configuration.getRequiredAttribute("indexConfiguration", Class.class)) //
+				.setRole(BeanDefinition.ROLE_INFRASTRUCTURE) //
+				.getBeanDefinition(), registry, indexConfigurationBeanName, configuration.getSource());
+
+		registerIfNotAlreadyRegistered(() -> BeanDefinitionBuilder
+				.rootBeanDefinition(configuration.getRequiredAttribute("keyspaceConfiguration", Class.class)) //
+				.setRole(BeanDefinition.ROLE_INFRASTRUCTURE) //
+				.getBeanDefinition(), registry, keyspaceConfigurationBeanName, configuration.getSource());
+
+		registerIfNotAlreadyRegistered(
+				() -> createMappingConfigBeanDef(indexConfigurationBeanName, keyspaceConfigurationBeanName), registry,
+				mappingConfigBeanName, configuration.getSource());
+
+		registerIfNotAlreadyRegistered(() -> createRedisMappingContext(mappingConfigBeanName), registry,
+				MAPPING_CONTEXT_BEAN_NAME, configuration.getSource());
 
 		// Register custom conversions
 		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(RedisCustomConversions.class), registry,
@@ -122,8 +145,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 						configuration.getRequiredAttribute("enableKeyspaceEvents", EnableKeyspaceEvents.class)) //
 				.addPropertyValue("keyspaceNotificationsConfigParameter",
 						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse("")) //
-				.addPropertyValue("shadowCopy",
-						configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class)) //
+				.addPropertyValue("shadowCopy", configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class)) //
 				.getBeanDefinition();
 	}
 
@@ -134,26 +156,17 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 				.getBeanDefinition();
 	}
 
-	private static AbstractBeanDefinition createRedisMappingContext(RepositoryConfigurationSource configurationSource) {
+	private static AbstractBeanDefinition createRedisMappingContext(String mappingConfigRef) {
 
 		return BeanDefinitionBuilder.rootBeanDefinition(RedisMappingContext.class) //
-				.addConstructorArgValue(createMappingConfigBeanDef(configurationSource)) //
-				.getBeanDefinition();
+				.addConstructorArgReference(mappingConfigRef).getBeanDefinition();
 	}
 
-	private static BeanDefinition createMappingConfigBeanDef(RepositoryConfigurationSource configuration) {
-
-		BeanDefinition indexDefinition = BeanDefinitionBuilder
-				.genericBeanDefinition(configuration.getRequiredAttribute("indexConfiguration", Class.class)) //
-				.getBeanDefinition();
-
-		BeanDefinition keyspaceDefinition = BeanDefinitionBuilder
-				.genericBeanDefinition(configuration.getRequiredAttribute("keyspaceConfiguration", Class.class)) //
-				.getBeanDefinition();
+	private static AbstractBeanDefinition createMappingConfigBeanDef(String indexConfigRef, String keyspaceConfigRef) {
 
 		return BeanDefinitionBuilder.genericBeanDefinition(MappingConfiguration.class) //
-				.addConstructorArgValue(indexDefinition) //
-				.addConstructorArgValue(keyspaceDefinition) //
+				.addConstructorArgReference(indexConfigRef) //
+				.addConstructorArgReference(keyspaceConfigRef) //
 				.getBeanDefinition();
 	}
 
