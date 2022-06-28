@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 class DefaultRedisSerializationContext<K, V> implements RedisSerializationContext<K, V> {
@@ -133,10 +134,10 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 		@Override
 		public RedisSerializationContext<K, V> build() {
 
-			Assert.notNull(keyTuple, "Key SerializationPair must not be null");
-			Assert.notNull(valueTuple, "Value SerializationPair must not be null");
-			Assert.notNull(hashKeyTuple, "HashKey SerializationPair must not be null");
-			Assert.notNull(hashValueTuple, "ValueKey SerializationPair must not be null");
+			Assert.notNull(keyTuple, "Key SerializationPair must not be null!");
+			Assert.notNull(valueTuple, "Value SerializationPair must not be null!");
+			Assert.notNull(hashKeyTuple, "HashKey SerializationPair must not be null!");
+			Assert.notNull(hashValueTuple, "HashValue SerializationPair must not be null!");
 
 			return new DefaultRedisSerializationContext<>(keyTuple, valueTuple, hashKeyTuple, hashValueTuple,
 					stringTuple);
