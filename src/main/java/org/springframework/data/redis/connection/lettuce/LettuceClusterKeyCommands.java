@@ -34,7 +34,6 @@ import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Christoph Strobl
@@ -198,21 +197,9 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		}
 
 		List<byte[]> sorted = sort(key, params);
-		if (!CollectionUtils.isEmpty(sorted)) {
-
-			byte[][] arr = new byte[sorted.size()][];
-			switch (type(key)) {
-
-				case SET:
-					connection.setCommands().sAdd(storeKey, sorted.toArray(arr));
-					return 1L;
-				case LIST:
-					connection.listCommands().lPush(storeKey, sorted.toArray(arr));
-					return 1L;
-				default:
-					throw new IllegalArgumentException("sort and store is only supported for SET and LIST");
-			}
-		}
-		return 0L;
+		byte[][] arr = new byte[sorted.size()][];
+		connection.keyCommands().unlink(storeKey);
+		connection.listCommands().lPush(storeKey, sorted.toArray(arr));
+		return (long) sorted.size();
 	}
 }
