@@ -2059,13 +2059,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
 
-		assertThat(clusterConnection.sort(KEY_1_BYTES, new DefaultSortParameters().alpha(), KEY_2_BYTES)).isEqualTo(1L);
+		assertThat(clusterConnection.sort(KEY_1_BYTES, new DefaultSortParameters().alpha(), KEY_2_BYTES)).isEqualTo(2L);
 		assertThat(nativeConnection.exists(KEY_2)).isEqualTo(1L);
 	}
 
-	@Test // DATAREDIS-315
-	public void sortAndStoreShouldReturnZeroWhenListDoesNotExist() {
-		assertThat(clusterConnection.sort(KEY_1_BYTES, new DefaultSortParameters().alpha(), KEY_2_BYTES)).isEqualTo(0L);
+	@Test // DATAREDIS-315, GH-2341
+	public void sortAndStoreShouldReplaceDestinationList() {
+
+		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
+		nativeConnection.lpush(KEY_2, VALUE_3);
+
+		assertThat(clusterConnection.sort(KEY_1_BYTES, new DefaultSortParameters().alpha(), KEY_2_BYTES)).isEqualTo(2L);
+		assertThat(nativeConnection.llen(KEY_2)).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-315
