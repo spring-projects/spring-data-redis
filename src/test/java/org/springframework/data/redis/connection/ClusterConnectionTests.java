@@ -568,8 +568,8 @@ public interface ClusterConnectionTests {
 	// DATAREDIS-315
 	void sortAndStoreShouldAddSortedValuesValuesCorrectly();
 
-	// DATAREDIS-315
-	void sortAndStoreShouldReturnZeroWhenListDoesNotExist();
+	// DATAREDIS-315, GH-2341
+	void sortAndStoreShouldReplaceDestinationList();
 
 	// DATAREDIS-315
 	void sortShouldReturnValuesCorrectly();
