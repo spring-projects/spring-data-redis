@@ -20,10 +20,9 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.util.ByteUtils.*;
 
 import reactor.core.Disposable;
-import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -92,8 +91,7 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		container = createContainer();
 
 		container.receive(PatternTopic.of("foo*"), PatternTopic.of("bar*")).as(StepVerifier::create).thenRequest(1)
-				.thenAwait()
-				.thenCancel().verify();
+				.thenAwait().thenCancel().verify();
 
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*"));
 	}
@@ -124,15 +122,15 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	void shouldEmitChannelMessage() {
 
-		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-		when(subscriptionMock.receive()).thenReturn(processor);
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		container = createContainer();
 
 		Flux<Message<String, String>> messageStream = container.receive(ChannelTopic.of("foo"));
 
 		messageStream.as(StepVerifier::create).then(() -> {
-			processor.onNext(createChannelMessage("foo", "message"));
+			sink.tryEmitNext(createChannelMessage("foo", "message"));
 		}).assertNext(msg -> {
 
 			assertThat(msg.getChannel()).isEqualTo("foo");
@@ -143,15 +141,15 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	void shouldEmitPatternMessage() {
 
-		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-		when(subscriptionMock.receive()).thenReturn(processor);
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		container = createContainer();
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
 
 		messageStream.as(StepVerifier::create).then(() -> {
-			processor.onNext(createPatternMessage("foo*", "foo", "message"));
+			sink.tryEmitNext(createPatternMessage("foo*", "foo", "message"));
 		}).assertNext(msg -> {
 
 			assertThat(msg.getPattern()).isEqualTo("foo*");
@@ -163,12 +161,14 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	void shouldRegisterSubscription() {
 
-		MonoProcessor<Void> subscribeMono = MonoProcessor.create();
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().multicast().onBackpressureBuffer();
+
+		Sinks.One<Void> subscribeMono = Sinks.one();
 
 		reset(subscriptionMock);
-		when(subscriptionMock.subscribe(any())).thenReturn(subscribeMono);
+		when(subscriptionMock.subscribe(any())).thenReturn(subscribeMono.asMono());
 		when(subscriptionMock.unsubscribe()).thenReturn(Mono.empty());
-		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		container = createContainer();
 
 		Flux<Message<String, String>> messageStream = container.receive(ChannelTopic.of("foo*"));
@@ -176,7 +176,7 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		Disposable subscription = messageStream.subscribe();
 
 		assertThat(container.getActiveSubscriptions()).isEmpty();
-		subscribeMono.onComplete();
+		subscribeMono.tryEmitEmpty();
 		assertThat(container.getActiveSubscriptions()).isNotEmpty();
 		subscription.dispose();
 		assertThat(container.getActiveSubscriptions()).isEmpty();
@@ -185,10 +185,12 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612, GH-1622
 	void shouldRegisterSubscriptionMultipleSubscribers() {
 
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().multicast().onBackpressureBuffer();
+
 		reset(subscriptionMock);
 		when(subscriptionMock.subscribe(any())).thenReturn(Mono.empty());
 		when(subscriptionMock.unsubscribe()).thenReturn(Mono.empty());
-		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		container = createContainer();
 
 		Flux<Message<String, String>> messageStream = container.receive(new ChannelTopic("foo*"));
@@ -210,7 +212,8 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612, GH-1622
 	void shouldUnsubscribeOnCancel() {
 
-		when(subscriptionMock.receive()).thenReturn(DirectProcessor.create());
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		container = createContainer();
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
@@ -227,12 +230,12 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	void shouldTerminateSubscriptionsOnShutdown() {
 
-		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-		when(subscriptionMock.receive()).thenReturn(processor);
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		when(subscriptionMock.cancel()).thenReturn(Mono.defer(() -> {
 
-			processor.onError(new CancellationException());
+			sink.tryEmitError(new CancellationException());
 			return Mono.empty();
 		}));
 		container = createContainer();
@@ -247,19 +250,19 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 	@Test // DATAREDIS-612
 	void shouldCleanupDownstream() {
 
-		DirectProcessor<Message<ByteBuffer, ByteBuffer>> processor = DirectProcessor.create();
+		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-		when(subscriptionMock.receive()).thenReturn(processor);
+		when(subscriptionMock.receive()).thenReturn(sink.asFlux());
 		container = createContainer();
 
 		Flux<PatternMessage<String, String, String>> messageStream = container.receive(PatternTopic.of("foo*"));
 
 		messageStream.as(StepVerifier::create).then(() -> {
-			assertThat(processor.hasDownstreams()).isTrue();
-			processor.onNext(createPatternMessage("foo*", "foo", "message"));
+			assertThat(sink.currentSubscriberCount()).isGreaterThan(0);
+			sink.tryEmitNext(createPatternMessage("foo*", "foo", "message"));
 		}).expectNextCount(1).thenCancel().verify();
 
-		assertThat(processor.hasDownstreams()).isFalse();
+		assertThat(sink.currentSubscriberCount()).isEqualTo(0);
 	}
 
 	private ReactiveRedisMessageListenerContainer createContainer() {

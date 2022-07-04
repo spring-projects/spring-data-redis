@@ -24,9 +24,9 @@ import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.reactive.RedisPubSubReactiveCommands;
 import reactor.core.Disposable;
-import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -136,15 +136,15 @@ class LettuceReactiveSubscriptionUnitTests {
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
-		DirectProcessor<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
-				.create();
-		when(commandsMock.observeChannels()).thenReturn(emitter);
+		Sinks.Many<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()
+				.onBackpressureBuffer();
+		when(commandsMock.observeChannels()).thenReturn(sink.asFlux());
 		when(commandsMock.observePatterns()).thenReturn(Flux.empty());
 
 		subscription.receive().as(StepVerifier::create).then(() -> {
 
-			emitter.onNext(createChannelMessage("other", "body"));
-			emitter.onNext(createChannelMessage("foo", "body"));
+			sink.tryEmitNext(createChannelMessage("other", "body"));
+			sink.tryEmitNext(createChannelMessage("foo", "body"));
 		}).assertNext(msg -> {
 			assertThat(msg.getChannel()).isEqualTo(getByteBuffer("foo"));
 		}).thenCancel().verify();
@@ -156,15 +156,15 @@ class LettuceReactiveSubscriptionUnitTests {
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*")).as(StepVerifier::create).verifyComplete();
 
-		DirectProcessor<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
-				.create();
+		Sinks.Many<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()
+				.onBackpressureBuffer();
 		when(commandsMock.observeChannels()).thenReturn(Flux.empty());
-		when(commandsMock.observePatterns()).thenReturn(emitter);
+		when(commandsMock.observePatterns()).thenReturn(sink.asFlux());
 
 		subscription.receive().as(StepVerifier::create).then(() -> {
 
-			emitter.onNext(createPatternMessage("other*", "channel", "body"));
-			emitter.onNext(createPatternMessage("foo*", "foo", "body"));
+			sink.tryEmitNext(createPatternMessage("other*", "channel", "body"));
+			sink.tryEmitNext(createPatternMessage("foo*", "foo", "body"));
 		}).assertNext(msg -> {
 
 			assertThat(((PatternMessage) msg).getPattern()).isEqualTo(getByteBuffer("foo*"));
@@ -178,14 +178,14 @@ class LettuceReactiveSubscriptionUnitTests {
 		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
-		DirectProcessor<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
-				.create();
-		when(commandsMock.observeChannels()).thenReturn(emitter);
+		Sinks.Many<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()
+				.onBackpressureBuffer();
+		when(commandsMock.observeChannels()).thenReturn(sink.asFlux());
 		when(commandsMock.observePatterns()).thenReturn(Flux.empty());
 
 		subscription.receive().as(StepVerifier::create).then(() -> {
 
-			emitter.onError(new RedisConnectionException("foo"));
+			sink.tryEmitError(new RedisConnectionException("foo"));
 		}).expectError(RedisSystemException.class).verify();
 	}
 
@@ -209,22 +209,22 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void cancelledSubscriptionShouldUnregisterDownstream() {
 
-		DirectProcessor<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
-				.create();
+		Sinks.Many<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()
+				.onBackpressureBuffer();
 
 		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo*")).as(StepVerifier::create).verifyComplete();
 
 		when(commandsMock.observeChannels()).thenReturn(Flux.never());
-		when(commandsMock.observePatterns()).thenReturn(emitter);
+		when(commandsMock.observePatterns()).thenReturn(sink.asFlux());
 
 		Flux<Message<ByteBuffer, ByteBuffer>> receive = subscription.receive();
 		Disposable subscribe = receive.subscribe();
 
-		assertThat(emitter.downstreamCount()).isEqualTo(1);
+		assertThat(sink.currentSubscriberCount()).isEqualTo(1);
 
 		subscribe.dispose();
-		assertThat(emitter.downstreamCount()).isEqualTo(0);
+		assertThat(sink.currentSubscriberCount()).isEqualTo(0);
 	}
 
 	private static io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer> createChannelMessage(

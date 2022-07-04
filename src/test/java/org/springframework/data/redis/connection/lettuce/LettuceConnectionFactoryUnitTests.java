@@ -44,6 +44,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
@@ -256,6 +257,7 @@ class LettuceConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-462
+	@Disabled("Until Lettuce supports Sinks")
 	void clusterClientShouldInitializeWithoutClientResources() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
@@ -470,6 +472,7 @@ class LettuceConnectionFactoryUnitTests {
 	void socketShouldBeSetOnStandaloneClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisSocketConfiguration());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -733,6 +736,7 @@ class LettuceConnectionFactoryUnitTests {
 		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.setTimeout(2000);
 		connectionFactory.setShareNativeConnection(false);
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -745,8 +749,9 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-676
 	void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, LettuceClientConfiguration
-				.builder().commandTimeout(Duration.ofSeconds(2)).shutdownTimeout(Duration.ZERO).build());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceClientConfiguration.builder().commandTimeout(Duration.ofSeconds(2)).shutdownTimeout(Duration.ZERO)
+						.clientResources(getSharedClientResources()).build());
 		connectionFactory.setShareNativeConnection(false);
 
 		connectionFactory.afterPropertiesSet();
@@ -901,6 +906,7 @@ class LettuceConnectionFactoryUnitTests {
 			}
 		};
 
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.destroy();
 
@@ -934,7 +940,7 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceClientConfiguration.builder().clientResources(getSharedClientResources()).build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -954,7 +960,8 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
 
 		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
-				.clientOptions(ClusterClientOptions.builder().validateClusterNodeMembership(false).build()).build();
+				.clientOptions(ClusterClientOptions.builder().validateClusterNodeMembership(false).build())
+				.clientResources(getSharedClientResources()).build();
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
 				clientConfiguration);
@@ -984,6 +991,7 @@ class LettuceConnectionFactoryUnitTests {
 				return connectionProviderMock;
 			}
 		};
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 
 		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();

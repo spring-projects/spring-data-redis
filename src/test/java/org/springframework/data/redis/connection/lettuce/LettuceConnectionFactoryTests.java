@@ -33,6 +33,7 @@ import java.util.function.Consumer;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -315,6 +316,7 @@ class LettuceConnectionFactoryTests {
 	}
 
 	@Test // DATAREDIS-462
+	@Disabled("Until Lettuce upgrades to Sinks")
 	void factoryWorksWithoutClientResources() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();

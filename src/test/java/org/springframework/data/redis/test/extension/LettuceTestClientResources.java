@@ -15,8 +15,11 @@
  */
 package org.springframework.data.redis.test.extension;
 
+import io.lettuce.core.event.Event;
+import io.lettuce.core.event.EventBus;
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
+import reactor.core.publisher.Flux;
 
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +36,17 @@ public class LettuceTestClientResources {
 
 	static {
 
-		SHARED_CLIENT_RESOURCES = DefaultClientResources.builder()
+		SHARED_CLIENT_RESOURCES = DefaultClientResources.builder().eventBus(new EventBus() {
+			@Override
+			public Flux<Event> get() {
+				return Flux.empty();
+			}
+
+			@Override
+			public void publish(Event event) {
+
+			}
+		})
 				.build();
 		ShutdownQueue.INSTANCE.register(() -> SHARED_CLIENT_RESOURCES.shutdown(0, 0, TimeUnit.MILLISECONDS));
 	}

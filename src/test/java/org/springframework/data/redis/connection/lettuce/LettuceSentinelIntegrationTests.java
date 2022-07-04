@@ -171,6 +171,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test // DATAREDIS-462
+	@Disabled("Until Lettuce has moved to Sinks API")
 	void factoryWorksWithoutClientResources() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG);
