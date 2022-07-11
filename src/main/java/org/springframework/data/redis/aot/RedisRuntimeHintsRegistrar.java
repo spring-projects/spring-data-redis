@@ -21,13 +21,21 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.data.redis.core.BoundGeoOperations;
+import org.springframework.data.redis.core.BoundHashOperations;
+import org.springframework.data.redis.core.BoundKeyOperations;
+import org.springframework.data.redis.core.BoundListOperations;
+import org.springframework.data.redis.core.BoundSetOperations;
+import org.springframework.data.redis.core.BoundStreamOperations;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl
  * @since 3.0
  */
-public class DataRedisRuntimeHints implements RuntimeHintsRegistrar {
+public class RedisRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
@@ -107,7 +115,9 @@ public class DataRedisRuntimeHints implements RuntimeHintsRegistrar {
 								TypeReference.of(org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider.class),
 								TypeReference.of(org.springframework.data.redis.core.mapping.RedisMappingContext.class),
 								TypeReference.of(org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean.class),
-								TypeReference.of(org.springframework.data.redis.repository.query.RedisQueryCreator.class)),
+								TypeReference.of(org.springframework.data.redis.repository.query.RedisQueryCreator.class),
+								TypeReference.of(org.springframework.data.redis.connection.MessageListener.class),
+								TypeReference.of(org.springframework.data.redis.listener.RedisMessageListenerContainer.class)),
 						hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
 								MemberCategory.INVOKE_PUBLIC_METHODS));
 
@@ -121,5 +131,28 @@ public class DataRedisRuntimeHints implements RuntimeHintsRegistrar {
 				TypeReference.of(org.springframework.data.redis.connection.StringRedisConnection.class),
 				TypeReference.of(org.springframework.data.redis.connection.DecoratedRedisConnection.class));
 
+		// keys are bound by a proxy
+		boundOperationsProxy(BoundGeoOperations.class, hints);
+		boundOperationsProxy(BoundHashOperations.class, hints);
+		boundOperationsProxy(BoundKeyOperations.class, hints);
+		boundOperationsProxy(BoundListOperations.class, hints);
+		boundOperationsProxy(BoundSetOperations.class, hints);
+		boundOperationsProxy(BoundStreamOperations.class, hints);
+		boundOperationsProxy(BoundValueOperations.class, hints);
+		boundOperationsProxy(BoundZSetOperations.class, hints);
+		boundOperationsProxy(
+				TypeReference.of("org.springframework.data.redis.core.BoundOperationsProxyFactory$DefaultBoundKeyOperations"),
+				hints);
+	}
+
+	private void boundOperationsProxy(Class<?> type, RuntimeHints hints) {
+		boundOperationsProxy(TypeReference.of(type), hints);
+	}
+
+	private void boundOperationsProxy(TypeReference typeReference, RuntimeHints hints) {
+		hints.proxies().registerJdkProxy(typeReference, //
+				TypeReference.of("org.springframework.aop.SpringProxy"), //
+				TypeReference.of("org.springframework.aop.framework.Advised"), //
+				TypeReference.of("org.springframework.core.DecoratingProxy"));
 	}
 }
