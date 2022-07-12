@@ -24,10 +24,10 @@
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.19</xstream>
 		<pool>2.9.0</pool>
-		<lettuce>6.1.8.RELEASE</lettuce>
+		<lettuce>6.1.9.RELEASE</lettuce>
 		<jedis>3.7.1</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.72.Final</netty>
+		<netty>4.1.79.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
