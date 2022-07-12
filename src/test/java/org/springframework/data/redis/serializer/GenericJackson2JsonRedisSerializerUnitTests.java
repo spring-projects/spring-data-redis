@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -165,6 +166,22 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // GH-2322
+	void readsToMapForNonDefaultTyping() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(new ObjectMapper());
+
+		User user = new User();
+		user.email = "walter@heisenberg.com";
+		user.id = 42;
+		user.name = "Walter White";
+
+		byte[] serializedValue = serializer.serialize(user);
+
+		Object deserializedValue = serializer.deserialize(serializedValue, Object.class);
+		assertThat(deserializedValue).isInstanceOf(Map.class);
+	}
+
+	@Test // GH-2322
 	void shouldConsiderWriter() {
 
 		User user = new User();
@@ -180,6 +197,24 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		byte[] result = serializer.serialize(user);
 
 		assertThat(new String(result)).contains("id").contains("name").doesNotContain("email");
+	}
+
+	@Test // GH-2322
+	void considersWriterForCustomObjectMapper() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(new ObjectMapper(),
+				JacksonObjectReader.create(), (mapper, source) -> {
+					return mapper.writerWithView(Views.Basic.class).writeValueAsBytes(source);
+				});
+
+		User user = new User();
+		user.email = "walter@heisenberg.com";
+		user.id = 42;
+		user.name = "Walter White";
+
+		byte[] serializedValue = serializer.serialize(user);
+
+		assertThat(new String(serializedValue)).contains("id").contains("name").doesNotContain("email");
 	}
 
 	@Test // GH-2322
@@ -309,10 +344,9 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	static class Views {
+
 		interface Basic {}
 
 		interface Detailed {}
-
 	}
-
 }

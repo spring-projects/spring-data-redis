@@ -242,6 +242,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		return typeResolver.resolveType(source, type);
 	}
 
+	/**
+	 * @since 3.0
+	 */
 	static class TypeResolver {
 
 		// need a separate instance to bypass class hint checks
@@ -250,7 +253,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		private final Supplier<TypeFactory> typeFactory;
 		private final Supplier<String> hintName;
 
-		public TypeResolver(Supplier<TypeFactory> typeFactory, Supplier<String> hintName) {
+		TypeResolver(Supplier<TypeFactory> typeFactory, Supplier<String> hintName) {
 
 			this.typeFactory = typeFactory;
 			this.hintName = hintName;
@@ -271,7 +274,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			return constructType(type);
 		}
-
 	}
 
 	/**
@@ -309,5 +311,4 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			serialize(value, gen, serializers);
 		}
 	}
-
 }
