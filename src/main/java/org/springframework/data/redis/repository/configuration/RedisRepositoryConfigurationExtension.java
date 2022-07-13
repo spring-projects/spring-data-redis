@@ -138,15 +138,19 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 	private static AbstractBeanDefinition createRedisKeyValueAdapter(RepositoryConfigurationSource configuration) {
 
-		return BeanDefinitionBuilder.rootBeanDefinition(RedisKeyValueAdapter.class) //
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RedisKeyValueAdapter.class) //
 				.addConstructorArgReference(configuration.getRequiredAttribute("redisTemplateRef", String.class)) //
 				.addConstructorArgReference(REDIS_CONVERTER_BEAN_NAME) //
 				.addPropertyValue("enableKeyspaceEvents",
 						configuration.getRequiredAttribute("enableKeyspaceEvents", EnableKeyspaceEvents.class)) //
 				.addPropertyValue("keyspaceNotificationsConfigParameter",
 						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse("")) //
-				.addPropertyValue("shadowCopy", configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class)) //
-				.getBeanDefinition();
+				.addPropertyValue("shadowCopy", configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class));
+
+		configuration.getAttribute("messageListenerContainerRef")
+				.ifPresent(it -> builder.addPropertyReference("messageListenerContainer", it));
+
+		return builder.getBeanDefinition();
 	}
 
 	private static AbstractBeanDefinition createRedisReferenceResolverDefinition(String redisTemplateRef) {

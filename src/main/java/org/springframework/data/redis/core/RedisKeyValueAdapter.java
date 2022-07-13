@@ -112,6 +112,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private @Nullable RedisMessageListenerContainer messageListenerContainer;
+	private boolean managedListenerContainer = true;
 	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<>(null);
 	private @Nullable ApplicationEventPublisher eventPublisher;
 
@@ -179,7 +180,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		this.converter = redisConverter;
 		this.redisOps = redisOps;
-		initMessageListenerContainer();
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
-			if(isNew) {
+			if (isNew) {
 				connection.sAdd(toBytes(rdo.getKeyspace()), key);
 			}
 
@@ -311,7 +311,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				connection.sRem(binKeyspace, binId);
 				new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
 
-				if(RedisKeyValueAdapter.this.keepShadowCopy()) {
+				if (RedisKeyValueAdapter.this.keepShadowCopy()) {
 
 					RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
 					if (persistentEntity != null && persistentEntity.isExpiring()) {
@@ -464,7 +464,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 					connection.persist(redisKey);
 
-					if(keepShadowCopy()) {
+					if (keepShadowCopy()) {
 						connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 					}
 				}
@@ -625,7 +625,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * @return {@literal true} if {@link RedisData#getTimeToLive()} has a positive value.
-	 *
 	 * @param data must not be {@literal null}.
 	 * @since 2.3.7
 	 */
@@ -641,6 +640,28 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	public void setEnableKeyspaceEvents(EnableKeyspaceEvents enableKeyspaceEvents) {
 		this.enableKeyspaceEvents = enableKeyspaceEvents;
+	}
+
+	/**
+	 * Configure a {@link RedisMessageListenerContainer} to listen for Keyspace expiry events. The container can only be
+	 * set when this bean hasn't been yet {@link #afterPropertiesSet() initialized}.
+	 *
+	 * @param messageListenerContainer the container to use.
+	 * @since 2.7.2
+	 * @throws IllegalStateException when trying to set a {@link RedisMessageListenerContainer} after
+	 *           {@link #afterPropertiesSet()} has been called to initialize a managed container instance.
+	 */
+	public void setMessageListenerContainer(RedisMessageListenerContainer messageListenerContainer) {
+
+		Assert.notNull(messageListenerContainer, "RedisMessageListenerContainer must not be null");
+
+		if (this.managedListenerContainer && this.messageListenerContainer != null) {
+			throw new IllegalStateException(
+					"Cannot set RedisMessageListenerContainer after initializing a managed RedisMessageListenerContainer instance");
+		}
+
+		this.managedListenerContainer = false;
+		this.messageListenerContainer = messageListenerContainer;
 	}
 
 	/**
@@ -671,6 +692,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	@Override
 	public void afterPropertiesSet() {
 
+		if (this.managedListenerContainer) {
+			initMessageListenerContainer();
+		}
+
 		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP, this.enableKeyspaceEvents)) {
 			initKeyExpirationListener();
 		}
@@ -682,8 +707,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			this.expirationListener.get().destroy();
 		}
 
-		if (this.messageListenerContainer != null) {
+		if (this.managedListenerContainer && this.messageListenerContainer != null) {
 			this.messageListenerContainer.destroy();
+			this.messageListenerContainer = null;
 		}
 	}
 
