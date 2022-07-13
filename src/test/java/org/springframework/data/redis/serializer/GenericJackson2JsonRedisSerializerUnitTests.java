@@ -160,9 +160,26 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		FinalObject source = new FinalObject();
 		source.longValue = 1L;
+		source.myArray = new int[] { 1, 2, 3 };
 		source.simpleObject = new SimpleObject(2L);
 
 		assertThat(serializer.deserialize(serializer.serialize(source))).isEqualTo(source);
+		assertThat(serializer.deserialize(
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$FinalObject\",\"longValue\":1,\"myArray\":[1,2,3],\n"
+						+ "\"simpleObject\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":2}}")
+								.getBytes())).isEqualTo(source);
+	}
+
+	@Test // GH-2361
+	void shouldDeserializeArrayWithoutTypeHint() {
+
+		GenericJackson2JsonRedisSerializer gs = new GenericJackson2JsonRedisSerializer();
+		CountAndArray result = (CountAndArray) gs.deserialize(
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$CountAndArray\", \"count\":1, \"available\":[0,1]}")
+						.getBytes());
+
+		assertThat(result.getCount()).isEqualTo(1);
+		assertThat(result.getAvailable()).containsExactly(0, 1);
 	}
 
 	@Test // GH-2322
@@ -300,6 +317,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Data
 	static final class FinalObject {
 		public Long longValue;
+		public int[] myArray;
 		SimpleObject simpleObject;
 	}
 
@@ -348,5 +366,12 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		interface Basic {}
 
 		interface Detailed {}
+	}
+
+	@Data
+	static class CountAndArray {
+
+		private int count;
+		private int[] available;
 	}
 }
