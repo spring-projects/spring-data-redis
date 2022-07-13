@@ -168,6 +168,16 @@ public @interface EnableRedisRepositories {
 	EnableKeyspaceEvents enableKeyspaceEvents() default EnableKeyspaceEvents.OFF;
 
 	/**
+	 * Configure the name of the {@link org.springframework.data.redis.listener.RedisMessageListenerContainer} bean to be
+	 * used for keyspace event subscriptions. Defaults to use an anonymous managed instance by
+	 * {@link org.springframework.data.redis.core.RedisKeyValueAdapter}.
+	 *
+	 * @return
+	 * @since 2.6.6
+	 */
+	String messageListenerContainerRef() default "";
+
+	/**
 	 * Configuration flag controlling storage of phantom keys (shadow copies) of expiring entities to read them later when
 	 * publishing {@link org.springframework.data.redis.core.RedisKeyspaceEvent keyspace events}.
 	 *
