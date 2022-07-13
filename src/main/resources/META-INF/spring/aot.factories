@@ -1,2 +1,2 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
-	org.springframework.data.redis.aot.RedisRuntimeHintsRegistrar
+	org.springframework.data.redis.aot.RedisRuntimeHints
