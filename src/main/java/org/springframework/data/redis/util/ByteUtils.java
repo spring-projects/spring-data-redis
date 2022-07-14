@@ -30,6 +30,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Guy Korland
  * @since 1.7
  */
 public final class ByteUtils {
@@ -71,11 +72,19 @@ public final class ByteUtils {
 			return arrays[0];
 		}
 
-		byte[] cur = concat(arrays[0], arrays[1]);
-		for (int i = 2; i < arrays.length; i++) {
-			cur = concat(cur, arrays[i]);
+		// Sum the total result length
+		int sum = 0;
+		for (int i = 0; i < arrays.length; ++i) {
+			sum += arrays[i].length;
 		}
-		return cur;
+
+		byte[] result = Arrays.copyOf(arrays[0], sum);
+		int copied = arrays[0].length;
+		for (int i = 1; i < arrays.length; ++i) {
+			System.arraycopy(arrays[i], 0, result, copied, arrays[i].length);
+			copied += arrays[i].length;
+		}
+		return result;
 	}
 
 	/**
