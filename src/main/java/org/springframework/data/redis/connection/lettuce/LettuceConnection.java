@@ -56,6 +56,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -90,6 +93,8 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  */
 public class LettuceConnection extends AbstractRedisConnection {
+
+	private final Log LOGGER = LogFactory.getLog(getClass());
 
 	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 
@@ -414,7 +419,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#close()
 	 */
 	@Override
-	public void close() throws DataAccessException {
+	public void close() {
 
 		super.close();
 
@@ -424,7 +429,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		isClosed = true;
 
-		reset();
+		try {
+			reset();
+		} catch (RuntimeException e) {
+			LOGGER.debug("Failed to reset connection during close", e);
+		}
 	}
 
 	private void reset() {
