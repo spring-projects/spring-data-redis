@@ -23,6 +23,7 @@ import static org.springframework.util.ObjectUtils.*;
 import lombok.Data;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -168,7 +169,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // GH-2361
-	void shouldDeserializeArrayWithoutTypeHint() {
+	void shouldDeserializePrimitiveArrayWithoutTypeHint() {
 
 		GenericJackson2JsonRedisSerializer gs = new GenericJackson2JsonRedisSerializer();
 		CountAndArray result = (CountAndArray) gs.deserialize(
@@ -177,6 +178,87 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		assertThat(result.getCount()).isEqualTo(1);
 		assertThat(result.getAvailable()).containsExactly(0, 1);
+	}
+
+	@Test // GH-2361
+	void shouldDeserializePrimitiveWrapperArrayWithoutTypeHint() {
+
+		GenericJackson2JsonRedisSerializer gs = new GenericJackson2JsonRedisSerializer();
+		CountAndArray result = (CountAndArray) gs.deserialize(
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$CountAndArray\", \"count\":1, \"arrayOfPrimitiveWrapper\":[0,1]}")
+						.getBytes());
+
+		assertThat(result.getCount()).isEqualTo(1);
+		assertThat(result.getArrayOfPrimitiveWrapper()).containsExactly(0L, 1L);
+	}
+
+	@Test // GH-2361
+	void doesNotIncludeTypingForPrimitiveArrayWrappers() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		WithWrapperTypes source = new WithWrapperTypes();
+		source.primitiveWrapper = new AtomicReference<>();
+		source.primitiveArrayWrapper = new AtomicReference<>(new Integer[] { 200, 300 });
+		source.simpleObjectWrapper = new AtomicReference<>();
+
+		byte[] serializedValue = serializer.serialize(source);
+
+		assertThat(new String(serializedValue)) //
+				.contains("\"primitiveArrayWrapper\":[200,300]") //
+				.doesNotContain("\"[Ljava.lang.Integer;\"");
+
+		assertThat(serializer.deserialize(serializedValue)) //
+				.isInstanceOf(WithWrapperTypes.class) //
+				.satisfies(it -> {
+					WithWrapperTypes deserialized = (WithWrapperTypes) it;
+					assertThat(deserialized.primitiveArrayWrapper).hasValue(source.primitiveArrayWrapper.get());
+				});
+	}
+
+	@Test // GH-2361
+	void doesNotIncludeTypingForPrimitiveWrappers() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		WithWrapperTypes source = new WithWrapperTypes();
+		source.primitiveWrapper = new AtomicReference<>(123L);
+
+		byte[] serializedValue = serializer.serialize(source);
+
+		assertThat(new String(serializedValue)) //
+				.contains("\"primitiveWrapper\":123") //
+				.doesNotContain("\"Ljava.lang.Long;\"");
+
+		assertThat(serializer.deserialize(serializedValue)) //
+				.isInstanceOf(WithWrapperTypes.class) //
+				.satisfies(it -> {
+					WithWrapperTypes deserialized = (WithWrapperTypes) it;
+					assertThat(deserialized.primitiveWrapper).hasValue(source.primitiveWrapper.get());
+				});
+	}
+
+	@Test // GH-2361
+	void includesTypingForWrappedObjectTypes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		SimpleObject simpleObject = new SimpleObject(100L);
+		WithWrapperTypes source = new WithWrapperTypes();
+		source.simpleObjectWrapper = new AtomicReference<>(simpleObject);
+
+		byte[] serializedValue = serializer.serialize(source);
+
+		assertThat(new String(serializedValue)) //
+				.contains(
+						"\"simpleObjectWrapper\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":100}");
+
+		assertThat(serializer.deserialize(serializedValue)) //
+				.isInstanceOf(WithWrapperTypes.class) //
+				.satisfies(it -> {
+					WithWrapperTypes deserialized = (WithWrapperTypes) it;
+					assertThat(deserialized.simpleObjectWrapper).hasValue(source.simpleObjectWrapper.get());
+				});
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
@@ -228,7 +310,6 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 			return nullSafeEquals(this.stringValue, other.stringValue)
 					&& nullSafeEquals(this.simpleObject, other.simpleObject);
 		}
-
 	}
 
 	@Data
@@ -275,6 +356,14 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		private int count;
 		private int[] available;
+		private Long[] arrayOfPrimitiveWrapper;
 	}
 
+	@Data
+	static class WithWrapperTypes {
+
+		AtomicReference<Long> primitiveWrapper;
+		AtomicReference<Integer[]> primitiveArrayWrapper;
+		AtomicReference<SimpleObject> simpleObjectWrapper;
+	}
 }
