@@ -349,21 +349,33 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 				return true;
 			}
 
-			while (t.isArrayType()) {
-				t = t.getContentType();
-			}
+			t = resolveArrayOrWrapper(t);
 
 			if (ClassUtils.isPrimitiveOrWrapper(t.getRawClass())) {
 				return false;
 			}
 
-			// 19-Apr-2016, tatu: ReferenceType like Optional also requires similar handling:
-			while (t.isReferenceType()) {
-				t = t.getReferencedType();
-			}
-
 			// [databind#88] Should not apply to JSON tree models:
 			return !TreeNode.class.isAssignableFrom(t.getRawClass());
+		}
+
+		private JavaType resolveArrayOrWrapper(JavaType type) {
+
+			while (type.isArrayType()) {
+				type = type.getContentType();
+				if (type.isReferenceType()) {
+					type = resolveArrayOrWrapper(type);
+				}
+			}
+
+			while (type.isReferenceType()) {
+				type = type.getReferencedType();
+				if (type.isArrayType()) {
+					type = resolveArrayOrWrapper(type);
+				}
+			}
+
+			return type;
 		}
 	}
 }
