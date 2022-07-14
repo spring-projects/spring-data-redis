@@ -34,7 +34,9 @@ import java.util.Set;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -149,6 +151,8 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * @since 1.8
  */
 public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
+
+	private static final boolean SOURCE_VERSION_PRESENT = ClassUtils.isPresent("javax.lang.model.SourceVersion", Jackson2HashMapper.class.getClassLoader());
 
 	private final HashMapperModule HASH_MAPPER_MODULE = new HashMapperModule();
 
@@ -336,10 +340,42 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 				if (cur.isArray()) {
 					this.flattenCollection(propertyPrefix, cur.elements(), resultMap);
 				} else {
+					if (nodes.hasNext() && mightBeJavaType(cur)) {
 
-					if (cur.asText().equals("java.util.Date")) {
-						resultMap.put(propertyPrefix, nodes.next().asText());
-						break;
+						JsonNode next = nodes.next();
+
+						if (next.isArray()) {
+							this.flattenCollection(propertyPrefix, next.elements(), resultMap);
+						}
+
+						if (cur.asText().equals("java.util.Date")) {
+							resultMap.put(propertyPrefix, next.asText());
+							break;
+						}
+						if (next.isNumber()) {
+							resultMap.put(propertyPrefix, next.numberValue());
+							break;
+						}
+						if (next.isTextual()) {
+
+							resultMap.put(propertyPrefix, next.textValue());
+							break;
+						}
+						if (next.isBoolean()) {
+
+							resultMap.put(propertyPrefix, next.booleanValue());
+							break;
+						}
+						if (next.isBinary()) {
+
+							try {
+								resultMap.put(propertyPrefix, next.binaryValue());
+							} catch (IOException e) {
+								throw new IllegalStateException(String.format("Cannot read binary value of '%s'", propertyPrefix), e);
+							}
+							break;
+						}
+
 					}
 				}
 			}
@@ -349,6 +385,27 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		} else {
 			resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element).getPropertyValue("_value"));
 		}
+	}
+
+	private boolean mightBeJavaType(JsonNode node) {
+
+		String textValue = node.asText();
+		if (!SOURCE_VERSION_PRESENT) {
+
+			if (ObjectUtils.nullSafeEquals(textValue, "java.util.Date")) {
+				return true;
+			}
+			if (ObjectUtils.nullSafeEquals(textValue, "java.math.BigInteger")) {
+				return true;
+			}
+			if (ObjectUtils.nullSafeEquals(textValue, "java.math.BigDecimal")) {
+				return true;
+			}
+
+			return false;
+		}
+		return javax.lang.model.SourceVersion.isName(textValue);
+
 	}
 
 	private void flattenCollection(String propertyPrefix, Iterator<JsonNode> list, Map<String, Object> resultMap) {

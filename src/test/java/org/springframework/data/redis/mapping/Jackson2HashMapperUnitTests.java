@@ -17,6 +17,8 @@ package org.springframework.data.redis.mapping;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -192,6 +194,24 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
+	@Test // GH-2365
+	void bigIntegerShouldBeTreatedCorrectly() {
+
+		WithBigWhatever source = new WithBigWhatever();
+		source.bigI = BigInteger.TEN;
+
+		assertBackAndForwardMapping(source);
+	}
+
+	@Test // GH-2365
+	void bigDecimalShouldBeTreatedCorrectly() {
+
+		WithBigWhatever source = new WithBigWhatever();
+		source.bigD = BigDecimal.ONE;
+
+		assertBackAndForwardMapping(source);
+	}
+
 	@Data
 	public static class WithList {
 		List<String> strings;
@@ -214,6 +234,12 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		private Calendar calendar;
 		private LocalDate localDate;
 		private LocalDateTime localDateTime;
+	}
+
+	@Data
+	private static class WithBigWhatever {
+		private BigDecimal bigD;
+		private BigInteger bigI;
 	}
 
 	@Data
