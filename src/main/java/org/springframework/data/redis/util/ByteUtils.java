@@ -30,6 +30,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Guy Korland
  * @since 1.7
  */
 public final class ByteUtils {
@@ -71,6 +72,7 @@ public final class ByteUtils {
 			return arrays[0];
 		}
 
+		// Sum the total result length
 		int sum = 0;
 		for (int i = 0; i < arrays.length; ++i) {
 			sum += arrays[i].length;
