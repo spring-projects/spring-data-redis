@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -199,6 +201,24 @@ abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
 		assertBackAndForwardMapping(source);
 	}
 
+	@Test // GH-2365
+	void bigIntegerShouldBeTreatedCorrectly() {
+
+		WithBigWhatever source = new WithBigWhatever();
+		source.bigI = BigInteger.TEN;
+
+		assertBackAndForwardMapping(source);
+	}
+
+	@Test // GH-2365
+	void bigDecimalShouldBeTreatedCorrectly() {
+
+		WithBigWhatever source = new WithBigWhatever();
+		source.bigD = BigDecimal.ONE;
+
+		assertBackAndForwardMapping(source);
+	}
+
 	@Data
 	public static class WithList {
 		List<String> strings;
@@ -221,6 +241,12 @@ abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
 		private Calendar calendar;
 		private LocalDate localDate;
 		private LocalDateTime localDateTime;
+	}
+
+	@Data
+	private static class WithBigWhatever {
+		private BigDecimal bigD;
+		private BigInteger bigI;
 	}
 
 	@Data
