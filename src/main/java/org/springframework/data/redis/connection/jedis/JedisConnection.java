@@ -39,6 +39,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -71,6 +74,8 @@ import org.springframework.util.CollectionUtils;
  * @author Dengliming
  */
 public class JedisConnection extends AbstractRedisConnection {
+
+	private final Log LOGGER = LogFactory.getLog(getClass());
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
@@ -300,8 +305,13 @@ public class JedisConnection extends AbstractRedisConnection {
 		super.close();
 
 		JedisSubscription subscription = this.subscription;
-		if (subscription != null) {
-			subscription.close();
+		try {
+			if (subscription != null) {
+				subscription.close();
+			}
+		} catch (Exception ex) {
+			LOGGER.debug("Cannot terminate subscription", ex);
+		} finally {
 			this.subscription = null;
 		}
 
@@ -312,21 +322,27 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		// else close the connection normally (doing the try/catch dance)
-		Exception exc = null;
+
 		try {
 			jedis.quit();
 		} catch (Exception ex) {
-			exc = ex;
+			LOGGER.debug("Failed to QUIT during close", ex);
 		}
+
 		try {
 			jedis.disconnect();
 		} catch (Exception ex) {
-			exc = ex;
+			LOGGER.debug("Failed to disconnect during close", ex);
+		}
+	}
+
+	private Exception handleCloseException(@Nullable Exception exceptionToThrow, Exception cause) {
+
+		if (exceptionToThrow == null) {
+			return cause;
 		}
 
-		if (exc != null) {
-			throw convertJedisAccessException(exc);
-		}
+		return exceptionToThrow;
 	}
 
 	@Override
