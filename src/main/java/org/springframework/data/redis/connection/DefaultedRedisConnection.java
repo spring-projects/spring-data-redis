@@ -64,6 +64,7 @@ import org.springframework.lang.Nullable;
  * @author dengliming
  * @author ihaohong
  * @author Dennis Neufeld
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 @Deprecated
@@ -1835,4 +1836,23 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	default <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		return scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
 	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+						  org.springframework.data.domain.Range<byte[]> range,
+						  org.springframework.data.redis.connection.Limit limit) {
+		return zSetCommands().zRangeStoreByLex(dstKey, srcKey, range, limit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+							org.springframework.data.domain.Range<Number> range,
+							org.springframework.data.redis.connection.Limit limit) {
+		return zSetCommands().zRangeStoreByScore(dstKey, srcKey, range, limit);
+	}
+
 }

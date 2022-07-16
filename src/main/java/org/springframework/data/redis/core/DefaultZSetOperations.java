@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
+ * @author Shyngys Sapraliyev
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -224,6 +225,20 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		Set<byte[]> rawValues = execute(connection -> connection.zRevRangeByLex(rawKey, serialize(range), limit));
 
 		return deserializeValues(rawValues);
+	}
+
+	@Override
+	public Long rangeStoreByLex(K dstKey, K srcKey, Range<String> range, Limit limit) {
+		byte[] rawDstKey = rawKey(dstKey);
+		byte[] rawSrcKey = rawKey(srcKey);
+		return execute(connection -> connection.zRangeStoreByLex(rawDstKey, rawSrcKey, serialize(range), limit));
+	}
+
+	@Override
+	public Long rangeStoreByScore(K dstKey, K srcKey, Range<Number> range, Limit limit) {
+		byte[] rawDstKey = rawKey(dstKey);
+		byte[] rawSrcKey = rawKey(srcKey);
+		return execute(connection -> connection.zRangeStoreByScore(rawDstKey, rawSrcKey, range, limit));
 	}
 
 	@Override
