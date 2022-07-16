@@ -1375,7 +1375,7 @@ public interface RedisZSetCommands {
 	 * @param srcKey must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.8
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
@@ -1392,7 +1392,7 @@ public interface RedisZSetCommands {
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.8
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
@@ -1408,7 +1408,7 @@ public interface RedisZSetCommands {
 	 * @param min minimal inclusive score
 	 * @param max maximal inclusive score
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.8
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
@@ -1425,7 +1425,7 @@ public interface RedisZSetCommands {
 	 * @param max maximal inclusive score
 	 * @param limit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.8
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
@@ -1441,7 +1441,7 @@ public interface RedisZSetCommands {
 	 * @param srcKey must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.8
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
@@ -1459,7 +1459,7 @@ public interface RedisZSetCommands {
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.8
+	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
