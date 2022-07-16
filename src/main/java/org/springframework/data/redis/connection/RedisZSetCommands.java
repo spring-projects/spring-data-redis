@@ -38,6 +38,7 @@ import org.springframework.util.ObjectUtils;
  * @author David Liu
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Shyngys Sapraliyev
  */
 public interface RedisZSetCommands {
 
@@ -1366,5 +1367,104 @@ public interface RedisZSetCommands {
 	@Nullable
 	Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
 			org.springframework.data.redis.connection.Limit limit);
+
+	/**
+	 * This command is like ZRANGE , but stores the result in the {@literal dstKey} destination key.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param srcKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+								  org.springframework.data.domain.Range<byte[]> range) {
+		return zRangeStoreByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
+	}
+
+	/**
+	 * This command is like ZRANGE , but stores the result in the {@literal dstKey} destination key.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param srcKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+						  org.springframework.data.domain.Range<byte[]> range,
+						  org.springframework.data.redis.connection.Limit limit);
+
+	/**
+	 * This command is like ZRANGE, but stores the result in the {@literal dstKey} destination key.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param srcKey must not be {@literal null}.
+	 * @param min minimal inclusive score
+	 * @param max maximal inclusive score
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, double min, double max) {
+		return zRangeStoreByScore(dstKey, srcKey, org.springframework.data.domain.Range.closed(min, max));
+	}
+
+	/**
+	 * This command is like ZRANGE, but stores the result in the {@literal dstKey} destination key.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param srcKey must not be {@literal null}.
+	 * @param min minimal inclusive score
+	 * @param max maximal inclusive score
+	 * @param limit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, double min, double max,
+									org.springframework.data.redis.connection.Limit limit) {
+		return zRangeStoreByScore(dstKey, srcKey, org.springframework.data.domain.Range.closed(min, max), limit);
+	}
+
+	/**
+	 * This command is like ZRANGE, but stores the result in the {@literal dstKey} destination key.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param srcKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+									org.springframework.data.domain.Range<Number> range) {
+		return zRangeStoreByScore(dstKey, srcKey, range,
+				org.springframework.data.redis.connection.Limit.unlimited());
+	}
+
+	/**
+	 * This command is like ZRANGE, but stores the result in the {@literal dstKey} destination key.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param srcKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+							org.springframework.data.domain.Range<Number> range,
+							org.springframework.data.redis.connection.Limit limit);
 
 }

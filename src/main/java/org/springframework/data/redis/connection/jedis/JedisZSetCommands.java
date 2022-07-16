@@ -16,9 +16,11 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.ZParams;
+import redis.clients.jedis.params.ZRangeParams;
 import redis.clients.jedis.resps.ScanResult;
 
 import java.util.LinkedHashSet;
@@ -44,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Clement Ong
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 class JedisZSetCommands implements RedisZSetCommands {
@@ -674,6 +677,50 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		return connection.invoke().from(Jedis::zrevrangeByLex, PipelineBinaryCommands::zrevrangeByLex, key, max, min)
 				.get(LinkedHashSet::new);
+	}
+
+	@Override
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+								 org.springframework.data.domain.Range<byte[]> range,
+								 org.springframework.data.redis.connection.Limit limit) {
+
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for ZRANGESTORE BYLEX must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		byte[] min = JedisConverters
+				.boundaryToBytesForZRangeByLex(range.getLowerBound(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters
+				.boundaryToBytesForZRangeByLex(range.getUpperBound(), JedisConverters.PLUS_BYTES);
+
+		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYLEX, min, max)
+				.limit(limit.getOffset(), limit.getCount());
+
+		return connection.invoke().just(Jedis::zrangestore, PipelineBinaryCommands::zrangestore,
+				dstKey, srcKey, zRangeParams);
+	}
+
+	@Override
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+								   org.springframework.data.domain.Range<Number> range,
+								   org.springframework.data.redis.connection.Limit limit) {
+
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for ZRANGESTORE BYSCORE must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		byte[] min = JedisConverters
+				.boundaryToBytesForZRange(range.getLowerBound(), JedisConverters.NEGATIVE_INFINITY_BYTES);
+		byte[] max = JedisConverters
+				.boundaryToBytesForZRange(range.getUpperBound(), JedisConverters.POSITIVE_INFINITY_BYTES);
+
+		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYSCORE, min, max)
+				.limit(limit.getOffset(), limit.getCount());
+
+		return connection.invoke().just(Jedis::zrangestore, PipelineBinaryCommands::zrangestore,
+				dstKey, srcKey, zRangeParams);
 	}
 
 	private boolean isPipelined() {

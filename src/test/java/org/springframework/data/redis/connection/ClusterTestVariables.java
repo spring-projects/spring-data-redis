@@ -29,6 +29,7 @@ public abstract class ClusterTestVariables {
 	public static final String VALUE_1 = "value1";
 	public static final String VALUE_2 = "value2";
 	public static final String VALUE_3 = "value3";
+	public static final String VALUE_4 = "value4";
 
 	public static final String SAME_SLOT_KEY_1 = "key2660";
 	public static final String SAME_SLOT_KEY_2 = "key7112";

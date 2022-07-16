@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 class LettuceZSetCommands implements RedisZSetCommands {
@@ -641,6 +642,34 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebylex, key,
 				LettuceConverters.<byte[]> toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
+	}
+
+	@Override
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+								 org.springframework.data.domain.Range<byte[]> range,
+								 org.springframework.data.redis.connection.Limit limit) {
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for ZRANGESTORE BYLEX must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrangestorebylex, dstKey, srcKey,
+				LettuceConverters.<byte[]>toRange(range, true), LettuceConverters.toLimit(limit));
+
+	}
+
+	@Override
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+								   org.springframework.data.domain.Range<Number> range,
+								   org.springframework.data.redis.connection.Limit limit) {
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for ZRANGESTORE BYSCORE must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrangestorebyscore, dstKey, srcKey,
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
 	}
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {

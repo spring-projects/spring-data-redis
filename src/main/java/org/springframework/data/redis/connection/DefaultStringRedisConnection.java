@@ -80,6 +80,7 @@ import org.springframework.util.ObjectUtils;
  * @author dengliming
  * @author ihaohong
  * @author Dennis Neufeld
+ * @author Shyngys Sapraliyev
  */
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
@@ -2708,6 +2709,37 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByLex(key, range, limit), Converters.identityConverter());
+	}
+
+	@Override
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+								 org.springframework.data.domain.Range<byte[]> range,
+								 org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByLex(dstKey, srcKey, range, limit),
+				Converters.identityConverter());
+	}
+
+	@Override
+	public Long zRangeStoreByLex(String dstKey, String srcKey,
+							   org.springframework.data.domain.Range<String> range,
+							   org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByLex(serialize(dstKey), serialize(srcKey), serialize(range), limit),
+				Converters.identityConverter());
+	}
+
+	@Override
+	public Long zRangeStoreByScore(String dstKey, String srcKey, double min, double max,
+								   org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByScore(serialize(dstKey), serialize(srcKey), min, max, limit),
+				Converters.identityConverter());
+	}
+
+	@Override
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+								   org.springframework.data.domain.Range<Number> range,
+								   org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByScore(dstKey, srcKey, range, limit),
+				Converters.identityConverter());
 	}
 
 	@Override

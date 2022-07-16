@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Rosty Kerei
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
+ * @author Shyngys Sapraliyev
  */
 public interface ZSetOperations<K, V> {
 
@@ -1129,6 +1130,12 @@ public interface ZSetOperations<K, V> {
 	 */
 	@Nullable
 	Set<V> reverseRangeByLex(K key, Range<String> range, Limit limit);
+
+	@Nullable
+	Long rangeStoreByLex(K dstKey, K srcKey, Range<String> range, Limit limit);
+
+	@Nullable
+	Long rangeStoreByScore(K dstKey, K srcKey, Range<Number> range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.ZParams;
+import redis.clients.jedis.params.ZRangeParams;
 import redis.clients.jedis.resps.ScanResult;
 
 import java.util.ArrayList;
@@ -49,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Clement Ong
  * @author Andrey Shlykov
  * @author Jens Deppe
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
@@ -488,6 +491,52 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 			}
 			return new LinkedHashSet<>(
 					connection.getCluster().zrevrangeByLex(key, max, min, limit.getOffset(), limit.getCount()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
+								 org.springframework.data.domain.Range<byte[]> range,
+								 org.springframework.data.redis.connection.Limit limit) {
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for ZRANGESTORE BYLEX must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getLowerBound(), JedisConverters.MINUS_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getUpperBound(), JedisConverters.PLUS_BYTES);
+
+		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYLEX, min, max)
+				.limit(limit.getOffset(), limit.getCount());
+
+		try {
+			return connection.getCluster().zrangestore(dstKey, srcKey, zRangeParams);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+								   org.springframework.data.domain.Range<Number> range,
+								   org.springframework.data.redis.connection.Limit limit) {
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for ZRANGESTORE BYSCORE must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		byte[] min = JedisConverters
+				.boundaryToBytesForZRange(range.getLowerBound(), JedisConverters.NEGATIVE_INFINITY_BYTES);
+		byte[] max = JedisConverters
+				.boundaryToBytesForZRange(range.getUpperBound(), JedisConverters.POSITIVE_INFINITY_BYTES);
+
+		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYSCORE, min, max)
+				.limit(limit.getOffset(), limit.getCount());
+
+		try {
+			return connection.getCluster().zrangestore(dstKey, srcKey, zRangeParams);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
