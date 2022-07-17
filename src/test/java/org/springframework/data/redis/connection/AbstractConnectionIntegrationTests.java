@@ -106,6 +106,7 @@ import org.springframework.data.util.Streamable;
  * @author Dejan Jankov
  * @author Andrey Shlykov
  * @author Hendrik Duerkop
+ * @author Shyngys Sapraliyev
  */
 public abstract class AbstractConnectionIntegrationTests {
 
