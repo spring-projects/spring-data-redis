@@ -42,6 +42,7 @@ class JedisSubscription extends AbstractSubscription {
 	 */
 	@Override
 	protected void doClose() {
+
 		if (!getChannels().isEmpty()) {
 			jedisPubSub.unsubscribe();
 		}

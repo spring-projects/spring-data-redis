@@ -80,10 +80,6 @@ public class LettuceSubscription extends AbstractSubscription {
 	@Override
 	protected void doClose() {
 
-		if (!isAlive()) {
-			return;
-		}
-
 		List<CompletableFuture<?>> futures = new ArrayList<>();
 
 		if (!getChannels().isEmpty()) {
