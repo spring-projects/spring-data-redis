@@ -99,8 +99,19 @@ public abstract class AbstractSubscription implements Subscription {
 
 	@Override
 	public void close() {
-		doClose();
-		alive.set(false);
+
+		if (alive.compareAndSet(true, false)) {
+
+			doClose();
+
+			synchronized (channels) {
+				channels.clear();
+			}
+
+			synchronized (patterns) {
+				patterns.clear();
+			}
+		}
 	}
 
 	/**
