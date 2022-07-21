@@ -666,18 +666,6 @@ public class RedisTemplateIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
-	void testPersist() throws Exception {
-		// Test is meaningless in Redis 2.4 because key won't expire after 10 ms
-		K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		redisTemplate.opsForValue().set(key1, value1);
-		redisTemplate.expire(key1, 10, TimeUnit.MILLISECONDS);
-		redisTemplate.persist(key1);
-		Thread.sleep(10);
-		assertThat(redisTemplate.hasKey(key1)).isTrue();
-	}
-
-	@ParameterizedRedisTest
 	void testRandomKey() {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
