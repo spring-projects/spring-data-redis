@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Piotr Mionskowski
+ * @author Jos Roseboom
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
  * @since 2.0
@@ -174,8 +175,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	public void clear() {
+		clearByPattern("*");
+	}
 
-		byte[] pattern = conversionService.convert(createCacheKey("*"), byte[].class);
+	/**
+	 * <p>Clear keys that match the provided pattern.</p>
+	 * <br />
+	 * <p>Useful when the cache keys consists of multiple parameters. For example:
+	 * a cache key consists of a brand id and a country id. Now country 42 has relevant data updated. We want to clear all
+	 * the caches that involve country 42, regardless the brand. That can be done by clearByPattern("*42")</p>
+	 * @param keyPattern the pattern of the key
+	 */
+	public void clearByPattern(String keyPattern) {
+		byte[] pattern = conversionService.convert(createCacheKey(keyPattern), byte[].class);
 		cacheWriter.clean(name, pattern);
 	}
 
