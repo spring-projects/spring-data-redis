@@ -61,6 +61,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Piotr Mionskowski
+ * @author Jos Roseboom
  */
 @MethodSource("testParams")
 public class RedisCacheTests {
@@ -102,6 +103,32 @@ public class RedisCacheTests {
 	void putShouldAddEntry() {
 
 		cache.put("key-1", sample);
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isTrue();
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2379
+	void cacheShouldBeClearedByPattern() {
+
+		cache.put(key, sample);
+
+		final String keyPattern = "*" + key.substring(1);
+		cache.clearByPattern(keyPattern);
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2379
+	void cacheShouldNotBeClearedIfNoPatternMatch() {
+
+		cache.put(key, sample);
+
+		final String keyPattern = "*" + key.substring(1) + "tail";
+		cache.clearByPattern(keyPattern);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
