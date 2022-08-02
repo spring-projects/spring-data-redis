@@ -122,6 +122,19 @@ public class RedisCacheTests {
 		});
 	}
 
+	@ParameterizedRedisTest // GH-2379
+	void cacheShouldNotBeClearedIfNoPatternMatch() {
+
+		cache.put(key, sample);
+
+		final String keyPattern = "*" + key.substring(1) + "tail";
+		cache.clearByPattern(keyPattern);
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isTrue();
+		});
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-481
 	void putNullShouldAddEntryForNullValue() {
 
