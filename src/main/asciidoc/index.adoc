@@ -16,7 +16,6 @@ toc::[]
 
 include::preface.adoc[]
 
-include::new-features.adoc[leveloffset=+1]
 include::upgrading.adoc[leveloffset=+1]
 
 
