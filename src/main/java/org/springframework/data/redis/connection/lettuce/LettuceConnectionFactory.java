@@ -22,6 +22,7 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.RedisCredentialsProvider;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -1216,6 +1217,15 @@ public class LettuceConnectionFactory
 
 		redisUri.setDatabase(getDatabase());
 
+		clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory -> {
+
+			redisUri.setCredentialsProvider(factory.createCredentialsProvider(configuration));
+
+			RedisCredentialsProvider sentinelCredentials = factory
+					.createSentinelCredentialsProvider((RedisSentinelConfiguration) configuration);
+			redisUri.getSentinels().forEach(it -> it.setCredentialsProvider(sentinelCredentials));
+		});
+
 		return redisUri;
 	}
 
@@ -1267,6 +1277,10 @@ public class LettuceConnectionFactory
 		} else {
 			getRedisPassword().toOptional().ifPresent(builder::withPassword);
 		}
+
+		clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory -> {
+			builder.withAuthentication(factory.createCredentialsProvider(configuration));
+		});
 	}
 
 	@Override
@@ -1453,6 +1467,11 @@ public class LettuceConnectionFactory
 
 		@Override
 		public Optional<ReadFrom> getReadFrom() {
+			return Optional.empty();
+		}
+
+		@Override
+		public Optional<RedisCredentialsProviderFactory> getRedisCredentialsProviderFactory() {
 			return Optional.empty();
 		}
 

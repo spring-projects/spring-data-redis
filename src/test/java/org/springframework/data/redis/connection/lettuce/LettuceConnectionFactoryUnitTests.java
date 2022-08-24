@@ -37,6 +37,7 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -187,6 +188,59 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
+	@Test // GH-2376
+	@SuppressWarnings("unchecked")
+	void credentialsProviderShouldBeSetCorrectlyOnClusterClient() {
+
+		clusterConfig.setUsername("foo");
+		clusterConfig.setPassword("bar");
+
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientResources(getSharedClientResources())
+				.redisCredentialsProviderFactory(new RedisCredentialsProviderFactory() {}).build();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, clientConfiguration);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
+
+		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
+
+		for (RedisURI uri : initialUris) {
+
+			uri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
+				assertThat(actual.getUsername()).isEqualTo("foo");
+				assertThat(new String(actual.getPassword())).isEqualTo("bar");
+			}).verifyComplete();
+		}
+	}
+
+	@Test // GH-2376
+	void credentialsProviderShouldBeSetCorrectlyOnStandaloneClient() {
+
+		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost");
+		config.setUsername("foo");
+		config.setPassword("bar");
+
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientResources(getSharedClientResources())
+				.redisCredentialsProviderFactory(new RedisCredentialsProviderFactory() {}).build();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config, clientConfiguration);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI uri = (RedisURI) getField(client, "redisURI");
+
+		uri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
+			assertThat(actual.getUsername()).isEqualTo("foo");
+			assertThat(new String(actual.getPassword())).isEqualTo("bar");
+		}).verifyComplete();
+	}
+
 	@Test // DATAREDIS-524, DATAREDIS-1045, DATAREDIS-1060
 	void passwordShouldNotBeSetOnSentinelClient() {
 
@@ -230,6 +284,41 @@ class LettuceConnectionFactoryUnitTests {
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
 			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+		}
+	}
+
+	@Test // GH-2376
+	void sentinelCredentialsProviderShouldBeSetOnSentinelClient() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
+		config.setUsername("data-user");
+		config.setPassword("data-pwd");
+		config.setSentinelPassword("sentinel-pwd");
+
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientResources(getSharedClientResources())
+				.redisCredentialsProviderFactory(new RedisCredentialsProviderFactory() {}).build();
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config, clientConfiguration);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isInstanceOf(RedisClient.class);
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		redisUri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
+			assertThat(actual.getUsername()).isEqualTo("data-user");
+			assertThat(new String(actual.getPassword())).isEqualTo("data-pwd");
+		}).verifyComplete();
+
+		for (RedisURI sentinelUri : redisUri.getSentinels()) {
+
+			sentinelUri.getCredentialsProvider().resolveCredentials().as(StepVerifier::create).consumeNextWith(actual -> {
+				assertThat(actual.getUsername()).isNull();
+				assertThat(new String(actual.getPassword())).isEqualTo("sentinel-pwd");
+			}).verifyComplete();
 		}
 	}
 

@@ -146,6 +146,13 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		}
 
 		@Override
+		public LettucePoolingClientConfigurationBuilder redisCredentialsProviderFactory(
+				RedisCredentialsProviderFactory redisCredentialsProviderFactory) {
+			super.redisCredentialsProviderFactory(redisCredentialsProviderFactory);
+			return this;
+		}
+
+		@Override
 		public LettucePoolingClientConfigurationBuilder clientName(String clientName) {
 			super.clientName(clientName);
 			return this;
