@@ -41,13 +41,15 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final Optional<ClientOptions> clientOptions;
 	private final Optional<String> clientName;
 	private final Optional<ReadFrom> readFrom;
+	private final Optional<RedisCredentialsProviderFactory> redisCredentialsProviderFactory;
 	private final Duration timeout;
 	private final Duration shutdownTimeout;
 	private final Duration shutdownQuietPeriod;
 
 	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
 			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
-			@Nullable ReadFrom readFrom, Duration timeout, Duration shutdownTimeout, @Nullable Duration shutdownQuietPeriod) {
+			@Nullable ReadFrom readFrom, @Nullable RedisCredentialsProviderFactory redisCredentialsProviderFactory,
+			Duration timeout, Duration shutdownTimeout, @Nullable Duration shutdownQuietPeriod) {
 
 		this.useSsl = useSsl;
 		this.verifyPeer = verifyPeer;
@@ -56,6 +58,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 		this.clientOptions = Optional.ofNullable(clientOptions);
 		this.clientName = Optional.ofNullable(clientName);
 		this.readFrom = Optional.ofNullable(readFrom);
+		this.redisCredentialsProviderFactory = Optional.ofNullable(redisCredentialsProviderFactory);
 		this.timeout = timeout;
 		this.shutdownTimeout = shutdownTimeout;
 		this.shutdownQuietPeriod = shutdownQuietPeriod != null ? shutdownQuietPeriod : shutdownTimeout;
@@ -94,6 +97,11 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	@Override
 	public Optional<ReadFrom> getReadFrom() {
 		return readFrom;
+	}
+
+	@Override
+	public Optional<RedisCredentialsProviderFactory> getRedisCredentialsProviderFactory() {
+		return redisCredentialsProviderFactory;
 	}
 
 	@Override

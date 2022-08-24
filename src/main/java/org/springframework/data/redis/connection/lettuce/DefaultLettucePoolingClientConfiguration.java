@@ -80,6 +80,11 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 	}
 
 	@Override
+	public Optional<RedisCredentialsProviderFactory> getRedisCredentialsProviderFactory() {
+		return clientConfiguration.getRedisCredentialsProviderFactory();
+	}
+
+	@Override
 	public Duration getCommandTimeout() {
 		return clientConfiguration.getCommandTimeout();
 	}

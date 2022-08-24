@@ -95,6 +95,12 @@ public interface LettuceClientConfiguration {
 	Optional<ReadFrom> getReadFrom();
 
 	/**
+	 * @return the optional {@link RedisCredentialsProviderFactory}.
+	 * @since 3.0
+	 */
+	Optional<RedisCredentialsProviderFactory> getRedisCredentialsProviderFactory();
+
+	/**
 	 * @return the timeout.
 	 */
 	Duration getCommandTimeout();
@@ -166,6 +172,7 @@ public interface LettuceClientConfiguration {
 		ClientOptions clientOptions = ClientOptions.builder().timeoutOptions(TimeoutOptions.enabled()).build();
 		@Nullable String clientName;
 		@Nullable ReadFrom readFrom;
+		@Nullable RedisCredentialsProviderFactory redisCredentialsProviderFactory;
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		Duration shutdownTimeout = Duration.ofMillis(100);
 		@Nullable Duration shutdownQuietPeriod;
@@ -242,7 +249,7 @@ public interface LettuceClientConfiguration {
 		 *
 		 * @param readFrom must not be {@literal null}.
 		 * @return {@literal this} builder.
-		 * @throws IllegalArgumentException if clientOptions is {@literal null}.
+		 * @throws IllegalArgumentException if readFrom is {@literal null}.
 		 * @since 2.1
 		 */
 		public LettuceClientConfigurationBuilder readFrom(ReadFrom readFrom) {
@@ -250,6 +257,24 @@ public interface LettuceClientConfiguration {
 			Assert.notNull(readFrom, "ReadFrom must not be null");
 
 			this.readFrom = readFrom;
+			return this;
+		}
+
+		/**
+		 * Configure a {@link RedisCredentialsProviderFactory} to obtain {@link io.lettuce.core.RedisCredentialsProvider}
+		 * instances to support credential rotation.
+		 *
+		 * @param redisCredentialsProviderFactory must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if redisCredentialsProviderFactory is {@literal null}.
+		 * @since 3.0
+		 */
+		public LettuceClientConfigurationBuilder redisCredentialsProviderFactory(
+				RedisCredentialsProviderFactory redisCredentialsProviderFactory) {
+
+			Assert.notNull(redisCredentialsProviderFactory, "RedisCredentialsProviderFactory must not be null");
+
+			this.redisCredentialsProviderFactory = redisCredentialsProviderFactory;
 			return this;
 		}
 
@@ -323,7 +348,7 @@ public interface LettuceClientConfiguration {
 		public LettuceClientConfiguration build() {
 
 			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
-					clientName, readFrom, timeout, shutdownTimeout, shutdownQuietPeriod);
+					clientName, readFrom, redisCredentialsProviderFactory, timeout, shutdownTimeout, shutdownQuietPeriod);
 		}
 	}
 
