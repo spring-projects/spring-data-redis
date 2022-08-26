@@ -82,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Fu Jian
  * @author Ajith Kumar
+ * @author Tsung-en Hsiao
  * @see JedisClientConfiguration
  * @see Jedis
  */
@@ -410,6 +411,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
 
+		if (clusterConfig.getMaxTotalRetriesTime() != null) {
+			return new JedisCluster(hostAndPort, this.clientConfig, redirects,
+					Duration.ofMillis(clusterConfig.getMaxTotalRetriesTime()), poolConfig);
+		}
 		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
 	}
 

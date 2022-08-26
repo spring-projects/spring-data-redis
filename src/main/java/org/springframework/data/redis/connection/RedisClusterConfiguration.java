@@ -40,16 +40,19 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tsung-en Hsiao
  * @since 1.7
  */
 public class RedisClusterConfiguration implements RedisConfiguration, ClusterConfiguration {
 
 	private static final String REDIS_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
+	private static final String REDIS_CLUSTER_MAX_TOTAL_RETRIES_TIME = "spring.redis.cluster.max-total-retries-time";
 
 	private Set<RedisNode> clusterNodes;
 	private @Nullable Integer maxRedirects;
 	private @Nullable String username = null;
+	private @Nullable Integer maxTotalRetriesTime;
 	private RedisPassword password = RedisPassword.none();
 
 	/**
@@ -100,6 +103,10 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
 			this.maxRedirects = NumberUtils.parseNumber(
 					propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY).toString(), Integer.class);
+		}
+		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_TOTAL_RETRIES_TIME)) {
+			this.maxTotalRetriesTime = NumberUtils.parseNumber(
+					propertySource.getProperty(REDIS_CLUSTER_MAX_TOTAL_RETRIES_TIME).toString(), Integer.class);
 		}
 	}
 
@@ -156,6 +163,18 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 		Assert.isTrue(maxRedirects >= 0, "MaxRedirects must be greater or equal to 0");
 		this.maxRedirects = maxRedirects;
+	}
+
+	@Override public Integer getMaxTotalRetriesTime() {
+		return maxTotalRetriesTime;
+	}
+
+	/**
+	 * @param maxTotalRetriesTime the max total retries time in millisecond(s)
+	 *                            only applicable to Jedis cluster connection.
+	 */
+	public void setMaxTotalRetriesTime(Integer maxTotalRetriesTime) {
+		this.maxTotalRetriesTime = maxTotalRetriesTime;
 	}
 
 	/**

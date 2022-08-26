@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Luis De Bello
  * @author Vikas Garg
+ * @author Tsung-en Hsiao
  * @since 2.1
  */
 public interface RedisConfiguration {
@@ -477,8 +478,12 @@ public interface RedisConfiguration {
 		/**
 		 * @return max number of redirects to follow or {@literal null} if not set.
 		 */
-		@Nullable
-		Integer getMaxRedirects();
+		@Nullable Integer getMaxRedirects();
+
+		/**
+		 * @return max total retries time in millis {@literal null} if not set.
+		 */
+		@Nullable Integer getMaxTotalRetriesTime();
 	}
 
 	/**
