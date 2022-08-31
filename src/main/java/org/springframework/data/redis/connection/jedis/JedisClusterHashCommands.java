@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.ScanParams;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -364,7 +363,11 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
-		return Long.class.cast(connection.execute("HSTRLEN", key, Collections.singleton(field)));
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+
+		return connection.getCluster().hstrlen(key, field);
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {
