@@ -67,6 +67,30 @@ pipeline {
 			}
 		}
 
+		stage("test: native-hints") {
+        	when {
+        		beforeAgent(true)
+        		anyOf {
+        			branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
+        			not { triggeredBy 'UpstreamCause' }
+        		}
+        	}
+        	agent {
+        		label 'data'
+        	}
+        	options { timeout(time: 30, unit: 'MINUTES') }
+        	environment {
+        		ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+        	}
+        	steps {
+        		script {
+        			docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+        				sh 'PROFILE=runtimehints LONG_TESTS=false ci/test.sh'
+        			}
+        		}
+        	}
+        }
+
 		stage('Release to artifactory') {
 			when {
 				beforeAgent(true)
