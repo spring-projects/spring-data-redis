@@ -237,13 +237,14 @@ public interface RedisHashCommands {
 	Cursor<Map.Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options);
 
 	/**
-	 * Returns the length of the value associated with {@code field} in the hash stored at {@code key}. If the key or the
-	 * field do not exist, {@code 0} is returned.
+	 * Returns the length of the value associated with {@code field} in the hash stored at {@code key}. If the {@code key}
+	 * or the {@code field} do not exist, {@code 0} is returned.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/hstrlen">Redis Documentation: HSTRLEN</a>
 	 */
 	@Nullable
 	Long hStrLen(byte[] key, byte[] field);
