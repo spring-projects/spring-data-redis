@@ -19,7 +19,6 @@ import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -289,7 +288,11 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
-		return Long.class.cast(connection.execute("HSTRLEN", key, Collections.singleton(field)));
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(field, "Field must not be null");
+
+		return connection.getCluster().hstrlen(key, field);
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {
