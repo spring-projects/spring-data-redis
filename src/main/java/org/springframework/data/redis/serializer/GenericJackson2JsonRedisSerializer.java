@@ -18,6 +18,7 @@ package org.springframework.data.redis.serializer;
 import java.io.IOException;
 
 import org.springframework.cache.support.NullValue;
+import org.springframework.core.KotlinDetector;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -237,7 +238,12 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			t = resolveArrayOrWrapper(t);
 
-			if (ClassUtils.isPrimitiveOrWrapper(t.getRawClass())) {
+			if (t.isEnumType() || ClassUtils.isPrimitiveOrWrapper(t.getRawClass())) {
+				return false;
+			}
+
+			if (t.isFinal() && !KotlinDetector.isKotlinType(t.getRawClass())
+					&& t.getRawClass().getPackage().getName().startsWith("java")) {
 				return false;
 			}
 
