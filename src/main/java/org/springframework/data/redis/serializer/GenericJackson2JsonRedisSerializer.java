@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.function.Supplier;
 
 import org.springframework.cache.support.NullValue;
+import org.springframework.core.KotlinDetector;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -29,7 +30,6 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -351,7 +351,12 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			t = resolveArrayOrWrapper(t);
 
-			if (ClassUtils.isPrimitiveOrWrapper(t.getRawClass())) {
+			if (t.isEnumType() || ClassUtils.isPrimitiveOrWrapper(t.getRawClass())) {
+				return false;
+			}
+
+			if (t.isFinal() && !KotlinDetector.isKotlinType(t.getRawClass())
+					&& t.getRawClass().getPackageName().startsWith("java")) {
 				return false;
 			}
 
