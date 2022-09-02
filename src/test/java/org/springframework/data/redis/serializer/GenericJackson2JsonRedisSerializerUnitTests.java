@@ -20,12 +20,19 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 import static org.springframework.util.ObjectUtils.*;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.Data;
 import lombok.ToString;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -344,6 +351,61 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 				});
 	}
 
+	@Test // GH-2396
+	void verifySerializeUUIDIntoBytes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		UUID source = UUID.fromString("730145fe-324d-4fb1-b12f-60b89a045730");
+		assertThat(serializer.serialize(source)).isEqualTo(("\"" + source + "\"").getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Test // GH-2396
+	void deserializesUUIDFromBytes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+		UUID deserializedUuid = serializer
+				.deserialize("\"730145fe-324d-4fb1-b12f-60b89a045730\"".getBytes(StandardCharsets.UTF_8), UUID.class);
+
+		assertThat(deserializedUuid).isEqualTo(UUID.fromString("730145fe-324d-4fb1-b12f-60b89a045730"));
+	}
+
+	@Test // GH-2396
+	void serializesEnumIntoBytes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		assertThat(serializer.serialize(EnumType.ONE)).isEqualTo(("\"ONE\"").getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Test // GH-2396
+	void deserializesEnumFromBytes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class)).isEqualTo(EnumType.TWO);
+	}
+
+	@Test // GH-2396
+	void serializesJavaTimeIntoBytes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		WithJsr310 source = new WithJsr310();
+		source.myDate = java.time.LocalDate.of(2022,9,2);
+
+		assertThat(serializer.serialize(source)).isEqualTo(("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}").getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Test // GH-2396
+	void deserializesJavaTimeFrimBytes() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}".getBytes(StandardCharsets.UTF_8);
+		assertThat(serializer.deserialize(source, WithJsr310.class).myDate).isEqualTo(java.time.LocalDate.of(2022,9,2));
+	}
+
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
@@ -463,5 +525,15 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		AtomicReference<Long> primitiveWrapper;
 		AtomicReference<Integer[]> primitiveArrayWrapper;
 		AtomicReference<SimpleObject> simpleObjectWrapper;
+	}
+
+	enum EnumType {
+		ONE, TWO
+	}
+
+	static class WithJsr310 {
+		@JsonSerialize(using = LocalDateSerializer.class)
+		@JsonDeserialize(using = LocalDateDeserializer.class)
+		private LocalDate myDate;
 	}
 }
