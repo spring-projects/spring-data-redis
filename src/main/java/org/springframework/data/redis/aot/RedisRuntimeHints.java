@@ -163,8 +163,11 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 		String boundTargetClass = typeReference.getPackageName() + "." + typeReference.getSimpleName().replace("Bound", "");
 		if (ClassUtils.isPresent(boundTargetClass, classLoader)) {
 			hints.reflection().registerType(TypeReference.of(boundTargetClass), hint -> hint
-					.withMembers(MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
+					.withMembers(MemberCategory.INVOKE_DECLARED_METHODS));
 		}
+
+		hints.reflection().registerType(typeReference, hint -> hint
+				.withMembers(MemberCategory.INVOKE_DECLARED_METHODS));
 
 		hints.proxies().registerJdkProxy(typeReference, //
 				TypeReference.of("org.springframework.aop.SpringProxy"), //
