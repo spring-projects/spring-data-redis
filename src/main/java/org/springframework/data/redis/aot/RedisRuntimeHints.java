@@ -31,6 +31,7 @@ import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
 import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
@@ -58,6 +59,10 @@ class RedisRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+
+		// CACHE
+		hints.serialization().registerType(org.springframework.cache.support.NullValue.class,
+				hint -> hint.onReachableType(TypeReference.of(RedisCacheManager.class)));
 
 		// REFLECTION
 		hints.reflection().registerTypes(Arrays.asList(TypeReference.of(RedisConnection.class),
