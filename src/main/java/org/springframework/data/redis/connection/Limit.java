@@ -21,18 +21,7 @@ package org.springframework.data.redis.connection;
  */
 public class Limit {
 
-	private static final Limit UNLIMITED = new Limit() {
-
-		@Override
-		public int getCount() {
-			return -1;
-		}
-
-		@Override
-		public int getOffset() {
-			return super.getOffset();
-		}
-	};
+	private static final Limit UNLIMITED = new Unlimited();
 
 	int offset;
 	int count;
@@ -69,5 +58,18 @@ public class Limit {
 	 */
 	public static Limit unlimited() {
 		return UNLIMITED;
+	}
+
+	private static class Unlimited extends Limit {
+
+		@Override
+		public int getCount() {
+			return -1;
+		}
+
+		@Override
+		public int getOffset() {
+			return super.getOffset();
+		}
 	}
 }
