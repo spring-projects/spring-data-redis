@@ -185,7 +185,8 @@ public interface RedisHashCommands {
 	byte[] hRandField(byte[] key);
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}.
+	 * Like {@link #hRandField(byte[])}, return a random field from the hash value stored at {@code key}, 
+	 * but the reply also includes the respective value of the randomly selected hash fields.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
@@ -211,10 +212,8 @@ public interface RedisHashCommands {
 	List<byte[]> hRandField(byte[] key, long count);
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
-	 * the number of returned fields is the absolute value of the specified count.
+	 * Like {@link #hRandField(byte[], long)}, return a random field from the hash value stored at {@code key}, 
+	 * but the reply also includes the respective values of the randomly selected hash fields.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count number of fields to return.
