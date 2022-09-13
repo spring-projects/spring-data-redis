@@ -17,11 +17,13 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.GetExArgs;
+import io.lettuce.core.KeyValue;
 import io.lettuce.core.SetArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,8 +48,6 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 class LettuceReactiveStringCommands implements ReactiveStringCommands {
-
-	private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.wrap(new byte[0]);
 
 	private final LettuceReactiveRedisConnection connection;
 
@@ -74,8 +74,9 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notNull(keys, "Keys must not be null!");
 
-			return cmd.mget(keys.toArray(new ByteBuffer[0])).map((value) -> value.getValueOrElse(EMPTY_BYTE_BUFFER))
-					.collectList().map((values) -> new MultiValueResponse<>(keys, values));
+			return cmd.mget(keys.toArray(new ByteBuffer[0])).collectList().map((value) -> {
+				return value.stream().map(keyValue -> keyValue.getValueOrElse(null)).collect(Collectors.toList());
+			}).map((values) -> new MultiValueResponse<>(keys, values));
 		}));
 	}
 
@@ -363,9 +364,9 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Range<Long> range = command.getRange();
 
-			return (!Range.unbounded().equals(range) ? cmd.bitcount(command.getKey(),
-					LettuceConverters.getLowerBoundIndex(range), //
-					LettuceConverters.getUpperBoundIndex(range)) //
+			return (!Range.unbounded().equals(range)
+					? cmd.bitcount(command.getKey(), LettuceConverters.getLowerBoundIndex(range), //
+							LettuceConverters.getUpperBoundIndex(range)) //
 					: cmd.bitcount(command.getKey())).map(responseValue -> new NumericResponse<>(command, responseValue));
 		}));
 	}
