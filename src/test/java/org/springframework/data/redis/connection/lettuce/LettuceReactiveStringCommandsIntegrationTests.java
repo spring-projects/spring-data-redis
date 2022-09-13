@@ -202,7 +202,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		Mono<List<ByteBuffer>> result = connection.stringCommands()
 				.mGet(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER));
 
-		assertThat(result.block()).containsExactly(VALUE_1_BBUFFER, ByteBuffer.allocate(0), VALUE_3_BBUFFER);
+		assertThat(result.block()).containsExactly(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
