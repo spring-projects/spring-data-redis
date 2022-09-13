@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Rubén Gamarra Rodriguez
  * @since 2.0
  */
 public interface ReactiveHashCommands {

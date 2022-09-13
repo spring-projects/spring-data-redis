@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Rubén Gamarra Rodriguez
  */
 public interface RedisHashCommands {
 
