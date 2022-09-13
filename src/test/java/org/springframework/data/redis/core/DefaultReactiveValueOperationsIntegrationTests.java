@@ -306,13 +306,6 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		V value2 = valueFactory.instance();
 		V absentValue = null;
 
-		if (serializer instanceof StringRedisSerializer) {
-			absentValue = (V) "";
-		}
-		if (value1 instanceof ByteBuffer) {
-			absentValue = (V) ByteBuffer.wrap(new byte[0]);
-		}
-
 		Map<K, V> map = new LinkedHashMap<>();
 		map.put(key1, value1);
 		map.put(key2, value2);
