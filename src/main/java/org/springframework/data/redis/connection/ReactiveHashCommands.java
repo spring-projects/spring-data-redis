@@ -578,7 +578,8 @@ public interface ReactiveHashCommands {
 	}
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}.
+	 * Like {@link #hRandField(ByteBuffer)}, return a random field from the hash value stored at {@code key}, 
+	 * but the reply also includes the respective value of the randomly selected hash fields.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
@@ -613,10 +614,8 @@ public interface ReactiveHashCommands {
 	}
 
 	/**
-	 * Return a random field from the hash value stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct fields, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same field multiple times. In this case,
-	 * the number of returned fields is the absolute value of the specified count.
+	 * Like {@link #hRandField(ByteBuffer, long)}, return a random field from the hash value stored at {@code key}, 
+	 * but the reply also includes the respective values of the randomly selected hash fields.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count number of fields to return.
@@ -642,7 +641,8 @@ public interface ReactiveHashCommands {
 	Flux<CommandResponse<HRandFieldCommand, Flux<ByteBuffer>>> hRandField(Publisher<HRandFieldCommand> commands);
 
 	/**
-	 * Get random fields along their values of hash at {@literal key}.
+	 * Get random fields of hash at {@literal key}, the reply also includes the respective 
+	 * values of the randomly selected hash fields.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
