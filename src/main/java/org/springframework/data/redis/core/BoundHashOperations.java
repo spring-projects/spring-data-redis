@@ -89,7 +89,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Double increment(HK key, double delta);
 
 	/**
-	 * Return a random key (aka field) from the hash value stored at the bound key.
+	 * Return a random key (aka field) from the hash stored at the bound key.
 	 *
 	 * @return {@literal null} if the hash does not exist or when used in pipeline / transaction.
 	 * @since 2.6
@@ -99,7 +99,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	HK randomKey();
 
 	/**
-	 * Return a random entry from the hash value stored at the bound key.
+	 * Return a random entry from the hash stored at the bound key.
 	 *
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
 	 * @since 2.6
@@ -109,10 +109,10 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Map.Entry<HK, HV> randomEntry();
 
 	/**
-	 * Return a random keys (aka fields) from the hash value stored at the bound key. If the provided {@code count} argument is
+	 * Return a random keys (aka fields) from the hash stored at the bound key. If the provided {@code count} argument is
 	 * positive, return a list of distinct keys, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same key multiple times. In this case,
-	 * the number of returned keys is the absolute value of the specified count.
+	 * negative, the behavior changes and the command is allowed to return the same key multiple times. In this case, the
+	 * number of returned keys is the absolute value of the specified count.
 	 *
 	 * @param count number of keys to return.
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
@@ -123,7 +123,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	List<HK> randomKeys(long count);
 
 	/**
-	 * Return a random entry from the hash value stored at the bound key.
+	 * Return a random entry from the hash stored at the bound key.
 	 *
 	 * @param count number of entries to return. Must be positive.
 	 * @return {@literal null} if the hash does not exist or when used in pipeline / transaction.
