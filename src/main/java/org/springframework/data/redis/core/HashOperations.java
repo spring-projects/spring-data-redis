@@ -89,7 +89,7 @@ public interface HashOperations<H, HK, HV> {
 	Double increment(H key, HK hashKey, double delta);
 
 	/**
-	 * Return a random hash key (aka field) from the hash value stored at {@code key}.
+	 * Return a random hash key (aka field) from the hash stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
@@ -100,7 +100,7 @@ public interface HashOperations<H, HK, HV> {
 	HK randomKey(H key);
 
 	/**
-	 * Return a random entry from the hash value stored at {@code key}.
+	 * Return a random entry from the hash stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
@@ -111,7 +111,7 @@ public interface HashOperations<H, HK, HV> {
 	Map.Entry<HK, HV> randomEntry(H key);
 
 	/**
-	 * Return random hash keys (aka fields) from the hash value stored at {@code key}. If the provided {@code count} argument is
+	 * Return random hash keys (aka fields) from the hash stored at {@code key}. If the provided {@code count} argument is
 	 * positive, return a list of distinct hash keys, capped either at {@code count} or the hash size. If {@code count} is
 	 * negative, the behavior changes and the command is allowed to return the same hash key multiple times. In this case,
 	 * the number of returned fields is the absolute value of the specified count.
@@ -126,7 +126,7 @@ public interface HashOperations<H, HK, HV> {
 	List<HK> randomKeys(H key, long count);
 
 	/**
-	 * Return a random entries from the hash value stored at {@code key}.
+	 * Return a random entries from the hash stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count number of fields to return. Must be positive.
