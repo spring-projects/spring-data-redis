@@ -29,7 +29,7 @@ import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.SpelIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.expression.spel.SpelEvaluationException;
 
 /**
@@ -48,7 +48,7 @@ public class SpelIndexResolverUnitTests {
 
 	private Session session;
 
-	private ClassTypeInformation<?> typeInformation;
+	private TypeInformation<?> typeInformation;
 
 	private String securityContextAttrName;
 
@@ -64,7 +64,7 @@ public class SpelIndexResolverUnitTests {
 		indexName = "principalName";
 		securityContextAttrName = "SPRING_SECURITY_CONTEXT";
 
-		typeInformation = ClassTypeInformation.from(Session.class);
+		typeInformation = TypeInformation.of(Session.class);
 		session = createSession();
 
 		resolver = createWithExpression("getAttribute('" + securityContextAttrName + "')?.authentication?.name");
@@ -93,7 +93,7 @@ public class SpelIndexResolverUnitTests {
 	@Test // DATAREDIS-425
 	void wrongKeyspace() {
 
-		typeInformation = ClassTypeInformation.from(String.class);
+		typeInformation = TypeInformation.of(String.class);
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, "");
 
 		assertThat(indexes.size()).isEqualTo(0);

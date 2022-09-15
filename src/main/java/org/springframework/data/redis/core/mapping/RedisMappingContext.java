@@ -215,9 +215,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 				unit = ttlProperty.getRequiredAnnotation(TimeToLive.class).unit();
 			}
 
-			if (source instanceof PartialUpdate) {
-
-				PartialUpdate<?> update = (PartialUpdate<?>) source;
+			if (source instanceof PartialUpdate<?> update) {
 
 				if (ttlProperty != null && !update.getPropertyUpdates().isEmpty()) {
 					for (PropertyUpdate pUpdate : update.getPropertyUpdates()) {
@@ -232,7 +230,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 			} else if (ttlProperty != null) {
 
-				RedisPersistentEntity entity = mappingContext.getRequiredPersistentEntity(type);
+				RedisPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
 
 				Object ttlPropertyValue = entity.getPropertyAccessor(source).getProperty(ttlProperty);
 				if (ttlPropertyValue != null) {
@@ -245,9 +243,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 				if (timeoutMethod != null) {
 
-					if (!timeoutMethod.isAccessible()) {
-						ReflectionUtils.makeAccessible(timeoutMethod);
-					}
+					ReflectionUtils.makeAccessible(timeoutMethod);
 
 					TimeToLive ttl = AnnotationUtils.findAnnotation(timeoutMethod, TimeToLive.class);
 					try {
@@ -309,7 +305,6 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return defaultTimeout;
 		}
 
-		@SuppressWarnings({ "rawtypes" })
 		@Nullable
 		private PersistentProperty<?> resolveTtlProperty(Class<?> type) {
 
@@ -317,7 +312,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 				return timeoutProperties.get(type);
 			}
 
-			RedisPersistentEntity entity = mappingContext.getRequiredPersistentEntity(type);
+			RedisPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
 			PersistentProperty<?> ttlProperty = entity.getPersistentProperty(TimeToLive.class);
 
 			if (ttlProperty != null) {

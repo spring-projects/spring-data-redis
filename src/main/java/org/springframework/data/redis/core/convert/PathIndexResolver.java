@@ -39,7 +39,6 @@ import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -162,7 +161,7 @@ public class PathIndexResolver implements IndexResolver {
 				}
 
 				else if (persistentProperty.isEntity()
-						|| persistentProperty.getTypeInformation().getActualType().equals(ClassTypeInformation.OBJECT)) {
+						|| persistentProperty.getTypeInformation().getActualType().equals(TypeInformation.OBJECT)) {
 
 					typeHint = updateTypeHintForActualValue(typeHint, propertyValue);
 					indexes.addAll(
@@ -175,7 +174,7 @@ public class PathIndexResolver implements IndexResolver {
 
 			private TypeInformation<?> updateTypeHintForActualValue(TypeInformation<?> typeHint, Object propertyValue) {
 
-				if (typeHint.equals(ClassTypeInformation.OBJECT) || typeHint.getClass().isInterface()) {
+				if (typeHint.equals(TypeInformation.OBJECT) || typeHint.getClass().isInterface()) {
 					try {
 						typeHint = mappingContext.getRequiredPersistentEntity(propertyValue.getClass()).getTypeInformation();
 					} catch (Exception e) {
@@ -201,7 +200,7 @@ public class PathIndexResolver implements IndexResolver {
 		if (indexConfiguration.hasIndexFor(keyspace, path)) {
 
 			IndexingContext context = new IndexingContext(keyspace, path,
-					property != null ? property.getTypeInformation() : ClassTypeInformation.OBJECT);
+					property != null ? property.getTypeInformation() : TypeInformation.OBJECT);
 
 			for (IndexDefinition indexDefinition : indexConfiguration.getIndexDefinitionsFor(keyspace, path)) {
 

@@ -38,10 +38,10 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.mapping.AssociationHandler;
+import org.springframework.data.mapping.InstanceCreatorMetadata;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PersistentPropertyPath;
-import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiator;
 import org.springframework.data.mapping.model.EntityInstantiators;
@@ -55,7 +55,6 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -177,7 +176,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	@SuppressWarnings("unchecked")
 	public <R> R read(Class<R> type, RedisData source) {
 
-		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), ClassTypeInformation.from(type));
+		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
 
 		return readType.isCollectionLike()
 				? (R) readCollectionOrArray("", ArrayList.class, Object.class, source.getBucket())
@@ -193,7 +192,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	@SuppressWarnings("unchecked")
 	private <R> R doReadInternal(String path, Class<R> type, RedisData source) {
 
-		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), ClassTypeInformation.from(type));
+		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
 
 		if (customConversions.hasCustomReadTarget(Map.class, readType.getType())) {
 
@@ -237,9 +236,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		entity.doWithProperties((PropertyHandler<RedisPersistentProperty>) persistentProperty -> {
 
-			PreferredConstructor<?, RedisPersistentProperty> constructor = entity.getPersistenceConstructor();
+			InstanceCreatorMetadata<RedisPersistentProperty> creator = entity.getInstanceCreatorMetadata();
 
-			if (constructor != null && constructor.isConstructorParameter(persistentProperty)) {
+			if (creator != null && creator.isCreatorParameter(persistentProperty)) {
 				return;
 			}
 
@@ -490,10 +489,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			targetProperty = getTargetPropertyOrNullForPath(path.replaceAll("\\.\\[.*\\]", ""), update.getTarget());
 
-			TypeInformation<?> ti = targetProperty == null ? ClassTypeInformation.OBJECT
+			TypeInformation<?> ti = targetProperty == null ? TypeInformation.OBJECT
 					: (targetProperty.isMap() ? (targetProperty.getTypeInformation().getMapValueType() != null
 							? targetProperty.getTypeInformation().getRequiredMapValueType()
-							: ClassTypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
+							: TypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
 			return;
@@ -820,7 +819,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			Bucket elementData = bucket.extract(key);
 
 			TypeInformation<?> typeInformation = typeMapper.readType(elementData.getPropertyPath(key),
-					ClassTypeInformation.from(valueType));
+					TypeInformation.of(valueType));
 
 			Class<?> typeToUse = typeInformation.getType();
 			if (conversionService.canConvert(byte[].class, typeToUse)) {
@@ -863,7 +862,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			if (customConversions.hasCustomWriteTarget(entry.getValue().getClass())) {
 				writeToBucket(currentPath, entry.getValue(), sink, mapValueType);
 			} else {
-				writeInternal(keyspace, currentPath, entry.getValue(), ClassTypeInformation.from(mapValueType), sink);
+				writeInternal(keyspace, currentPath, entry.getValue(), TypeInformation.of(mapValueType), sink);
 			}
 		}
 	}
@@ -930,7 +929,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			Object mapKey = extractMapKeyForPath(path, key, keyType);
 
 			TypeInformation<?> typeInformation = typeMapper.readType(source.getBucket().getPropertyPath(key),
-					ClassTypeInformation.from(valueType));
+					TypeInformation.of(valueType));
 
 			Object o = readInternal(key, typeInformation.getType(), new RedisData(partial));
 			target.put(mapKey, o);
@@ -963,7 +962,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Class<?> getTypeHint(String path, Bucket bucket, Class<?> fallback) {
 
 		TypeInformation<?> typeInformation = typeMapper.readType(bucket.getPropertyPath(path),
-				ClassTypeInformation.from(fallback));
+				TypeInformation.of(fallback));
 		return typeInformation.getType();
 	}
 

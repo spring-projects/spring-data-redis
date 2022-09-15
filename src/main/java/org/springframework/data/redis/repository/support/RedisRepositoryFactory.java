@@ -87,7 +87,7 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 			MappingRedisEntityInformation<?, ?> entityInformation = new MappingRedisEntityInformation<>(persistentEntity);
 
 			fragments = fragments.append(RepositoryFragment.implemented(QueryByExampleExecutor.class,
-					getTargetRepositoryViaReflection(QueryByExampleRedisExecutor.class, entityInformation, operations)));
+					instantiateClass(QueryByExampleRedisExecutor.class, entityInformation, operations)));
 		}
 
 		return fragments;

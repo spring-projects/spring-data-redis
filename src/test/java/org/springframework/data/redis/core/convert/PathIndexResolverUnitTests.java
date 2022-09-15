@@ -36,13 +36,12 @@ import org.mockito.quality.Strictness;
 
 import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Christoph Strobl
@@ -76,7 +75,7 @@ class PathIndexResolverUnitTests {
 		Address address = new Address();
 		address.country = "andor";
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Address.class), address);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Address.class), address);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(Address.class.getName(), "country", "andor"));
@@ -88,7 +87,7 @@ class PathIndexResolverUnitTests {
 		Address address = new Address();
 		address.country = null;
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Address.class), address);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Address.class), address);
 
 		assertThat(indexes).isEmpty();
 	}
@@ -100,7 +99,7 @@ class PathIndexResolverUnitTests {
 		person.address = new Address();
 		person.address.country = "andor";
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), person);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Person.class), person);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor"));
@@ -123,7 +122,7 @@ class PathIndexResolverUnitTests {
 		twot.mainCharacters.add(rand);
 		twot.mainCharacters.add(zarine);
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TheWheelOfTime.class), twot);
 
 		assertThat(indexes).hasSize(2);
 		assertThat(indexes).contains(
@@ -145,7 +144,7 @@ class PathIndexResolverUnitTests {
 
 		twot.places.put("stone-of-tear", stoneOfTear);
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TheWheelOfTime.class), twot);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes)
@@ -161,7 +160,7 @@ class PathIndexResolverUnitTests {
 		rand.physicalAttributes = new LinkedHashMap<>();
 		rand.physicalAttributes.put("eye-color", "grey");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Person.class), rand);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes)
@@ -181,7 +180,7 @@ class PathIndexResolverUnitTests {
 
 		rand.relatives.put("father", janduin);
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Person.class), rand);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes)
@@ -197,7 +196,7 @@ class PathIndexResolverUnitTests {
 		rand.physicalAttributes = new LinkedHashMap<>();
 		rand.physicalAttributes.put("eye-color", null);
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Person.class), rand);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes.iterator().next()).isInstanceOf(RemoveIndexedData.class);
@@ -212,7 +211,7 @@ class PathIndexResolverUnitTests {
 		rand.addressRef.country = "andor";
 
 		Set<IndexedData> indexes = indexResolver
-				.resolveIndexesFor(ClassTypeInformation.from(PersonWithAddressReference.class), rand);
+				.resolveIndexesFor(TypeInformation.of(PersonWithAddressReference.class), rand);
 
 		assertThat(indexes).isEmpty();
 	}
@@ -287,7 +286,7 @@ class PathIndexResolverUnitTests {
 		TaVeren mat = new TaVeren();
 		mat.feature = hat;
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TaVeren.class), mat);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "feature.type", "hat"));
@@ -302,7 +301,7 @@ class PathIndexResolverUnitTests {
 		TaVeren mat = new TaVeren();
 		mat.feature = hat;
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TaVeren.class), mat);
 
 		assertThat(indexes).isEmpty();
 	}
@@ -318,7 +317,7 @@ class PathIndexResolverUnitTests {
 		mat.characteristics.put("clothing", hat);
 		mat.characteristics.put("gambling", "owns the dark one's luck");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TaVeren.class), mat);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes)
@@ -336,7 +335,7 @@ class PathIndexResolverUnitTests {
 		mat.items.add(hat);
 		mat.items.add("foxhead medallion");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TaVeren.class), mat);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "items.type", "hat"));
@@ -355,7 +354,7 @@ class PathIndexResolverUnitTests {
 		mat.items.add(hat);
 		mat.items.add("foxhead medallion");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(TaVeren.class), mat);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat"));
@@ -369,7 +368,7 @@ class PathIndexResolverUnitTests {
 		size.length = 20;
 		size.width = 30;
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Size.class), size);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(Size.class), size);
 		assertThat(indexes).isEmpty();
 	}
 
@@ -382,7 +381,7 @@ class PathIndexResolverUnitTests {
 		source.values.put("jon", "snow");
 		source.values.put("arya", "stark");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnMapField.class),
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnMapField.class),
 				source);
 
 		assertThat(indexes).hasSize(2);
@@ -400,7 +399,7 @@ class PathIndexResolverUnitTests {
 		source.values.add("jon");
 		source.values.add("arya");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnListField.class),
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnListField.class),
 				source);
 
 		assertThat(indexes).hasSize(2);
@@ -415,7 +414,7 @@ class PathIndexResolverUnitTests {
 		source.values = new int[] { 1, 2, 3 };
 
 		Set<IndexedData> indexes = indexResolver
-				.resolveIndexesFor(ClassTypeInformation.from(IndexedOnPrimitiveArrayField.class), source);
+				.resolveIndexesFor(TypeInformation.of(IndexedOnPrimitiveArrayField.class), source);
 
 		assertThat(indexes).hasSize(3);
 		assertThat(indexes).contains(
@@ -454,7 +453,7 @@ class PathIndexResolverUnitTests {
 		GeoIndexedOnPoint source = new GeoIndexedOnPoint();
 		source.location = new Point(1D, 2D);
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(GeoIndexedOnPoint.class),
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(GeoIndexedOnPoint.class),
 				source);
 
 		assertThat(indexes).hasSize(1);
@@ -469,7 +468,7 @@ class PathIndexResolverUnitTests {
 		source.location = new double[] { 10D, 20D };
 
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> indexResolver.resolveIndexesFor(ClassTypeInformation.from(GeoIndexedOnArray.class), source))
+				.isThrownBy(() -> indexResolver.resolveIndexesFor(TypeInformation.of(GeoIndexedOnArray.class), source))
 				.withMessageContaining("GeoIndexed property needs to be of type Point or GeoLocation");
 	}
 

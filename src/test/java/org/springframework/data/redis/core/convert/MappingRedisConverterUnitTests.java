@@ -198,7 +198,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	void writeDoesNotAddClassTypeInformationCorrectlyForMatchingTypes() {
+	void writeDoesNotAddTypeInformationCorrectlyForMatchingTypes() {
 
 		Address address = new Address();
 		address.city = "two rivers";
@@ -211,7 +211,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-543
-	void writeAddsClassTypeInformationCorrectlyForNonMatchingTypes() {
+	void writeAddsTypeInformationCorrectlyForNonMatchingTypes() {
 
 		AddressWithPostcode address = new AddressWithPostcode();
 		address.city = "two rivers";
@@ -225,7 +225,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	void readConsidersClassTypeInformationCorrectlyForNonMatchingTypes() {
+	void readConsidersTypeInformationCorrectlyForNonMatchingTypes() {
 
 		Map<String, String> map = new HashMap<>();
 		map.put("address._class", AddressWithPostcode.class.getName());
@@ -262,7 +262,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	void writeAddsClassTypeInformationCorrectlyForNonMatchingTypesInCollections() {
+	void writeAddsTypeInformationCorrectlyForNonMatchingTypesInCollections() {
 
 		Person mat = new TaVeren();
 		mat.firstname = "mat";
@@ -381,7 +381,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	void readListComplexPropertyCorrectlyAndConsidersClassTypeInformation() {
+	void readListComplexPropertyCorrectlyAndConsidersTypeInformation() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("coworkers.[0]._class", TaVeren.class.getName());
@@ -569,7 +569,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	void writeAppendsClassTypeInformationCorrectlyForMapWithComplexObjects() {
+	void writeAppendsTypeInformationCorrectlyForMapWithComplexObjects() {
 
 		Map<String, Person> map = new LinkedHashMap<>();
 		Person lews = new TaVeren();
@@ -584,7 +584,7 @@ class MappingRedisConverterUnitTests {
 	}
 
 	@Test // DATAREDIS-425
-	void readConsidersClassTypeInformationCorrectlyForMapWithComplexObjects() {
+	void readConsidersTypeInformationCorrectlyForMapWithComplexObjects() {
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("relatives.[previous-incarnation]._class", TaVeren.class.getName());
