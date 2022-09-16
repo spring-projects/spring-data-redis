@@ -175,20 +175,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	public void clear() {
-		clearByPattern("*");
+		clear("*");
 	}
 
 	/**
-	 * <p>Clear keys that match the provided pattern.</p>
-	 * <br />
-	 * <p>Useful when the cache keys consists of multiple parameters. For example:
-	 * a cache key consists of a brand id and a country id. Now country 42 has relevant data updated. We want to clear all
-	 * the caches that involve country 42, regardless the brand. That can be done by clearByPattern("*42")</p>
+	 * Clear keys that match the provided {@code keyPattern}.
+	 * <p>
+	 * Useful when cache keys are formatted in a style where Redis patterns can be used for matching these.
+	 *
 	 * @param keyPattern the pattern of the key
+	 * @since 3.0
 	 */
-	public void clearByPattern(String keyPattern) {
-		byte[] pattern = conversionService.convert(createCacheKey(keyPattern), byte[].class);
-		cacheWriter.clean(name, pattern);
+	public void clear(String keyPattern) {
+		cacheWriter.clean(name, createAndConvertCacheKey(keyPattern));
 	}
 
 	/**
@@ -288,11 +287,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		String convertedKey = convertKey(key);
 
-		if (!cacheConfig.usePrefix()) {
-			return convertedKey;
-		}
-
-		return prefixCacheKey(convertedKey);
+		return cacheConfig.usePrefix() ? prefixCacheKey(convertedKey) : convertedKey;
 	}
 
 	/**

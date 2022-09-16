@@ -114,8 +114,8 @@ public class RedisCacheTests {
 
 		cache.put(key, sample);
 
-		final String keyPattern = "*" + key.substring(1);
-		cache.clearByPattern(keyPattern);
+		String keyPattern = "*" + key.substring(1);
+		cache.clear(keyPattern);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -127,8 +127,8 @@ public class RedisCacheTests {
 
 		cache.put(key, sample);
 
-		final String keyPattern = "*" + key.substring(1) + "tail";
-		cache.clearByPattern(keyPattern);
+		String keyPattern = "*" + key.substring(1) + "tail";
+		cache.clear(keyPattern);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -365,9 +365,8 @@ public class RedisCacheTests {
 	void prefixCacheNameCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
-				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
-				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
-						.prefixCacheNameWith("redis::"));
+				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory), RedisCacheConfiguration.defaultCacheConfig()
+						.serializeValuesWith(SerializationPair.fromSerializer(serializer)).prefixCacheNameWith("redis::"));
 
 		cacheWithCustomPrefix.put("key-1", sample);
 
@@ -530,13 +529,13 @@ public class RedisCacheTests {
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {
-        RedisConnection connection = connectionFactory.getConnection();
-        try {
-            callback.accept(connection);
-        } finally {
-            connection.close();
-        }
-    }
+		RedisConnection connection = connectionFactory.getConnection();
+		try {
+			callback.accept(connection);
+		} finally {
+			connection.close();
+		}
+	}
 
 	@Data
 	@NoArgsConstructor
