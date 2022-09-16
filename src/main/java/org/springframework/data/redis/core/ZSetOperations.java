@@ -542,7 +542,7 @@ public interface ZSetOperations<K, V> {
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
-		return popMin(key, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+		return popMax(key, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
 	}
 
 	/**
