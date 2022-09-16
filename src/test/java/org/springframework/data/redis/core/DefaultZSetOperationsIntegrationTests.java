@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assumptions.*;
 import static org.assertj.core.data.Offset.offset;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -137,16 +138,19 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 	void testPopMin() {
 
 		K key = keyFactory.instance();
+		V value0 = valueFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 		V value4 = valueFactory.instance();
 
+		zSetOps.add(key, value0, 0);
 		zSetOps.add(key, value1, 1);
 		zSetOps.add(key, value2, 2);
 		zSetOps.add(key, value3, 3);
 		zSetOps.add(key, value4, 4);
 
+		assertThat(zSetOps.popMin(key, Duration.ofSeconds(1))).isEqualTo(new DefaultTypedTuple<>(value0, 0d));
 		assertThat(zSetOps.popMin(key)).isEqualTo(new DefaultTypedTuple<>(value1, 1d));
 		assertThat(zSetOps.popMin(key, 2)).containsExactly(new DefaultTypedTuple<>(value2, 2d),
 				new DefaultTypedTuple<>(value3, 3d));
@@ -162,12 +166,15 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 		V value4 = valueFactory.instance();
+		V value5 = valueFactory.instance();
 
 		zSetOps.add(key, value1, 1);
 		zSetOps.add(key, value2, 2);
 		zSetOps.add(key, value3, 3);
 		zSetOps.add(key, value4, 4);
+		zSetOps.add(key, value5, 5);
 
+		assertThat(zSetOps.popMax(key, Duration.ofSeconds(1))).isEqualTo(new DefaultTypedTuple<>(value5, 5d));
 		assertThat(zSetOps.popMax(key)).isEqualTo(new DefaultTypedTuple<>(value4, 4d));
 		assertThat(zSetOps.popMax(key, 2)).containsExactly(new DefaultTypedTuple<>(value3, 3d),
 				new DefaultTypedTuple<>(value2, 2d));
