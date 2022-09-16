@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Clement Ong
  * @author Andrey Shlykov
+ * @author Jens Deppe
  * @since 2.0
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
@@ -1254,7 +1255,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
-	private static Tuple toTuple(List<?> bytes) {
+	private static Tuple toTuple(@Nullable List<?> bytes) {
 
 		if (bytes == null || bytes.isEmpty()) {
 			return null;
