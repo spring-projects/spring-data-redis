@@ -97,13 +97,10 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	private static final GeoLocation<String> PALERMO = new GeoLocation<>("palermo", POINT_PALERMO);
 
 	private static final GeoLocation<byte[]> ARIGENTO_BYTES = new GeoLocation<>(
-			"arigento".getBytes(StandardCharsets.UTF_8),
-			POINT_ARIGENTO);
-	private static final GeoLocation<byte[]> CATANIA_BYTES = new GeoLocation<>(
-			"catania".getBytes(StandardCharsets.UTF_8),
+			"arigento".getBytes(StandardCharsets.UTF_8), POINT_ARIGENTO);
+	private static final GeoLocation<byte[]> CATANIA_BYTES = new GeoLocation<>("catania".getBytes(StandardCharsets.UTF_8),
 			POINT_CATANIA);
-	private static final GeoLocation<byte[]> PALERMO_BYTES = new GeoLocation<>(
-			"palermo".getBytes(StandardCharsets.UTF_8),
+	private static final GeoLocation<byte[]> PALERMO_BYTES = new GeoLocation<>("palermo".getBytes(StandardCharsets.UTF_8),
 			POINT_PALERMO);
 
 	private final RedisClusterClient client;
@@ -182,7 +179,6 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		factory.destroy();
 	}
-
 
 	@Test // DATAREDIS-315
 	public void appendShouldAddValueCorrectly() {
@@ -2320,6 +2316,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@EnabledOnCommand("BZPOPMIN")
 	public void bzPopMinShouldWorkCorrectly() {
 
+		assertThat(clusterConnection.bZPopMin(KEY_1_BYTES, 10, TimeUnit.MILLISECONDS)).isNull();
+
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
 		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
 		nativeConnection.zadd(KEY_1, 30D, VALUE_3);
@@ -2331,6 +2329,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMAX")
 	public void zPopMaxShouldWorkCorrectly() {
+
+		assertThat(clusterConnection.bZPopMax(KEY_1_BYTES, 10, TimeUnit.MILLISECONDS)).isNull();
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
 		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
@@ -2504,8 +2504,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
 		nativeConnection.zadd(KEY_1, 5D, VALUE_3);
 
-		assertThat(clusterConnection.zRangeWithScores(KEY_1_BYTES, 1, 2))
-				.contains(new DefaultTuple(VALUE_1_BYTES, 10D), new DefaultTuple(VALUE_2_BYTES, 20D));
+		assertThat(clusterConnection.zRangeWithScores(KEY_1_BYTES, 1, 2)).contains(new DefaultTuple(VALUE_1_BYTES, 10D),
+				new DefaultTuple(VALUE_2_BYTES, 20D));
 	}
 
 	@Test // DATAREDIS-315
@@ -2622,8 +2622,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.zadd(KEY_1, 20D, VALUE_2);
 		nativeConnection.zadd(KEY_1, 5D, VALUE_3);
 
-		assertThat(clusterConnection.zRevRangeWithScores(KEY_1_BYTES, 1, 2))
-				.contains(new DefaultTuple(VALUE_3_BYTES, 5D), new DefaultTuple(VALUE_1_BYTES, 10D));
+		assertThat(clusterConnection.zRevRangeWithScores(KEY_1_BYTES, 1, 2)).contains(new DefaultTuple(VALUE_3_BYTES, 5D),
+				new DefaultTuple(VALUE_1_BYTES, 10D));
 	}
 
 	@Test
