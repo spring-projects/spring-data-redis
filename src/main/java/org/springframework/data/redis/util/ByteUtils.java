@@ -38,7 +38,7 @@ public final class ByteUtils {
 	private ByteUtils() {}
 
 	/**
-	 * Concatenate the given {@code byte} arrays into one, with overlapping array elements included twice.
+	 * Concatenate the given {@code byte} arrays into one.
 	 * <p>
 	 * The order of elements in the original arrays is preserved.
 	 *
@@ -47,16 +47,12 @@ public final class ByteUtils {
 	 * @return the new array.
 	 */
 	public static byte[] concat(byte[] array1, byte[] array2) {
-
-		byte[] result = Arrays.copyOf(array1, array1.length + array2.length);
-		System.arraycopy(array2, 0, result, array1.length, array2.length);
-
-		return result;
+		return concatAll(array1, array2);
 	}
 
 	/**
-	 * Concatenate the given {@code byte} arrays into one, with overlapping array elements included twice. Returns a new,
-	 * empty array if {@code arrays} was empty and returns the first array if {@code arrays} contains only a single array.
+	 * Concatenate the given {@code byte} arrays into one. Returns a new, empty array if {@code arrays} was empty and
+	 * returns the first array if {@code arrays} contains only a single array.
 	 * <p>
 	 * The order of elements in the original arrays is preserved.
 	 *
@@ -66,24 +62,48 @@ public final class ByteUtils {
 	public static byte[] concatAll(byte[]... arrays) {
 
 		if (arrays.length == 0) {
-			return new byte[] {};
+			return new byte[0];
 		}
+
 		if (arrays.length == 1) {
 			return arrays[0];
 		}
 
-		// Sum the total result length
-		int sum = 0;
-		for (int i = 0; i < arrays.length; ++i) {
-			sum += arrays[i].length;
+		long totalArraySize = 0;
+		for (byte[] array : arrays) {
+			totalArraySize += array.length;
 		}
 
-		byte[] result = Arrays.copyOf(arrays[0], sum);
-		int copied = arrays[0].length;
-		for (int i = 1; i < arrays.length; ++i) {
-			System.arraycopy(arrays[i], 0, result, copied, arrays[i].length);
-			copied += arrays[i].length;
+		if (totalArraySize == 0) {
+			return new byte[0];
 		}
+
+		byte[] result = new byte[Math.toIntExact(totalArraySize)];
+		int copied = 0;
+		for (byte[] array : arrays) {
+			System.arraycopy(array, 0, result, copied, array.length);
+			copied += array.length;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Merge multiple {@code byte} arrays into one array
+	 *
+	 * @param firstArray must not be {@literal null}
+	 * @param additionalArrays must not be {@literal null}
+	 * @return
+	 */
+	public static byte[][] mergeArrays(byte[] firstArray, byte[]... additionalArrays) {
+
+		Assert.notNull(firstArray, "first array must not be null");
+		Assert.notNull(additionalArrays, "additional arrays must not be null");
+
+		byte[][] result = new byte[additionalArrays.length + 1][];
+		result[0] = firstArray;
+		System.arraycopy(additionalArrays, 0, result, 1, additionalArrays.length);
+
 		return result;
 	}
 
@@ -116,25 +136,6 @@ public final class ByteUtils {
 			}
 		}
 		return bytes.toArray(new byte[bytes.size()][]);
-	}
-
-	/**
-	 * Merge multiple {@code byte} arrays into one array
-	 *
-	 * @param firstArray must not be {@literal null}
-	 * @param additionalArrays must not be {@literal null}
-	 * @return
-	 */
-	public static byte[][] mergeArrays(byte[] firstArray, byte[]... additionalArrays) {
-
-		Assert.notNull(firstArray, "first array must not be null");
-		Assert.notNull(additionalArrays, "additional arrays must not be null");
-
-		byte[][] result = new byte[additionalArrays.length + 1][];
-		result[0] = firstArray;
-		System.arraycopy(additionalArrays, 0, result, 1, additionalArrays.length);
-
-		return result;
 	}
 
 	/**
