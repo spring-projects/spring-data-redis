@@ -256,16 +256,34 @@ fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.reverseRan
  * @author Sebastien Deleuze
  * @since 2.2
  */
-inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.reverseRangeWithTypeAsFlow(key: K, range: Range<String>, limit: Limit = Limit.unlimited()): Flow<ObjectRecord<K, V>> =
-		reverseRange(V::class.java, key, range, limit).asFlow()
+inline fun <K : Any, reified V : Any> ReactiveStreamOperations<K, *, *>.reverseRangeWithTypeAsFlow(
+	key: K,
+	range: Range<String>,
+	limit: Limit = Limit.unlimited()
+): Flow<ObjectRecord<K, V>> =
+	reverseRange(V::class.java, key, range, limit).asFlow()
 
 /**
  * Coroutines variant of [ReactiveStreamOperations.trim].
  *
- * @author Mark Paluch
- * @author Quantum64@github
- * @since 2.2
+ * @author Quantum64
+ * @since 2.7.4
  */
-@JvmOverloads // Maintain compatibility with versions <= 2.6.0
-suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(key: K, count: Long, approximateTrimming: Boolean = false): Long =
-		trim(key, count, approximateTrimming).awaitSingle()
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(
+	key: K,
+	count: Long
+): Long =
+	trim(key, count).awaitSingle()
+
+/**
+ * Coroutines variant of [ReactiveStreamOperations.trim].
+ *
+ * @author Quantum64
+ * @since 2.7.4
+ */
+suspend fun <K : Any, HK : Any, HV : Any> ReactiveStreamOperations<K, HK, HV>.trimAndAwait(
+	key: K,
+	count: Long,
+	approximateTrimming: Boolean
+): Long =
+	trim(key, count, approximateTrimming).awaitSingle()
