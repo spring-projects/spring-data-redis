@@ -492,4 +492,19 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 			operations.trim("foo", 1)
 		}
 	}
+
+	@Test // GH-2227
+	fun trimApproximate() {
+
+		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
+		every { operations.trim(any(), any(), any()) } returns Mono.just(1)
+
+		runBlocking {
+			assertThat(operations.trimAndAwait("foo", 1, true)).isEqualTo(1)
+		}
+
+		verify {
+			operations.trim("foo", 1, true)
+		}
+	}
 }
