@@ -60,7 +60,8 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	HV get(Object member);
 
 	/**
-	 * Get values for given {@code keys} from the hash at the bound key.
+	 * Get values for given {@code keys} from the hash at the bound key. Values are in the order of the requested keys
+	 * Absent field values are represented using {@code null} in the resulting {@link List}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.

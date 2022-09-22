@@ -434,7 +434,7 @@ public interface StringRedisConnection extends RedisConnection {
 	String getSet(String key, String value);
 
 	/**
-	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
+	 * Get multiple {@code keys}. Values are in the order of the requested keys.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
