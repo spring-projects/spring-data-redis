@@ -68,11 +68,12 @@ public interface RedisHashCommands {
 	byte[] hGet(byte[] key, byte[] field);
 
 	/**
-	 * Get values for given {@code fields} from hash at {@code key}.
+	 * Get values for given {@code fields} from hash at {@code key}. Values are in the order of the requested keys Absent
+	 * field values are represented using {@code null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal empty}.
-	 * @return empty {@link List} if key or fields do not exists. {@literal null} when used in pipeline / transaction.
+	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 */
 	@Nullable

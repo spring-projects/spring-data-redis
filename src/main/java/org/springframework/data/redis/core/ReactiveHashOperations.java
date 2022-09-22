@@ -59,7 +59,8 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<HV> get(H key, Object hashKey);
 
 	/**
-	 * Get values for given {@code hashKeys} from hash at {@code key}.
+	 * Get values for given {@code hashKeys} from hash at {@code key}. Values are in the order of the requested keys.
+	 * Absent field values are represented using {@code null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
@@ -122,10 +123,10 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Flux<HK> randomKeys(H key, long count);
 
 	/**
-	 * Return random entries from the hash stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct entries, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same entry multiple times. In this case,
-	 * the number of returned fields is the absolute value of the specified count.
+	 * Return random entries from the hash stored at {@code key}. If the provided {@code count} argument is positive,
+	 * return a list of distinct entries, capped either at {@code count} or the hash size. If {@code count} is negative,
+	 * the behavior changes and the command is allowed to return the same entry multiple times. In this case, the number
+	 * of returned fields is the absolute value of the specified count.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count number of fields to return.
