@@ -155,7 +155,8 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<V> getAndSet(K key, V value);
 
 	/**
-	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
+	 * Get multiple {@code keys}. Values are in the order of the requested keys. Absent field values are represented using
+	 * {@code null} in the resulting {@link List}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
