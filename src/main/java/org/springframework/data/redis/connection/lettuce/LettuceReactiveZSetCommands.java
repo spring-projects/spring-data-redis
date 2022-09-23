@@ -278,7 +278,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 
-				Range<Number> range = RangeConverter.toRange(command.getRange());
+				Range<? extends Number> range = RangeConverter.toRange(command.getRange());
 
 				if (command.isWithScores()) {
 
@@ -301,7 +301,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				}
 			} else {
 
-				Range<Number> range = RangeConverter.toRange(command.getRange());
+				Range<? extends Number> range = RangeConverter.toRange(command.getRange());
 
 				if (command.isWithScores()) {
 
@@ -351,7 +351,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getRange(), "Range must not be null");
 
-			Range<Number> range = RangeConverter.toRange(command.getRange());
+			Range<? extends Number> range = RangeConverter.toRange(command.getRange());
 			Mono<Long> result = cmd.zcount(command.getKey(), range);
 
 			return result.map(value -> new NumericResponse<>(command, value));
@@ -483,7 +483,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getRange(), "Range must not be null");
 
-			Range<Number> range = RangeConverter.toRange(command.getRange());
+			Range<? extends Number> range = RangeConverter.toRange(command.getRange());
 			Mono<Long> result = cmd.zremrangebyscore(command.getKey(), range);
 
 			return result.map(value -> new NumericResponse<>(command, value));

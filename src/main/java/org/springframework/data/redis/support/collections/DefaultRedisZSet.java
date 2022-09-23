@@ -273,13 +273,13 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit) {
+	public RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<? extends Number> range, Limit limit) {
 		boundZSetOps.rangeAndStoreByScore(dstKey, range, limit);
 		return new DefaultRedisZSet<>(getOperations().boundZSetOps(dstKey));
 	}
 
 	@Override
-	public RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit) {
+	public RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<? extends Number> range, Limit limit) {
 		boundZSetOps.reverseRangeAndStoreByScore(dstKey, range, limit);
 		return new DefaultRedisZSet<>(getOperations().boundZSetOps(dstKey));
 	}
@@ -291,7 +291,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public Set<E> removeByLex(Range<String> range) {
+	public RedisZSet<E> removeByLex(Range<String> range) {
 		boundZSetOps.removeRangeByLex(range);
 		return this;
 	}

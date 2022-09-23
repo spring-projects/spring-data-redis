@@ -166,7 +166,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -203,7 +203,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -222,7 +222,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -241,7 +242,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Long zCount(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -379,7 +380,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREMRANGEBYSCORE must not be null");
@@ -588,7 +589,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -665,7 +666,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(dstKey, "Destination key must not be null");
@@ -678,7 +680,8 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(dstKey, "Destination key must not be null");

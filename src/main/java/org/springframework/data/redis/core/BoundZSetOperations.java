@@ -1040,7 +1040,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	default Long rangeAndStoreByScore(K dstKey, Range<Number> range) {
+	default Long rangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
 		return rangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -1058,7 +1058,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long rangeAndStoreByScore(K dstKey, Range<Number> range, Limit limit);
+	Long rangeAndStoreByScore(K dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at the bound key with a
@@ -1072,7 +1072,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	default Long reverseRangeAndStoreByScore(K dstKey, Range<Number> range) {
+	default Long reverseRangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -1089,7 +1089,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long reverseRangeAndStoreByScore(K dstKey, Range<Number> range, Limit limit);
+	Long reverseRangeAndStoreByScore(K dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

@@ -992,7 +992,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Long zCount(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return convertAndReturn(delegate.zCount(key, range), Converters.identityConverter());
 	}
 
@@ -1102,18 +1102,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return convertAndReturn(delegate.zRangeByScore(key, range), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByScore(key, range, limit), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range), Converters.identityConverter());
 	}
 
@@ -1129,7 +1129,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
@@ -1150,7 +1150,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return convertAndReturn(delegate.zRevRangeByScore(key, range), Converters.identityConverter());
 	}
 
@@ -1160,7 +1160,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByScore(key, range, limit), Converters.identityConverter());
 	}
@@ -1172,12 +1172,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range), Converters.identityConverter());
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRevRangeByScoreWithScores(key, range, limit), Converters.identityConverter());
 	}
@@ -1213,7 +1215,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return convertAndReturn(delegate.zRemRangeByScore(key, range), Converters.identityConverter());
 	}
 
@@ -2747,28 +2749,31 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	@Override
 	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
-								   org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.domain.Range<? extends Number> range,
 								   org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeStoreByScore(dstKey, srcKey, range, limit),
 				Converters.identityConverter());
 	}
 
 	@Override
-	public Long zRangeStoreByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<Number> range,
+	public Long zRangeStoreByScore(String dstKey, String srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeStoreByScore(serialize(dstKey), serialize(srcKey), range, limit),
 				Converters.identityConverter());
 	}
 
 	@Override
-	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeStoreRevByScore(dstKey, srcKey, range, limit),
 				Converters.identityConverter());
 	}
 
 	@Override
-	public Long zRangeStoreRevByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<Number> range,
+	public Long zRangeStoreRevByScore(String dstKey, String srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeStoreRevByScore(serialize(dstKey), serialize(srcKey), range, limit),
 				Converters.identityConverter());

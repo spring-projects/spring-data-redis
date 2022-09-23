@@ -2059,7 +2059,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	default Long zRangeStoreByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<Number> range) {
+	default Long zRangeStoreByScore(String dstKey, String srcKey,
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2075,7 +2076,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long zRangeStoreByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<Number> range,
+	Long zRangeStoreByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	/**
@@ -2090,7 +2091,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	default Long zRangeStoreRevByScore(String dstKey, String srcKey,
-			org.springframework.data.domain.Range<Number> range) {
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreRevByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2106,7 +2107,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long zRangeStoreRevByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<Number> range,
+	Long zRangeStoreRevByScore(String dstKey, String srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	// -------------------------------------------------------------------------

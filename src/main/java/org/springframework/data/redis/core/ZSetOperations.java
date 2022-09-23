@@ -1212,7 +1212,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	default Long rangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range) {
+	default Long rangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
 		return rangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
 
@@ -1231,7 +1231,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long rangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range, Limit limit);
+	Long rangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at {@code srcKey} with a
@@ -1246,7 +1246,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	default Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range) {
+	default Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
 
@@ -1265,7 +1265,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range, Limit limit);
+	Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

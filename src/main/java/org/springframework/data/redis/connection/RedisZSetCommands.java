@@ -569,7 +569,8 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key,
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeByScoreWithScores(key, range, Limit.unlimited());
 	}
 
@@ -641,7 +642,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	/**
@@ -697,7 +698,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
-	default Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	default Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return zRevRangeByScore(key, range, Limit.unlimited());
 	}
 
@@ -748,7 +749,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	/**
@@ -782,7 +783,8 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRevRangeByScoreWithScores(key, range, Limit.unlimited());
 	}
 
@@ -798,7 +800,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	/**
@@ -825,7 +827,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
 	@Nullable
-	Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range);
+	Long zCount(byte[] key, org.springframework.data.domain.Range<? extends Number> range);
 
 	/**
 	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
@@ -994,7 +996,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range);
+	Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range);
 
 	/**
 	 * Diff sorted {@code sets}.
@@ -1247,7 +1249,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
-	default Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	default Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeByScore(key, range, Limit.unlimited());
 	}
 
@@ -1279,7 +1281,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
-	Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	/**
@@ -1439,7 +1441,8 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range) {
+	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -1455,7 +1458,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+	Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 	/**
@@ -1470,7 +1473,7 @@ public interface RedisZSetCommands {
 	 */
 	@Nullable
 	default Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
-			org.springframework.data.domain.Range<Number> range) {
+			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreRevByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -1486,7 +1489,8 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
 	@Nullable
-	Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+	Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit);
 
 }

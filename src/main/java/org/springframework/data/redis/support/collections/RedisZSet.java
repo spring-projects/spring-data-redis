@@ -500,7 +500,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 3.0
 	 * @see #rangeByScore(double, double)
 	 */
-	default RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<Number> range) {
+	default RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<? extends Number> range) {
 		return rangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -516,7 +516,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 3.0
 	 * @see #rangeByScore(double, double)
 	 */
-	RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit);
+	RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at the bound key with a
@@ -528,7 +528,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 3.0
 	 * @see #reverseRangeByScore(double, double)
 	 */
-	default RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<Number> range) {
+	default RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -543,7 +543,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return a new {@link RedisZSet} pointing at {@code destKey}
 	 * @since 3.0
 	 */
-	RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit);
+	RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set.
@@ -561,8 +561,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return {@code this} set.
 	 * @since 2.5
 	 */
-	// TODO: Switch to RedisZSet
-	Set<E> removeByLex(Range<String> range);
+	RedisZSet<E> removeByLex(Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.

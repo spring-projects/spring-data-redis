@@ -1018,7 +1018,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zCount(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	default Long zCount(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return zSetCommands().zCount(key, range);
 	}
 
@@ -1160,7 +1160,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	default Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByScore(key, range, limit);
 	}
@@ -1168,7 +1168,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	default Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeByScoreWithScores(key, range, limit);
 	}
@@ -1183,7 +1183,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range,
+	default Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByScore(key, range, limit);
 	}
@@ -1191,7 +1191,8 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<Number> range,
+	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRevRangeByScoreWithScores(key, range, limit);
 	}
@@ -1227,7 +1228,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<Number> range) {
+	default Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return zSetCommands().zRemRangeByScore(key, range);
 	}
 
@@ -1858,7 +1859,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
-							org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.domain.Range<? extends Number> range,
 							org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeStoreByScore(dstKey, srcKey, range, limit);
 	}
@@ -1866,7 +1867,8 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+	default Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
+			org.springframework.data.domain.Range<? extends Number> range,
 			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeStoreRevByScore(dstKey, srcKey, range, limit);
 	}
