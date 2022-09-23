@@ -29,6 +29,7 @@ import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.lang.Nullable;
 
 /**
  * Redis ZSet/sorted set specific operations.
@@ -299,6 +300,128 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
 	Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with lexicographical ordering from {@literal ZSET} at {@code srcKey} with a
+	 * value between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
+		return rangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with lexicographical ordering from {@literal ZSET} at {@code srcKey} with a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	Mono<Long> rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with reverse lexicographical ordering from {@literal ZSET} at {@code srcKey}
+	 * with a value between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
+		return reverseRangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code srcKey} with a value
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see #reverseRangeByLex(Object, Range, Limit)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	Mono<Long> reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with ordering by score from {@literal ZSET} at {@code srcKey} with a score
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Mono<Long> rangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range) {
+		return rangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with ordering by score from {@literal ZSET} at {@code srcKey} with a score between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	Mono<Long> rangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at {@code srcKey} with a
+	 * score between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range) {
+		return reverseRangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse ordering by score from {@literal ZSET} at {@code srcKey} with a score
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements.
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	Mono<Long> reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range, Limit limit);
 
 	/**
 	 * Use a {@link Flux} to iterate over entries in the sorted set at {@code key}. The resulting {@link Flux} acts as a

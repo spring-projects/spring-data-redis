@@ -261,6 +261,30 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
+	public RedisZSet<E> rangeAndStoreByLex(String dstKey, Range<String> range, Limit limit) {
+		boundZSetOps.rangeAndStoreByLex(dstKey, range, limit);
+		return new DefaultRedisZSet<>(getOperations().boundZSetOps(dstKey));
+	}
+
+	@Override
+	public RedisZSet<E> reverseRangeAndStoreByLex(String dstKey, Range<String> range, Limit limit) {
+		boundZSetOps.reverseRangeAndStoreByLex(dstKey, range, limit);
+		return new DefaultRedisZSet<>(getOperations().boundZSetOps(dstKey));
+	}
+
+	@Override
+	public RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit) {
+		boundZSetOps.rangeAndStoreByScore(dstKey, range, limit);
+		return new DefaultRedisZSet<>(getOperations().boundZSetOps(dstKey));
+	}
+
+	@Override
+	public RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit) {
+		boundZSetOps.reverseRangeAndStoreByScore(dstKey, range, limit);
+		return new DefaultRedisZSet<>(getOperations().boundZSetOps(dstKey));
+	}
+
+	@Override
 	public RedisZSet<E> remove(long start, long end) {
 		boundZSetOps.removeRange(start, end);
 		return this;

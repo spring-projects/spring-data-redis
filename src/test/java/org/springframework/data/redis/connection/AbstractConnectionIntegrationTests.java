@@ -4070,14 +4070,33 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test //GH-2345
-	public void zRangeStoreStoresKeysCreatedByZAddByScore() {
-		final String dstKey = KEY_2;
-		final String srcKey = KEY_1;
+	public void zRangeStoreByScoreStoresKeys() {
+		String dstKey = KEY_2;
+		String srcKey = KEY_1;
 		actual.add(connection.zAdd(srcKey, 1, VALUE_1));
 		actual.add(connection.zAdd(srcKey, 2, VALUE_2));
 		actual.add(connection.zAdd(srcKey, 3, VALUE_3));
 		actual.add(connection.zAdd(srcKey, 4, VALUE_4));
-		actual.add(connection.zRangeStoreByScore(dstKey, srcKey, 3, 4));
+		actual.add(connection.zRangeStoreByScore(dstKey, srcKey, Range.closed(3, 4)));
+		actual.add(connection.zRange(dstKey, 0, -1));
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(true);
+		assertThat(result.get(2)).isEqualTo(true);
+		assertThat(result.get(3)).isEqualTo(true);
+		assertThat(result.get(4)).isEqualTo(2L);
+		assertThat((LinkedHashSet<Object>) result.get(5)).containsSequence(VALUE_3, VALUE_4);
+	}
+
+	@Test // GH-2345
+	public void zRangeStoreRevByScoreStoresKeys() {
+		String dstKey = KEY_2;
+		String srcKey = KEY_1;
+		actual.add(connection.zAdd(srcKey, 1, VALUE_1));
+		actual.add(connection.zAdd(srcKey, 2, VALUE_2));
+		actual.add(connection.zAdd(srcKey, 3, VALUE_3));
+		actual.add(connection.zAdd(srcKey, 4, VALUE_4));
+		actual.add(connection.zRangeStoreRevByScore(dstKey, srcKey, Range.closed(3, 4)));
 		actual.add(connection.zRange(dstKey, 0, -1));
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);
@@ -4089,14 +4108,33 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test //GH-2345
-	public void zRangeStoreStoresKeysCreatedByZAddByLex() {
-		final String dstKey = KEY_2;
-		final String srcKey = KEY_1;
+	public void zRangeStoreByLexStoresKeys() {
+		String dstKey = KEY_2;
+		String srcKey = KEY_1;
 		actual.add(connection.zAdd(srcKey, 0, VALUE_3));
 		actual.add(connection.zAdd(srcKey, 0, VALUE_1));
 		actual.add(connection.zAdd(srcKey, 0, VALUE_4));
 		actual.add(connection.zAdd(srcKey, 0, VALUE_2));
 		actual.add(connection.zRangeStoreByLex(dstKey, srcKey, Range.rightUnbounded(Bound.inclusive(VALUE_3))));
+		actual.add(connection.zRange(dstKey, 0, -1));
+		List<Object> result = getResults();
+		assertThat(result.get(0)).isEqualTo(true);
+		assertThat(result.get(1)).isEqualTo(true);
+		assertThat(result.get(2)).isEqualTo(true);
+		assertThat(result.get(3)).isEqualTo(true);
+		assertThat(result.get(4)).isEqualTo(2L);
+		assertThat((LinkedHashSet<Object>) result.get(5)).containsSequence(VALUE_3, VALUE_4);
+	}
+
+	@Test // GH-2345
+	public void zRangeStoreRevByLexStoresKeys() {
+		String dstKey = KEY_2;
+		String srcKey = KEY_1;
+		actual.add(connection.zAdd(srcKey, 0, VALUE_3));
+		actual.add(connection.zAdd(srcKey, 0, VALUE_1));
+		actual.add(connection.zAdd(srcKey, 0, VALUE_4));
+		actual.add(connection.zAdd(srcKey, 0, VALUE_2));
+		actual.add(connection.zRangeStoreRevByLex(dstKey, srcKey, Range.rightUnbounded(Bound.inclusive(VALUE_3))));
 		actual.add(connection.zRange(dstKey, 0, -1));
 		List<Object> result = getResults();
 		assertThat(result.get(0)).isEqualTo(true);

@@ -497,19 +497,37 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
-								 org.springframework.data.domain.Range<byte[]> range,
-								 org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return zRangeStoreByLex(dstKey, srcKey, range, limit, false);
+	}
+
+	@Override
+	public Long zRangeStoreRevByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return zRangeStoreByLex(dstKey, srcKey, range, limit, true);
+	}
+
+	private Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit, boolean rev) {
+
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
-		Assert.notNull(range, "Range for ZRANGESTORE BYLEX must not be null");
+		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
 
 		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getLowerBound(), JedisConverters.MINUS_BYTES);
 		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getUpperBound(), JedisConverters.PLUS_BYTES);
 
-		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYLEX, min, max)
-				.limit(limit.getOffset(), limit.getCount());
+		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYLEX, min, max);
+
+		if (limit.isLimited()) {
+			zRangeParams = zRangeParams.limit(limit.getOffset(), limit.getCount());
+		}
+
+		if (rev) {
+			zRangeParams = zRangeParams.rev();
+		}
 
 		try {
 			return connection.getCluster().zrangestore(dstKey, srcKey, zRangeParams);
@@ -518,22 +536,42 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		}
 	}
 
+	@Nullable
 	@Override
-	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
-								   org.springframework.data.domain.Range<Number> range,
-								   org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return zRangeStoreByScore(dstKey, srcKey, range, limit, false);
+	}
+
+	@Nullable
+	@Override
+	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return zRangeStoreByScore(dstKey, srcKey, range, limit, true);
+	}
+
+	private Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit, boolean rev) {
+
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
-		Assert.notNull(range, "Range for ZRANGESTORE BYSCORE must not be null");
+		Assert.notNull(range, "Range for must not be null");
 		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
 
-		byte[] min = JedisConverters
-				.boundaryToBytesForZRange(range.getLowerBound(), JedisConverters.NEGATIVE_INFINITY_BYTES);
-		byte[] max = JedisConverters
-				.boundaryToBytesForZRange(range.getUpperBound(), JedisConverters.POSITIVE_INFINITY_BYTES);
+		byte[] min = JedisConverters.boundaryToBytesForZRange(range.getLowerBound(),
+				JedisConverters.NEGATIVE_INFINITY_BYTES);
+		byte[] max = JedisConverters.boundaryToBytesForZRange(range.getUpperBound(),
+				JedisConverters.POSITIVE_INFINITY_BYTES);
 
-		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYSCORE, min, max)
-				.limit(limit.getOffset(), limit.getCount());
+		ZRangeParams zRangeParams = new ZRangeParams(Protocol.Keyword.BYSCORE, min, max);
+
+		if (limit.isLimited()) {
+			zRangeParams = zRangeParams.limit(limit.getOffset(), limit.getCount());
+		}
+
+		if (rev) {
+			zRangeParams = zRangeParams.rev();
+		}
 
 		try {
 			return connection.getCluster().zrangestore(dstKey, srcKey, zRangeParams);

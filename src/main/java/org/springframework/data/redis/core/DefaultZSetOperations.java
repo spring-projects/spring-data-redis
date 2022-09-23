@@ -228,17 +228,31 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Long rangeStoreByLex(K dstKey, K srcKey, Range<String> range, Limit limit) {
+	public Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit) {
 		byte[] rawDstKey = rawKey(dstKey);
 		byte[] rawSrcKey = rawKey(srcKey);
 		return execute(connection -> connection.zRangeStoreByLex(rawDstKey, rawSrcKey, serialize(range), limit));
 	}
 
 	@Override
-	public Long rangeStoreByScore(K dstKey, K srcKey, Range<Number> range, Limit limit) {
+	public Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit) {
+		byte[] rawDstKey = rawKey(dstKey);
+		byte[] rawSrcKey = rawKey(srcKey);
+		return execute(connection -> connection.zRangeStoreRevByLex(rawDstKey, rawSrcKey, serialize(range), limit));
+	}
+
+	@Override
+	public Long rangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range, Limit limit) {
 		byte[] rawDstKey = rawKey(dstKey);
 		byte[] rawSrcKey = rawKey(srcKey);
 		return execute(connection -> connection.zRangeStoreByScore(rawDstKey, rawSrcKey, range, limit));
+	}
+
+	@Override
+	public Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range, Limit limit) {
+		byte[] rawDstKey = rawKey(dstKey);
+		byte[] rawSrcKey = rawKey(srcKey);
+		return execute(connection -> connection.zRangeStoreRevByScore(rawDstKey, rawSrcKey, range, limit));
 	}
 
 	@Override

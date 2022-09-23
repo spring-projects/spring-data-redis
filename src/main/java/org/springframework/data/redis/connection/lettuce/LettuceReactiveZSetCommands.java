@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.Limit;
 import io.lettuce.core.Range;
 import io.lettuce.core.ScanStream;
 import io.lettuce.core.ScoredValue;
@@ -169,8 +170,8 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 
-			return new CommandResponse<>(command, cmd.zrandmemberWithScores(command.getKey(), command.getCount())
-					.map(this::toTuple));
+			return new CommandResponse<>(command,
+					cmd.zrandmemberWithScores(command.getKey(), command.getCount()).map(this::toTuple));
 		}));
 	}
 
@@ -218,6 +219,43 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				} else {
 
 					result = cmd.zrevrange(command.getKey(), start, stop).map(value -> toTuple(value, Double.NaN));
+				}
+			}
+
+			return Mono.just(new CommandResponse<>(command, result));
+		}));
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Flux<CommandResponse<ZRangeStoreCommand, Mono<Long>>> zRangeStore(Publisher<ZRangeStoreCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Source key must not be null");
+			Assert.notNull(command.getDestKey(), "Destination key must not be null");
+			Assert.notNull(command.getRange(), "Range must not be null");
+			Assert.notNull(command.getLimit(), "Limit must not be null");
+
+			Limit limit = LettuceConverters.toLimit(command.getLimit());
+			Mono<Long> result;
+
+			if (command.getDirection() == Direction.ASC) {
+
+				switch (command.getRangeMode()) {
+					case ByScore -> result = cmd.zrangestorebyscore(command.getDestKey(), command.getKey(),
+							(Range<? extends Number>) LettuceConverters.toRange(command.getRange()), limit);
+					case ByLex -> result = cmd.zrangestorebylex(command.getDestKey(), command.getKey(),
+							RangeConverter.toRange(command.getRange()), limit);
+					default -> throw new IllegalStateException("Unsupported value: " + command.getRangeMode());
+				}
+			} else {
+				switch (command.getRangeMode()) {
+					case ByScore -> result = cmd.zrevrangestorebyscore(command.getDestKey(), command.getKey(),
+							(Range<? extends Number>) LettuceConverters.toRange(command.getRange()), limit);
+					case ByLex -> result = cmd.zrevrangestorebylex(command.getDestKey(), command.getKey(),
+							RangeConverter.toRange(command.getRange()), limit);
+					default -> throw new IllegalStateException("Unsupported value: " + command.getRangeMode());
 				}
 			}
 
@@ -362,7 +400,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null");
 
-			if(command.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			if (command.getTimeUnit() == TimeUnit.MILLISECONDS) {
 
 				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout(), command.getTimeUnit());
 

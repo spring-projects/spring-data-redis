@@ -289,6 +289,50 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
+	public Mono<Long> rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return createMono(connection -> connection.zRangeStoreByLex(rawKey(srcKey), rawKey(dstKey), range, limit));
+	}
+
+	@Override
+	public Mono<Long> reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return createMono(connection -> connection.zRangeStoreRevByLex(rawKey(srcKey), rawKey(dstKey), range, limit));
+	}
+
+	@Override
+	public Mono<Long> rangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return createMono(connection -> connection.zRangeStoreByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
+	}
+
+	@Override
+	public Mono<Long> reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return createMono(connection -> connection.zRangeStoreRevByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
+	}
+
+	@Override
 	public Flux<TypedTuple<V>> scan(K key, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");

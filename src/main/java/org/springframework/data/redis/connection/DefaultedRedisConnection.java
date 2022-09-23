@@ -1849,10 +1849,26 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default Long zRangeStoreRevByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return zSetCommands().zRangeStoreRevByLex(dstKey, srcKey, range, limit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
 							org.springframework.data.domain.Range<Number> range,
 							org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeStoreByScore(dstKey, srcKey, range, limit);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return zSetCommands().zRangeStoreRevByScore(dstKey, srcKey, range, limit);
 	}
 
 }

@@ -435,6 +435,117 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<TypedTuple<E>> reverseRangeByScoreWithScores(double min, double max);
 
 	/**
+	 * Store all elements at {@code dstKey} with lexicographical ordering from {@literal ZSET} at the bound key with a
+	 * value between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #rangeByLex(Range)
+	 */
+	default RedisZSet<E> rangeAndStoreByLex(String dstKey, Range<String> range) {
+		return rangeAndStoreByLex(dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with lexicographical ordering from {@literal ZSET} at the bound key with a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #rangeByLex(Range, Limit)
+	 */
+	RedisZSet<E> rangeAndStoreByLex(String dstKey, Range<String> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with reverse lexicographical ordering from {@literal ZSET} at the bound key
+	 * with a value between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #reverseRangeByLex(Range)
+	 */
+	default RedisZSet<E> reverseRangeAndStoreByLex(String dstKey, Range<String> range) {
+		return reverseRangeAndStoreByLex(dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at the bound key with a value
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #reverseRangeByLex(Range, Limit)
+	 */
+	RedisZSet<E> reverseRangeAndStoreByLex(String dstKey, Range<String> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with ordering by score from {@literal ZSET} at the bound key with a score
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #rangeByScore(double, double)
+	 */
+	default RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<Number> range) {
+		return rangeAndStoreByScore(dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with ordering by score from {@literal ZSET} at the bound key with a score between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #rangeByScore(double, double)
+	 */
+	RedisZSet<E> rangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at the bound key with a
+	 * score between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 * @see #reverseRangeByScore(double, double)
+	 */
+	default RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<Number> range) {
+		return reverseRangeAndStoreByScore(dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse ordering by score from {@literal ZSET} at the bound key with a score between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return a new {@link RedisZSet} pointing at {@code destKey}
+	 * @since 3.0
+	 */
+	RedisZSet<E> reverseRangeAndStoreByScore(String dstKey, Range<Number> range, Limit limit);
+
+	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set.
 	 *
 	 * @param start

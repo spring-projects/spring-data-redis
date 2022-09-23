@@ -52,6 +52,10 @@ public class Limit {
 		return this.equals(UNLIMITED);
 	}
 
+	public boolean isLimited() {
+		return !isUnlimited();
+	}
+
 	/**
 	 * @return new {@link Limit} indicating no limit;
 	 * @since 1.3

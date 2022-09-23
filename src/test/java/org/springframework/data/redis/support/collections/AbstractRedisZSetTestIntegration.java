@@ -572,6 +572,74 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(tuple2.getScore()).isEqualTo(Double.valueOf(3));
 	}
 
+	@ParameterizedRedisTest // GH-2345
+	void testRangeAndStoreByLex() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		RedisZSet<T> tuples = zSet.rangeAndStoreByLex("dest", Range.closed(t2.toString(), t3.toString()));
+
+		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
+	}
+
+	@ParameterizedRedisTest // GH-2345
+	void testRangeAndStoreRevByLex() {
+
+		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
+				LongAsStringObjectFactory.class, LongObjectFactory.class);
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		RedisZSet<T> tuples = zSet.reverseRangeAndStoreByLex("dest", Range.closed(t1.toString(), t3.toString()),
+				Limit.limit().count(2).offset(1));
+
+		assertThat(tuples).hasSize(2).containsSequence(t1, t2);
+	}
+
+	@ParameterizedRedisTest // GH-2345
+	void testRangeAndStoreByScore() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		RedisZSet<T> tuples = zSet.rangeAndStoreByScore("dest", Range.closed(2, 3));
+
+		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
+	}
+
+	@ParameterizedRedisTest // GH-2345
+	void testRangeAndStoreRevByScore() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		RedisZSet<T> tuples = zSet.reverseRangeAndStoreByScore("dest", Range.closed(1, 3),
+				Limit.limit().count(2).offset(0));
+
+		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
+	}
+
 	@ParameterizedRedisTest
 	void testRemove() {
 		T t1 = getT();

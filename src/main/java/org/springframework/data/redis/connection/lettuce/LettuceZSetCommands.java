@@ -174,14 +174,13 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(limit, "Limit must not be null");
 
 		if (limit.isUnlimited()) {
-			return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
-					LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
+			return connection.invoke()
+					.fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key, LettuceConverters.toRange(range))
+					.toSet(LettuceConverters::toTuple);
 		}
 
-		return connection
-				.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
-						LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
-				.toSet(LettuceConverters::toTuple);
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscoreWithScores, key,
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)).toSet(LettuceConverters::toTuple);
 
 	}
 
@@ -214,12 +213,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		if (limit.isUnlimited()) {
 
 			return connection.invoke()
-					.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key, LettuceConverters.<Number> toRange(range))
-					.toSet();
+					.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key, LettuceConverters.toRange(range)).toSet();
 		}
 
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscore, key,
-				LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)).toSet();
 
 	}
 
@@ -232,14 +230,13 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(limit, "Limit must not be null");
 
 		if (limit.isUnlimited()) {
-			return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
-					LettuceConverters.<Number> toRange(range)).toSet(LettuceConverters::toTuple);
+			return connection.invoke()
+					.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key, LettuceConverters.toRange(range))
+					.toSet(LettuceConverters::toTuple);
 		}
 
-		return connection.invoke()
-				.fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
-						LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit))
-				.toSet(LettuceConverters::toTuple);
+		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebyscoreWithScores, key,
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)).toSet(LettuceConverters::toTuple);
 
 	}
 
@@ -248,8 +245,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(RedisSortedSetAsyncCommands::zcount, key,
-				LettuceConverters.<Number> toRange(range));
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zcount, key, LettuceConverters.toRange(range));
 	}
 
 	@Override
@@ -259,7 +255,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range must not be null");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zlexcount, key,
-				LettuceConverters.<byte[]> toRange(range, true));
+				LettuceConverters.toRange(range, true));
 	}
 
 	@Nullable
@@ -288,7 +284,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
-		if(TimeUnit.MILLISECONDS == unit) {
+		if (TimeUnit.MILLISECONDS == unit) {
 
 			return connection.invoke(connection.getAsyncDedicatedConnection())
 					.from(RedisSortedSetAsyncCommands::bzpopmin, TimeoutUtils.toDoubleSeconds(timeout, unit), key)
@@ -326,7 +322,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
-		if(TimeUnit.MILLISECONDS == unit) {
+		if (TimeUnit.MILLISECONDS == unit) {
 
 			return connection.invoke(connection.getAsyncDedicatedConnection())
 					.from(RedisSortedSetAsyncCommands::bzpopmax, TimeoutUtils.toDoubleSeconds(timeout, unit), key)
@@ -379,7 +375,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range must not be null for ZREMRANGEBYLEX");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zremrangebylex, key,
-				LettuceConverters.<byte[]> toRange(range, true));
+				LettuceConverters.toRange(range, true));
 	}
 
 	@Override
@@ -389,7 +385,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		Assert.notNull(range, "Range for ZREMRANGEBYSCORE must not be null");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zremrangebyscore, key,
-				LettuceConverters.<Number> toRange(range));
+				LettuceConverters.toRange(range));
 	}
 
 	@Override
@@ -601,11 +597,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		if (limit.isUnlimited()) {
 			return connection.invoke()
-					.fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key, LettuceConverters.<Number> toRange(range)).toSet();
+					.fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key, LettuceConverters.toRange(range)).toSet();
 		}
 
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebyscore, key,
-				LettuceConverters.<Number> toRange(range), LettuceConverters.toLimit(limit)).toSet();
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit)).toSet();
 	}
 
 	@Override
@@ -618,12 +614,11 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		if (limit.isUnlimited()) {
 			return connection.invoke()
-					.fromMany(RedisSortedSetAsyncCommands::zrangebylex, key, LettuceConverters.<byte[]> toRange(range, true))
-					.toSet();
+					.fromMany(RedisSortedSetAsyncCommands::zrangebylex, key, LettuceConverters.toRange(range, true)).toSet();
 		}
 
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrangebylex, key,
-				LettuceConverters.<byte[]> toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
+				LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
 	}
 
 	@Override
@@ -631,44 +626,67 @@ class LettuceZSetCommands implements RedisZSetCommands {
 			org.springframework.data.redis.connection.Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(range, "Range for ZREVRANGEBYLEX must not be null");
+		Assert.notNull(range, "Range for must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
 		if (limit.isUnlimited()) {
 			return connection.invoke()
-					.fromMany(RedisSortedSetAsyncCommands::zrevrangebylex, key, LettuceConverters.<byte[]> toRange(range, true))
-					.toSet();
+					.fromMany(RedisSortedSetAsyncCommands::zrevrangebylex, key, LettuceConverters.toRange(range, true)).toSet();
 		}
 
 		return connection.invoke().fromMany(RedisSortedSetAsyncCommands::zrevrangebylex, key,
-				LettuceConverters.<byte[]> toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
+				LettuceConverters.toRange(range, true), LettuceConverters.toLimit(limit)).toSet();
 	}
 
 	@Override
-	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
-								 org.springframework.data.domain.Range<byte[]> range,
-								 org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
-		Assert.notNull(range, "Range for ZRANGESTORE BYLEX must not be null");
+		Assert.notNull(range, "Range for must not be null");
 		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
 
-
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrangestorebylex, dstKey, srcKey,
-				LettuceConverters.<byte[]>toRange(range, true), LettuceConverters.toLimit(limit));
-
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
 	}
 
 	@Override
-	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
-								   org.springframework.data.domain.Range<Number> range,
-								   org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreRevByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
-		Assert.notNull(range, "Range for ZRANGESTORE BYSCORE must not be null");
+		Assert.notNull(range, "Range for must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrangestorebylex, dstKey, srcKey,
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
+	}
+
+	@Override
+	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
+
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for must not be null");
 		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrangestorebyscore, dstKey, srcKey,
+				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
+	}
+
+	@Override
+	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<Number> range,
+			org.springframework.data.redis.connection.Limit limit) {
+
+		Assert.notNull(dstKey, "Destination key must not be null");
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(range, "Range for must not be null");
+		Assert.notNull(limit, "Limit must not be null. Use Limit.unlimited() instead.");
+
+		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrangestorebyscore, dstKey, srcKey,
 				LettuceConverters.toRange(range), LettuceConverters.toLimit(limit));
 	}
 

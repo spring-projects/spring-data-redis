@@ -420,6 +420,96 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2345
+	void rangeAndStoreByLex() {
+
+		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		V a = (V) "a";
+		V b = (V) "b";
+		V c = (V) "c";
+
+		zSetOperations.add(key, a, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, b, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, c, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.rangeAndStoreByLex(key, destKey, Range.closed("a", "b")).as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2345
+	void rangeAndStoreByScore() {
+
+		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		V a = valueFactory.instance();
+		V b = valueFactory.instance();
+		V c = valueFactory.instance();
+
+		zSetOperations.add(key, a, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, b, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, c, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.rangeAndStoreByScore(key, destKey, Range.closed(1.0, 2.0)).as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		zSetOperations.range(destKey, Range.unbounded()).as(StepVerifier::create) //
+				.expectNext(a) //
+				.expectNext(b) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2345
+	void reverseRangeAndStoreByLex() {
+
+		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		V a = (V) "a";
+		V b = (V) "b";
+		V c = (V) "c";
+
+		zSetOperations.add(key, a, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, b, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, c, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.reverseRangeAndStoreByLex(key, destKey, Range.closed("a", "b")).as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2345
+	void reverseRangeAndStoreByScore() {
+
+		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+
+		K key = keyFactory.instance();
+		K destKey = keyFactory.instance();
+		V a = valueFactory.instance();
+		V b = valueFactory.instance();
+		V c = valueFactory.instance();
+
+		zSetOperations.add(key, a, 1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, b, 2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, c, 3).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.reverseRangeAndStoreByScore(key, destKey, Range.closed(1.0, 2.0)).as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		zSetOperations.range(destKey, Range.unbounded()).as(StepVerifier::create) //
+				.expectNext(a) //
+				.expectNext(b) //
+				.verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-743
 	void scan() {
 
@@ -594,8 +684,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		zSetOperations.removeRangeByScore(key, NINE_TO_ELEVEN_DOUBLE).as(StepVerifier::create).expectNext(1L)
-				.expectComplete()
-				.verify();
+				.expectComplete().verify();
 		zSetOperations.range(key, ZERO_TO_FIVE).as(StepVerifier::create) //
 				.expectNext(value1) //
 				.verifyComplete();
@@ -806,8 +895,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.score(destKey, shared).as(StepVerifier::create).expectNext(22d).verifyComplete();
 
 		zSetOperations.unionAndStore(key, Collections.singleton(otherKey), destKey, Aggregate.SUM, Weights.of(2, 1))
-				.as(StepVerifier::create)
-				.expectNext(3L).verifyComplete();
+				.as(StepVerifier::create).expectNext(3L).verifyComplete();
 		zSetOperations.score(destKey, shared).as(StepVerifier::create).expectNext(33d).verifyComplete();
 	}
 

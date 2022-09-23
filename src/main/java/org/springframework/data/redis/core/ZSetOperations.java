@@ -1101,7 +1101,7 @@ public interface ZSetOperations<K, V> {
 	 * between {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
 	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
 	 *
-	 * @param key must not be {@literal null}
+	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -1121,7 +1121,7 @@ public interface ZSetOperations<K, V> {
 	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
 	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
 	 *
-	 * @param key must not be {@literal null}
+	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @param limit can be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -1131,11 +1131,141 @@ public interface ZSetOperations<K, V> {
 	@Nullable
 	Set<V> reverseRangeByLex(K key, Range<String> range, Limit limit);
 
+	/**
+	 * Store all elements at {@code dstKey} with lexicographical ordering from {@literal ZSET} at {@code srcKey} with a
+	 * value between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #rangeByLex(Object, Range)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
 	@Nullable
-	Long rangeStoreByLex(K dstKey, K srcKey, Range<String> range, Limit limit);
+	default Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
+		return rangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
+	}
 
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with lexicographical ordering from {@literal ZSET} at {@code srcKey} with a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #rangeByLex(Object, Range, Limit)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
 	@Nullable
-	Long rangeStoreByScore(K dstKey, K srcKey, Range<Number> range, Limit limit);
+	Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with reverse lexicographical ordering from {@literal ZSET} at {@code srcKey}
+	 * with a value between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #reverseRangeByLex(Object, Range)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
+		return reverseRangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code srcKey} with a value
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #reverseRangeByLex(Object, Range, Limit)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with ordering by score from {@literal ZSET} at {@code srcKey} with a score
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #rangeByScore(Object, double, double)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long rangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range) {
+		return rangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with ordering by score from {@literal ZSET} at {@code srcKey} with a score between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #rangeByScore(Object, double, double, long, long)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	Long rangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range, Limit limit);
+
+	/**
+	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at {@code srcKey} with a
+	 * score between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #reverseRangeByScore(Object, double, double)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	default Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range) {
+		return reverseRangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
+	}
+
+	/**
+	 * Store {@literal n} elements at {@code dstKey}, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse ordering by score from {@literal ZSET} at {@code srcKey} with a score
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param dstKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return the number of stored elements or {@literal null} when used in pipeline / transaction.
+	 * @since 3.0
+	 * @see #reverseRangeByScore(Object, double, double, long, long)
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	@Nullable
+	Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<Number> range, Limit limit);
 
 	/**
 	 * @return never {@literal null}.

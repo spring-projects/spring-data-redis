@@ -903,6 +903,250 @@ public interface ReactiveZSetCommands {
 	Flux<CommandResponse<ZRangeCommand, Flux<Tuple>>> zRange(Publisher<ZRangeCommand> commands);
 
 	/**
+	 * {@code ZRANGESTORE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	class ZRangeStoreCommand extends KeyCommand {
+
+		private final ByteBuffer destKey;
+		private final RangeMode rangeMode;
+		private final Range<?> range;
+		private final Direction direction;
+		private final Limit limit;
+
+		private ZRangeStoreCommand(@Nullable ByteBuffer srcKey, @Nullable ByteBuffer destKey, RangeMode rangeMode,
+				Range<?> range, Direction direction, Limit limit) {
+
+			super(srcKey);
+			this.destKey = destKey;
+			this.rangeMode = rangeMode;
+			this.range = range;
+			this.direction = direction;
+			this.limit = limit;
+		}
+
+		/**
+		 * Creates a new {@link ZRangeStoreCommand} given a {@link Range} to obtain elements ordered from the lowest to the
+		 * highest score.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link ZRangeCommand} for {@link Tuple}.
+		 */
+		public static ZRangeStoreCommand scoreWithin(Range<Double> range) {
+
+			Assert.notNull(range, "Range must not be null");
+
+			return new ZRangeStoreCommand(null, null, RangeMode.ByScore, range, Direction.ASC, Limit.unlimited());
+		}
+
+		/**
+		 * Creates a new {@link ZRangeStoreCommand} given a {@link Range} to obtain elements ordered from the highest to the
+		 * lowest score.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link ZRangeStoreCommand} for {@link Tuple}.
+		 */
+		public static ZRangeStoreCommand reverseScoreWithin(Range<Double> range) {
+
+			Assert.notNull(range, "Range must not be null");
+
+			return new ZRangeStoreCommand(null, null, RangeMode.ByScore, range, Direction.DESC, Limit.unlimited());
+		}
+
+		/**
+		 * Creates a new {@link ZRangeStoreCommand} given a {@link Range} to obtain elements ordered from the lowest to the
+		 * highest lexicographical value.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link ZRangeCommand} for {@link Tuple}.
+		 */
+		public static ZRangeStoreCommand valueWithin(Range<String> range) {
+
+			Assert.notNull(range, "Range must not be null");
+
+			return new ZRangeStoreCommand(null, null, RangeMode.ByLex, range, Direction.ASC, Limit.unlimited());
+		}
+
+		/**
+		 * Creates a new {@link ZRangeStoreCommand} given a {@link Range} to obtain elements ordered from the highest to the
+		 * lowest lexicographical value.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link ZRangeStoreCommand} for {@link Tuple}.
+		 */
+		public static ZRangeStoreCommand reverseValueWithin(Range<String> range) {
+
+			Assert.notNull(range, "Range must not be null");
+
+			return new ZRangeStoreCommand(null, null, RangeMode.ByLex, range, Direction.DESC, Limit.unlimited());
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZRangeStoreCommand} with {@literal key} applied.
+		 */
+		public ZRangeStoreCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null");
+
+			return new ZRangeStoreCommand(key, destKey, rangeMode, range, direction, limit);
+		}
+
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ZRangeStoreCommand} with {@literal key} applied.
+		 */
+		public ZRangeStoreCommand to(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null");
+
+			return new ZRangeStoreCommand(getKey(), key, rangeMode, range, direction, limit);
+		}
+
+		/**
+		 * Applies the {@literal limit}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param limit must not be {@literal null}.
+		 * @return a new {@link ZRangeStoreCommand} with {@literal key} applied.
+		 */
+		public ZRangeStoreCommand limit(Limit limit) {
+
+			Assert.notNull(limit, "Limit must not be null");
+
+			return new ZRangeStoreCommand(getKey(), getDestKey(), rangeMode, range, direction, limit);
+		}
+
+		public ByteBuffer getDestKey() {
+			return destKey;
+		}
+
+		public RangeMode getRangeMode() {
+			return rangeMode;
+		}
+
+		public Range<?> getRange() {
+			return range;
+		}
+
+		public Direction getDirection() {
+			return direction;
+		}
+
+		public Limit getLimit() {
+			return limit;
+		}
+
+		public enum RangeMode {
+			ByScore, ByLex,
+		}
+	}
+
+	/**
+	 * Add elements from {@code srcKey} by score {@literal range} to {@code destKey}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> zRangeStoreByScore(ByteBuffer srcKey, ByteBuffer destKey, Range<Double> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return zRangeStore(Mono.just(ZRangeStoreCommand.scoreWithin(range).from(srcKey).to(destKey).limit(limit))) //
+				.flatMap(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Add elements from {@code srcKey} by lexicographical {@literal range} to {@code destKey}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> zRangeStoreByLex(ByteBuffer srcKey, ByteBuffer destKey, Range<String> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return zRangeStore(Mono.just(ZRangeStoreCommand.valueWithin(range).from(srcKey).to(destKey).limit(limit))) //
+				.flatMap(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Add elements from {@code srcKey} by reverse score {@literal range} to {@code destKey}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> zRangeStoreRevByScore(ByteBuffer srcKey, ByteBuffer destKey, Range<Double> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return zRangeStore(Mono.just(ZRangeStoreCommand.reverseScoreWithin(range).from(srcKey).to(destKey).limit(limit))) //
+				.flatMap(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Add elements from {@code srcKey} by reverse lexicographical {@literal range} to {@code destKey}.
+	 *
+	 * @param srcKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit must not be {@literal null}.
+	 * @return
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	default Mono<Long> zRangeStoreRevByLex(ByteBuffer srcKey, ByteBuffer destKey, Range<String> range, Limit limit) {
+
+		Assert.notNull(srcKey, "Source key must not be null");
+		Assert.notNull(destKey, "Destination key must not be null");
+		Assert.notNull(range, "Range must not be null");
+		Assert.notNull(limit, "Limit must not be null");
+
+		return zRangeStore(Mono.just(ZRangeStoreCommand.reverseValueWithin(range).from(srcKey).to(destKey).limit(limit))) //
+				.flatMap(CommandResponse::getOutput).next();
+	}
+
+	/**
+	 * Get set of {@link Tuple}s in {@literal range} from sorted set.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @since 3.0
+	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
+	 */
+	Flux<CommandResponse<ZRangeStoreCommand, Mono<Long>>> zRangeStore(Publisher<ZRangeStoreCommand> commands);
+
+	/**
 	 * {@literal ZRANGEBYSCORE}/{@literal ZREVRANGEBYSCORE}.
 	 *
 	 * @author Christoph Strobl
