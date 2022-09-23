@@ -23,7 +23,7 @@
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.19</xstream>
 		<pool>2.11.1</pool>
-		<lettuce>6.2.0.RELEASE</lettuce>
+		<lettuce>6.2.1.BUILD-SNAPSHOT</lettuce>
 		<jedis>4.2.3</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.79.Final</netty>
@@ -308,6 +308,14 @@
 		<repository>
 			<id>spring-libs-snapshot</id>
 			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+
+		<repository>
+			<id>oss-sonatype-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
 		</repository>
 	</repositories>
 
