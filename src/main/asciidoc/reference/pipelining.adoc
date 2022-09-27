@@ -26,7 +26,7 @@ Note that the value returned from the `RedisCallback` is required to be `null`, 
 
 [TIP]
 ====
-The Lettuce driver supports fine grained flush control that allows to either flush commands as they appear, buffer or send them at connection close.
+The Lettuce driver supports fine-grained flush control that allows to either flush commands as they appear, buffer or send them at connection close.
 
 [source,java]
 ----
@@ -35,5 +35,3 @@ factory.setPipeliningFlushPolicy(PipeliningFlushPolicy.buffered(3)); <1>
 ----
 <1> Buffer locally and flush after every 3rd command.
 ====
-
-include::version-note.adoc[]

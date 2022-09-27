@@ -65,7 +65,8 @@ Consider the following interface definition:
 ----
 public interface MessageDelegate {
   void handleMessage(String message);
-  void handleMessage(Map message); void handleMessage(byte[] message);
+  void handleMessage(Map message);
+  void handleMessage(byte[] message);
   void handleMessage(Serializable message);
   // pass the channel/pattern as well
   void handleMessage(Serializable message, String channel);
@@ -83,10 +84,36 @@ public class DefaultMessageDelegate implements MessageDelegate {
 
 Notice how the above implementation of the `MessageDelegate` interface (the above `DefaultMessageDelegate` class) has *no* Redis dependencies at all. It truly is a POJO that we make into an MDP with the following configuration:
 
-[source,xml]
+====
+.Java
+[source,java,role="primary"]
+----
+@Configuration
+class MyConfig {
+
+  // …
+
+  @Bean
+  DefaultMessageDelegate listener() {
+    return new DefaultMessageDelegate();
+  }
+
+  @Bean
+  RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, DefaultMessageDelegate listener) {
+
+    RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+    container.setConnectionFactory(connectionFactory);
+    container.addMessageListener(new MessageListenerAdapter(listener, "handleMessage"), ChannelTopic.of("chatroom"));
+    return container;
+  }
+}
+----
+
+.XML
+[source,xml,role="secondary"]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
- <beans xmlns="http://www.springframework.org/schema/beans"
+<beans xmlns="http://www.springframework.org/schema/beans"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xmlns:redis="http://www.springframework.org/schema/redis"
    xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
@@ -100,12 +127,13 @@ Notice how the above implementation of the `MessageDelegate` interface (the abov
 
 <bean id="listener" class="redisexample.DefaultMessageDelegate"/>
  ...
-<beans>
+</beans>
 ----
+====
 
 NOTE: The listener topic can be either a channel (for example, `topic="chatroom"`) or a pattern (for example, `topic="*room"`)
 
-The preceding example uses the Redis namespace to declare the message listener container and automatically register the POJOs as listeners. The full blown beans definition follows:
+The preceding example uses the Redis namespace to declare the message listener container and automatically register the POJOs as listeners. The full-blown beans definition follows:
 
 [source,xml]
 ----

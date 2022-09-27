@@ -7,6 +7,7 @@ ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1
 :spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
 :spring-framework-javadoc: https://docs.spring.io/spring-framework/docs/{springVersion}/javadoc-api
 :spring-framework-reference: https://docs.spring.io/spring-framework/docs/{springVersion}/reference/html
+:store: Redis
 
 (C) 2011-2022 The original authors.
 

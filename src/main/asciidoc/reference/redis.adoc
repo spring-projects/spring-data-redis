@@ -391,7 +391,30 @@ Once configured, the template is thread-safe and can be reused across multiple i
 
 For cases where you need a certain template view, declare the view as a dependency and inject the template. The container automatically performs the conversion, eliminating the `opsFor[X]` calls, as shown in the following example:
 
-[source,xml]
+====
+.Java
+[source,java,role="primary"]
+----
+@Configuration
+class MyConfig {
+
+  @Bean
+  LettuceConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  RedisTemplate<String, String> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+
+    RedisTemplate<String, String> template = new RedisTemplate<>();
+    template.setConnectionFactory(redisConnectionFactory);
+    return template;
+  }
+}
+----
+
+.XML
+[source,xml,role="secondary"]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -406,6 +429,7 @@ For cases where you need a certain template view, declare the view as a dependen
 
 </beans>
 ----
+====
 
 [source,java]
 ----
@@ -430,7 +454,30 @@ public class Example {
 
 Since it is quite common for the keys and values stored in Redis to be `java.lang.String`, the Redis modules provides two extensions to `RedisConnection` and `RedisTemplate`, respectively the `StringRedisConnection` (and its `DefaultStringRedisConnection` implementation) and `StringRedisTemplate` as a convenient one-stop solution for intensive String operations. In addition to being bound to `String` keys, the template and the connection use the `StringRedisSerializer` underneath, which means the stored keys and values are human-readable (assuming the same encoding is used both in Redis and your code). The following listings show an example:
 
-[source,xml]
+====
+.Java
+[source,java,role="primary"]
+----
+@Configuration
+class MyConfig {
+
+  @Bean
+  LettuceConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+
+    StringRedisTemplate template = new StringRedisTemplate();
+    template.setConnectionFactory(redisConnectionFactory);
+    return template;
+  }
+}
+----
+
+.XML
+[source,xml,role="secondary"]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -441,9 +488,10 @@ Since it is quite common for the keys and values stored in Redis to be `java.lan
   <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"/>
 
   <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" p:connection-factory-ref="redisConnectionFactory"/>
-  ...
+
 </beans>
 ----
+====
 
 [source,java]
 ----
@@ -662,7 +710,24 @@ Package `org.springframework.data.redis.support` offers various reusable compone
 
 The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API leakage. In particular, the `RedisSet` and `RedisZSet` interfaces offer easy access to the set operations supported by Redis, such as `intersection` and `union`. `RedisList` implements the `List`, `Queue`, and `Deque` contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a FIFO (First-In-First-Out), LIFO (Last-In-First-Out) or capped collection with minimal configuration. The following example shows the configuration for a bean that uses a `RedisList`:
 
-[source,xml]
+====
+.Java
+[source,java,role="primary"]
+----
+@Configuration
+class MyConfig {
+
+  // …
+
+  @Bean
+  RedisList<String> stringRedisTemplate(RedisTemplate<String, String> redisTemplate) {
+    return new DefaultRedisList<>(template, "queue-key");
+  }
+}
+----
+
+.XML
+[source,xml,role="secondary"]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -677,6 +742,7 @@ The atomic counters make it easy to wrap Redis key incrementation while the coll
 
 </beans>
 ----
+====
 
 The following example shows a Java configuration example for a `Deque`:
 
