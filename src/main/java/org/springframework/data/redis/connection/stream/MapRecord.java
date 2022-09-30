@@ -28,7 +28,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * A {@link Record} within the stream backed by a collection of {@literal field/value} paris.
+ * A {@link Record} within the stream backed by a collection of {@literal field/value} pairs.
  *
  * @param <K> the field type of the backing map.
  * @param <V> the value type of the backing map.
