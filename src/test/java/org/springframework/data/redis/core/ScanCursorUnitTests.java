@@ -233,6 +233,21 @@ class ScanCursorUnitTests {
 		assertThat(cursor.isClosed()).isTrue();
 	}
 
+	@Test // GH-2414
+	void shouldCloseCursorOnScanFailure() {
+
+		KeyBoundCursor<String> cursor = new KeyBoundCursor<String>("foo".getBytes(), 0, null) {
+			@Override
+			protected ScanIteration<String> doScan(byte[] key, long cursorId, ScanOptions options) {
+				throw new IllegalStateException();
+			}
+		};
+
+		assertThatIllegalStateException().isThrownBy(cursor::open);
+		assertThat(cursor.isOpen()).isFalse();
+		assertThat(cursor.isClosed()).isTrue();
+	}
+
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {
 		CapturingCursorDummy cursor = new CapturingCursorDummy(values);
 		cursor.open();
