@@ -22,7 +22,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 
 /**
- * A {@link Record} within the stream backed by a collection of binary {@literal field/value} paris.
+ * A {@link Record} within the stream backed by a collection of binary {@literal field/value} pairs.
  *
  * @author Christoph Strobl
  * @see 2.2
