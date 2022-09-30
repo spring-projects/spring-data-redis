@@ -34,7 +34,7 @@ import org.springframework.data.redis.connection.RedisStringCommands;
 class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
 	@Test // DATAREDIS-525
-	void mSetNXShouldAddMultipleKeyValueParisWhenMappedToSameSlot() {
+	void mSetNXShouldAddMultipleKeyValuePairsWhenMappedToSameSlot() {
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
 		map.put(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER);
@@ -47,7 +47,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@Test // DATAREDIS-525
-	void mSetNXShouldNotAddMultipleKeyValueParisWhenAlreadyExitAndMapToSameSlot() {
+	void mSetNXShouldNotAddMultipleKeyValuePairsWhenAlreadyExitAndMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
 

@@ -18,7 +18,7 @@ package org.springframework.data.redis.connection.stream;
 import java.util.Map;
 
 /**
- * A {@link Record} within the stream backed by a collection of {@link String} {@literal field/value} paris.
+ * A {@link Record} within the stream backed by a collection of {@link String} {@literal field/value} pairs.
  *
  * @author Christoph Strobl
  * @since 2.2
