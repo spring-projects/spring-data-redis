@@ -21,13 +21,14 @@ import java.util.NoSuchElementException;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
  * Redis client agnostic {@link Cursor} implementation continuously loading additional results from Redis server until
  * reaching its starting point {@code zero}. <br />
  * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #open()} prior to usage.
+ * Any failures during scanning will {@link #close() close} the cursor and release any associated resources such as
+ * connections.
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -85,8 +86,16 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	private void scan(long cursorId) {
 
-		ScanIteration<T> result = doScan(cursorId, this.scanOptions);
-		processScanResult(result);
+		try {
+			processScanResult(doScan(cursorId, this.scanOptions));
+		} catch (RuntimeException e) {
+			try {
+				close();
+			} catch (RuntimeException nested) {
+				e.addSuppressed(nested);
+			}
+			throw e;
+		}
 	}
 
 	/**
