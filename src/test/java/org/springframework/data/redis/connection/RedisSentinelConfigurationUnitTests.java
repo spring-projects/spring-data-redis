@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * Unit tests for {@link RedisSentinelConfiguration}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @author Vikas Garg
  */
 class RedisSentinelConfigurationUnitTests {
@@ -47,6 +48,16 @@ class RedisSentinelConfigurationUnitTests {
 
 		assertThat(config.getSentinels()).hasSize(1);
 		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123));
+	}
+
+	@Test // GH-2418
+	void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndSingleIPV6HostAndPortString() {
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster",
+				Collections.singleton("[ca:fee::1]:123"));
+
+		assertThat(config.getSentinels()).hasSize(1);
+		assertThat(config.getSentinels()).contains(new RedisNode("ca:fee::1", 123));
 	}
 
 	@Test // DATAREDIS-372

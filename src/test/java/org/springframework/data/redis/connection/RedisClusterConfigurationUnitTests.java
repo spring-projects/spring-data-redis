@@ -28,6 +28,8 @@ import org.springframework.mock.env.MockPropertySource;
 import org.springframework.util.StringUtils;
 
 /**
+ * Unit tests for {@link RedisClusterConfiguration}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  */
@@ -48,12 +50,22 @@ class RedisClusterConfigurationUnitTests {
 		assertThat(config.getMaxRedirects()).isNull();
 	}
 
+	@Test // GH-2418
+	void shouldCreateRedisClusterConfigurationForIPV6Correctly() {
+
+		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.singleton("[aaa:bbb:ccc::dd1]:123"));
+
+		assertThat(config.getClusterNodes().size()).isEqualTo(1);
+		assertThat(config.getClusterNodes()).contains(new RedisNode("aaa:bbb:ccc::dd1", 123));
+		assertThat(config.getClusterNodes()).first().hasToString("[aaa:bbb:ccc::dd1]:123");
+		assertThat(config.getMaxRedirects()).isNull();
+	}
+
 	@Test // DATAREDIS-315
 	void shouldCreateRedisClusterConfigurationCorrectlyGivenMultipleHostAndPortStrings() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(
-				new HashSet<>(Arrays.asList(HOST_AND_PORT_1,
-				HOST_AND_PORT_2, HOST_AND_PORT_3)));
+				new HashSet<>(Arrays.asList(HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
 		assertThat(config.getClusterNodes().size()).isEqualTo(3);
 		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
