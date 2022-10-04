@@ -170,7 +170,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	private void appendClusterNodes(Set<String> hostAndPorts) {
 
 		for (String hostAndPort : hostAndPorts) {
-			addClusterNode(readHostAndPortFromString(hostAndPort));
+			addClusterNode(RedisNode.fromString(hostAndPort));
 		}
 	}
 
@@ -228,15 +228,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		return result;
 	}
 
-	private RedisNode readHostAndPortFromString(String hostAndPort) {
-
-		String[] args = split(hostAndPort, ":");
-
-		Assert.notNull(args, "HostAndPort need to be seperated by  ':'.");
-		Assert.isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
-		return new RedisNode(args[0], Integer.valueOf(args[1]));
-	}
-
 	/**
 	 * @param clusterHostAndPorts must not be {@literal null} or empty.
 	 * @param redirects the max number of redirects to follow.
@@ -256,4 +247,5 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 		return map;
 	}
+
 }

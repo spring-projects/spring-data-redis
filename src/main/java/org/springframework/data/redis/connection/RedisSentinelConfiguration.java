@@ -200,7 +200,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private void appendSentinels(Set<String> hostAndPorts) {
 
 		for (String hostAndPort : hostAndPorts) {
-			addSentinel(readHostAndPortFromString(hostAndPort));
+			addSentinel(RedisNode.fromString(hostAndPort));
 		}
 	}
 
@@ -304,15 +304,6 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelUsername);
 		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelPassword);
 		return result;
-	}
-
-	private RedisNode readHostAndPortFromString(String hostAndPort) {
-
-		String[] args = split(hostAndPort, ":");
-
-		Assert.notNull(args, "HostAndPort need to be separated by ':'");
-		Assert.isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
-		return new RedisNode(args[0], Integer.valueOf(args[1]).intValue());
 	}
 
 	/**
