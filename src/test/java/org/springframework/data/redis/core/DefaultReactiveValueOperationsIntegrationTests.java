@@ -17,11 +17,13 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
+import static org.junit.jupiter.api.condition.OS.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -453,6 +455,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-784
+	@DisabledOnOs(value = MAC, architectures = "aarch64")
 	void incrementByFloatDelta() {
 
 		K key = keyFactory.instance();

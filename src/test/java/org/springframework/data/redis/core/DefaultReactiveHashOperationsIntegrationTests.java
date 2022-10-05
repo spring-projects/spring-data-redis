@@ -17,7 +17,9 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
+import static org.junit.jupiter.api.condition.OS.*;
 
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.springframework.data.redis.connection.convert.Converters;
 import reactor.test.StepVerifier;
 
@@ -305,6 +307,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
+	@DisabledOnOs(value = MAC, architectures = "aarch64")
 	@SuppressWarnings("unchecked")
 	void incrementDouble() {
 

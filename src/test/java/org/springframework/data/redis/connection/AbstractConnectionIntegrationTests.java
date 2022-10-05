@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.awaitility.Awaitility.*;
+import static org.junit.jupiter.api.condition.OS.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
@@ -41,7 +42,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
@@ -1259,6 +1260,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@DisabledOnOs(value = MAC, architectures = "aarch64")
 	void testIncrByDouble() {
 
 		actual.add(connection.set("tdb", "4.5"));
@@ -2467,6 +2469,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@DisabledOnOs(value = MAC, architectures = "aarch64")
 	void testHIncrByDouble() {
 		actual.add(connection.hSet("test", "key", "2.9"));
 		actual.add(connection.hIncrBy("test", "key", 3.5));
@@ -2648,6 +2651,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-417
+	@DisabledOnOs(value = MAC, architectures = "aarch64")
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
 
 		connection.execute("DEBUG", "POPULATE".getBytes(), "100".getBytes());
