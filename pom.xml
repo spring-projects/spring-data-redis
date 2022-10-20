@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -28,6 +29,11 @@
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.79.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
+
+		<!-- Observability -->
+		<micrometer-docs-generator.inputPath>${project.basedir}</micrometer-docs-generator.inputPath>
+		<micrometer-docs-generator.inclusionPattern>.*</micrometer-docs-generator.inclusionPattern>
+		<micrometer-docs-generator.outputPath>${project.basedir}/target/</micrometer-docs-generator.outputPath>
 	</properties>
 
 	<scm>
@@ -157,6 +163,44 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Observability -->
+
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-observation</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.github.tomakehurst</groupId>
+					<artifactId>wiremock-jre8-standalone</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing-integration-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- CDI -->
 		<!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
 
@@ -283,6 +327,38 @@
 						<include>**/*Test.java</include>
 					</includes>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>generate-docs</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>io.micrometer.docs.DocsGeneratorCommand</mainClass>
+							<includePluginDependencies>true</includePluginDependencies>
+							<arguments>
+								<argument>${micrometer-docs-generator.inputPath}</argument>
+								<argument>${micrometer-docs-generator.inclusionPattern}</argument>
+								<argument>${micrometer-docs-generator.outputPath}</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>io.micrometer</groupId>
+						<artifactId>micrometer-docs-generator</artifactId>
+						<version>${micrometer-docs-generator}</version>
+						<type>jar</type>
+					</dependency>
+				</dependencies>
 			</plugin>
 
 			<plugin>
