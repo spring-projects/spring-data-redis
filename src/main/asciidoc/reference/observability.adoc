@@ -1,0 +1,38 @@
+[[redis.observability]]
+== Observability
+
+Getting insights from an application component about its operations, timing and relation to application code is crucial to understand latency.
+Spring Data Redis ships with a Micrometer integration through the Lettuce driver to collect observations during Redis interaction.
+Once the integration is set up, Micrometer will create meters and spans (for distributed tracing) for each Redis command.
+
+To enable the integration, apply the following configuration to `LettuceClientConfiguration`:
+
+[source,java]
+----
+@Configuration
+class TracingConfig {
+
+  @Bean
+  public ClientResources clientResources(ObservationRegistry observationRegistry) {
+
+    return ClientResources.builder()
+              .tracing(new MicrometerTracingAdapter(observationRegistry, "my-redis-cache"))
+              .build();
+  }
+
+  @Bean
+  public LettuceConnectionFactory lettuceConnectionFactory(ClientResources clientResources) {
+
+    LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
+                                                .clientResources(clientResources).build();
+    RedisConfiguration redisConfiguration = …;
+    return new LettuceConnectionFactory(redisConfiguration, clientConfig);
+  }
+}
+----
+
+include::../../../../target/_conventions.adoc[]
+
+include::../../../../target/_metrics.adoc[]
+
+include::../../../../target/_spans.adoc[]
