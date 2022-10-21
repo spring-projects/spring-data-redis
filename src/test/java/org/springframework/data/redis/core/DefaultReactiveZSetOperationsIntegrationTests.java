@@ -18,8 +18,6 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
-import reactor.test.StepVerifier;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,7 +26,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -43,6 +40,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+
+import reactor.test.StepVerifier;
 
 /**
  * Integration tests for {@link DefaultReactiveZSetOperations}.
@@ -441,6 +440,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // GH-2345
+	@Disabled("https://github.com/spring-projects/spring-data-redis/issues/2441")
 	void rangeAndStoreByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -486,6 +486,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // GH-2345
+	@Disabled("https://github.com/spring-projects/spring-data-redis/issues/2441")
 	void reverseRangeAndStoreByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();

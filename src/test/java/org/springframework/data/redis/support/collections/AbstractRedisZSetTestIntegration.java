@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.Disabled;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
@@ -610,6 +610,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	}
 
 	@ParameterizedRedisTest // GH-2345
+	@Disabled("https://github.com/spring-projects/spring-data-redis/issues/2441")
 	void testRangeAndStoreByScore() {
 
 		T t1 = getT();
@@ -625,6 +626,7 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	}
 
 	@ParameterizedRedisTest // GH-2345
+	@Disabled("https://github.com/spring-projects/spring-data-redis/issues/2441")
 	void testRangeAndStoreRevByScore() {
 
 		T t1 = getT();
