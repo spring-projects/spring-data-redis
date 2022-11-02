@@ -61,7 +61,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.comparator.NullSafeComparator;
 
@@ -109,6 +108,7 @@ import org.springframework.util.comparator.NullSafeComparator;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Golam Mazid Sajib
+ * @author Zhixuan Wu
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
@@ -317,7 +317,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return null;
 		}
 
-		if (persistentProperty.isIdProperty() && ObjectUtils.isEmpty(path.isEmpty())) {
+		if (persistentProperty.isIdProperty() && !StringUtils.hasText(path.isEmpty())) {
 			return sourceBytes != null ? fromBytes(sourceBytes, typeInformation.getType()) : source.getId();
 		}
 
