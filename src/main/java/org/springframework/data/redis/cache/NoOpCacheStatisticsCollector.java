@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -112,7 +113,7 @@ enum NoOpCacheStatisticsCollector implements CacheStatisticsCollector {
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(@Nullable Object o) {
 
 			if (this == o) {
 				return true;

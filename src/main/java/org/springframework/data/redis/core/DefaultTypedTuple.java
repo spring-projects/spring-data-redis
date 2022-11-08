@@ -59,7 +59,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return result;
 	}
 
-	public boolean equals(Object obj) {
+	public boolean equals(@Nullable Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)

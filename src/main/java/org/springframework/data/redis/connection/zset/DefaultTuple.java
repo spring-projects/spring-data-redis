@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.zset;
 
 import java.util.Arrays;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Default implementation for {@link Tuple} interface.
  *
@@ -48,7 +50,7 @@ public class DefaultTuple implements Tuple {
 		return value;
 	}
 
-	public boolean equals(Object obj) {
+	public boolean equals(@Nullable Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)

@@ -280,7 +280,7 @@ public class StreamRecords {
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(@Nullable Object o) {
 
 			if (o == null) {
 				return false;
@@ -430,7 +430,7 @@ public class StreamRecords {
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(@Nullable Object o) {
 			if (this == o)
 				return true;
 			if (o == null || getClass() != o.getClass())

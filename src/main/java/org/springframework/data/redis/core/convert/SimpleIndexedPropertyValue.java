@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -70,7 +71,7 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())

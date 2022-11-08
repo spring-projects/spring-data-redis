@@ -18,6 +18,7 @@ package org.springframework.data.redis.core.index;
 import java.util.Collection;
 
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -93,7 +94,7 @@ public interface IndexDefinition {
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(@Nullable Object o) {
 			if (this == o)
 				return true;
 			if (o == null || getClass() != o.getClass())
