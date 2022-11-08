@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.index;
 
 import org.springframework.data.redis.core.convert.SpelIndexResolver;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -54,7 +55,7 @@ public class SpelIndexDefinition extends RedisIndexDefinition {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())

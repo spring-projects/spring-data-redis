@@ -238,7 +238,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 
 		if (o == this)
 			return true;

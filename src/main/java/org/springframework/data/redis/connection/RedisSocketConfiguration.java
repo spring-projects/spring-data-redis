@@ -140,7 +140,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o) {
 			return true;
 		}

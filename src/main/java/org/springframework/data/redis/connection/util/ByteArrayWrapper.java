@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.util;
 
 import java.util.Arrays;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Simple wrapper class used for wrapping arrays so they can be used as keys inside maps.
  *
@@ -32,7 +34,7 @@ public class ByteArrayWrapper {
 		this.hashCode = Arrays.hashCode(array);
 	}
 
-	public boolean equals(Object obj) {
+	public boolean equals(@Nullable Object obj) {
 		if (obj instanceof ByteArrayWrapper) {
 			return Arrays.equals(array, ((ByteArrayWrapper) obj).array);
 		}

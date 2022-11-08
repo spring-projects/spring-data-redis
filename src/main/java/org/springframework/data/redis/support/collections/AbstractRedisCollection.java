@@ -183,7 +183,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 
 		if (o == this)
 			return true;
