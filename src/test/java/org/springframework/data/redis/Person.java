@@ -17,6 +17,8 @@ package org.springframework.data.redis;
 
 import java.io.Serializable;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Simple serializable class.
  *
@@ -89,7 +91,7 @@ public class Person implements Serializable {
 		return result;
 	}
 
-	public boolean equals(Object obj) {
+	public boolean equals(@Nullable Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)

@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -78,7 +79,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())

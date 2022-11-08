@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import org.springframework.lang.Nullable;
 
 /**
  * Unit tests for {@link GenericJackson2JsonRedisSerializer}.
@@ -441,7 +442,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(@Nullable Object obj) {
 			if (this == obj) {
 				return true;
 			}
@@ -480,7 +481,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(@Nullable Object obj) {
 
 			if (this == obj) {
 				return true;

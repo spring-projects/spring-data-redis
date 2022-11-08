@@ -18,6 +18,7 @@ package org.springframework.data.redis.repository.cdi;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Mark Paluch
@@ -46,7 +47,7 @@ class Person {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o)
 			return true;
 		if (!(o instanceof Person))

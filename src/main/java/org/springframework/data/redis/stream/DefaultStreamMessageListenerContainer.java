@@ -38,6 +38,7 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
@@ -301,7 +302,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(@Nullable Object o) {
 			if (this == o)
 				return true;
 			if (o == null || getClass() != o.getClass())

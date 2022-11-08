@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.listener;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -65,7 +66,7 @@ public class ChannelTopic implements Topic {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 
 		if (this == o)
 			return true;
