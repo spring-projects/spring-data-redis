@@ -3,8 +3,7 @@ Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch, Ja
 :revnumber: {version}
 :revdate: {localdate}
 ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1600]]
-:spring-data-commons-include: ../../../../spring-data-commons/src/main/asciidoc
-:spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
+:spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 :spring-framework-javadoc: https://docs.spring.io/spring-framework/docs/{springVersion}/javadoc-api
 :spring-framework-reference: https://docs.spring.io/spring-framework/docs/{springVersion}/reference/html
 :store: Redis
@@ -17,15 +16,13 @@ toc::[]
 
 include::preface.adoc[]
 
-include::upgrading.adoc[leveloffset=+1]
-
-
 include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
 
 [[reference]]
 = Reference Documentation
 
 include::reference/introduction.adoc[leveloffset=+1]
+include::reference/upgrade.adoc[leveloffset=+1]
 include::reference/why-sdr.adoc[leveloffset=+1]
 include::reference/redis.adoc[leveloffset=+1]
 include::reference/observability.adoc[leveloffset=+1]
@@ -41,3 +38,4 @@ include::reference/redis-repositories.adoc[leveloffset=+1]
 include::appendix/introduction.adoc[leveloffset=+1]
 include::appendix/appendix-schema.adoc[leveloffset=+1]
 include::appendix/appendix-command-reference.adoc[leveloffset=+1]
+include::appendix/upgrading.adoc[leveloffset=+1]

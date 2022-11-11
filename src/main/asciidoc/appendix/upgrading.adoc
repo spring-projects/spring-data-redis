@@ -1,11 +1,13 @@
-[[upgrading]]
-= Upgrading
+[[redis.upgrading]]
+[appendix]
+= Migration Guides
 
 This section contains details about migration steps, deprecations, and removals.
 
 [[upgrading.2-to-3]]
 == Upgrading from 2.x to 3.x
 
+[[upgrading.2-to-3.types]]
 === Re-/moved Types
 
 |===
@@ -43,7 +45,7 @@ This section contains details about migration steps, deprecations, and removals.
 
 |===
 
-== Changed Methods and Types
+=== Changed Methods and Types
 
 .Core
 |===
@@ -181,7 +183,10 @@ This section contains details about migration steps, deprecations, and removals.
 
 |===
 
-== Jedis
+[[upgrading.2-to-3.jedis]]
+=== Jedis
+
+Please read the Jedis https://github.com/redis/jedis/blob/v4.0.0/docs/3to4.md[upgrading guide] which covers important driver changes.
 
 .Jedis Redis Connection
 |===
@@ -237,8 +242,16 @@ This section contains details about migration steps, deprecations, and removals.
 
 |===
 
+[[upgrading.2-to-3.jedis.transactions]]
+=== Transactions / Pipelining
+
+Pipelining and Transactions are now mutually exclusive.
+The usage of server or connection commands in pipeline/transactions mode is no longer possible.
+
+[[upgrading.2-to-3.lettuce]]
 === Lettuce
 
+[[upgrading.2-to-3.lettuce.pool]]
 ==== Lettuce Pool
 
 `LettucePool` and its implementation `DefaultLettucePool` have been removed without replacement.
@@ -246,16 +259,10 @@ Please refer to the https://lettuce.io/core/release/reference/index.html#_connec
 Methods accepting pooling parameters have been updated.
 This effects methods on `LettuceConnectionFactory` and `LettuceConnection`.
 
+[[upgrading.2-to-3.lettuce.authentication]]
 ==== Lettuce Authentication
 
 `AuthenticatingRedisClient` has been removed without replacement.
 Please refer to the https://lettuce.io/core/release/reference/index.html#basic.redisuri[driver documentation] for `RedisURI` to set authentication data.
 
-== Jedis
 
-Please read the Jedis https://github.com/redis/jedis/blob/v4.0.0/docs/3to4.md[upgrading guide] which covers important driver changes.
-
-=== Transactions / Pipelining
-
-Pipelining and Transactions are now mutually exclusive.
-The usage of server or connection commands in pipeline/transactions mode is no longer possible.

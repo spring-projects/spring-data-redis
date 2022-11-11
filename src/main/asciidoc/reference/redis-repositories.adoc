@@ -101,7 +101,7 @@ public void basicCrudOperations() {
 <4> Removes the key for the given object from Redis.
 ====
 
-include::../{spring-data-commons-include}/object-mapping.adoc[leveloffset=+1]
+include::../{spring-data-commons-docs}/object-mapping.adoc[leveloffset=+1]
 
 [[redis.repositories.mapping]]
 == Object-to-Hash Mapping
@@ -573,7 +573,7 @@ The finder methods allow usage of `Circle` or `Point, Distance` combinations for
 
 NOTE: It is **not** possible to combine `near` and `within` with other criteria.
 
-include::../{spring-data-commons-include}/query-by-example.adoc[leveloffset=+1]
+include::../{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 include::query-by-example.adoc[leveloffset=+1]
 
 [[redis.repositories.expirations]]
