@@ -317,7 +317,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return null;
 		}
 
-		if (persistentProperty.isIdProperty() && ObjectUtils.isEmpty(path.isEmpty())) {
+		if (persistentProperty.isIdProperty() && ObjectUtils.isEmpty(path)) {
 			return sourceBytes != null ? fromBytes(sourceBytes, typeInformation.getType()) : source.getId();
 		}
 
