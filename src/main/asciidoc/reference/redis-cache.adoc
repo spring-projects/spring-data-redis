@@ -1,5 +1,5 @@
 [[redis:support:cache-abstraction]]
-== Redis Cache
+= Redis Cache
 
 NOTE: Changed in 2.0
 
