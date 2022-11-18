@@ -14,11 +14,11 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.0.0</springdata.keyvalue>
+		<springdata.keyvalue>3.0.1-SNAPSHOT</springdata.keyvalue>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.19</xstream>
@@ -344,8 +344,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-release</id>
-			<url>https://repo.spring.io/libs-release</url>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 
 		<repository>
