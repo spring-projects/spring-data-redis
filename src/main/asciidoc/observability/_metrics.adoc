@@ -1,0 +1,42 @@
+[[observability-metrics]]
+=== Observability - Metrics
+
+Below you can find a list of all metrics declared by this project.
+
+[[observability-metrics-redis-command-observation]]
+==== Redis Command Observation
+
+____
+Timer created around a Redis command execution.
+____
+
+**Metric name** `spring.data.redis`. **Type** `timer` and **base unit** `seconds`.
+
+Fully qualified name of the enclosing class `org.springframework.data.redis.connection.lettuce.observability.RedisObservation`.
+
+
+
+.Low cardinality Keys
+[cols="a,a"]
+|===
+|Name | Description
+|`db.operation`|Redis command value.
+|`db.redis.database_index`|Redis database index.
+|`db.system`|Database system.
+|`db.user`|Redis user.
+|`net.peer.name`|Name of the database host.
+|`net.peer.port`|Logical remote port number.
+|`net.sock.peer.addr`|Mongo peer address.
+|`net.sock.peer.port`|Mongo peer port.
+|`net.transport`|Network transport.
+|===
+
+.High cardinality Keys
+[cols="a,a"]
+|===
+|Name | Description
+|`db.statement`|Redis statement.
+|`spring.data.redis.command.error`|Redis error response.
+|===
+
+

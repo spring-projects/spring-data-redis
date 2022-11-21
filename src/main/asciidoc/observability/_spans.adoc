@@ -1,0 +1,35 @@
+[[observability-spans]]
+=== Observability - Spans
+
+Below you can find a list of all spans declared by this project.
+
+[[observability-spans-redis-command-observation]]
+==== Redis Command Observation Span
+
+> Timer created around a Redis command execution.
+
+**Span name** `spring.data.redis`.
+
+Fully qualified name of the enclosing class `org.springframework.data.redis.connection.lettuce.observability.RedisObservation`.
+
+
+
+.Tag Keys
+|===
+|Name | Description
+|`db.operation`|Redis command value.
+|`db.redis.database_index`|Redis database index.
+|`db.statement`|Redis statement.
+|`db.system`|Database system.
+|`db.user`|Redis user.
+|`net.peer.name`|Name of the database host.
+|`net.peer.port`|Logical remote port number.
+|`net.sock.peer.addr`|Mongo peer address.
+|`net.sock.peer.port`|Mongo peer port.
+|`net.transport`|Network transport.
+|`spring.data.redis.command.error`|Redis error response.
+|===
+
+
+
+
