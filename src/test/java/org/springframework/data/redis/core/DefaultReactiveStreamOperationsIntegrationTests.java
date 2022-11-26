@@ -20,8 +20,10 @@ import static org.junit.Assume.*;
 
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -356,6 +358,31 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 			assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 			assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
 		}).verifyComplete();
+
+	}
+
+	@ParameterizedRedisTest // https://github.com/spring-projects/spring-data-redis/issues/2465
+	void claimShouldReadMessageDetails() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		Map<HK, HV> content = Collections.singletonMap(hashKey, value);
+		RecordId messageId = streamOperations.add(key, content).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		streamOperations.claim(key, "my-group", "name", Duration.ZERO, messageId).as(StepVerifier::create)
+				.assertNext(claimed -> {
+					assertThat(claimed.getStream()).isEqualTo(key);
+					assertThat(claimed.getValue()).isEqualTo(content);
+					assertThat(claimed.getId()).isEqualTo(messageId);
+				}).verifyComplete();
 
 	}
 }
