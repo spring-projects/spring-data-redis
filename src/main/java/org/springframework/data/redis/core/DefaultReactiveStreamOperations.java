@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -139,6 +141,21 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
 
 		return createMono(connection -> connection.xAdd(serializeRecord(input)));
+	}
+
+	@Override
+	public Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+
+		return createFlux(connection -> connection.xClaim(rawKey(key), group, newOwner, minIdleTime, recordIds)
+				.map(this::deserializeRecord));
+	}
+
+	@Override
+	public Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions) {
+
+		return createFlux(
+				connection -> connection.xClaim(rawKey(key), group, newOwner, xClaimOptions).map(this::deserializeRecord));
 	}
 
 	@Override

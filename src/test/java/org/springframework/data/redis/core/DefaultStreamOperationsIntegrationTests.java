@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,16 +35,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.ObjectRecord;
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.RecordId;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
@@ -72,7 +64,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	private final StreamOperations<K, HK, HV> streamOps;
 
 	public DefaultStreamOperationsIntegrationTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
-			ObjectFactory<?> objectFactory) {
+                                                   ObjectFactory<?> objectFactory) {
 
 		this.redisTemplate = redisTemplate;
 		this.connectionFactory = redisTemplate.getRequiredConnectionFactory();
@@ -419,5 +411,30 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
 		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+	}
+
+	@ParameterizedRedisTest // https://github.com/spring-projects/spring-data-redis/issues/2465
+	void claimShouldReadMessageDetails() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+		streamOps.read(Consumer.from("my-group", "name"), StreamOffset.create(key, ReadOffset.lastConsumed()));
+
+		List<MapRecord<K, HK, HV>> messages = streamOps.claim(key, "my-group", "new-owner", Duration.ZERO, messageId);
+
+		assertThat(messages).hasSize(1);
+
+		MapRecord<K, HK, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		if (!(key instanceof byte[] || value instanceof byte[])) {
+			assertThat(message.getValue()).containsEntry(hashKey, value);
+		}
 	}
 }

@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumer;
@@ -125,6 +127,35 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see ObjectRecord
 	 */
 	Mono<RecordId> add(Record<K, ?> record);
+
+	/**
+	 * Changes the ownership of a pending message, so that the new owner is the consumer specified as the command argument.
+	 * The message is claimed only if its idle time is greater the minimum idle time specified when calling XCLAIM
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param newOwner name of the consumer claiming the message.
+	 * @param minIdleTime idle time required for a message to be claimed.
+	 * @param recordIds record IDs to be claimed
+	 *
+	 * @return the {@link Flux} of claimed MapRecords.
+	 * @see <a href="https://redis.io/commands/xclaim/">Redis Documentation: XCLAIM</a>
+	 */
+	Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime, RecordId... recordIds);
+
+	/**
+	 * Changes the ownership of a pending message, so that the new owner is the consumer specified as the command argument.
+	 * The message is claimed only if its idle time is greater the minimum idle time specified when calling XCLAIM
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param newOwner name of the consumer claiming the message.
+	 * @param xClaimOptions additional parameters for the CLAIM call.
+	 *
+	 * @return the {@link Flux} of claimed MapRecords.
+	 * @see <a href="https://redis.io/commands/xclaim/">Redis Documentation: XCLAIM</a>
+	 */
+	Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions);
 
 	/**
 	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
