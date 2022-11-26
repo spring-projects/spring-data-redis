@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,6 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -144,6 +146,35 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.StreamOperations#delete(java.lang.Object, java.lang.String[])
 	 */
+	@Override
+	public List<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+		byte[] rawKey = rawKey(key);
+
+		return execute(new RecordDeserializingRedisCallback() {
+
+			@Nullable
+			@Override
+			List<ByteRecord> inRedis(RedisConnection connection) {
+				return connection.streamCommands().xClaim(rawKey, group, newOwner, minIdleTime, recordIds);
+			}
+		});
+	}
+
+	@Override
+	public List<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions) {
+		byte[] rawKey = rawKey(key);
+
+		return execute(new RecordDeserializingRedisCallback() {
+
+			@Nullable
+			@Override
+			List<ByteRecord> inRedis(RedisConnection connection) {
+				return connection.streamCommands().xClaim(rawKey, group, newOwner, xClaimOptions);
+			}
+		});
+	}
+
 	@Override
 	public Long delete(K key, RecordId... recordIds) {
 
