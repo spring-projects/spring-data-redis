@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.connection.util;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 
 /**
@@ -24,10 +26,14 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  */
-public class ByteArrayWrapper {
+public class ByteArrayWrapper implements Comparable<ByteArrayWrapper> {
 
 	private final byte[] array;
 	private final int hashCode;
+
+	public ByteArrayWrapper(ByteBuffer buffer) {
+		this(ByteUtils.getBytes(buffer.asReadOnlyBuffer()));
+	}
 
 	public ByteArrayWrapper(byte[] array) {
 		this.array = array;
@@ -53,5 +59,15 @@ public class ByteArrayWrapper {
 	 */
 	public byte[] getArray() {
 		return array;
+	}
+
+	@Override
+	public String toString() {
+		return new String(array);
+	}
+
+	@Override
+	public int compareTo(ByteArrayWrapper o) {
+		return Arrays.compare(this.array, o.array);
 	}
 }

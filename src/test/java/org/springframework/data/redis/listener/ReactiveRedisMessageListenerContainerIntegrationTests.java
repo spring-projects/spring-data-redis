@@ -18,12 +18,17 @@ package org.springframework.data.redis.listener;
 import static org.assertj.core.api.Assertions.*;
 
 import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -47,6 +52,8 @@ import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
@@ -300,6 +307,49 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 				}) //
 				.thenCancel() //
 				.verify();
+	}
+
+	@ParameterizedRedisTest // GH-2386
+	void multipleListenShouldTrackSubscriptions() throws Exception {
+
+		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
+
+		Flux<? extends ReactiveSubscription.Message<String, String>> c1 = container.receiveLater(ChannelTopic.of(CHANNEL1))
+				.block();
+		Flux<? extends ReactiveSubscription.Message<String, String>> c1p1 = container
+				.receiveLater(Arrays.asList(ChannelTopic.of(CHANNEL1), PatternTopic.of(PATTERN1)),
+						SerializationPair.fromSerializer(RedisSerializer.string()),
+						SerializationPair.fromSerializer(RedisSerializer.string()))
+				.block();
+
+		BlockingQueue<ReactiveSubscription.Message<String, String>> c1Collector = new LinkedBlockingDeque<>();
+		BlockingQueue<ReactiveSubscription.Message<String, String>> c2Collector = new LinkedBlockingDeque<>();
+
+		Disposable c1Subscription = c1.doOnNext(c1Collector::add).subscribe();
+		Disposable c2Subscription = c1p1.doOnNext(c2Collector::add).subscribe();
+
+		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
+
+		assertThat(c1Collector.poll(5, TimeUnit.SECONDS)).isNotNull();
+		assertThat(c2Collector.poll(5, TimeUnit.SECONDS)).isNotNull();
+		c1Collector.clear();
+		c2Collector.clear();
+
+		c2Subscription.dispose();
+
+		Thread.sleep(200);
+
+		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
+
+		assertThat(c1Collector.poll(5, TimeUnit.SECONDS)).isNotNull();
+		assertThat(c2Collector.poll(100, TimeUnit.MILLISECONDS)).isNull();
+
+		c1Subscription.dispose();
+
+		doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes());
+
+		assertThat(c1Collector.poll(100, TimeUnit.MILLISECONDS)).isNull();
+		assertThat(c2Collector.poll(100, TimeUnit.MILLISECONDS)).isNull();
 	}
 
 	private void doPublish(byte[] channel, byte[] message) {
