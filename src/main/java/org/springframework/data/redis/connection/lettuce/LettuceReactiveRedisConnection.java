@@ -51,6 +51,8 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	private final AsyncConnect<StatefulConnection<ByteBuffer, ByteBuffer>> dedicatedConnection;
 	private final AsyncConnect<StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer>> pubSubConnection;
 
+	private final LettuceReactivePubSubCommands pubSub = new LettuceReactivePubSubCommands(this);
+
 	private @Nullable Mono<StatefulConnection<ByteBuffer, ByteBuffer>> sharedConnection;
 
 	/**
@@ -137,7 +139,7 @@ class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	@Override
 	public ReactivePubSubCommands pubSubCommands() {
-		return new LettuceReactivePubSubCommands(this);
+		return pubSub;
 	}
 
 	@Override
