@@ -291,7 +291,8 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		return (Mono) container.receiveLater(Arrays.asList(topics), getSerializationContext().getStringSerializationPair(),
 						getSerializationContext().getValueSerializationPair()) //
-				.doFinally((signalType) -> container.destroyLater().subscribe());
+				.map(it -> it.doFinally(signalType -> container.destroyLater().subscribe()))
+				.doOnCancel(() -> container.destroyLater().subscribe());
 	}
 
 	// -------------------------------------------------------------------------
