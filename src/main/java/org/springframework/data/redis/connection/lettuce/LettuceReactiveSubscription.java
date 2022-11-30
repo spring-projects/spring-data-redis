@@ -23,18 +23,17 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.data.redis.connection.ReactiveSubscription;
 import org.springframework.data.redis.connection.SubscriptionListener;
+import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -50,19 +49,22 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 	private final LettuceByteBufferPubSubListenerWrapper listener;
 	private final StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connection;
-	private final RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer> commands;
+
+	private final RedisPubSubReactiveCommands<ByteBuffer, ByteBuffer> reactive;
+	private final LettuceReactivePubSubCommands commands;
 
 	private final State patternState;
 	private final State channelState;
 
 	LettuceReactiveSubscription(SubscriptionListener subscriptionListener,
-			StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connection,
+			StatefulRedisPubSubConnection<ByteBuffer, ByteBuffer> connection, LettuceReactivePubSubCommands commands,
 			Function<Throwable, Throwable> exceptionTranslator) {
 
 		this.listener = new LettuceByteBufferPubSubListenerWrapper(
 				new LettuceMessageListener((messages, pattern) -> {}, subscriptionListener));
 		this.connection = connection;
-		this.commands = connection.reactive();
+		this.reactive = connection.reactive();
+		this.commands = commands;
 		connection.addListener(listener);
 
 		this.patternState = new State(exceptionTranslator);
@@ -84,7 +86,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		Assert.notNull(patterns, "Patterns must not be null");
 		Assert.noNullElements(patterns, "Patterns must not contain null elements");
 
-		return patternState.subscribe(patterns, commands::psubscribe);
+		return patternState.subscribe(patterns, commands::pSubscribe);
 	}
 
 	@Override
@@ -112,7 +114,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		Assert.notNull(patterns, "Patterns must not be null");
 		Assert.noNullElements(patterns, "Patterns must not contain null elements");
 
-		return ObjectUtils.isEmpty(patterns) ? Mono.empty() : patternState.unsubscribe(patterns, commands::punsubscribe);
+		return ObjectUtils.isEmpty(patterns) ? Mono.empty() : patternState.unsubscribe(patterns, commands::pUnsubscribe);
 	}
 
 	@Override
@@ -128,12 +130,12 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	@Override
 	public Flux<Message<ByteBuffer, ByteBuffer>> receive() {
 
-		Flux<Message<ByteBuffer, ByteBuffer>> channelMessages = channelState.receive(() -> commands.observeChannels() //
-				.filter(message -> channelState.getTargets().contains(message.getChannel())) //
+		Flux<Message<ByteBuffer, ByteBuffer>> channelMessages = channelState.receive(() -> reactive.observeChannels() //
+				.filter(message -> channelState.contains(message.getChannel())) //
 				.map(message -> new ChannelMessage<>(message.getChannel(), message.getMessage())));
 
-		Flux<Message<ByteBuffer, ByteBuffer>> patternMessages = patternState.receive(() -> commands.observePatterns() //
-				.filter(message -> patternState.getTargets().contains(message.getPattern())) //
+		Flux<Message<ByteBuffer, ByteBuffer>> patternMessages = patternState.receive(() -> reactive.observePatterns() //
+				.filter(message -> patternState.contains(message.getPattern())) //
 				.map(message -> new PatternMessage<>(message.getPattern(), message.getChannel(), message.getMessage())));
 
 		return channelMessages.mergeWith(patternMessages);
@@ -149,7 +151,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 			// this is to ensure completion of the futures and result processing. Since we're unsubscribing first, we expect
 			// that we receive pub/sub confirmations before the PING response.
-			return commands.ping().then(Mono.fromRunnable(() -> {
+			return reactive.ping().then(Mono.fromRunnable(() -> {
 				connection.removeListener(listener);
 			}));
 		}));
@@ -162,7 +164,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 	 */
 	static class State {
 
-		private final Set<ByteBuffer> targets = new ConcurrentSkipListSet<>();
+		private final Set<ByteArrayWrapper> targets = new ConcurrentSkipListSet<>();
 		private final AtomicLong subscribers = new AtomicLong();
 		private final AtomicReference<Flux<?>> flux = new AtomicReference<>();
 		private final Function<Throwable, Throwable> exceptionTranslator;
@@ -182,8 +184,12 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		 */
 		Mono<Void> subscribe(ByteBuffer[] targets, Function<ByteBuffer[], Mono<Void>> subscribeFunction) {
 
-			return subscribeFunction.apply(targets).doOnSuccess((discard) -> this.targets.addAll(Arrays.asList(targets)))
-					.onErrorMap(exceptionTranslator);
+			return subscribeFunction.apply(targets).doOnSuccess((discard) -> {
+
+				for (ByteBuffer target : targets) {
+					this.targets.add(getWrapper(target));
+				}
+			}).onErrorMap(exceptionTranslator);
 		}
 
 		/**
@@ -198,16 +204,18 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 			return Mono.defer(() -> {
 
-				List<ByteBuffer> targetCollection = Arrays.asList(targets);
-
 				return unsubscribeFunction.apply(targets).doOnSuccess((discard) -> {
-					this.targets.removeAll(targetCollection);
+
+					for (ByteBuffer byteBuffer : targets) {
+						this.targets.remove(getWrapper(byteBuffer));
+					}
 				}).onErrorMap(exceptionTranslator);
 			});
 		}
 
 		Set<ByteBuffer> getTargets() {
-			return Collections.unmodifiableSet(targets);
+			return targets.stream().map(ByteArrayWrapper::getArray).map(ByteBuffer::wrap)
+					.collect(Collectors.toUnmodifiableSet());
 		}
 
 		/**
@@ -262,6 +270,14 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 			if (disposable != null && !disposable.isDisposed()) {
 				disposable.dispose();
 			}
+		}
+
+		public boolean contains(ByteBuffer target) {
+			return this.targets.contains(getWrapper(target));
+		}
+
+		private static ByteArrayWrapper getWrapper(ByteBuffer byteBuffer) {
+			return new ByteArrayWrapper(byteBuffer);
 		}
 	}
 }
