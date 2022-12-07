@@ -41,12 +41,12 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	 * Creates new {@link BasicRedisPersistentEntity}.
 	 *
 	 * @param information must not be {@literal null}.
-	 * @param fallbackKeySpaceResolver can be {@literal null}.
+	 * @param keySpaceResolver can be {@literal null}.
 	 * @param timeToLiveAccessor can be {@literal null}.
 	 */
-	public BasicRedisPersistentEntity(TypeInformation<T> information, @Nullable KeySpaceResolver fallbackKeySpaceResolver,
+	public BasicRedisPersistentEntity(TypeInformation<T> information, @Nullable KeySpaceResolver keySpaceResolver,
 			TimeToLiveAccessor timeToLiveAccessor) {
-		super(information, fallbackKeySpaceResolver);
+		super(information, keySpaceResolver);
 
 		Assert.notNull(timeToLiveAccessor, "TimeToLiveAccessor must not be null");
 		this.timeToLiveAccessor = timeToLiveAccessor;

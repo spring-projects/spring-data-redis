@@ -133,7 +133,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 				}
 			}
 
-			return ClassNameKeySpaceResolver.INSTANCE.resolveKeySpace(type);
+			return null;
 		}
 	}
 

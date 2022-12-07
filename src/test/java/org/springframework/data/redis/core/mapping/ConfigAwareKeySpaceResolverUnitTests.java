@@ -19,17 +19,18 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.mapping.RedisMappingContext.ConfigAwareKeySpaceResolver;
 
 /**
+ * Unit tests for {@link ConfigAwareKeySpaceResolver}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class ConfigAwareKeySpaceResolverUnitTests {
 
-	static final String CUSTOM_KEYSPACE = "car'a'carn";
 	private KeyspaceConfiguration config = new KeyspaceConfiguration();
 	private ConfigAwareKeySpaceResolver resolver;
 
@@ -43,10 +44,9 @@ class ConfigAwareKeySpaceResolverUnitTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> resolver.resolveKeySpace(null));
 	}
 
-	@Test // DATAREDIS-425
-	void resolveShouldUseClassNameAsDefaultKeyspace() {
-		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class))
-				.isEqualTo(TypeWithoutAnySettings.class.getName());
+	@Test // DATAREDIS-425, GH-2457
+	void resolveShouldReturnNullAsDefaultKeyspace() {
+		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isNull();
 	}
 
 	@Test // DATAREDIS-425
