@@ -63,8 +63,6 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 	private final MappingConfiguration mappingConfiguration;
 	private final TimeToLiveAccessor timeToLiveAccessor;
 
-	private @Nullable KeySpaceResolver fallbackKeySpaceResolver;
-
 	/**
 	 * Creates new {@link RedisMappingContext} with empty {@link MappingConfiguration}.
 	 */
@@ -82,24 +80,15 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		this.mappingConfiguration = mappingConfiguration != null ? mappingConfiguration
 				: new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration());
 
-		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(this.mappingConfiguration.getKeyspaceConfiguration()));
+		setKeySpaceResolver(new ConfigAwareKeySpaceResolver(this.mappingConfiguration.getKeyspaceConfiguration()));
 		this.timeToLiveAccessor = new ConfigAwareTimeToLiveAccessor(this.mappingConfiguration.getKeyspaceConfiguration(),
 				this);
 		this.setSimpleTypeHolder(SIMPLE_TYPE_HOLDER);
 	}
 
-	/**
-	 * Configures the {@link KeySpaceResolver} to be used if not explicit key space is annotated to the domain type.
-	 *
-	 * @param fallbackKeySpaceResolver can be {@literal null}.
-	 */
-	public void setFallbackKeySpaceResolver(@Nullable KeySpaceResolver fallbackKeySpaceResolver) {
-		this.fallbackKeySpaceResolver = fallbackKeySpaceResolver;
-	}
-
 	@Override
 	protected <T> RedisPersistentEntity<T> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new BasicRedisPersistentEntity<>(typeInformation, fallbackKeySpaceResolver, timeToLiveAccessor);
+		return new BasicRedisPersistentEntity<>(typeInformation, getKeySpaceResolver(), timeToLiveAccessor);
 	}
 
 	@Override
