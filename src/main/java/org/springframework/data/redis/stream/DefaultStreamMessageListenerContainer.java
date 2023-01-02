@@ -211,6 +211,10 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	 */
 	@Override
 	public Subscription register(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {
+
+		Assert.notNull(streamRequest, "StreamReadRequest must not be null");
+		Assert.notNull(listener, "StreamListener must not be null");
+
 		return doRegister(getReadTask(streamRequest, listener));
 	}
 
