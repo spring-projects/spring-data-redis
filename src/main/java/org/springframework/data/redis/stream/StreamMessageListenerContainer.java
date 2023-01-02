@@ -337,6 +337,9 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		Predicate<Throwable> cancelSubscriptionOnError = t -> true;
 
 		StreamReadRequestBuilder(StreamOffset<K> streamOffset) {
+
+			Assert.notNull(streamOffset, "StreamOffset must not be null");
+
 			this.streamOffset = streamOffset;
 		}
 
@@ -355,6 +358,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamReadRequestBuilder<K> errorHandler(ErrorHandler errorHandler) {
 
+			Assert.notNull(errorHandler, "ErrorHandler must not be null");
+
 			this.errorHandler = errorHandler;
 			return this;
 		}
@@ -368,6 +373,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamReadRequestBuilder<K> cancelOnError(Predicate<Throwable> cancelSubscriptionOnError) {
 
+			Assert.notNull(cancelSubscriptionOnError, "cancelSubscriptionOnError Predicate must not be null");
 			this.cancelSubscriptionOnError = cancelSubscriptionOnError;
 			return this;
 		}
@@ -439,6 +445,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @return {@code this} {@link ConsumerStreamReadRequestBuilder}.
 		 */
 		public ConsumerStreamReadRequestBuilder<K> consumer(Consumer consumer) {
+
+			Assert.notNull(consumer, "Consumer must not be null");
 
 			this.consumer = consumer;
 			return this;
