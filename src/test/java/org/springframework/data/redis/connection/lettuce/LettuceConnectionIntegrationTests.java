@@ -274,6 +274,16 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 						.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
 	}
 
+	@Test // GH-2473
+	void testExecuteZcardShouldReturnNumericValue() {
+
+		connection.zAdd("spring", 1, "awesome");
+		connection.zAdd("spring", 1, "cool");
+		connection.zAdd("spring", 1, "supercalifragilisticexpialidocious");
+
+		assertThat(connection.execute("ZCARD", "spring")).isInstanceOf(Long.class).isEqualTo(3L);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvalShaArrayBytes() {
