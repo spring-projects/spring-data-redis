@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
@@ -178,6 +177,16 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()))
 						.isInstanceOf(List.class)
 						.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
+	}
+
+	@Test // GH-2473
+	void testExecuteZcardShouldReturnNumericValue() {
+
+		connection.zAdd("spring", 1, "awesome");
+		connection.zAdd("spring", 1, "cool");
+		connection.zAdd("spring", 1, "supercalifragilisticexpialidocious");
+
+		assertThat(connection.execute("ZCARD", "spring")).isInstanceOf(Long.class).isEqualTo(3L);
 	}
 
 	@SuppressWarnings("unchecked")
