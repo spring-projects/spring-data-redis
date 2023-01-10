@@ -57,7 +57,6 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -1088,6 +1087,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(STRLEN, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(TTL, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZADD, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(ZCARD, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZCOUNT, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZINTERSTORE, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZRANK, IntegerOutput.class);
