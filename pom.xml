@@ -225,7 +225,7 @@
 
 		<dependency>
 			<groupId>io.mockk</groupId>
-			<artifactId>mockk</artifactId>
+			<artifactId>mockk-jvm</artifactId>
 			<version>${mockk}</version>
 			<scope>test</scope>
 		</dependency>
