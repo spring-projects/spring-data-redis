@@ -9,6 +9,7 @@ import org.springframework.lang.Nullable;
 /**
  * Wrapper for {@link RedisKeyValueAdapter} with correct cyclic reference resolving
  *
+ * @author Ilya Viaznin
  * @see RedisKeyValueAdapter
  */
 public class ReferenceRedisAdapter extends RedisKeyValueAdapter {
