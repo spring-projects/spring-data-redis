@@ -38,7 +38,6 @@ public class ReferenceRedisAdapterIntegrationTests {
 
     private Employee employee;
 
-
     @BeforeEach
     void setUp() {
         var mappingContext = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
