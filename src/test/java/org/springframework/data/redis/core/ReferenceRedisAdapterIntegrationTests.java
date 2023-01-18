@@ -67,7 +67,7 @@ public class ReferenceRedisAdapterIntegrationTests {
     }
 
     @Test
-    void getNoStackOverflow() {
+    void getRecordWithCyclicReferenceNoStackOverflow() {
         user.setId(0L)
             .setName("Sam");
         employee.setId(0L);
@@ -77,6 +77,16 @@ public class ReferenceRedisAdapterIntegrationTests {
 
         assertThatNoException().isThrownBy(() -> adapter.get(user.getId(), User.class.getName(), User.class));
         assertThatNoException().isThrownBy(() -> adapter.get(employee.getId(), Employee.class.getName(), Employee.class));
+    }
+
+    @Test
+    void getCyclicReferenceValuesIsCorrect() {
+        user.setId(0L)
+            .setName("Elena");
+        employee.setId(0L);
+
+        adapter.put(user.getId(), user, User.class.getName());
+        adapter.put(employee.getId(), employee, Employee.class.getName());
 
         var userFromRedis = adapter.get(user.getId(), User.class.getName(), User.class);
         var employeeFromRedis = adapter.get(employee.getId(), Employee.class.getName(), Employee.class);
