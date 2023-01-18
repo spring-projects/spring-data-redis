@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:setup]]
 == Getting Started
 
-An easy way to setting up a working environment is to create a Spring-based project in https://spring.io/tools/sts[STS].
+An easy way to setting up a working environment is to create a Spring-based project in https://spring.io/tools/[STS].
 
 First, you need to set up a running Redis server.
 

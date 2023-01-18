@@ -5,7 +5,7 @@ Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch, Ja
 ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1600]]
 :spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 :spring-framework-javadoc: https://docs.spring.io/spring-framework/docs/{springVersion}/javadoc-api
-:spring-framework-reference: https://docs.spring.io/spring-framework/docs/{springVersion}/reference/html
+:spring-framework-reference: link:{springDocsUrl}
 :store: Redis
 
 (C) 2011-2023 The original authors.

@@ -46,7 +46,6 @@ It usually does not take more then five to ten minutes to go through them and, i
 
 One can find various samples for key-value stores in the dedicated Spring Data example repo, at https://github.com/spring-projects/spring-data-keyvalue-examples[https://github.com/spring-projects/spring-data-keyvalue-examples].
 For Spring Data Redis, you should pay particular attention to the `retwisj` sample, a Twitter-clone built on top of Redis that can be run locally or be deployed into the cloud.
-See its https://docs.spring.io/spring-data/data-keyvalue/examples/retwisj/current/[documentation], the following blog https://spring.io/blog/2011/04/27/getting-started-redis-spring-cloud-foundry/[entry] for more information.
 
 [[requirements]]
 == Requirements
