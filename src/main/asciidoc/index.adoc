@@ -10,7 +10,9 @@ ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1
 
 (C) 2011-2023 The original authors.
 
-NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not
+charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed
+in print or electronically.
 
 toc::[]
 
@@ -37,5 +39,6 @@ include::reference/redis-repositories.adoc[leveloffset=+1]
 
 include::appendix/introduction.adoc[leveloffset=+1]
 include::appendix/appendix-schema.adoc[leveloffset=+1]
+include::appendix/appendix-properties-reference.adoc[leveloffset=+1]
 include::appendix/appendix-command-reference.adoc[leveloffset=+1]
 include::appendix/upgrading.adoc[leveloffset=+1]

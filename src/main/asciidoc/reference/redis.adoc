@@ -59,33 +59,50 @@ The repository is also https://repo.spring.io/milestone/org/springframework/data
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Spring Data Redis integrates with https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis], two popular open-source Java libraries for Redis.
+Spring Data Redis requires Redis 2.6 or above, and integrates with https://github.com/lettuce-io/lettuce-core[Lettuce]
+and https://github.com/redis/jedis[Jedis], two popular open-source Java libraries for Redis.
 
 [[redis:architecture]]
 == Redis Support High-level View
 
-The Redis support provides several components. For most tasks, the high-level abstractions and support services are the best choice. Note that, at any point, you can move between layers. For example, you can get a low-level connection (or even the native library) to communicate directly with Redis.
+The Redis support provides several components. For most tasks, the high-level abstractions and support services are your
+best choice. Note that, at any point, you can move between layers. For example, you can get a low-level connection
+(or even the native library) to communicate directly with Redis.
 
 [[redis:connectors]]
 == Connecting to Redis
 
-One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required. No matter the library you choose, you need to use only one set of Spring Data Redis APIs (which behaves consistently across all connectors): the `org.springframework.data.redis.connection` package and its `RedisConnection` and `RedisConnectionFactory` interfaces for working with and retrieving active connections to Redis.
+One of the first tasks when using Spring with Redis is to connect to the store through the IoC container. To do that,
+a Java connector (or binding) is required. No matter the library you choose, you need to use only one set of
+Spring Data Redis APIs that behave consistently across all connectors. The `org.springframework.data.redis.connection`
+package and its `RedisConnection` and `RedisConnectionFactory` interfaces are used for working with and retrieving
+active connections to Redis.
 
 [[redis:connectors:connection]]
 === RedisConnection and RedisConnectionFactory
 
-`RedisConnection` provides the core building block for Redis communication, as it handles the communication with the Redis back end. It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception {spring-framework-reference}/data-access.html#dao-exceptions[hierarchy] so that you can switch the connectors without any code changes, as the operation semantics remain the same.
+`RedisConnection` provides the core building block for Redis communication, as it handles the communication with
+the Redis backend. It also automatically translates the underlying connecting library exceptions to Spring's consistent
+DAO {spring-framework-reference}/data-access.html#dao-exceptions[exception hierarchy] so that you can switch connectors
+without any code changes since operation semantics remain the same.
 
-NOTE: For the corner cases where the native library API is required, `RedisConnection` provides a dedicated method (`getNativeConnection`) that returns the raw, underlying object used for communication.
+NOTE: For the corner cases where the native library API is required, `RedisConnection` provides a dedicated method
+(`getNativeConnection`) that returns the raw, underlying object used for communication.
 
-Active `RedisConnection` objects are created through `RedisConnectionFactory`. In addition, the factory acts as `PersistenceExceptionTranslator` objects, meaning that, once declared, they let you do transparent exception translation. For example, you can do exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated {spring-framework-reference}/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
+Active `RedisConnection` objects are created with `RedisConnectionFactory`. In addition, the factory functions as
+the `PersistenceExceptionTranslator`, meaning that, once declared, they let you do transparent exception translation.
+For example, you can do exception translation through the use of the `@Repository` annotation and AOP. For more information,
+see the dedicated {spring-framework-reference}/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
 
-NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection (when a pool or shared native connection is used).
+NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection
+(when a pool or shared native connection is used).
 
-The easiest way to work with a `RedisConnectionFactory` is to configure the appropriate connector through the IoC container and inject it into the using class.
+The easiest way to work with a `RedisConnectionFactory` is to configure the appropriate connector through the IoC container
+and inject it into the using class.
 
-Unfortunately, currently, not all connectors support all Redis features. When invoking a method on the Connection API that is unsupported by the underlying library, an `UnsupportedOperationException` is thrown. The following overview explains features that are supported by the individual Redis connectors:
-
+Unfortunately, currently, not all connectors support all Redis features. When invoking a method on the Connection API
+that is unsupported by the underlying library, an `UnsupportedOperationException` is thrown. The following overview
+explains what features are supported by individual Redis connectors:
 
 [[redis:connectors:overview]]
 .Feature Availability across Redis Connectors
@@ -149,7 +166,8 @@ Unfortunately, currently, not all connectors support all Redis features. When in
 [[redis:connectors:lettuce]]
 === Configuring the Lettuce Connector
 
-https://github.com/lettuce-io/lettuce-core[Lettuce] is a https://netty.io/[Netty]-based open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
+https://github.com/lettuce-io/lettuce-core[Lettuce] is a https://netty.io/[Netty]-based, open-source connector
+supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
 
 .Add the following to the pom.xml files `dependencies` element:
 [source,xml,subs="+attributes"]
@@ -176,15 +194,21 @@ class AppConfig {
 
   @Bean
   public LettuceConnectionFactory redisConnectionFactory() {
-
     return new LettuceConnectionFactory(new RedisStandaloneConfiguration("server", 6379));
   }
 }
 ----
 
-There are also a few Lettuce-specific connection parameters that can be tweaked. By default, all `LettuceConnection` instances created by the `LettuceConnectionFactory` share the same thread-safe native connection for all non-blocking and non-transactional operations. To use a dedicated connection each time, set `shareNativeConnection` to `false`. `LettuceConnectionFactory` can also be configured to use a `LettucePool` for pooling blocking and transactional connections or all connections if `shareNativeConnection` is set to `false`.
+There are also a few Lettuce-specific connection parameters that can be customized. By default, all `LettuceConnection`
+instances created by the `LettuceConnectionFactory` share the same thread-safe native connection for all non-blocking
+and non-transactional operations. To use a dedicated connection each time, set `shareNativeConnection` to `false`.
+`LettuceConnectionFactory` can also be configured to use a `LettucePool` for pooling blocking and transactional connections
+or all connections if `shareNativeConnection` is set to `false`.
 
-Lettuce integrates with Netty's https://netty.io/wiki/native-transports.html[native transports], letting you use Unix domain sockets to communicate with Redis. Make sure to include the appropriate native transport dependencies that match your runtime environment. The following example shows how to create a Lettuce Connection factory for a Unix domain socket at `/var/run/redis.sock`:
+Lettuce integrates with Netty's https://netty.io/wiki/native-transports.html[native transports], letting you use UNIX
+domain sockets to communicate with Redis. Make sure to include the appropriate native transport dependencies that match
+your runtime environment. The following example shows how to create a Lettuce connection factory for a UNIX domain socket
+at `/var/run/redis.sock`:
 
 [source,java]
 ----
@@ -193,7 +217,6 @@ class AppConfig {
 
   @Bean
   public LettuceConnectionFactory redisConnectionFactory() {
-
     return new LettuceConnectionFactory(new RedisSocketConfiguration("/var/run/redis.sock"));
   }
 }
@@ -204,7 +227,8 @@ NOTE: Netty currently supports the epoll (Linux) and kqueue (BSD/macOS) interfac
 [[redis:connectors:jedis]]
 === Configuring the Jedis Connector
 
-https://github.com/redis/jedis[Jedis] is a community-driven connector supported by the Spring Data Redis module through the `org.springframework.data.redis.connection.jedis` package.
+https://github.com/redis/jedis[Jedis] is a community-driven connector supported by Spring Data Redis
+through the `org.springframework.data.redis.connection.jedis` package.
 
 
 .Add the following to the pom.xml files `dependencies` element:
@@ -223,7 +247,7 @@ https://github.com/redis/jedis[Jedis] is a community-driven connector supported 
 </dependencies>
 ----
 
-In its simplest form, the Jedis configuration looks as follow:
+In its simplest form, the Jedis configuration appears as follows:
 
 [source,java]
 ----
@@ -237,26 +261,93 @@ class AppConfig {
 }
 ----
 
-For production use, however, you might want to tweak settings such as the host or password, as shown in the following example:
+However for production use, you might want to customize settings such as the host or password, as shown in
+the following example:
 
 [source,java]
 ----
 @Configuration
-class RedisConfiguration {
+class AppConfig {
 
   @Bean
   public JedisConnectionFactory redisConnectionFactory() {
-
-    RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("server", 6379);
-    return new JedisConnectionFactory(config);
+    return new JedisConnectionFactory(new RedisStandaloneConfiguration("server", 6379));
   }
 }
 ----
 
+[[redis:connectors:connection:customization-using-api]]
+=== Customizing `RedisConnections` using API
+
+The `RedisConfiguration` interface in the `org.springframework.data.redis.connetion` package deserves special mention
+since it can be used to customize the connection setup when connecting to Redis.
+
+NOTE: Two notable implementations of `RedisConfiguration` include, but are not limited to, the `RedisClusterConfiguration`
+(see <<cluster,here>>) and `RedisSentinelConfiguration` (see <<redis:sentinel,here>>) classes. These implementations,
+in addition to other implementations, will be discussed or shown in this document.
+
+One of the more common tasks in addition to setting a host and port, is to also customize the authentication criteria
+that may be required when connecting to the Redis server. This can be accomplished as follows:
+
+[source,java]
+----
+@Configuration
+class AppConfig {
+
+  @Bean
+  public LettuceConnectionFactory redisConnectionFactory() {
+
+    RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+
+    config.setUsername("test");
+    config.setPassword("s3cr3t");
+
+    return new LettuceConnectionFactory(config);
+  }
+}
+----
+
+Customizing the connection configuration is similar for Jedis.
+
+NOTE: While supplying auth credentials as shown above might be convenient for testing, Spring makes it as easy to supply
+auth credentials in an external, secure manner when deploying to (sensitive) environments by using a combination of
+properties and profiles along with other means.
+
+Each of the `RedisConfiguration` implementations offer additional, customizable connection properties specific to
+the type of connection, for example: cluster, sentinel, socket, standalone, or otherwise.
+
+[[redis:connectors:connection:customization-using-properties]]
+=== Customizing `RedisConnections` using Properties
+
+In particular, when using either `RedisClusterConfiguration` or `RedisSentinelConfiguration`, Spring Data Redis
+enables users to configure connectors using properties originating from a Spring `PropertySource`, which are collected
+by Spring's `Environment` implementation. Different `PropertySource` implementations can recognize properties declared
+in a Java properties file, or as JVM System properties, and even properties coming from other sources,
+such as a config server.
+
+For example, when using Redis cluster, you likely will need to configure a list of Redis servers participating in
+the cluster to connect to, like so:
+
+[source,properties]
+----
+spring.redis.cluster.nodes=hostname1:port1,hostname2:port2,...,hostnameN:portN
+----
+
+NOTE: The `hostname` can be replaced by the IP address of the host, such as `10.120.45.16:6379`. When declaring IPv6
+addresses use the following format to distinguish between host and port: `[<ip-v6-address>]:port`, for example:
+`[fe21::a01:8c4b:1234]:6379`. Multiple IP addresses and ports are comma-delimited.
+
+Spring Data Redis recognizes a set of properties specific to the configuration of Redis using Spring Data Redis.
+See the <<appendix:properties-reference,Properties Reference>> for a complete list of Spring Data Redis
+supported properties.
+
 [[redis:write-to-master-read-from-replica]]
 === Write to Master, Read from Replica
 
-The Redis Master/Replica setup -- without automatic failover (for automatic failover see: <<redis:sentinel, Sentinel>>) -- not only allows data to be safely stored at more nodes. It also allows, by using <<redis:connectors:lettuce, Lettuce>>, reading data from replicas while pushing writes to the master. You can set the read/write strategy to be used by using `LettuceClientConfiguration`, as shown in the following example:
+The Redis Master/Replica setup -- without automatic failover (for automatic failover see: <<redis:sentinel, Sentinel>>)
+-- not only allows data to be safely stored at more nodes, but also allows, by using <<redis:connectors:lettuce, Lettuce>>,
+reading data from replicas while pushing writes to the master. You can set the read/write strategy to be used by using
+`LettuceClientConfiguration`, as shown in the following example:
 
 [source,java]
 ----
@@ -277,24 +368,28 @@ class WriteToMasterReadFromReplicaConfiguration {
 }
 ----
 
-TIP: For environments reporting non-public addresses through the `INFO` command (for example, when using AWS), use `RedisStaticMasterReplicaConfiguration` instead of `RedisStandaloneConfiguration`. Please note that `RedisStaticMasterReplicaConfiguration` does not support Pub/Sub because of missing Pub/Sub message propagation across individual servers.
+TIP: For environments reporting non-public addresses through the `INFO` command (for example, when using AWS),
+use `RedisStaticMasterReplicaConfiguration` instead of `RedisStandaloneConfiguration`. Please note that
+`RedisStaticMasterReplicaConfiguration` does not support Pub/Sub because of missing Pub/Sub message propagation
+across individual servers.
 
 [[redis:sentinel]]
 == Redis Sentinel Support
 
-For dealing with high-availability Redis, Spring Data Redis has support for https://redis.io/topics/sentinel[Redis Sentinel], using `RedisSentinelConfiguration`, as shown in the following example:
+For dealing with high-availability in Redis, Spring Data Redis has support for https://redis.io/topics/sentinel[Redis Sentinel],
+using `RedisSentinelConfiguration`, as shown in the following example:
 
 [source,java]
 ----
-/**
- * Lettuce
- */
+/** Lettuce */
 @Bean
 public RedisConnectionFactory lettuceConnectionFactory() {
+
   RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
   .master("mymaster")
   .sentinel("127.0.0.1", 26379)
   .sentinel("127.0.0.1", 26380);
+
   return new LettuceConnectionFactory(sentinelConfig);
 }
 
@@ -303,10 +398,12 @@ public RedisConnectionFactory lettuceConnectionFactory() {
  */
 @Bean
 public RedisConnectionFactory jedisConnectionFactory() {
+
   RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
   .master("mymaster")
   .sentinel("127.0.0.1", 26379)
   .sentinel("127.0.0.1", 26380);
+
   return new JedisConnectionFactory(sentinelConfig);
 }
 ----
@@ -316,13 +413,14 @@ public RedisConnectionFactory jedisConnectionFactory() {
 `RedisSentinelConfiguration` can also be defined with a `PropertySource`, which lets you set the following properties:
 
 .Configuration Properties
-* `spring.redis.sentinel.master`: name of the master node.
-* `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
-* `spring.redis.sentinel.username`: The username to apply when authenticating with Redis Sentinel (requires Redis 6)
-* `spring.redis.sentinel.password`: The password to apply when authenticating with Redis Sentinel
+* `spring.redis.sentinel.master`: Name of the master node.
+* `spring.redis.sentinel.nodes`: Comma-delimited list of host:port pairs.
+* `spring.redis.sentinel.username`: The username to apply when authenticating with Redis Sentinel (requires Redis 6).
+* `spring.redis.sentinel.password`: The password to apply when authenticating with Redis Sentinel.
 ====
 
-Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
+Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()`
+or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 
 [[redis:template]]
 == Working with Objects through RedisTemplate

@@ -1,0 +1,20 @@
+[[appendix:properties-reference]]
+[appendix]
+= Properties Reference
+
+The following list summarizes the properties that are recognized by Spring Data Redis in configuration. All properties
+start with the `spring.redis.*` prefix.
+
+.Spring Data Redis Properties
+|===
+| Property | Description
+
+| spring.redis.cluster.nodes | Comma-delimited list of hosts and port pairs.
+| spring.redis.cluster.max-redirects | Sets the maximum number of redirects a connection will follow.
+
+| spring.redis.sentinel.master | Sets the name of the Redis Sentinel master node.
+| spring.redis.sentinel.nodes | Comma-delimited list of host and port pairs.
+| spring.redis.sentinel.username | Username used when connecting.
+| spring.redis.sentinel.password | Password used for the named user when connecting.
+
+|===
