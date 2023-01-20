@@ -388,6 +388,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
+	@Nullable
 	Long indexOf(K key, V value);
 
 	/**
@@ -400,6 +401,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
+	@Nullable
 	Long lastIndexOf(K key, V value);
 
 	/**
