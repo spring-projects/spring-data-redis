@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -26,6 +27,9 @@ import org.springframework.util.Assert;
  * Base class for {@link RedisTemplate} defining common properties. Not intended to be used directly.
  *
  * @author Costin Leau
+ * @author John Blum
+ * @see org.springframework.beans.factory.InitializingBean
+ * TODO: Declare as abstract
  */
 public class RedisAccessor implements InitializingBean {
 
@@ -34,45 +38,48 @@ public class RedisAccessor implements InitializingBean {
 
 	private @Nullable RedisConnectionFactory connectionFactory;
 
+	@Override
 	public void afterPropertiesSet() {
-		Assert.state(getConnectionFactory() != null, "RedisConnectionFactory is required");
+		getRequiredConnectionFactory();
 	}
 
 	/**
-	 * Returns the connectionFactory.
+	 * Returns the factory configured to acquire connections and perform operations on the connected Redis instance.
 	 *
-	 * @return Returns the connectionFactory. Can be {@literal null}
+	 * @return the configured {@link RedisConnectionFactory}. Can be {@literal null}.
+	 * @see RedisConnectionFactory
 	 */
 	@Nullable
 	public RedisConnectionFactory getConnectionFactory() {
-		return connectionFactory;
+		return this.connectionFactory;
 	}
 
 	/**
-	 * Returns the required {@link RedisConnectionFactory} or throws {@link IllegalStateException} if the connection
-	 * factory is not set.
+	 * Returns the required {@link RedisConnectionFactory}, throwing an {@link IllegalStateException}
+	 * if the {@link RedisConnectionFactory} is not set.
 	 *
-	 * @return the associated {@link RedisConnectionFactory}.
-	 * @throws IllegalStateException if the connection factory is not set.
+	 * @return the configured {@link RedisConnectionFactory}.
+	 * @throws IllegalStateException if the {@link RedisConnectionFactory} is not set.
+	 * @see #getConnectionFactory()
 	 * @since 2.0
 	 */
+	@NonNull
 	public RedisConnectionFactory getRequiredConnectionFactory() {
 
 		RedisConnectionFactory connectionFactory = getConnectionFactory();
 
-		if (connectionFactory == null) {
-			throw new IllegalStateException("RedisConnectionFactory is required");
-		}
+		Assert.state(connectionFactory != null, "RedisConnectionFactory is required");
 
 		return connectionFactory;
 	}
 
 	/**
-	 * Sets the connection factory.
+	 * Sets the factory used to acquire connections and perform operations on the connected Redis instance.
 	 *
-	 * @param connectionFactory The connectionFactory to set.
+	 * @param connectionFactory {@link RedisConnectionFactory} used to acquire connections.
+	 * @see RedisConnectionFactory
 	 */
-	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
+	public void setConnectionFactory(@Nullable RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 }
