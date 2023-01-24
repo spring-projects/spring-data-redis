@@ -29,7 +29,6 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author John Blum
  * @see org.springframework.beans.factory.InitializingBean
- * TODO: Declare as abstract
  */
 public class RedisAccessor implements InitializingBean {
 
