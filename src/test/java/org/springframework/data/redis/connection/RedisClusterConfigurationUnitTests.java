@@ -32,12 +32,15 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 class RedisClusterConfigurationUnitTests {
 
 	private static final String HOST_AND_PORT_1 = "127.0.0.1:123";
 	private static final String HOST_AND_PORT_2 = "localhost:456";
 	private static final String HOST_AND_PORT_3 = "localhost:789";
+	private static final String HOST_AND_PORT_4 = "[fe80::a00:27ff:fe4b:ee48]:6379";
+	private static final String HOST_AND_PORT_5 = "[fe80:1234:1a2b:0:27ff:fe4b:0:ee48]:6380";
 	private static final String HOST_AND_NO_PORT = "localhost";
 
 	@Test // DATAREDIS-315
@@ -81,13 +84,13 @@ class RedisClusterConfigurationUnitTests {
 	@Test // DATAREDIS-315
 	void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new RedisClusterConfiguration(Collections.<String> singleton(null)));
+				.isThrownBy(() -> new RedisClusterConfiguration(Collections.singleton(null)));
 	}
 
 	@Test // DATAREDIS-315
 	void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
-		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.<String> emptySet());
+		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.emptySet());
 
 		assertThat(config.getClusterNodes().size()).isEqualTo(0);
 	}
@@ -120,7 +123,7 @@ class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMultipleHostPort() {
+	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 		propertySource.setProperty("spring.redis.cluster.nodes",
@@ -134,4 +137,19 @@ class RedisClusterConfigurationUnitTests {
 				new RedisNode("localhost", 789));
 	}
 
+	@Test // GH-2360
+	public void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMultipleIPv6AddressesAndPorts() {
+
+		MockPropertySource propertySource = new MockPropertySource();
+
+		propertySource.setProperty("spring.redis.cluster.nodes",
+				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_4, HOST_AND_PORT_5)));
+		propertySource.setProperty("spring.redis.cluster.max-redirects", 2);
+
+		RedisClusterConfiguration configuration = new RedisClusterConfiguration(propertySource);
+
+		assertThat(configuration.getMaxRedirects()).isEqualTo(2);
+		assertThat(configuration.getClusterNodes()).contains(new RedisNode("fe80::a00:27ff:fe4b:ee48", 6379),
+				new RedisNode("fe80:1234:1a2b:0:27ff:fe4b:0:ee48", 6380));
+	}
 }
