@@ -68,7 +68,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldSubscribeChannels() {
 
-		when(pubSubMock.subscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 
 		Mono<Void> subscribe = subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
@@ -83,7 +83,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldSubscribeChannelsShouldFail() {
 
-		when(pubSubMock.subscribe(any())).thenReturn(Mono.error(new RedisConnectionException("Foo")));
+		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.error(new RedisConnectionException("Foo")));
 
 		Mono<Void> subscribe = subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
@@ -93,7 +93,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldSubscribePatterns() {
 
-		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.pSubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 
 		Mono<Void> subscribe = subscription.pSubscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
@@ -108,33 +108,33 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldUnsubscribeChannels() {
 
-		when(pubSubMock.subscribe(any())).thenReturn(Mono.empty());
-		when(pubSubMock.unsubscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
+		when(pubSubMock.unsubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		subscription.unsubscribe().as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getChannels()).isEmpty();
-		verify(pubSubMock).unsubscribe(any());
+		verify(pubSubMock).unsubscribe(any(ByteBuffer[].class));
 	}
 
 	@Test // DATAREDIS-612
 	void shouldUnsubscribePatterns() {
 
-		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
-		when(pubSubMock.pUnsubscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.pSubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
+		when(pubSubMock.pUnsubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		subscription.pUnsubscribe().as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getPatterns()).isEmpty();
-		verify(pubSubMock).pUnsubscribe(any());
+		verify(pubSubMock).pUnsubscribe(any(ByteBuffer[].class));
 	}
 
 	@Test // DATAREDIS-612
 	void shouldEmitChannelMessage() {
 
-		when(pubSubMock.subscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		Sinks.Many<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()
@@ -154,7 +154,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldEmitPatternMessage() {
 
-		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.pSubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*")).as(StepVerifier::create).verifyComplete();
 
 		Sinks.Many<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()
@@ -176,7 +176,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldEmitError() {
 
-		when(pubSubMock.subscribe(any())).thenReturn(Mono.empty());
+		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		Sinks.Many<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()

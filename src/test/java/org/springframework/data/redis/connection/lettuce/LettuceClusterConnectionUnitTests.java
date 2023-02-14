@@ -46,7 +46,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
@@ -307,7 +306,7 @@ class LettuceClusterConnectionUnitTests {
 		int[] slots = new int[] { 9000, 10000 };
 		connection.clusterDeleteSlots(CLUSTER_NODE_2, slots);
 
-		verify(clusterConnection2Mock, times(1)).clusterDelSlots((int[]) any());
+		verify(clusterConnection2Mock, times(1)).clusterDelSlots(any(int[].class));
 	}
 
 	@Test // DATAREDIS-315
