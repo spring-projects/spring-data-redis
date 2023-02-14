@@ -27,11 +27,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -142,7 +140,7 @@ class DefaultClusterOperationsUnitTests {
 
 		clusterOps.addSlots(NODE_1, 1, 2, 3);
 
-		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> any());
+		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), any(int[].class));
 	}
 
 	@Test // DATAREDIS-315
@@ -155,7 +153,7 @@ class DefaultClusterOperationsUnitTests {
 
 		clusterOps.addSlots(NODE_1, new SlotRange(1, 3));
 
-		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> any());
+		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), any(int[].class));
 	}
 
 	@Test // DATAREDIS-315
