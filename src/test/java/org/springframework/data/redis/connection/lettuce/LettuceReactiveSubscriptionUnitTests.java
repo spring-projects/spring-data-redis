@@ -67,7 +67,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldSubscribeChannels() {
 
-		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 
 		Mono<Void> subscribe = subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
@@ -82,7 +82,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldSubscribeChannelsShouldFail() {
 
-		when(commandsMock.subscribe(any())).thenReturn(Mono.error(new RedisConnectionException("Foo")));
+		when(commandsMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.error(new RedisConnectionException("Foo")));
 
 		Mono<Void> subscribe = subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
@@ -92,7 +92,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldSubscribePatterns() {
 
-		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.psubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 
 		Mono<Void> subscribe = subscription.pSubscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 
@@ -107,33 +107,33 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldUnsubscribeChannels() {
 
-		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
-		when(commandsMock.unsubscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
+		when(commandsMock.unsubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		subscription.unsubscribe().as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getChannels()).isEmpty();
-		verify(commandsMock).unsubscribe(any());
+		verify(commandsMock).unsubscribe(any(ByteBuffer[].class));
 	}
 
 	@Test // DATAREDIS-612
 	void shouldUnsubscribePatterns() {
 
-		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
-		when(commandsMock.punsubscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.psubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
+		when(commandsMock.punsubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		subscription.pUnsubscribe().as(StepVerifier::create).verifyComplete();
 
 		assertThat(subscription.getPatterns()).isEmpty();
-		verify(commandsMock).punsubscribe(any());
+		verify(commandsMock).punsubscribe(any(ByteBuffer[].class));
 	}
 
 	@Test // DATAREDIS-612
 	void shouldEmitChannelMessage() {
 
-		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
@@ -153,7 +153,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldEmitPatternMessage() {
 
-		when(commandsMock.psubscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.psubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*")).as(StepVerifier::create).verifyComplete();
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor
@@ -175,7 +175,7 @@ class LettuceReactiveSubscriptionUnitTests {
 	@Test // DATAREDIS-612
 	void shouldEmitError() {
 
-		when(commandsMock.subscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
 		subscription.subscribe(getByteBuffer("foo"), getByteBuffer("bar")).as(StepVerifier::create).verifyComplete();
 
 		DirectProcessor<io.lettuce.core.pubsub.api.reactive.ChannelMessage<ByteBuffer, ByteBuffer>> emitter = DirectProcessor

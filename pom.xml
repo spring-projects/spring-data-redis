@@ -23,6 +23,7 @@
 		<jta>1.1</jta>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.19</xstream>
+		<mockito>4.11.0</mockito>
 		<pool>2.11.1</pool>
 		<lettuce>6.1.10.RELEASE</lettuce>
 		<jedis>3.8.0</jedis>
