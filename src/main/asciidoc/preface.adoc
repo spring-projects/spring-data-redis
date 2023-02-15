@@ -29,7 +29,7 @@ To leverage all the features of Spring Data Redis, such as the repository suppor
 
 To learn more about Spring, you can refer to the comprehensive documentation that explains the Spring Framework in detail.
 There are a lot of articles, blog entries, and books on the subject.
-See the Spring framework https://spring.io/docs[home page] for more information.
+See the Spring framework https://spring.io/projects/spring-framework/[home page] for more information.
 
 In general, this should be the starting point for developers wanting to try Spring Data Redis.
 
@@ -44,8 +44,7 @@ It usually does not take more then five to ten minutes to go through them and, i
 [[get-started:first-steps:samples]]
 === Trying out the Samples
 
-One can find various samples for key-value stores in the dedicated Spring Data example repo, at https://github.com/spring-projects/spring-data-keyvalue-examples[https://github.com/spring-projects/spring-data-keyvalue-examples].
-For Spring Data Redis, you should pay particular attention to the `retwisj` sample, a Twitter-clone built on top of Redis that can be run locally or be deployed into the cloud.
+One can find various samples for key-value stores in the dedicated Spring Data example repo, at https://github.com/spring-projects/spring-data-examples/tree/main/redis[https://github.com/spring-projects/spring-data-examples/].
 See its https://docs.spring.io/spring-data/data-keyvalue/examples/retwisj/current/[documentation], the following blog https://spring.io/blog/2011/04/27/getting-started-redis-spring-cloud-foundry/[entry] for more information.
 
 [[requirements]]
@@ -73,7 +72,7 @@ Professional Support :: Professional, from-the-source support, with guaranteed r
 [[get-started:up-to-date]]
 == Following Development
 
-For information on the Spring Data source code repository, nightly builds, and snapshot artifacts, see the Spring Data home https://spring.io/spring-data[page].
+For information on the Spring Data source code repository, nightly builds, and snapshot artifacts, see the Spring Data home https://spring.io/projects/spring-data/[page].
 
 You can help make Spring Data best serve the needs of the Spring community by interacting with developers on Stack Overflow at either
 https://stackoverflow.com/questions/tagged/spring-data[spring-data] or https://stackoverflow.com/questions/tagged/spring-data-redis[spring-data-redis].

@@ -59,7 +59,7 @@ The repository is also https://repo.spring.io/milestone/org/springframework/data
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Spring Data Redis integrates with https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/xetorthio/jedis[Jedis], two popular open-source Java libraries for Redis.
+Spring Redis requires Redis 2.6 or above and Spring Data Redis integrates with https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis], two popular open-source Java libraries for Redis.
 
 [[redis:architecture]]
 == Redis Support High-level View
@@ -549,11 +549,11 @@ Do note that the storage format is not limited only to values. It can be used fo
 ====
 By default, `RedisCache` and `RedisTemplate` are configured to use Java native serialization. Java native serialization is known for allowing the running of remote code caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode. Manipulated input could lead to unwanted code being run in the application during the deserialization step. As a consequence, do not use serialization in untrusted environments. In general, we strongly recommend any other message format (such as JSON) instead.
 
-If you are concerned about security vulnerabilities due to Java serialization, consider the general-purpose serialization filter mechanism at the core JVM level, originally developed for JDK 9 but backported to JDK 8, 7, and 6:
+If you are concerned about security vulnerabilities due to Java serialization, consider the general-purpose serialization filter mechanism at the core JVM level:
 
-* https://blogs.oracle.com/java-platform-group/entry/incoming_filter_serialization_data_a[Filter Incoming Serialization Data].
-* https://openjdk.java.net/jeps/290[JEP 290].
-* https://www.owasp.org/index.php/Deserialization_of_untrusted_data[OWASP: Deserialization of untrusted data].
+* https://docs.oracle.com/en/java/javase/17/core/serialization-filtering1.html[Filter Incoming Serialization Data].
+* https://openjdk.org/jeps/290[JEP 290].
+* https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data[OWASP: Deserialization of untrusted data].
 ====
 
 [[redis.hashmappers.root]]
@@ -565,6 +565,7 @@ Data can be stored by using various data structures within Redis. `Jackson2JsonR
 * Using <<redis.repositories>>
 * Using `HashMapper` and `HashOperations`
 
+[[redis.hashmappers.mappers]]
 === Hash Mappers
 
 Hash mappers are converters of map objects to a `Map<K, V>` and back. `HashMapper` is intended for using with Redis Hashes.
@@ -706,7 +707,7 @@ include::{referenceDir}/redis-cache.adoc[]
 [[redis:support]]
 == Support Classes
 
-Package `org.springframework.data.redis.support` offers various reusable components that rely on Redis as a backing store. Currently, the package contains various JDK-based interface implementations on top of Redis, such as https://download.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK https://download.oracle.com/javase/8/docs/api/java/util/Collection.html[Collections].
+Package `org.springframework.data.redis.support` offers various reusable components that rely on Redis as a backing store. Currently, the package contains various JDK-based interface implementations on top of Redis, such as https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html[Collections].
 
 The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API leakage. In particular, the `RedisSet` and `RedisZSet` interfaces offer easy access to the set operations supported by Redis, such as `intersection` and `union`. `RedisList` implements the `List`, `Queue`, and `Deque` contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a FIFO (First-In-First-Out), LIFO (Last-In-First-Out) or capped collection with minimal configuration. The following example shows the configuration for a bean that uses a `RedisList`:
 
