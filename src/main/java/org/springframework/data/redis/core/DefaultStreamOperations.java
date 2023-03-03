@@ -16,7 +16,6 @@
 package org.springframework.data.redis.core;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +42,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.support.collections.CollectionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -52,6 +52,8 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Marcin Zielinski
+ * @author John Blum
  * @since 2.2
  */
 class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> implements StreamOperations<K, HK, HV> {
@@ -147,32 +149,16 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	 * @see org.springframework.data.redis.core.StreamOperations#delete(java.lang.Object, java.lang.String[])
 	 */
 	@Override
-	public List<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime,
-			RecordId... recordIds) {
-		byte[] rawKey = rawKey(key);
+	public List<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions) {
 
-		return execute(new RecordDeserializingRedisCallback() {
+		return CollectionUtils.nullSafeList(execute(new RecordDeserializingRedisCallback() {
 
 			@Nullable
 			@Override
 			List<ByteRecord> inRedis(RedisConnection connection) {
-				return connection.streamCommands().xClaim(rawKey, group, newOwner, minIdleTime, recordIds);
+				return connection.streamCommands().xClaim(rawKey(key), consumerGroup, newOwner, xClaimOptions);
 			}
-		});
-	}
-
-	@Override
-	public List<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions) {
-		byte[] rawKey = rawKey(key);
-
-		return execute(new RecordDeserializingRedisCallback() {
-
-			@Nullable
-			@Override
-			List<ByteRecord> inRedis(RedisConnection connection) {
-				return connection.streamCommands().xClaim(rawKey, group, newOwner, xClaimOptions);
-			}
-		});
+		}));
 	}
 
 	@Override

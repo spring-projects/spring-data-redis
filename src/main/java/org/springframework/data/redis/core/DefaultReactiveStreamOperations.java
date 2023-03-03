@@ -20,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -59,6 +58,8 @@ import org.springframework.util.ClassUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Marcin Zielinski
+ * @author John Blum
  * @since 2.2
  */
 class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperations<K, HK, HV> {
@@ -156,18 +157,10 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	 * @see org.springframework.data.redis.core.ReactiveStreamOperations#delete(java.lang.Object, java.lang.String[])
 	 */
 	@Override
-	public Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime,
-			RecordId... recordIds) {
+	public Flux<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions) {
 
-		return createFlux(connection -> connection.xClaim(rawKey(key), group, newOwner, minIdleTime, recordIds)
+		return createFlux(connection -> connection.xClaim(rawKey(key), consumerGroup, newOwner, xClaimOptions)
 				.map(this::deserializeRecord));
-	}
-
-	@Override
-	public Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions) {
-
-		return createFlux(
-				connection -> connection.xClaim(rawKey(key), group, newOwner, xClaimOptions).map(this::deserializeRecord));
 	}
 
 	@Override

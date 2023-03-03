@@ -52,6 +52,8 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dengliming
+ * @author Marcin Zielinski
+ * @author John Blum
  * @since 2.2
  */
 public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -139,33 +141,48 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	Mono<RecordId> add(Record<K, ?> record);
 
 	/**
-	 * Changes the ownership of a pending message, so that the new owner is the consumer specified as the command argument.
-	 * The message is claimed only if its idle time is greater the minimum idle time specified when calling XCLAIM
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
+	 * the command argument.
 	 *
-	 * @param key the stream key.
-	 * @param group name of the consumer group.
-	 * @param newOwner name of the consumer claiming the message.
-	 * @param minIdleTime idle time required for a message to be claimed.
-	 * @param recordIds record IDs to be claimed
+	 * The message is claimed only if its idle time (ms) is greater than the {@link Duration minimum idle time}
+	 * specified when calling {@literal XCLAIM}.
 	 *
-	 * @return the {@link Flux} of claimed MapRecords.
+	 * @param key {@link K key} to the steam.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the message.
+	 * @param minIdleTime {@link Duration minimum idle time} required for a message to be claimed.
+	 * @param recordIds {@link RecordId record IDs} to be claimed.
+	 * @return {@link Flux} of claimed {@link MapRecord MapRecords}.
 	 * @see <a href="https://redis.io/commands/xclaim/">Redis Documentation: XCLAIM</a>
+	 * @see org.springframework.data.redis.connection.stream.MapRecord
+	 * @see org.springframework.data.redis.connection.stream.RecordId
+	 * @see #claim(Object, String, String, XClaimOptions)
+	 * @see reactor.core.publisher.Flux
 	 */
-	Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime, RecordId... recordIds);
+	default Flux<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+
+		return claim(key, consumerGroup, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
+	}
 
 	/**
-	 * Changes the ownership of a pending message, so that the new owner is the consumer specified as the command argument.
-	 * The message is claimed only if its idle time is greater the minimum idle time specified when calling XCLAIM
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
+	 * the command argument.
+
+	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
+	 * specified when calling {@literal XCLAIM}.
 	 *
-	 * @param key the stream key.
-	 * @param group name of the consumer group.
-	 * @param newOwner name of the consumer claiming the message.
-	 * @param xClaimOptions additional parameters for the CLAIM call.
-	 *
-	 * @return the {@link Flux} of claimed MapRecords.
+	 * @param key {@link K key} to the steam.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the message.
+	 * @param xClaimOptions additional parameters for the {@literal CLAIM} call.
+	 * @return a {@link Flux} of claimed {@link MapRecord MapRecords}.
 	 * @see <a href="https://redis.io/commands/xclaim/">Redis Documentation: XCLAIM</a>
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions
+	 * @see org.springframework.data.redis.connection.stream.MapRecord
+	 * @see reactor.core.publisher.Flux
 	 */
-	Flux<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions);
+	Flux<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions);
 
 	/**
 	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
