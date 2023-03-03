@@ -50,6 +50,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Marcin Zielinski
  */
 @MethodSource("testParams")
 @EnabledOnCommand("XADD")
@@ -413,7 +414,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
 	}
 
-	@ParameterizedRedisTest // https://github.com/spring-projects/spring-data-redis/issues/2465
+	@ParameterizedRedisTest // GH-2465
 	void claimShouldReadMessageDetails() {
 
 		K key = keyFactory.instance();

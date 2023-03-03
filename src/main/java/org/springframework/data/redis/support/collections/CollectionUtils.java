@@ -18,18 +18,22 @@ package org.springframework.data.redis.support.collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 /**
  * Utility class used mainly for type conversion by the default collection implementations. Meant for internal use.
  *
  * @author Costin Leau
+ * @author John Blum
  */
-abstract class CollectionUtils {
+public abstract class CollectionUtils {
 
 	@SuppressWarnings("unchecked")
 	static <E> Collection<E> reverse(Collection<? extends E> c) {
@@ -69,5 +73,10 @@ abstract class CollectionUtils {
 				return null;
 			}
 		});
+	}
+
+	@NonNull
+	public static <T> List<T> nullSafeList(@Nullable List<T> list) {
+		return list != null ? list : Collections.emptyList();
 	}
 }

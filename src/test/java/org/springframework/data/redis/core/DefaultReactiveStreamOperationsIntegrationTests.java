@@ -59,7 +59,8 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * Integration tests for {@link DefaultReactiveStreamOperations}.
  *
  * @author Mark Paluch
- * @auhtor Christoph Strobl
+ * @author Christoph Strobl
+ * @author Marcin Zielinski
  */
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
@@ -361,7 +362,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 
 	}
 
-	@ParameterizedRedisTest // https://github.com/spring-projects/spring-data-redis/issues/2465
+	@ParameterizedRedisTest // GH-2465
 	void claimShouldReadMessageDetails() {
 
 		K key = keyFactory.instance();
