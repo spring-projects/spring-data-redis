@@ -25,11 +25,22 @@ import java.util.Map;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.Record;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -40,6 +51,8 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dengliming
+ * @author Marcin Zielinski
+ * @author John Blum
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -122,33 +135,46 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	RecordId add(Record<K, ?> record);
 
 	/**
-	 * Changes the ownership of a pending message, so that the new owner is the consumer specified as the command argument.
-	 * The message is claimed only if its idle time is greater the minimum idle time specified when calling XCLAIM
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
+	 * the command argument.
 	 *
-	 * @param key the stream key.
-	 * @param group name of the consumer group.
-	 * @param newOwner name of the consumer claiming the message.
-	 * @param minIdleTime idle time required for a message to be claimed.
-	 * @param recordIds record IDs to be claimed
+	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
+	 * specified when calling {@literal XCLAIM}.
 	 *
-	 * @return list of claimed MapRecords.
+	 * @param key {@link K key} to the steam.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the message.
+	 * @param minIdleTime {@link Duration minimum idle time} required for a message to be claimed.
+	 * @param recordIds {@link RecordId record IDs} to be claimed.
+	 * @return {@link List} of claimed {@link MapRecord MapRecords}.
 	 * @see <a href="https://redis.io/commands/xclaim/">Redis Documentation: XCLAIM</a>
+	 * @see org.springframework.data.redis.connection.stream.MapRecord
+	 * @see org.springframework.data.redis.connection.stream.RecordId
+	 * @see #claim(Object, String, String, XClaimOptions)
 	 */
-	List<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, Duration minIdleTime, RecordId... recordIds);
+	default List<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, Duration minIdleTime,
+			RecordId... recordIds) {
+
+		return claim(key, consumerGroup, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
+	}
 
 	/**
-	 * Changes the ownership of a pending message, so that the new owner is the consumer specified as the command argument.
-	 * The message is claimed only if its idle time is greater the minimum idle time specified when calling XCLAIM
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
+	 * the command argument.
 	 *
-	 * @param key the stream key.
-	 * @param group name of the consumer group.
-	 * @param newOwner name of the consumer claiming the message.
-	 * @param xClaimOptions additional parameters for the CLAIM call.
+	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
+	 * specified when calling {@literal XCLAIM}.
 	 *
-	 * @return list of claimed MapRecords.
+	 * @param key {@link K key} to the steam.
+	 * @param consumerGroup {@link String name} of the consumer group.
+	 * @param newOwner {@link String name} of the consumer claiming the message.
+	 * @param xClaimOptions additional parameters for the {@literal CLAIM} call.
+	 * @return {@link List} of claimed {@link MapRecord MapRecords}.
 	 * @see <a href="https://redis.io/commands/xclaim/">Redis Documentation: XCLAIM</a>
+	 * @see org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions
+	 * @see org.springframework.data.redis.connection.stream.MapRecord
 	 */
-	List<MapRecord<K, HK, HV>> claim(K key, String group, String newOwner, XClaimOptions xClaimOptions);
+	List<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions);
 
 	/**
 	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
