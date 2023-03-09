@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  */
 public final class ClusterSlotHashUtil {
 
-	private static final int SLOT_COUNT = 16384;
+	public static final int SLOT_COUNT = 16384;
 
 	private static final byte SUBKEY_START = '{';
 	private static final byte SUBKEY_END = '}';

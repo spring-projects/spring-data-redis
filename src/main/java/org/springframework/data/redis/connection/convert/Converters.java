@@ -30,6 +30,7 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
@@ -57,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author daihuabin
  */
 public abstract class Converters {
 
@@ -606,7 +608,7 @@ public abstract class Converters {
 
 		private SlotRange parseSlotRange(String[] args) {
 
-			Set<Integer> slots = new LinkedHashSet<>();
+			BitSet slots = new BitSet(ClusterSlotHashUtil.SLOT_COUNT);
 
 			for (int i = SLOTS_INDEX; i < args.length; i++) {
 
@@ -623,11 +625,11 @@ public abstract class Converters {
 						int from = Integer.valueOf(slotRange[0]);
 						int to = Integer.valueOf(slotRange[1]);
 						for (int slot = from; slot <= to; slot++) {
-							slots.add(slot);
+							slots.set(slot);
 						}
 					}
 				} else {
-					slots.add(Integer.valueOf(raw));
+					slots.set(Integer.valueOf(raw));
 				}
 			}
 
