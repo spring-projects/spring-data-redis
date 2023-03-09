@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -166,11 +168,12 @@ public class RedisClusterNode extends RedisNode {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author daihuabin
 	 * @since 1.7
 	 */
 	public static class SlotRange {
 
-		private final Set<Integer> range;
+		private final BitSet range;
 
 		/**
 		 * @param lowerBound must not be {@literal null}.
@@ -181,19 +184,30 @@ public class RedisClusterNode extends RedisNode {
 			Assert.notNull(lowerBound, "LowerBound must not be null");
 			Assert.notNull(upperBound, "UpperBound must not be null");
 
-			this.range = new LinkedHashSet<>();
+			this.range = new BitSet(upperBound + 1);
 			for (int i = lowerBound; i <= upperBound; i++) {
-				this.range.add(i);
+				this.range.set(i);
 			}
 		}
 
 		public SlotRange(Collection<Integer> range) {
-			this.range = CollectionUtils.isEmpty(range) ? Collections.emptySet() : new LinkedHashSet<>(range);
+			if (CollectionUtils.isEmpty(range)) {
+				this.range = new BitSet(0);
+			} else {
+				this.range = new BitSet(ClusterSlotHashUtil.SLOT_COUNT);
+				for (Integer pos : range) {
+					this.range.set(pos);
+				}
+			}
+		}
+
+		public SlotRange(BitSet range) {
+			this.range = (BitSet) range.clone();
 		}
 
 		@Override
 		public String toString() {
-			return range.toString();
+			return Arrays.toString(this.getSlotsArray());
 		}
 
 		/**
@@ -201,23 +215,36 @@ public class RedisClusterNode extends RedisNode {
 		 * @return true when slot is part of the range.
 		 */
 		public boolean contains(int slot) {
-			return range.contains(slot);
+			return range.get(slot);
 		}
 
 		/**
 		 * @return
 		 */
 		public Set<Integer> getSlots() {
-			return Collections.unmodifiableSet(range);
+			if (range.isEmpty()) {
+				return Collections.emptySet();
+			}
+			LinkedHashSet<Integer> slots = new LinkedHashSet<>(Math.max(2 * range.cardinality(), 11));
+			for (int i = 0; i < range.length(); i++) {
+				if (range.get(i)) {
+					slots.add(i);
+				}
+			}
+			return Collections.unmodifiableSet(slots);
 		}
 
 		public int[] getSlotsArray() {
-
-			int[] slots = new int[range.size()];
+			if (range.isEmpty()) {
+				return new int[0];
+			}
+			int[] slots = new int[range.cardinality()];
 			int pos = 0;
 
-			for (Integer value : range) {
-				slots[pos++] = value.intValue();
+			for (int i = 0; i < ClusterSlotHashUtil.SLOT_COUNT; i++) {
+				if (this.range.get(i)) {
+					slots[pos++] = i;
+				}
 			}
 
 			return slots;
