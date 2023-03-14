@@ -99,11 +99,16 @@ class MyConfig {
   }
 
   @Bean
-  RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, DefaultMessageDelegate listener) {
+  MessageListenerAdapter messageListenerAdapter(DefaultMessageDelegate listener) {
+    return new MessageListenerAdapter(listener, "handleMessage");
+  }
+
+  @Bean
+  RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, MessageListenerAdapter listener) {
 
     RedisMessageListenerContainer container = new RedisMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
-    container.addMessageListener(new MessageListenerAdapter(listener, "handleMessage"), ChannelTopic.of("chatroom"));
+    container.addMessageListener(listener, ChannelTopic.of("chatroom"));
     return container;
   }
 }
