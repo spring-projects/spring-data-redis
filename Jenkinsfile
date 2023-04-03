@@ -18,32 +18,7 @@ pipeline {
 	}
 
 	stages {
-		stage("Docker images") {
-			parallel {
-				stage('Publish JDK 17 + Redis 6.2 Docker image') {
-					when {
-						anyOf {
-							changeset "ci/openjdk17-redis-6.2/Dockerfile"
-							changeset "Makefile"
-							changeset "ci/pipeline.properties"
-						}
-					}
-					agent { label 'data' }
-					options { timeout(time: 20, unit: 'MINUTES') }
-
-					steps {
-						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								image.push()
-							}
-						}
-					}
-				}
-			}
-		}
-
-		stage("test: baseline (Java 17)") {
+		stage("test: baseline (main)") {
 			when {
 				beforeAgent(true)
 				anyOf {
@@ -67,7 +42,7 @@ pipeline {
 			}
 		}
 
-		stage("test: native-hints") {
+		stage("Test other configurations") {
         	when {
         		beforeAgent(true)
         		anyOf {
@@ -75,19 +50,39 @@ pipeline {
         			not { triggeredBy 'UpstreamCause' }
         		}
         	}
-        	agent {
-        		label 'data'
-        	}
-        	options { timeout(time: 30, unit: 'MINUTES') }
-        	environment {
-        		ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-        	}
-        	steps {
-        		script {
-        			docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-        				sh 'PROFILE=runtimehints LONG_TESTS=false ci/test.sh'
-        			}
-        		}
+        	parallel {
+				stage("test: native-hints") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+					}
+					steps {
+						script {
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								sh 'PROFILE=runtimehints LONG_TESTS=false ci/test.sh'
+							}
+						}
+					}
+				}
+				stage("test: baseline (next)") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+					}
+					steps {
+						script {
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
+							}
+						}
+					}
+				}
         	}
         }
 
