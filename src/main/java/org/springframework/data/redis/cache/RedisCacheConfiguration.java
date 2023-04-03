@@ -167,7 +167,7 @@ public class RedisCacheConfiguration {
 	 * The generated cache key will be: {@code prefix + cache name + "::" + cache entry key}.
 	 *
 	 * @param prefix the prefix to prepend to the cache name.
-	 * @return this.
+	 * @return new {@link RedisCacheConfiguration}.
 	 * @see #computePrefixWith(CacheKeyPrefix)
 	 * @see CacheKeyPrefix#prefixed(String)
 	 * @since 2.3
