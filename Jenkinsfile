@@ -63,7 +63,7 @@ pipeline {
 			}
 		}
 
-		stage("test: baseline (Java 17)") {
+		stage("test: baseline (main)") {
 			when {
 				beforeAgent(true)
 				anyOf {
@@ -112,7 +112,7 @@ pipeline {
 						}
 					}
 				}
-				stage("test: baseline (Java 20)") {
+				stage("test: baseline (next)") {
 					agent {
 						label 'data'
 					}
