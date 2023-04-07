@@ -87,7 +87,7 @@ public void basicCrudOperations() {
 
   repo.save(rand);                                         <1>
 
-  repo.findOne(rand.getId());                              <2>
+  repo.findById(rand.getId());                              <2>
 
   repo.count();                                            <3>
 
