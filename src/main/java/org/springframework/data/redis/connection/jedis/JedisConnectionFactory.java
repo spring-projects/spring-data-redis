@@ -305,6 +305,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		this.initialized = true;
+		this.destroyed = false;
 	}
 
 	JedisClientConfig createSentinelClientConfig(SentinelConfiguration sentinelConfiguration) {
