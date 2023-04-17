@@ -70,7 +70,7 @@ public class BoundingBox implements Shape {
 	 * @return will never be {@literal null}.
 	 */
 	public Distance getWidth() {
-		return height;
+		return width;
 	}
 
 	/**
