@@ -93,7 +93,7 @@ public final class ByteUtils {
 	 *
 	 * @param firstArray must not be {@literal null}
 	 * @param additionalArrays must not be {@literal null}
-	 * @return
+	 * @return the merged array.
 	 */
 	public static byte[][] mergeArrays(byte[] firstArray, byte[]... additionalArrays) {
 
