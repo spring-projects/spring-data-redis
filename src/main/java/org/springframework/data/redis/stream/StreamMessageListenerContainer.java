@@ -494,12 +494,13 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private final @Nullable HashMapper<Object, Object, Object> hashMapper;
 		private final ErrorHandler errorHandler;
 		private final Executor executor;
+		private final Duration shutdownTimeout;
 
 		@SuppressWarnings("unchecked")
 		private StreamMessageListenerContainerOptions(Duration pollTimeout, @Nullable Integer batchSize,
 				RedisSerializer<K> keySerializer, RedisSerializer<Object> hashKeySerializer,
 				RedisSerializer<Object> hashValueSerializer, @Nullable Class<?> targetType,
-				@Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler, Executor executor) {
+				@Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler, Executor executor, Duration shutdownTimeout) {
 			this.pollTimeout = pollTimeout;
 			this.batchSize = batchSize;
 			this.keySerializer = keySerializer;
@@ -509,6 +510,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			this.hashMapper = (HashMapper) hashMapper;
 			this.errorHandler = errorHandler;
 			this.executor = executor;
+			this.shutdownTimeout = shutdownTimeout;
 		}
 
 		/**
@@ -589,6 +591,15 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return executor;
 		}
 
+		/**
+		 * Timeout for shutdown container.
+		 *
+		 * @return the timeout.
+		 */
+		public Duration getShutdownTimeout() {
+			return shutdownTimeout;
+		}
+
 	}
 
 	/**
@@ -609,6 +620,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private @Nullable Class<?> targetType;
 		private ErrorHandler errorHandler = LoggingErrorHandler.INSTANCE;
 		private Executor executor = new SimpleAsyncTaskExecutor();
+		private Duration shutdownTimeout = Duration.ofSeconds(1);
 
 		private StreamMessageListenerContainerOptionsBuilder() {}
 
@@ -624,6 +636,21 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			Assert.isTrue(!pollTimeout.isNegative(), "Poll timeout must not be negative");
 
 			this.pollTimeout = pollTimeout;
+			return this;
+		}
+
+		/**
+		 * Configure a timeout for shutdown container.
+		 *
+		 * @param shutdownTimeout must not be {@literal null} or negative.
+		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
+		 */
+		public StreamMessageListenerContainerOptionsBuilder<K, V> shutdownTimeout(Duration shutdownTimeout) {
+
+			Assert.notNull(shutdownTimeout, "Shutdown timeout must not be null");
+			Assert.isTrue(!shutdownTimeout.isNegative(), "Shutdown timeout must not be negative");
+
+			this.shutdownTimeout = shutdownTimeout;
 			return this;
 		}
 
@@ -777,7 +804,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 */
 		public StreamMessageListenerContainerOptions<K, V> build() {
 			return new StreamMessageListenerContainerOptions<>(pollTimeout, batchSize, keySerializer, hashKeySerializer,
-					hashValueSerializer, targetType, hashMapper, errorHandler, executor);
+					hashValueSerializer, targetType, hashMapper, errorHandler, executor, shutdownTimeout);
 		}
 	}
 }
