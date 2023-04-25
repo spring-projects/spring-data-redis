@@ -525,7 +525,7 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey);
 
 	/**
-	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.<br>
+	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.<br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.
@@ -539,7 +539,7 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);
 
 	/**
-	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.<br>
+	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.<br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.
