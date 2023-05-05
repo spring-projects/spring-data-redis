@@ -21,7 +21,7 @@
 		<springdata.keyvalue>3.0.6-SNAPSHOT</springdata.keyvalue>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
-		<xstream>1.4.19</xstream>
+		<xstream>1.4.20</xstream>
 		<pool>2.11.1</pool>
 		<lettuce>6.2.4.RELEASE</lettuce>
 		<jedis>4.3.2</jedis>
