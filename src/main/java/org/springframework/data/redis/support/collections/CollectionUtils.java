@@ -35,18 +35,8 @@ import org.springframework.lang.Nullable;
  */
 public abstract class CollectionUtils {
 
-	@SuppressWarnings("unchecked")
-	static <E> Collection<E> reverse(Collection<? extends E> c) {
-		Object[] reverse = new Object[c.size()];
-		int index = c.size();
-		for (E e : c) {
-			reverse[--index] = e;
-		}
-
-		return (List<E>) Arrays.asList(reverse);
-	}
-
 	static Collection<String> extractKeys(Collection<? extends RedisStore> stores) {
+
 		Collection<String> keys = new ArrayList<>(stores.size());
 
 		for (RedisStore store : stores) {
@@ -56,10 +46,27 @@ public abstract class CollectionUtils {
 		return keys;
 	}
 
+	public static <T> List<T> initializeList(@NonNull List<T> list, int size) {
+
+		for (int count = 0; count < size; count++) {
+			list.add(null);
+		}
+
+		return list;
+	}
+
+	@NonNull
+	public static <T> List<T> nullSafeList(@Nullable List<T> list) {
+		return list != null ? list : Collections.emptyList();
+	}
+
 	static <K> void rename(final K key, final K newKey, RedisOperations<K, ?> operations) {
+
 		operations.execute(new SessionCallback<Object>() {
+
 			@SuppressWarnings("unchecked")
 			public Object execute(RedisOperations operations) throws DataAccessException {
+
 				do {
 					operations.watch(key);
 
@@ -70,13 +77,22 @@ public abstract class CollectionUtils {
 						operations.multi();
 					}
 				} while (operations.exec() == null);
+
 				return null;
 			}
 		});
 	}
 
-	@NonNull
-	public static <T> List<T> nullSafeList(@Nullable List<T> list) {
-		return list != null ? list : Collections.emptyList();
+	@SuppressWarnings("unchecked")
+	static <E> Collection<E> reverse(Collection<? extends E> c) {
+
+		Object[] reverse = new Object[c.size()];
+		int index = c.size();
+
+		for (E e : c) {
+			reverse[--index] = e;
+		}
+
+		return (List<E>) Arrays.asList(reverse);
 	}
 }
