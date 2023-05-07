@@ -15,10 +15,12 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -33,6 +35,10 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
 import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Integration tests for {@link Jackson2HashMapper}.
@@ -84,5 +90,44 @@ public class Jackson2HashMapperIntegrationTests {
 
 		Person result = (Person) mapper.fromHash(template.<String, Object> opsForHash().entries("JON-SNOW"));
 		assertThat(result).isEqualTo(jon);
+	}
+
+	@ParameterizedRedisTest // GH-2565
+	public void shouldPreserveListPropertyOrderOnHashedSource() {
+
+		User jonDoe = User.as("Jon Doe")
+			.withPhoneNumber(9, 7, 1, 5, 5, 5, 4, 1, 8, 2);
+
+		template.opsForHash().putAll("JON-DOE", mapper.toHash(jonDoe));
+
+		User deserializedJonDoe =
+			(User) mapper.fromHash(template.<String, Object>opsForHash().entries("JON-DOE"));
+
+		assertThat(deserializedJonDoe).isNotNull();
+		assertThat(deserializedJonDoe).isNotSameAs(jonDoe);
+		assertThat(deserializedJonDoe.getName()).isEqualTo("Jon Doe");
+		assertThat(deserializedJonDoe.getPhoneNumber()).containsExactly(9, 7, 1, 5, 5, 5, 4, 1, 8, 2);
+	}
+
+	@Data
+	@ToString(of = "name")
+	@NoArgsConstructor
+	static class User {
+
+		static User as(String name) {
+			return new User(name);
+		}
+
+		private String name;
+		private List<Integer> phoneNumber;
+
+		User(String name) {
+			this.name = name;
+		}
+
+		User withPhoneNumber(Integer... numbers) {
+			this.phoneNumber = new ArrayList<>(Arrays.asList(numbers));
+			return this;
+		}
 	}
 }

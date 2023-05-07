@@ -15,12 +15,14 @@
  */
 package org.springframework.data.redis.hash;
 
-import static com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.*;
+import static com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.EVERYTHING;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,11 +34,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.redis.support.collections.CollectionUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -233,8 +237,12 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			if (flatten) {
 
-				return typingMapper.reader().forType(Object.class)
-						.readValue(untypedMapper.writeValueAsBytes(doUnflatten(hash)));
+				Map<String, Object> unflattenedHash = doUnflatten(hash);
+				byte[] unflattenedHashedBytes = untypedMapper.writeValueAsBytes(unflattenedHash);
+				Object hashedObject = typingMapper.reader().forType(Object.class)
+						.readValue(unflattenedHashedBytes);;
+
+				return hashedObject;
 			}
 
 			return typingMapper.treeToValue(untypedMapper.valueToTree(hash), Object.class);
@@ -248,31 +256,37 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	private Map<String, Object> doUnflatten(Map<String, Object> source) {
 
 		Map<String, Object> result = new LinkedHashMap<>();
-		Set<String> treatSeperate = new LinkedHashSet<>();
+		Set<String> treatSeparate = new LinkedHashSet<>();
+
 		for (Entry<String, Object> entry : source.entrySet()) {
 
 			String key = entry.getKey();
-			String[] args = key.split("\\.");
+			String[] keyParts = key.split("\\.");
 
-			if (args.length == 1 && !args[0].contains("[")) {
+			if (keyParts.length == 1 && isNotIndexed(keyParts[0])) {
 				result.put(entry.getKey(), entry.getValue());
 				continue;
 			}
 
-			if (args.length == 1 && args[0].contains("[")) {
+			if (keyParts.length == 1 && isIndexed(keyParts[0])) {
 
-				String prunedKey = args[0].substring(0, args[0].indexOf('['));
-				if (result.containsKey(prunedKey)) {
-					appendValueToTypedList(args[0], entry.getValue(), (List<Object>) result.get(prunedKey));
-				} else {
-					result.put(prunedKey, createTypedListWithValue(entry.getValue()));
+				String indexedKeyName = keyParts[0];
+				String nonIndexedKeyName = stripIndex(indexedKeyName);
+
+				int index = getIndex(indexedKeyName);
+
+				if (result.containsKey(nonIndexedKeyName)) {
+					addValueToTypedListAtIndex((List<Object>) result.get(nonIndexedKeyName), index, entry.getValue());
+				}
+				else {
+					result.put(nonIndexedKeyName, createTypedListWithValue(index, entry.getValue()));
 				}
 			} else {
-				treatSeperate.add(key.substring(0, key.indexOf('.')));
+				treatSeparate.add(key.substring(0, key.indexOf('.')));
 			}
 		}
 
-		for (String partial : treatSeperate) {
+		for (String partial : treatSeparate) {
 
 			Map<String, Object> newSource = new LinkedHashMap<>();
 
@@ -284,12 +298,13 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			if (partial.endsWith("]")) {
 
-				String prunedKey = partial.substring(0, partial.indexOf('['));
+				String nonIndexPartial = stripIndex(partial);
+				int index = getIndex(partial);
 
-				if (result.containsKey(prunedKey)) {
-					appendValueToTypedList(partial, doUnflatten(newSource), (List<Object>) result.get(prunedKey));
+				if (result.containsKey(nonIndexPartial)) {
+					addValueToTypedListAtIndex((List<Object>) result.get(nonIndexPartial), index, doUnflatten(newSource));
 				} else {
-					result.put(prunedKey, createTypedListWithValue(doUnflatten(newSource)));
+					result.put(nonIndexPartial, createTypedListWithValue(index, doUnflatten(newSource)));
 				}
 			} else {
 				result.put(partial, doUnflatten(newSource));
@@ -297,6 +312,27 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		}
 
 		return result;
+	}
+
+	private boolean isIndexed(@NonNull String value) {
+		return value.indexOf('[') > -1;
+	}
+
+	private boolean isNotIndexed(@NonNull String value) {
+		return !isIndexed(value);
+	}
+
+	private int getIndex(@NonNull String indexedValue) {
+		return Integer.parseInt(indexedValue.substring(indexedValue.indexOf('[') + 1, indexedValue.length() - 1));
+	}
+
+	private @NonNull String stripIndex(@NonNull String indexedValue) {
+
+		int indexOfLeftBracket = indexedValue.indexOf("[");
+
+		return indexOfLeftBracket > -1
+			? indexedValue.substring(0, indexOfLeftBracket)
+			: indexedValue;
 	}
 
 	private Map<String, Object> flattenMap(Iterator<Entry<String, JsonNode>> source) {
@@ -314,7 +350,6 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		}
 
 		while (inputMap.hasNext()) {
-
 			Entry<String, JsonNode> entry = inputMap.next();
 			flattenElement(propertyPrefix + entry.getKey(), entry.getValue(), resultMap);
 		}
@@ -323,7 +358,6 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	private void flattenElement(String propertyPrefix, Object source, Map<String, Object> resultMap) {
 
 		if (!(source instanceof JsonNode)) {
-
 			resultMap.put(propertyPrefix, source);
 			return;
 		}
@@ -337,6 +371,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 			while (nodes.hasNext()) {
 
 				JsonNode cur = nodes.next();
+
 				if (cur.isArray()) {
 					this.flattenCollection(propertyPrefix, cur.elements(), resultMap);
 				} else {
@@ -370,12 +405,13 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 							try {
 								resultMap.put(propertyPrefix, next.binaryValue());
-							} catch (IOException e) {
-								throw new IllegalStateException(String.format("Cannot read binary value of '%s'", propertyPrefix), e);
+							} catch (IOException cause) {
+								String message = String.format("Cannot read binary value of '%s'", propertyPrefix);
+								throw new IllegalStateException(message, cause);
 							}
+
 							break;
 						}
-
 					}
 				}
 			}
@@ -390,53 +426,49 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	private boolean mightBeJavaType(JsonNode node) {
 
 		String textValue = node.asText();
+
 		if (!SOURCE_VERSION_PRESENT) {
-
-			if (ObjectUtils.nullSafeEquals(textValue, "java.util.Date")) {
-				return true;
-			}
-			if (ObjectUtils.nullSafeEquals(textValue, "java.math.BigInteger")) {
-				return true;
-			}
-			if (ObjectUtils.nullSafeEquals(textValue, "java.math.BigDecimal")) {
-				return true;
-			}
-
-			return false;
+			return Arrays.asList("java.util.Date", "java.math.BigInteger", "java.math.BigDecimal").contains(textValue);
 		}
-		return javax.lang.model.SourceVersion.isName(textValue);
 
+		return javax.lang.model.SourceVersion.isName(textValue);
 	}
 
 	private void flattenCollection(String propertyPrefix, Iterator<JsonNode> list, Map<String, Object> resultMap) {
 
-		int counter = 0;
-		while (list.hasNext()) {
+		for (int counter = 0; list.hasNext(); counter++) {
 			JsonNode element = list.next();
 			flattenElement(propertyPrefix + "[" + counter + "]", element, resultMap);
-			counter++;
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void appendValueToTypedList(String key, Object value, List<Object> destination) {
+	private void addValueToTypedListAtIndex(List<Object> listWithTypeHint, int index, Object value) {
 
-		int index = Integer.parseInt(key.substring(key.indexOf('[') + 1, key.length() - 1));
-		List<Object> resultList = ((List<Object>) destination.get(1));
-		if (resultList.size() < index) {
-			resultList.add(value);
-		} else {
-			resultList.add(index, value);
+		List<Object> valueList = (List<Object>) listWithTypeHint.get(1);
+
+		if (index >= valueList.size()) {
+			int initialCapacity = index + 1;
+			List<Object> newValueList = new ArrayList<>(initialCapacity);
+			Collections.copy(CollectionUtils.initializeList(newValueList, initialCapacity), valueList);
+			listWithTypeHint.set(1, newValueList);
+			valueList = newValueList;
 		}
+
+		valueList.set(index, value);
 	}
 
-	private List<Object> createTypedListWithValue(Object value) {
+	private List<Object> createTypedListWithValue(int index, Object value) {
+
+		int initialCapacity = index + 1;
+
+		List<Object> valueList = CollectionUtils.initializeList(new ArrayList<>(initialCapacity), initialCapacity);
+		valueList.set(index, value);
 
 		List<Object> listWithTypeHint = new ArrayList<>();
-		listWithTypeHint.add(ArrayList.class.getName()); // why jackson? why?
-		List<Object> values = new ArrayList<>();
-		values.add(value);
-		listWithTypeHint.add(values);
+		listWithTypeHint.add(ArrayList.class.getName());
+		listWithTypeHint.add(valueList);
+
 		return listWithTypeHint;
 	}
 
@@ -468,16 +500,16 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		@Override
 		public Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
 
-			Object val = delegate.deserialize(p, ctxt);
+			Object value = delegate.deserialize(p, ctxt);
 
-			if (val instanceof Date) {
-				return (Date) val;
+			if (value instanceof Date) {
+				return (Date) value;
 			}
 
 			try {
-				return ctxt.getConfig().getDateFormat().parse(val.toString());
-			} catch (ParseException e) {
-				return new Date(NumberUtils.parseNumber(val.toString(), Long.class));
+				return ctxt.getConfig().getDateFormat().parse(value.toString());
+			} catch (ParseException cause) {
+				return new Date(NumberUtils.parseNumber(value.toString(), Long.class));
 			}
 		}
 	}
@@ -500,13 +532,13 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			Date date = dateDeserializer.deserialize(p, ctxt);
 
-			if (date == null) {
-				return null;
+			if (date != null) {
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(date);
+				return calendar;
 			}
 
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(date);
-			return calendar;
+			return null;
 		}
 	}
 
@@ -524,17 +556,20 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		}
 
 		@Override
-		public void serializeWithType(T value, JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer)
-				throws IOException {
-			serialize(value, gen, serializers);
+		public void serializeWithType(T value, JsonGenerator jsonGenerator, SerializerProvider serializers,
+				TypeSerializer typeSerializer) throws IOException {
+
+			serialize(value, jsonGenerator, serializers);
 		}
 
 		@Override
-		public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-			if (value == null) {
-				serializers.defaultSerializeNull(gen);
+		public void serialize(@Nullable T value, JsonGenerator jsonGenerator, SerializerProvider serializers)
+				throws IOException {
+
+			if (value != null) {
+				delegate.serialize(value, jsonGenerator, serializers);
 			} else {
-				delegate.serialize(value, gen, serializers);
+				serializers.defaultSerializeNull(jsonGenerator);
 			}
 		}
 	}
