@@ -32,6 +32,7 @@ import org.springframework.data.keyvalue.core.SortAccessor;
 import org.springframework.data.keyvalue.core.SpelSortAccessor;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
@@ -104,8 +105,14 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 			if (criteria.getNear() != null) {
 
+				GeoRadiusCommandArgs limit = GeoRadiusCommandArgs.newGeoRadiusArgs();
+
+				if (rows > 0) {
+					limit = limit.limit(rows);
+				}
+
 				GeoResults<GeoLocation<byte[]>> x = connection.geoRadius(geoKey(keyspace + ":", criteria.getNear()),
-						new Circle(criteria.getNear().getPoint(), criteria.getNear().getDistance()));
+						new Circle(criteria.getNear().getPoint(), criteria.getNear().getDistance()), limit);
 				for (GeoResult<GeoLocation<byte[]>> y : x) {
 					allKeys.add(y.getContent().getName());
 				}

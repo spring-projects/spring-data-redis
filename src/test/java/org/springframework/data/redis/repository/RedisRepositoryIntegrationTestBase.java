@@ -36,6 +36,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
@@ -443,6 +444,28 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(result).contains(p2).doesNotContain(p1);
 	}
 
+	@Test // GH-1242
+	void nearQueryShouldConsiderLimit() {
+
+		City palermo = new City();
+		palermo.location = new Point(13.361389D, 38.115556D);
+
+		City catania = new City();
+		catania.location = new Point(15.087269D, 37.502669D);
+
+		Person p1 = new Person("foo", "bar");
+		p1.hometown = palermo;
+
+		Person p2 = new Person("two", "two");
+		p2.hometown = catania;
+
+		repo.saveAll(Arrays.asList(p1, p2));
+
+		Slice<Person> result = repo.findByHometownLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS),
+				Pageable.ofSize(1));
+		assertThat(result).containsOnly(p2);
+	}
+
 	@Test // DATAREDIS-849
 	void shouldReturnNewObjectInstanceOnImmutableSave() {
 
@@ -507,6 +530,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Page<Person> findBy(Pageable page);
 
 		List<Person> findByHometownLocationNear(Point point, Distance distance);
+
+		Slice<Person> findByHometownLocationNear(Point point, Distance distance, Pageable pageable);
 
 		@Override
 		<S extends Person> List<S> findAll(Example<S> example);
