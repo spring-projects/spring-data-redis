@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ClusterRedirectException;
 import org.springframework.data.redis.ClusterStateFailureException;
@@ -87,9 +88,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 	{
 		if (executor == null) {
-			ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-			threadPoolTaskExecutor.initialize();
-			this.executor = threadPoolTaskExecutor;
+			this.executor = new SimpleAsyncTaskExecutor();
 		}
 	}
 
