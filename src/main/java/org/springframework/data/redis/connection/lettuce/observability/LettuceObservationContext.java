@@ -15,13 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce.observability;
 
-import org.springframework.lang.Nullable;
-
 import io.lettuce.core.protocol.RedisCommand;
 import io.lettuce.core.tracing.Tracing.Endpoint;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.transport.Kind;
 import io.micrometer.observation.transport.SenderContext;
+
+import org.springframework.lang.Nullable;
 
 /**
  * Micrometer {@link Observation.Context} holding Lettuce contextual details.
@@ -29,7 +29,7 @@ import io.micrometer.observation.transport.SenderContext;
  * @author Mark Paluch
  * @since 3.0
  */
-class LettuceObservationContext extends SenderContext<Object> {
+public class LettuceObservationContext extends SenderContext<Object> {
 
 	private volatile @Nullable RedisCommand<?, ?, ?> command;
 

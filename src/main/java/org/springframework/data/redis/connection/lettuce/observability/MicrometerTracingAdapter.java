@@ -15,13 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce.observability;
 
-import java.net.SocketAddress;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.data.redis.connection.lettuce.observability.RedisObservation.HighCardinalityCommandKeyNames;
-import org.springframework.lang.Nullable;
-
 import io.lettuce.core.protocol.CompleteableCommand;
 import io.lettuce.core.protocol.RedisCommand;
 import io.lettuce.core.tracing.TraceContext;
@@ -34,6 +27,13 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import reactor.core.publisher.Mono;
+
+import java.net.SocketAddress;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.data.redis.connection.lettuce.observability.RedisObservation.HighCardinalityCommandKeyNames;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link Tracing} adapter using Micrometer's {@link Observation}. This adapter integrates with Micrometer to propagate
@@ -111,7 +111,7 @@ public class MicrometerTracingAdapter implements Tracing {
 	/**
 	 * {@link Tracer} implementation based on Micrometer's {@link ObservationRegistry}.
 	 */
-	class MicrometerTracer extends Tracer {
+	public class MicrometerTracer extends Tracer {
 
 		private final ObservationRegistry observationRegistry;
 
