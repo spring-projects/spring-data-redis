@@ -24,7 +24,7 @@ import io.micrometer.observation.docs.ObservationDocumentation;
  * @author Mark Paluch
  * @since 3.0
  */
-enum RedisObservation implements ObservationDocumentation {
+public enum RedisObservation implements ObservationDocumentation {
 
 	/**
 	 * Timer created around a Redis command execution.
