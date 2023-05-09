@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
@@ -44,7 +45,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 2.0
  */
-class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetAware {
+class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetAware, RedisClientProvider {
 
 	private final RedisClient client;
 	private final RedisCodec<?, ?> codec;
@@ -140,6 +141,11 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 
 		return LettuceFutureUtils
 				.failed(new UnsupportedOperationException("Connection type " + connectionType + " not supported"));
+	}
+
+	@Override
+	public AbstractRedisClient getRedisClient() {
+		return client;
 	}
 
 	private StatefulRedisConnection masterReplicaConnection(RedisURI redisUri, ReadFrom readFrom) {
