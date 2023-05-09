@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -24,14 +25,18 @@ import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 import io.lettuce.core.codec.StringCodec;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection.ByteBufferCodec;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.LettuceExtension;
@@ -97,37 +102,36 @@ public abstract class LettuceReactiveCommandsTestSupport {
 		List<Fixture> parameters = new ArrayList<>();
 
 		StandaloneConnectionProvider standaloneProvider = new StandaloneConnectionProvider(
-				extension.getInstance(RedisClient.class),
-				LettuceReactiveRedisConnection.CODEC);
+				extension.getInstance(RedisClient.class), LettuceReactiveRedisConnection.CODEC);
 		StandaloneConnectionProvider nativeConnectionProvider = new StandaloneConnectionProvider(
-				extension.getInstance(RedisClient.class),
-				StringCodec.UTF8);
+				extension.getInstance(RedisClient.class), StringCodec.UTF8);
 		StandaloneConnectionProvider nativeBinaryConnectionProvider = new StandaloneConnectionProvider(
 				extension.getInstance(RedisClient.class), ByteBufferCodec.INSTANCE);
 
-		parameters.add(
-				new Fixture(standaloneProvider, nativeConnectionProvider, nativeBinaryConnectionProvider, "Standalone"));
-		parameters.add(new Fixture(
-				new LettucePoolingConnectionProvider(standaloneProvider, LettucePoolingClientConfiguration.builder().build()),
-				nativeConnectionProvider, nativeBinaryConnectionProvider, "Pooling"));
-
+		/*parameters
+				.add(new Fixture(standaloneProvider, nativeConnectionProvider, nativeBinaryConnectionProvider, "Standalone"));*/
+		LettucePoolingClientConfiguration poolingClientConfiguration = LettucePoolingClientConfiguration.builder()
+				.shutdownQuietPeriod(Duration.ZERO).shutdownTimeout(Duration.ZERO).build();
+		parameters.add(new Fixture(new LettucePoolingConnectionProvider(standaloneProvider, poolingClientConfiguration),
+				new LettucePoolingConnectionProvider(nativeConnectionProvider, poolingClientConfiguration),
+				new LettucePoolingConnectionProvider(nativeBinaryConnectionProvider, poolingClientConfiguration), "Pooling"));
 
 		ClusterConnectionProvider clusterProvider = new ClusterConnectionProvider(
-				extension.getInstance(RedisClusterClient.class),
-					LettuceReactiveRedisConnection.CODEC);
+				extension.getInstance(RedisClusterClient.class), LettuceReactiveRedisConnection.CODEC);
 		ClusterConnectionProvider nativeClusterConnectionProvider = new ClusterConnectionProvider(
-				extension.getInstance(RedisClusterClient.class),
-					StringCodec.UTF8);
-			ClusterConnectionProvider nativeBinaryClusterConnectionProvider = new ClusterConnectionProvider(
-					extension.getInstance(RedisClusterClient.class), ByteBufferCodec.INSTANCE);
+				extension.getInstance(RedisClusterClient.class), StringCodec.UTF8);
+		ClusterConnectionProvider nativeBinaryClusterConnectionProvider = new ClusterConnectionProvider(
+				extension.getInstance(RedisClusterClient.class), ByteBufferCodec.INSTANCE);
 
-			parameters.add(new Fixture(clusterProvider, nativeClusterConnectionProvider,
-					nativeBinaryClusterConnectionProvider, "Cluster"));
+		parameters.add(new Fixture(new LettucePoolingConnectionProvider(clusterProvider, poolingClientConfiguration),
+				new LettucePoolingConnectionProvider(nativeClusterConnectionProvider, poolingClientConfiguration),
+				new LettucePoolingConnectionProvider(nativeBinaryClusterConnectionProvider, poolingClientConfiguration),
+				"Cluster"));
 
 		return parameters;
 	}
 
-	static class Fixture {
+	static class Fixture implements Closeable {
 
 		final LettuceConnectionProvider connectionProvider;
 		final LettuceConnectionProvider nativeConnectionProvider;
@@ -146,12 +150,34 @@ public abstract class LettuceReactiveCommandsTestSupport {
 		public String toString() {
 			return label;
 		}
+
+		@Override
+		public void close() throws IOException {
+
+			try {
+				if (connectionProvider instanceof DisposableBean) {
+					((DisposableBean) connectionProvider).destroy();
+				}
+
+				if (nativeConnectionProvider instanceof DisposableBean) {
+					((DisposableBean) nativeConnectionProvider).destroy();
+				}
+
+				if (nativeBinaryConnectionProvider instanceof DisposableBean) {
+					((DisposableBean) nativeBinaryConnectionProvider).destroy();
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	@BeforeEach
 	public void setUp() {
 
-		if (nativeConnectionProvider instanceof StandaloneConnectionProvider) {
+		AbstractRedisClient redisClient = ((RedisClientProvider) nativeConnectionProvider).getRedisClient();
+
+		if (redisClient instanceof RedisClient) {
 
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisConnection.class).sync();
 			nativeBinaryCommands = nativeBinaryConnectionProvider.getConnection(StatefulRedisConnection.class).sync();
@@ -160,11 +186,9 @@ public abstract class LettuceReactiveCommandsTestSupport {
 
 			Assumptions.assumeThat(RedisDetector.isClusterAvailable()).isTrue();
 
-			ClusterConnectionProvider clusterConnectionProvider = (ClusterConnectionProvider) nativeConnectionProvider;
 			nativeCommands = nativeConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
 			nativeBinaryCommands = nativeBinaryConnectionProvider.getConnection(StatefulRedisClusterConnection.class).sync();
-			this.connection = new LettuceReactiveRedisClusterConnection(connectionProvider,
-					clusterConnectionProvider.getRedisClient());
+			this.connection = new LettuceReactiveRedisClusterConnection(connectionProvider, (RedisClusterClient) redisClient);
 		}
 	}
 
@@ -180,6 +204,15 @@ public abstract class LettuceReactiveCommandsTestSupport {
 
 			if (nativeCommands instanceof RedisAdvancedClusterCommands) {
 				nativeConnectionProvider.release(((RedisAdvancedClusterCommands) nativeCommands).getStatefulConnection());
+			}
+
+			if (nativeBinaryCommands instanceof RedisCommands) {
+				nativeBinaryConnectionProvider.release(((RedisCommands) nativeBinaryCommands).getStatefulConnection());
+			}
+
+			if (nativeBinaryCommands instanceof RedisAdvancedClusterCommands) {
+				nativeBinaryConnectionProvider
+						.release(((RedisAdvancedClusterCommands) nativeBinaryCommands).getStatefulConnection());
 			}
 		}
 

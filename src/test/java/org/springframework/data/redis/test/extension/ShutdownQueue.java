@@ -20,6 +20,8 @@ import redis.clients.jedis.util.IOUtils;
 import java.io.Closeable;
 import java.util.LinkedList;
 
+import org.springframework.core.OrderComparator;
+
 /**
  * Shutdown queue allowing ordered resource shutdown (LIFO).
  *
@@ -31,22 +33,23 @@ public enum ShutdownQueue {
 
 	static {
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
+		Runtime.getRuntime().addShutdownHook(new Thread(ShutdownQueue::close));
+	}
 
-				Closeable closeable;
-				while ((closeable = INSTANCE.closeables.pollLast()) != null) {
-					try {
-						closeable.close();
-					} catch (Exception o_O) {
-						// ignore
-						o_O.printStackTrace();
-					}
-				}
+	private static void close() {
 
+		Closeable closeable;
+
+		OrderComparator.sort(INSTANCE.closeables);
+
+		while ((closeable = INSTANCE.closeables.pollLast()) != null) {
+			try {
+				closeable.close();
+			} catch (Exception o_O) {
+				// ignore
+				o_O.printStackTrace();
 			}
-		});
+		}
 	}
 
 	private final LinkedList<Closeable> closeables = new LinkedList<>();
@@ -58,4 +61,5 @@ public enum ShutdownQueue {
 	public static void register(AutoCloseable closeable) {
 		INSTANCE.closeables.add(() -> IOUtils.closeQuietly(closeable));
 	}
+
 }

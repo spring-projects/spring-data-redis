@@ -34,14 +34,15 @@ public class LettuceTestClientConfiguration {
 	 * @see LettuceTestClientResources#getSharedClientResources()
 	 */
 	public static LettuceClientConfigurationBuilder builder() {
-		return LettuceClientConfiguration.builder().shutdownTimeout(Duration.ZERO)
+		return LettuceClientConfiguration.builder().shutdownTimeout(Duration.ZERO).shutdownQuietPeriod(Duration.ZERO)
 				.clientResources(LettuceTestClientResources.getSharedClientResources());
 	}
 
 	/**
 	 * @return a defaulted {@link LettuceClientConfiguration} for testing.
 	 */
-	public static LettuceClientConfiguration create() {
+	public static LettuceClientConfiguration defaultConfiguration() {
 		return builder().build();
 	}
+
 }

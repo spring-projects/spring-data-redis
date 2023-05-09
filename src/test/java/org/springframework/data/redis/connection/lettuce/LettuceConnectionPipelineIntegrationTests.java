@@ -21,12 +21,11 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -54,8 +53,8 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		actual.add(connection.move("foo", 1));
 		verifyResults(Arrays.asList(new Object[] { true, true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
-		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.builder().build());
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());

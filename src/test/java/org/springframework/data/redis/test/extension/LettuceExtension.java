@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.test.extension;
 
+import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
@@ -27,6 +28,8 @@ import io.lettuce.core.protocol.ProtocolVersion;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.resource.ClientResources;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -48,7 +51,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-
 import org.springframework.core.ResolvableType;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.util.Lazy;
@@ -80,7 +82,7 @@ import org.springframework.data.util.Lazy;
  *
  * <h3>Resource lifecycle</h3> This extension allocates resources lazily and stores them in its {@link ExtensionContext}
  * {@link ExtensionContext.Store} for reuse across multiple tests. Client and {@link ClientResources} are allocated
- * through{@link DefaultRedisClient} respective {@link TestClientResources} so shutdown is managed by the actual
+ * through default {@link RedisClient} respective {@link RedisClientSupplier} so shutdown is managed by the actual
  * suppliers. Singleton connection resources are closed after the test class (test container) is finished.
  *
  * @author Mark Paluch
@@ -143,6 +145,17 @@ public class LettuceExtension implements ParameterResolver, AfterAllCallback, Af
 	}
 
 	@Override
+	public void afterEach(ExtensionContext context) {
+
+		ExtensionContext.Store store = getStore(context);
+
+		RedisClient redisClient = store.get(RedisClient.class, RedisClient.class);
+		if (redisClient != null) {
+			redisClient.setOptions(DEFAULT_OPTIONS);
+		}
+	}
+
+	@Override
 	public void afterAll(ExtensionContext context) {
 
 		ExtensionContext.Store store = getStore(context);
@@ -156,17 +169,6 @@ public class LettuceExtension implements ParameterResolver, AfterAllCallback, Af
 				store.remove(StatefulRedisConnection.class);
 			}
 		});
-	}
-
-	@Override
-	public void afterEach(ExtensionContext context) {
-
-		ExtensionContext.Store store = getStore(context);
-
-		RedisClient redisClient = store.get(RedisClient.class, RedisClient.class);
-		if (redisClient != null) {
-			redisClient.setOptions(DEFAULT_OPTIONS);
-		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -238,16 +240,25 @@ public class LettuceExtension implements ParameterResolver, AfterAllCallback, Af
 		}
 	}
 
+	record RedisClientCloseable(AbstractRedisClient client) implements Closeable {
+
+		@Override
+		public void close() throws IOException {
+			client.shutdown(0, 0, TimeUnit.MILLISECONDS);
+		}
+	}
+
 	enum RedisClientSupplier implements Supplier<RedisClient> {
 
 		INSTANCE;
 
 		final Lazy<RedisClient> lazy = Lazy.of(() -> {
-			RedisClient client = RedisClient.create(ClientResourcesSupplier.INSTANCE.get(),
+
+			RedisClient client = RedisClient.create(LettuceTestClientResources.getSharedClientResources(),
 					RedisURI.create(SettingsUtils.getHost(), SettingsUtils.getPort()));
 			client.setOptions(DEFAULT_OPTIONS);
 
-			ShutdownQueue.register(() -> client.shutdown(0, 0, TimeUnit.MILLISECONDS));
+			ShutdownQueue.register(new RedisClientCloseable(client));
 			return client;
 		});
 
@@ -262,11 +273,11 @@ public class LettuceExtension implements ParameterResolver, AfterAllCallback, Af
 		INSTANCE;
 
 		final Lazy<RedisClusterClient> lazy = Lazy.of(() -> {
-			RedisClusterClient client = RedisClusterClient.create(ClientResourcesSupplier.INSTANCE.get(),
+			RedisClusterClient client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
 					RedisURI.create(SettingsUtils.getHost(), SettingsUtils.getClusterPort()));
 			client.setOptions(DEFAULT_OPTIONS);
 
-			ShutdownQueue.register(() -> client.shutdown(0, 0, TimeUnit.MILLISECONDS));
+			ShutdownQueue.register(new RedisClientCloseable(client));
 			return client;
 		});
 

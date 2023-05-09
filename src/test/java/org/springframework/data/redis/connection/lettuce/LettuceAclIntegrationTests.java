@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -88,8 +87,7 @@ class LettuceAclIntegrationTests {
 
 		// Note: As per https://github.com/redis/redis/issues/7708, Sentinel does not support ACL authentication yet.
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources())
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder()
 				.clientOptions(ClientOptions.builder().protocolVersion(ProtocolVersion.RESP2).build()).build();
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("mymaster",

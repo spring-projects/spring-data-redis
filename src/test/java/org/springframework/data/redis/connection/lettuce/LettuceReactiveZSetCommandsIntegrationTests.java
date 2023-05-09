@@ -558,7 +558,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // GH-2041
 	void zDiffShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+		assumeThat(nativeCommands).isInstanceOf(io.lettuce.core.api.sync.RedisCommands.class);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -584,7 +584,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // GH-2041
 	void zDiffStoreShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+		assumeThat(nativeCommands).isInstanceOf(io.lettuce.core.api.sync.RedisCommands.class);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -600,7 +600,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // GH-2042
 	void zInterShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+		assumeThat(nativeCommands).isInstanceOf(io.lettuce.core.api.sync.RedisCommands.class);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -626,7 +626,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // DATAREDIS-525
 	void zInterStoreShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+		assumeThat(nativeCommands).isInstanceOf(io.lettuce.core.api.sync.RedisCommands.class);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -642,7 +642,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // GH-2042
 	void zUnionShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+		assumeThat(nativeCommands).isInstanceOf(io.lettuce.core.api.sync.RedisCommands.class);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
@@ -669,7 +669,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // DATAREDIS-525
 	void zUnionStoreShouldWorkCorrectly() {
 
-		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
+		assumeThat(nativeCommands).isInstanceOf(io.lettuce.core.api.sync.RedisCommands.class);
 
 		nativeCommands.zadd(KEY_1, 1D, VALUE_1);
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);

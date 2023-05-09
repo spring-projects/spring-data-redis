@@ -15,17 +15,21 @@
  */
 package org.springframework.data.redis.connection.lettuce.observability;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-
 import io.lettuce.core.resource.ClientResources;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.test.extension.ShutdownQueue;
 
 /**
  * @author Mark Paluch
@@ -40,16 +44,21 @@ class TestConfig {
 		OBSERVATION_REGISTRY.observationConfig().observationHandler(new DefaultMeterObservationHandler(METER_REGISTRY));
 	}
 
-	@Bean(destroyMethod = "shutdown")
+	@Bean(destroyMethod = "timer")
 	ClientResources clientResources(ObservationRegistry observationRegistry) {
-		return ClientResources.builder().tracing(new MicrometerTracingAdapter(observationRegistry, "Redis", true))
-				.build();
+
+		ClientResources resources = ClientResources.builder()
+				.tracing(new MicrometerTracingAdapter(observationRegistry, "Redis", true)).build();
+
+		ShutdownQueue.register(() -> resources.shutdown(0, 0, TimeUnit.MILLISECONDS));
+		return resources;
 	}
 
 	@Bean
 	LettuceConnectionFactory connectionFactory(ClientResources clientResources) {
 
 		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.shutdownTimeout(Duration.ZERO).shutdownQuietPeriod(Duration.ZERO)
 				.clientResources(clientResources).build();
 
 		return new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(), clientConfiguration);

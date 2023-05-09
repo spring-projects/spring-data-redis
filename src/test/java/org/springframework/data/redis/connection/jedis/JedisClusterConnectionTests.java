@@ -43,7 +43,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
@@ -119,7 +118,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@BeforeEach
-	void tearDown() throws IOException {
+	void beforeEach() throws IOException {
 
 		for (ConnectionPool pool : nativeConnection.getClusterNodes().values()) {
 			try (Jedis jedis = new Jedis(pool.getResource())) {

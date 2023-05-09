@@ -36,8 +36,9 @@ import org.springframework.data.redis.test.extension.LettuceExtension;
 class EnabledOnRedisVersionCondition implements ExecutionCondition {
 
 	private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@EnabledOnVersion is not present");
-	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace
-			.create(EnabledOnRedisVersionCondition.class);
+	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(RedisConditions.class);
+
+	private final LettuceExtension lettuceExtension = new LettuceExtension();
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -52,11 +53,12 @@ class EnabledOnRedisVersionCondition implements ExecutionCondition {
 
 		String requiredVersion = optional.get().value();
 
-		ExtensionContext.Store store = context.getStore(NAMESPACE);
+		ExtensionContext.Store store = context.getRoot().getStore(NAMESPACE);
 		RedisConditions conditions = store.getOrComputeIfAbsent(RedisConditions.class, ignore -> {
 
-			StatefulRedisConnection connection = new LettuceExtension().resolve(context, StatefulRedisConnection.class);
-			return RedisConditions.of(connection);
+			try (StatefulRedisConnection connection = lettuceExtension.resolve(context, StatefulRedisConnection.class)) {
+				return RedisConditions.of(connection);
+			}
 		}, RedisConditions.class);
 
 		boolean versionMet = conditions.hasVersionGreaterOrEqualsTo(requiredVersion);

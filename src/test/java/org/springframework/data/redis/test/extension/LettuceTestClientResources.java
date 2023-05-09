@@ -21,7 +21,11 @@ import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
 import reactor.core.publisher.Flux;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.core.Ordered;
 
 /**
  * Client-Resources suitable for testing. Every time a new {@link LettuceTestClientResources} instance is created, a
@@ -36,7 +40,13 @@ public class LettuceTestClientResources {
 
 	static {
 
-		SHARED_CLIENT_RESOURCES = DefaultClientResources.builder().eventBus(new EventBus() {
+		SHARED_CLIENT_RESOURCES = newClientResources();
+		ShutdownQueue.register(new SharedClientResources(SHARED_CLIENT_RESOURCES));
+	}
+
+	private static ClientResources newClientResources() {
+
+		return DefaultClientResources.builder().ioThreadPoolSize(4).computationThreadPoolSize(4).eventBus(new EventBus() {
 			@Override
 			public Flux<Event> get() {
 				return Flux.empty();
@@ -46,9 +56,7 @@ public class LettuceTestClientResources {
 			public void publish(Event event) {
 
 			}
-		})
-				.build();
-		ShutdownQueue.INSTANCE.register(() -> SHARED_CLIENT_RESOURCES.shutdown(0, 0, TimeUnit.MILLISECONDS));
+		}).build();
 	}
 
 	private LettuceTestClientResources() {}
@@ -58,5 +66,23 @@ public class LettuceTestClientResources {
 	 */
 	public static ClientResources getSharedClientResources() {
 		return SHARED_CLIENT_RESOURCES;
+	}
+
+	static class SharedClientResources implements Ordered, Closeable {
+		private final ClientResources clientResources;
+
+		public SharedClientResources(ClientResources clientResources) {
+			this.clientResources = clientResources;
+		}
+
+		@Override
+		public void close() throws IOException {
+			clientResources.shutdown(0, 0, TimeUnit.MILLISECONDS);
+		}
+
+		@Override
+		public int getOrder() {
+			return HIGHEST_PRECEDENCE;
+		}
 	}
 }

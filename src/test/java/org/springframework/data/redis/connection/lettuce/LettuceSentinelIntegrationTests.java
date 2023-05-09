@@ -28,7 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
@@ -192,8 +191,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	@Test // DATAREDIS-576
 	void connectionAppliesClientName() {
 
-		LettuceClientConfiguration clientName = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).clientName("clientName").build();
+		LettuceClientConfiguration clientName = LettuceTestClientConfiguration.builder().clientName("clientName").build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG, clientName);
 		factory.afterPropertiesSet();

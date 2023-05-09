@@ -16,7 +16,9 @@
 package org.springframework.data.redis.connection.lettuce.extension;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -35,6 +36,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisSentinel;
@@ -59,83 +61,86 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 
 	private static final Lazy<LettuceConnectionFactory> STANDALONE = Lazy.of(() -> {
 
-		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = defaultPoolConfigBuilder().build();
 
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(
-				SettingsUtils.standaloneConfiguration(),
-				configuration);
+				SettingsUtils.standaloneConfiguration(), configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
 
 	private static final Lazy<LettuceConnectionFactory> SENTINEL = Lazy.of(() -> {
 
-		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = defaultPoolConfigBuilder().build();
 
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
 
 	private static final Lazy<LettuceConnectionFactory> CLUSTER = Lazy.of(() -> {
 
-		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = defaultPoolConfigBuilder().build();
 
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
 
 	private static final Lazy<LettuceConnectionFactory> STANDALONE_UNPOOLED = Lazy.of(() -> {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = defaultClientConfiguration();
 
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(
-				SettingsUtils.standaloneConfiguration(),
-				configuration);
+				SettingsUtils.standaloneConfiguration(), configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
 
 	private static final Lazy<LettuceConnectionFactory> SENTINEL_UNPOOLED = Lazy.of(() -> {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = defaultClientConfiguration();
 
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
 
 	private static final Lazy<LettuceConnectionFactory> CLUSTER_UNPOOLED = Lazy.of(() -> {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = defaultClientConfiguration();
 
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
+
+	private static LettucePoolingClientConfigurationBuilder defaultPoolConfigBuilder() {
+		return LettucePoolingClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).shutdownTimeout(Duration.ZERO)
+				.shutdownQuietPeriod(Duration.ZERO);
+	}
+
+	private static LettuceClientConfiguration defaultClientConfiguration() {
+		return LettuceClientConfiguration.builder().clientResources(LettuceTestClientResources.getSharedClientResources())
+				.shutdownQuietPeriod(Duration.ZERO).shutdownQuietPeriod(Duration.ZERO).build();
+	}
 
 	private static final Map<Class<?>, Lazy<LettuceConnectionFactory>> pooledFactories;
 	private static final Map<Class<?>, Lazy<LettuceConnectionFactory>> unpooledFactories;
@@ -207,7 +212,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 	}
 
 	static class ManagedLettuceConnectionFactory extends LettuceConnectionFactory
-			implements ConnectionFactoryTracker.Managed {
+			implements ConnectionFactoryTracker.Managed, Closeable {
 
 		private volatile boolean mayClose;
 
@@ -257,15 +262,11 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 			return builder.toString();
 		}
 
-		Closeable toCloseable() {
-			return () -> {
-				try {
-					mayClose = true;
-					destroy();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			};
+		@Override
+		public void close() throws IOException {
+
+			mayClose = true;
+			destroy();
 		}
 	}
 }
