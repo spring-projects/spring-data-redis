@@ -41,7 +41,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
@@ -144,6 +143,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		LettucePoolingClientConfiguration clientConfiguration = LettucePoolingClientConfiguration.builder() //
 				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
 				.shutdownTimeout(Duration.ZERO) //
+				.shutdownQuietPeriod(Duration.ZERO) //
 				.build();
 
 		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();

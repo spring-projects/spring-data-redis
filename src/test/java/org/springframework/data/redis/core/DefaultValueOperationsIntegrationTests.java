@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
-
+import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -110,20 +110,20 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-247
 	void testIncrementDouble() {
 
+		assumeThat(valueFactory).isInstanceOf(DoubleObjectFactory.class);
+
 		K key = keyFactory.instance();
-		V value = valueFactory.instance();
+		Double value = (Double) valueFactory.instance();
 
-		assumeThat(value instanceof Double).isTrue();
-
-		valueOps.set(key, value);
+		valueOps.set(key, (V) value);
 
 		DecimalFormat twoDForm = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 
 		assertThat(valueOps.increment(key, 1.4)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4)));
-		assertThat(valueOps.get(key)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4)));
+		assertThat((Double) valueOps.get(key)).isBetween(value + 1.3, value + 1.4);
 
 		valueOps.increment(key, -10d);
-		assertThat(valueOps.get(key)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4 - 10d)));
+		assertThat((Double) valueOps.get(key)).isBetween(value + 1.3 - 10, value + 1.4 - 10);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-784

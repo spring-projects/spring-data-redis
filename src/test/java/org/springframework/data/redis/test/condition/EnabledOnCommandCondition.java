@@ -39,6 +39,8 @@ class EnabledOnCommandCondition implements ExecutionCondition {
 	private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@EnabledOnCommand is not present");
 	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(RedisConditions.class);
 
+	private final LettuceExtension lettuceExtension = new LettuceExtension();
+
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
@@ -51,11 +53,12 @@ class EnabledOnCommandCondition implements ExecutionCondition {
 
 		String command = optional.get().value();
 
-		ExtensionContext.Store store = context.getStore(NAMESPACE);
+		ExtensionContext.Store store = context.getRoot().getStore(NAMESPACE);
 		RedisConditions conditions = store.getOrComputeIfAbsent(RedisConditions.class, ignore -> {
 
-			StatefulRedisConnection connection = new LettuceExtension().resolve(context, StatefulRedisConnection.class);
-			return RedisConditions.of(connection);
+			try (StatefulRedisConnection connection = lettuceExtension.resolve(context, StatefulRedisConnection.class)) {
+				return RedisConditions.of(connection);
+			}
 		}, RedisConditions.class);
 
 		boolean hasCommand = conditions.hasCommand(command);

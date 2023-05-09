@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
@@ -238,7 +237,6 @@ class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.resetConnection();
 		assertThat(factory.getConnection().getNativeConnection()).isNotSameAs(nativeConn);
-		nativeConn.getStatefulConnection().close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -352,7 +350,8 @@ class LettuceConnectionFactoryTests {
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
 		LettuceClientConfiguration configuration = LettucePoolingClientConfiguration.builder().poolConfig(poolConfig)
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).shutdownTimeout(Duration.ZERO).build();
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).shutdownTimeout(Duration.ZERO)
+				.shutdownQuietPeriod(Duration.ZERO).build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
@@ -431,8 +430,8 @@ class LettuceConnectionFactoryTests {
 		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
 				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
-		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache);
-		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache,
+				LettuceTestClientConfiguration.defaultConfiguration());
 		factory.afterPropertiesSet();
 
 		RedisConnection connection = factory.getConnection();
@@ -502,8 +501,8 @@ class LettuceConnectionFactoryTests {
 	@Test // DATAREDIS-576
 	void connectionAppliesClientName() {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).clientName("clientName").build();
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().clientName("clientName")
+				.build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
@@ -536,8 +535,7 @@ class LettuceConnectionFactoryTests {
 	@Test // GH-2186
 	void shouldInitializeMasterReplicaConnectionsEagerly() {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().build();
 
 		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
 				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
@@ -557,8 +555,7 @@ class LettuceConnectionFactoryTests {
 	@EnabledOnRedisClusterAvailable
 	void shouldInitializeClusterConnectionsEagerly() {
 
-		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
-				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().build();
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);

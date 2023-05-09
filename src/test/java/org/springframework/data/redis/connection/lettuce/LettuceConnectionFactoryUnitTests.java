@@ -48,7 +48,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -94,8 +93,8 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-315
 	void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -128,7 +127,7 @@ class LettuceConnectionFactoryUnitTests {
 		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("localhost", 16379);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPort()).isEqualTo(16379);
 	}
@@ -139,7 +138,7 @@ class LettuceConnectionFactoryUnitTests {
 		RedisConfiguration redisConfiguration = new CustomRedisConfiguration("localhost", 16379);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPort()).isEqualTo(16379);
 		assertThat(connectionFactory.getHostName()).isEqualTo("localhost");
@@ -151,7 +150,7 @@ class LettuceConnectionFactoryUnitTests {
 		RedisConfiguration redisConfiguration = new RedisStandaloneConfiguration("external");
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getHostName()).isEqualTo("external");
 	}
@@ -162,7 +161,7 @@ class LettuceConnectionFactoryUnitTests {
 		RedisConfiguration redisConfiguration = new CustomRedisConfiguration("external");
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisConfiguration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPort()).isEqualTo(6379);
 		assertThat(connectionFactory.getHostName()).isEqualTo("external");
@@ -172,8 +171,8 @@ class LettuceConnectionFactoryUnitTests {
 	@SuppressWarnings("unchecked")
 	void passwordShouldBeSetCorrectlyOnClusterClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -195,8 +194,7 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConfig.setUsername("foo");
 		clusterConfig.setPassword("bar");
 
-		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
-				.clientResources(getSharedClientResources())
+		LettuceClientConfiguration clientConfiguration = LettuceTestClientConfiguration.builder()
 				.redisCredentialsProviderFactory(new RedisCredentialsProviderFactory() {}).build();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig, clientConfiguration);
 		connectionFactory.afterPropertiesSet();
@@ -223,7 +221,7 @@ class LettuceConnectionFactoryUnitTests {
 		config.setUsername("foo");
 		config.setPassword("bar");
 
-		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+		LettuceClientConfiguration clientConfiguration = LettuceTestClientConfiguration.builder()
 				.clientResources(getSharedClientResources())
 				.redisCredentialsProviderFactory(new RedisCredentialsProviderFactory() {}).build();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config, clientConfiguration);
@@ -245,8 +243,8 @@ class LettuceConnectionFactoryUnitTests {
 	void passwordShouldNotBeSetOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
-				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
-		connectionFactory.setClientResources(getSharedClientResources());
+				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")),
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -269,8 +267,8 @@ class LettuceConnectionFactoryUnitTests {
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
 		config.setSentinelPassword("sentinel-pwd");
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config,
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -295,8 +293,7 @@ class LettuceConnectionFactoryUnitTests {
 		config.setPassword("data-pwd");
 		config.setSentinelPassword("sentinel-pwd");
 
-		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
-				.clientResources(getSharedClientResources())
+		LettuceClientConfiguration clientConfiguration = LettuceTestClientConfiguration.builder()
 				.redisCredentialsProviderFactory(new RedisCredentialsProviderFactory() {}).build();
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config, clientConfiguration);
@@ -328,8 +325,8 @@ class LettuceConnectionFactoryUnitTests {
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234"));
 		config.setSentinelPassword("sentinel-pwd");
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config);
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(config,
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -361,8 +358,8 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-480
 	void sslOptionsShouldBeDisabledByDefaultOnClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -382,9 +379,8 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-476
 	void sslShouldBeSetCorrectlyOnClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setUseSsl(true);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.builder().useSsl().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -402,9 +398,8 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-480
 	void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setVerifyPeer(false);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.builder().useSsl().disablePeerVerification().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -420,9 +415,8 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-480
 	void startTLSOptionShouldBeSetCorrectlyOnClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setStartTls(true);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.builder().useSsl().startTls().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -440,9 +434,8 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton("localhost:1234"));
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setUseSsl(true);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration,
+				LettuceTestClientConfiguration.builder().useSsl().startTls().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -462,9 +455,8 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton("localhost:1234"));
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setVerifyPeer(false);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration,
+				LettuceTestClientConfiguration.builder().useSsl().disablePeerVerification().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -482,9 +474,8 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration("myMaster",
 				Collections.singleton("localhost:1234"));
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration);
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setStartTls(true);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration,
+				LettuceTestClientConfiguration.builder().useSsl().startTls().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -501,9 +492,8 @@ class LettuceConnectionFactoryUnitTests {
 	void sslShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
-				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setUseSsl(true);
+				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1),
+				LettuceTestClientConfiguration.builder().useSsl().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -521,9 +511,8 @@ class LettuceConnectionFactoryUnitTests {
 	void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
-				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setStartTls(true);
+				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1),
+				LettuceTestClientConfiguration.builder().useSsl().startTls().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -541,9 +530,8 @@ class LettuceConnectionFactoryUnitTests {
 	void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
-				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
-		connectionFactory.setClientResources(getSharedClientResources());
-		connectionFactory.setVerifyPeer(true);
+				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1),
+				LettuceTestClientConfiguration.builder().useSsl().startTls().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -560,8 +548,8 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // DATAREDIS-682
 	void socketShouldBeSetOnStandaloneClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisSocketConfiguration());
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisSocketConfiguration(),
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -580,7 +568,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
@@ -592,7 +580,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -606,7 +594,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
@@ -618,7 +606,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -632,7 +620,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -646,7 +634,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
@@ -658,7 +646,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setPassword(RedisPassword.of("foo"));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("bar");
 
 		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
@@ -672,7 +660,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
@@ -684,7 +672,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
@@ -698,7 +686,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
@@ -710,7 +698,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
@@ -724,7 +712,7 @@ class LettuceConnectionFactoryUnitTests {
 		envConfig.setDatabase(2);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(envConfig,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setDatabase(3);
 
 		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
@@ -765,7 +753,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isEqualTo(configuration);
 		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
@@ -777,7 +765,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisSocketConfiguration configuration = new RedisSocketConfiguration("/var/redis/socket");
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSocketConfiguration()).isEqualTo(configuration);
@@ -790,7 +778,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSentinelConfiguration()).isEqualTo(configuration);
@@ -802,7 +790,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisClusterConfiguration configuration = new RedisClusterConfiguration();
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(configuration,
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
 		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
@@ -813,7 +801,7 @@ class LettuceConnectionFactoryUnitTests {
 	void shouldDenyChangesToImmutableClientConfiguration() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
-				LettuceClientConfiguration.defaultConfiguration());
+				LettuceTestClientConfiguration.defaultConfiguration());
 
 		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setUseSsl(false));
 	}
@@ -839,8 +827,7 @@ class LettuceConnectionFactoryUnitTests {
 	void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
-				LettuceClientConfiguration.builder().commandTimeout(Duration.ofSeconds(2)).shutdownTimeout(Duration.ZERO)
-						.clientResources(getSharedClientResources()).build());
+				LettuceTestClientConfiguration.builder().commandTimeout(Duration.ofSeconds(2)).build());
 		connectionFactory.setShareNativeConnection(false);
 
 		connectionFactory.afterPropertiesSet();
@@ -861,7 +848,7 @@ class LettuceConnectionFactoryUnitTests {
 				.thenReturn(CompletableFuture.completedFuture(connectionMock));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
-				LettuceClientConfiguration.defaultConfiguration()) {
+				LettuceTestClientConfiguration.defaultConfiguration()) {
 
 			@Override
 			protected AbstractRedisClient createClient() {
@@ -891,7 +878,7 @@ class LettuceConnectionFactoryUnitTests {
 		when(connectionMock.sync()).thenReturn(syncMock);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
-				LettuceClientConfiguration.defaultConfiguration()) {
+				LettuceTestClientConfiguration.defaultConfiguration()) {
 
 			@Override
 			protected AbstractRedisClient createClient() {
@@ -920,7 +907,7 @@ class LettuceConnectionFactoryUnitTests {
 		when(connectionMock.closeAsync()).thenReturn(CompletableFuture.completedFuture(null));
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
-				LettuceClientConfiguration.defaultConfiguration()) {
+				LettuceTestClientConfiguration.defaultConfiguration()) {
 
 			@Override
 			protected AbstractRedisClient createClient() {
@@ -1008,8 +995,8 @@ class LettuceConnectionFactoryUnitTests {
 		RedisSentinelConfiguration redisSentinelConfiguration = new RedisSentinelConfiguration("mymaster",
 				Collections.singleton("host:1234"));
 		redisSentinelConfiguration.setDatabase(1);
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisSentinelConfiguration);
-		connectionFactory.setClientResources(getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(redisSentinelConfiguration,
+				LettuceTestClientConfiguration.defaultConfiguration());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -1029,7 +1016,7 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
-				LettuceClientConfiguration.builder().clientResources(getSharedClientResources()).build());
+				LettuceTestClientConfiguration.builder().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -1048,9 +1035,9 @@ class LettuceConnectionFactoryUnitTests {
 		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
 
-		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+		LettuceClientConfiguration clientConfiguration = LettuceTestClientConfiguration.builder()
 				.clientOptions(ClusterClientOptions.builder().validateClusterNodeMembership(false).build())
-				.clientResources(getSharedClientResources()).build();
+				.build();
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
 				clientConfiguration);

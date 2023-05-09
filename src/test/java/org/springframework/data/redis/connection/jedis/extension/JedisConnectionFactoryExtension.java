@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jedis.extension;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -64,7 +64,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 				CLIENT_CONFIGURATION);
 
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
@@ -75,7 +75,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 				CLIENT_CONFIGURATION);
 
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
@@ -86,7 +86,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 				CLIENT_CONFIGURATION);
 
 		factory.afterPropertiesSet();
-		ShutdownQueue.register(factory.toCloseable());
+		ShutdownQueue.register(factory);
 
 		return factory;
 	});
@@ -171,7 +171,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	}
 
 	static class ManagedJedisConnectionFactory extends JedisConnectionFactory
-			implements ConnectionFactoryTracker.Managed {
+			implements ConnectionFactoryTracker.Managed, Closeable {
 
 		private volatile boolean mayClose;
 
@@ -219,15 +219,14 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 			return builder.toString();
 		}
 
-		Closeable toCloseable() {
-			return () -> {
-				try {
-					mayClose = true;
-					destroy();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			};
+		@Override
+		public void close() throws IOException {
+			try {
+				mayClose = true;
+				destroy();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
