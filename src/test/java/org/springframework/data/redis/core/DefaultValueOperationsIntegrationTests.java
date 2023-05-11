@@ -19,12 +19,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.awaitility.Awaitility.*;
 
-import java.text.DecimalFormat;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -117,13 +115,11 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		valueOps.set(key, (V) value);
 
-		DecimalFormat twoDForm = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-
-		assertThat(valueOps.increment(key, 1.4)).isEqualTo(Double.valueOf(twoDForm.format((Double) value + 1.4)));
-		assertThat((Double) valueOps.get(key)).isBetween(value + 1.3, value + 1.4);
+		assertThat(valueOps.increment(key, 1.4)).isBetween(value + 1.39, value + 1.41);
+		assertThat((Double) valueOps.get(key)).isBetween(value + 1.39, value + 1.41);
 
 		valueOps.increment(key, -10d);
-		assertThat((Double) valueOps.get(key)).isBetween(value + 1.3 - 10, value + 1.4 - 10);
+		assertThat((Double) valueOps.get(key)).isBetween(value + 1.39 - 10, value + 1.41 - 10);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-784
