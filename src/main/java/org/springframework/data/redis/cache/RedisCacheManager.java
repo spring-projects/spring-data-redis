@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yanming Zhou
  * @since 2.0
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
@@ -334,6 +335,15 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			this.defaultCacheConfiguration = defaultCacheConfiguration;
 
 			return this;
+		}
+
+		/**
+		 * Returns applied {@link RedisCacheConfiguration}, allow customization base on it.
+		 *
+		 * @return applied {@link RedisCacheConfiguration}.
+		 */
+		public RedisCacheConfiguration cacheDefaults() {
+			return this.defaultCacheConfiguration;
 		}
 
 		/**
