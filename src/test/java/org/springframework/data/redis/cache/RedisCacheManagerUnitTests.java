@@ -15,8 +15,15 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -25,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.redis.cache.RedisCacheManager.RedisCacheManagerBuilder;
@@ -90,7 +98,8 @@ class RedisCacheManagerUnitTests {
 	@Test // DATAREDIS-481
 	void transactionAwareCacheManagerShouldDecoracteCache() {
 
-		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build().getCache("decoracted-cache");
+		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build()
+				.getCache("decoracted-cache");
 
 		assertThat(cache).isInstanceOfAny(TransactionAwareCacheDecorator.class);
 		assertThat(ReflectionTestUtils.getField(cache, "targetCache")).isInstanceOf(RedisCache.class);
@@ -191,15 +200,23 @@ class RedisCacheManagerUnitTests {
 		verify(cacheWriter, never()).withStatisticsCollector(any());
 	}
 
-	@Test // DATAREDIS-481
-	void customizeRedisCacheConfigurationBaseOnApplied() {
+	@Test // PR-2583
+	void customizeRedisCacheConfigurationBasedOnDefaultsIsImmutable() {
 
-		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
-		RedisCacheManagerBuilder cmb = RedisCacheManager.builder().cacheDefaults(configuration);
+		RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(Duration.ofMinutes(30));
 
-		cmb.cacheDefaults(cmb.cacheDefaults().entryTtl(Duration.ofSeconds(10)));
+		RedisCacheManagerBuilder cacheManagerBuilder = RedisCacheManager.builder().cacheDefaults(defaultCacheConfiguration);
 
-		assertThat(cmb.cacheDefaults().usePrefix()).isFalse();
-		assertThat(cmb.cacheDefaults().getTtl()).isEqualTo(Duration.ofSeconds(10));
+		RedisCacheConfiguration customCacheConfiguration = cacheManagerBuilder.cacheDefaults()
+				.entryTtl(Duration.ofSeconds(10))
+				.disableKeyPrefix();
+
+		assertThat(customCacheConfiguration).isNotSameAs(defaultCacheConfiguration);
+		assertThat(cacheManagerBuilder.cacheDefaults(customCacheConfiguration)).isSameAs(cacheManagerBuilder);
+		assertThat(cacheManagerBuilder.cacheDefaults().usePrefix()).isFalse();
+		assertThat(cacheManagerBuilder.cacheDefaults().getTtl()).isEqualTo(Duration.ofSeconds(10));
+		assertThat(defaultCacheConfiguration.usePrefix()).isTrue();
+		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofMinutes(30));
 	}
 }

@@ -19,154 +19,90 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * {@link org.springframework.cache.CacheManager} backed by a {@link RedisCache Redis} cache.
+ * {@link CacheManager} backed by a {@link RedisCache}.
  * <p>
- * This cache manager creates caches by default upon first write. Empty caches are not visible on Redis due to how Redis
- * represents empty data structures.
+ * This {@link CacheManager} creates {@link Cache caches} by default upon first write. Empty {@link Cache caches}
+ * are not visible in Redis due to how Redis represents empty data structures.
  * <p>
- * Caches requiring a different {@link RedisCacheConfiguration} than the default configuration can be specified via
- * {@link RedisCacheManagerBuilder#withInitialCacheConfigurations(Map)}.
+ * {@link Cache Caches} requiring a different {@link RedisCacheConfiguration} than the default cache configuration
+ * can be specified via {@link RedisCacheManagerBuilder#withInitialCacheConfigurations(Map)} or individually
+ * using {@link RedisCacheManagerBuilder#withCacheConfiguration(String, RedisCacheConfiguration)}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Yanming Zhou
+ * @author John Blum
+ * @see org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager
+ * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+ * @see org.springframework.data.redis.cache.RedisCacheWriter
  * @since 2.0
- * @see RedisCacheConfiguration
- * @see RedisCacheWriter
  */
 public class RedisCacheManager extends AbstractTransactionSupportingCacheManager {
 
-	private final RedisCacheWriter cacheWriter;
-	private final RedisCacheConfiguration defaultCacheConfig;
-	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
-	private final boolean allowInFlightCacheCreation;
+	protected static final boolean DEFAULT_ALLOW_RUNTIME_CACHE_CREATION = true;
 
 	/**
-	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
-	 * {@link RedisCacheConfiguration}.
+	 * Factory method returning a {@literal Builder} used to construct and configure a {@link RedisCacheManager}.
 	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
-	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
-	 * @param allowInFlightCacheCreation allow create unconfigured caches.
-	 * @since 2.0.4
+	 * @return new {@link RedisCacheManagerBuilder}.
+	 * @since 2.3
 	 */
-	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			boolean allowInFlightCacheCreation) {
+	public static RedisCacheManagerBuilder builder() {
+		return new RedisCacheManagerBuilder();
+	}
+
+	/**
+	 * Factory method returning a {@literal Builder} used to construct and configure a {@link RedisCacheManager}
+	 * using the given {@link RedisCacheWriter}.
+	 *
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing
+	 * appropriate Redis commands; must not be {@literal null}.
+	 * @return new {@link RedisCacheManagerBuilder}.
+	 * @throws IllegalArgumentException if the given {@link RedisCacheWriter} is {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 */
+	public static RedisCacheManagerBuilder builder(RedisCacheWriter cacheWriter) {
 
 		Assert.notNull(cacheWriter, "CacheWriter must not be null");
-		Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null");
 
-		this.cacheWriter = cacheWriter;
-		this.defaultCacheConfig = defaultCacheConfiguration;
-		this.initialCacheConfiguration = new LinkedHashMap<>();
-		this.allowInFlightCacheCreation = allowInFlightCacheCreation;
+		return RedisCacheManagerBuilder.fromCacheWriter(cacheWriter);
 	}
 
 	/**
-	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
-	 * {@link RedisCacheConfiguration}.
+	 * Factory method returning a {@literal Builder} used to construct and configure a {@link RedisCacheManager}
+	 * using the given {@link RedisConnectionFactory}.
 	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
-	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param connectionFactory {@link RedisConnectionFactory} used by the {@link RedisCacheManager}
+	 * to acquire connections to Redis when performing {@link RedisCache} operations; must not be {@literal null}.
+	 * @return new {@link RedisCacheManagerBuilder}.
+	 * @throws IllegalArgumentException if the given {@link RedisConnectionFactory} is {@literal null}.
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory
 	 */
-	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration) {
-		this(cacheWriter, defaultCacheConfiguration, true);
+	public static RedisCacheManagerBuilder builder(RedisConnectionFactory connectionFactory) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+
+		return RedisCacheManagerBuilder.fromConnectionFactory(connectionFactory);
 	}
 
 	/**
-	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
-	 * {@link RedisCacheConfiguration}.
+	 * Factory method used to construct a new {@link RedisCacheManager} using the given {@link RedisConnectionFactory}
+	 * with caching defaults applied.
 	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
-	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
-	 * @param initialCacheNames optional set of known cache names that will be created with given
-	 *          {@literal defaultCacheConfiguration}.
-	 */
-	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			String... initialCacheNames) {
-
-		this(cacheWriter, defaultCacheConfiguration, true, initialCacheNames);
-	}
-
-	/**
-	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
-	 * {@link RedisCacheConfiguration}.
-	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
-	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
-	 * @param allowInFlightCacheCreation if set to {@literal true} no new caches can be acquire at runtime but limited to
-	 *          the given list of initial cache names.
-	 * @param initialCacheNames optional set of known cache names that will be created with given
-	 *          {@literal defaultCacheConfiguration}.
-	 * @since 2.0.4
-	 */
-	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			boolean allowInFlightCacheCreation, String... initialCacheNames) {
-
-		this(cacheWriter, defaultCacheConfiguration, allowInFlightCacheCreation);
-
-		for (String cacheName : initialCacheNames) {
-			this.initialCacheConfiguration.put(cacheName, defaultCacheConfiguration);
-		}
-	}
-
-	/**
-	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
-	 * {@link RedisCacheConfiguration}.
-	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
-	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
-	 * @param initialCacheConfigurations Map of known cache names along with the configuration to use for those caches.
-	 *          Must not be {@literal null}.
-	 */
-	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
-
-		this(cacheWriter, defaultCacheConfiguration, initialCacheConfigurations, true);
-	}
-
-	/**
-	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
-	 * {@link RedisCacheConfiguration}.
-	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @param defaultCacheConfiguration must not be {@literal null}. Maybe just use
-	 *          {@link RedisCacheConfiguration#defaultCacheConfig()}.
-	 * @param initialCacheConfigurations Map of known cache names along with the configuration to use for those caches.
-	 *          Must not be {@literal null}.
-	 * @param allowInFlightCacheCreation if set to {@literal false} this cache manager is limited to the initial cache
-	 *          configurations and will not create new caches at runtime.
-	 * @since 2.0.4
-	 */
-	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			Map<String, RedisCacheConfiguration> initialCacheConfigurations, boolean allowInFlightCacheCreation) {
-
-		this(cacheWriter, defaultCacheConfiguration, allowInFlightCacheCreation);
-
-		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null");
-
-		this.initialCacheConfiguration.putAll(initialCacheConfigurations);
-	}
-
-	/**
-	 * Create a new {@link RedisCacheManager} with defaults applied.
 	 * <dl>
 	 * <dt>locking</dt>
 	 * <dd>disabled</dd>
@@ -182,113 +118,330 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * <dd>enabled</dd>
 	 * </dl>
 	 *
-	 * @param connectionFactory must not be {@literal null}.
-	 * @return new instance of {@link RedisCacheManager}.
+	 * @param connectionFactory {@link RedisConnectionFactory} used by the {@link RedisCacheManager}
+	 * to acquire connections to Redis when performing {@link RedisCache} operations; must not be {@literal null}.
+	 * @return new {@link RedisCacheManager}.
+	 * @throws IllegalArgumentException if the given {@link RedisConnectionFactory} is {@literal null}.
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory
 	 */
 	public static RedisCacheManager create(RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
 		return new RedisCacheManager(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
-				RedisCacheConfiguration.defaultCacheConfig());
+			RedisCacheConfiguration.defaultCacheConfig());
+	}
+
+	private final boolean allowRuntimeCacheCreation;
+
+	private final RedisCacheConfiguration defaultCacheConfiguration;
+
+	private final RedisCacheWriter cacheWriter;
+
+	private final Map<String, RedisCacheConfiguration> initialCacheConfiguration;
+
+	/**
+	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
+	 * and a default {@link RedisCacheConfiguration}.
+	 *
+	 * Allows cache creation at runtime.
+	 *
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
+	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
+	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
+	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
+	 * are {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 */
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration) {
+		this(cacheWriter, defaultCacheConfiguration, DEFAULT_ALLOW_RUNTIME_CACHE_CREATION);
 	}
 
 	/**
-	 * Entry point for builder style {@link RedisCacheManager} configuration.
+	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
+	 * and a default {@link RedisCacheConfiguration}, and whether to allow cache creation at runtime.
 	 *
-	 * @return new {@link RedisCacheManagerBuilder}.
-	 * @since 2.3
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
+	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
+	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
+	 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+	 * {@literal true} by default. Maybe just use {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
+	 * are {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 * @since 2.0.4
 	 */
-	public static RedisCacheManagerBuilder builder() {
-		return new RedisCacheManagerBuilder();
+	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			boolean allowRuntimeCacheCreation) {
+
+		this.defaultCacheConfiguration = RedisAssertions.requireObject(defaultCacheConfiguration,
+				"DefaultCacheConfiguration must not be null");
+
+		this.cacheWriter = RedisAssertions.requireObject(cacheWriter, "CacheWriter must not be null");
+		this.initialCacheConfiguration = new LinkedHashMap<>();
+		this.allowRuntimeCacheCreation = allowRuntimeCacheCreation;
 	}
 
 	/**
-	 * Entry point for builder style {@link RedisCacheManager} configuration.
+	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
+	 * and a default {@link RedisCacheConfiguration}, along with an optional, initial set of {@link String cache names}
+	 * used to create {@link RedisCache Redis caches} on startup.
 	 *
-	 * @param connectionFactory must not be {@literal null}.
-	 * @return new {@link RedisCacheManagerBuilder}.
+	 * Allows cache creation at runtime.
+	 *
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
+	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
+	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
+	 * @param initialCacheNames optional set of {@link String cache names} used to create {@link RedisCache Redis caches}
+	 * on startup. The default {@link RedisCacheConfiguration} will be applied to each cache.
+	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
+	 * are {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
 	 */
-	public static RedisCacheManagerBuilder builder(RedisConnectionFactory connectionFactory) {
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			String... initialCacheNames) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-
-		return RedisCacheManagerBuilder.fromConnectionFactory(connectionFactory);
+		this(cacheWriter, defaultCacheConfiguration, DEFAULT_ALLOW_RUNTIME_CACHE_CREATION, initialCacheNames);
 	}
 
 	/**
-	 * Entry point for builder style {@link RedisCacheManager} configuration.
+	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
+	 * and default {@link RedisCacheConfiguration}, and whether to allow cache creation at runtime.
 	 *
-	 * @param cacheWriter must not be {@literal null}.
-	 * @return new {@link RedisCacheManagerBuilder}.
+	 * Additionally, the optional, initial set of {@link String cache names} witll be used to create
+	 * {@link RedisCache Redis caches} on startup.
+	 *
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
+	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
+	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
+	 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+	 * {@literal true} by default. Maybe just use {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param initialCacheNames optional set of {@link String cache names} used to create {@link RedisCache Redis caches}
+	 * on startup. The default {@link RedisCacheConfiguration} will be applied to each cache.
+	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
+	 * are {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 * @since 2.0.4
 	 */
-	public static RedisCacheManagerBuilder builder(RedisCacheWriter cacheWriter) {
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			boolean allowRuntimeCacheCreation, String... initialCacheNames) {
 
-		Assert.notNull(cacheWriter, "CacheWriter must not be null");
+		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation);
 
-		return RedisCacheManagerBuilder.fromCacheWriter(cacheWriter);
+		for (String cacheName : initialCacheNames) {
+			this.initialCacheConfiguration.put(cacheName, defaultCacheConfiguration);
+		}
+	}
+
+	/**
+	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
+	 * {@link RedisCacheConfiguration}.
+	 *
+	 * Additionally, an initial {@link RedisCache} will be created and configured using the associated
+	 * {@link RedisCacheConfiguration} for each {@link String named} {@link RedisCache} in the given {@link Map}.
+	 *
+	 * Allows cache creation at runtime.
+	 *
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
+	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
+	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
+	 * @param initialCacheConfigurations {@link Map} of declared, known {@link String cache names} along with associated
+	 * {@link RedisCacheConfiguration} used to create and configure {@link RedisCache Reds caches} on startup;
+	 * must not be {@literal null}.
+	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
+	 * are {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 */
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
+
+		this(cacheWriter, defaultCacheConfiguration, DEFAULT_ALLOW_RUNTIME_CACHE_CREATION, initialCacheConfigurations);
+	}
+
+	/**
+	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
+	 * and a default {@link RedisCacheConfiguration}, and whether to allow {@link RedisCache} creation at runtime.
+	 *
+	 * Additionally, an initial {@link RedisCache} will be created and configured using the associated
+	 * {@link RedisCacheConfiguration} for each {@link String named} {@link RedisCache} in the given {@link Map}.
+	 *
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
+	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
+	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
+	 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+	 * {@literal true} by default. Maybe just use {@link RedisCacheConfiguration#defaultCacheConfig()}.
+	 * @param initialCacheConfigurations {@link Map} of declared, known {@link String cache names} along with associated
+	 * {@link RedisCacheConfiguration} used to create and configure {@link RedisCache Redis caches} on startup;
+	 * must not be {@literal null}.
+	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
+	 * are {@literal null}.
+	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 * @since 2.0.4
+	 */
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			boolean allowRuntimeCacheCreation, Map<String, RedisCacheConfiguration> initialCacheConfigurations) {
+
+		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation);
+
+		Assert.notNull(initialCacheConfigurations, "InitialCacheConfigurations must not be null");
+
+		this.initialCacheConfiguration.putAll(initialCacheConfigurations);
+	}
+
+	/**
+	 * @deprecated use {@link org.springframework.data.redis.cache.RedisCacheManager#RedisCacheManager(RedisCacheWriter, RedisCacheConfiguration, boolean, Map)}
+	 * instead.
+	 */
+	@Deprecated
+	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
+			Map<String, RedisCacheConfiguration> initialCacheConfigurations, boolean allowRuntimeCacheCreation) {
+
+		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation, initialCacheConfigurations);
+	}
+
+	/**
+	 * Determines whether {@link RedisCache Redis caches} are allowed to be created at runtime.
+	 *
+	 * @return a boolean value indicating whether {@link RedisCache Redis caches} are allowed to be created at runtime.
+	 */
+	public boolean isAllowRuntimeCacheCreation() {
+		return this.allowRuntimeCacheCreation;
+	}
+
+	/**
+	 * Return an {@link Collections#unmodifiableMap(Map) unmodifiable Map} containing {@link String caches name}
+	 * mapped to the {@link RedisCache} {@link RedisCacheConfiguration configuration}.
+	 *
+	 * @return unmodifiable {@link Map} containing {@link String cache name}
+	 * / {@link RedisCacheConfiguration configuration} pairs.
+	 */
+	public Map<String, RedisCacheConfiguration> getCacheConfigurations() {
+
+		Map<String, RedisCacheConfiguration> cacheConfigurationMap = new HashMap<>(getCacheNames().size());
+
+		getCacheNames().forEach(cacheName -> {
+			RedisCache cache = (RedisCache) lookupCache(cacheName);
+			cacheConfigurationMap.put(cacheName, cache != null ? cache.getCacheConfiguration() : null);
+		});
+
+		return Collections.unmodifiableMap(cacheConfigurationMap);
+	}
+
+	/**
+	 * Gets the default {@link RedisCacheConfiguration} applied to new {@link RedisCache} instances on creation
+	 * when custom, non-specific {@link RedisCacheConfiguration} was not provided.
+	 *
+	 * @return the default {@link RedisCacheConfiguration}.
+	 */
+	protected RedisCacheConfiguration getDefaultCacheConfiguration() {
+		return this.defaultCacheConfiguration;
+	}
+
+	/**
+	 * Gets a {@link Map} of {@link String cache names} to {@link RedisCacheConfiguration} objects as the initial set
+	 * of {@link RedisCache Redis caches} to create on startup.
+	 *
+	 * @return a {@link Map} of {@link String cache names} to {@link RedisCacheConfiguration} objects.
+	 */
+	protected Map<String, RedisCacheConfiguration> getInitialCacheConfiguration() {
+		return Collections.unmodifiableMap(this.initialCacheConfiguration);
+	}
+
+	@Override
+	protected RedisCache getMissingCache(String name) {
+		return isAllowRuntimeCacheCreation() ? createRedisCache(name, getDefaultCacheConfiguration()) : null;
+	}
+
+	/**
+	 * Creates a new {@link RedisCache} with given {@link String name} and {@link RedisCacheConfiguration}.
+	 *
+	 * @param name {@link String name} for the {@link RedisCache}; must not be {@literal null}.
+	 * @param cacheConfiguration {@link RedisCacheConfiguration} used to configure the {@link RedisCache};
+	 * resolves to the {@link #getDefaultCacheConfiguration()} if {@literal null}.
+	 * @return a new {@link RedisCache} instance; never {@literal null}.
+	 */
+	protected RedisCache createRedisCache(String name, @Nullable RedisCacheConfiguration cacheConfiguration) {
+		return new RedisCache(name, cacheWriter, resolveCacheConfiguration(cacheConfiguration));
 	}
 
 	@Override
 	protected Collection<RedisCache> loadCaches() {
 
-		List<RedisCache> caches = new LinkedList<>();
-
-		for (Map.Entry<String, RedisCacheConfiguration> entry : initialCacheConfiguration.entrySet()) {
-			caches.add(createRedisCache(entry.getKey(), entry.getValue()));
-		}
-
-		return caches;
+		return getInitialCacheConfiguration().entrySet().stream()
+			.map(entry -> createRedisCache(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
 	}
 
-	@Override
-	protected RedisCache getMissingCache(String name) {
-		return allowInFlightCacheCreation ? createRedisCache(name, defaultCacheConfig) : null;
+	private RedisCacheConfiguration resolveCacheConfiguration(@Nullable RedisCacheConfiguration cacheConfiguration) {
+		return cacheConfiguration != null ? cacheConfiguration : getDefaultCacheConfiguration();
 	}
 
 	/**
-	 * @return unmodifiable {@link Map} containing cache name / configuration pairs. Never {@literal null}.
-	 */
-	public Map<String, RedisCacheConfiguration> getCacheConfigurations() {
-
-		Map<String, RedisCacheConfiguration> configurationMap = new HashMap<>(getCacheNames().size());
-
-		getCacheNames().forEach(it -> {
-
-			RedisCache cache = RedisCache.class.cast(lookupCache(it));
-			configurationMap.put(it, cache != null ? cache.getCacheConfiguration() : null);
-		});
-
-		return Collections.unmodifiableMap(configurationMap);
-	}
-
-	/**
-	 * Configuration hook for creating {@link RedisCache} with given name and {@code cacheConfig}.
-	 *
-	 * @param name must not be {@literal null}.
-	 * @param cacheConfig can be {@literal null}.
-	 * @return never {@literal null}.
-	 */
-	protected RedisCache createRedisCache(String name, @Nullable RedisCacheConfiguration cacheConfig) {
-		return new RedisCache(name, cacheWriter, cacheConfig != null ? cacheConfig : defaultCacheConfig);
-	}
-
-	/**
-	 * Configurator for creating {@link RedisCacheManager}.
+	 * {@literal Builder} for creating a {@link RedisCacheManager}.
 	 *
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
 	 * @author Kezhu Wang
+	 * @author John Blum
 	 * @since 2.0
 	 */
 	public static class RedisCacheManagerBuilder {
 
-		private @Nullable RedisCacheWriter cacheWriter;
-		private CacheStatisticsCollector statisticsCollector = CacheStatisticsCollector.none();
-		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-		private final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
+		/**
+		 * Factory method returning a new {@literal Builder} used to create and configure a {@link RedisCacheManager}
+		 * using the given {@link RedisCacheWriter}.
+		 *
+		 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing
+		 * appropriate Redis commands; must not be {@literal null}.
+		 * @return new {@link RedisCacheManagerBuilder}.
+		 * @throws IllegalArgumentException if the given {@link RedisCacheWriter} is {@literal null}.
+		 * @see org.springframework.data.redis.cache.RedisCacheWriter
+		 */
+		public static RedisCacheManagerBuilder fromCacheWriter(RedisCacheWriter cacheWriter) {
+			return new RedisCacheManagerBuilder(RedisAssertions.requireObject(cacheWriter,
+					"CacheWriter must not be null"));
+		}
+
+		/**
+		 * Factory method returning a new {@literal Builder} used to create and configure a {@link RedisCacheManager}
+		 * using the given {@link RedisConnectionFactory}.
+		 *
+		 * @param connectionFactory {@link RedisConnectionFactory} used by the {@link RedisCacheManager}
+		 * to acquire connections to Redis when performing {@link RedisCache} operations; must not be {@literal null}.
+		 * @return new {@link RedisCacheManagerBuilder}.
+		 * @throws IllegalArgumentException if the given {@link RedisConnectionFactory} is {@literal null}.
+		 * @see org.springframework.data.redis.connection.RedisConnectionFactory
+		 */
+		public static RedisCacheManagerBuilder fromConnectionFactory(RedisConnectionFactory connectionFactory) {
+
+			RedisCacheWriter cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(
+					RedisAssertions.requireObject(connectionFactory, "ConnectionFactory must not be null"));
+
+			return new RedisCacheManagerBuilder(cacheWriter);
+		}
+
+		private boolean allowRuntimeCacheCreation = true;
 		private boolean enableTransactions;
-		boolean allowInFlightCacheCreation = true;
+
+		private CacheStatisticsCollector statisticsCollector = CacheStatisticsCollector.none();
+
+		private final Map<String, RedisCacheConfiguration> initialCaches = new LinkedHashMap<>();
+
+		private RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
+
+		private @Nullable RedisCacheWriter cacheWriter;
 
 		private RedisCacheManagerBuilder() {}
 
@@ -297,29 +450,52 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		}
 
 		/**
-		 * Entry point for builder style {@link RedisCacheManager} configuration.
+		 * Configure whether to allow cache creation at runtime.
 		 *
-		 * @param connectionFactory must not be {@literal null}.
-		 * @return new {@link RedisCacheManagerBuilder}.
+		 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+		 * {@literal true} by default.
+		 * @return this {@link RedisCacheManagerBuilder}.
 		 */
-		public static RedisCacheManagerBuilder fromConnectionFactory(RedisConnectionFactory connectionFactory) {
-
-			Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-
-			return new RedisCacheManagerBuilder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory));
+		public RedisCacheManagerBuilder allowCreateOnMissingCache(boolean allowRuntimeCacheCreation) {
+			this.allowRuntimeCacheCreation = allowRuntimeCacheCreation;
+			return this;
 		}
 
 		/**
-		 * Entry point for builder style {@link RedisCacheManager} configuration.
+		 * Disable {@link RedisCache} creation at runtime for unconfigured, undeclared caches.
 		 *
-		 * @param cacheWriter must not be {@literal null}.
-		 * @return new {@link RedisCacheManagerBuilder}.
+		 * {@link RedisCacheManager#getMissingCache(String)} returns {@literal null} for any unconfigured {@link Cache}
+		 * instead of a new {@link RedisCache} instance. This allows the
+		 * {@link org.springframework.cache.support.CompositeCacheManager} to participate.
+		 *
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @see #allowCreateOnMissingCache(boolean)
+		 * @see #enableCreateOnMissingCache()
+		 * @since 2.0.4
 		 */
-		public static RedisCacheManagerBuilder fromCacheWriter(RedisCacheWriter cacheWriter) {
+		public RedisCacheManagerBuilder disableCreateOnMissingCache() {
+			return allowCreateOnMissingCache(false);
+		}
 
-			Assert.notNull(cacheWriter, "CacheWriter must not be null");
+		/**
+		 * Enables {@link RedisCache} creation at runtime for unconfigured, undeclared caches.
+		 *
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @see #allowCreateOnMissingCache(boolean)
+		 * @see #disableCreateOnMissingCache()
+		 * @since 2.0.4
+		 */
+		public RedisCacheManagerBuilder enableCreateOnMissingCache() {
+			return allowCreateOnMissingCache(true);
+		}
 
-			return new RedisCacheManagerBuilder(cacheWriter);
+		/**
+		 * Returns the default {@link RedisCacheConfiguration}.
+		 *
+		 * @return the default {@link RedisCacheConfiguration}.
+		 */
+		public RedisCacheConfiguration cacheDefaults() {
+			return this.defaultCacheConfiguration;
 		}
 
 		/**
@@ -330,20 +506,10 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder cacheDefaults(RedisCacheConfiguration defaultCacheConfiguration) {
 
-			Assert.notNull(defaultCacheConfiguration, "DefaultCacheConfiguration must not be null");
-
-			this.defaultCacheConfiguration = defaultCacheConfiguration;
+			this.defaultCacheConfiguration = RedisAssertions.requireObject(defaultCacheConfiguration,
+					"DefaultCacheConfiguration must not be null");
 
 			return this;
-		}
-
-		/**
-		 * Returns applied {@link RedisCacheConfiguration}, allow customization base on it.
-		 *
-		 * @return applied {@link RedisCacheConfiguration}.
-		 */
-		public RedisCacheConfiguration cacheDefaults() {
-			return this.defaultCacheConfiguration;
 		}
 
 		/**
@@ -354,23 +520,17 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * @since 2.3
 		 */
 		public RedisCacheManagerBuilder cacheWriter(RedisCacheWriter cacheWriter) {
-
-			Assert.notNull(cacheWriter, "CacheWriter must not be null");
-
-			this.cacheWriter = cacheWriter;
-
+			this.cacheWriter = RedisAssertions.requireObject(cacheWriter, "CacheWriter must not be null");
 			return this;
 		}
 
 		/**
-		 * Enable {@link RedisCache}s to synchronize cache put/evict operations with ongoing Spring-managed transactions.
+		 * Enables cache statistics.
 		 *
 		 * @return this {@link RedisCacheManagerBuilder}.
 		 */
-		public RedisCacheManagerBuilder transactionAware() {
-
-			this.enableTransactions = true;
-
+		public RedisCacheManagerBuilder enableStatistics() {
+			this.statisticsCollector = CacheStatisticsCollector.create();
 			return this;
 		}
 
@@ -384,9 +544,39 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder initialCacheNames(Set<String> cacheNames) {
 
-			Assert.notNull(cacheNames, "CacheNames must not be null");
+			RedisAssertions.requireObject(cacheNames, "CacheNames must not be null")
+					.forEach(it -> withCacheConfiguration(it, defaultCacheConfiguration));
 
-			cacheNames.forEach(it -> withCacheConfiguration(it, defaultCacheConfiguration));
+			return this;
+		}
+
+		/**
+		 * Enable {@link RedisCache}s to synchronize cache put/evict operations with ongoing Spring-managed transactions.
+		 *
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 */
+		public RedisCacheManagerBuilder transactionAware() {
+			this.enableTransactions = true;
+			return this;
+		}
+
+		/**
+		 * Registers the given {@link String cache name} and {@link RedisCacheConfiguration} used to
+		 * create and configure a {@link RedisCache} on startup.
+		 *
+		 * @param cacheName {@link String name} of the cache to register for creation on startup.
+		 * @param cacheConfiguration {@link RedisCacheConfiguration} used to configure the new cache on startup.
+		 * @return this {@link RedisCacheManagerBuilder}.
+		 * @since 2.2
+		 */
+		public RedisCacheManagerBuilder withCacheConfiguration(String cacheName,
+				RedisCacheConfiguration cacheConfiguration) {
+
+			Assert.notNull(cacheName, "CacheName must not be null");
+			Assert.notNull(cacheConfiguration, "CacheConfiguration must not be null");
+
+			this.initialCaches.put(cacheName, cacheConfiguration);
+
 			return this;
 		}
 
@@ -399,55 +589,13 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		public RedisCacheManagerBuilder withInitialCacheConfigurations(
 				Map<String, RedisCacheConfiguration> cacheConfigurations) {
 
-			Assert.notNull(cacheConfigurations, "CacheConfigurations must not be null");
-			cacheConfigurations.forEach((cacheName, configuration) -> Assert.notNull(configuration,
-					String.format("RedisCacheConfiguration for cache %s must not be null", cacheName)));
+			RedisAssertions.requireObject(cacheConfigurations, "CacheConfigurations must not be null")
+					.forEach((cacheName, cacheConfiguration) -> RedisAssertions.requireObject(cacheConfiguration,
+							"RedisCacheConfiguration for cache [%s] must not be null", cacheName));
 
 			this.initialCaches.putAll(cacheConfigurations);
+
 			return this;
-		}
-
-		/**
-		 * @param cacheName
-		 * @param cacheConfiguration
-		 * @return this {@link RedisCacheManagerBuilder}.
-		 * @since 2.2
-		 */
-		public RedisCacheManagerBuilder withCacheConfiguration(String cacheName,
-				RedisCacheConfiguration cacheConfiguration) {
-
-			Assert.notNull(cacheName, "CacheName must not be null");
-			Assert.notNull(cacheConfiguration, "CacheConfiguration must not be null");
-
-			this.initialCaches.put(cacheName, cacheConfiguration);
-			return this;
-		}
-
-		/**
-		 * Disable in-flight {@link org.springframework.cache.Cache} creation for unconfigured caches.
-		 * <p>
-		 * {@link RedisCacheManager#getMissingCache(String)} returns {@literal null} for any unconfigured
-		 * {@link org.springframework.cache.Cache} instead of a new {@link RedisCache} instance. This allows eg.
-		 * {@link org.springframework.cache.support.CompositeCacheManager} to chime in.
-		 *
-		 * @return this {@link RedisCacheManagerBuilder}.
-		 * @since 2.0.4
-		 */
-		public RedisCacheManagerBuilder disableCreateOnMissingCache() {
-
-			this.allowInFlightCacheCreation = false;
-			return this;
-		}
-
-		/**
-		 * Get the {@link Set} of cache names for which the builder holds {@link RedisCacheConfiguration configuration}.
-		 *
-		 * @return an unmodifiable {@link Set} holding the name of caches for which a {@link RedisCacheConfiguration
-		 *         configuration} has been set.
-		 * @since 2.2
-		 */
-		public Set<String> getConfiguredCaches() {
-			return Collections.unmodifiableSet(this.initialCaches.keySet());
 		}
 
 		/**
@@ -462,13 +610,14 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		}
 
 		/**
-		 * @return
-		 * @since 2.4
+		 * Get the {@link Set} of cache names for which the builder holds {@link RedisCacheConfiguration configuration}.
+		 *
+		 * @return an unmodifiable {@link Set} holding the name of caches for which a {@link RedisCacheConfiguration
+		 *         configuration} has been set.
+		 * @since 2.2
 		 */
-		public RedisCacheManagerBuilder enableStatistics() {
-
-			this.statisticsCollector = CacheStatisticsCollector.create();
-			return this;
+		public Set<String> getConfiguredCaches() {
+			return Collections.unmodifiableSet(this.initialCaches.keySet());
 		}
 
 		/**
@@ -478,21 +627,22 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManager build() {
 
-			Assert.state(cacheWriter != null,
-					"CacheWriter must not be null You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'");
+			Assert.state(cacheWriter != null, "CacheWriter must not be null;"
+				+ " You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'");
 
-			RedisCacheWriter theCacheWriter = cacheWriter;
+			RedisCacheWriter resolvedCacheWriter = !CacheStatisticsCollector.none().equals(statisticsCollector)
+				? cacheWriter.withStatisticsCollector(statisticsCollector)
+				: cacheWriter;
 
-			if (!statisticsCollector.equals(CacheStatisticsCollector.none())) {
-				theCacheWriter = cacheWriter.withStatisticsCollector(statisticsCollector);
-			}
+			RedisCacheManager cacheManager = newRedisCacheManager(resolvedCacheWriter);
 
-			RedisCacheManager cm = new RedisCacheManager(theCacheWriter, defaultCacheConfiguration, initialCaches,
-					allowInFlightCacheCreation);
+			cacheManager.setTransactionAware(enableTransactions);
 
-			cm.setTransactionAware(enableTransactions);
+			return cacheManager;
+		}
 
-			return cm;
+		private RedisCacheManager newRedisCacheManager(RedisCacheWriter cacheWriter) {
+			return new RedisCacheManager(cacheWriter, cacheDefaults(), allowRuntimeCacheCreation, initialCaches);
 		}
 	}
 }
