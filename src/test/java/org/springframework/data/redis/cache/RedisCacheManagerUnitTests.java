@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 @ExtendWith(MockitoExtension.class)
 class RedisCacheManagerUnitTests {
@@ -187,5 +189,17 @@ class RedisCacheManagerUnitTests {
 		RedisCacheManager.builder(cacheWriter).build();
 
 		verify(cacheWriter, never()).withStatisticsCollector(any());
+	}
+
+	@Test // DATAREDIS-481
+	void customizeRedisCacheConfigurationBaseOnApplied() {
+
+		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
+		RedisCacheManagerBuilder cmb = RedisCacheManager.builder().cacheDefaults(configuration);
+
+		cmb.cacheDefaults(cmb.cacheDefaults().entryTtl(Duration.ofSeconds(10)));
+
+		assertThat(cmb.cacheDefaults().usePrefix()).isFalse();
+		assertThat(cmb.cacheDefaults().getTtl()).isEqualTo(Duration.ofSeconds(10));
 	}
 }
