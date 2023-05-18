@@ -31,40 +31,23 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Immutable {@link RedisCacheConfiguration} helps customizing {@link RedisCache} behaviour such as caching
- * {@literal null} values, cache key prefixes and binary serialization. <br />
- * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behaviour from there
- * on.
+ * Immutable {@link RedisCacheConfiguration} used to customize {@link RedisCache} behaviour, such as caching
+ * {@literal null} values, computing cache key prefixes and handling binary serialization.
+ *
+ * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behaviour
+ * from that point on.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 2.0
  */
 public class RedisCacheConfiguration {
 
-	private final Duration ttl;
-	private final boolean cacheNullValues;
-	private final CacheKeyPrefix keyPrefix;
-	private final boolean usePrefix;
-
-	private final SerializationPair<String> keySerializationPair;
-	private final SerializationPair<Object> valueSerializationPair;
-
-	private final ConversionService conversionService;
-
-	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
-			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
-			ConversionService conversionService) {
-
-		this.ttl = ttl;
-		this.cacheNullValues = cacheNullValues;
-		this.usePrefix = usePrefix;
-		this.keyPrefix = keyPrefix;
-		this.keySerializationPair = keySerializationPair;
-		this.valueSerializationPair = (SerializationPair<Object>) valueSerializationPair;
-		this.conversionService = conversionService;
-	}
+	protected static final boolean DEFAULT_CACHE_NULL_VALUES = true;
+	protected static final boolean DEFAULT_USE_PREFIX = true;
+	protected static final boolean DO_NOT_CACHE_NULL_VALUES = false;
+	protected static final boolean DO_NOT_USE_PREFIX = false;
 
 	/**
 	 * Default {@link RedisCacheConfiguration} using the following:
@@ -123,23 +106,36 @@ public class RedisCacheConfiguration {
 
 		registerDefaultConverters(conversionService);
 
-		return new RedisCacheConfiguration(Duration.ZERO, true, true, CacheKeyPrefix.simple(),
+		return new RedisCacheConfiguration(Duration.ZERO, DEFAULT_CACHE_NULL_VALUES, DEFAULT_USE_PREFIX,
+				CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(RedisSerializer.string()),
 				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
 	}
 
-	/**
-	 * Set the ttl to apply for cache entries. Use {@link Duration#ZERO} to declare an eternal cache.
-	 *
-	 * @param ttl must not be {@literal null}.
-	 * @return new {@link RedisCacheConfiguration}.
-	 */
-	public RedisCacheConfiguration entryTtl(Duration ttl) {
+	private final boolean cacheNullValues;
+	private final boolean usePrefix;
 
-		Assert.notNull(ttl, "TTL duration must not be null");
+	private final CacheKeyPrefix keyPrefix;
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+	private final ConversionService conversionService;
+
+	private final Duration ttl;
+
+	private final SerializationPair<String> keySerializationPair;
+	private final SerializationPair<Object> valueSerializationPair;
+
+	@SuppressWarnings("unchecked")
+	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
+			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
+			ConversionService conversionService) {
+
+		this.ttl = ttl;
+		this.cacheNullValues = cacheNullValues;
+		this.usePrefix = usePrefix;
+		this.keyPrefix = keyPrefix;
+		this.keySerializationPair = keySerializationPair;
+		this.valueSerializationPair = (SerializationPair<Object>) valueSerializationPair;
+		this.conversionService = conversionService;
 	}
 
 	/**
@@ -169,8 +165,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, true, cacheKeyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttl, cacheNullValues, DEFAULT_USE_PREFIX, cacheKeyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -182,8 +178,8 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(ttl, false, usePrefix, keyPrefix, keySerializationPair, valueSerializationPair,
-				conversionService);
+		return new RedisCacheConfiguration(ttl, DO_NOT_CACHE_NULL_VALUES, usePrefix, keyPrefix, keySerializationPair,
+				valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -195,22 +191,22 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, false, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, cacheNullValues, DO_NOT_USE_PREFIX, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
 	/**
-	 * Define the {@link ConversionService} used for cache key to {@link String} conversion.
+	 * Set the ttl to apply for cache entries. Use {@link Duration#ZERO} to declare an eternal cache.
 	 *
-	 * @param conversionService must not be {@literal null}.
+	 * @param ttl must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
-	public RedisCacheConfiguration withConversionService(ConversionService conversionService) {
+	public RedisCacheConfiguration entryTtl(Duration ttl) {
 
-		Assert.notNull(conversionService, "ConversionService must not be null");
+		Assert.notNull(ttl, "TTL duration must not be null");
 
 		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+			valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -242,16 +238,24 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Get the computed {@literal key} prefix for a given {@literal cacheName}.
+	 * Define the {@link ConversionService} used for cache key to {@link String} conversion.
 	 *
-	 * @return never {@literal null}.
-	 * @since 2.0.4
+	 * @param conversionService must not be {@literal null}.
+	 * @return new {@link RedisCacheConfiguration}.
 	 */
-	public String getKeyPrefixFor(String cacheName) {
+	public RedisCacheConfiguration withConversionService(ConversionService conversionService) {
 
-		Assert.notNull(cacheName, "Cache name must not be null");
+		Assert.notNull(conversionService, "ConversionService must not be null");
 
-		return keyPrefix.compute(cacheName);
+		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+			valueSerializationPair, conversionService);
+	}
+
+	/**
+	 * @return {@literal true} if caching {@literal null} is allowed.
+	 */
+	public boolean getAllowCacheNullValues() {
+		return cacheNullValues;
 	}
 
 	/**
@@ -263,10 +267,23 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * @return {@literal true} if caching {@literal null} is allowed.
+	 * @return The {@link ConversionService} used for cache key to {@link String} conversion. Never {@literal null}.
 	 */
-	public boolean getAllowCacheNullValues() {
-		return cacheNullValues;
+	public ConversionService getConversionService() {
+		return conversionService;
+	}
+
+	/**
+	 * Get the computed {@literal key} prefix for a given {@literal cacheName}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 2.0.4
+	 */
+	public String getKeyPrefixFor(String cacheName) {
+
+		Assert.notNull(cacheName, "Cache name must not be null");
+
+		return keyPrefix.compute(cacheName);
 	}
 
 	/**
@@ -291,18 +308,12 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * @return The {@link ConversionService} used for cache key to {@link String} conversion. Never {@literal null}.
-	 */
-	public ConversionService getConversionService() {
-		return conversionService;
-	}
-
-	/**
-	 * Add a {@link Converter} for extracting the {@link String} representation of a cache key if no suitable
-	 * {@link Object#toString()} method is present.
+	 * Adds a {@link Converter} to extract the {@link String} representation of a {@literal cache key}
+	 * if no suitable {@link Object#toString()} method is present.
 	 *
-	 * @param cacheKeyConverter
-	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
+	 * @param cacheKeyConverter {@link Converter} used to convert a {@literal cache key} into a {@link String}.
+	 * @throws IllegalStateException if {@link #getConversionService()} does not allow {@link Converter} registration.
+	 * @see org.springframework.core.convert.converter.Converter
 	 * @since 2.2
 	 */
 	public void addCacheKeyConverter(Converter<?, String> cacheKeyConverter) {
@@ -310,32 +321,40 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Configure the underlying conversion system used to extract the cache key.
+	 * Configure the underlying {@link ConversionService} used to extract the {@literal cache key}.
 	 *
-	 * @param registryConsumer never {@literal null}.
-	 * @throws IllegalStateException if {@link #getConversionService()} does not allow converter registration.
+	 * @param registryConsumer {@link Consumer} used to register a {@link Converter}
+	 * with the configured {@link ConverterRegistry}; never {@literal null}.
+	 * @throws IllegalStateException if {@link #getConversionService()} does not allow {@link Converter} registration.
+	 * @see org.springframework.core.convert.converter.ConverterRegistry
 	 * @since 2.2
 	 */
 	public void configureKeyConverters(Consumer<ConverterRegistry> registryConsumer) {
 
 		if (!(getConversionService() instanceof ConverterRegistry)) {
-			throw new IllegalStateException(String.format(
-					"'%s' returned by getConversionService() does not allow converter registration;" //
-							+ " Please make sure to provide a ConversionService that implements ConverterRegistry",
-					getConversionService().getClass().getSimpleName()));
+
+			String message = "'%s' returned by getConversionService() does not allow Converter registration;"
+					+ " Please make sure to provide a ConversionService that implements ConverterRegistry";
+
+			throw new IllegalStateException(String.format(message, getConversionService().getClass().getName()));
 		}
 
 		registryConsumer.accept((ConverterRegistry) getConversionService());
 	}
 
 	/**
-	 * Registers default cache key converters. The following converters get registered:
+	 * Registers default cache {@link Converter key converters}.
+	 *
+	 * The following converters get registered:
+	 *
 	 * <ul>
 	 * <li>{@link String} to {@link byte byte[]} using UTF-8 encoding.</li>
 	 * <li>{@link SimpleKey} to {@link String}</li>
 	 * </ul>
 	 *
-	 * @param registry must not be {@literal null}.
+	 * @param registry {@link ConverterRegistry} in which the {@link Converter key converters} are registered;
+	 * must not be {@literal null}.
+	 * @see org.springframework.core.convert.converter.ConverterRegistry
 	 */
 	public static void registerDefaultConverters(ConverterRegistry registry) {
 
