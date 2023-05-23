@@ -25,17 +25,22 @@ import org.springframework.lang.Nullable;
  * {@code get/set/trim etc...}.
  *
  * @author Costin Leau
+ * @author John Blum
  */
 public interface RedisCallback<T> {
 
 	/**
-	 * Gets called by {@link RedisTemplate} with an active Redis connection. Does not need to care about activating or
-	 * closing the connection or handling exceptions.
+	 * Method called by {@link RedisTemplate} with an active {@link RedisConnection}.
+	 * <p>
+	 * Callback code need not care about activating/opening or closing the {@link RedisConnection},
+	 * nor handling {@link Exception exceptions}.
 	 *
-	 * @param connection active Redis connection
-	 * @return a result object or {@code null} if none
-	 * @throws DataAccessException
+	 * @param connection active {@link RedisConnection Redis connection}.
+	 * @return the {@link Object result} of the operation performed in the callback or {@code null}.
+	 * @throws DataAccessException if the operation performed by the callback fails to execute in the context of Redis
+	 * using the given {@link RedisConnection}.
 	 */
 	@Nullable
 	T doInRedis(RedisConnection connection) throws DataAccessException;
+
 }
