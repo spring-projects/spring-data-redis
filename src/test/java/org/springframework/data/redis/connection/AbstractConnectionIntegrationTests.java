@@ -131,6 +131,18 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected RedisConnection byteConnection;
 
+	private boolean isJedisOrLettuceConnection(RedisConnectionFactory connectionFactory) {
+		return ConnectionUtils.isJedis(connectionFactory) || ConnectionUtils.isLettuce(connectionFactory);
+	}
+
+	private boolean isNotJedisOrLettuceConnection(RedisConnectionFactory connectionFactory) {
+		return !isJedisOrLettuceConnection(connectionFactory);
+	}
+
+	private boolean isPipelinedOrQueueingConnection(RedisConnection connection) {
+		return connection.isPipelined() || connection.isQueueing();
+	}
+
 	@BeforeEach
 	public void setUp() {
 
@@ -2595,12 +2607,12 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-290
 	void scanShouldReadEntireValueRange() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+		if (isNotJedisOrLettuceConnection(connectionFactory)) {
 			throw new AssumptionViolatedException("SCAN is only available for jedis and lettuce");
 		}
 
-		if (connection.isPipelined() || connection.isQueueing()) {
-			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode");
+		if (isPipelinedOrQueueingConnection(connection)) {
+			throw new AssumptionViolatedException("SCAN is only available in non-pipeline | non-queueing mode");
 		}
 
 		connection.set("spring", "data");
@@ -2626,8 +2638,9 @@ public abstract class AbstractConnectionIntegrationTests {
 	@EnabledOnRedisVersion("6.0")
 	void scanWithType() {
 
-		assumeThat(connection.isPipelined() || connection.isQueueing())
-				.describedAs("SCAN is only available in non pipeline | queue mode").isFalse();
+		assumeThat(isPipelinedOrQueueingConnection(connection))
+				.describedAs("SCAN is only available in non-pipeline | non-queueing mode")
+				.isFalse();
 
 		connection.set("key", "data");
 		connection.lPush("list", "foo");
@@ -2670,11 +2683,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-306
 	void zScanShouldReadEntireValueRange() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+		if (isNotJedisOrLettuceConnection(connectionFactory)) {
 			throw new AssumptionViolatedException("ZSCAN is only available for jedis and lettuce");
 		}
 
-		if (connection.isPipelined() || connection.isQueueing()) {
+		if (isPipelinedOrQueueingConnection(connection)) {
 			throw new AssumptionViolatedException("ZSCAN is only available in non pipeline | queue mode");
 		}
 
@@ -2701,11 +2714,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-304
 	void sScanShouldReadEntireValueRange() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+		if (isNotJedisOrLettuceConnection(connectionFactory)) {
 			throw new AssumptionViolatedException("SCAN is only available for jedis and lettuce");
 		}
 
-		if (connection.isPipelined() || connection.isQueueing()) {
+		if (isPipelinedOrQueueingConnection(connection)) {
 			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode");
 		}
 
@@ -2726,11 +2739,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test // DATAREDIS-305
 	void hScanShouldReadEntireValueRange() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+		if (isNotJedisOrLettuceConnection(connectionFactory)) {
 			throw new AssumptionViolatedException("HSCAN is only available for jedis and lettuce");
 		}
 
-		if (connection.isPipelined() || connection.isQueueing()) {
+		if (isPipelinedOrQueueingConnection(connection)) {
 			throw new AssumptionViolatedException("HSCAN is only available in non pipeline | queue mode");
 		}
 
