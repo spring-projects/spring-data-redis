@@ -18,7 +18,7 @@ package org.springframework.data.redis.connection;
 import org.springframework.lang.Nullable;
 
 /**
- * Interface for the commands supported by Redis.
+ * Interface defining the commands supported by Redis.
  *
  * @author Costin Leau
  * @author Christoph Strobl
@@ -29,14 +29,16 @@ public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, Re
 		RedisServerCommands, RedisStreamCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands {
 
 	/**
-	 * 'Native' or 'raw' execution of the given command along-side the given arguments. The command is executed as is,
-	 * with as little 'interpretation' as possible - it is up to the caller to take care of any processing of arguments or
-	 * the result.
+	 * {@literal Native} or {@literal raw} execution of the given Redis command along with the given arguments.
+	 * <p>
+	 * The command is executed as is, with as little interpretation as possible - it is up to the caller to take care
+	 * of any processing of arguments or the result.
 	 *
-	 * @param command Command to execute. must not be {@literal null}.
-	 * @param args Possible command arguments (may be empty).
-	 * @return execution result. Can be {@literal null}.
+	 * @param command Redis {@link String command} to execute; must not be {@literal null}.
+	 * @param args optional array of command arguments; may be empty;
+	 * @return the execution result; may be {@literal null}.
 	 */
 	@Nullable
 	Object execute(String command, byte[]... args);
+
 }
