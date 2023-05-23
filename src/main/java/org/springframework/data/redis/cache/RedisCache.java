@@ -41,7 +41,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link org.springframework.cache.Cache} implementation using for Redis as the underlying store for cache data.
- *
+ * <p>
  * Use {@link RedisCacheManager} to create {@link RedisCache} instances.
  *
  * @author Christoph Strobl
@@ -52,6 +52,7 @@ import org.springframework.util.ReflectionUtils;
  * @see org.springframework.cache.support.AbstractValueAdaptingCache
  * @since 2.0
  */
+@SuppressWarnings("unused")
 public class RedisCache extends AbstractValueAdaptingCache {
 
 	private static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
@@ -136,7 +137,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@SuppressWarnings("unchecked")
-	private synchronized @Nullable <T> T getSynchronized(Object key, Callable<T> valueLoader) {
+	@Nullable
+	private synchronized <T> T getSynchronized(Object key, Callable<T> valueLoader) {
 
 		ValueWrapper result = get(key);
 
