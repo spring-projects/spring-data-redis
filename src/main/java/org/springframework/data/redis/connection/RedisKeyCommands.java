@@ -142,14 +142,28 @@ public interface RedisKeyCommands {
 	}
 
 	/**
-	 * Use a {@link Cursor} to iterate over keys.
+	 * Use a {@link Cursor} to iterate over keys in the Redis database.
 	 *
-	 * @param options must not be {@literal null}.
-	 * @return never {@literal null}.
-	 * @since 1.4
+	 * @param options {@link ScanOptions} used to configure the scan; must not be {@literal null}.
+	 * @return a {@link Cursor} used to iterate over the keys matched from the scan results; never {@literal null}.
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see #scan(String, ScanOptions)
+	 * @since 1.4
 	 */
 	Cursor<byte[]> scan(ScanOptions options);
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys in the Redis database.
+	 * <p>
+	 * This scan method accepts a {@link String cursorId} to set the position from which the next scan will begin.
+	 *
+	 * @param options {@link ScanOptions} used to configure the scan; must not be {@literal null}.
+	 * @return a {@link Cursor} used to iterate over the keys matched from the scan results; never {@literal null}.
+	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
+	 * @see #scan(ScanOptions)
+	 * @since 3.2.0
+	 */
+	Cursor<byte[]> scan(String cursorId, ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.

@@ -55,6 +55,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author ihaohong
  * @author Dan Smith
+ * @author John Blum
  * @since 2.0
  */
 class JedisClusterKeyCommands implements RedisKeyCommands {
@@ -89,7 +90,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return (long) connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) Jedis::del,
 						Arrays.asList(keys))
 				.resultsAsList().size();
 	}
@@ -100,7 +101,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(keys, "Keys must not be null");
 
-		return connection.<Long> execute("UNLINK", Arrays.asList(keys), Collections.emptyList()).stream()
+		return connection.<Long>execute("UNLINK", Arrays.asList(keys), Collections.emptyList()).stream()
 				.mapToLong(val -> val).sum();
 	}
 
@@ -154,6 +155,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
+		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
+	}
+
+	@Override
+	public Cursor<byte[]> scan(String cursorId, ScanOptions options) {
 		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
 	}
 
@@ -439,9 +445,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		List<byte[]> sorted = sort(key, params);
-		byte[][] arr = new byte[sorted.size()][];
+		byte[][] array = new byte[sorted.size()][];
+
 		connection.keyCommands().unlink(storeKey);
-		connection.listCommands().lPush(storeKey, sorted.toArray(arr));
+		connection.listCommands().lPush(storeKey, sorted.toArray(array));
+
 		return (long) sorted.size();
 	}
 

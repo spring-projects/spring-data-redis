@@ -27,7 +27,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 public abstract class ConnectionUtils {
 
 	public static boolean isAsync(RedisConnectionFactory connectionFactory) {
-		return (connectionFactory instanceof LettuceConnectionFactory);
+		return connectionFactory instanceof LettuceConnectionFactory;
 	}
 
 	public static boolean isLettuce(RedisConnectionFactory connectionFactory) {

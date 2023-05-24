@@ -25,35 +25,40 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Redis client agnostic {@link Cursor} implementation continuously loading additional results from Redis server until
- * reaching its starting point {@code zero}. <br />
+ * reaching its starting point {@code zero}.
+ * <br/>
  * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #open()} prior to usage.
  * Any failures during scanning will {@link #close() close} the cursor and release any associated resources such as
  * connections.
  *
+ * @param <T> {@link Class type} of {@link Object elements} iterated over and returned by this {@link Cursor}.
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Duobiao Ou
  * @author Marl Paluch
- * @param <T>
+ * @author John Blum
  * @since 1.4
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 
-	private CursorState state;
 	private long cursorId;
-	private Iterator<T> delegate;
-	private final ScanOptions scanOptions;
 	private long position;
 
+	private CursorState state;
+
+	private Iterator<T> delegate;
+
+	private final ScanOptions scanOptions;
+
 	/**
-	 * Crates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
+	 * Creates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
 	 */
 	public ScanCursor() {
 		this(ScanOptions.NONE);
 	}
 
 	/**
-	 * Crates new {@link ScanCursor} with {@code id=0}.
+	 * Creates new {@link ScanCursor} with {@code id=0}.
 	 *
 	 * @param options the scan options to apply.
 	 */
@@ -62,26 +67,30 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	/**
-	 * Crates new {@link ScanCursor} with {@link ScanOptions#NONE}
+	 * Creates new {@link ScanCursor} with {@link ScanOptions#NONE}
 	 *
-	 * @param cursorId the cursor Id.
+	 * @param cursorId the cursor ID.
 	 */
 	public ScanCursor(long cursorId) {
 		this(cursorId, ScanOptions.NONE);
 	}
 
 	/**
-	 * Crates new {@link ScanCursor}
+	 * Creates new {@link ScanCursor}
 	 *
-	 * @param cursorId the cursor Id.
-	 * @param options Defaulted to {@link ScanOptions#NONE} if {@code null}.
+	 * @param cursorId the cursor ID.
+	 * @param options defaults to {@link ScanOptions#NONE} if {@code null}.
 	 */
 	public ScanCursor(long cursorId, @Nullable ScanOptions options) {
 
-		this.scanOptions = options != null ? options : ScanOptions.NONE;
+		this.scanOptions = nullSafeScanOptions(options);
 		this.cursorId = cursorId;
 		this.state = CursorState.READY;
 		this.delegate = Collections.emptyIterator();
+	}
+
+	private ScanOptions nullSafeScanOptions(@Nullable ScanOptions options) {
+		return options != null ? options : ScanOptions.NONE;
 	}
 
 	private void scan(long cursorId) {
@@ -99,12 +108,8 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	/**
-	 * Performs the actual scan command using the native client implementation. The given {@literal options} are never
-	 * {@code null}.
-	 *
-	 * @param cursorId
-	 * @param options
-	 * @return
+	 * Performs the actual Redis {@literal SCAN} command using the native client implementation.
+	 * The given {@link ScanOptions} are never {@code null}.
 	 */
 	protected abstract ScanIteration<T> doScan(long cursorId, ScanOptions options);
 
@@ -125,8 +130,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Customization hook when calling {@link #open()}.
-	 *
-	 * @param cursorId
 	 */
 	protected void doOpen(long cursorId) {
 		scan(cursorId);
@@ -207,9 +210,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Fetch the next item from the underlying {@link Iterable}.
-	 *
-	 * @param source
-	 * @return
 	 */
 	protected T moveNext(Iterator<T> source) {
 		return source.next();
@@ -253,10 +253,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		return position;
 	}
 
-	/**
-	 * @author Thomas Darimont
-	 */
 	enum CursorState {
-		READY, OPEN, FINISHED, CLOSED;
+		READY, OPEN, FINISHED, CLOSED
 	}
 }

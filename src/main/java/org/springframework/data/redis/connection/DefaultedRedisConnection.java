@@ -65,6 +65,7 @@ import org.springframework.lang.Nullable;
  * @author ihaohong
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
+ * @author John Blum
  * @since 2.0
  */
 @Deprecated
@@ -133,6 +134,14 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default Cursor<byte[]> scan(ScanOptions options) {
 		return keyCommands().scan(options);
+	}
+
+	/** @deprecated use {@link RedisConnection#keyCommands()} instead. */
+	@Override
+	@Deprecated
+	default Cursor<byte[]> scan(String cursorId, ScanOptions options) {
+		RedisKeyCommands keyCommands = keyCommands();
+		return keyCommands.scan(cursorId, options);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
@@ -598,6 +607,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	@SuppressWarnings("unchecked")
 	default List<ByteRecord> xRead(StreamOffset<byte[]>... streams) {
 		return streamCommands().xRead(streams);
 	}
@@ -605,6 +615,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	@SuppressWarnings("unchecked")
 	default List<ByteRecord> xRead(StreamReadOptions readOptions, StreamOffset<byte[]>... streams) {
 		return streamCommands().xRead(readOptions, streams);
 	}
@@ -612,6 +623,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	@SuppressWarnings("unchecked")
 	default List<ByteRecord> xReadGroup(Consumer consumer, StreamOffset<byte[]>... streams) {
 		return streamCommands().xReadGroup(consumer, streams);
 	}
@@ -619,6 +631,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	@SuppressWarnings("unchecked")
 	default List<ByteRecord> xReadGroup(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<byte[]>... streams) {
 		return streamCommands().xReadGroup(consumer, readOptions, streams);

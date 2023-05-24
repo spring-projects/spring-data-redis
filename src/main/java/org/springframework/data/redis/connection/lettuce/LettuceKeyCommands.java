@@ -39,6 +39,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
@@ -126,35 +127,35 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	/**
 	 * @since 1.4
-	 * @return
 	 */
 	public Cursor<byte[]> scan() {
-		return scan(ScanOptions.NONE);
+		return scan(Cursor.INITIAL_CURSOR, ScanOptions.NONE);
 	}
 
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		return doScan(options != null ? options : ScanOptions.NONE);
+		return doScan(Cursor.INITIAL_CURSOR, options);
 	}
 
 	/**
 	 * @since 1.4
-	 * @param options
-	 * @return
 	 */
-	private Cursor<byte[]> doScan(ScanOptions options) {
+	@SuppressWarnings("all")
+	private Cursor<byte[]> doScan(String cursorId, ScanOptions options) {
 
-		return new LettuceScanCursor<byte[]>(options) {
+		return new LettuceScanCursor<byte[]>(Long.parseLong(StringUtils.trimAllWhitespace(cursorId)),
+				nullSafeScanOptions(options)) {
 
 			@Override
 			protected LettuceScanIteration<byte[]> doScan(ScanCursor cursor, ScanOptions options) {
 
-				if (connection.isQueueing() || connection.isPipelined()) {
-					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
-				}
+				throwOnQueueingOrPipelineMode();
 
 				ScanArgs scanArgs = LettuceConverters.toScanArgs(options);
-				KeyScanCursor<byte[]> keyScanCursor = connection.invoke().just(RedisKeyAsyncCommands::scan, cursor, scanArgs);
+
+				KeyScanCursor<byte[]> keyScanCursor = connection.invoke()
+						.just(RedisKeyAsyncCommands::scan, cursor, scanArgs);
+
 				List<byte[]> keys = keyScanCursor.getKeys();
 
 				return new LettuceScanIteration<>(keyScanCursor, keys);
@@ -164,8 +165,29 @@ class LettuceKeyCommands implements RedisKeyCommands {
 			protected void doClose() {
 				LettuceKeyCommands.this.connection.close();
 			}
-
 		}.open();
+	}
+
+	/**
+	 * @since 3.2.0
+	 */
+	@Override
+	public Cursor<byte[]> scan(String cursorId, ScanOptions options) {
+		return doScan(cursorId, options);
+	}
+
+	private boolean isScanNotAllowed() {
+		return this.connection.isQueueing() || this.connection.isPipelined();
+	}
+
+	private ScanOptions nullSafeScanOptions(@Nullable ScanOptions options) {
+		return options != null ? options : ScanOptions.NONE;
+	}
+
+	private void throwOnQueueingOrPipelineMode() {
+		if (isScanNotAllowed()) {
+			throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline or transaction mode");
+		}
 	}
 
 	@Override

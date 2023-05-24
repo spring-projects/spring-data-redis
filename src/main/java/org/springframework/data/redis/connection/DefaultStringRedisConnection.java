@@ -16,8 +16,18 @@
 package org.springframework.data.redis.connection;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 
@@ -81,6 +91,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
+ * @author John Blum
  */
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
@@ -2553,6 +2564,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
 		return this.delegate.scan(options);
+	}
+
+	@Override
+	public Cursor<byte[]> scan(String cursorId, ScanOptions options) {
+		return this.delegate.scan(cursorId, options);
 	}
 
 	@Override

@@ -94,6 +94,8 @@ import org.springframework.data.redis.test.condition.LongRunningTest;
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.util.Streamable;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 /**
  * Base test class for AbstractConnection integration tests
@@ -119,17 +121,19 @@ public abstract class AbstractConnectionIntegrationTests {
 	private static final GeoLocation<String> CATANIA = new GeoLocation<>("catania", POINT_CATANIA);
 	private static final GeoLocation<String> PALERMO = new GeoLocation<>("palermo", POINT_PALERMO);
 
-	protected StringRedisConnection connection;
-	protected RedisSerializer<Object> serializer = RedisSerializer.java();
-	private RedisSerializer<String> stringSerializer = RedisSerializer.string();
-
 	private static final byte[] EMPTY_ARRAY = new byte[0];
 
 	protected List<Object> actual = new ArrayList<>();
 
-	@Autowired @EnabledOnRedisDriver.DriverQualifier protected RedisConnectionFactory connectionFactory;
-
 	protected RedisConnection byteConnection;
+
+	@Autowired @EnabledOnRedisDriver.DriverQualifier
+	protected RedisConnectionFactory connectionFactory;
+
+	protected RedisSerializer<Object> serializer = RedisSerializer.java();
+	private RedisSerializer<String> stringSerializer = RedisSerializer.string();
+
+	protected StringRedisConnection connection;
 
 	private boolean isJedisOrLettuceConnection(RedisConnectionFactory connectionFactory) {
 		return ConnectionUtils.isJedis(connectionFactory) || ConnectionUtils.isLettuce(connectionFactory);
@@ -154,14 +158,14 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@AfterEach
 	public void tearDown() {
-		try {
 
+		try {
 			// since we use more than one db we're required to flush them all
 			connection.flushAll();
-		} catch (Exception e) {
-			// Connection may be closed in certain cases, like after pub/sub
-			// tests
+		} catch (Exception cause) {
+			// Connection may be closed in certain cases, like after pub/sub tests
 		}
+
 		connection.close();
 		connection = null;
 	}
@@ -2632,6 +2636,69 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		assertThat(i).isEqualTo(itemCount);
+	}
+
+	@Test // GH-2584
+	public void scanWithCursorIdAndCountShouldReadSubValueRange() {
+
+		assumeThat(isNotJedisOrLettuceConnection(connectionFactory))
+			.describedAs("SCAN is only available for Jedis and Lettuce")
+			.isFalse();
+
+		assumeThat(isPipelinedOrQueueingConnection(connection))
+			.describedAs("SCAN is only available in non-pipeline | non-queueing mode")
+			.isFalse();
+
+		connection.set("people:doe:jon", "Jon Doe");
+		connection.set("people:doe:jane", "Jane Doe");
+		connection.set("people:doe:pie", "Pie Doe");
+		connection.set("people:doe:sour", "Sour Doe");
+		connection.set("people:handy:jack", "Jack Handy");
+		connection.set("people:handy:jill", "Jill Handy");
+
+		String cursorId = null;
+
+		List<String> keyResults = new ArrayList<>();
+
+		while (cursorHasNext(cursorId)) {
+			try (Cursor<byte[]> cursor = connection.scan(resolveCursor(cursorId),
+					scanOptions().match("people:doe:*").count(2).build())) {
+
+				List<String> partialKeyResults = new ArrayList<>();
+
+				while (cursor.hasNext()) {
+					partialKeyResults.add(new String(cursor.next()));
+				}
+				/*
+				for (int count = 0; count < 2 && cursor.hasNext(); count++) {
+					partialKeyResults.add(new String(cursor.next()));
+				}
+				*/
+
+				assertThat(partialKeyResults).isNotEmpty();
+				// Ideally, Redis would return a partial match limited by count, but Redis is stupid!
+				//assertThat(partialKeyResults).hasSizeLessThan(4);
+
+				keyResults.addAll(partialKeyResults);
+				cursorId = Long.toString(cursor.getCursorId());
+			}
+		}
+
+		assertThat(keyResults).hasSize(4);
+		assertThat(keyResults).containsExactlyInAnyOrder(
+			"people:doe:jon",
+			"people:doe:jane",
+			"people:doe:pie",
+			"people:doe:sour"
+		);
+	}
+
+	private String resolveCursor(@Nullable String cursor) {
+		return StringUtils.hasText(cursor) ? cursor : Cursor.INITIAL_CURSOR;
+	}
+
+	private boolean cursorHasNext(String cursor) {
+		return !Cursor.INITIAL_CURSOR.equals(cursor);
 	}
 
 	@Test // GH-2089, GH-2153

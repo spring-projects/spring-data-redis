@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.Collection;
 
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -37,12 +38,25 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 	private @Nullable io.lettuce.core.ScanCursor state;
 
 	/**
-	 * Creates a new {@link LettuceScanCursor} given {@link ScanOptions}.
+	 * Creates a new {@link LettuceScanCursor} initialized from the given {@link ScanOptions}.
 	 *
-	 * @param options must not be {@literal null}.
+	 * @param options {@link ScanOptions} used to configure the Redis {@literal SCAN} command executed;
+	 * must not be {@literal null}.
 	 */
 	LettuceScanCursor(ScanOptions options) {
-		super(options);
+		this(Cursor.INITIAL_CURSOR_ID, options);
+	}
+
+	/**
+	 * Creates a new {@link LettuceScanCursor} initialized with a {@link Long cursorId} specifying the cursor's
+	 * start position along with the given {@link ScanOptions}.
+	 *
+	 * @param cursorId {@link Long value} specifying the starting position of this cursor.
+	 * @param options {@link ScanOptions} used to configure the Redis {@literal SCAN} command executed;
+	 * must not be {@literal null}.
+	 */
+	LettuceScanCursor(long cursorId, ScanOptions options) {
+		super(cursorId, options);
 	}
 
 	@Override

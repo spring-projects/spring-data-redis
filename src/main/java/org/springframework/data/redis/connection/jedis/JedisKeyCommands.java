@@ -15,13 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.commands.JedisBinaryCommands;
-import redis.clients.jedis.commands.PipelineBinaryCommands;
-import redis.clients.jedis.params.RestoreParams;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.params.SortingParams;
-import redis.clients.jedis.resps.ScanResult;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
@@ -43,6 +36,14 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
+import redis.clients.jedis.commands.JedisBinaryCommands;
+import redis.clients.jedis.commands.PipelineBinaryCommands;
+import redis.clients.jedis.params.RestoreParams;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.SortingParams;
+import redis.clients.jedis.resps.ScanResult;
 
 /**
  * @author Christoph Strobl
@@ -131,32 +132,30 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		return scan(0, options != null ? options : ScanOptions.NONE);
+		return scan(Cursor.INITIAL_CURSOR_ID, options);
 	}
 
 	/**
 	 * @since 1.4
-	 * @param cursorId
-	 * @param options
-	 * @return
 	 */
-	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
+	@SuppressWarnings("all")
+	public Cursor<byte[]>scan(long cursorId, ScanOptions options) {
 
-		return new ScanCursor<byte[]>(cursorId, options) {
+		return new ScanCursor<byte[]>(cursorId, nullSafeScanOptions(options)) {
 
 			@Override
 			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
-				if (isQueueing() || isPipelined()) {
-					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
-				}
+				throwOnQueueingOrPipelineMode();
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<byte[]> result;
+
 				byte[] type = null;
 
 				if (options instanceof KeyScanOptions) {
+
 					String typeAsString = ((KeyScanOptions) options).getType();
 
 					if (!ObjectUtils.isEmpty(typeAsString)) {
@@ -164,11 +163,9 @@ class JedisKeyCommands implements RedisKeyCommands {
 					}
 				}
 
-				if (type != null) {
-					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params, type);
-				} else {
-					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params);
-				}
+				result = type != null
+					? connection.getJedis().scan(Long.toString(cursorId).getBytes(), params, type)
+					: connection.getJedis().scan(Long.toString(cursorId).getBytes(), params);
 
 				return new ScanIteration<>(Long.parseLong(result.getCursor()), result.getResult());
 			}
@@ -177,6 +174,28 @@ class JedisKeyCommands implements RedisKeyCommands {
 				JedisKeyCommands.this.connection.close();
 			}
 		}.open();
+	}
+
+	/**
+	 * @since 3.2.0
+	 */
+	@Override
+	public Cursor<byte[]> scan(String cursorId, ScanOptions options) {
+		return scan(Long.parseLong(StringUtils.trimAllWhitespace(cursorId)), options);
+	}
+
+	private boolean isScanNotAllowed() {
+		return isQueueing() || isPipelined();
+	}
+
+	private ScanOptions nullSafeScanOptions(@Nullable ScanOptions options) {
+		return options != null ? options : ScanOptions.NONE;
+	}
+
+	private void throwOnQueueingOrPipelineMode() {
+		if (isScanNotAllowed()) {
+			throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline or transaction mode");
+		}
 	}
 
 	@Override

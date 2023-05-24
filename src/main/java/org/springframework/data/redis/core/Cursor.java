@@ -18,30 +18,27 @@ package org.springframework.data.redis.core;
 import org.springframework.data.util.CloseableIterator;
 
 /**
- * Cursor abstraction to scan over the keyspace or elements within a data structure using a variant of a {@code SCAN}
- * command.
+ * Cursor abstraction to scan over the keyspace or elements within a data structure using a variant of
+ * a Redis {@literal SCAN} command.
  * <p>
  * Using a Java 8 {@link #stream() java.util.stream.Stream} allows to apply additional
  * {@link java.util.stream.Stream#filter(java.util.function.Predicate) filters} and
  * {@link java.util.stream.Stream#limit(long) limits} to the underlying {@link Cursor}.
  * <p>
  * Make sure to {@link CloseableIterator#close() close} the cursor when done as this allows implementations to clean up
- * any resources they need to keep open to iterate over elements (eg. by using a try-with-resource statement).
+ * any resources they need to keep open to iterate over elements (e.g. by using a try-with-resource statement).
  *
+ * @param <T> {@link Class type} of {@link Object elements} iterated over and returned by this {@link Cursor}.
  * @author Christoph Strobl
  * @author Mark Paluch
- * @param <T>
+ * @author John Blum
  * @since 1.4
  */
 public interface Cursor<T> extends CloseableIterator<T> {
 
-	/**
-	 * Get the reference cursor. <br>
-	 * <strong>NOTE:</strong> the id might change while iterating items.
-	 *
-	 * @return
-	 */
-	long getCursorId();
+	long INITIAL_CURSOR_ID = 0L;
+
+	String INITIAL_CURSOR = String.valueOf(INITIAL_CURSOR_ID);
 
 	/**
 	 * @return {@code true} if cursor closed.
@@ -49,7 +46,16 @@ public interface Cursor<T> extends CloseableIterator<T> {
 	boolean isClosed();
 
 	/**
+	 * Get the reference cursor.<br/>
+	 * <strong>NOTE:</strong> the id might change while iterating items.
+	 *
+	 * @return the {@link Long cursor ID}.
+	 */
+	long getCursorId();
+
+	/**
 	 * @return the current position of the cursor.
 	 */
 	long getPosition();
+
 }

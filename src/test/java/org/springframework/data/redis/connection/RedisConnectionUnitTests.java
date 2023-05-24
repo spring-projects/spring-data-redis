@@ -51,6 +51,7 @@ import org.springframework.util.ObjectUtils;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @author John Blum
  */
 class RedisConnectionUnitTests {
 
@@ -435,6 +436,10 @@ class RedisConnectionUnitTests {
 
 		public Cursor<byte[]> scan(ScanOptions options) {
 			return delegate.scan(options);
+		}
+
+		public Cursor<byte[]> scan(String cursorId, ScanOptions options) {
+			return delegate.scan(cursorId, options);
 		}
 
 		public void save() {
