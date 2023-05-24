@@ -24,6 +24,10 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.lang.Nullable;
 
+import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
+
 /**
  * Unit tests for {@link RedisCacheConfiguration}.
  *
@@ -54,6 +58,25 @@ class RedisCacheConfigurationUnitTests {
 		config.configureKeyConverters(registry -> registry.addConverter(new DomainTypeConverter()));
 
 		assertThat(config.getConversionService().canConvert(DomainType.class, String.class)).isTrue();
+	}
+
+
+	@Test
+	void shouldGetDynamicTtlGivenTtlProvider() {
+
+		final int[] base = {1};
+
+		Supplier<Duration> ttlProvider = () -> {
+			base[0] = base[0] * 10;
+			return Duration.ofSeconds(base[0]);
+		};
+
+		RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtlProvider(ttlProvider);
+
+		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofSeconds(10));
+		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofSeconds(100));
+		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofSeconds(1000));
 	}
 
 	private static class DomainType {
