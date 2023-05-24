@@ -212,9 +212,9 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Set the ttl Provider to apply for cache entries. Use {@link Duration#ZERO} to declare an eternal cache.
+	 * Set the ttl Provider, which can dynamic provide ttl to apply for cache entries.
 	 *
-	 * @param ttlProvider must not be {@literal null}, and the ttl should not be {@literal null}
+	 * @param ttlProvider must not be {@literal null}, and the ttl must not be {@literal null} either.
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration entryTtlProvider(Supplier<Duration> ttlProvider) {
