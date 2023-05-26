@@ -185,7 +185,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		getCacheWriter().put(getName(), createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-				getCacheConfiguration().getTtl(key, value));
+			getCacheConfiguration().getTtl(key, value));
 	}
 
 	@Override
@@ -198,7 +198,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		byte[] result = getCacheWriter().putIfAbsent(getName(), createAndConvertCacheKey(key),
-				serializeCacheValue(cacheValue), getCacheConfiguration().getTtl(key, value));
+			serializeCacheValue(cacheValue), getCacheConfiguration().getTtl(key, value));
 
 		return result != null ? new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result))) : null;
 	}
