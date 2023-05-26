@@ -17,7 +17,6 @@ package org.springframework.data.redis.cache;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.springframework.cache.Cache;
@@ -35,8 +34,8 @@ import org.springframework.util.Assert;
  * Immutable {@link RedisCacheConfiguration} used to customize {@link RedisCache} behaviour, such as caching
  * {@literal null} values, computing cache key prefixes and handling binary serialization.
  * <p>
- * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behaviour
- * from that point on.
+ * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behaviour from that
+ * point on.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -109,8 +108,7 @@ public class RedisCacheConfiguration {
 		registerDefaultConverters(conversionService);
 
 		return new RedisCacheConfiguration((k, v) -> Duration.ZERO, DEFAULT_CACHE_NULL_VALUES, DEFAULT_USE_PREFIX,
-				CacheKeyPrefix.simple(),
-				SerializationPair.fromSerializer(RedisSerializer.string()),
+				CacheKeyPrefix.simple(), SerializationPair.fromSerializer(RedisSerializer.string()),
 				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
 	}
 
@@ -121,17 +119,17 @@ public class RedisCacheConfiguration {
 
 	private final ConversionService conversionService;
 
-	private final BiFunction<Object, Object, Duration> ttlProvider;
+	private final TtlFunction ttlFunction;
 
 	private final SerializationPair<String> keySerializationPair;
 	private final SerializationPair<Object> valueSerializationPair;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(BiFunction<Object, Object, Duration> ttlProvider, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
-			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
-			ConversionService conversionService) {
+	private RedisCacheConfiguration(TtlFunction ttlFunction, Boolean cacheNullValues, Boolean usePrefix,
+			CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
+			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
 
-		this.ttlProvider = ttlProvider;
+		this.ttlFunction = ttlFunction;
 		this.cacheNullValues = cacheNullValues;
 		this.usePrefix = usePrefix;
 		this.keyPrefix = keyPrefix;
@@ -167,7 +165,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null");
 
-		return new RedisCacheConfiguration(ttlProvider, cacheNullValues, DEFAULT_USE_PREFIX, cacheKeyPrefix,
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, DEFAULT_USE_PREFIX, cacheKeyPrefix,
 				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
@@ -180,8 +178,8 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(ttlProvider, DO_NOT_CACHE_NULL_VALUES, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttlFunction, DO_NOT_CACHE_NULL_VALUES, usePrefix, keyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -193,7 +191,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
 
-		return new RedisCacheConfiguration(ttlProvider, cacheNullValues, DO_NOT_USE_PREFIX, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, DO_NOT_USE_PREFIX, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -207,22 +205,22 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttl, "TTL duration must not be null");
 
-		return new RedisCacheConfiguration((k, v) -> ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-			valueSerializationPair, conversionService);
+		return entryTtl(new SingletonTtlFunction(ttl));
 	}
 
 	/**
-	 * Set the ttl Provider, which can dynamic provide ttl to apply for cache entries.
-	 * @param ttlProvider {@link BiFunction} calculate ttl with the actual original cache key and value,
-	 * which must not be {@literal null}, and the ttl must not be {@literal null} either.
+	 * Set the {@link TtlFunction TTL function} to compute the time to live for cache entries.
 	 *
+	 * @param ttlFunction the {@link TtlFunction} to compute the time to live for cache entries, must not be
+	 *          {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
+	 * @since 3.2
 	 */
-	public RedisCacheConfiguration entryTtlProvider(BiFunction<Object, Object, Duration> ttlProvider) {
+	public RedisCacheConfiguration entryTtl(TtlFunction ttlFunction) {
 
-		Assert.notNull(ttlProvider, "ttlProvider must not be null");
+		Assert.notNull(ttlFunction, "TtlFunction must not be null");
 
-		return new RedisCacheConfiguration(ttlProvider, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -236,7 +234,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null");
 
-		return new RedisCacheConfiguration(ttlProvider, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -250,7 +248,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null");
 
-		return new RedisCacheConfiguration(ttlProvider, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -264,8 +262,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(conversionService, "ConversionService must not be null");
 
-		return new RedisCacheConfiguration(ttlProvider, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-			valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+				valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -319,26 +317,26 @@ public class RedisCacheConfiguration {
 
 	/**
 	 * @return The constant expiration time (ttl) for cache entries. Never {@literal null}.
+	 * @deprecated since 3.2, use {@link #getTtlFunction()} instead.
 	 */
+	@Deprecated(since = "3.2", forRemoval = true)
 	public Duration getTtl() {
-		Duration ttl = ttlProvider.apply(Object.class, Object.class);
-		Assert.notNull(ttl, "TTL duration must not be null");
-		return ttl;
+		return getTtlFunction().getTimeToLive(Object.class, null);
 	}
 
 	/**
-	 * @return The expiration time (ttl) for cache entries with original key and value. Never {@literal null}.
+	 * Returns the function to compute the time to live.
+	 *
+	 * @return the function to compute the time to live.
+	 * @since 3.2
 	 */
-	public Duration getTtl(Object key, Object val) {
-		Duration ttl = ttlProvider.apply(key, val);
-		Assert.notNull(ttl, "TTL duration must not be null");
-
-		return ttl;
+	public TtlFunction getTtlFunction() {
+		return ttlFunction;
 	}
 
 	/**
-	 * Adds a {@link Converter} to extract the {@link String} representation of a {@literal cache key}
-	 * if no suitable {@link Object#toString()} method is present.
+	 * Adds a {@link Converter} to extract the {@link String} representation of a {@literal cache key} if no suitable
+	 * {@link Object#toString()} method is present.
 	 *
 	 * @param cacheKeyConverter {@link Converter} used to convert a {@literal cache key} into a {@link String}.
 	 * @throws IllegalStateException if {@link #getConversionService()} does not allow {@link Converter} registration.
@@ -352,8 +350,8 @@ public class RedisCacheConfiguration {
 	/**
 	 * Configure the underlying {@link ConversionService} used to extract the {@literal cache key}.
 	 *
-	 * @param registryConsumer {@link Consumer} used to register a {@link Converter}
-	 * with the configured {@link ConverterRegistry}; never {@literal null}.
+	 * @param registryConsumer {@link Consumer} used to register a {@link Converter} with the configured
+	 *          {@link ConverterRegistry}; never {@literal null}.
 	 * @throws IllegalStateException if {@link #getConversionService()} does not allow {@link Converter} registration.
 	 * @see org.springframework.core.convert.converter.ConverterRegistry
 	 * @since 2.2
@@ -381,8 +379,8 @@ public class RedisCacheConfiguration {
 	 * <li>{@link SimpleKey} to {@link String}</li>
 	 * </ul>
 	 *
-	 * @param registry {@link ConverterRegistry} in which the {@link Converter key converters} are registered;
-	 * must not be {@literal null}.
+	 * @param registry {@link ConverterRegistry} in which the {@link Converter key converters} are registered; must not be
+	 *          {@literal null}.
 	 * @see org.springframework.core.convert.converter.ConverterRegistry
 	 */
 	public static void registerDefaultConverters(ConverterRegistry registry) {
@@ -391,5 +389,35 @@ public class RedisCacheConfiguration {
 
 		registry.addConverter(String.class, byte[].class, source -> source.getBytes(StandardCharsets.UTF_8));
 		registry.addConverter(SimpleKey.class, String.class, SimpleKey::toString);
+	}
+
+	/**
+	 * Function to compute the time to live from the cache {@code key} and {@code value}.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.2
+	 */
+	@FunctionalInterface
+	interface TtlFunction {
+
+		/**
+		 * Compute a {@link Duration time to live duration} using the cache {@code key} and {@code value}. The time to live
+		 * is computed on each write operation. Redis uses milliseconds granularity for timeouts. Any more granular values
+		 * (e.g. micros or nanos) are not considered and are truncated due to rounding. Returning {@link Duration#ZERO} (or
+		 * a value less than {@code Duration.ofMillis(1)}) results in a persistent value that does not expire.
+		 *
+		 * @param key the cache key.
+		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
+		 * @return the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry does not expire).
+		 */
+		Duration getTimeToLive(Object key, @Nullable Object value);
+	}
+
+	private record SingletonTtlFunction(Duration duration) implements TtlFunction {
+
+		@Override
+		public Duration getTimeToLive(Object key, @Nullable Object value) {
+			return this.duration;
+		}
 	}
 }

@@ -31,6 +31,7 @@ import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.data.redis.cache.RedisCacheConfiguration.TtlFunction;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
@@ -63,6 +64,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	private final String name;
 
+	private final TtlFunction ttlFunction;
+
 	/**
 	 * Create a new {@link RedisCache}.
 	 *
@@ -85,6 +88,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		this.name = name;
 		this.cacheWriter = cacheWriter;
 		this.cacheConfiguration = cacheConfiguration;
+		this.ttlFunction = cacheConfiguration.getTtlFunction();
 	}
 
 
@@ -185,7 +189,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		getCacheWriter().put(getName(), createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-			getCacheConfiguration().getTtl(key, value));
+				ttlFunction.getTimeToLive(key, value));
 	}
 
 	@Override
@@ -198,7 +202,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		byte[] result = getCacheWriter().putIfAbsent(getName(), createAndConvertCacheKey(key),
-			serializeCacheValue(cacheValue), getCacheConfiguration().getTtl(key, value));
+				serializeCacheValue(cacheValue), ttlFunction.getTimeToLive(key, value));
 
 		return result != null ? new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result))) : null;
 	}

@@ -15,22 +15,21 @@
  */
 package org.springframework.data.redis.cache;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
 
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.lang.Nullable;
 
-import java.time.Duration;
-import java.util.function.BiFunction;
-
 /**
  * Unit tests for {@link RedisCacheConfiguration}.
  *
  * @author Mark Paluch
+ * @author Koy Zhuang
  */
 class RedisCacheConfigurationUnitTests {
 
@@ -59,19 +58,28 @@ class RedisCacheConfigurationUnitTests {
 		assertThat(config.getConversionService().canConvert(DomainType.class, String.class)).isTrue();
 	}
 
-
-	@Test
-	void shouldGetDynamicTtlGivenTtlProvider() {
-
-		BiFunction<Object, Object, Duration> ttlProvider = (key, val) ->
-				Duration.ofSeconds(Integer.parseInt(key + String.valueOf(val)));
+	@Test // GH-1433
+	void shouldApplySingletonTtlFunction() {
 
 		RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-				.entryTtlProvider(ttlProvider);
+				.entryTtl(Duration.ofSeconds(10));
 
-		assertThat(defaultCacheConfiguration.getTtl(1, 12)).isEqualTo(Duration.ofSeconds(112));
-		assertThat(defaultCacheConfiguration.getTtl(15, 22)).isEqualTo(Duration.ofSeconds(1522));
-		assertThat(defaultCacheConfiguration.getTtl(77, 0)).isEqualTo(Duration.ofSeconds(770));
+		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(Object.class, null))
+				.isEqualTo(Duration.ofSeconds(10));
+		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(Object.class, null))
+				.isEqualTo(Duration.ofSeconds(10));
+	}
+
+	@Test // GH-1433
+	void shouldApplyTtlFunction() {
+
+		RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl((key, value) -> Duration.ofSeconds((Integer) value + 10));
+
+		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(Object.class, 10))
+				.isEqualTo(Duration.ofSeconds(20));
+		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(Object.class, 20))
+				.isEqualTo(Duration.ofSeconds(30));
 	}
 
 	private static class DomainType {

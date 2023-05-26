@@ -40,7 +40,6 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -444,6 +443,24 @@ public class RedisCacheTests {
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstame(), sample.getBirthdate())));
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> cache.put(key, sample));
+	}
+
+	@ParameterizedRedisTest // GH-1433
+	void shouldApplyTimeToLive() {
+
+		SerializationPair<?> serializer = SerializationPair.fromSerializer(this.serializer);
+		RedisCache cache = new RedisCache("cache", RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+				RedisCacheConfiguration.defaultCacheConfig().entryTtl((k, v) -> Duration.ofSeconds(60))
+						.serializeValuesWith(serializer));
+
+		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-ttl-cache"));
+		cache.put(key, sample);
+
+		try (RedisConnection connection = connectionFactory.getConnection()) {
+
+			Long ttl = connection.keyCommands().ttl("cache::my-ttl-cache".getBytes(), TimeUnit.SECONDS);
+			assertThat(ttl).isBetween(40L, 80L);
+		}
 	}
 
 	@ParameterizedRedisTest // GH-2079
