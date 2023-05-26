@@ -25,7 +25,7 @@ import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.lang.Nullable;
 
 import java.time.Duration;
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
 
 /**
  * Unit tests for {@link RedisCacheConfiguration}.
@@ -63,19 +63,15 @@ class RedisCacheConfigurationUnitTests {
 	@Test
 	void shouldGetDynamicTtlGivenTtlProvider() {
 
-		final int[] base = {1};
-
-		Supplier<Duration> ttlProvider = () -> {
-			base[0] = base[0] * 10;
-			return Duration.ofSeconds(base[0]);
-		};
+		BiFunction<Object, Object, Duration> ttlProvider = (key, val) ->
+				Duration.ofSeconds(Integer.parseInt(key + String.valueOf(val)));
 
 		RedisCacheConfiguration defaultCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
 				.entryTtlProvider(ttlProvider);
 
-		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofSeconds(10));
-		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofSeconds(100));
-		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofSeconds(1000));
+		assertThat(defaultCacheConfiguration.getTtl(1, 12)).isEqualTo(Duration.ofSeconds(112));
+		assertThat(defaultCacheConfiguration.getTtl(15, 22)).isEqualTo(Duration.ofSeconds(1522));
+		assertThat(defaultCacheConfiguration.getTtl(77, 0)).isEqualTo(Duration.ofSeconds(770));
 	}
 
 	private static class DomainType {
