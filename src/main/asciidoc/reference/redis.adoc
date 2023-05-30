@@ -527,7 +527,7 @@ public void useCallback() {
 
 From the framework perspective, the data stored in Redis is only bytes. While Redis itself supports various types, for the most part, these refer to the way the data is stored rather than what it represents. It is up to the user to decide whether the information gets translated into strings or any other objects.
 
-In Spring Data, the conversion between the user (custom) types and raw data (and vice-versa) is handled Redis in the `org.springframework.data.redis.serializer` package.
+In Spring Data, the conversion between the user (custom) types and raw data (and vice-versa) is handled by Spring Data Redis in the `org.springframework.data.redis.serializer` package.
 
 This package contains two types of serializers that, as the name implies, take care of the serialization process:
 
