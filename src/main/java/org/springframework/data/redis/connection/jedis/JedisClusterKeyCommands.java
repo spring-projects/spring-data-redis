@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.RestoreParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
@@ -366,10 +367,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.pttl(key),
-						connection.clusterGetNodeForKey(key))
-				.getValue();
+		try {
+			return connection.getCluster().pttl(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -377,11 +379,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode(
-						(JedisClusterCommandCallback<Long>) client -> Converters.millisecondsToTimeUnit(client.pttl(key), timeUnit),
-						connection.clusterGetNodeForKey(key))
-				.getValue();
+		try {
+			return Converters.millisecondsToTimeUnit(connection.getCluster().pttl(key), timeUnit);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -389,10 +391,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.dump(key),
-						connection.clusterGetNodeForKey(key))
-				.getValue();
+		try {
+			return connection.getCluster().dump(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -401,16 +404,16 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(serializedValue, "Serialized value must not be null");
 
-		connection.getClusterCommandExecutor().executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
+		RestoreParams restoreParams = RestoreParams.restoreParams();
 
-			if (!replace) {
-				return client.restore(key, ttlInMillis, serializedValue);
-			}
-
-			return JedisConverters.toString(this.connection.execute("RESTORE", key,
-					Arrays.asList(JedisConverters.toBytes(ttlInMillis), serializedValue, JedisConverters.toBytes("REPLACE"))));
-
-		}, connection.clusterGetNodeForKey(key));
+		if (replace) {
+			restoreParams = restoreParams.replace();
+		}
+		try {
+			connection.getCluster().restore(key, ttlInMillis, serializedValue, restoreParams);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -471,10 +474,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.objectEncoding(key),
-						connection.clusterGetNodeForKey(key))
-				.mapValue(JedisConverters::toEncoding);
+		try {
+			return JedisConverters.toEncoding(connection.getCluster().objectEncoding(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Nullable
@@ -483,10 +487,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectIdletime(key),
-						connection.clusterGetNodeForKey(key))
-				.mapValue(Converters::secondsToDuration);
+		try {
+			return Converters.secondsToDuration(connection.getCluster().objectIdletime(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Nullable
@@ -495,10 +500,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<Long>) client -> client.objectRefcount(key),
-						connection.clusterGetNodeForKey(key))
-				.getValue();
+		try {
+			return connection.getCluster().objectRefcount(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 
 	}
 
