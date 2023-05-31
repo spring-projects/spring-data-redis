@@ -35,6 +35,7 @@ import io.micrometer.tracing.test.SampleTestRunner;
  * Collection of tests that log metrics and tracing using the synchronous API.
  *
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class)
@@ -77,6 +78,9 @@ public class SynchronousIntegrationTests extends SampleTestRunner {
 						.containsEntry("net.sock.peer.port", "" + SettingsUtils.getPort());
 				assertThat(finishedSpan.getTags()).containsKeys("db.operation");
 			}
+
+			assertThat(TestConfig.PARENT_OBSERVATION_NAMES_COLLECTED_IN_PREDICATE).isNotEmpty();
+			TestConfig.PARENT_OBSERVATION_NAMES_COLLECTED_IN_PREDICATE.clear();
 		};
 	}
 
