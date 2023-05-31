@@ -44,6 +44,7 @@ import org.springframework.lang.Nullable;
  * arguments will be captured in traces including these that may contain sensitive details.
  *
  * @author Mark Paluch
+ * @author Yanming Zhou
  * @since 3.0
  */
 public class MicrometerTracingAdapter implements Tracing {
@@ -121,29 +122,28 @@ public class MicrometerTracingAdapter implements Tracing {
 
 		@Override
 		public Tracer.Span nextSpan() {
-			return this.postProcessSpan(createObservation());
+			return this.postProcessSpan(createObservation(null));
 		}
 
 		@Override
 		public Tracer.Span nextSpan(TraceContext traceContext) {
-
-			if (traceContext instanceof MicrometerTraceContext micrometerTraceContext) {
-
-				return micrometerTraceContext.observation == null ? nextSpan()
-						: postProcessSpan(createObservation().parentObservation(micrometerTraceContext.observation()));
-			}
-
-			return nextSpan();
+			return postProcessSpan(createObservation(traceContext));
 		}
 
-		private Observation createObservation() {
+		private Observation createObservation(@Nullable TraceContext traceContext) {
 			return RedisObservation.REDIS_COMMAND_OBSERVATION.observation(observationRegistry,
-					() -> new LettuceObservationContext(serviceName));
+					() -> {
+						LettuceObservationContext context = new LettuceObservationContext(serviceName);
+						if (traceContext instanceof MicrometerTraceContext micrometerTraceContext) {
+							context.setParentObservation(micrometerTraceContext.observation);
+						}
+						return context;
+					});
 		}
 
 		private Tracer.Span postProcessSpan(Observation observation) {
 
-			return observation != null && !observation.isNoop()
+			return !observation.isNoop()
 					? new MicrometerSpan(observation.observationConvention(observationConvention))
 					: NoOpSpan.INSTANCE;
 		}
@@ -292,6 +292,7 @@ public class MicrometerTracingAdapter implements Tracing {
 	record MicrometerTraceContextProvider(ObservationRegistry registry) implements TraceContextProvider {
 
 		@Override
+		@Nullable
 		public TraceContext getTraceContext() {
 
 			Observation observation = registry.getCurrentObservation();

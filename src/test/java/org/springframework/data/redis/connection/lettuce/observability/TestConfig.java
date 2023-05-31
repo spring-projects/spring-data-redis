@@ -22,6 +22,8 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Bean;
@@ -33,15 +35,23 @@ import org.springframework.data.redis.test.extension.ShutdownQueue;
 
 /**
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 @Configuration
 class TestConfig {
 
 	static final MeterRegistry METER_REGISTRY = new SimpleMeterRegistry();
 	static final ObservationRegistry OBSERVATION_REGISTRY = ObservationRegistry.create();
+	static final List<String> PARENT_OBSERVATION_NAMES_COLLECTED_IN_PREDICATE = new ArrayList<>();
 
 	static {
 		OBSERVATION_REGISTRY.observationConfig().observationHandler(new DefaultMeterObservationHandler(METER_REGISTRY));
+		OBSERVATION_REGISTRY.observationConfig().observationPredicate((name, context) -> {
+			if (context.getParentObservation() != null) {
+				PARENT_OBSERVATION_NAMES_COLLECTED_IN_PREDICATE.add(context.getParentObservation().getContextView().getName());
+			}
+			return true;
+		});
 	}
 
 	@Bean(destroyMethod = "timer")
