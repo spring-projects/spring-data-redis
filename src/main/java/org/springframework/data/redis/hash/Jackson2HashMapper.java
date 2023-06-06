@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -183,6 +184,10 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 							return false;
 						}
 
+						if(flatten && t.isTypeOrSubTypeOf(Number.class)) {
+							return false;
+						}
+
 						if (EVERYTHING.equals(_appliesFor)) {
 							return !TreeNode.class.isAssignableFrom(t.getRawClass());
 						}
@@ -196,6 +201,9 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		typingMapper.activateDefaultTyping(typingMapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
 				As.PROPERTY);
 		typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+		if(flatten) {
+			typingMapper.disable(MapperFeature.REQUIRE_TYPE_ID_FOR_SUBTYPES);
+		}
 
 		// Prevent splitting time types into arrays. E
 		typingMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -240,7 +248,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 				Map<String, Object> unflattenedHash = doUnflatten(hash);
 				byte[] unflattenedHashedBytes = untypedMapper.writeValueAsBytes(unflattenedHash);
 				Object hashedObject = typingMapper.reader().forType(Object.class)
-						.readValue(unflattenedHashedBytes);;
+						.readValue(unflattenedHashedBytes);
 
 				return hashedObject;
 			}

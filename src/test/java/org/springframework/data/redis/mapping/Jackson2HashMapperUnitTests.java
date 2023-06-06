@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.mapping;
 
+import static org.assertj.core.api.Assertions.*;
+
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -28,9 +30,11 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
@@ -44,23 +48,10 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
  */
 public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
 
-	private final Jackson2HashMapper mapper;
+	private Jackson2HashMapper mapper;
 
-	Jackson2HashMapperUnitTests(Jackson2HashMapper mapper) {
-		this.mapper = mapper;
-	}
-
-	static class FlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
-		FlatteningJackson2HashMapperUnitTests() {
-			super(new Jackson2HashMapper(true));
-		}
-	}
-
-	static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
-
-		NonFlatteningJackson2HashMapperUnitTests() {
-			super(new Jackson2HashMapper(false));
-		}
+	public Jackson2HashMapperUnitTests(Jackson2HashMapper param){
+		this.mapper = param;
 	}
 
 	@Override
