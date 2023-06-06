@@ -130,27 +130,28 @@ public class MicrometerTracingAdapter implements Tracing {
 			return postProcessSpan(createObservation(traceContext));
 		}
 
-		private Observation createObservation(@Nullable TraceContext traceContext) {
-			return RedisObservation.REDIS_COMMAND_OBSERVATION.observation(observationRegistry,
-					() -> {
-						LettuceObservationContext context = new LettuceObservationContext(serviceName);
-						if (traceContext instanceof MicrometerTraceContext micrometerTraceContext) {
-							context.setParentObservation(micrometerTraceContext.observation);
-						}
-						return context;
-					});
+		private Observation createObservation(@Nullable TraceContext parentContext) {
+
+			return RedisObservation.REDIS_COMMAND_OBSERVATION.observation(observationRegistry, () -> {
+
+				LettuceObservationContext context = new LettuceObservationContext(serviceName);
+
+				if (parentContext instanceof MicrometerTraceContext traceContext) {
+					context.setParentObservation(traceContext.observation());
+				}
+				return context;
+			});
 		}
 
 		private Tracer.Span postProcessSpan(Observation observation) {
 
-			return !observation.isNoop()
-					? new MicrometerSpan(observation.observationConvention(observationConvention))
+			return !observation.isNoop() ? new MicrometerSpan(observation.observationConvention(observationConvention))
 					: NoOpSpan.INSTANCE;
 		}
 	}
 
 	/**
-	 * No-op {@link Span} implemementation.
+	 * No-op {@link Span} implementation.
 	 */
 	static class NoOpSpan extends Tracer.Span {
 
