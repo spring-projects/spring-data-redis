@@ -85,7 +85,7 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * 	Date date;
  * 	LocalDateTime localDateTime;
  * }
- *
+ * <p>
  * class Address {
  * 	String city;
  * 	String country;
@@ -153,22 +153,24 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 1.8
  */
 public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
-	private static final boolean SOURCE_VERSION_PRESENT = ClassUtils.isPresent("javax.lang.model.SourceVersion", Jackson2HashMapper.class.getClassLoader());
-
-	private final HashMapperModule HASH_MAPPER_MODULE = new HashMapperModule();
+	private static final boolean SOURCE_VERSION_PRESENT =
+			ClassUtils.isPresent("javax.lang.model.SourceVersion", Jackson2HashMapper.class.getClassLoader());
 
 	private final ObjectMapper typingMapper;
 	private final ObjectMapper untypedMapper;
 	private final boolean flatten;
 
 	/**
-	 * Creates new {@link Jackson2HashMapper} with default {@link ObjectMapper}.
+	 * Creates new {@link Jackson2HashMapper} with a default {@link ObjectMapper}.
 	 *
-	 * @param flatten
+	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties
+	 * will be un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure
+	 * created by Jackson.
 	 */
 	public Jackson2HashMapper(boolean flatten) {
 
@@ -176,87 +178,94 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			@Override
 			protected TypeResolverBuilder<?> _constructDefaultTypeResolverBuilder(DefaultTyping applicability,
-					PolymorphicTypeValidator ptv) {
-				return new DefaultTypeResolverBuilder(applicability, ptv) {
-					public boolean useForType(JavaType t) {
+					PolymorphicTypeValidator typeValidator) {
 
-						if (t.isPrimitive()) {
+				return new DefaultTypeResolverBuilder(applicability, typeValidator) {
+
+					public boolean useForType(JavaType type) {
+
+						if (type.isPrimitive()) {
 							return false;
 						}
 
-						if(flatten && t.isTypeOrSubTypeOf(Number.class)) {
+						if (flatten && type.isTypeOrSubTypeOf(Number.class)) {
 							return false;
 						}
 
 						if (EVERYTHING.equals(_appliesFor)) {
-							return !TreeNode.class.isAssignableFrom(t.getRawClass());
+							return !TreeNode.class.isAssignableFrom(type.getRawClass());
 						}
 
-						return super.useForType(t);
+						return super.useForType(type);
 					}
 				};
 			}
 		}.findAndRegisterModules(), flatten);
 
-		typingMapper.activateDefaultTyping(typingMapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
-				As.PROPERTY);
-		typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+		this.typingMapper.activateDefaultTyping(this.typingMapper.getPolymorphicTypeValidator(),
+				DefaultTyping.EVERYTHING, As.PROPERTY);
+		this.typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+
 		if(flatten) {
-			typingMapper.disable(MapperFeature.REQUIRE_TYPE_ID_FOR_SUBTYPES);
+			this.typingMapper.disable(MapperFeature.REQUIRE_TYPE_ID_FOR_SUBTYPES);
 		}
 
 		// Prevent splitting time types into arrays. E
-		typingMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		typingMapper.setSerializationInclusion(Include.NON_NULL);
-		typingMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		typingMapper.registerModule(HASH_MAPPER_MODULE);
+		this.typingMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+		this.typingMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		this.typingMapper.setSerializationInclusion(Include.NON_NULL);
+		this.typingMapper.registerModule(new HashMapperModule());
 	}
 
 	/**
-	 * Creates new {@link Jackson2HashMapper}.
+	 * Creates new {@link Jackson2HashMapper} initialized with a custom Jackson {@link ObjectMapper}.
 	 *
-	 * @param mapper must not be {@literal null}.
-	 * @param flatten
+	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects};
+	 * must not be {@literal null}.
+	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties
+	 * will be un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure
+	 * created by Jackson.
 	 */
 	public Jackson2HashMapper(ObjectMapper mapper, boolean flatten) {
 
 		Assert.notNull(mapper, "Mapper must not be null");
-		this.typingMapper = mapper;
-		this.flatten = flatten;
 
+		this.flatten = flatten;
+		this.typingMapper = mapper;
 		this.untypedMapper = new ObjectMapper();
-		untypedMapper.findAndRegisterModules();
 		this.untypedMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 		this.untypedMapper.setSerializationInclusion(Include.NON_NULL);
+		this.untypedMapper.findAndRegisterModules();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> toHash(Object source) {
 
-		JsonNode tree = typingMapper.valueToTree(source);
-		return flatten ? flattenMap(tree.fields()) : untypedMapper.convertValue(tree, Map.class);
+		JsonNode tree = this.typingMapper.valueToTree(source);
+
+		return this.flatten ? flattenMap(tree.fields()) : this.untypedMapper.convertValue(tree, Map.class);
 	}
 
 	@Override
+	@SuppressWarnings("all")
 	public Object fromHash(Map<String, Object> hash) {
 
 		try {
-
-			if (flatten) {
+			if (this.flatten) {
 
 				Map<String, Object> unflattenedHash = doUnflatten(hash);
-				byte[] unflattenedHashedBytes = untypedMapper.writeValueAsBytes(unflattenedHash);
-				Object hashedObject = typingMapper.reader().forType(Object.class)
+				byte[] unflattenedHashedBytes = this.untypedMapper.writeValueAsBytes(unflattenedHash);
+				Object hashedObject = this.typingMapper.reader().forType(Object.class)
 						.readValue(unflattenedHashedBytes);
 
 				return hashedObject;
 			}
 
-			return typingMapper.treeToValue(untypedMapper.valueToTree(hash), Object.class);
+			return this.typingMapper.treeToValue(this.untypedMapper.valueToTree(hash), Object.class);
 
-		} catch (IOException e) {
-			throw new MappingException(e.getMessage(), e);
+		} catch (IOException cause) {
+			throw new MappingException(cause.getMessage(), cause);
 		}
 	}
 
@@ -272,11 +281,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 			String[] keyParts = key.split("\\.");
 
 			if (keyParts.length == 1 && isNotIndexed(keyParts[0])) {
-				result.put(entry.getKey(), entry.getValue());
-				continue;
-			}
-
-			if (keyParts.length == 1 && isIndexed(keyParts[0])) {
+				result.put(key, entry.getValue());
+			} else if (keyParts.length == 1 && isIndexed(keyParts[0])) {
 
 				String indexedKeyName = keyParts[0];
 				String nonIndexedKeyName = stripIndex(indexedKeyName);
@@ -290,7 +296,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 					result.put(nonIndexedKeyName, createTypedListWithValue(index, entry.getValue()));
 				}
 			} else {
-				treatSeparate.add(key.substring(0, key.indexOf('.')));
+				treatSeparate.add(keyParts[0]);
 			}
 		}
 
@@ -298,13 +304,17 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			Map<String, Object> newSource = new LinkedHashMap<>();
 
+			// Copies all nested, dot properties from the source Map to the new Map beginning from
+			// the next nested (dot) property
 			for (Entry<String, Object> entry : source.entrySet()) {
-				if (entry.getKey().startsWith(partial)) {
-					newSource.put(entry.getKey().substring(partial.length() + 1), entry.getValue());
+				String key = entry.getKey();
+				if (key.startsWith(partial)) {
+					String keyAfterDot = key.substring(partial.length() + 1);
+					newSource.put(keyAfterDot, entry.getValue());
 				}
 			}
 
-			if (partial.endsWith("]")) {
+			if (isNonNestedIndexed(partial)) {
 
 				String nonIndexPartial = stripIndex(partial);
 				int index = getIndex(partial);
@@ -330,6 +340,10 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		return !isIndexed(value);
 	}
 
+	private boolean isNonNestedIndexed(@NonNull String value) {
+		return value.endsWith("]");
+	}
+
 	private int getIndex(@NonNull String indexedValue) {
 		return Integer.parseInt(indexedValue.substring(indexedValue.indexOf('[') + 1, indexedValue.length() - 1));
 	}
@@ -346,7 +360,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	private Map<String, Object> flattenMap(Iterator<Entry<String, JsonNode>> source) {
 
 		Map<String, Object> resultMap = new HashMap<>();
-		this.doFlatten("", source, resultMap);
+		doFlatten("", source, resultMap);
 		return resultMap;
 	}
 
@@ -378,56 +392,52 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			while (nodes.hasNext()) {
 
-				JsonNode cur = nodes.next();
+				JsonNode currentNode = nodes.next();
 
-				if (cur.isArray()) {
-					this.flattenCollection(propertyPrefix, cur.elements(), resultMap);
-				} else {
-					if (nodes.hasNext() && mightBeJavaType(cur)) {
+				if (currentNode.isArray()) {
+					flattenCollection(propertyPrefix, currentNode.elements(), resultMap);
+				} else if (nodes.hasNext() && mightBeJavaType(currentNode)) {
 
-						JsonNode next = nodes.next();
+					JsonNode next = nodes.next();
 
-						if (next.isArray()) {
-							this.flattenCollection(propertyPrefix, next.elements(), resultMap);
+					if (next.isArray()) {
+						flattenCollection(propertyPrefix, next.elements(), resultMap);
+					}
+					if (currentNode.asText().equals("java.util.Date")) {
+						resultMap.put(propertyPrefix, next.asText());
+						break;
+					}
+					if (next.isNumber()) {
+						resultMap.put(propertyPrefix, next.numberValue());
+						break;
+					}
+					if (next.isTextual()) {
+						resultMap.put(propertyPrefix, next.textValue());
+						break;
+					}
+					if (next.isBoolean()) {
+						resultMap.put(propertyPrefix, next.booleanValue());
+						break;
+					}
+					if (next.isBinary()) {
+
+						try {
+							resultMap.put(propertyPrefix, next.binaryValue());
+						}
+						catch (IOException cause) {
+							String message = String.format("Cannot read binary value of '%s'", propertyPrefix);
+							throw new IllegalStateException(message, cause);
 						}
 
-						if (cur.asText().equals("java.util.Date")) {
-							resultMap.put(propertyPrefix, next.asText());
-							break;
-						}
-						if (next.isNumber()) {
-							resultMap.put(propertyPrefix, next.numberValue());
-							break;
-						}
-						if (next.isTextual()) {
-
-							resultMap.put(propertyPrefix, next.textValue());
-							break;
-						}
-						if (next.isBoolean()) {
-
-							resultMap.put(propertyPrefix, next.booleanValue());
-							break;
-						}
-						if (next.isBinary()) {
-
-							try {
-								resultMap.put(propertyPrefix, next.binaryValue());
-							} catch (IOException cause) {
-								String message = String.format("Cannot read binary value of '%s'", propertyPrefix);
-								throw new IllegalStateException(message, cause);
-							}
-
-							break;
-						}
+						break;
 					}
 				}
 			}
-
 		} else if (element.isContainerNode()) {
-			this.doFlatten(propertyPrefix, element.fields(), resultMap);
+			doFlatten(propertyPrefix, element.fields(), resultMap);
 		} else {
-			resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element).getPropertyValue("_value"));
+			resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element)
+					.getPropertyValue("_value"));
 		}
 	}
 

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.*;
-
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -30,11 +28,9 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
-import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
+
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
@@ -45,19 +41,24 @@ import org.springframework.data.redis.hash.Jackson2HashMapper;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTests {
 
-	private Jackson2HashMapper mapper;
+	private final Jackson2HashMapper mapper;
 
-	public Jackson2HashMapperUnitTests(Jackson2HashMapper param){
-		this.mapper = param;
+	public Jackson2HashMapperUnitTests(Jackson2HashMapper mapper) {
+		this.mapper = mapper;
+	}
+
+	protected Jackson2HashMapper getMapper() {
+		return this.mapper;
 	}
 
 	@Override
 	@SuppressWarnings("rawtypes")
 	protected <T> HashMapper mapperFor(Class<T> t) {
-		return this.mapper;
+		return getMapper();
 	}
 
 	@Test // DATAREDIS-423
@@ -205,6 +206,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 
 	@Data
 	public static class WithList {
+
 		List<String> strings;
 		List<Object> objects;
 		List<Person> persons;
@@ -212,6 +214,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 
 	@Data
 	public static class WithMap {
+
 		Map<String, String> strings;
 		Map<String, Object> objects;
 		Map<String, Person> persons;
