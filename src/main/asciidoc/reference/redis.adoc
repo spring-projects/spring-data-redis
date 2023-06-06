@@ -49,7 +49,7 @@ To create a Spring project in STS:
   <repository>
     <id>spring-milestone</id>
     <name>Spring Maven MILESTONE Repository</name>
-    <url>https://repo.spring.io/libs-milestone</url>
+    <url>https://repo.spring.io/milestone</url>
   </repository>
 </repositories>
 ----
