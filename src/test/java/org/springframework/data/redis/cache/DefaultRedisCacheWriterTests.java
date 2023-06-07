@@ -360,7 +360,7 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-1082
-	void noOpSatisticsCollectorReturnsEmptyStatsInstance() {
+	void noOpStatisticsCollectorReturnsEmptyStatsInstance() {
 
 		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
 		CacheStatistics stats = cw.getCacheStatistics(CACHE_NAME);

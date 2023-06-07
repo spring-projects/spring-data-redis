@@ -107,7 +107,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	}
 
 	/**
-	 * Write the given key/value pair to Redis an set the expiration time if defined.
+	 * Write the given key/value pair to Redis and set the expiration time if defined.
 	 *
 	 * @param name The cache name must not be {@literal null}.
 	 * @param key The key for the cache entry. Must not be {@literal null}.
