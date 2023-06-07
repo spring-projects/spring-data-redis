@@ -177,6 +177,10 @@ public class Expiration {
 
 		Assert.notNull(duration, "Duration must not be null");
 
+		if (duration.isZero()) {
+			return Expiration.persistent();
+		}
+
 		if (duration.toMillis() % 1000 == 0) {
 			return new Expiration(duration.getSeconds(), TimeUnit.SECONDS);
 		}

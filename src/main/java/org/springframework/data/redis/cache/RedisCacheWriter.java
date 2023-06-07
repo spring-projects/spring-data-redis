@@ -83,14 +83,31 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 */
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
-
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-
-		return new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50), batchStrategy);
+		return lockingRedisCacheWriter(connectionFactory, Duration.ofMillis(50), TtlFunction.persistent(), batchStrategy);
 	}
 
 	/**
-	 * Write the given key/value pair to Redis an set the expiration time if defined.
+	 * Create new {@link RedisCacheWriter} with locking behavior.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param sleepTime sleep time between lock access attempts, must not be {@literal null}.
+	 * @param lockTtlFunction TTL function to compute the Lock TTL. The function is called with contextual keys and values
+	 *          (such as the cache name on cleanup or the actual key/value on put requests). Must not be {@literal null}.
+	 * @param batchStrategy must not be {@literal null}.
+	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	 * @since 3.2
+	 */
+	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
+			TtlFunction lockTtlFunction, BatchStrategy batchStrategy) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtlFunction, CacheStatisticsCollector.none(),
+				batchStrategy);
+	}
+
+	/**
+	 * Write the given key/value pair to Redis and set the expiration time if defined.
 	 *
 	 * @param name The cache name must not be {@literal null}.
 	 * @param key The key for the cache entry. Must not be {@literal null}.
@@ -152,4 +169,48 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 */
 	RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector);
 
+	/**
+	 * Function to compute the time to live from the cache {@code key} and {@code value}.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.2
+	 */
+	@FunctionalInterface
+	interface TtlFunction {
+
+		/**
+		 * Creates a singleton {@link TtlFunction} using the given {@link Duration}.
+		 *
+		 * @param duration the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry does not
+		 *          expire).
+		 * @return a singleton {@link TtlFunction} using {@link Duration}.
+		 */
+		static TtlFunction just(Duration duration) {
+
+			Assert.notNull(duration, "TTL Duration must not be null");
+
+			return new SingletonTtlFunction(duration);
+		}
+
+		/**
+		 * Returns a {@link TtlFunction} to create persistent entires that do not expire.
+		 *
+		 * @return a {@link TtlFunction} to create persistent entires that do not expire.
+		 */
+		static TtlFunction persistent() {
+			return just(Duration.ZERO);
+		}
+
+		/**
+		 * Compute a {@link Duration time to live duration} using the cache {@code key} and {@code value}. The time to live
+		 * is computed on each write operation. Redis uses milliseconds granularity for timeouts. Any more granular values
+		 * (e.g. micros or nanos) are not considered and are truncated due to rounding. Returning {@link Duration#ZERO} (or
+		 * a value less than {@code Duration.ofMillis(1)}) results in a persistent value that does not expire.
+		 *
+		 * @param key the cache key.
+		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
+		 * @return the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry does not expire).
+		 */
+		Duration getTimeToLive(Object key, @Nullable Object value);
+	}
 }

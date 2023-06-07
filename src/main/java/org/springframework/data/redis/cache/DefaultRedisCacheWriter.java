@@ -50,6 +50,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private final RedisConnectionFactory connectionFactory;
 	private final Duration sleepTime;
+
+	private final TtlFunction lockTtl;
 	private final CacheStatisticsCollector statistics;
 	private final BatchStrategy batchStrategy;
 
@@ -68,26 +70,29 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param batchStrategy must not be {@literal null}.
 	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime, BatchStrategy batchStrategy) {
-		this(connectionFactory, sleepTime, CacheStatisticsCollector.none(), batchStrategy);
+		this(connectionFactory, sleepTime, TtlFunction.persistent(), CacheStatisticsCollector.none(), batchStrategy);
 	}
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
 	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
 	 *          to disable locking.
+	 * @param lockTtl Lock TTL function must not be {@literal null}.
 	 * @param cacheStatisticsCollector must not be {@literal null}.
 	 * @param batchStrategy must not be {@literal null}.
 	 */
-	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
+	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime, TtlFunction lockTtl,
 			CacheStatisticsCollector cacheStatisticsCollector, BatchStrategy batchStrategy) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 		Assert.notNull(sleepTime, "SleepTime must not be null");
+		Assert.notNull(lockTtl, "Lock TTL Function must not be null");
 		Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null");
 		Assert.notNull(batchStrategy, "BatchStrategy must not be null");
 
 		this.connectionFactory = connectionFactory;
 		this.sleepTime = sleepTime;
+		this.lockTtl = lockTtl;
 		this.statistics = cacheStatisticsCollector;
 		this.batchStrategy = batchStrategy;
 	}
@@ -142,7 +147,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return execute(name, connection -> {
 
 			if (isLockingCacheWriter()) {
-				doLock(name, connection);
+				doLock(name, key, value, connection);
 			}
 
 			try {
@@ -193,7 +198,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			try {
 
 				if (isLockingCacheWriter()) {
-					doLock(name, connection);
+					doLock(name, name, pattern, connection);
 					wasLocked = true;
 				}
 
@@ -227,7 +232,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	@Override
 	public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
-		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, cacheStatisticsCollector, this.batchStrategy);
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtl, cacheStatisticsCollector,
+				this.batchStrategy);
 	}
 
 	/**
@@ -236,7 +242,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param name the name of the cache to lock.
 	 */
 	void lock(String name) {
-		execute(name, connection -> doLock(name, connection));
+		execute(name, connection -> doLock(name, name, null, connection));
 	}
 
 	/**
@@ -248,8 +254,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		executeLockFree(connection -> doUnlock(name, connection));
 	}
 
-	private Boolean doLock(String name, RedisConnection connection) {
-		return connection.setNX(createCacheLockKey(name), new byte[0]);
+	private Boolean doLock(String name, Object contextualKey, Object contextualValue, RedisConnection connection) {
+
+		Expiration expiration = lockTtl == null ? Expiration.persistent()
+				: Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
+
+		return connection.set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT);
 	}
 
 	private Long doUnlock(String name, RedisConnection connection) {

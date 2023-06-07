@@ -24,6 +24,7 @@ import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.data.redis.cache.RedisCacheWriter.TtlFunction;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.format.support.DefaultFormattingConversionService;
@@ -119,13 +120,21 @@ public class RedisCacheConfiguration {
 
 	private final ConversionService conversionService;
 
-	private final Duration ttl;
+	private final TtlFunction ttl;
 
 	private final SerializationPair<String> keySerializationPair;
 	private final SerializationPair<Object> valueSerializationPair;
 
-	@SuppressWarnings("unchecked")
 	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
+			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
+			ConversionService conversionService) {
+
+		this(TtlFunction.just(ttl), cacheNullValues, usePrefix, keyPrefix, keySerializationPair, valueSerializationPair,
+				conversionService);
+	}
+
+	@SuppressWarnings("unchecked")
+	private RedisCacheConfiguration(TtlFunction ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
 			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
 			ConversionService conversionService) {
 
@@ -205,8 +214,23 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttl, "TTL duration must not be null");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-			valueSerializationPair, conversionService);
+		return entryTtl(TtlFunction.just(ttl));
+	}
+
+	/**
+	 * Set the {@link TtlFunction TTL function} to compute the time to live for cache entries.
+	 *
+	 * @param ttlFunction the {@link TtlFunction} to compute the time to live for cache entries, must not be
+	 *          {@literal null}.
+	 * @return new {@link RedisCacheConfiguration}.
+	 * @since 3.2
+	 */
+	public RedisCacheConfiguration entryTtl(TtlFunction ttlFunction) {
+
+		Assert.notNull(ttlFunction, "TtlFunction must not be null");
+
+		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+				valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -304,7 +328,11 @@ public class RedisCacheConfiguration {
 	 * @return The expiration time (ttl) for cache entries. Never {@literal null}.
 	 */
 	public Duration getTtl() {
-		return ttl;
+		return getTtlFunction().getTimeToLive(null, null);
+	}
+
+	public TtlFunction getTtlFunction() {
+		return this.ttl;
 	}
 
 	/**

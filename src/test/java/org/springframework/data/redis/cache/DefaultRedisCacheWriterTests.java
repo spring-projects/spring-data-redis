@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -336,8 +335,32 @@ public class DefaultRedisCacheWriterTests {
 				.hasCauseInstanceOf(InterruptedException.class);
 	}
 
+	@ParameterizedRedisTest // GH-2300
+	void lockingCacheWriterShouldUsePersistentLocks() {
+
+		DefaultRedisCacheWriter writer = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory,
+				Duration.ofSeconds(1), TtlFunction.just(Duration.ZERO), BatchStrategies.keys());
+		writer.lock(CACHE_NAME);
+		doWithConnection(conn -> {
+			Long ttl = conn.ttl("default-redis-cache-writer-tests~lock".getBytes());
+			assertThat(ttl).isEqualTo(-1);
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2300
+	void lockingCacheWriterShouldApplyLockTtl() {
+
+		DefaultRedisCacheWriter writer = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory,
+				Duration.ofSeconds(1), TtlFunction.just(Duration.ofSeconds(60)), BatchStrategies.keys());
+		writer.lock(CACHE_NAME);
+		doWithConnection(conn -> {
+			Long ttl = conn.ttl("default-redis-cache-writer-tests~lock".getBytes());
+			assertThat(ttl).isGreaterThan(30).isLessThan(70);
+		});
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-1082
-	void noOpSatisticsCollectorReturnsEmptyStatsInstance() {
+	void noOpStatisticsCollectorReturnsEmptyStatsInstance() {
 
 		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
 		CacheStatistics stats = cw.getCacheStatistics(CACHE_NAME);
