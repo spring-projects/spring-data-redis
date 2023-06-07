@@ -894,7 +894,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		io.lettuce.core.ZAddArgs target = new io.lettuce.core.ZAddArgs();
 
-		if (!source.isEmpty()) {
+		if (source.isEmpty()) {
 			return target;
 		}
 

@@ -689,7 +689,7 @@ public abstract class JedisConverters extends Converters {
 	 */
 	static ZAddParams toZAddParams(ZAddArgs source) {
 
-		if (!source.isEmpty()) {
+		if (source.isEmpty()) {
 			return new ZAddParams();
 		}
 
