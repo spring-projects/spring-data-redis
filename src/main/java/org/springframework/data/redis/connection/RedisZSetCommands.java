@@ -313,7 +313,7 @@ public interface RedisZSetCommands {
 		 * @return {@literal true} if no flags set.
 		 */
 		public boolean isEmpty() {
-			return !flags.isEmpty();
+			return flags.isEmpty();
 		}
 
 		@Override
