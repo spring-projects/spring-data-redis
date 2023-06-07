@@ -31,7 +31,7 @@ import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.data.redis.cache.RedisCacheConfiguration.TtlFunction;
+import org.springframework.data.redis.cache.RedisCacheWriter.TtlFunction;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
@@ -70,12 +70,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * Create a new {@link RedisCache}.
 	 *
 	 * @param name {@link String name} for this {@link Cache}; must not be {@literal null}.
-	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
-	 * by executing appropriate Redis commands; must not be {@literal null}.
-	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache on creation;
-	 * must not be {@literal null}.
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing appropriate
+	 *          Redis commands; must not be {@literal null}.
+	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache on creation; must not
+	 *          be {@literal null}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
-	 * are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
+	 *           are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
 	 */
 	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfiguration) {
 
@@ -90,7 +90,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		this.cacheConfiguration = cacheConfiguration;
 		this.ttlFunction = cacheConfiguration.getTtlFunction();
 	}
-
 
 	/**
 	 * Get {@link RedisCacheConfiguration} used.
@@ -136,8 +135,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		ValueWrapper result = get(key);
 
-		return result != null ? (T) result.get()
-			: getSynchronized(key, valueLoader);
+		return result != null ? (T) result.get() : getSynchronized(key, valueLoader);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -146,8 +144,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		ValueWrapper result = get(key);
 
-		return result != null ? (T) result.get()
-			: loadCacheValue(key, valueLoader);
+		return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
 	}
 
 	protected <T> T loadCacheValue(Object key, Callable<T> valueLoader) {
@@ -182,8 +179,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 			String message = String.format("Cache '%s' does not allow 'null' values; Avoid storing null"
 					+ " via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null'"
-					+ " via RedisCacheConfiguration",
-				getName());
+					+ " via RedisCacheConfiguration", getName());
 
 			throw new IllegalArgumentException(message);
 		}
@@ -248,9 +244,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@Nullable
 	protected Object preProcessCacheValue(@Nullable Object value) {
 
-		return value != null ? value
-			: isAllowNullValues() ? NullValue.INSTANCE
-			: null;
+		return value != null ? value : isAllowNullValues() ? NullValue.INSTANCE : null;
 	}
 
 	/**
@@ -285,7 +279,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 *
 	 * @param value array of bytes to deserialize; must not be {@literal null}.
 	 * @return an {@link Object} deserialized from the array of bytes using the configured value
-	 * {@link RedisSerializationContext.SerializationPair}; can be {@literal null}.
+	 *         {@link RedisSerializationContext.SerializationPair}; can be {@literal null}.
 	 * @see RedisCacheConfiguration#getValueSerializationPair()
 	 */
 	@Nullable
@@ -346,9 +340,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		String message = String.format("Cannot convert cache key %s to String; Please register a suitable Converter"
-				+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
-			source, key.getClass().getName());
+		String message = String.format(
+				"Cannot convert cache key %s to String; Please register a suitable Converter"
+						+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
+				source, key.getClass().getName());
 
 		throw new IllegalStateException(message);
 	}

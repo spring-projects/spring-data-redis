@@ -24,6 +24,7 @@ import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.data.redis.cache.RedisCacheWriter.TtlFunction;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.format.support.DefaultFormattingConversionService;
@@ -205,7 +206,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttl, "TTL duration must not be null");
 
-		return entryTtl(new SingletonTtlFunction(ttl));
+		return entryTtl(TtlFunction.just(ttl));
 	}
 
 	/**
@@ -391,33 +392,4 @@ public class RedisCacheConfiguration {
 		registry.addConverter(SimpleKey.class, String.class, SimpleKey::toString);
 	}
 
-	/**
-	 * Function to compute the time to live from the cache {@code key} and {@code value}.
-	 *
-	 * @author Mark Paluch
-	 * @since 3.2
-	 */
-	@FunctionalInterface
-	interface TtlFunction {
-
-		/**
-		 * Compute a {@link Duration time to live duration} using the cache {@code key} and {@code value}. The time to live
-		 * is computed on each write operation. Redis uses milliseconds granularity for timeouts. Any more granular values
-		 * (e.g. micros or nanos) are not considered and are truncated due to rounding. Returning {@link Duration#ZERO} (or
-		 * a value less than {@code Duration.ofMillis(1)}) results in a persistent value that does not expire.
-		 *
-		 * @param key the cache key.
-		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
-		 * @return the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry does not expire).
-		 */
-		Duration getTimeToLive(Object key, @Nullable Object value);
-	}
-
-	private record SingletonTtlFunction(Duration duration) implements TtlFunction {
-
-		@Override
-		public Duration getTimeToLive(Object key, @Nullable Object value) {
-			return this.duration;
-		}
-	}
 }
