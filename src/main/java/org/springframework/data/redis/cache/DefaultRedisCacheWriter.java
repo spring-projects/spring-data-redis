@@ -31,12 +31,13 @@ import org.springframework.util.Assert;
 
 /**
  * {@link RedisCacheWriter} implementation capable of reading/writing binary data from/to Redis in {@literal standalone}
- * and {@literal cluster} environments. Works upon a given {@link RedisConnectionFactory} to obtain the actual
- * {@link RedisConnection}. <br />
+ * and {@literal cluster} environments, and uses a given {@link RedisConnectionFactory} to obtain the actual
+ * {@link RedisConnection}.
+ * <p>
  * {@link DefaultRedisCacheWriter} can be used in
- * {@link RedisCacheWriter#lockingRedisCacheWriter(RedisConnectionFactory) locking} or
- * {@link RedisCacheWriter#nonLockingRedisCacheWriter(RedisConnectionFactory) non-locking} mode. While
- * {@literal non-locking} aims for maximum performance it may result in overlapping, non atomic, command execution for
+ * {@link RedisCacheWriter#lockingRedisCacheWriter(RedisConnectionFactory) locking}
+ * or {@link RedisCacheWriter#nonLockingRedisCacheWriter(RedisConnectionFactory) non-locking} mode. While
+ * {@literal non-locking} aims for maximum performance it may result in overlapping, non-atomic, command execution for
  * operations spanning multiple Redis interactions like {@code putIfAbsent}. The {@literal locking} counterpart prevents
  * command overlap by setting an explicit lock key and checking against presence of this key which leads to additional
  * requests and potential command wait times.
@@ -44,16 +45,20 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author André Prata
+ * @author John Blum
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
 
-	private final RedisConnectionFactory connectionFactory;
+	private final BatchStrategy batchStrategy;
+
+	private final CacheStatisticsCollector statistics;
+
 	private final Duration sleepTime;
 
+	private final RedisConnectionFactory connectionFactory;
+
 	private final TtlFunction lockTtl;
-	private final CacheStatisticsCollector statistics;
-	private final BatchStrategy batchStrategy;
 
 	/**
 	 * @param connectionFactory must not be {@literal null}.
@@ -166,8 +171,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				}
 
 				return connection.get(key);
-			} finally {
 
+			} finally {
 				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
@@ -196,21 +201,21 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			boolean wasLocked = false;
 
 			try {
-
 				if (isLockingCacheWriter()) {
 					doLock(name, name, pattern, connection);
 					wasLocked = true;
 				}
 
 				long deleteCount = batchStrategy.cleanCache(connection, name, pattern);
+
 				while (deleteCount > Integer.MAX_VALUE) {
 					statistics.incDeletesBy(name, Integer.MAX_VALUE);
 					deleteCount -= Integer.MAX_VALUE;
 				}
+
 				statistics.incDeletesBy(name, (int) deleteCount);
 
 			} finally {
-
 				if (wasLocked && isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
@@ -280,8 +285,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	private <T> T execute(String name, Function<RedisConnection, T> callback) {
 
 		RedisConnection connection = connectionFactory.getConnection();
-		try {
 
+		try {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 			return callback.apply(connection);
 		} finally {
@@ -307,18 +312,19 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		long lockWaitTimeNs = System.nanoTime();
-		try {
 
+		try {
 			while (doCheckLock(name, connection)) {
 				Thread.sleep(sleepTime.toMillis());
 			}
-		} catch (InterruptedException ex) {
+		} catch (InterruptedException cause) {
 
 			// Re-interrupt current thread, to allow other participants to react.
 			Thread.currentThread().interrupt();
 
-			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to unlock cache %s", name),
-					ex);
+			String message = String.format("Interrupted while waiting to unlock cache %s", name);
+
+			throw new PessimisticLockingFailureException(message, cause);
 		} finally {
 			statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}

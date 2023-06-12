@@ -67,10 +67,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * Create a new {@link RedisCache}.
 	 *
 	 * @param name {@link String name} for this {@link Cache}; must not be {@literal null}.
-	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing appropriate
-	 * Redis commands; must not be {@literal null}.
-	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache on creation; must not
-	 * be {@literal null}.
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing
+	 * the necessary Redis commands; must not be {@literal null}.
+	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation;
+	 * must not be {@literal null}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
 	 * are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
 	 */
@@ -88,18 +88,33 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Get {@link RedisCacheConfiguration} used.
+	 * Get the {@link RedisCacheConfiguration} used to configure this {@link RedisCache} on initialization.
 	 *
-	 * @return immutable {@link RedisCacheConfiguration}. Never {@literal null}.
+	 * @return an immutable {@link RedisCacheConfiguration} used to configure this {@link RedisCache} on initialization;
+	 * never {@literal null}.
 	 */
 	public RedisCacheConfiguration getCacheConfiguration() {
 		return this.cacheConfiguration;
 	}
 
+	/**
+	 * Gets the configured {@link RedisCacheWriter} used to modify Redis for cache operations.
+	 *
+	 * @return the configured {@link RedisCacheWriter} used to modify Redis for cache operations.
+	 */
 	protected RedisCacheWriter getCacheWriter() {
 		return this.cacheWriter;
 	}
 
+	/**
+	 * Gets the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String}
+	 * when accessing entries in the cache.
+	 *
+	 * @return the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String}
+	 * when accessing entries in the cache.
+	 * @see RedisCacheConfiguration#getConversionService()
+	 * @see #getCacheConfiguration()
+	 */
 	protected ConversionService getConversionService() {
 		return getCacheConfiguration().getConversionService();
 	}
@@ -111,12 +126,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	public RedisCacheWriter getNativeCache() {
-		return this.cacheWriter;
+		return getCacheWriter();
 	}
 
 	/**
-	 * Return the {@link CacheStatistics} snapshot for this cache instance. Statistics are accumulated per cache instance
-	 * and not from the backing Redis data store.
+	 * Return the {@link CacheStatistics} snapshot for this cache instance.
+	 * <p>
+	 * Statistics are accumulated per cache instance and not from the backing Redis data store.
 	 *
 	 * @return statistics object for this {@link RedisCache}.
 	 * @since 2.4
@@ -134,8 +150,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return result != null ? (T) result.get() : getSynchronized(key, valueLoader);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Nullable
+	@SuppressWarnings("unchecked")
 	private synchronized <T> T getSynchronized(Object key, Callable<T> valueLoader) {
 
 		ValueWrapper result = get(key);
@@ -143,6 +159,16 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
 	}
 
+	/**
+	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts}
+	 * the {@link Object loaded value} in the cache.
+	 *
+	 * @param <T> {@link Class type} of the loaded {@link Object cache value}.
+	 * @param key {@link Object key} mapped to the loaded {@link Object cache value}.
+	 * @param valueLoader {@link Callable} object used to load the {@link Object value}
+	 * for the given {@link Object key}.
+	 * @return the loaded {@link Object value}.
+	 */
 	protected <T> T loadCacheValue(Object key, Callable<T> valueLoader) {
 
 		T value;
@@ -172,7 +198,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		Object cacheValue = preProcessCacheValue(value);
 
-		if (!isAllowNullValues() && cacheValue == null) {
+		if (nullCacheValueIsNotAllowed(cacheValue)) {
 
 			String message = String.format("Cache '%s' does not allow 'null' values; Avoid storing null"
 				+ " via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null'"
@@ -182,7 +208,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		getCacheWriter().put(getName(), createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-			getCacheConfiguration().getTtl());
+			getCacheConfiguration().getTtlFunction().getTimeToLive(key, value));
 	}
 
 	@Override
@@ -190,12 +216,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		Object cacheValue = preProcessCacheValue(value);
 
-		if (!isAllowNullValues() && cacheValue == null) {
+		if (nullCacheValueIsNotAllowed(cacheValue)) {
 			return get(key);
 		}
 
 		byte[] result = getCacheWriter().putIfAbsent(getName(), createAndConvertCacheKey(key),
-			serializeCacheValue(cacheValue), getCacheConfiguration().getTtl());
+			serializeCacheValue(cacheValue), getCacheConfiguration().getTtlFunction().getTimeToLive(key, value));
 
 		return result != null ? new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result))) : null;
 	}
@@ -206,7 +232,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Clear keys that match the provided {@link String keyPattern}.
+	 * Clear keys that match the given {@link String keyPattern}.
 	 * <p>
 	 * Useful when cache keys are formatted in a style where Redis patterns can be used for matching these.
 	 *
@@ -303,7 +329,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Convert {@code key} to a {@link String} representation used for cache key creation.
+	 * Convert {@code key} to a {@link String} used in cache key creation.
 	 *
 	 * @param key will never be {@literal null}.
 	 * @return never {@literal null}.
@@ -338,10 +364,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		String message = String.format(
-			"Cannot convert cache key %s to String; Please register a suitable Converter"
+		String message = String.format("Cannot convert cache key %s to String; Please register a suitable Converter"
 				+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
-			source, key.getClass().getName());
+				source, key.getClass().getName());
 
 		throw new IllegalStateException(message);
 	}
@@ -402,5 +427,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	private String prefixCacheKey(String key) {
 		// allow contextual cache names by computing the key prefix on every call.
 		return getCacheConfiguration().getKeyPrefixFor(getName()) + key;
+	}
+
+	private boolean nullCacheValueIsNotAllowed(@Nullable Object cacheValue) {
+		return cacheValue == null && !isAllowNullValues();
 	}
 }

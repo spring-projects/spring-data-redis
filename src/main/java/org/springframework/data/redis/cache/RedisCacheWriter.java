@@ -22,16 +22,18 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * {@link RedisCacheWriter} provides low level access to Redis commands ({@code SET, SETNX, GET, EXPIRE,...}) used for
- * caching. <br />
- * The {@link RedisCacheWriter} may be shared by multiple cache implementations and is responsible for writing / reading
- * binary data to / from Redis. The implementation honors potential cache lock flags that might be set.
+ * {@link RedisCacheWriter} provides low-level access to Redis commands ({@code SET, SETNX, GET, EXPIRE,...}) used for
+ * caching.
+ * <p>
+ * The {@link RedisCacheWriter} may be shared by multiple cache implementations and is responsible for reading/writing
+ * binary data from/to Redis. The implementation honors potential cache lock flags that might be set.
  * <p>
  * The default {@link RedisCacheWriter} implementation can be customized with {@link BatchStrategy} to tune performance
  * behavior.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 2.0
  */
 public interface RedisCacheWriter extends CacheStatisticsProvider {
@@ -178,6 +180,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	@FunctionalInterface
 	interface TtlFunction {
 
+		Duration NO_EXPIRATION = Duration.ZERO;
+
 		/**
 		 * Creates a singleton {@link TtlFunction} using the given {@link Duration}.
 		 *
@@ -189,7 +193,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 			Assert.notNull(duration, "TTL Duration must not be null");
 
-			return new SingletonTtlFunction(duration);
+			return new FixedDurationTtlFunction(duration);
 		}
 
 		/**
@@ -198,19 +202,23 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		 * @return a {@link TtlFunction} to create persistent entires that do not expire.
 		 */
 		static TtlFunction persistent() {
-			return just(Duration.ZERO);
+			return just(NO_EXPIRATION);
 		}
 
 		/**
-		 * Compute a {@link Duration time to live duration} using the cache {@code key} and {@code value}. The time to live
-		 * is computed on each write operation. Redis uses milliseconds granularity for timeouts. Any more granular values
-		 * (e.g. micros or nanos) are not considered and are truncated due to rounding. Returning {@link Duration#ZERO} (or
-		 * a value less than {@code Duration.ofMillis(1)}) results in a persistent value that does not expire.
+		 * Compute a {@link Duration time-to-live (TTL)} using the cache {@code key} and {@code value}.
+		 * <p>
+		 * The {@link Duration time-to-live (TTL)} is computed on each write operation. Redis uses millisecond
+		 * granularity for timeouts. Any more granular values (e.g. micros or nanos) are not considered
+		 * and will be truncated due to rounding. Returning {@link Duration#ZERO}, or a value less than
+		 * {@code Duration.ofMillis(1)}, results in a persistent value that does not expire.
 		 *
 		 * @param key the cache key.
 		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
-		 * @return the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry does not expire).
+		 * @return the computed {@link Duration time-to-live (TTL)}. Can be {@link Duration#ZERO} for persistent values
+		 * (i.e. cache entry does not expire).
 		 */
 		Duration getTimeToLive(Object key, @Nullable Object value);
+
 	}
 }

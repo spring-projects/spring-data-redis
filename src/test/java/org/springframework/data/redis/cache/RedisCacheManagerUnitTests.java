@@ -215,8 +215,10 @@ class RedisCacheManagerUnitTests {
 		assertThat(customCacheConfiguration).isNotSameAs(defaultCacheConfiguration);
 		assertThat(cacheManagerBuilder.cacheDefaults(customCacheConfiguration)).isSameAs(cacheManagerBuilder);
 		assertThat(cacheManagerBuilder.cacheDefaults().usePrefix()).isFalse();
-		assertThat(cacheManagerBuilder.cacheDefaults().getTtl()).isEqualTo(Duration.ofSeconds(10));
+		assertThat(cacheManagerBuilder.cacheDefaults().getTtlFunction().getTimeToLive(null, null))
+			.isEqualTo(Duration.ofSeconds(10));
 		assertThat(defaultCacheConfiguration.usePrefix()).isTrue();
-		assertThat(defaultCacheConfiguration.getTtl()).isEqualTo(Duration.ofMinutes(30));
+		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(null, null))
+			.isEqualTo(Duration.ofMinutes(30));
 	}
 }

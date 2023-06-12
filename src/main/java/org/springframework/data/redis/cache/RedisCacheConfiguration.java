@@ -32,11 +32,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Immutable {@link RedisCacheConfiguration} used to customize {@link RedisCache} behaviour, such as caching
+ * Immutable {@link RedisCacheConfiguration} used to customize {@link RedisCache} behavior, such as caching
  * {@literal null} values, computing cache key prefixes and handling binary serialization.
  * <p>
- * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behaviour
- * from that point on.
+ * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behavior
+ * using the builder methods, such as {@link #entryTtl(Duration)}, {@link #serializeKeysWith(SerializationPair)}
+ * and {@link #serializeValuesWith(SerializationPair)}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -107,10 +108,11 @@ public class RedisCacheConfiguration {
 
 		registerDefaultConverters(conversionService);
 
-		return new RedisCacheConfiguration(Duration.ZERO, DEFAULT_CACHE_NULL_VALUES, DEFAULT_USE_PREFIX,
+		return new RedisCacheConfiguration(TtlFunction.persistent(), DEFAULT_CACHE_NULL_VALUES, DEFAULT_USE_PREFIX,
 				CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(RedisSerializer.string()),
-				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
+				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)),
+				conversionService);
 	}
 
 	private final boolean cacheNullValues;
@@ -120,25 +122,17 @@ public class RedisCacheConfiguration {
 
 	private final ConversionService conversionService;
 
-	private final TtlFunction ttl;
-
 	private final SerializationPair<String> keySerializationPair;
 	private final SerializationPair<Object> valueSerializationPair;
 
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
-			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
-			ConversionService conversionService) {
-
-		this(TtlFunction.just(ttl), cacheNullValues, usePrefix, keyPrefix, keySerializationPair, valueSerializationPair,
-				conversionService);
-	}
+	private final TtlFunction ttlFunction;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(TtlFunction ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
-			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
-			ConversionService conversionService) {
+	private RedisCacheConfiguration(TtlFunction ttlFunction, Boolean cacheNullValues, Boolean usePrefix,
+			CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
+			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
 
-		this.ttl = ttl;
+		this.ttlFunction = ttlFunction;
 		this.cacheNullValues = cacheNullValues;
 		this.usePrefix = usePrefix;
 		this.keyPrefix = keyPrefix;
@@ -172,10 +166,10 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration computePrefixWith(CacheKeyPrefix cacheKeyPrefix) {
 
-		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null");
+		Assert.notNull(cacheKeyPrefix, "Function used to compute prefix must not be null");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, DEFAULT_USE_PREFIX, cacheKeyPrefix,
-				keySerializationPair, valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), DEFAULT_USE_PREFIX,
+				cacheKeyPrefix, getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -187,8 +181,8 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(ttl, DO_NOT_CACHE_NULL_VALUES, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), DO_NOT_CACHE_NULL_VALUES, usePrefix(), getKeyPrefix(),
+				getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -199,9 +193,8 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
-
-		return new RedisCacheConfiguration(ttl, cacheNullValues, DO_NOT_USE_PREFIX, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), DO_NOT_USE_PREFIX,
+				getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -229,8 +222,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttlFunction, "TtlFunction must not be null");
 
-		return new RedisCacheConfiguration(ttlFunction, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttlFunction, getAllowCacheNullValues(), usePrefix(), getKeyPrefix(),
+				getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -243,8 +236,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), usePrefix(), getKeyPrefix(),
+				keySerializationPair, getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -257,8 +250,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), usePrefix(), getKeyPrefix(),
+				getKeySerializationPair(), valueSerializationPair, getConversionService());
 	}
 
 	/**
@@ -271,15 +264,15 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(conversionService, "ConversionService must not be null");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-			valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), usePrefix(), getKeyPrefix(),
+				getKeySerializationPair(), getValueSerializationPair(), conversionService);
 	}
 
 	/**
 	 * @return {@literal true} if caching {@literal null} is allowed.
 	 */
 	public boolean getAllowCacheNullValues() {
-		return cacheNullValues;
+		return this.cacheNullValues;
 	}
 
 	/**
@@ -287,14 +280,23 @@ public class RedisCacheConfiguration {
 	 *         the default which resolves to {@link Cache#getName()}.
 	 */
 	public boolean usePrefix() {
-		return usePrefix;
+		return this.usePrefix;
 	}
 
 	/**
 	 * @return The {@link ConversionService} used for cache key to {@link String} conversion. Never {@literal null}.
 	 */
 	public ConversionService getConversionService() {
-		return conversionService;
+		return this.conversionService;
+	}
+
+	/**
+	 * Gets the configured {@link CacheKeyPrefix}.
+	 *
+	 * @return the configured {@link CacheKeyPrefix}.
+	 */
+	public CacheKeyPrefix getKeyPrefix() {
+		return this.keyPrefix;
 	}
 
 	/**
@@ -307,32 +309,30 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(cacheName, "Cache name must not be null");
 
-		return keyPrefix.compute(cacheName);
+		return this.keyPrefix.compute(cacheName);
 	}
 
 	/**
 	 * @return never {@literal null}.
 	 */
 	public SerializationPair<String> getKeySerializationPair() {
-		return keySerializationPair;
+		return this.keySerializationPair;
 	}
 
 	/**
 	 * @return never {@literal null}.
 	 */
 	public SerializationPair<Object> getValueSerializationPair() {
-		return valueSerializationPair;
+		return this.valueSerializationPair;
 	}
 
 	/**
-	 * @return The expiration time (ttl) for cache entries. Never {@literal null}.
+	 * Gets the {@link TtlFunction} used to compute a cache key {@literal time-to-live (TTL) expiration}.
+	 *
+	 * @return the {@link TtlFunction} used to compute expiration time (TTL) for cache entries; never {@literal null}.
 	 */
-	public Duration getTtl() {
-		return getTtlFunction().getTimeToLive(null, null);
-	}
-
 	public TtlFunction getTtlFunction() {
-		return this.ttl;
+		return this.ttlFunction;
 	}
 
 	/**
