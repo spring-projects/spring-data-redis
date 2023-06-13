@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.springframework.data.redis.connection.RedisListCommands.*;
+import static org.springframework.data.redis.connection.RedisListCommands.Direction;
 
 import java.time.Duration;
 import java.util.Deque;
@@ -229,4 +229,39 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	RedisList<E> trim(long start, long end);
+
+	@Override
+	default void addFirst(E e) {
+		List.super.addFirst(e);
+	}
+
+	@Override
+	default void addLast(E e) {
+		List.super.addLast(e);
+	}
+
+	@Override
+	default E getFirst() {
+		return List.super.getFirst();
+	}
+
+	@Override
+	default E getLast() {
+		return List.super.getLast();
+	}
+
+	@Override
+	default E removeFirst() {
+		return List.super.removeFirst();
+	}
+
+	@Override
+	default E removeLast() {
+		return List.super.removeLast();
+	}
+
+	@Override
+	default RedisList<E> reversed() {
+		throw new UnsupportedOperationException("Not Implemented");
+	}
 }
