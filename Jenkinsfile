@@ -40,10 +40,10 @@ pipeline {
 						}
 					}
 				}
-				stage('Publish JDK 20 + Redis 6.2 Docker Image') {
+				stage('Publish JDK 21 + Redis 6.2 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk20-redis-6.2/Dockerfile"
+							changeset "ci/openjdk21-redis-6.2/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
