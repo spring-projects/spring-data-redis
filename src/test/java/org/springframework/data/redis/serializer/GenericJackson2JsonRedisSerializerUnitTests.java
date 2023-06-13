@@ -15,29 +15,30 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
-import static org.springframework.util.ObjectUtils.*;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import lombok.Data;
-import lombok.ToString;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.getField;
+import static org.springframework.util.ObjectUtils.nullSafeEquals;
+import static org.springframework.util.ObjectUtils.nullSafeHashCode;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -47,15 +48,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import org.springframework.lang.Nullable;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 
 /**
  * Unit tests for {@link GenericJackson2JsonRedisSerializer}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 class GenericJackson2JsonRedisSerializerUnitTests {
 
@@ -437,32 +442,76 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		}
 
 		@Override
-		public int hashCode() {
-			return nullSafeHashCode(stringValue) + nullSafeHashCode(simpleObject);
-		}
-
-		@Override
 		public boolean equals(@Nullable Object obj) {
+
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
+
+			if (!(obj instanceof ComplexObject that)) {
 				return false;
 			}
-			if (!(obj instanceof ComplexObject)) {
-				return false;
-			}
-			ComplexObject other = (ComplexObject) obj;
-			return nullSafeEquals(this.stringValue, other.stringValue)
-					&& nullSafeEquals(this.simpleObject, other.simpleObject);
+
+			return Objects.equals(this.simpleObject, that.simpleObject)
+				&& Objects.equals(this.stringValue, that.stringValue);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.simpleObject, this.stringValue);
 		}
 	}
 
-	@Data
 	static final class FinalObject {
+
 		public Long longValue;
 		public int[] myArray;
 		SimpleObject simpleObject;
+
+		public Long getLongValue() {
+			return this.longValue;
+		}
+
+		public void setLongValue(Long longValue) {
+			this.longValue = longValue;
+		}
+
+		public int[] getMyArray() {
+			return this.myArray;
+		}
+
+		public void setMyArray(int[] myArray) {
+			this.myArray = myArray;
+		}
+
+		public SimpleObject getSimpleObject() {
+			return this.simpleObject;
+		}
+
+		public void setSimpleObject(SimpleObject simpleObject) {
+			this.simpleObject = simpleObject;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof FinalObject that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getLongValue(), that.getLongValue())
+				&& Arrays.equals(this.getMyArray(), that.getMyArray())
+				&& Objects.equals(this.getSimpleObject(), that.getSimpleObject());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getLongValue(), getMyArray(), getSimpleObject());
+		}
 	}
 
 	static class SimpleObject {
@@ -497,12 +546,23 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		}
 	}
 
-	@ToString
 	static class User {
+
 		@JsonView(Views.Basic.class) public int id;
 		@JsonView(Views.Basic.class) public String name;
 		@JsonView(Views.Detailed.class) public String email;
 		@JsonView(Views.Detailed.class) public String mobile;
+
+		@Override
+		public String toString() {
+
+			return "User{" +
+				"id=" + id +
+				", name='" + name + '\'' +
+				", email='" + email + '\'' +
+				", mobile='" + mobile + '\'' +
+				'}';
+		}
 	}
 
 	static class Views {
@@ -512,20 +572,109 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		interface Detailed {}
 	}
 
-	@Data
 	static class CountAndArray {
 
 		private int count;
 		private int[] available;
 		private Long[] arrayOfPrimitiveWrapper;
+
+		public int getCount() {
+			return this.count;
+		}
+
+		public void setCount(int count) {
+			this.count = count;
+		}
+
+		public int[] getAvailable() {
+			return this.available;
+		}
+
+		public void setAvailable(int[] available) {
+			this.available = available;
+		}
+
+		public Long[] getArrayOfPrimitiveWrapper() {
+			return this.arrayOfPrimitiveWrapper;
+		}
+
+		public void setArrayOfPrimitiveWrapper(Long[] arrayOfPrimitiveWrapper) {
+			this.arrayOfPrimitiveWrapper = arrayOfPrimitiveWrapper;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof CountAndArray that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getCount(), that.getCount())
+				&& Objects.equals(this.getAvailable(), that.getAvailable())
+				&& Objects.equals(this.getArrayOfPrimitiveWrapper(), that.getArrayOfPrimitiveWrapper());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getCount(), getAvailable(), getArrayOfPrimitiveWrapper());
+		}
 	}
 
-	@Data
 	static class WithWrapperTypes {
 
 		AtomicReference<Long> primitiveWrapper;
 		AtomicReference<Integer[]> primitiveArrayWrapper;
 		AtomicReference<SimpleObject> simpleObjectWrapper;
+
+		public AtomicReference<Long> getPrimitiveWrapper() {
+			return this.primitiveWrapper;
+		}
+
+		public void setPrimitiveWrapper(AtomicReference<Long> primitiveWrapper) {
+			this.primitiveWrapper = primitiveWrapper;
+		}
+
+		public AtomicReference<Integer[]> getPrimitiveArrayWrapper() {
+			return this.primitiveArrayWrapper;
+		}
+
+		public void setPrimitiveArrayWrapper(AtomicReference<Integer[]> primitiveArrayWrapper) {
+			this.primitiveArrayWrapper = primitiveArrayWrapper;
+		}
+
+		public AtomicReference<SimpleObject> getSimpleObjectWrapper() {
+			return this.simpleObjectWrapper;
+		}
+
+		public void setSimpleObjectWrapper(AtomicReference<SimpleObject> simpleObjectWrapper) {
+			this.simpleObjectWrapper = simpleObjectWrapper;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithWrapperTypes that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getPrimitiveWrapper(), that.getPrimitiveWrapper())
+			 	&& Objects.equals(this.getPrimitiveArrayWrapper(), that.getPrimitiveArrayWrapper())
+			 	&& Objects.equals(this.getSimpleObjectWrapper(), that.getSimpleObjectWrapper());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getPrimitiveWrapper(), getPrimitiveArrayWrapper(), getSimpleObjectWrapper());
+		}
+
 	}
 
 	enum EnumType {

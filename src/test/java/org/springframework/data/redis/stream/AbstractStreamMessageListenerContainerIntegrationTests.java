@@ -15,16 +15,12 @@
  */
 package org.springframework.data.redis.stream;
 
-import static org.assertj.core.api.Assertions.*;
-
-import io.lettuce.core.codec.StringCodec;
-import io.lettuce.core.output.NestedMultiOutput;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -52,11 +48,15 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer.Stre
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.util.NumberUtils;
 
+import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.output.NestedMultiOutput;
+
 /**
  * Integration tests for {@link StreamMessageListenerContainer}.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  */
 @EnabledOnCommand("XREAD")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -408,9 +408,58 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		return NumberUtils.parseNumber(value, Integer.class);
 	}
 
-	@Data
-	@AllArgsConstructor
 	static class LoginEvent {
-		String firstname, lastname;
+
+		String firstName, lastName;
+
+		LoginEvent(String firstName, String lastName) {
+			this.firstName = firstName;
+			this.lastName = lastName;
+		}
+
+		public String getFirstName() {
+			return this.firstName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public String getLastName() {
+			return this.lastName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof LoginEvent that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getFirstName(), that.getFirstName())
+				&& Objects.equals(this.getLastName(), that.getLastName());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getFirstName(), getLastName());
+		}
+
+		@Override
+		public String toString() {
+
+			return "LoginEvent{" +
+				"firstname='" + firstName + '\'' +
+				", lastname='" + lastName + '\'' +
+				'}';
+		}
 	}
 }

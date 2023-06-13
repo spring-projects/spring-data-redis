@@ -15,14 +15,14 @@
  */
 package org.springframework.data.redis.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-
-import lombok.Data;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +42,7 @@ import org.springframework.data.redis.repository.query.RedisOperationChain.PathA
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  */
 public class ExampleQueryMapperUnitTests {
 
@@ -187,7 +188,6 @@ public class ExampleQueryMapperUnitTests {
 		assertThat(operationChain.getSismember()).contains(new PathAndValue("firstname", "WALTER"));
 	}
 
-	@Data
 	static class Person {
 
 		@Id String id;
@@ -204,6 +204,102 @@ public class ExampleQueryMapperUnitTests {
 		@Reference Person relative;
 
 		Species species;
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public void setFirstname(String firstname) {
+			this.firstname = firstname;
+		}
+
+		public String getLastname() {
+			return this.lastname;
+		}
+
+		public void setLastname(String lastname) {
+			this.lastname = lastname;
+		}
+
+		public List<String> getNicknames() {
+			return this.nicknames;
+		}
+
+		public void setNicknames(List<String> nicknames) {
+			this.nicknames = nicknames;
+		}
+
+		public Integer getAge() {
+			return this.age;
+		}
+
+		public void setAge(Integer age) {
+			this.age = age;
+		}
+
+		public Gender getGender() {
+			return this.gender;
+		}
+
+		public void setGender(Gender gender) {
+			this.gender = gender;
+		}
+
+		public Map<String, String> getPhysicalAttributes() {
+			return this.physicalAttributes;
+		}
+
+		public void setPhysicalAttributes(Map<String, String> physicalAttributes) {
+			this.physicalAttributes = physicalAttributes;
+		}
+
+		public Person getRelative() {
+			return this.relative;
+		}
+
+		public void setRelative(Person relative) {
+			this.relative = relative;
+		}
+
+		public Species getSpecies() {
+			return this.species;
+		}
+
+		public void setSpecies(Species species) {
+			this.species = species;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Person that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getFirstname(), that.getFirstname())
+				&& Objects.equals(this.getLastname(), that.getLastname())
+				&& Objects.equals(this.getAge(), that.getAge())
+				&& Objects.equals(this.getGender(), that.getGender())
+				&& Objects.equals(this.getSpecies(), that.getSpecies());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getFirstname(), getLastname(), getAge(), getGender(), getSpecies());
+		}
 	}
 
 	enum Gender {
@@ -218,7 +314,6 @@ public class ExampleQueryMapperUnitTests {
 	}
 
 	static class Species {
-
 		@Indexed String name;
 	}
 }

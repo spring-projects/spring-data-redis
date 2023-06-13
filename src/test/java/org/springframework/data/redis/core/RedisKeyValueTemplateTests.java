@@ -15,12 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.With;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +23,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -45,13 +41,13 @@ import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Integration tests for {@link RedisKeyValueTemplate}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 @MethodSource("params")
 public class RedisKeyValueTemplateTests {
@@ -810,7 +806,6 @@ public class RedisKeyValueTemplateTests {
 		assertThat(immutableObject.value).isEqualTo(inserted.value);
 	}
 
-	@EqualsAndHashCode
 	@RedisHash("template-test-type-mapping")
 	static class VariousTypes {
 
@@ -828,6 +823,38 @@ public class RedisKeyValueTemplateTests {
 		Map<String, String> simpleTypedMap;
 		Map<String, Item> complexTypedMap;
 		Map<String, Object> untypedMap;
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof VariousTypes that)) {
+				return false;
+			}
+
+			return Objects.equals(this.id, that.id)
+				&& Objects.equals(this.stringValue, that.stringValue)
+				&& Objects.equals(this.integerValue, that.integerValue)
+				&& Objects.equals(this.complexValue, that.complexValue)
+				&& Objects.equals(this.objectValue, that.objectValue)
+				&& Objects.equals(this.simpleTypedList, that.simpleTypedList)
+				&& Objects.equals(this.complexTypedList, that.complexTypedList)
+				&& Objects.equals(this.untypedList, that.untypedList)
+				&& Objects.equals(this.simpleTypedMap, that.simpleTypedMap)
+				&& Objects.equals(this.complexTypedMap, that.complexTypedMap)
+				&& Objects.equals(this.untypedMap, that.untypedMap);
+		}
+
+		@Override
+		public int hashCode() {
+
+			return Objects.hash(this.id, this.stringValue, this.integerValue, this.complexValue, this.objectValue,
+				this.simpleTypedList, this.complexTypedList, this.untypedList, this.simpleTypedMap,
+				this.complexTypedMap, this.untypedMap);
+		}
 	}
 
 	static class Item {
@@ -871,44 +898,26 @@ public class RedisKeyValueTemplateTests {
 		}
 
 		@Override
-		public int hashCode() {
-
-			int result = ObjectUtils.nullSafeHashCode(firstname);
-			result += ObjectUtils.nullSafeHashCode(lastname);
-			result += ObjectUtils.nullSafeHashCode(age);
-			result += ObjectUtils.nullSafeHashCode(nicknames);
-			return result + ObjectUtils.nullSafeHashCode(id);
-		}
-
-		@Override
 		public boolean equals(@Nullable Object obj) {
+
 			if (this == obj) {
 				return true;
 			}
-			if (obj == null) {
-				return false;
-			}
-			if (!(obj instanceof Person)) {
-				return false;
-			}
-			Person that = (Person) obj;
 
-			if (!ObjectUtils.nullSafeEquals(this.firstname, that.firstname)) {
+			if (!(obj instanceof Person that)) {
 				return false;
 			}
 
-			if (!ObjectUtils.nullSafeEquals(this.lastname, that.lastname)) {
-				return false;
-			}
+			return Objects.equals(this.id, that.id)
+				&& Objects.equals(this.firstname, that.firstname)
+				&& Objects.equals(this.lastname, that.lastname)
+				&& Objects.equals(this.age, that.age)
+				&& Objects.equals(this.nicknames, that.nicknames);
+		}
 
-			if (!ObjectUtils.nullSafeEquals(this.age, that.age)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(this.nicknames, that.nicknames)) {
-				return false;
-			}
-
-			return ObjectUtils.nullSafeEquals(this.id, that.id);
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.firstname, this.lastname, this.age, this.nicknames, this.id);
 		}
 
 		@Override
@@ -919,25 +928,110 @@ public class RedisKeyValueTemplateTests {
 
 	}
 
-	@Data
 	static class WithTtl {
 
 		@Id String id;
 		String value;
 		@TimeToLive Long ttl;
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		public Long getTtl() {
+			return this.ttl;
+		}
+
+		public void setTtl(Long ttl) {
+			this.ttl = ttl;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithTtl that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getTtl(), that.getTtl())
+				&& Objects.equals(this.getValue(), that.getValue());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getTtl(), getValue());
+		}
 	}
 
-	@Data
 	static class WithPrimitiveTtl {
 
 		@Id String id;
 		String value;
 		@TimeToLive int ttl;
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		public int getTtl() {
+			return this.ttl;
+		}
+
+		public void setTtl(int ttl) {
+			this.ttl = ttl;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithPrimitiveTtl that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getTtl(), that.getTtl())
+				&& Objects.equals(this.getValue(), that.getValue());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getTtl(), getValue());
+		}
 	}
 
-	@Data
-	@With
-	@AllArgsConstructor
 	static class ImmutableObject {
 
 		final @Id String id;
@@ -948,6 +1042,65 @@ public class RedisKeyValueTemplateTests {
 			this.id = null;
 			this.value = null;
 			this.ttl = null;
+		}
+
+		public ImmutableObject(String id, String value, Long ttl) {
+			this.id = id;
+			this.value = value;
+			this.ttl = ttl;
+		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public Long getTtl() {
+			return this.ttl;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof ImmutableObject that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getTtl(), that.getTtl())
+				&& Objects.equals(this.getValue(), that.getValue());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getTtl(), getValue());
+		}
+
+		@Override
+		public String toString() {
+
+			return "RedisKeyValueTemplateTests.ImmutableObject(id=" + this.getId()
+				+ ", value=" + this.getValue()
+				+ ", ttl=" + this.getTtl() + ")";
+		}
+
+		public ImmutableObject withId(String id) {
+			return Objects.equals(getId(), id) ? this : new ImmutableObject(id, this.value, this.ttl);
+		}
+
+		public ImmutableObject withTtl(Long ttl) {
+			return Objects.equals(getTtl(), ttl) ? this : new ImmutableObject(this.id, this.value, ttl);
+		}
+
+		public ImmutableObject withValue(String value) {
+			return Objects.equals(getValue(), value) ? this : new ImmutableObject(this.id, value, this.ttl);
 		}
 	}
 }

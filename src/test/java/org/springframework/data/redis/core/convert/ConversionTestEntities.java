@@ -15,10 +15,6 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +44,7 @@ import org.springframework.data.redis.core.index.Indexed;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Golam Mazid Sajib
+ * @author John Blum
  */
 public class ConversionTestEntities {
 
@@ -91,25 +89,121 @@ public class ConversionTestEntities {
 	}
 
 	@RedisHash(KEYSPACE_PERSON)
-	@Data
 	public static class RecursiveConstructorPerson {
 
 		final @Id String id;
+
 		final String firstname;
-		final RecursiveConstructorPerson father;
+
 		String lastname;
+
+		final RecursiveConstructorPerson father;
+
+		public RecursiveConstructorPerson(String id, String firstname, RecursiveConstructorPerson father) {
+			this.id = id;
+			this.firstname = firstname;
+			this.father = father;
+		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public RecursiveConstructorPerson getFather() {
+			return this.father;
+		}
+
+		public String getLastname() {
+			return this.lastname;
+		}
+
+		public void setLastname(String lastname) {
+			this.lastname = lastname;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof RecursiveConstructorPerson that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getFirstname(), that.getFirstname())
+				&& Objects.equals(this.getLastname(), that.getLastname())
+				&& Objects.equals(this.getFather(), that.getFather());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getFirstname(), getLastname(), getFather());
+		}
+
+		@Override
+		public String toString() {
+
+			return "ConversionTestEntities.RecursiveConstructorPerson(id=" + this.getId()
+				+ ", firstname=" + this.getFirstname()
+				+ ", father=" + this.getFather()
+				+ ", lastname=" + this.getLastname() + ")";
+		}
 	}
 
 	@RedisHash(KEYSPACE_PERSON)
-	@Data
 	public static class PersonWithConstructorAndAddress {
 
 		final @Id String id;
 		final Address address;
+
+		public PersonWithConstructorAndAddress(String id, Address address) {
+			this.id = id;
+			this.address = address;
+		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public Address getAddress() {
+			return this.address;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof PersonWithConstructorAndAddress that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getAddress(), that.getAddress());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getAddress());
+		}
+
+		@Override
+		public String toString() {
+			return "ConversionTestEntities.PersonWithConstructorAndAddress(id=" + this.getId()
+				+ ", address=" + this.getAddress() + ")";
+		}
 	}
 
 	public static class PersonWithAddressReference extends Person {
-
 		@Reference AddressWithId addressRef;
 	}
 
@@ -120,11 +214,11 @@ public class ConversionTestEntities {
 	}
 
 	public static class AddressWithId extends Address {
-
 		@Id String id;
 	}
 
-	public static enum Gender {
+	public enum Gender {
+
 		MALE, FEMALE {
 
 			@Override
@@ -136,7 +230,6 @@ public class ConversionTestEntities {
 
 	@TypeAlias("with-post-code")
 	public static class AddressWithPostcode extends Address {
-
 		String postcode;
 	}
 
@@ -147,7 +240,6 @@ public class ConversionTestEntities {
 		List<Object> items;
 	}
 
-	@EqualsAndHashCode
 	@RedisHash(KEYSPACE_LOCATION)
 	public static class Location {
 
@@ -155,6 +247,26 @@ public class ConversionTestEntities {
 		String name;
 		Address address;
 
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Location that)) {
+				return false;
+			}
+
+			return Objects.equals(this.id, that.id)
+				&& Objects.equals(this.name, that.name)
+				&& Objects.equals(this.address, that.address);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.id, this.name, this.address);
+		}
 	}
 
 	@RedisHash(timeToLive = 5)
@@ -220,36 +332,112 @@ public class ConversionTestEntities {
 		Map<Date, String> dateMapKeyMapping;
 	}
 
-	@AllArgsConstructor
 	static class Device {
 
 		final Instant now;
 		final Set<String> profiles;
+
+		public Device(Instant now, Set<String> profiles) {
+			this.now = now;
+			this.profiles = profiles;
+		}
 	}
 
-	@Data
 	public static class JustSomeDifferentPropertyTypes {
 
 		UUID uuid;
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof JustSomeDifferentPropertyTypes that)) {
+				return false;
+			}
+
+			return Objects.equals(this.uuid, that.uuid);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.uuid);
+		}
+
+		@Override
+		public String toString() {
+			return "ConversionTestEntities.JustSomeDifferentPropertyTypes(uuid=" + this.uuid + ")";
+		}
 	}
 
 	static class Outer {
-
 		List<Inner> inners;
 		List<String> values;
 	}
 
 	static class Inner {
-
 		List<String> values;
 	}
 
 	@RedisHash(KEYSPACE_ACCOUNT)
-	@Data
 	public static class AccountInfo {
 
 		@Id private String id;
 		private String account;
 		private String accountName;
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getAccount() {
+			return this.account;
+		}
+
+		public void setAccount(String account) {
+			this.account = account;
+		}
+
+		public String getAccountName() {
+			return this.accountName;
+		}
+
+		public void setAccountName(String accountName) {
+			this.accountName = accountName;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof AccountInfo that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getAccount(), that.getAccount())
+				&& Objects.equals(this.getAccountName(), that.getAccountName());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getAccount(), getAccountName());
+		}
+
+		@Override
+		public String toString() {
+			return "ConversionTestEntities.AccountInfo(id=" + this.getId()
+				+ ", account=" + this.getAccount()
+				+ ", accountName=" + this.getAccountName() + ")";
+		}
 	}
 }

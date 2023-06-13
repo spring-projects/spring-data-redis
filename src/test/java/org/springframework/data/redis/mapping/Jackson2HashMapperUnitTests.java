@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.mapping;
 
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -28,6 +26,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
@@ -204,23 +203,110 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Data
 	public static class WithList {
 
 		List<String> strings;
 		List<Object> objects;
 		List<Person> persons;
+
+		public List<String> getStrings() {
+			return this.strings;
+		}
+
+		public void setStrings(List<String> strings) {
+			this.strings = strings;
+		}
+
+		public List<Object> getObjects() {
+			return this.objects;
+		}
+
+		public void setObjects(List<Object> objects) {
+			this.objects = objects;
+		}
+
+		public List<Person> getPersons() {
+			return this.persons;
+		}
+
+		public void setPersons(List<Person> persons) {
+			this.persons = persons;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithList that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getObjects(), that.getObjects())
+				&& Objects.equals(this.getPersons(), that.getPersons())
+				&& Objects.equals(this.getStrings(), that.getStrings());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getObjects(), getPersons(), getStrings());
+		}
 	}
 
-	@Data
 	public static class WithMap {
 
 		Map<String, String> strings;
 		Map<String, Object> objects;
 		Map<String, Person> persons;
+
+		public Map<String, String> getStrings() {
+			return this.strings;
+		}
+
+		public void setStrings(Map<String, String> strings) {
+			this.strings = strings;
+		}
+
+		public Map<String, Object> getObjects() {
+			return this.objects;
+		}
+
+		public void setObjects(Map<String, Object> objects) {
+			this.objects = objects;
+		}
+
+		public Map<String, Person> getPersons() {
+			return this.persons;
+		}
+
+		public void setPersons(Map<String, Person> persons) {
+			this.persons = persons;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithMap that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getObjects(), that.getObjects())
+				&& Objects.equals(this.getPersons(), that.getPersons())
+				&& Objects.equals(this.getStrings(), that.getStrings());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getObjects(), getPersons(), getStrings());
+		}
 	}
 
-	@Data
 	private static class WithDates {
 
 		private String string;
@@ -228,16 +314,142 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		private Calendar calendar;
 		private LocalDate localDate;
 		private LocalDateTime localDateTime;
+
+		public String getString() {
+			return this.string;
+		}
+
+		public void setString(String string) {
+			this.string = string;
+		}
+
+		public Date getDate() {
+			return this.date;
+		}
+
+		public void setDate(Date date) {
+			this.date = date;
+		}
+
+		public Calendar getCalendar() {
+			return this.calendar;
+		}
+
+		public void setCalendar(Calendar calendar) {
+			this.calendar = calendar;
+		}
+
+		public LocalDate getLocalDate() {
+			return this.localDate;
+		}
+
+		public void setLocalDate(LocalDate localDate) {
+			this.localDate = localDate;
+		}
+
+		public LocalDateTime getLocalDateTime() {
+			return this.localDateTime;
+		}
+
+		public void setLocalDateTime(LocalDateTime localDateTime) {
+			this.localDateTime = localDateTime;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithDates that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getString(), that.getString())
+				&& Objects.equals(this.getCalendar(), that.getCalendar())
+				&& Objects.equals(this.getDate(), that.getDate())
+				&& Objects.equals(this.getLocalDate(), that.getLocalDate())
+				&& Objects.equals(this.getLocalDateTime(), that.getLocalDateTime());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getString(), getCalendar(), getDate(), getLocalDate(), getLocalDateTime());
+		}
 	}
 
-	@Data
 	private static class WithBigWhatever {
+
 		private BigDecimal bigD;
 		private BigInteger bigI;
+
+		public BigDecimal getBigD() {
+			return this.bigD;
+		}
+
+		public void setBigD(BigDecimal bigD) {
+			this.bigD = bigD;
+		}
+
+		public BigInteger getBigI() {
+			return this.bigI;
+		}
+
+		public void setBigI(BigInteger bigI) {
+			this.bigI = bigI;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithBigWhatever that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getBigD(), that.getBigD())
+				&& Objects.equals(this.getBigI(), that.getBigI());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getBigD(), getBigI());
+		}
 	}
 
-	@Data
 	public static final class MeFinal {
+
 		private String value;
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof MeFinal that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getValue(), that.getValue());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getValue());
+		}
 	}
 }

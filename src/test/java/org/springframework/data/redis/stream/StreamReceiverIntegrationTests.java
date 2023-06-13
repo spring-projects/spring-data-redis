@@ -15,19 +15,16 @@
  */
 package org.springframework.data.redis.stream;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,11 +51,16 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOptions;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 /**
  * Integration tests for {@link StreamReceiver}.
  *
  * @author Mark Paluch
  * @author Eddie McDaniel
+ * @author John Blum
  */
 @EnabledOnCommand("XREAD")
 @ExtendWith(LettuceConnectionFactoryExtension.class)
@@ -290,9 +292,58 @@ public class StreamReceiverIntegrationTests {
 		assertThat(((ConversionFailedException) ref.get()).getValue()).isInstanceOf(ByteBufferRecord.class);
 	}
 
-	@Data
-	@AllArgsConstructor
 	static class LoginEvent {
-		String firstname, lastname;
+
+		String firstName, lastName;
+
+		LoginEvent(String firstName, String lastName) {
+			this.firstName = firstName;
+			this.lastName = lastName;
+		}
+
+		public String getFirstName() {
+			return this.firstName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public String getLastName() {
+			return this.lastName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof LoginEvent that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getFirstName(), that.getFirstName())
+				&& Objects.equals(this.getLastName(), that.getLastName());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getFirstName(), getLastName());
+		}
+
+		@Override
+		public String toString() {
+
+			return "LoginEvent{" +
+				"firstname='" + firstName + '\'' +
+				", lastname='" + lastName + '\'' +
+				'}';
+		}
 	}
 }

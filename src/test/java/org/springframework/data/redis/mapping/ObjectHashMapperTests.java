@@ -15,14 +15,15 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.*;
-
-import lombok.Data;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
@@ -33,34 +34,36 @@ import org.springframework.data.redis.hash.ObjectHashMapper;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 class ObjectHashMapperTests extends AbstractHashMapperTests {
 
-	protected ObjectHashMapper mapperFor(Class t) {
+	@SuppressWarnings("rawtypes")
+	protected ObjectHashMapper mapperFor(Class type) {
 		return new ObjectHashMapper();
 	}
 
 	@Test // DATAREDIS-503
 	void testSimpleType() {
-		assertBackAndForwardMapping(new Integer(100));
+		assertBackAndForwardMapping(100);
 	}
 
 	@Test // DATAREDIS-503
 	void fromHashShouldCastToType() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
-		Map<byte[], byte[]> hash = objectHashMapper.toHash(new Integer(100));
+		Map<byte[], byte[]> hash = objectHashMapper.toHash(100);
 
 		Integer result = objectHashMapper.fromHash(hash, Integer.class);
 
-		assertThat(result).isEqualTo(new Integer(100));
+		assertThat(result).isEqualTo(100);
 	}
 
 	@Test // DATAREDIS-503
 	void fromHashShouldFailIfTypeDoesNotMatch() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
-		Map<byte[], byte[]> hash = objectHashMapper.toHash(new Integer(100));
+		Map<byte[], byte[]> hash = objectHashMapper.toHash(100);
 
 		assertThatExceptionOfType(ClassCastException.class).isThrownBy(() -> objectHashMapper.fromHash(hash, String.class));
 	}
@@ -84,9 +87,35 @@ class ObjectHashMapperTests extends AbstractHashMapperTests {
 	}
 
 	@TypeAlias("_42_")
-	@Data
 	static class WithTypeAlias {
-		String value;
-	}
 
+		private String value;
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof WithTypeAlias that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getValue(), that.getValue());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getValue());
+		}
+	}
 }

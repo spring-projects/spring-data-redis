@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -36,15 +37,12 @@ import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
 /**
  * Integration tests for {@link Jackson2HashMapper}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 @MethodSource("params")
 public class Jackson2HashMapperIntegrationTests {
@@ -109,9 +107,6 @@ public class Jackson2HashMapperIntegrationTests {
 		assertThat(deserializedJonDoe.getPhoneNumber()).containsExactly(9, 7, 1, 5, 5, 5, 4, 1, 8, 2);
 	}
 
-	@Data
-	@ToString(of = "name")
-	@NoArgsConstructor
 	static class User {
 
 		static User as(String name) {
@@ -121,6 +116,8 @@ public class Jackson2HashMapperIntegrationTests {
 		private String name;
 		private List<Integer> phoneNumber;
 
+		User() { }
+
 		User(String name) {
 			this.name = name;
 		}
@@ -128,6 +125,47 @@ public class Jackson2HashMapperIntegrationTests {
 		User withPhoneNumber(Integer... numbers) {
 			this.phoneNumber = new ArrayList<>(Arrays.asList(numbers));
 			return this;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public List<Integer> getPhoneNumber() {
+			return this.phoneNumber;
+		}
+
+		public void setPhoneNumber(List<Integer> phoneNumber) {
+			this.phoneNumber = phoneNumber;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof User that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getName(), that.getName())
+				&& Objects.equals(this.getPhoneNumber(), that.getPhoneNumber());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getName(), getPhoneNumber());
+		}
+
+		@Override
+		public String toString() {
+			return getName();
 		}
 	}
 }

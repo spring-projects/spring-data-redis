@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.hash.Jackson2HashMapper;
 
-import lombok.Data;
-
 /**
  * @author Christoph Strobl
  * @author John Blum
@@ -49,13 +47,20 @@ public class Jackson2HashMapperFlatteningUnitTests extends Jackson2HashMapperUni
 		Session session = (Session) getMapper().fromHash(hash);
 
 		assertThat(session).isNotNull();
-		assertThat(session.getLastAccessed()).isEqualTo(LocalDateTime.of(2023, Month.JUNE, 5,
+		assertThat(session.lastAccessed).isEqualTo(LocalDateTime.of(2023, Month.JUNE, 5,
 			18, 36, 30));
 	}
 
-
-	@Data
 	private static class Session {
+
 		private LocalDateTime lastAccessed;
+
+		public LocalDateTime getLastAccessed() {
+			return lastAccessed;
+		}
+
+		public void setLastAccessed(LocalDateTime lastAccessed) {
+			this.lastAccessed = lastAccessed;
+		}
 	}
 }

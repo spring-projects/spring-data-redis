@@ -15,32 +15,24 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-import static org.springframework.data.redis.connection.RedisConfiguration.*;
-import static org.springframework.data.redis.test.extension.LettuceTestClientResources.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
-
-import io.lettuce.core.AbstractRedisClient;
-import io.lettuce.core.ClientOptions;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.StatefulConnection;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.cluster.ClusterClientOptions;
-import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.resource.ClientResources;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
+import static org.springframework.data.redis.connection.ClusterTestVariables.CLUSTER_NODE_1;
+import static org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort;
+import static org.springframework.data.redis.test.extension.LettuceTestClientResources.getSharedClientResources;
+import static org.springframework.test.util.ReflectionTestUtils.getField;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.AfterEach;
@@ -48,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -65,6 +58,22 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.cluster.ClusterClientOptions;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.resource.ClientResources;
+
+import reactor.test.StepVerifier;
+
 /**
  * Unit tests for {@link LettuceConnectionFactory}.
  *
@@ -75,6 +84,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Luis De Bello
  * @author Andrea Como
  * @author Chris Bono
+ * @author John Blum
  */
 class LettuceConnectionFactoryUnitTests {
 
@@ -1216,8 +1226,6 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(configuration).isEqualTo(expected);
 	}
 
-	@Data
-	@AllArgsConstructor
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
 
 		private String hostName;
@@ -1225,6 +1233,60 @@ class LettuceConnectionFactoryUnitTests {
 
 		CustomRedisConfiguration(String hostName) {
 			this(hostName, 6379);
+		}
+
+		CustomRedisConfiguration(String hostName, int port) {
+			this.hostName = hostName;
+			this.port = port;
+		}
+
+		@Override
+		public String getHostName() {
+			return this.hostName;
+		}
+
+		@Override
+		public void setHostName(String hostName) {
+			this.hostName = hostName;
+		}
+
+		@Override
+		public int getPort() {
+			return this.port;
+		}
+
+		@Override
+		public void setPort(int port) {
+			this.port = port;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof CustomRedisConfiguration that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getHostName(), that.getHostName())
+				&& Objects.equals(this.getPort(), that.getPort());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getHostName(), getPort());
+		}
+
+		@Override
+		public String toString() {
+
+			return "CustomRedisConfiguration{" +
+				"hostName='" + hostName + '\'' +
+				", port=" + port +
+				'}';
 		}
 	}
 }

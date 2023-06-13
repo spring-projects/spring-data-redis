@@ -15,15 +15,12 @@
  */
 package org.springframework.data.redis.repository;
 
-import static org.assertj.core.api.Assertions.*;
-
-import lombok.Data;
-import lombok.Value;
-import lombok.With;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +55,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 public abstract class RedisRepositoryIntegrationTestBase {
 
@@ -492,12 +490,12 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		Immutable nested = new Immutable("heisenberg", "White", null);
 		Immutable object = new Immutable(null, "Walter", nested);
 		Immutable saved = immutableObjectRepo.save(object);
-
 		Immutable loaded = immutableObjectRepo.findById(saved.id).get();
+
 		assertThat(loaded.nested).isEqualTo(nested);
 	}
 
-	public static interface PersonRepository
+	public interface PersonRepository
 			extends PagingAndSortingRepository<Person, String>, CrudRepository<Person, String>,
 			QueryByExampleExecutor<Person> {
 
@@ -553,7 +551,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		@Override
 		protected Iterable<IndexDefinition> initialConfiguration() {
-			return Collections.<IndexDefinition> singleton(new SimpleIndexDefinition("persons", "lastname"));
+			return Collections.singleton(new SimpleIndexDefinition("persons", "lastname"));
 		}
 	}
 
@@ -571,7 +569,6 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	@RedisHash("persons")
-	@Data
 	public static class Person {
 
 		@Id String id;
@@ -584,28 +581,207 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		public Person() {}
 
 		public Person(String firstname, String lastname) {
-
 			this.firstname = firstname;
 			this.lastname = lastname;
 		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public void setFirstname(String firstname) {
+			this.firstname = firstname;
+		}
+
+		public Boolean getAlive() {
+			return this.alive;
+		}
+
+		public void setAlive(Boolean alive) {
+			this.alive = alive;
+		}
+
+		public String getLastname() {
+			return this.lastname;
+		}
+
+		public void setLastname(String lastname) {
+			this.lastname = lastname;
+		}
+
+		public City getCity() {
+			return this.city;
+		}
+
+		public void setCity(City city) {
+			this.city = city;
+		}
+
+		public City getHometown() {
+			return this.hometown;
+		}
+
+		public void setHometown(City hometown) {
+			this.hometown = hometown;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Person that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getFirstname(), that.getFirstname())
+				&& Objects.equals(this.getLastname(), that.getLastname())
+				&& Objects.equals(this.getAlive(), that.getAlive())
+				&& Objects.equals(this.getCity(), that.getCity())
+				&& Objects.equals(this.getHometown(), that.getHometown());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getFirstname(), getLastname(), getAlive(), getCity(), getHometown());
+		}
 	}
 
-	@Data
 	static class City {
 
 		@Id String id;
 		String name;
-
 		@GeoIndexed Point location;
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public Point getLocation() {
+			return this.location;
+		}
+
+		public void setLocation(Point location) {
+			this.location = location;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof City that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getName(), that.getName())
+				&& Objects.equals(this.getLocation(), that.getLocation());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getName(), getLocation());
+		}
+
+		@Override
+		public String toString() {
+
+			return "City{" +
+				"id='" + id + '\'' +
+				", name='" + name + '\'' +
+				", location=" + location +
+				'}';
+		}
 	}
 
-	@Value
-	@With
-	static class Immutable {
+	static final class Immutable {
 
-		@Id String id;
-		String name;
+		private final @Id String id;
+		private final String name;
+		private final Immutable nested;
 
-		Immutable nested;
+		public Immutable(String id, String name, Immutable nested) {
+			this.id = id;
+			this.name = name;
+			this.nested = nested;
+		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public Immutable getNested() {
+			return this.nested;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Immutable that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getName(), that.getName())
+				&& Objects.equals(this.getNested(), that.getNested());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getName(), getNested());
+		}
+
+		public String toString() {
+
+			return "RedisRepositoryIntegrationTestBase.Immutable(id=" + this.getId()
+				+ ", name=" + this.getName()
+				+ ", nested=" + this.getNested() + ")";
+		}
+
+		public Immutable withId(String id) {
+			return Objects.equals(getId(), id) ? this : new Immutable(id, this.name, this.nested);
+		}
+
+		public Immutable withName(String name) {
+			return Objects.equals(getName(), name) ? this : new Immutable(this.id, name, this.nested);
+		}
+
+		public Immutable withNested(Immutable nested) {
+			return Objects.equals(getNested(), nested) ? this : new Immutable(this.id, this.name, nested);
+		}
 	}
 }

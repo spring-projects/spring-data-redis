@@ -15,14 +15,10 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +26,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -54,6 +51,8 @@ import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
 
+import io.netty.util.concurrent.DefaultThreadFactory;
+
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
  * {@link RedisConnectionFactory} pairs.
@@ -62,6 +61,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Piotr Mionskowski
  * @author Jos Roseboom
+ * @author John Blum
  */
 @MethodSource("testParams")
 public class RedisCacheTests {
@@ -225,7 +225,7 @@ public class RedisCacheTests {
 	@ParameterizedRedisTest // DATAREDIS-481
 	void shouldRejectNonInvalidKey() {
 
-		InvalidKey key = new InvalidKey(sample.getFirstame(), sample.getBirthdate());
+		InvalidKey key = new InvalidKey(sample.getFirstname(), sample.getBirthdate());
 
 		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
 	}
@@ -233,7 +233,7 @@ public class RedisCacheTests {
 	@ParameterizedRedisTest // DATAREDIS-481
 	void shouldAllowComplexKeyWithToStringMethod() {
 
-		ComplexKey key = new ComplexKey(sample.getFirstame(), sample.getBirthdate());
+		ComplexKey key = new ComplexKey(sample.getFirstname(), sample.getBirthdate());
 
 		cache.put(key, sample);
 
@@ -418,11 +418,11 @@ public class RedisCacheTests {
 	void cacheShouldAllowListCacheKeysOfComplexTypes() {
 
 		Object key = SimpleKeyGenerator
-				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
+				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstname(), sample.getBirthdate())));
 		cache.put(key, sample);
 
 		ValueWrapper target = cache.get(SimpleKeyGenerator
-				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
+				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstname(), sample.getBirthdate()))));
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
@@ -430,11 +430,11 @@ public class RedisCacheTests {
 	void cacheShouldAllowMapCacheKeys() {
 
 		Object key = SimpleKeyGenerator
-				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate())));
+				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate())));
 		cache.put(key, sample);
 
 		ValueWrapper target = cache.get(SimpleKeyGenerator
-				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstame(), sample.getBirthdate()))));
+				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate()))));
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
@@ -442,7 +442,7 @@ public class RedisCacheTests {
 	void cacheShouldFailOnNonConvertibleCacheKey() {
 
 		Object key = SimpleKeyGenerator
-				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstame(), sample.getBirthdate())));
+				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstname(), sample.getBirthdate())));
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> cache.put(key, sample));
 	}
 
@@ -537,24 +537,115 @@ public class RedisCacheTests {
 		}
 	}
 
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
 	static class Person implements Serializable {
-		String firstame;
-		Date birthdate;
+
+		private String firstname;
+		private Date birthdate;
+
+		public Person() { }
+
+		public Person(String firstname, Date birthdate) {
+			this.firstname = firstname;
+			this.birthdate = birthdate;
+		}
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public void setFirstname(String firstname) {
+			this.firstname = firstname;
+		}
+
+		public Date getBirthdate() {
+			return this.birthdate;
+		}
+
+		public void setBirthdate(Date birthdate) {
+			this.birthdate = birthdate;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Person that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getFirstname(), that.getFirstname())
+				&& Objects.equals(this.getBirthdate(), that.getBirthdate());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getFirstname(), getBirthdate());
+		}
+
+		@Override
+		public String toString() {
+			return "RedisCacheTests.Person(firstname=" + this.getFirstname()
+				+ ", birthdate=" + this.getBirthdate() + ")";
+		}
 	}
 
-	@RequiredArgsConstructor // toString not overridden
+	// toString not overridden
 	static class InvalidKey implements Serializable {
-		final String firstame;
+
+		final String firstname;
 		final Date birthdate;
+
+		public InvalidKey(String firstname, Date birthdate) {
+			this.firstname = firstname;
+			this.birthdate = birthdate;
+		}
 	}
 
-	@Data
-	@RequiredArgsConstructor
 	static class ComplexKey implements Serializable {
-		final String firstame;
+
+		final String firstname;
 		final Date birthdate;
+
+		public ComplexKey(String firstname, Date birthdate) {
+			this.firstname = firstname;
+			this.birthdate = birthdate;
+		}
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public Date getBirthdate() {
+			return this.birthdate;
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof ComplexKey that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getFirstname(), that.getFirstname())
+				&& Objects.equals(this.getBirthdate(), that.getBirthdate());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getFirstname(), getBirthdate());
+		}
+
+		@Override
+		public String toString() {
+			return "RedisCacheTests.ComplexKey(firstame=" + this.getFirstname()
+				+ ", birthdate=" + this.getBirthdate() + ")";
+		}
 	}
 }

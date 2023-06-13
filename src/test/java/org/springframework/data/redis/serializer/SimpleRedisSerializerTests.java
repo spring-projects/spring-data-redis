@@ -15,11 +15,10 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.*;
-
-import lombok.EqualsAndHashCode;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -33,20 +32,58 @@ import org.springframework.instrument.classloading.ShadowingClassLoader;
  * @author Jennifer Hickey
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  */
 class SimpleRedisSerializerTests {
 
-	@EqualsAndHashCode
 	private static class A implements Serializable {
 
 		private Integer value = Integer.valueOf(30);
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof A that)) {
+				return false;
+			}
+
+			return Objects.equals(this.value, that.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.value);
+		}
 	}
 
-	@EqualsAndHashCode
 	private static class B implements Serializable {
 
-		private String name = getClass().getName();
 		private A a = new A();
+		private String name = getClass().getName();
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof B that)) {
+				return false;
+			}
+
+			return Objects.equals(this.a, that.a)
+				&& Objects.equals(this.name, that.name);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.a, this.name);
+		}
 	}
 
 	private RedisSerializer serializer = new JdkSerializationRedisSerializer();

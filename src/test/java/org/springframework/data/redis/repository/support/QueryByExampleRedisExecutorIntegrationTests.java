@@ -15,14 +15,13 @@
  */
 package org.springframework.data.redis.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -56,6 +55,7 @@ import org.springframework.data.repository.query.FluentQuery;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  */
 public class QueryByExampleRedisExecutorIntegrationTests {
 
@@ -313,37 +313,151 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 	}
 
 	@RedisHash("persons")
-	@Data
 	static class Person {
 
-		@Id String id;
-		@Indexed String firstname;
-		String lastname;
-		City hometown;
+		private @Id String id;
+		private @Indexed String firstname;
+		private String lastname;
+		private City hometown;
 
-		Person() {}
+		Person() { }
 
 		Person(String firstname, String lastname) {
-
 			this.firstname = firstname;
 			this.lastname = lastname;
 		}
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public void setFirstname(String firstname) {
+			this.firstname = firstname;
+		}
+
+		public String getLastname() {
+			return this.lastname;
+		}
+
+		public void setLastname(String lastname) {
+			this.lastname = lastname;
+		}
+
+		public City getHometown() {
+			return this.hometown;
+		}
+
+		public void setHometown(City hometown) {
+			this.hometown = hometown;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Person that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getId(), that.getId())
+				&& Objects.equals(this.getFirstname(), that.getFirstname())
+				&& Objects.equals(this.getLastname(), that.getLastname())
+				&& Objects.equals(this.getHometown(), that.getHometown());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getId(), getFirstname(), getLastname(), getHometown());
+		}
 	}
 
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
 	static class City {
-		@Indexed String name;
+
+		private @Indexed String name;
+
+		public City() { }
+
+		public City(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof City that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getName(), that.getName());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getName());
+		}
 	}
 
-	@Data
 	static class PersonDto {
-		String firstname;
+
+		private String firstname;
+
+		public String getFirstname() {
+			return this.firstname;
+		}
+
+		public void setFirstname(String firstname) {
+			this.firstname = firstname;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof Person that)) {
+				return false;
+			}
+
+			return Objects.equals(this.getFirstname(), that.getLastname());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getFirstname());
+		}
+
+		@Override
+		public String toString() {
+			return getFirstname();
+		}
 	}
 
 	interface PersonProjection {
-
 		String getFirstname();
 	}
 }
