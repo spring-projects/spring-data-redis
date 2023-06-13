@@ -40,10 +40,10 @@ pipeline {
 						}
 					}
 				}
-				stage('Publish JDK 20 + Redis 6.2 Docker Image') {
+				stage('Publish JDK 21 + Redis 6.2 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk20-redis-6.2/Dockerfile"
+							changeset "ci/openjdk21-redis-6.2/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -53,7 +53,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.next.tag']}", "--build-arg BASE=${p['docker.java.next.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk20-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.next.tag']}", "--build-arg BASE=${p['docker.java.next.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk21-redis-6.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
