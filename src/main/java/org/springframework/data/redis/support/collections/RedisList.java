@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.springframework.data.redis.connection.RedisListCommands.*;
+import static org.springframework.data.redis.connection.RedisListCommands.Direction;
 
 import java.time.Duration;
 import java.util.Deque;
