@@ -22,14 +22,15 @@ import org.springframework.data.redis.core.RedisTemplate;
  * Parameterized instance of Redis tests.
  *
  * @author Costin Leau
+ * @author John Blum
  */
 public class RedisListIntegrationTests extends AbstractRedisListIntegrationTests<Object> {
 
 	/**
-	 * Constructs a new <code>RedisListTests</code> instance.
+	 * Constructs a new, parameterized {@link RedisListIntegrationTests}.
 	 *
-	 * @param factory
-	 * @param connFactory
+	 * @param factory {@link ObjectFactory} used to create different types of elements to store in the list.
+	 * @param template {@link RedisTemplate} used to perform operations on Redis.
 	 */
 	public RedisListIntegrationTests(ObjectFactory<Object> factory, RedisTemplate<Object, Object> template) {
 		super(factory, template);
@@ -40,7 +41,6 @@ public class RedisListIntegrationTests extends AbstractRedisListIntegrationTests
 	}
 
 	AbstractRedisCollection<Object> createCollection() {
-		String redisName = getClass().getName();
-		return new DefaultRedisList<>(redisName, template);
+		return new DefaultRedisList<Object>(getClass().getName(), this.template);
 	}
 }

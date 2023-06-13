@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.springframework.data.redis.connection.RedisListCommands.*;
+import static org.springframework.data.redis.connection.RedisListCommands.Direction;
 
 import java.time.Duration;
 import java.util.Deque;
@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author John Blum
  */
 public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque<E> {
 
@@ -51,11 +52,12 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	}
 
 	/**
-	 * Constructs a new {@link RedisList} instance.
+	 * Factory method used to construct a new {@link RedisList} from a Redis list reference by the given {@link String
+	 * key}.
 	 *
 	 * @param key Redis key of this list.
 	 * @param operations {@link RedisOperations} for the value type of this list.
-	 * @param maxSize
+	 * @param maxSize {@link Integer} used to constrain the size of the list.
 	 * @since 2.6
 	 */
 	static <E> RedisList<E> create(String key, RedisOperations<String, E> operations, int maxSize) {
@@ -73,10 +75,10 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	}
 
 	/**
-	 * Constructs a new {@link DefaultRedisList} instance.
+	 * Constructs a new {@link DefaultRedisList}.
 	 *
 	 * @param boundOps {@link BoundListOperations} for the value type of this list.
-	 * @param maxSize
+	 * @param maxSize {@link Integer} constraining the size of the list.
 	 * @since 2.6
 	 */
 	static <E> RedisList<E> create(BoundListOperations<String, E> boundOps, int maxSize) {
@@ -107,6 +109,25 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @param destination must not be {@literal null}.
 	 * @param destinationPosition must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see Direction#first()
+	 * @see Direction#last()
+	 */
+	@Nullable
+	E moveFirstTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
+
+	/**
+	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
+	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
+	 * at {@link RedisList destination}.
+	 * <p>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param destination must not be {@literal null}.
+	 * @param destinationPosition must not be {@literal null}.
 	 * @param timeout must not be {@literal null} or negative.
 	 * @return
 	 * @since 2.6
@@ -122,25 +143,6 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 		return moveFirstTo(destination, destinationPosition,
 				TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
 	}
-
-	/**
-	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
-	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
-	 * at {@link RedisList destination}.
-	 * <p>
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
-	 *
-	 * @param destination must not be {@literal null}.
-	 * @param destinationPosition must not be {@literal null}.
-	 * @param timeout
-	 * @param unit must not be {@literal null}.
-	 * @return
-	 * @since 2.6
-	 * @see Direction#first()
-	 * @see Direction#last()
-	 */
-	@Nullable
-	E moveFirstTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
 
 	/**
 	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
@@ -166,6 +168,25 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @param destination must not be {@literal null}.
 	 * @param destinationPosition must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see Direction#first()
+	 * @see Direction#last()
+	 */
+	@Nullable
+	E moveLastTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
+
+	/**
+	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
+	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
+	 * at {@link RedisList destination}.
+	 * <p>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param destination must not be {@literal null}.
+	 * @param destinationPosition must not be {@literal null}.
 	 * @param timeout must not be {@literal null} or negative.
 	 * @return
 	 * @since 2.6
@@ -181,25 +202,6 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 		return moveLastTo(destination, destinationPosition,
 				TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
 	}
-
-	/**
-	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
-	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
-	 * at {@link RedisList destination}.
-	 * <p>
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
-	 *
-	 * @param destination must not be {@literal null}.
-	 * @param destinationPosition must not be {@literal null}.
-	 * @param timeout
-	 * @param unit must not be {@literal null}.
-	 * @return
-	 * @since 2.6
-	 * @see Direction#first()
-	 * @see Direction#last()
-	 */
-	@Nullable
-	E moveLastTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from list at the bound key.
@@ -229,4 +231,92 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	RedisList<E> trim(long start, long end);
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @param element element to be added to the head of the collection.
+	 */
+	@Override
+	default void addFirst(E element) {
+		add(0, element);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @param element element to be added to be added the end of the collection.
+	 */
+	default void addLast(E element) {
+		add(element);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @return the head of this {@link Deque}.
+	 */
+	@Nullable
+	default E getFirst() {
+		return peekFirst();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @return the tail of this {@link Deque}.
+	 */
+	@Nullable
+	default E getLast() {
+		return peekLast();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @return the head of this {@link Deque}.
+	 */
+	@Nullable
+	default E removeFirst() {
+		return pollFirst();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @return the tail of this {@link Deque}.
+	 */
+	@Nullable
+	default E removeLast() {
+		return pollLast();
+	}
+
+	/**
+	 * Returns a reverse-ordered view of this collection.
+	 * <p>
+	 * The encounter order of elements returned by the view is the inverse of the encounter order of the elements
+	 * stored in this collection. The reverse ordering affects all order-sensitive operations, including any operations
+	 * on further views of the returned view. If the collection implementation permits modifications to this view,
+	 * the modifications "write-through" to the underlying collection. Changes to the underlying collection might
+	 * or might not be visible in this reversed view, depending upon the implementation.
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
+	 *
+	 * @return a reverse-ordered view of this collection.
+	 */
+	default RedisList<E> reversed() {
+		return new ReversedRedisListView<>(this);
+	}
 }

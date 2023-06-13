@@ -17,6 +17,7 @@ package org.springframework.data.redis.support.collections;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -39,42 +40,32 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
-	private final BoundListOperations<String, E> listOps;
-
-	private volatile int maxSize = 0;
 	private volatile boolean capped = false;
 
-	private class DefaultRedisListIterator extends RedisIterator<E> {
+	private volatile int maxSize = 0;
 
-		public DefaultRedisListIterator(Iterator<E> delegate) {
-			super(delegate);
-		}
-
-		@Override
-		protected void removeFromRedisStorage(E item) {
-			DefaultRedisList.this.remove(item);
-		}
-	}
+	private final BoundListOperations<String, E> listOps;
 
 	/**
 	 * Constructs a new, uncapped {@link DefaultRedisList} instance.
 	 *
 	 * @param key Redis key of this list.
-	 * @param operations {@link RedisOperations} for the value type of this list.
+	 * @param operations {@link RedisOperations} used to retrieve values of the declared {@link E type} from this list.
 	 */
 	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
 		this(operations.boundListOps(key));
 	}
 
 	/**
-	 * Constructs a new {@link DefaultRedisList} instance.
+	 * Constructs a new {@link DefaultRedisList} instance constrained to the given {@link Integer max size}.
 	 *
 	 * @param key Redis key of this list.
-	 * @param operations {@link RedisOperations} for the value type of this list.
-	 * @param maxSize
+	 * @param operations {@link RedisOperations} used to retrieve values of the declared {@link E type} from this list.
+	 * @param maxSize {@link Integer maximum number of elements} allowed to be stored in this list.
 	 * @since 2.6
 	 */
 	public DefaultRedisList(String key, RedisOperations<String, E> operations, int maxSize) {
@@ -91,10 +82,10 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	/**
-	 * Constructs a new {@link DefaultRedisList} instance.
+	 * Constructs a new {@link DefaultRedisList} instance constrained to the given {@link Integer max size}.
 	 *
 	 * @param boundOps {@link BoundListOperations} for the value type of this list.
-	 * @param maxSize
+	 * @param maxSize {@link Integer maximum number of elements} allowed to be stored in this list.
 	 */
 	public DefaultRedisList(BoundListOperations<String, E> boundOps, int maxSize) {
 
@@ -165,6 +156,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void potentiallyCap(RedisList<E> destination) {
 		if (destination instanceof DefaultRedisList) {
 			((DefaultRedisList<Object>) destination).cap();
@@ -217,11 +209,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public boolean remove(Object o) {
 		Long result = listOps.remove(1, o);
-		return (result != null && result.longValue() > 0);
+		return result != null && result > 0L;
 	}
 
 	@Override
 	public void add(int index, E element) {
+
 		if (index == 0) {
 			listOps.leftPush(element);
 			cap();
@@ -244,23 +237,26 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public boolean addAll(int index, Collection<? extends E> c) {
+	public boolean addAll(int index, Collection<? extends E> collection) {
+
 		// insert collection in reverse
 		if (index == 0) {
-			Collection<? extends E> reverseC = CollectionUtils.reverse(c);
 
-			for (E e : reverseC) {
-				listOps.leftPush(e);
+			Collection<? extends E> reverseCollection = CollectionUtils.reverse(collection);
+
+			for (E element : reverseCollection) {
+				listOps.leftPush(element);
 				cap();
 			}
+
 			return true;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			for (E e : c) {
-				listOps.rightPush(e);
+			for (E element : collection) {
+				listOps.rightPush(element);
 				cap();
 			}
 			return true;
@@ -275,34 +271,40 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E get(int index) {
+
 		if (index < 0 || index > size()) {
 			throw new IndexOutOfBoundsException();
 		}
+
 		return listOps.index(index);
 	}
 
 	@Override
-	public int indexOf(Object o) {
+	@SuppressWarnings("unchecked")
+	public int indexOf(Object element) {
 
-		Long index = listOps.indexOf((E) o);
+		Long index = listOps.indexOf((E) element);
+
 		return index != null ? index.intValue() : -1;
 	}
 
 	@Override
-	public int lastIndexOf(Object o) {
+	@SuppressWarnings("unchecked")
+	public int lastIndexOf(Object element) {
 
-		Long index = listOps.lastIndexOf((E) o);
+		Long index = listOps.lastIndexOf((E) element);
+
 		return index != null ? index.intValue() : -1;
 	}
 
 	@Override
 	public ListIterator<E> listIterator() {
-		throw new UnsupportedOperationException();
+		return listIterator(0);
 	}
 
 	@Override
 	public ListIterator<E> listIterator(int index) {
-		throw new UnsupportedOperationException();
+		return new ListItr(index);
 	}
 
 	@Override
@@ -311,10 +313,10 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public E set(int index, E e) {
+	public E set(int index, E element) {
 
 		E object = get(index);
-		listOps.set(index, e);
+		listOps.set(index, element);
 		return object;
 	}
 
@@ -338,8 +340,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public boolean offer(E e) {
-		listOps.rightPush(e);
+	public boolean offer(E element) {
+		listOps.rightPush(element);
 		cap();
 		return true;
 	}
@@ -372,14 +374,14 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	//
 
 	@Override
-	public void addFirst(E e) {
-		listOps.leftPush(e);
+	public void addFirst(E element) {
+		listOps.leftPush(element);
 		cap();
 	}
 
 	@Override
-	public void addLast(E e) {
-		add(e);
+	public void addLast(E element) {
+		add(element);
 	}
 
 	@Override
@@ -396,22 +398,22 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E getLast() {
-		E e = peekLast();
-		if (e == null) {
+		E element = peekLast();
+		if (element == null) {
 			throw new NoSuchElementException();
 		}
-		return e;
+		return element;
 	}
 
 	@Override
-	public boolean offerFirst(E e) {
-		addFirst(e);
+	public boolean offerFirst(E element) {
+		addFirst(element);
 		return true;
 	}
 
 	@Override
-	public boolean offerLast(E e) {
-		addLast(e);
+	public boolean offerLast(E element) {
+		addLast(element);
 		return true;
 	}
 
@@ -442,16 +444,16 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public E pop() {
 
-		E e = poll();
-		if (e == null) {
+		E element = poll();
+		if (element == null) {
 			throw new NoSuchElementException();
 		}
-		return e;
+		return element;
 	}
 
 	@Override
-	public void push(E e) {
-		addFirst(e);
+	public void push(E element) {
+		addFirst(element);
 	}
 
 	@Override
@@ -460,52 +462,52 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public boolean removeFirstOccurrence(Object o) {
-		return remove(o);
+	public boolean removeFirstOccurrence(Object element) {
+		return remove(element);
 	}
 
 	@Override
 	public E removeLast() {
-		E e = pollLast();
-		if (e == null) {
+		E element = pollLast();
+		if (element == null) {
 			throw new NoSuchElementException();
 		}
-		return e;
+		return element;
 	}
 
 	@Override
-	public boolean removeLastOccurrence(Object o) {
-		Long result = listOps.remove(-1, o);
-		return (result != null && result.longValue() > 0);
+	public boolean removeLastOccurrence(Object element) {
+		Long result = listOps.remove(-1, element);
+		return result != null && result > 0L;
 	}
 
 	//
 	// BlockingQueue
 	//
 	@Override
-	public int drainTo(Collection<? super E> c, int maxElements) {
-		if (this.equals(c)) {
+	public int drainTo(Collection<? super E> collection, int maxElements) {
+
+		if (this.equals(collection)) {
 			throw new IllegalArgumentException("Cannot drain a queue to itself");
 		}
 
-		int size = size();
-		int loop = (size >= maxElements ? maxElements : size);
+		int loop = (Math.min(size(), maxElements));
 
 		for (int index = 0; index < loop; index++) {
-			c.add(poll());
+			collection.add(poll());
 		}
 
 		return loop;
 	}
 
 	@Override
-	public int drainTo(Collection<? super E> c) {
-		return drainTo(c, size());
+	public int drainTo(Collection<? super E> collection) {
+		return drainTo(collection, size());
 	}
 
 	@Override
-	public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
-		return offer(e);
+	public boolean offer(E element, long timeout, TimeUnit unit) throws InterruptedException {
+		return offer(element);
 	}
 
 	@Override
@@ -515,8 +517,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public void put(E e) throws InterruptedException {
-		offer(e);
+	public void put(E element) throws InterruptedException {
+		offer(element);
 	}
 
 	@Override
@@ -535,13 +537,13 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	//
 
 	@Override
-	public boolean offerFirst(E e, long timeout, TimeUnit unit) throws InterruptedException {
-		return offerFirst(e);
+	public boolean offerFirst(E element, long timeout, TimeUnit unit) {
+		return offerFirst(element);
 	}
 
 	@Override
-	public boolean offerLast(E e, long timeout, TimeUnit unit) throws InterruptedException {
-		return offerLast(e);
+	public boolean offerLast(E element, long timeout, TimeUnit unit) {
+		return offerLast(element);
 	}
 
 	@Override
@@ -552,18 +554,18 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	@Nullable
-	public E pollLast(long timeout, TimeUnit unit) throws InterruptedException {
+	public E pollLast(long timeout, TimeUnit unit) {
 		return listOps.rightPop(timeout, unit);
 	}
 
 	@Override
-	public void putFirst(E e) throws InterruptedException {
-		add(e);
+	public void putFirst(E element) {
+		add(element);
 	}
 
 	@Override
-	public void putLast(E e) throws InterruptedException {
-		put(e);
+	public void putLast(E element) throws InterruptedException {
+		put(element);
 	}
 
 	@Override
@@ -574,7 +576,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	@Nullable
-	public E takeLast() throws InterruptedException {
+	public E takeLast() {
 		return pollLast(0, TimeUnit.SECONDS);
 	}
 
@@ -590,6 +592,133 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	private void cap() {
 		if (capped) {
 			listOps.trim(0, maxSize - 1);
+		}
+	}
+
+	private class DefaultRedisListIterator extends RedisIterator<E> {
+
+		public DefaultRedisListIterator(Iterator<E> delegate) {
+			super(delegate);
+		}
+
+		@Override
+		protected void removeFromRedisStorage(E item) {
+			DefaultRedisList.this.remove(item);
+		}
+	}
+
+	private class Itr implements Iterator<E> {
+
+		/**
+		 * Index of the {@link E element} in this iteration to be returned by subsequent call to {@link #next()}.
+		 */
+		int cursor = 0;
+
+		/**
+		 * Index of the {@link E element} in this iteration last returned by a call to {@link #next()}.
+		 */
+		int lastReturnedElementIndex = -1;
+
+		@Nullable
+		E lastReturnedElement;
+
+		@Override
+		public boolean hasNext() {
+			return this.cursor < size();
+		}
+
+		@Override
+		public E next() {
+
+			try {
+				int index = this.cursor;
+				this.lastReturnedElement = get(index);
+				this.cursor = index + 1;
+				this.lastReturnedElementIndex = index;
+				return this.lastReturnedElement;
+			} catch (IndexOutOfBoundsException cause) {
+				throw new NoSuchElementException(cause);
+			}
+		}
+
+		@Override
+		@SuppressWarnings("all")
+		public void remove() {
+
+			Assert.state(this.lastReturnedElement != null,
+				"Next must be called before remove");
+
+			if (!DefaultRedisList.this.remove(this.lastReturnedElement)) {
+				throw new ConcurrentModificationException();
+			}
+
+			this.lastReturnedElementIndex = -1;
+			this.lastReturnedElement = null;
+			this.cursor--;
+		}
+	}
+
+	private class ListItr extends Itr implements ListIterator<E> {
+
+		ListItr(int index) {
+			this.cursor = index;
+		}
+
+		@Override
+		public boolean hasPrevious() {
+			return this.cursor > 0;
+		}
+
+		@Override
+		public int nextIndex() {
+			return this.cursor;
+		}
+
+		@Override
+		public int previousIndex() {
+			return this.cursor - 1;
+		}
+
+		@Override
+		public void add(E element) {
+
+			try {
+				int index = this.cursor;
+				DefaultRedisList.this.add(index, element);
+				this.lastReturnedElementIndex = -1;
+				this.lastReturnedElement = null;
+				this.cursor = index + 1;
+			} catch (IndexOutOfBoundsException cause) {
+				throw new ConcurrentModificationException();
+			}
+		}
+
+		@Override
+		public E previous() {
+
+			try {
+				int index = this.cursor - 1;
+				this.lastReturnedElement = get(index);
+				this.lastReturnedElementIndex = index;
+				this.cursor = index;
+				return this.lastReturnedElement;
+			} catch (IndexOutOfBoundsException cause) {
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+
+		public void set(E element) {
+
+			Assert.state(this.lastReturnedElement != null,
+				"next() or previous() must be called before set(:E)");
+
+			try {
+				DefaultRedisList.this.set(this.lastReturnedElementIndex, element);
+			} catch (IndexOutOfBoundsException cause) {
+				throw new ConcurrentModificationException();
+			}
 		}
 	}
 }
