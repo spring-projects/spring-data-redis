@@ -17,6 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.springframework.cache.support.NullValue;
@@ -54,6 +55,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Mao Shuai
+ * @author John Blum
  * @since 1.6
  */
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
@@ -197,6 +199,16 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
 	}
 
+	/**
+	 * Gets the configured {@link ObjectMapper} used internally by this {@link GenericJackson2JsonRedisSerializer}
+	 * to de/serialize {@link Object objects} as {@literal JSON}.
+	 *
+	 * @return the configured {@link ObjectMapper}.
+	 */
+	protected ObjectMapper getObjectMapper() {
+		return this.mapper;
+	}
+
 	@Override
 	public byte[] serialize(@Nullable Object source) throws SerializationException {
 
@@ -206,8 +218,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		try {
 			return writer.write(mapper, source);
-		} catch (IOException e) {
-			throw new SerializationException("Could not write JSON: " + e.getMessage(), e);
+		} catch (IOException cause) {
+			String message = String.format("Could not write JSON: %s", cause.getMessage());
+			throw new SerializationException(message, cause);
 		}
 	}
 
@@ -235,9 +248,31 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		try {
 			return (T) reader.read(mapper, source, resolveType(source, type));
-		} catch (Exception ex) {
-			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
+		} catch (Exception cause) {
+			String message = String.format("Could not read JSON:%s ", cause.getMessage());
+			throw new SerializationException(message, cause);
 		}
+	}
+
+	/**
+	 * Builder method used to configure and customize the internal Jackson {@link ObjectMapper} created by
+	 * this {@link GenericJackson2JsonRedisSerializer} and used to de/serialize {@link Object objects}
+	 * as {@literal JSON}.
+	 *
+	 * @param objectMapperConfigurer {@link Consumer} used to configure and customize the internal {@link ObjectMapper};
+	 * must not be {@literal null}.
+	 * @return this {@link GenericJackson2JsonRedisSerializer}.
+	 * @throws IllegalArgumentException if the {@link Consumer} used to configure and customize
+	 * the internal {@link ObjectMapper} is {@literal null}.
+	 */
+	public GenericJackson2JsonRedisSerializer configure(Consumer<ObjectMapper> objectMapperConfigurer) {
+
+		Assert.notNull(objectMapperConfigurer,
+			"Consumer used to configure and customize ObjectMapper must not be null");
+
+		objectMapperConfigurer.accept(getObjectMapper());
+
+		return this;
 	}
 
 	protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {

@@ -15,17 +15,20 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
-import static org.springframework.util.ObjectUtils.*;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import lombok.Data;
-import lombok.ToString;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.getField;
+import static org.springframework.util.ObjectUtils.nullSafeEquals;
+import static org.springframework.util.ObjectUtils.nullSafeHashCode;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,11 +36,14 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -47,15 +53,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import org.springframework.lang.Nullable;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+
+import lombok.Data;
+import lombok.ToString;
 
 /**
  * Unit tests for {@link GenericJackson2JsonRedisSerializer}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  */
 class GenericJackson2JsonRedisSerializerUnitTests {
 
@@ -405,6 +418,33 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}".getBytes(StandardCharsets.UTF_8);
 		assertThat(serializer.deserialize(source, WithJsr310.class).myDate).isEqualTo(java.time.LocalDate.of(2022,9,2));
+	}
+
+	@Test // GH-2601
+	public void internalObjectMapperCustomization() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		com.fasterxml.jackson.databind.Module mockModule = mock(com.fasterxml.jackson.databind.Module.class);
+
+		ObjectMapper mockObjectMapper = mock(ObjectMapper.class);
+
+		Consumer<ObjectMapper> configurer = objectMapper -> mockObjectMapper.registerModule(mockModule);
+
+		assertThat(serializer.configure(configurer)).isSameAs(serializer);
+
+		verify(mockObjectMapper, times(1)).registerModule(eq(mockModule));
+		verifyNoMoreInteractions(mockObjectMapper);
+		verifyNoInteractions(mockModule);
+	}
+
+	@Test // GH-2601
+	public void configureWithNullConsumerThrowsIllegalArgumentException() {
+
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> new GenericJackson2JsonRedisSerializer().configure(null))
+			.withMessage("Consumer used to configure and customize ObjectMapper must not be null")
+			.withNoCause();
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
