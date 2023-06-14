@@ -56,4 +56,33 @@ public abstract class RedisAssertions {
 		Assert.notNull(target, message);
 		return target;
 	}
+
+	/**
+	 * Asserts the given {@link Object} is not {@literal null}.
+	 *
+	 * @param <T> {@link Class type} of {@link Object} being asserted.
+	 * @param target {@link Object} to evaluate.
+	 * @param message {@link String} containing the message for the thrown exception.
+	 * @param arguments array of {@link Object} arguments used to format the {@link String message}.
+	 * @return the given {@link Object}.
+	 * @throws IllegalArgumentException if the {@link Object target} is {@literal null}.
+	 * @see #requireObject(Object, Supplier)
+	 */
+	public static <T> T requireState(@Nullable T target, String message, Object... arguments) {
+		return requireState(target, () -> String.format(message, arguments));
+	}
+
+	/**
+	 * Asserts the given {@link Object} is not {@literal null}.
+	 *
+	 * @param <T> {@link Class type} of {@link Object} being asserted.
+	 * @param target {@link Object} to evaluate.
+	 * @param message {@link Supplier} supplying the message for the thrown exception.
+	 * @return the given {@link Object}.
+	 * @throws IllegalArgumentException if the {@link Object target} is {@literal null}.
+	 */
+	public static <T> T requireState(@Nullable T target, Supplier<String> message) {
+		Assert.state(target != null, message);
+		return target;
+	}
 }

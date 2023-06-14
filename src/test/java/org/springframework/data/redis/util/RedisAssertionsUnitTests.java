@@ -17,6 +17,7 @@ package org.springframework.data.redis.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -73,6 +74,42 @@ public class RedisAssertionsUnitTests {
 
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> RedisAssertions.requireObject(null, this.mockSupplier))
+			.withMessage("Mock message")
+			.withNoCause();
+
+		verify(this.mockSupplier, times(1)).get();
+		verifyNoMoreInteractions(this.mockSupplier);
+	}
+
+	@Test
+	public void requireStateWithMessageAndArgumentsIsSuccessful() {
+		assertThat(RedisAssertions.requireState("test", "Mock message")).isEqualTo("test");
+	}
+
+	@Test
+	public void requireStateWithMessageAndArgumentsThrowsIllegalStateException() {
+
+		assertThatIllegalStateException()
+			.isThrownBy(() -> RedisAssertions.requireState(null, "This is a %s", "test"))
+			.withMessage("This is a test")
+			.withNoCause();
+	}
+
+	@Test
+	public void requireStateWithSupplierIsSuccessful() {
+
+		assertThat(RedisAssertions.requireState("test", this.mockSupplier)).isEqualTo("test");
+
+		verifyNoInteractions(this.mockSupplier);
+	}
+
+	@Test
+	public void requiredStateWithSupplierThrowsIllegalStateException() {
+
+		doReturn("Mock message").when(this.mockSupplier).get();
+
+		assertThatIllegalStateException()
+			.isThrownBy(() -> RedisAssertions.requireState(null, this.mockSupplier))
 			.withMessage("Mock message")
 			.withNoCause();
 
