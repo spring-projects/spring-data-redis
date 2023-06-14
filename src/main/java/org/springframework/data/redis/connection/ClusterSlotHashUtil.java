@@ -23,15 +23,18 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
+ * Utility class encapsulating functionality commonly used for cluster slot hashing.
+ *
  * @author Christoph Strobl
+ * @author John Blum
  * @since 1.7
  */
-public final class ClusterSlotHashUtil {
+public abstract class ClusterSlotHashUtil {
 
 	public static final int SLOT_COUNT = 16384;
 
-	private static final byte SUBKEY_START = '{';
-	private static final byte SUBKEY_END = '}';
+	protected static final byte SUBKEY_START = '{';
+	protected static final byte SUBKEY_END = '}';
 
 	private static final int[] LOOKUP_TABLE = { 0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7, 0x8108,
 			0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF, 0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7,
@@ -53,43 +56,12 @@ public final class ClusterSlotHashUtil {
 			0x6C07, 0x5C64, 0x4C45, 0x3CA2, 0x2C83, 0x1CE0, 0x0CC1, 0xEF1F, 0xFF3E, 0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9,
 			0x9FF8, 0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0 };
 
-	private ClusterSlotHashUtil() {
-
-	}
-
 	/**
-	 * @param keys must not be {@literal null}.
-	 * @return
-	 * @since 2.0
-	 */
-	public static boolean isSameSlotForAllKeys(Collection<ByteBuffer> keys) {
-
-		Assert.notNull(keys, "Keys must not be null");
-
-		if (keys.size() <= 1) {
-			return true;
-		}
-
-		return isSameSlotForAllKeys((byte[][]) keys.stream() //
-				.map(ByteBuffer::duplicate) //
-				.map(ByteUtils::getBytes) //
-				.toArray(byte[][]::new));
-	}
-
-	/**
-	 * @param keys must not be {@literal null}.
-	 * @return
-	 * @since 2.0
-	 */
-	public static boolean isSameSlotForAllKeys(ByteBuffer... keys) {
-
-		Assert.notNull(keys, "Keys must not be null");
-		return isSameSlotForAllKeys(Arrays.asList(keys));
-	}
-
-	/**
-	 * @param keys must not be {@literal null}.
-	 * @return
+	 * Determines whether all keys will hash to the same slot.
+	 *
+	 * @param keys array of keys to evaluate3; must not be {@literal null}.
+	 * @return a boolean value indicating whether all keys will hash to the same slot.
+	 * @throws IllegalArgumentException if the byte array of keys is {@literal null}.
 	 */
 	public static boolean isSameSlotForAllKeys(byte[]... keys) {
 
@@ -100,31 +72,75 @@ public final class ClusterSlotHashUtil {
 		}
 
 		int slot = calculateSlot(keys[0]);
+
 		for (int i = 1; i < keys.length; i++) {
 			if (slot != calculateSlot(keys[i])) {
 				return false;
 			}
 		}
+
 		return true;
+	}
+
+	/**
+	 * Determines whether all keys will hash to the same slot.
+	 *
+	 * @param keys array of {@link ByteBuffer} objects containing the keys to evaluate; must not be {@literal null}.
+	 * @return a boolean value indicating whether all keys will hash to the same slot.
+	 * @throws IllegalArgumentException if the array of keys is {@literal null}.
+	 * @see #isSameSlotForAllKeys(Collection)
+	 * @since 2.0
+	 */
+	public static boolean isSameSlotForAllKeys(ByteBuffer... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		return isSameSlotForAllKeys(Arrays.asList(keys));
+	}
+
+	/**
+	 * Determines whether all keys will hash to the same slot.
+	 *
+	 * @param keys {@link Collection} of {@link ByteBuffer} objects containing the keys to evaluate;
+	 * must not be {@literal null}.
+	 * @return a boolean value indicating whether all keys will hash to the same slot.
+	 * @throws IllegalArgumentException if the {@link Collection} of keys is {@literal null}.
+	 * @since 2.0
+	 */
+	public static boolean isSameSlotForAllKeys(Collection<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		if (keys.size() <= 1) {
+			return true;
+		}
+
+		return isSameSlotForAllKeys(keys.stream()
+				.map(ByteBuffer::duplicate)
+				.map(ByteUtils::getBytes)
+				.toArray(byte[][]::new));
 	}
 
 	/**
 	 * Calculate the slot from the given key.
 	 *
-	 * @param key must not be {@literal null} or empty.
-	 * @return
+	 * @param key {@link String} containing the Redis key to evaluate; must not be {@literal null} or {@literal empty}.
+	 * @return the computed slot based on the given key.
+	 * @throws IllegalArgumentException if the given {@link String key} is {@literal null} or {@literal empty}.
+	 * @see #calculateSlot(byte[])
 	 */
 	public static int calculateSlot(String key) {
 
 		Assert.hasText(key, "Key must not be null or empty");
+
 		return calculateSlot(key.getBytes());
 	}
 
 	/**
 	 * Calculate the slot from the given key.
 	 *
-	 * @param key must not be {@literal null}.
-	 * @return
+	 * @param key array of bytes containing the Redis key to evaluate; must not be {@literal null}.
+	 * @return the computed slot based on the given key.
 	 */
 	public static int calculateSlot(byte[] key) {
 
@@ -132,14 +148,17 @@ public final class ClusterSlotHashUtil {
 
 		byte[] finalKey = key;
 		int start = indexOf(key, SUBKEY_START);
-		if (start != -1) {
-			int end = indexOf(key, start + 1, SUBKEY_END);
-			if (end != -1 && end != start + 1) {
 
+		if (start != -1) {
+
+			int end = indexOf(key, start + 1, SUBKEY_END);
+
+			if (end != -1 && end != start + 1) {
 				finalKey = new byte[end - (start + 1)];
 				System.arraycopy(key, start + 1, finalKey, 0, finalKey.length);
 			}
 		}
+
 		return crc16(finalKey) % SLOT_COUNT;
 	}
 
@@ -150,7 +169,6 @@ public final class ClusterSlotHashUtil {
 	private static int indexOf(byte[] haystack, int start, byte needle) {
 
 		for (int i = start; i < haystack.length; i++) {
-
 			if (haystack[i] == needle) {
 				return i;
 			}
@@ -166,6 +184,7 @@ public final class ClusterSlotHashUtil {
 		for (byte b : bytes) {
 			crc = ((crc << 8) ^ LOOKUP_TABLE[((crc >>> 8) ^ (b & 0xFF)) & 0xFF]);
 		}
+
 		return crc & 0xFFFF;
 	}
 }

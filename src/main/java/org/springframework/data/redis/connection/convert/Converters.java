@@ -52,13 +52,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Common type converters
+ * Common type converters.
  *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author daihuabin
+ * @author John Blum
  */
 public abstract class Converters {
 
@@ -100,19 +101,24 @@ public abstract class Converters {
 	}
 
 	public static Properties toProperties(String source) {
+
 		Properties info = new Properties();
+
 		try (StringReader stringReader = new StringReader(source)) {
 			info.load(stringReader);
-		} catch (Exception ex) {
-			throw new RedisSystemException("Cannot read Redis info", ex);
+		} catch (Exception cause) {
+			throw new RedisSystemException("Cannot read Redis info", cause);
 		}
+
 		return info;
 	}
 
 	public static Properties toProperties(Map<?, ?> source) {
 
 		Properties target = new Properties();
+
 		target.putAll(source);
+
 		return target;
 	}
 
@@ -170,20 +176,20 @@ public abstract class Converters {
 	 */
 	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
 
-		if (!StringUtils.hasText(clusterNodes)) {
-			return Collections.emptySet();
-		}
-
-		String[] lines = clusterNodes.split(CLUSTER_NODES_LINE_SEPARATOR);
-		return toSetOfRedisClusterNodes(Arrays.asList(lines));
+		return StringUtils.hasText(clusterNodes)
+			? toSetOfRedisClusterNodes(Arrays.asList(clusterNodes.split(CLUSTER_NODES_LINE_SEPARATOR)))
+			: Collections.emptySet();
 	}
 
 	public static List<Object> toObjects(Set<Tuple> tuples) {
+
 		List<Object> tupleArgs = new ArrayList<>(tuples.size() * 2);
+
 		for (Tuple tuple : tuples) {
 			tupleArgs.add(tuple.getScore());
 			tupleArgs.add(tuple.getValue());
 		}
+
 		return tupleArgs;
 	}
 
@@ -228,11 +234,7 @@ public abstract class Converters {
 
 		Assert.notNull(targetUnit, "TimeUnit must not be null");
 
-		if (seconds > 0) {
-			return targetUnit.convert(seconds, TimeUnit.SECONDS);
-		}
-
-		return seconds;
+		return seconds > 0 ? targetUnit.convert(seconds, TimeUnit.SECONDS) : seconds;
 	}
 
 	/**
@@ -258,11 +260,7 @@ public abstract class Converters {
 
 		Assert.notNull(targetUnit, "TimeUnit must not be null");
 
-		if (milliseconds > 0) {
-			return targetUnit.convert(milliseconds, TimeUnit.MILLISECONDS);
-		}
-
-		return milliseconds;
+		return milliseconds > 0 ? targetUnit.convert(milliseconds, TimeUnit.MILLISECONDS) : milliseconds;
 	}
 
 	/**
@@ -285,6 +283,7 @@ public abstract class Converters {
 	 */
 	public static <V> Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> deserializingGeoResultsConverter(
 			RedisSerializer<V> serializer) {
+
 		return new DeserializingGeoResultsConverter<>(serializer);
 	}
 
@@ -314,9 +313,8 @@ public abstract class Converters {
 
 		Properties properties = new Properties();
 
-		for (int i = 0; i < input.size(); i += 2) {
-
-			properties.setProperty(input.get(i), input.get(i + 1));
+		for (int index = 0; index < input.size(); index += 2) {
+			properties.setProperty(input.get(index), input.get(index + 1));
 		}
 
 		return properties;
@@ -339,7 +337,7 @@ public abstract class Converters {
 	 * @return the converter.
 	 * @since 2.0
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <K, V> Converter<Map<K, V>, Properties> mapToPropertiesConverter() {
 		return (Converter) MapToPropertiesConverter.INSTANCE;
 	}
@@ -387,11 +385,13 @@ public abstract class Converters {
 
 		if (targetType == null) {
 
-			String alternatePath = sourcePath.contains(".") ? sourcePath.substring(0, sourcePath.lastIndexOf(".")) + ".*"
+			String alternatePath = sourcePath.contains(".")
+					? sourcePath.substring(0, sourcePath.lastIndexOf(".")) + ".*"
 					: sourcePath;
-			targetType = typeHintMap.get(alternatePath);
-			if (targetType == null) {
 
+			targetType = typeHintMap.get(alternatePath);
+
+			if (targetType == null) {
 				if (sourcePath.endsWith("[]")) {
 					targetType = String.class;
 				} else {
@@ -416,7 +416,6 @@ public abstract class Converters {
 		}
 
 		if (ClassUtils.isAssignable(String.class, targetType)) {
-
 			if (source instanceof String) {
 				return source.toString();
 			}
@@ -432,9 +431,11 @@ public abstract class Converters {
 
 			List<Object> sourceCollection = (List<Object>) source;
 			List<Object> targetList = new ArrayList<>();
+
 			for (int i = 0; i < sourceCollection.size(); i++) {
 				targetList.add(parse(sourceCollection.get(i), sourcePath + ".[" + i + "]", typeHintMap));
 			}
+
 			return targetList;
 		}
 
@@ -442,11 +443,14 @@ public abstract class Converters {
 
 			List<Object> sourceCollection = ((List<Object>) source);
 			Map<String, Object> targetMap = new LinkedHashMap<>();
+
 			for (int i = 0; i < sourceCollection.size(); i = i + 2) {
 
 				String key = parse(sourceCollection.get(i), path + ".[]", typeHintMap).toString();
+
 				targetMap.put(key, parse(sourceCollection.get(i + 1), path + "." + key, typeHintMap));
 			}
+
 			return targetMap;
 		}
 
@@ -520,11 +524,10 @@ public abstract class Converters {
 		public GeoResults<GeoLocation<V>> convert(GeoResults<GeoLocation<byte[]>> source) {
 
 			List<GeoResult<GeoLocation<V>>> values = new ArrayList<>(source.getContent().size());
-			for (GeoResult<GeoLocation<byte[]>> value : source.getContent()) {
 
-				values.add(new GeoResult<>(
-						new GeoLocation<>(serializer.deserialize(value.getContent().getName()), value.getContent().getPoint()),
-						value.getDistance()));
+			for (GeoResult<GeoLocation<byte[]>> value : source.getContent()) {
+				values.add(new GeoResult<>(new GeoLocation<>(serializer.deserialize(value.getContent().getName()),
+						value.getContent().getPoint()), value.getDistance()));
 			}
 
 			return new GeoResults<>(values, source.getAverageDistance().getMetric());
@@ -540,6 +543,7 @@ public abstract class Converters {
 		static {
 
 			flagLookupMap = new LinkedHashMap<>(Flag.values().length, 1);
+
 			for (Flag flag : Flag.values()) {
 				flagLookupMap.put(flag.getRaw(), flag);
 			}
@@ -564,12 +568,13 @@ public abstract class Converters {
 			Set<Flag> flags = parseFlags(args);
 
 			String portPart = hostAndPort[1];
+
 			if (portPart.contains("@")) {
 				portPart = portPart.substring(0, portPart.indexOf('@'));
 			}
 
 			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-					.listeningAt(hostAndPort[0], Integer.valueOf(portPart)) //
+					.listeningAt(hostAndPort[0], Integer.parseInt(portPart)) //
 					.withId(args[ID_INDEX]) //
 					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA) //
 					.serving(range) //
@@ -588,11 +593,13 @@ public abstract class Converters {
 			String raw = args[FLAGS_INDEX];
 
 			Set<Flag> flags = new LinkedHashSet<>(8, 1);
+
 			if (StringUtils.hasText(raw)) {
 				for (String flag : raw.split(",")) {
 					flags.add(flagLookupMap.get(flag));
 				}
 			}
+
 			return flags;
 		}
 
@@ -600,41 +607,38 @@ public abstract class Converters {
 
 			String raw = args[LINK_STATE_INDEX];
 
-			if (StringUtils.hasText(raw)) {
-				return LinkState.valueOf(raw.toUpperCase());
-			}
-			return LinkState.DISCONNECTED;
+			return StringUtils.hasText(raw) ? LinkState.valueOf(raw.toUpperCase()) : LinkState.DISCONNECTED;
 		}
 
 		private SlotRange parseSlotRange(String[] args) {
 
 			BitSet slots = new BitSet(ClusterSlotHashUtil.SLOT_COUNT);
 
-			for (int i = SLOTS_INDEX; i < args.length; i++) {
+			for (int index = SLOTS_INDEX; index < args.length; index++) {
 
-				String raw = args[i];
+				String raw = args[index];
 
 				if (raw.startsWith("[")) {
 					continue;
 				}
 
 				if (raw.contains("-")) {
+
 					String[] slotRange = StringUtils.split(raw, "-");
 
 					if (slotRange != null) {
-						int from = Integer.valueOf(slotRange[0]);
-						int to = Integer.valueOf(slotRange[1]);
+						int from = Integer.parseInt(slotRange[0]);
+						int to = Integer.parseInt(slotRange[1]);
 						for (int slot = from; slot <= to; slot++) {
 							slots.set(slot);
 						}
 					}
 				} else {
-					slots.set(Integer.valueOf(raw));
+					slots.set(Integer.parseInt(raw));
 				}
 			}
 
 			return new SlotRange(slots);
 		}
-
 	}
 }

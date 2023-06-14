@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -35,14 +36,25 @@ import org.springframework.util.CollectionUtils;
  */
 public class RedisClusterNode extends RedisNode {
 
-	private SlotRange slotRange;
+	/**
+	 * Get {@link RedisClusterNodeBuilder} for creating new {@link RedisClusterNode}.
+	 *
+	 * @return never {@literal null}.
+	 */
+	public static RedisClusterNodeBuilder newRedisClusterNode() {
+		return new RedisClusterNodeBuilder();
+	}
+
 	private @Nullable LinkState linkState;
+
 	private Set<Flag> flags;
+
+	private final SlotRange slotRange;
 
 	protected RedisClusterNode() {
 
-		super();
-		flags = Collections.emptySet();
+		this.flags = Collections.emptySet();
+		this.slotRange = SlotRange.empty();
 	}
 
 	/**
@@ -63,8 +75,19 @@ public class RedisClusterNode extends RedisNode {
 	public RedisClusterNode(String id) {
 
 		this(SlotRange.empty());
-		Assert.notNull(id, "Id must not be null");
-		this.id = id;
+
+		this.id = RedisAssertions.requireObject(id, "Id must not be null");
+	}
+
+	/**
+	 * Creates new {@link RedisClusterNode} with given {@link SlotRange}.
+	 *
+	 * @param slotRange must not be {@literal null}.
+	 */
+	public RedisClusterNode(SlotRange slotRange) {
+
+		this.flags = Collections.emptySet();
+		this.slotRange = RedisAssertions.requireObject(slotRange,"SlotRange must not be null");
 	}
 
 	/**
@@ -78,28 +101,8 @@ public class RedisClusterNode extends RedisNode {
 
 		super(host, port);
 
-		Assert.notNull(slotRange, "SlotRange must not be null");
-		this.slotRange = slotRange;
-	}
-
-	/**
-	 * Creates new {@link RedisClusterNode} with given {@link SlotRange}.
-	 *
-	 * @param slotRange must not be {@literal null}.
-	 */
-	public RedisClusterNode(SlotRange slotRange) {
-
-		super();
-
-		Assert.notNull(slotRange, "SlotRange must not be null");
-
-		this.slotRange = slotRange;
-	}
-
-	{
-		if (flags == null) {
-			flags = Collections.emptySet();
-		}
+		this.flags = Collections.emptySet();
+		this.slotRange = RedisAssertions.requireObject(slotRange,"SlotRange must not be null");
 	}
 
 	/**
@@ -108,15 +111,17 @@ public class RedisClusterNode extends RedisNode {
 	 * @return never {@literal null}.
 	 */
 	public SlotRange getSlotRange() {
-		return slotRange;
+		return this.slotRange;
 	}
 
 	/**
-	 * @param slot
-	 * @return true if slot is covered.
+	 * Determines whether this {@link RedisClusterNode} manages the identified {@link Integer slot} in the cluster.
+	 *
+	 * @param slot {@link Integer} identifying the slot to evaluate.
+	 * @return {@literal true} if slot is covered.
 	 */
 	public boolean servesSlot(int slot) {
-		return slotRange.contains(slot);
+		return getSlotRange().contains(slot);
 	}
 
 	/**
@@ -124,32 +129,29 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	@Nullable
 	public LinkState getLinkState() {
-		return linkState;
+		return this.linkState;
 	}
 
 	/**
 	 * @return true if node is connected to cluster.
 	 */
 	public boolean isConnected() {
-		return LinkState.CONNECTED.equals(linkState);
+		return LinkState.CONNECTED.equals(getLinkState());
 	}
 
 	/**
 	 * @return never {@literal null}.
 	 */
+	@SuppressWarnings("all")
 	public Set<Flag> getFlags() {
-		return flags == null ? Collections.emptySet() : flags;
+		return this.flags != null ? this.flags : Collections.emptySet();
 	}
 
 	/**
 	 * @return true if node is marked as failing.
 	 */
 	public boolean isMarkedAsFail() {
-
-		if (!CollectionUtils.isEmpty(flags)) {
-			return flags.contains(Flag.FAIL) || flags.contains(Flag.PFAIL);
-		}
-		return false;
+		return CollectionUtils.containsAny(getFlags(), Arrays.asList(Flag.FAIL, Flag.PFAIL));
 	}
 
 	@Override
@@ -158,20 +160,21 @@ public class RedisClusterNode extends RedisNode {
 	}
 
 	/**
-	 * Get {@link RedisClusterNodeBuilder} for creating new {@link RedisClusterNode}.
-	 *
-	 * @return never {@literal null}.
-	 */
-	public static RedisClusterNodeBuilder newRedisClusterNode() {
-		return new RedisClusterNodeBuilder();
-	}
-
-	/**
 	 * @author Christoph Strobl
 	 * @author daihuabin
+	 * @author John Blum
 	 * @since 1.7
 	 */
 	public static class SlotRange {
+
+		/**
+		 * Factory method used to construct a new, empty {@link SlotRange}.
+		 *
+		 * @return a new, empty {@link SlotRange}.
+		 */
+		public static SlotRange empty() {
+			return new SlotRange(Collections.emptySet());
+		}
 
 		private final BitSet range;
 
@@ -185,18 +188,20 @@ public class RedisClusterNode extends RedisNode {
 			Assert.notNull(upperBound, "UpperBound must not be null");
 
 			this.range = new BitSet(upperBound + 1);
-			for (int i = lowerBound; i <= upperBound; i++) {
-				this.range.set(i);
+
+			for (int bitindex = lowerBound; bitindex <= upperBound; bitindex++) {
+				this.range.set(bitindex);
 			}
 		}
 
 		public SlotRange(Collection<Integer> range) {
+
 			if (CollectionUtils.isEmpty(range)) {
 				this.range = new BitSet(0);
 			} else {
 				this.range = new BitSet(ClusterSlotHashUtil.SLOT_COUNT);
-				for (Integer pos : range) {
-					this.range.set(pos);
+				for (Integer bitindex : range) {
+					this.range.set(bitindex);
 				}
 			}
 		}
@@ -205,53 +210,60 @@ public class RedisClusterNode extends RedisNode {
 			this.range = (BitSet) range.clone();
 		}
 
-		@Override
-		public String toString() {
-			return Arrays.toString(this.getSlotsArray());
-		}
-
 		/**
-		 * @param slot
+		 * Determines whether this {@link SlotRange} contains the given {@link Integer slot}, which implies
+		 * this cluster nodes manages the slot holding data stored in Redis.
+		 *
+		 * @param slot {@link Integer slot} to evaluate.
 		 * @return true when slot is part of the range.
 		 */
 		public boolean contains(int slot) {
-			return range.get(slot);
+			return this.range.get(slot);
 		}
 
 		/**
-		 * @return
+		 * Gets all slots in this {@link SlotRange} managed by this cluster node.
+		 *
+		 * @return all slots in this {@link SlotRange}.
 		 */
 		public Set<Integer> getSlots() {
-			if (range.isEmpty()) {
+
+			if (this.range.isEmpty()) {
 				return Collections.emptySet();
 			}
-			LinkedHashSet<Integer> slots = new LinkedHashSet<>(Math.max(2 * range.cardinality(), 11));
-			for (int i = 0; i < range.length(); i++) {
-				if (range.get(i)) {
-					slots.add(i);
+
+			Set<Integer> slots = new LinkedHashSet<>(Math.max(2 * this.range.cardinality(), 11));
+
+			for (int bitindex = 0; bitindex < this.range.length(); bitindex++) {
+				if (this.range.get(bitindex)) {
+					slots.add(bitindex);
 				}
 			}
+
 			return Collections.unmodifiableSet(slots);
 		}
 
 		public int[] getSlotsArray() {
-			if (range.isEmpty()) {
+
+			if (this.range.isEmpty()) {
 				return new int[0];
 			}
-			int[] slots = new int[range.cardinality()];
-			int pos = 0;
 
-			for (int i = 0; i < ClusterSlotHashUtil.SLOT_COUNT; i++) {
-				if (this.range.get(i)) {
-					slots[pos++] = i;
+			int[] slots = new int[this.range.cardinality()];
+			int arrayIndex = 0;
+
+			for (int slot = 0; slot < ClusterSlotHashUtil.SLOT_COUNT; slot++) {
+				if (this.range.get(slot)) {
+					slots[arrayIndex++] = slot;
 				}
 			}
 
 			return slots;
 		}
 
-		public static SlotRange empty() {
-			return new SlotRange(Collections.emptySet());
+		@Override
+		public String toString() {
+			return Arrays.toString(getSlotsArray());
 		}
 	}
 
@@ -267,10 +279,16 @@ public class RedisClusterNode extends RedisNode {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	public static enum Flag {
+	public enum Flag {
 
-		MYSELF("myself"), MASTER("master"), REPLICA("slave"), FAIL("fail"), PFAIL("fail?"), HANDSHAKE("handshake"), NOADDR(
-				"noaddr"), NOFLAGS("noflags");
+		MYSELF("myself"),
+		MASTER("master"),
+		REPLICA("slave"),
+		FAIL("fail"),
+		PFAIL("fail?"),
+		HANDSHAKE("handshake"),
+		NOADDR("noaddr"),
+		NOFLAGS("noflags");
 
 		private String raw;
 
@@ -279,9 +297,8 @@ public class RedisClusterNode extends RedisNode {
 		}
 
 		public String getRaw() {
-			return raw;
+			return this.raw;
 		}
-
 	}
 
 	/**
