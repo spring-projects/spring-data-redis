@@ -17,8 +17,14 @@ package org.springframework.data.redis.serializer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
 import static org.springframework.util.ObjectUtils.nullSafeEquals;
@@ -32,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -410,6 +417,33 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}".getBytes(StandardCharsets.UTF_8);
 		assertThat(serializer.deserialize(source, WithJsr310.class).myDate).isEqualTo(java.time.LocalDate.of(2022,9,2));
+	}
+
+	@Test // GH-2601
+	public void internalObjectMapperCustomization() {
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
+
+		com.fasterxml.jackson.databind.Module mockModule = mock(com.fasterxml.jackson.databind.Module.class);
+
+		ObjectMapper mockObjectMapper = mock(ObjectMapper.class);
+
+		Consumer<ObjectMapper> configurer = objectMapper -> mockObjectMapper.registerModule(mockModule);
+
+		assertThat(serializer.configure(configurer)).isSameAs(serializer);
+
+		verify(mockObjectMapper, times(1)).registerModule(eq(mockModule));
+		verifyNoMoreInteractions(mockObjectMapper);
+		verifyNoInteractions(mockModule);
+	}
+
+	@Test // GH-2601
+	public void configureWithNullConsumerThrowsIllegalArgumentException() {
+
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> new GenericJackson2JsonRedisSerializer().configure(null))
+			.withMessage("Consumer used to configure and customize ObjectMapper must not be null")
+			.withNoCause();
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
