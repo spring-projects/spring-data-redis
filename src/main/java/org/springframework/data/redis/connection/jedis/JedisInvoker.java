@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.commands.DatabasePipelineCommands;
@@ -47,7 +46,7 @@ import org.springframework.util.Assert;
  * composing a functional pipeline to transform the result using a {@link Converter}.
  * <p>
  * Usage example:
- *
+ * <p>
  * <pre class="code">
  * JedisInvoker invoker = …;
  *
@@ -62,6 +61,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @since 2.5
  */
 class JedisInvoker {
@@ -937,10 +937,7 @@ class JedisInvoker {
 
 		@Override
 		public <T> T get(Converter<S, T> converter) {
-
-			Assert.notNull(converter, "Converter must not be null");
-
-			return synchronizer.invoke(parentFunction, parentPipelineFunction, converter, () -> null);
+			return getOrElse(converter, () -> null);
 		}
 
 		@Nullable
@@ -959,6 +956,7 @@ class JedisInvoker {
 		private final Function<ResponseCommands, Response<Collection<S>>> parentPipelineFunction;
 		private final Synchronizer synchronizer;
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		DefaultManyInvocationSpec(Function<Jedis, ? extends Collection<S>> parentFunction,
 				Function<ResponseCommands, Response<? extends Collection<S>>> parentPipelineFunction,
 				Synchronizer synchronizer) {
@@ -969,6 +967,7 @@ class JedisInvoker {
 		}
 
 		@Override
+		@SuppressWarnings("all")
 		public <T> List<T> toList(Converter<S, T> converter) {
 
 			Assert.notNull(converter, "Converter must not be null");
@@ -981,15 +980,17 @@ class JedisInvoker {
 
 				List<T> result = new ArrayList<>(source.size());
 
-				for (S s : source) {
-					result.add(converter.convert(s));
+				for (S element : source) {
+					result.add(converter.convert(element));
 				}
 
 				return result;
+
 			}, Collections::emptyList);
 		}
 
 		@Override
+		@SuppressWarnings("all")
 		public <T> Set<T> toSet(Converter<S, T> converter) {
 
 			Assert.notNull(converter, "Converter must not be null");
@@ -1002,11 +1003,12 @@ class JedisInvoker {
 
 				Set<T> result = new LinkedHashSet<>(source.size());
 
-				for (S s : source) {
-					result.add(converter.convert(s));
+				for (S element : source) {
+					result.add(converter.convert(element));
 				}
 
 				return result;
+
 			}, Collections::emptySet);
 		}
 	}
@@ -1020,6 +1022,7 @@ class JedisInvoker {
 		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		default <I, T> T invoke(Function<Jedis, I> callFunction, Function<ResponseCommands, Response<I>> pipelineFunction) {
+
 			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, Converters.identityConverter(),
 					() -> null);
 		}
@@ -1046,15 +1049,13 @@ class JedisInvoker {
 	/**
 	 * Create a proxy to invoke methods dynamically on {@link Pipeline} or {@link Transaction} as those share many
 	 * commands that are not defined on a common super-type.
-	 *
-	 * @param pipelineOrTransaction
-	 * @return
 	 */
-	static ResponseCommands createCommands(Queable pipelineOrTransaction) {
+	static ResponseCommands createCommands(Object pipelineOrTransaction) {
 
 		ProxyFactory proxyFactory = new ProxyFactory(pipelineOrTransaction);
+
 		proxyFactory.addInterface(ResponseCommands.class);
+
 		return (ResponseCommands) proxyFactory.getProxy(JedisInvoker.class.getClassLoader());
 	}
-
 }

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -249,21 +250,26 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		List<NodeResult<List<String>>> mapResult = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<List<String>>) client -> client.configGet(pattern))
+		JedisClusterCommandCallback<Map<String, String>> command = jedis -> jedis.configGet(pattern);
+
+		List<NodeResult<Map<String, String>>> nodeResults = connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes(command)
 				.getResults();
 
-		List<String> result = new ArrayList<>();
-		for (NodeResult<List<String>> entry : mapResult) {
+		Properties nodesConfiguration = new Properties();
 
-			String prefix = entry.getNode().asString();
-			int i = 0;
-			for (String value : entry.getValue()) {
-				result.add((i++ % 2 == 0 ? (prefix + ".") : "") + value);
+		for (NodeResult<Map<String, String>> nodeResult : nodeResults) {
+
+			String prefix = nodeResult.getNode().asString();
+
+			for (Entry<String, String> entry : nodeResult.getValue().entrySet()) {
+				String newKey = prefix.concat(".").concat(entry.getKey());
+				String value = entry.getValue();
+				nodesConfiguration.setProperty(newKey, value);
 			}
 		}
 
-		return Converters.toProperties(result);
+		return nodesConfiguration;
 	}
 
 	@Override

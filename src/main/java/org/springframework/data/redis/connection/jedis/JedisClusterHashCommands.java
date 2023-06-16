@@ -30,13 +30,15 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * Cluster {@link RedisHashCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 2.0
  */
 class JedisClusterHashCommands implements RedisHashCommands {
@@ -160,8 +162,8 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		try {
-			Map<byte[], byte[]> map = connection.getCluster().hrandfieldWithValues(key, 1);
-			return map.isEmpty() ? null : map.entrySet().iterator().next();
+			List<Entry<byte[], byte[]>> mapEntryList = connection.getCluster().hrandfieldWithValues(key, 1);
+			return mapEntryList.isEmpty() ? null : mapEntryList.get(0);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -185,8 +187,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
 
 		try {
-			Map<byte[], byte[]> map = connection.getCluster().hrandfieldWithValues(key, count);
-			return Streamable.of(() -> map.entrySet().iterator()).toList();
+			return connection.getCluster().hrandfieldWithValues(key, count);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

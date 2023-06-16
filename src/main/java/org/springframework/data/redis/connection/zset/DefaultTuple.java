@@ -24,17 +24,20 @@ import org.springframework.lang.Nullable;
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author John Blum
  */
 public class DefaultTuple implements Tuple {
+
+	private static final Double ZERO = 0.0d;
 
 	private final Double score;
 	private final byte[] value;
 
 	/**
-	 * Constructs a new <code>DefaultTuple</code> instance.
+	 * Constructs a new {@link DefaultTuple}.
 	 *
-	 * @param value
-	 * @param score
+	 * @param value {@link byte[]} of the member's raw value.
+	 * @param score {@link Double score} of the raw value used in sorting.
 	 */
 	public DefaultTuple(byte[] value, Double score) {
 

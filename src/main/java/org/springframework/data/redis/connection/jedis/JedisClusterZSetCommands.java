@@ -20,6 +20,7 @@ import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.ZParams;
 import redis.clients.jedis.params.ZRangeParams;
 import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.util.KeyValue;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.zset.Aggregate;
-import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -46,18 +46,22 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * Cluster {@link RedisZSetCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Clement Ong
  * @author Andrey Shlykov
  * @author Jens Deppe
  * @author Shyngys Sapraliyev
+ * @author John Blum
  * @since 2.0
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
 
-	private static final SetConverter<redis.clients.jedis.resps.Tuple, Tuple> TUPLE_SET_CONVERTER = new SetConverter<>(
-			JedisConverters::toTuple);
+	private static final SetConverter<redis.clients.jedis.resps.Tuple, Tuple> TUPLE_SET_CONVERTER =
+			new SetConverter<>(JedisConverters::toTuple);
+
 	private final JedisClusterConnection connection;
 
 	JedisClusterZSetCommands(JedisClusterConnection connection) {
@@ -818,7 +822,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return connection.getCluster().zdiff(sets);
+				return JedisConverters.toSet(connection.getCluster().zdiff(sets));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -835,7 +839,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toTupleSet(connection.getCluster().zdiffWithScores(sets));
+				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster().zdiffWithScores(sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -872,7 +876,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return connection.getCluster().zinter(new ZParams(), sets);
+				return JedisConverters.toSet(connection.getCluster().zinter(new ZParams(), sets));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -889,7 +893,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toTupleSet(connection.getCluster().zinterWithScores(new ZParams(), sets));
+				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
+						.zinterWithScores(new ZParams(), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -909,8 +914,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters
-						.toTupleSet(connection.getCluster().zinterWithScores(toZParams(aggregate, weights), sets));
+				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
+						.zinterWithScores(toZParams(aggregate, weights), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -971,7 +976,7 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return connection.getCluster().zunion(new ZParams(), sets);
+				return JedisConverters.toSet(connection.getCluster().zunion(new ZParams(), sets));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -988,7 +993,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toTupleSet(connection.getCluster().zunionWithScores(new ZParams(), sets));
+				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
+						.zunionWithScores(new ZParams(), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -1008,10 +1014,11 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters
-						.toTupleSet(connection.getCluster().zunionWithScores(toZParams(aggregate, weights), sets));
+				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
+						.zunionWithScores(toZParams(aggregate, weights), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
+
 			}
 		}
 
@@ -1126,21 +1133,14 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		return new ZParams().weights(weights.toArray()).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 	}
 
-	/**
-	 * Workaround for broken Jedis BZPOP signature.
-	 *
-	 * @param bytes
-	 * @return
-	 */
 	@Nullable
-	@SuppressWarnings("unchecked")
-	private static Tuple toTuple(@Nullable List<?> bytes) {
+	private static Tuple toTuple(@Nullable KeyValue<?, redis.clients.jedis.resps.Tuple> keyValue) {
 
-		if (bytes == null || bytes.isEmpty()) {
-			return null;
+		if (keyValue != null) {
+			redis.clients.jedis.resps.Tuple tuple = keyValue.getValue();
+			return tuple != null ? JedisConverters.toTuple(tuple) : null;
 		}
 
-		return new DefaultTuple((byte[]) bytes.get(1), Double.parseDouble(new String((byte[]) bytes.get(2))));
+		return null;
 	}
-
 }

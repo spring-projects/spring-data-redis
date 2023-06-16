@@ -17,9 +17,11 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.springframework.data.redis.connection.jedis.StreamConverters.*;
 
+import org.springframework.util.StringUtils;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XClaimParams;
+import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
 
@@ -269,9 +271,19 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 
-			List<Object> response = connection.getCluster().xpending(key, group,
-					JedisConverters.toBytes(getLowerValue(range)), JedisConverters.toBytes(getUpperValue(range)),
-					options.getCount().intValue(), JedisConverters.toBytes(options.getConsumerName()));
+			@SuppressWarnings("all")
+			XPendingParams pendingParams = new XPendingParams(
+					JedisConverters.toBytes(StreamConverters.getLowerValue(range)),
+					JedisConverters.toBytes(StreamConverters.getUpperValue(range)),
+					options.getCount().intValue());
+
+			String consumerName = options.getConsumerName();
+
+			if (StringUtils.hasText(consumerName)) {
+				pendingParams = pendingParams.consumer(consumerName);
+			}
+
+			List<Object> response = connection.getCluster().xpending(key, group, pendingParams);
 
 			return StreamConverters.toPendingMessages(groupName, range,
 					BuilderFactory.STREAM_PENDING_ENTRY_LIST.build(response));
