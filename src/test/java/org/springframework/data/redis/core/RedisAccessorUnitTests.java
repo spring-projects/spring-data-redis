@@ -30,17 +30,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
- * Unit Tests for {@link RedisAccessor}.
+ * Unit tests for {@link RedisAccessor}.
  *
  * @author John Blum
- * @see org.junit.jupiter.api.Test
- * @see org.springframework.data.redis.core.RedisAccessor
- * @since 3.2.0
  */
-public class RedisAccessorUnitTests {
+class RedisAccessorUnitTests {
 
 	@Test
-	public void setAndGetConnectionFactory() {
+	void setAndGetConnectionFactory() {
 
 		RedisConnectionFactory mockConnectionFactory = mock(RedisConnectionFactory.class);
 
@@ -61,7 +58,7 @@ public class RedisAccessorUnitTests {
 	}
 
 	@Test
-	public void getRequiredConnectionFactoryWhenNull() {
+	void getRequiredConnectionFactoryWhenNull() {
 
 		assertThatIllegalStateException()
 			.isThrownBy(() -> new RedisAccessor().getRequiredConnectionFactory())
@@ -70,7 +67,7 @@ public class RedisAccessorUnitTests {
 	}
 
 	@Test
-	public void afterPropertiesSetCallsGetRequiredConnectionFactory() {
+	void afterPropertiesSetCallsGetRequiredConnectionFactory() {
 
 		RedisConnectionFactory mockConnectionFactory = mock(RedisConnectionFactory.class);
 

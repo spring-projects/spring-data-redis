@@ -32,26 +32,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit Tests for {@link RedisAssertions}.
+ * Unit tests for {@link RedisAssertions}.
  *
  * @author John Blum
- * @see org.junit.jupiter.api.Test
- * @see org.springframework.data.redis.util.RedisAssertions
- * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
-public class RedisAssertionsUnitTests {
+class RedisAssertionsUnitTests {
 
 	@Mock
 	private Supplier<String> mockSupplier;
 
 	@Test
-	public void requireObjectWithMessageAndArgumentsIsSuccessful() {
+	void requireObjectWithMessageAndArgumentsIsSuccessful() {
 		assertThat(RedisAssertions.requireObject("test", "Test message")).isEqualTo("test");
 	}
 
 	@Test
-	public void requireObjectWithMessageAndArgumentsThrowsIllegalArgumentException() {
+	void requireObjectWithMessageAndArgumentsThrowsIllegalArgumentException() {
 
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> RedisAssertions.requireObject(null, "This is a %s", "test"))
@@ -60,7 +57,7 @@ public class RedisAssertionsUnitTests {
 	}
 
 	@Test
-	public void requireObjectWithSupplierIsSuccessful() {
+	void requireObjectWithSupplierIsSuccessful() {
 
 		assertThat(RedisAssertions.requireObject("mock", this.mockSupplier)).isEqualTo("mock");
 
@@ -68,7 +65,7 @@ public class RedisAssertionsUnitTests {
 	}
 
 	@Test
-	public void requireObjectWithSupplierThrowsIllegalArgumentException() {
+	void requireObjectWithSupplierThrowsIllegalArgumentException() {
 
 		doReturn("Mock message").when(this.mockSupplier).get();
 
@@ -82,12 +79,12 @@ public class RedisAssertionsUnitTests {
 	}
 
 	@Test
-	public void requireStateWithMessageAndArgumentsIsSuccessful() {
+	void requireStateWithMessageAndArgumentsIsSuccessful() {
 		assertThat(RedisAssertions.requireState("test", "Mock message")).isEqualTo("test");
 	}
 
 	@Test
-	public void requireStateWithMessageAndArgumentsThrowsIllegalStateException() {
+	void requireStateWithMessageAndArgumentsThrowsIllegalStateException() {
 
 		assertThatIllegalStateException()
 			.isThrownBy(() -> RedisAssertions.requireState(null, "This is a %s", "test"))
@@ -96,7 +93,7 @@ public class RedisAssertionsUnitTests {
 	}
 
 	@Test
-	public void requireStateWithSupplierIsSuccessful() {
+	void requireStateWithSupplierIsSuccessful() {
 
 		assertThat(RedisAssertions.requireState("test", this.mockSupplier)).isEqualTo("test");
 
@@ -104,7 +101,7 @@ public class RedisAssertionsUnitTests {
 	}
 
 	@Test
-	public void requiredStateWithSupplierThrowsIllegalStateException() {
+	void requiredStateWithSupplierThrowsIllegalStateException() {
 
 		doReturn("Mock message").when(this.mockSupplier).get();
 
