@@ -20,21 +20,26 @@ import java.util.List;
 import org.springframework.dao.DataAccessException;
 
 /**
- * A connection to a Redis server. Acts as an common abstraction across various Redis client libraries (or drivers).
- * Additionally performs exception translation between the underlying Redis client library and Spring DAO exceptions.
+ * A connection to a Redis server.
+ * <p>
+ * The {@link RedisConnection} interface serves as a common abstraction across various Redis client libraries
+ * (or drivers).
+ * <p>
+ * Additionally, performs exception translation between the underlying Redis client library and Spring DAO exceptions.
  * The methods follow as much as possible the Redis names and conventions.
  *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author James Howe
+ * @author John Blum
  */
 public interface RedisConnection extends RedisCommandsProvider, DefaultedRedisConnection, AutoCloseable {
 
 	/**
-	 * Closes (or quits) the connection.
+	 * Closes or quits the connection.
 	 *
-	 * @throws DataAccessException
+	 * @throws DataAccessException if the {@link RedisConnection} could not be closed.
 	 */
 	@Override
 	void close() throws DataAccessException;
@@ -97,8 +102,9 @@ public interface RedisConnection extends RedisCommandsProvider, DefaultedRedisCo
 	List<Object> closePipeline() throws RedisPipelineException;
 
 	/**
-	 * @return
+	 * @return the {@link RedisSentinelConnection} when using Redis Sentinel.
 	 * @since 1.4
 	 */
 	RedisSentinelConnection getSentinelConnection();
+
 }
