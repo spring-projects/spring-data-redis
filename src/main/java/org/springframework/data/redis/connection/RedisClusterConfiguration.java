@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.StringUtils.*;
+import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +27,7 @@ import java.util.Set;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
+import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
@@ -47,10 +48,13 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	private static final String REDIS_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
 
-	private Set<RedisNode> clusterNodes;
 	private @Nullable Integer maxRedirects;
-	private @Nullable String username = null;
+
 	private RedisPassword password = RedisPassword.none();
+
+	private final Set<RedisNode> clusterNodes;
+
+	private @Nullable String username = null;
 
 	/**
 	 * Creates new {@link RedisClusterConfiguration}.
@@ -94,12 +98,12 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		this.clusterNodes = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)) {
-			appendClusterNodes(
-					commaDelimitedListToSet(propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY).toString()));
+			Object redisClusterNodes = propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY);
+			appendClusterNodes(commaDelimitedListToSet(String.valueOf(redisClusterNodes)));
 		}
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
-			this.maxRedirects = NumberUtils.parseNumber(
-					propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY).toString(), Integer.class);
+			Object clusterMaxRedirects = propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY);
+			this.maxRedirects = NumberUtils.parseNumber(String.valueOf(clusterMaxRedirects), Integer.class);
 		}
 	}
 
@@ -110,7 +114,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 */
 	public void setClusterNodes(Iterable<RedisNode> nodes) {
 
-		Assert.notNull(nodes, "Cannot set cluster nodes to 'null'");
+		Assert.notNull(nodes, "Cannot set cluster nodes to null");
 
 		this.clusterNodes.clear();
 
@@ -130,9 +134,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 * @param node must not be {@literal null}.
 	 */
 	public void addClusterNode(RedisNode node) {
-
-		Assert.notNull(node, "ClusterNode must not be 'null'");
-		this.clusterNodes.add(node);
+		this.clusterNodes.add(RedisAssertions.requireNonNull(node, "ClusterNode must not be null"));
 	}
 
 	/**
@@ -141,6 +143,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	public RedisClusterConfiguration clusterNode(RedisNode node) {
 
 		this.clusterNodes.add(node);
+
 		return this;
 	}
 
@@ -155,6 +158,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	public void setMaxRedirects(int maxRedirects) {
 
 		Assert.isTrue(maxRedirects >= 0, "MaxRedirects must be greater or equal to 0");
+
 		this.maxRedirects = maxRedirects;
 	}
 
@@ -192,31 +196,24 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 	@Override
 	public void setPassword(RedisPassword password) {
-
-		Assert.notNull(password, "RedisPassword must not be null");
-
-		this.password = password;
+		this.password = RedisAssertions.requireNonNull(password, "RedisPassword must not be null");
 	}
 
 	@Override
-	public boolean equals(@Nullable Object o) {
-		if (this == o) {
+	public boolean equals(@Nullable Object obj) {
+
+		if (this == obj) {
 			return true;
 		}
-		if (!(o instanceof RedisClusterConfiguration)) {
+
+		if (!(obj instanceof RedisClusterConfiguration that)) {
 			return false;
 		}
-		RedisClusterConfiguration that = (RedisClusterConfiguration) o;
-		if (!ObjectUtils.nullSafeEquals(clusterNodes, that.clusterNodes)) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(maxRedirects, that.maxRedirects)) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(username, that.username)) {
-			return false;
-		}
-		return ObjectUtils.nullSafeEquals(password, that.password);
+
+		return ObjectUtils.nullSafeEquals(this.clusterNodes, that.clusterNodes)
+			&& ObjectUtils.nullSafeEquals(this.maxRedirects, that.maxRedirects)
+			&& ObjectUtils.nullSafeEquals(this.username, that.username)
+			&& ObjectUtils.nullSafeEquals(this.password, that.password);
 	}
 
 	@Override
@@ -239,6 +236,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		Assert.noNullElements(clusterHostAndPorts, "ClusterHostAndPorts must not contain null elements");
 
 		Map<String, Object> map = new HashMap<>();
+
 		map.put(REDIS_CLUSTER_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(clusterHostAndPorts));
 
 		if (redirects >= 0) {
@@ -247,5 +245,4 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 		return map;
 	}
-
 }
