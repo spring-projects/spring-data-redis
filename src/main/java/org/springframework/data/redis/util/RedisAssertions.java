@@ -37,10 +37,10 @@ public abstract class RedisAssertions {
 	 * @param arguments array of {@link Object} arguments used to format the {@link String message}.
 	 * @return the given {@link Object}.
 	 * @throws IllegalArgumentException if the {@link Object target} is {@literal null}.
-	 * @see #requireObject(Object, Supplier)
+	 * @see #requireNonNull(Object, Supplier)
 	 */
-	public static <T> T requireObject(@Nullable T target, String message, Object... arguments) {
-		return requireObject(target, () -> String.format(message, arguments));
+	public static <T> T requireNonNull(@Nullable T target, String message, Object... arguments) {
+		return requireNonNull(target, () -> String.format(message, arguments));
 	}
 
 	/**
@@ -52,7 +52,7 @@ public abstract class RedisAssertions {
 	 * @return the given {@link Object}.
 	 * @throws IllegalArgumentException if the {@link Object target} is {@literal null}.
 	 */
-	public static <T> T requireObject(@Nullable T target, Supplier<String> message) {
+	public static <T> T requireNonNull(@Nullable T target, Supplier<String> message) {
 		Assert.notNull(target, message);
 		return target;
 	}
@@ -66,7 +66,7 @@ public abstract class RedisAssertions {
 	 * @param arguments array of {@link Object} arguments used to format the {@link String message}.
 	 * @return the given {@link Object}.
 	 * @throws IllegalArgumentException if the {@link Object target} is {@literal null}.
-	 * @see #requireObject(Object, Supplier)
+	 * @see #requireNonNull(Object, Supplier)
 	 */
 	public static <T> T requireState(@Nullable T target, String message, Object... arguments) {
 		return requireState(target, () -> String.format(message, arguments));

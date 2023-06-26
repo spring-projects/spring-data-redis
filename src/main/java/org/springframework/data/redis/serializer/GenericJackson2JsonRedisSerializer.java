@@ -180,9 +180,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	private GenericJackson2JsonRedisSerializer(ObjectMapper mapper, JacksonObjectReader reader,
 			JacksonObjectWriter writer, @Nullable String typeHintPropertyName) {
 
-		this.mapper = RedisAssertions.requireObject(mapper, "ObjectMapper must not be null");
-		this.reader = RedisAssertions.requireObject(reader, "Reader must not be null");
-		this.writer = RedisAssertions.requireObject(writer, "Writer must not be null");
+		this.mapper = RedisAssertions.requireNonNull(mapper, "ObjectMapper must not be null");
+		this.reader = RedisAssertions.requireNonNull(reader, "Reader must not be null");
+		this.writer = RedisAssertions.requireNonNull(writer, "Writer must not be null");
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig()
 				.getDefaultTyper(null) != null);

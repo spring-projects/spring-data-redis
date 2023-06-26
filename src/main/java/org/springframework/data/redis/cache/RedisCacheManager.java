@@ -178,10 +178,10 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
 			boolean allowRuntimeCacheCreation) {
 
-		this.defaultCacheConfiguration = RedisAssertions.requireObject(defaultCacheConfiguration,
+		this.defaultCacheConfiguration = RedisAssertions.requireNonNull(defaultCacheConfiguration,
 				"DefaultCacheConfiguration must not be null");
 
-		this.cacheWriter = RedisAssertions.requireObject(cacheWriter, "CacheWriter must not be null");
+		this.cacheWriter = RedisAssertions.requireNonNull(cacheWriter, "CacheWriter must not be null");
 		this.initialCacheConfiguration = new LinkedHashMap<>();
 		this.allowRuntimeCacheCreation = allowRuntimeCacheCreation;
 	}
@@ -410,7 +410,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * @see org.springframework.data.redis.cache.RedisCacheWriter
 		 */
 		public static RedisCacheManagerBuilder fromCacheWriter(RedisCacheWriter cacheWriter) {
-			return new RedisCacheManagerBuilder(RedisAssertions.requireObject(cacheWriter,
+			return new RedisCacheManagerBuilder(RedisAssertions.requireNonNull(cacheWriter,
 					"CacheWriter must not be null"));
 		}
 
@@ -427,7 +427,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		public static RedisCacheManagerBuilder fromConnectionFactory(RedisConnectionFactory connectionFactory) {
 
 			RedisCacheWriter cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(
-					RedisAssertions.requireObject(connectionFactory, "ConnectionFactory must not be null"));
+					RedisAssertions.requireNonNull(connectionFactory, "ConnectionFactory must not be null"));
 
 			return new RedisCacheManagerBuilder(cacheWriter);
 		}
@@ -506,7 +506,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder cacheDefaults(RedisCacheConfiguration defaultCacheConfiguration) {
 
-			this.defaultCacheConfiguration = RedisAssertions.requireObject(defaultCacheConfiguration,
+			this.defaultCacheConfiguration = RedisAssertions.requireNonNull(defaultCacheConfiguration,
 					"DefaultCacheConfiguration must not be null");
 
 			return this;
@@ -520,7 +520,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 * @since 2.3
 		 */
 		public RedisCacheManagerBuilder cacheWriter(RedisCacheWriter cacheWriter) {
-			this.cacheWriter = RedisAssertions.requireObject(cacheWriter, "CacheWriter must not be null");
+			this.cacheWriter = RedisAssertions.requireNonNull(cacheWriter, "CacheWriter must not be null");
 			return this;
 		}
 
@@ -544,7 +544,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		 */
 		public RedisCacheManagerBuilder initialCacheNames(Set<String> cacheNames) {
 
-			RedisAssertions.requireObject(cacheNames, "CacheNames must not be null")
+			RedisAssertions.requireNonNull(cacheNames, "CacheNames must not be null")
 					.forEach(it -> withCacheConfiguration(it, defaultCacheConfiguration));
 
 			return this;
@@ -589,8 +589,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		public RedisCacheManagerBuilder withInitialCacheConfigurations(
 				Map<String, RedisCacheConfiguration> cacheConfigurations) {
 
-			RedisAssertions.requireObject(cacheConfigurations, "CacheConfigurations must not be null")
-					.forEach((cacheName, cacheConfiguration) -> RedisAssertions.requireObject(cacheConfiguration,
+			RedisAssertions.requireNonNull(cacheConfigurations, "CacheConfigurations must not be null")
+					.forEach((cacheName, cacheConfiguration) -> RedisAssertions.requireNonNull(cacheConfiguration,
 							"RedisCacheConfiguration for cache [%s] must not be null", cacheName));
 
 			this.initialCaches.putAll(cacheConfigurations);

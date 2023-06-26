@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for {@link RedisAssertions}.
+ * Unit Tests for {@link RedisAssertions}.
  *
  * @author John Blum
  */
@@ -43,34 +43,34 @@ class RedisAssertionsUnitTests {
 	private Supplier<String> mockSupplier;
 
 	@Test
-	void requireObjectWithMessageAndArgumentsIsSuccessful() {
-		assertThat(RedisAssertions.requireObject("test", "Test message")).isEqualTo("test");
+	void requireNonNullWithMessageAndArgumentsIsSuccessful() {
+		assertThat(RedisAssertions.requireNonNull("test", "Test message")).isEqualTo("test");
 	}
 
 	@Test
-	void requireObjectWithMessageAndArgumentsThrowsIllegalArgumentException() {
+	void requireNonNullWithMessageAndArgumentsThrowsIllegalArgumentException() {
 
 		assertThatIllegalArgumentException()
-			.isThrownBy(() -> RedisAssertions.requireObject(null, "This is a %s", "test"))
+			.isThrownBy(() -> RedisAssertions.requireNonNull(null, "This is a %s", "test"))
 			.withMessage("This is a test")
 			.withNoCause();
 	}
 
 	@Test
-	void requireObjectWithSupplierIsSuccessful() {
+	void requireNonNullWithSupplierIsSuccessful() {
 
-		assertThat(RedisAssertions.requireObject("mock", this.mockSupplier)).isEqualTo("mock");
+		assertThat(RedisAssertions.requireNonNull("mock", this.mockSupplier)).isEqualTo("mock");
 
 		verifyNoInteractions(this.mockSupplier);
 	}
 
 	@Test
-	void requireObjectWithSupplierThrowsIllegalArgumentException() {
+	void requireNonNullWithSupplierThrowsIllegalArgumentException() {
 
 		doReturn("Mock message").when(this.mockSupplier).get();
 
 		assertThatIllegalArgumentException()
-			.isThrownBy(() -> RedisAssertions.requireObject(null, this.mockSupplier))
+			.isThrownBy(() -> RedisAssertions.requireNonNull(null, this.mockSupplier))
 			.withMessage("Mock message")
 			.withNoCause();
 

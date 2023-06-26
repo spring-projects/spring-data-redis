@@ -76,7 +76,7 @@ public class RedisClusterNode extends RedisNode {
 
 		this(SlotRange.empty());
 
-		this.id = RedisAssertions.requireObject(id, "Id must not be null");
+		this.id = RedisAssertions.requireNonNull(id, "Id must not be null");
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class RedisClusterNode extends RedisNode {
 	public RedisClusterNode(SlotRange slotRange) {
 
 		this.flags = Collections.emptySet();
-		this.slotRange = RedisAssertions.requireObject(slotRange,"SlotRange must not be null");
+		this.slotRange = RedisAssertions.requireNonNull(slotRange,"SlotRange must not be null");
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class RedisClusterNode extends RedisNode {
 		super(host, port);
 
 		this.flags = Collections.emptySet();
-		this.slotRange = RedisAssertions.requireObject(slotRange,"SlotRange must not be null");
+		this.slotRange = RedisAssertions.requireNonNull(slotRange,"SlotRange must not be null");
 	}
 
 	/**
