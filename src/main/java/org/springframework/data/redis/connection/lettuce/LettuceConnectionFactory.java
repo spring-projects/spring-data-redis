@@ -15,7 +15,51 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
+import static org.springframework.data.redis.connection.lettuce.LettuceConnection.CODEC;
+import static org.springframework.data.redis.connection.lettuce.LettuceConnection.PipeliningFlushPolicy;
+
+import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
+import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.ClusterTopologyProvider;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
+import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
+import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisSocketConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
+import org.springframework.data.util.Optionals;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
@@ -32,38 +76,8 @@ import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.resource.ClientResources;
 
-import java.nio.ByteBuffer;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.ExceptionTranslationStrategy;
-import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
-import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
-import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
-import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
-import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.util.Optionals;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="https://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -1109,89 +1123,125 @@ public class LettuceConnectionFactory
 	 */
 	protected LettuceConnectionProvider doCreateConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
 
-		ReadFrom readFrom = getClientConfiguration().getReadFrom().orElse(null);
+		return isStaticMasterReplicaAware() ? createStaticMasterReplicaConnectionProvider((RedisClient) client, codec)
+			: isClusterAware() ? createClusterConnectionProvider((RedisClusterClient) client, codec)
+			: createStandaloneConnectionProvider((RedisClient) client, codec);
+	}
 
-		if (isStaticMasterReplicaAware()) {
+	@SuppressWarnings("all")
+	private StaticMasterReplicaConnectionProvider createStaticMasterReplicaConnectionProvider(RedisClient client,
+			RedisCodec<?, ?> codec) {
 
-			List<RedisURI> nodes = ((RedisStaticMasterReplicaConfiguration) configuration).getNodes().stream() //
-					.map(it -> createRedisURIAndApplySettings(it.getHostName(), it.getPort())) //
-					.peek(it -> it.setDatabase(getDatabase())) //
-					.collect(Collectors.toList());
+		List<RedisURI> nodes = ((RedisStaticMasterReplicaConfiguration) this.configuration).getNodes().stream()
+			.map(it -> createRedisURIAndApplySettings(it.getHostName(), it.getPort()))
+			.peek(it -> it.setDatabase(getDatabase()))
+			.collect(Collectors.toList());
 
-			return new StaticMasterReplicaConnectionProvider((RedisClient) client, codec, nodes, readFrom);
-		}
+		return new StaticMasterReplicaConnectionProvider(client, codec, nodes,
+				getClientConfiguration().getReadFrom().orElse(null));
+	}
 
-		if (isClusterAware()) {
-			return new ClusterConnectionProvider((RedisClusterClient) client, codec, readFrom);
-		}
+	private ClusterConnectionProvider createClusterConnectionProvider(RedisClusterClient client, RedisCodec<?, ?> codec) {
+		return new ClusterConnectionProvider(client, codec, getClientConfiguration().getReadFrom().orElse(null));
+	}
 
-		return new StandaloneConnectionProvider((RedisClient) client, codec, readFrom);
+	private StandaloneConnectionProvider createStandaloneConnectionProvider(RedisClient client, RedisCodec<?, ?> codec) {
+		return new StandaloneConnectionProvider(client, codec, getClientConfiguration().getReadFrom().orElse(null));
 	}
 
 	protected AbstractRedisClient createClient() {
 
-		if (isStaticMasterReplicaAware()) {
+		return isStaticMasterReplicaAware() ? createStaticMasterReplicaClient()
+			: isRedisSentinelAware() ? createSentinelClient()
+			: isClusterAware() ? createClusterClient()
+			: createBasicClient();
+	}
 
-			RedisClient redisClient = clientConfiguration.getClientResources() //
-					.map(RedisClient::create) //
-					.orElseGet(RedisClient::create);
+	private RedisClient createStaticMasterReplicaClient() {
 
-			clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+		RedisClient redisClient = this.clientConfiguration.getClientResources()
+				.map(RedisClient::create)
+				.orElseGet(RedisClient::create);
 
-			return redisClient;
-		}
-
-		if (isRedisSentinelAware()) {
-
-			RedisURI redisURI = getSentinelRedisURI();
-			RedisClient redisClient = clientConfiguration.getClientResources() //
-					.map(clientResources -> RedisClient.create(clientResources, redisURI)) //
-					.orElseGet(() -> RedisClient.create(redisURI));
-
-			clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
-			return redisClient;
-		}
-
-		if (isClusterAware()) {
-
-			List<RedisURI> initialUris = new ArrayList<>();
-			ClusterConfiguration configuration = (ClusterConfiguration) this.configuration;
-			for (RedisNode node : configuration.getClusterNodes()) {
-				initialUris.add(createRedisURIAndApplySettings(node.getHost(), node.getPort()));
-			}
-
-			RedisClusterClient clusterClient = clientConfiguration.getClientResources() //
-					.map(clientResources -> RedisClusterClient.create(clientResources, initialUris)) //
-					.orElseGet(() -> RedisClusterClient.create(initialUris));
-
-			clusterClient.setOptions(getClusterClientOptions(configuration));
-
-			return clusterClient;
-		}
-
-		RedisURI uri = isDomainSocketAware()
-				? createRedisSocketURIAndApplySettings(((DomainSocketConfiguration) configuration).getSocket())
-				: createRedisURIAndApplySettings(getHostName(), getPort());
-
-		RedisClient redisClient = clientConfiguration.getClientResources() //
-				.map(clientResources -> RedisClient.create(clientResources, uri)) //
-				.orElseGet(() -> RedisClient.create(uri));
-		clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+		this.clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
 
 		return redisClient;
 	}
 
+	private RedisClient createSentinelClient() {
+
+		RedisURI redisURI = getSentinelRedisURI();
+
+		RedisClient redisClient = this.clientConfiguration.getClientResources()
+				.map(clientResources -> RedisClient.create(clientResources, redisURI))
+				.orElseGet(() -> RedisClient.create(redisURI));
+
+		this.clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+
+		return redisClient;
+	}
+
+	@SuppressWarnings("all")
+	private RedisURI getSentinelRedisURI() {
+
+		RedisURI redisUri = LettuceConverters
+				.sentinelConfigurationToRedisURI((RedisSentinelConfiguration) this.configuration);
+
+		applyToAll(redisUri, it -> {
+
+			this.clientConfiguration.getClientName().ifPresent(it::setClientName);
+
+			it.setSsl(this.clientConfiguration.isUseSsl());
+			it.setVerifyPeer(this.clientConfiguration.isVerifyPeer());
+			it.setStartTls(this.clientConfiguration.isStartTls());
+			it.setTimeout(this.clientConfiguration.getCommandTimeout());
+		});
+
+		redisUri.setDatabase(getDatabase());
+
+		this.clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory -> {
+
+			redisUri.setCredentialsProvider(factory.createCredentialsProvider(this.configuration));
+
+			RedisCredentialsProvider sentinelCredentials = factory
+					.createSentinelCredentialsProvider((RedisSentinelConfiguration) this.configuration);
+
+			redisUri.getSentinels().forEach(it -> it.setCredentialsProvider(sentinelCredentials));
+		});
+
+		return redisUri;
+	}
+
+	@SuppressWarnings("all")
+	private RedisClusterClient createClusterClient() {
+
+		List<RedisURI> initialUris = new ArrayList<>();
+
+		ClusterConfiguration configuration = (ClusterConfiguration) this.configuration;
+
+		configuration.getClusterNodes().stream()
+				.map(node -> createRedisURIAndApplySettings(node.getHost(), node.getPort()))
+				.forEach(initialUris::add);
+
+		RedisClusterClient clusterClient = this.clientConfiguration.getClientResources()
+				.map(clientResources -> RedisClusterClient.create(clientResources, initialUris))
+				.orElseGet(() -> RedisClusterClient.create(initialUris));
+
+		clusterClient.setOptions(getClusterClientOptions(configuration));
+
+		return clusterClient;
+	}
+
 	private ClusterClientOptions getClusterClientOptions(ClusterConfiguration configuration) {
 
-		Optional<ClientOptions> clientOptions = clientConfiguration.getClientOptions();
-		ClusterClientOptions clusterClientOptions = clientOptions //
-				.filter(ClusterClientOptions.class::isInstance) //
-				.map(ClusterClientOptions.class::cast) //
-				.orElseGet(() -> {
-					return clientOptions //
-							.map(it -> ClusterClientOptions.builder(it).build()) //
-							.orElseGet(ClusterClientOptions::create);
-				});
+		Optional<ClientOptions> clientOptions = this.clientConfiguration.getClientOptions();
+
+		ClusterClientOptions clusterClientOptions = clientOptions
+				.filter(ClusterClientOptions.class::isInstance)
+				.map(ClusterClientOptions.class::cast)
+				.orElseGet(() -> clientOptions
+						.map(it -> ClusterClientOptions.builder(it).build())
+						.orElseGet(ClusterClientOptions::create));
 
 		if (configuration.getMaxRedirects() != null) {
 			return clusterClientOptions.mutate().maxRedirects(configuration.getMaxRedirects()).build();
@@ -1200,33 +1250,20 @@ public class LettuceConnectionFactory
 		return clusterClientOptions;
 	}
 
-	private RedisURI getSentinelRedisURI() {
+	@SuppressWarnings("all")
+	private RedisClient createBasicClient() {
 
-		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(
-				(org.springframework.data.redis.connection.RedisSentinelConfiguration) configuration);
+		RedisURI uri = isDomainSocketAware()
+				? createRedisSocketURIAndApplySettings(((DomainSocketConfiguration) this.configuration).getSocket())
+				: createRedisURIAndApplySettings(getHostName(), getPort());
 
-		applyToAll(redisUri, it -> {
+		RedisClient redisClient = this.clientConfiguration.getClientResources()
+				.map(clientResources -> RedisClient.create(clientResources, uri))
+				.orElseGet(() -> RedisClient.create(uri));
 
-			clientConfiguration.getClientName().ifPresent(it::setClientName);
+		this.clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
 
-			it.setSsl(clientConfiguration.isUseSsl());
-			it.setVerifyPeer(clientConfiguration.isVerifyPeer());
-			it.setStartTls(clientConfiguration.isStartTls());
-			it.setTimeout(clientConfiguration.getCommandTimeout());
-		});
-
-		redisUri.setDatabase(getDatabase());
-
-		clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory -> {
-
-			redisUri.setCredentialsProvider(factory.createCredentialsProvider(configuration));
-
-			RedisCredentialsProvider sentinelCredentials = factory
-					.createSentinelCredentialsProvider((RedisSentinelConfiguration) configuration);
-			redisUri.getSentinels().forEach(it -> it.setCredentialsProvider(sentinelCredentials));
-		});
-
-		return redisUri;
+		return redisClient;
 	}
 
 	private void assertInitialized() {
@@ -1271,6 +1308,7 @@ public class LettuceConnectionFactory
 	private void applyAuthentication(RedisURI.Builder builder) {
 
 		String username = getRedisUsername();
+
 		if (StringUtils.hasText(username)) {
 			// See https://github.com/lettuce-io/lettuce-core/issues/1404
 			builder.withAuthentication(username, new String(getRedisPassword().toOptional().orElse(new char[0])));
@@ -1278,9 +1316,8 @@ public class LettuceConnectionFactory
 			getRedisPassword().toOptional().ifPresent(builder::withPassword);
 		}
 
-		clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory -> {
-			builder.withAuthentication(factory.createCredentialsProvider(configuration));
-		});
+		clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory ->
+				builder.withAuthentication(factory.createCredentialsProvider(this.configuration)));
 	}
 
 	@Override
