@@ -82,6 +82,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		lettuceConnectionFactory.setPort(SettingsUtils.getPort());
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();
+		lettuceConnectionFactory.start();
 
 		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
 				.fromSerializer(StringRedisSerializer.UTF_8);

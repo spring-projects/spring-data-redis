@@ -62,6 +62,7 @@ class JedisConnectionFactoryUnitTests {
 
 		connectionFactory = initSpyedConnectionFactory(SINGLE_SENTINEL_CONFIG, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		verify(connectionFactory, times(1)).createRedisSentinelPool(eq(SINGLE_SENTINEL_CONFIG));
 		verify(connectionFactory, never()).createRedisPool();
@@ -72,6 +73,7 @@ class JedisConnectionFactoryUnitTests {
 
 		connectionFactory = initSpyedConnectionFactory((RedisSentinelConfiguration) null, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		verify(connectionFactory, times(1)).createRedisPool();
 		verify(connectionFactory, never()).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
@@ -90,6 +92,7 @@ class JedisConnectionFactoryUnitTests {
 
 		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		verify(connectionFactory, times(1)).createCluster(eq(CLUSTER_CONFIG), any(GenericObjectPoolConfig.class));
 		verify(connectionFactory, never()).createRedisPool();
@@ -319,6 +322,16 @@ class JedisConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getConnection);
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getClusterConnection);
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getSentinelConnection);
+	}
+
+	@Test // GH-2503
+	void afterPropertiesSetDoesNotTriggerConnectionInitialization() {
+
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.isRunning()).isFalse();
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> connectionFactory.getConnection());
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,

@@ -158,12 +158,17 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		LettuceConnectionFactory factory = createConnectionFactory();
 		factory.afterPropertiesSet();
 
+		try {
+
+			factory.start();
 		RedisConnection connection = factory.getConnection();
 
 		assertThat(connection.ping()).isEqualTo("PONG");
 		connection.close();
 
-		factory.destroy();
+		} finally {
+			factory.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-775
@@ -171,13 +176,17 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		LettuceConnectionFactory factory = createConnectionFactory();
 		factory.afterPropertiesSet();
+		try {
 
-		RedisClusterConnection clusterConnection = factory.getClusterConnection();
+			factory.start();
+			RedisClusterConnection clusterConnection = factory.getClusterConnection();
 
-		assertThat(clusterConnection.ping(ClusterTestVariables.CLUSTER_NODE_1)).isEqualTo("PONG");
-		clusterConnection.close();
+			assertThat(clusterConnection.ping(ClusterTestVariables.CLUSTER_NODE_1)).isEqualTo("PONG");
+			clusterConnection.close();
+		} finally {
+			factory.destroy();
+		}
 
-		factory.destroy();
 	}
 
 	@Test // DATAREDIS-315

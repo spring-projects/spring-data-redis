@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.context.SmartLifecycle;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
@@ -34,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLParameters;
@@ -85,7 +87,7 @@ import org.springframework.util.ObjectUtils;
  * @see JedisClientConfiguration
  * @see Jedis
  */
-public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
+public class JedisConnectionFactory implements RedisConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
@@ -104,8 +106,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private @Nullable ClusterTopologyProvider topologyProvider;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
-	private boolean initialized;
-	private boolean destroyed;
+	enum State {
+		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
+	}
+	private AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance with default settings (default connection pooling).
@@ -287,24 +291,65 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return connection;
 	}
 
+	@Override
+	public void start() {
+
+		State current = state.getAndUpdate(state -> {
+			if (State.CREATED.equals(state) || State.STOPPED.equals(state)) {
+				return State.STARTING;
+			}
+			return state;
+		});
+
+		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
+
+			if (getUsePool() && !isRedisClusterAware()) {
+				this.pool = createPool();
+			}
+
+			if (isRedisClusterAware()) {
+
+				this.cluster = createCluster();
+				this.topologyProvider = createTopologyProvider(this.cluster);
+				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
+						new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
+						EXCEPTION_TRANSLATION);
+			}
+
+			state.set(State.STARTED);
+		}
+	}
+
+	@Override
+	public void stop() {
+
+		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+			if (getUsePool() && !isRedisClusterAware()) {
+				this.pool.close();
+				this.pool = null;
+			}
+
+			if (isRedisClusterAware()) {
+				try {
+					this.clusterCommandExecutor.destroy();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				this.topologyProvider = null;
+				this.cluster.close();
+			}
+			state.set(State.STOPPED);
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return State.STARTED.equals(state.get());
+	}
+
+	@Override
 	public void afterPropertiesSet() {
-
 		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
-
-		if (getUsePool() && !isRedisClusterAware()) {
-			this.pool = createPool();
-		}
-
-		if (isRedisClusterAware()) {
-
-			this.cluster = createCluster();
-			this.topologyProvider = createTopologyProvider(this.cluster);
-			this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-					new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
-					EXCEPTION_TRANSLATION);
-		}
-
-		this.initialized = true;
 	}
 
 	JedisClientConfig createSentinelClientConfig(SentinelConfiguration sentinelConfiguration) {
@@ -415,6 +460,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	public void destroy() {
 
+		state.set(State.STOPPING);
+
 		if (getUsePool() && pool != null) {
 
 			try {
@@ -440,7 +487,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			}
 		}
 
-		this.destroyed = true;
+		state.set(State.DESTROYED);
 	}
 
 	public RedisConnection getConnection() {
@@ -866,8 +913,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	private void assertInitialized() {
-		Assert.state(this.initialized, "JedisConnectionFactory was not initialized through afterPropertiesSet()");
-		Assert.state(!this.destroyed, "JedisConnectionFactory was destroyed and cannot be used anymore");
+		Assert.state(State.STARTED.equals(state.get()), "JedisConnectionFactory was not initialized through afterPropertiesSet()");
+		Assert.state(!State.STOPPED.equals(state.get()), "JedisConnectionFactory was destroyed and cannot be used anymore");
 	}
 
 	/**

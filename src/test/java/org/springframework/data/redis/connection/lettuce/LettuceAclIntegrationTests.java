@@ -23,7 +23,9 @@ import io.lettuce.core.protocol.ProtocolVersion;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -44,6 +46,11 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 @EnabledOnCommand("HELLO")
 class LettuceAclIntegrationTests {
 
+	@AfterAll
+	static void afterAll() {
+		ConnectionFactoryTracker.cleanUp();
+	}
+
 	@Test // DATAREDIS-1046
 	void shouldConnectWithDefaultAuthentication() {
 
@@ -53,6 +60,7 @@ class LettuceAclIntegrationTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(standaloneConfiguration);
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisConnection connection = connectionFactory.getConnection();
 
@@ -72,6 +80,7 @@ class LettuceAclIntegrationTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(standaloneConfiguration);
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisConnection connection = connectionFactory.getConnection();
 
@@ -96,6 +105,7 @@ class LettuceAclIntegrationTests {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration, configuration);
 		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisSentinelConnection connection = connectionFactory.getSentinelConnection();
 
@@ -116,6 +126,7 @@ class LettuceAclIntegrationTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(masterReplicaConfiguration);
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisConnection connection = connectionFactory.getConnection();
 

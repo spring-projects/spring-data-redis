@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
@@ -38,6 +39,12 @@ public abstract class ConnectionFactoryTracker {
 
 		if (factory instanceof Managed) {
 			throw new UnsupportedOperationException("Cannot track managed resource");
+		}
+
+		if(factory instanceof SmartLifecycle smartLifecycle) {
+			if(!smartLifecycle.isRunning() && smartLifecycle.isAutoStartup()) {
+				smartLifecycle.start();
+			}
 		}
 
 		connFactories.add(factory);

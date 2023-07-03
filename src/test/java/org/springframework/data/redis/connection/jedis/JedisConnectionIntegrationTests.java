@@ -102,9 +102,13 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
+		factory2.start();
 		// No way to really verify we are in the selected DB
-		factory2.getConnection().ping();
-		factory2.destroy();
+		try {
+			factory2.getConnection().ping();
+		} finally {
+			factory2.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-714
@@ -113,6 +117,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(77);
 		factory2.afterPropertiesSet();
+		factory2.start();
 
 		try {
 			assertThatExceptionOfType(RedisConnectionFailureException.class).isThrownBy(factory2::getConnection);
@@ -132,11 +137,16 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.setHostName(SettingsUtils.getHost());
 		factory2.setPort(SettingsUtils.getPort());
 		factory2.afterPropertiesSet();
+		factory2.start();
 
-		RedisConnection conn2 = factory2.getConnection();
-		conn2.close();
-		factory2.getConnection();
-		factory2.destroy();
+		try {
+
+			RedisConnection conn2 = factory2.getConnection();
+			conn2.close();
+			factory2.getConnection();
+		} finally {
+			factory2.destroy();
+		}
 	}
 
 	@Test
@@ -330,15 +340,17 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.setHostName(SettingsUtils.getHost());
 		factory2.setPort(SettingsUtils.getPort());
 		factory2.afterPropertiesSet();
+		factory2.start();
 
-		RedisConnection conn = factory2.getConnection();
-		try {
+		try (RedisConnection conn = factory2.getConnection()) {
 			conn.get(null);
-		} catch (Exception e) {}
-		conn.close();
-		// Make sure we don't end up with broken connection
-		factory2.getConnection().dbSize();
-		factory2.destroy();
+		} catch (Exception e) {
+
+		} finally {
+			// Make sure we don't end up with broken connection
+			factory2.getConnection().dbSize();
+			factory2.destroy();
+		}
 	}
 
 	@Test // GH-2356
@@ -352,18 +364,18 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory.setHostName(SettingsUtils.getHost());
 		factory.setPort(SettingsUtils.getPort());
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisConnection conn = factory.getConnection();
+		try (RedisConnection conn = factory.getConnection()) {
 
-		JedisSubscription subscriptionMock = mock(JedisSubscription.class);
-		doThrow(new IllegalStateException()).when(subscriptionMock).close();
-		ReflectionTestUtils.setField(conn, "subscription", subscriptionMock);
-
-		conn.close();
-
-		// Make sure we don't end up with broken connection
-		factory.getConnection().dbSize();
-		factory.destroy();
+			JedisSubscription subscriptionMock = mock(JedisSubscription.class);
+			doThrow(new IllegalStateException()).when(subscriptionMock).close();
+			ReflectionTestUtils.setField(conn, "subscription", subscriptionMock);
+		} finally {
+			// Make sure we don't end up with broken connection
+			factory.getConnection().dbSize();
+			factory.destroy();
+		}
 	}
 
 	@SuppressWarnings("unchecked")

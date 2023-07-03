@@ -120,14 +120,19 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.setShareNativeConnection(false);
 		connectionFactory.setDatabase(5);
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
-		RedisConnection directConnection = connectionFactory.getConnection();
-		assertThat(directConnection.exists("foo".getBytes())).isFalse();
-		directConnection.select(0);
+		try(RedisConnection directConnection = connectionFactory.getConnection()) {
 
-		assertThat(directConnection.exists("foo".getBytes())).isTrue();
-		directConnection.close();
-		connectionFactory.destroy();
+			assertThat(directConnection.exists("foo".getBytes())).isFalse();
+			directConnection.select(0);
+
+			assertThat(directConnection.exists("foo".getBytes())).isTrue();
+		} finally {
+			connectionFactory.destroy();
+		}
+
+
 	}
 
 	@Test // DATAREDIS-973
@@ -144,16 +149,19 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.setShareNativeConnection(false);
 		connectionFactory.setDatabase(5);
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
-		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();
+		try(LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection()) {
 
-		reactiveConnection.keyCommands().exists(ByteBuffer.wrap("foo".getBytes())) //
-				.as(StepVerifier::create) //
-				.expectNext(false) //
-				.verifyComplete();
+			reactiveConnection.keyCommands().exists(ByteBuffer.wrap("foo".getBytes())) //
+					.as(StepVerifier::create) //
+					.expectNext(false) //
+					.verifyComplete();
 
-		reactiveConnection.close();
-		connectionFactory.destroy();
+		} finally {
+			connectionFactory.destroy();
+		}
+
 	}
 
 	@Test
@@ -253,16 +261,14 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG, configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisConnection connection = factory.getConnection();
+		try(RedisConnection connection = factory.getConnection()) {
 
-		try {
 			assertThat(connection.ping()).isEqualTo("PONG");
 			assertThat(connection.info().getProperty("role")).isEqualTo("slave");
 		} finally {
-			connection.close();
+			factory.destroy();
 		}
-
-		factory.destroy();
 	}
 }

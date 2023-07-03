@@ -68,6 +68,7 @@ class LettuceClusterKeyspaceNotificationsTests {
 		factory = new CustomLettuceConnectionFactory(SettingsUtils.clusterConfiguration());
 		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.afterPropertiesSet();
+		factory.start();
 	}
 
 	@BeforeEach

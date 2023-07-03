@@ -16,10 +16,11 @@
 package org.springframework.data.redis.support.collections;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.SmartFactoryBean;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -30,8 +31,9 @@ import org.springframework.util.StringUtils;
  * Otherwise uses the provided type (default is list).
  *
  * @author Costin Leau
+ * @author Christoph Strobl
  */
-public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAware, FactoryBean<RedisStore> {
+public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>, BeanNameAware, InitializingBean {
 
 	/**
 	 * Collection types supported by this factory.
@@ -73,13 +75,15 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		abstract DataType dataType();
 	}
 
-	private @Nullable RedisStore store;
+	private @Nullable Lazy<RedisStore> store;
 	private @Nullable CollectionType type = null;
 	private @Nullable RedisTemplate<String, ?> template;
 	private @Nullable String key;
 	private @Nullable String beanName;
 
+	@Override
 	public void afterPropertiesSet() {
+
 		if (!StringUtils.hasText(key)) {
 			key = beanName;
 		}
@@ -87,19 +91,23 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		Assert.hasText(key, "Collection key is required - no key or bean name specified");
 		Assert.notNull(template, "Redis template is required");
 
-		DataType dt = template.type(key);
+		store = Lazy.of(() -> {
 
-		// can't create store
-		Assert.isTrue(!DataType.STRING.equals(dt), "Cannot create store on keys of type 'string'");
+			DataType dt = template.type(key);
 
-		store = createStore(dt);
+			// can't create store
+			Assert.isTrue(!DataType.STRING.equals(dt), "Cannot create store on keys of type 'string'");
 
-		if (store == null) {
-			if (type == null) {
-				type = CollectionType.LIST;
+			RedisStore tmp = createStore(dt);
+
+			if (tmp == null) {
+				if (type == null) {
+					type = CollectionType.LIST;
+				}
+				tmp = createStore(type.dataType());
 			}
-			store = createStore(type.dataType());
-		}
+			return tmp;
+		});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -123,18 +131,17 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		return null;
 	}
 
+	@Override
 	public RedisStore getObject() {
-		return store;
+		return store.get();
 	}
 
+	@Override
 	public Class<?> getObjectType() {
-		return (store != null ? store.getClass() : RedisStore.class);
+		return (store != null ? store.get().getClass() : RedisStore.class);
 	}
 
-	public boolean isSingleton() {
-		return true;
-	}
-
+	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}

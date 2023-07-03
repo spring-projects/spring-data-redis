@@ -60,6 +60,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 
 		factory = new JedisConnectionFactory(configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 		connection.flushAll();
@@ -77,12 +78,15 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		configuration.setDatabase(5);
 
-		factory = new JedisConnectionFactory(configuration);
+		JedisConnectionFactory factory = new JedisConnectionFactory(configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisSentinelConnection sentinelConnection = factory.getSentinelConnection();
-		assertThat(sentinelConnection.masters()).isNotNull();
-		sentinelConnection.close();
+		try (RedisSentinelConnection sentinelConnection = factory.getSentinelConnection()) {
+			assertThat(sentinelConnection.masters()).isNotNull();
+		} finally {
+			factory.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-765
@@ -92,32 +96,45 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.clientName("clientName") //
 				.build();
 
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
+		JedisConnectionFactory factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisConnection connection = factory.getConnection();
+		try (RedisConnection connection = factory.getConnection()) {
 
-		assertThat(factory.getUsePool()).isTrue();
-		assertThat(connection.getClientName()).isEqualTo("clientName");
+			assertThat(factory.getUsePool()).isTrue();
+			assertThat(connection.getClientName()).isEqualTo("clientName");
+		} finally {
+			factory.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-324
 	void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		JedisConnectionFactory factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
-
-		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
+		factory.start();
+		try {
+			assertThat(factory.getConnection().ping()).isEqualTo("PONG");
+		} finally {
+			factory.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-552
 	void getClientNameShouldEqualWithFactorySetting() {
 
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		JedisConnectionFactory factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
+		factory.start();
 
-		assertThat(factory.getConnection().getClientName()).isEqualTo("clientName");
+		try {
+			assertThat(factory.getConnection().getClientName()).isEqualTo("clientName");
+		} finally {
+			factory.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-1127
@@ -126,8 +143,13 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
-		factory = new JedisConnectionFactory(oneDownSentinelConfig);
+		JedisConnectionFactory factory = new JedisConnectionFactory(oneDownSentinelConfig);
 		factory.afterPropertiesSet();
-		assertThat(factory.getSentinelConnection().isOpen()).isTrue();
+		factory.start();
+		try {
+			assertThat(factory.getSentinelConnection().isOpen()).isTrue();
+		} finally {
+			factory.destroy();
+		}
 	}
 }

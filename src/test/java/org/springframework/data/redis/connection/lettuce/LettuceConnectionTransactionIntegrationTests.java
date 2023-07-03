@@ -55,6 +55,8 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
+		factory2.start();
+
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
 			assertThat(conn2.get("foo")).isEqualTo("bar");

@@ -66,6 +66,8 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(
 				SettingsUtils.standaloneConfiguration(), configuration);
 		factory.afterPropertiesSet();
+		factory.start();
+
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -78,6 +80,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -90,6 +93,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -102,6 +106,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(
 				SettingsUtils.standaloneConfiguration(), configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -114,6 +119,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.sentinelConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -126,6 +132,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		ManagedLettuceConnectionFactory factory = new ManagedLettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;

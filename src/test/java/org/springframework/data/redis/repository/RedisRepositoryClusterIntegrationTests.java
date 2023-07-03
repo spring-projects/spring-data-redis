@@ -27,10 +27,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
+import org.springframework.lang.NonNullApi;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -54,17 +56,19 @@ class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationT
 	static class Config {
 
 		@Bean
-		RedisTemplate<?, ?> redisTemplate() {
-
-			RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration(CLUSTER_NODES);
-			JedisConnectionFactory connectionFactory = new JedisConnectionFactory(clusterConfig);
-
-			connectionFactory.afterPropertiesSet();
+		RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory connectionFactory) {
 
 			RedisTemplate<byte[], byte[]> template = new RedisTemplate<>();
 			template.setConnectionFactory(connectionFactory);
 
 			return template;
+		}
+
+		@Bean
+		RedisConnectionFactory connectionFactory() {
+			RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration(CLUSTER_NODES);
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory(clusterConfig);
+			return connectionFactory;
 		}
 	}
 }

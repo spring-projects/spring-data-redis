@@ -26,11 +26,13 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
@@ -116,8 +118,8 @@ import org.apache.commons.logging.LogFactory;
  * @author Andrea Como
  * @author Chris Bono
  */
-public class LettuceConnectionFactory
-		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
+public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
+		InitializingBean, DisposableBean, SmartLifecycle {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
@@ -144,8 +146,11 @@ public class LettuceConnectionFactory
 
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
-	private boolean initialized;
-	private boolean destroyed;
+	enum State {
+		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
+	}
+
+	private AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
@@ -333,58 +338,106 @@ public class LettuceConnectionFactory
 		return LettuceConverters.createRedisStandaloneConfiguration(redisUri);
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+	public void start() {
 
-		this.client = createClient();
+		State current = state.getAndUpdate(state -> {
+			if (State.CREATED.equals(state) || State.STOPPED.equals(state)) {
+				return State.STARTING;
+			}
+			return state;
+		});
 
-		this.connectionProvider = new ExceptionTranslatingConnectionProvider(createConnectionProvider(client, CODEC));
-		this.reactiveConnectionProvider = new ExceptionTranslatingConnectionProvider(
-				createConnectionProvider(client, LettuceReactiveRedisConnection.CODEC));
+		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
 
-		if (isClusterAware()) {
+			this.client = createClient();
 
-			this.clusterCommandExecutor = new ClusterCommandExecutor(
-					new LettuceClusterTopologyProvider((RedisClusterClient) client),
-					new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider),
-					EXCEPTION_TRANSLATION);
-		}
+			this.connectionProvider = new ExceptionTranslatingConnectionProvider(createConnectionProvider(client, CODEC));
+			this.reactiveConnectionProvider = new ExceptionTranslatingConnectionProvider(
+					createConnectionProvider(client, LettuceReactiveRedisConnection.CODEC));
 
-		this.initialized = true;
+			if (isClusterAware()) {
 
-		if (getEagerInitialization() && getShareNativeConnection()) {
-			initConnection();
+				this.clusterCommandExecutor = new ClusterCommandExecutor(
+						new LettuceClusterTopologyProvider((RedisClusterClient) client),
+						new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider),
+						EXCEPTION_TRANSLATION);
+			}
+
+			state.set(State.STARTED);
+
+			if (getEagerInitialization() && getShareNativeConnection()) {
+				initConnection();
+			}
 		}
 	}
 
+	@Override
+	public void stop() {
+
+		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+			resetConnection();
+			dispose(connectionProvider);
+			dispose(reactiveConnectionProvider);
+			this.client.close();
+			state.set(State.STOPPED);
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return State.STARTED.equals(state.get());
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		// customization hook. initialization happens in start
+	}
+
+	@Override
 	public void destroy() {
 
-		resetConnection();
+		if (State.STOPPED.equals(state.get())) {
+			if (clusterCommandExecutor != null) {
 
-		if (clusterCommandExecutor != null) {
+				try {
+					clusterCommandExecutor.destroy();
+				} catch (Exception ex) {
+					log.warn("Cannot properly close cluster command executor", ex);
+				}
+			}
+		} else if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+
+			resetConnection();
+
+			if (clusterCommandExecutor != null) {
+
+				try {
+					clusterCommandExecutor.destroy();
+				} catch (Exception ex) {
+					log.warn("Cannot properly close cluster command executor", ex);
+				}
+			}
+
+			dispose(connectionProvider);
+			dispose(reactiveConnectionProvider);
 
 			try {
-				clusterCommandExecutor.destroy();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close cluster command executor", ex);
+				Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
+				Duration timeout = clientConfiguration.getShutdownTimeout();
+				client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
+				state.set(State.STOPPED);
+			} catch (Exception e) {
+
+				if (log.isWarnEnabled()) {
+					log.warn((client != null ? ClassUtils.getShortName(client.getClass()) : "LettuceClient")
+							+ " did not shut down gracefully.", e);
+				}
 			}
+			client = null;
 		}
+		state.set(State.DESTROYED);
 
-		dispose(connectionProvider);
-		dispose(reactiveConnectionProvider);
-
-		try {
-			Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
-			Duration timeout = clientConfiguration.getShutdownTimeout();
-			client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
-		} catch (Exception e) {
-
-			if (log.isWarnEnabled()) {
-				log.warn((client != null ? ClassUtils.getShortName(client.getClass()) : "LettuceClient")
-						+ " did not shut down gracefully.", e);
-			}
-		}
-
-		this.destroyed = true;
 	}
 
 	private void dispose(LettuceConnectionProvider connectionProvider) {
@@ -531,8 +584,6 @@ public class LettuceConnectionFactory
 	 * Reset the underlying shared Connection, to be reinitialized on next access.
 	 */
 	public void resetConnection() {
-
-		assertInitialized();
 
 		Optionals.toStream(Optional.ofNullable(connection), Optional.ofNullable(reactiveConnection))
 				.forEach(SharedConnection::resetConnection);
@@ -1267,8 +1318,12 @@ public class LettuceConnectionFactory
 	}
 
 	private void assertInitialized() {
-		Assert.state(this.initialized, "LettuceConnectionFactory was not initialized through afterPropertiesSet()");
-		Assert.state(!this.destroyed, "LettuceConnectionFactory was destroyed and cannot be used anymore");
+
+		Assert.state(State.STARTED.equals(state.get()),
+				"LettuceConnectionFactory was not initialized through afterPropertiesSet()");
+		Assert.state(!State.STOPPED.equals(state.get()),
+				"LettuceConnectionFactory was destroyed and cannot be used anymore");
+
 	}
 
 	private static void applyToAll(RedisURI source, Consumer<RedisURI> action) {

@@ -69,11 +69,15 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		factory2.setPort(SettingsUtils.getPort());
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
-		RedisConnection conn2 = factory2.getConnection();
-		conn2.openPipeline();
-		conn2.close();
-		factory2.getConnection();
-		factory2.destroy();
+		factory2.start();
+
+		try (RedisConnection conn2 = factory2.getConnection()) {
+			conn2.openPipeline();
+		}
+		finally {
+			factory2.getConnection();
+			factory2.destroy();
+		}
 	}
 
 	// Unsupported Ops
