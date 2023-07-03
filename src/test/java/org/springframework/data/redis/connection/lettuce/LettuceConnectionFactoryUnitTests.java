@@ -412,6 +412,7 @@ class LettuceConnectionFactoryUnitTests {
 				LettuceTestClientConfiguration.builder().useSsl().disablePeerVerification().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
+		connectionFactory.start();
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
 		assertThat(client).isInstanceOf(RedisClient.class);
@@ -429,6 +430,7 @@ class LettuceConnectionFactoryUnitTests {
 				LettuceTestClientConfiguration.builder().useSsl().startTls().build());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
+		connectionFactory.start();
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
 		assertThat(client).isInstanceOf(RedisClient.class);
@@ -867,6 +869,7 @@ class LettuceConnectionFactoryUnitTests {
 		};
 
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		new DirectFieldAccessor(connectionFactory).setPropertyValue("client", clientMock);
 
@@ -898,6 +901,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		connectionFactory.setValidateConnection(true);
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		try (RedisConnection connection = connectionFactory.getConnection()) {
 			connection.ping();
@@ -927,6 +931,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		connectionFactory.setValidateConnection(true);
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		connectionFactory.getConnection().close();
 
@@ -954,6 +959,7 @@ class LettuceConnectionFactoryUnitTests {
 		connectionFactory.setEagerInitialization(true);
 
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		verify(connectionProviderMock, times(2)).getConnection(StatefulConnection.class);
 	}
@@ -974,6 +980,7 @@ class LettuceConnectionFactoryUnitTests {
 		};
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		assertThatExceptionOfType(RedisConnectionFailureException.class)
 				.isThrownBy(() -> connectionFactory.getConnection().ping()).withCauseInstanceOf(PoolException.class);
@@ -994,6 +1001,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 		connectionFactory.destroy();
 
 		verify((DisposableBean) connectionProviderMock, times(2)).destroy();
@@ -1079,6 +1087,7 @@ class LettuceConnectionFactoryUnitTests {
 		};
 		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection();
 
@@ -1091,12 +1100,14 @@ class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		assertThat(connectionFactory.getNativeClient()).isInstanceOf(RedisClient.class);
 
 		connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		assertThat(connectionFactory.getRequiredNativeClient()).isInstanceOf(RedisClusterClient.class);
 	}
@@ -1107,7 +1118,7 @@ class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getRequiredNativeClient)
-				.withMessageContaining("was not initialized through");
+				.withMessageContaining("Use start() to initialize");
 	}
 
 	@Test // GH-2057
@@ -1224,6 +1235,16 @@ class LettuceConnectionFactoryUnitTests {
 		RedisConfiguration configuration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
 
 		assertThat(configuration).isEqualTo(expected);
+	}
+
+	@Test // GH-2503
+	void afterPropertiesSetDoesNotTriggerConnectionInitialization() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.isRunning()).isFalse();
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> connectionFactory.getConnection());
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {

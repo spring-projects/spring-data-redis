@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * Integration tests for {@link JedisConnectionFactory}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class JedisConnectionFactoryIntegrationTests {
 
@@ -49,8 +50,11 @@ class JedisConnectionFactoryIntegrationTests {
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.defaultConfiguration());
 		factory.afterPropertiesSet();
+		factory.start();
 
-		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.ping()).isEqualTo("PONG");
+		}
 	}
 
 	@Test // DATAREDIS-575
@@ -60,9 +64,32 @@ class JedisConnectionFactoryIntegrationTests {
 				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				JedisClientConfiguration.builder().clientName("clientName").build());
 		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 
 		assertThat(connection.getClientName()).isEqualTo("clientName");
+	}
+
+	@Test // GH-2503
+	void startStopStartConnectionFactory() {
+
+		factory = new JedisConnectionFactory(
+				new RedisStandaloneConfiguration(SettingsUtils.getHost(), SettingsUtils.getPort()),
+				JedisClientConfiguration.defaultConfiguration());
+		factory.afterPropertiesSet();
+
+		factory.start();
+		assertThat(factory.isRunning()).isTrue();
+
+		factory.stop();
+		assertThat(factory.isRunning()).isFalse();
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> factory.getConnection());
+
+		factory.start();
+		assertThat(factory.isRunning()).isTrue();
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.ping()).isEqualTo("PONG");
+		}
 	}
 }

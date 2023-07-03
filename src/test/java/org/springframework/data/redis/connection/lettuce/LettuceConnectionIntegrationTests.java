@@ -125,6 +125,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		factory2.setShutdownTimeout(0);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
+		factory2.start();
 		RedisConnection connection = factory2.getConnection();
 		// Use the connection to make sure the channel is initialized, else nothing happens on close
 		connection.ping();
@@ -134,7 +135,10 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			connection.set("foo".getBytes(), "bar".getBytes());
 			fail("Exception should be thrown trying to use a closed connection");
 		} catch (RedisSystemException e) {}
+		finally {
+
 		factory2.destroy();
+		}
 	}
 
 	@Test
@@ -153,6 +157,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
+		factory2.start();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
 			assertThat(conn2.get("foo")).isEqualTo("bar");

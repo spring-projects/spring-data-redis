@@ -30,6 +30,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.convert.ConfigurableTypeInformationMapper;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -61,10 +62,12 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 	static class Config {
 
 		@Bean
-		RedisTemplate<?, ?> redisTemplate() {
+		RedisConnectionFactory connectionFactory() {
+			return new JedisConnectionFactory();
+		}
 
-			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-			connectionFactory.afterPropertiesSet();
+		@Bean
+		RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory connectionFactory) {
 
 			RedisTemplate<String, String> template = new RedisTemplate<>();
 			template.setDefaultSerializer(StringRedisSerializer.UTF_8);

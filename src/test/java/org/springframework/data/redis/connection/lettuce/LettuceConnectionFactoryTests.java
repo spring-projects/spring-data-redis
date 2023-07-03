@@ -71,6 +71,7 @@ class LettuceConnectionFactoryTests {
 		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.afterPropertiesSet();
 		factory.setShutdownTimeout(0);
+		factory.start();
 		connection = new DefaultStringRedisConnection(factory.getConnection());
 	}
 
@@ -212,7 +213,7 @@ class LettuceConnectionFactoryTests {
 		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setShutdownTimeout(0);
 		customizer.accept(connectionFactory);
-		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		return connectionFactory;
 	}
@@ -264,9 +265,9 @@ class LettuceConnectionFactoryTests {
 
 	@Test
 	void testGetConnectionException() {
-		factory.resetConnection();
+		factory.stop();
 		factory.setHostName("fakeHost");
-		factory.afterPropertiesSet();
+		factory.start();
 		try {
 			factory.getConnection();
 			fail("Expected connection failure exception");
@@ -277,7 +278,7 @@ class LettuceConnectionFactoryTests {
 	void testGetConnectionNotSharedBadHostname() {
 		factory.setShareNativeConnection(false);
 		factory.setHostName("fakeHost");
-		factory.afterPropertiesSet();
+		factory.start();
 		factory.getConnection();
 	}
 
@@ -285,7 +286,7 @@ class LettuceConnectionFactoryTests {
 	void testGetSharedConnectionNotShared() {
 		factory.setShareNativeConnection(false);
 		factory.setHostName("fakeHost");
-		factory.afterPropertiesSet();
+		factory.start();
 		assertThat(factory.getSharedConnection()).isNull();
 	}
 
@@ -295,7 +296,7 @@ class LettuceConnectionFactoryTests {
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
 		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.setDatabase(2);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		ConnectionFactoryTracker.add(factory);
 
@@ -319,7 +320,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
 		factory.setShutdownTimeout(0);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		ConnectionFactoryTracker.add(factory);
 
@@ -337,7 +338,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
 		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		factory.afterPropertiesSet();
+		factory.start();
 
 		ConnectionFactoryTracker.add(factory);
 
@@ -355,7 +356,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		ConnectionFactoryTracker.add(factory);
 
@@ -385,7 +386,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.socketConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 		assertThat(connection.ping()).isEqualTo("PONG");
@@ -407,7 +408,7 @@ class LettuceConnectionFactoryTests {
 				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 
@@ -432,7 +433,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache,
 				LettuceTestClientConfiguration.defaultConfiguration());
-		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 
@@ -456,7 +457,7 @@ class LettuceConnectionFactoryTests {
 				SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 
@@ -484,7 +485,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(),
 				configuration);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		RedisConnection connection = factory.getConnection();
 
@@ -506,7 +507,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(), configuration);
 		factory.setShareNativeConnection(false);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		ConnectionFactoryTracker.add(factory);
 
@@ -522,7 +523,7 @@ class LettuceConnectionFactoryTests {
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration());
 		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.setClientName("clientName");
-		factory.afterPropertiesSet();
+		factory.start();
 
 		ConnectionFactoryTracker.add(factory);
 
@@ -542,7 +543,7 @@ class LettuceConnectionFactoryTests {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
 		factory.setEagerInitialization(true);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		assertThat(factory.getSharedConnection()).isNotNull();
 		assertThat(factory.getSharedClusterConnection()).isNull();
@@ -560,7 +561,7 @@ class LettuceConnectionFactoryTests {
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
 				configuration);
 		factory.setEagerInitialization(true);
-		factory.afterPropertiesSet();
+		factory.start();
 
 		assertThat(factory.getSharedConnection()).isNull();
 		assertThat(factory.getSharedClusterConnection()).isNotNull();
@@ -569,4 +570,17 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
+	@Test // GH-2503
+	void startStopStartConnectionFactory() {
+
+		assertThat(factory.isRunning()).isTrue();
+		factory.stop();
+		assertThat(factory.isRunning()).isFalse();
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> factory.getConnection());
+		factory.start();
+		assertThat(factory.isRunning()).isTrue();
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.ping()).isEqualTo("PONG");
+		}
+	}
 }

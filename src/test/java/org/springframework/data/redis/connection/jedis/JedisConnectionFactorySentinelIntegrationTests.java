@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -60,14 +59,16 @@ class JedisConnectionFactorySentinelIntegrationTests {
 
 		factory = new JedisConnectionFactory(configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisConnection connection = factory.getConnection();
-		connection.flushAll();
-		connection.set("key5".getBytes(), "value5".getBytes());
+		try (RedisConnection connection = factory.getConnection()) {
 
-		connection.select(0);
-		assertThat(connection.exists("key5".getBytes())).isFalse();
-		connection.close();
+			connection.serverCommands().flushAll();
+			connection.stringCommands().set("key5".getBytes(), "value5".getBytes());
+
+			connection.select(0);
+			assertThat(connection.keyCommands().exists("key5".getBytes())).isFalse();
+		}
 	}
 
 	@Test // GH-2103
@@ -79,10 +80,11 @@ class JedisConnectionFactorySentinelIntegrationTests {
 
 		factory = new JedisConnectionFactory(configuration);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisSentinelConnection sentinelConnection = factory.getSentinelConnection();
-		assertThat(sentinelConnection.masters()).isNotNull();
-		sentinelConnection.close();
+		try (RedisSentinelConnection sentinelConnection = factory.getSentinelConnection()) {
+			assertThat(sentinelConnection.masters()).isNotNull();
+		}
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-765
@@ -94,11 +96,13 @@ class JedisConnectionFactorySentinelIntegrationTests {
 
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		RedisConnection connection = factory.getConnection();
+		try (RedisConnection connection = factory.getConnection()) {
 
-		assertThat(factory.getUsePool()).isTrue();
-		assertThat(connection.getClientName()).isEqualTo("clientName");
+			assertThat(factory.getUsePool()).isTrue();
+			assertThat(connection.getClientName()).isEqualTo("clientName");
+		}
 	}
 
 	@Test // DATAREDIS-324
@@ -106,8 +110,11 @@ class JedisConnectionFactorySentinelIntegrationTests {
 
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
+		factory.start();
 
-		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.ping()).isEqualTo("PONG");
+		}
 	}
 
 	@Test // DATAREDIS-552
@@ -116,18 +123,25 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
+		factory.start();
 
-		assertThat(factory.getConnection().getClientName()).isEqualTo("clientName");
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.serverCommands().getClientName()).isEqualTo("clientName");
+		}
 	}
 
 	@Test // DATAREDIS-1127
-	void shouldNotFailOnFirstSentinelDown() {
+	void shouldNotFailOnFirstSentinelDown() throws IOException {
 
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
 		factory = new JedisConnectionFactory(oneDownSentinelConfig);
 		factory.afterPropertiesSet();
-		assertThat(factory.getSentinelConnection().isOpen()).isTrue();
+		factory.start();
+
+		try (RedisSentinelConnection sentinelConnection = factory.getSentinelConnection()) {
+			assertThat(sentinelConnection.isOpen()).isTrue();
+		}
 	}
 }

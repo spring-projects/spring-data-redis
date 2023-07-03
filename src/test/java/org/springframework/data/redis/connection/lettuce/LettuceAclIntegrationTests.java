@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -33,6 +32,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
+import org.springframework.data.redis.util.ConnectionVerifier;
 
 /**
  * Integration tests for Redis 6 ACL.
@@ -50,16 +50,17 @@ class LettuceAclIntegrationTests {
 		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration("localhost", 6382);
 		standaloneConfiguration.setPassword("foobared");
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(standaloneConfiguration);
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		connectionFactory.afterPropertiesSet();
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		RedisConnection connection = connectionFactory.getConnection();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(standaloneConfiguration,
+				clientConfiguration);
 
-		assertThat(connection.ping()).isEqualTo("PONG");
-		connection.close();
-
-		connectionFactory.destroy();
+		ConnectionVerifier.create(connectionFactory) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}) //
+				.verifyAndClose();
 	}
 
 	@Test // DATAREDIS-1046
@@ -69,16 +70,17 @@ class LettuceAclIntegrationTests {
 		standaloneConfiguration.setUsername("spring");
 		standaloneConfiguration.setPassword("data");
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(standaloneConfiguration);
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		connectionFactory.afterPropertiesSet();
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		RedisConnection connection = connectionFactory.getConnection();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(standaloneConfiguration,
+				clientConfiguration);
 
-		assertThat(connection.ping()).isEqualTo("PONG");
-		connection.close();
-
-		connectionFactory.destroy();
+		ConnectionVerifier.create(connectionFactory) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}) //
+				.verifyAndClose();
 	}
 
 	@Test // DATAREDIS-1145
@@ -96,13 +98,13 @@ class LettuceAclIntegrationTests {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(sentinelConfiguration, configuration);
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
-		RedisSentinelConnection connection = connectionFactory.getSentinelConnection();
-
-		assertThat(connection.masters()).isNotEmpty();
-		connection.close();
-
-		connectionFactory.destroy();
+		try (RedisSentinelConnection connection = connectionFactory.getSentinelConnection()) {
+			assertThat(connection.masters()).isNotEmpty();
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 
 	@Test // DATAREDIS-1046
@@ -113,15 +115,16 @@ class LettuceAclIntegrationTests {
 		masterReplicaConfiguration.setUsername("spring");
 		masterReplicaConfiguration.setPassword("data");
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(masterReplicaConfiguration);
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		connectionFactory.afterPropertiesSet();
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientResources(LettuceTestClientResources.getSharedClientResources()).build();
 
-		RedisConnection connection = connectionFactory.getConnection();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(masterReplicaConfiguration,
+				clientConfiguration);
 
-		assertThat(connection.ping()).isEqualTo("PONG");
-		connection.close();
-
-		connectionFactory.destroy();
+		ConnectionVerifier.create(connectionFactory) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}) //
+				.verifyAndClose();
 	}
 }

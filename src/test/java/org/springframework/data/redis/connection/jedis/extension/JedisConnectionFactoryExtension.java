@@ -64,6 +64,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 				CLIENT_CONFIGURATION);
 
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -75,6 +76,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 				CLIENT_CONFIGURATION);
 
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;
@@ -86,6 +88,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 				CLIENT_CONFIGURATION);
 
 		factory.afterPropertiesSet();
+		factory.start();
 		ShutdownQueue.register(factory);
 
 		return factory;

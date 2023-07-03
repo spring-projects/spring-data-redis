@@ -66,6 +66,7 @@ class RedisMessageListenerContainerFailureIntegrationTests {
 
 		connectionFactory = new JedisConnectionFactory(configuration);
 		connectionFactory.afterPropertiesSet();
+		connectionFactory.start();
 
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
