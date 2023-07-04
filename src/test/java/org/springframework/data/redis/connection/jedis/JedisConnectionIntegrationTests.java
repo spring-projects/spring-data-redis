@@ -32,7 +32,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
@@ -46,6 +45,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
+import org.springframework.data.redis.util.ConnectionVerifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -99,16 +99,13 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	void testCreateConnectionWithDb() {
+
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(1);
-		factory2.afterPropertiesSet();
-		factory2.start();
-		// No way to really verify we are in the selected DB
-		try {
-			factory2.getConnection().ping();
-		} finally {
-			factory2.destroy();
-		}
+
+		ConnectionVerifier.create(factory2) //
+				.execute(RedisConnection::ping) //
+				.verifyAndClose();
 	}
 
 	@Test // DATAREDIS-714
@@ -363,19 +360,17 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory.setUsePool(true);
 		factory.setHostName(SettingsUtils.getHost());
 		factory.setPort(SettingsUtils.getPort());
-		factory.afterPropertiesSet();
-		factory.start();
 
-		try (RedisConnection conn = factory.getConnection()) {
-
-			JedisSubscription subscriptionMock = mock(JedisSubscription.class);
-			doThrow(new IllegalStateException()).when(subscriptionMock).close();
-			ReflectionTestUtils.setField(conn, "subscription", subscriptionMock);
-		} finally {
-			// Make sure we don't end up with broken connection
-			factory.getConnection().dbSize();
-			factory.destroy();
-		}
+		ConnectionVerifier.create(factory) //
+				.execute(connection -> {
+					JedisSubscription subscriptionMock = mock(JedisSubscription.class);
+					doThrow(new IllegalStateException()).when(subscriptionMock).close();
+					ReflectionTestUtils.setField(connection, "subscription", subscriptionMock);
+				}) //
+				.verifyAndRun(connectionFactory -> {
+					connectionFactory.getConnection().dbSize();
+					connectionFactory.destroy();
+				});
 	}
 
 	@SuppressWarnings("unchecked")

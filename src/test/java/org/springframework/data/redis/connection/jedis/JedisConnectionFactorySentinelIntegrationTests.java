@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -62,13 +61,14 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		factory.afterPropertiesSet();
 		factory.start();
 
-		RedisConnection connection = factory.getConnection();
-		connection.flushAll();
-		connection.set("key5".getBytes(), "value5".getBytes());
+		try (RedisConnection connection = factory.getConnection()) {
 
-		connection.select(0);
-		assertThat(connection.exists("key5".getBytes())).isFalse();
-		connection.close();
+			connection.serverCommands().flushAll();
+			connection.stringCommands().set("key5".getBytes(), "value5".getBytes());
+
+			connection.select(0);
+			assertThat(connection.keyCommands().exists("key5".getBytes())).isFalse();
+		}
 	}
 
 	@Test // GH-2103
@@ -78,14 +78,12 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		configuration.setDatabase(5);
 
-		JedisConnectionFactory factory = new JedisConnectionFactory(configuration);
+		factory = new JedisConnectionFactory(configuration);
 		factory.afterPropertiesSet();
 		factory.start();
 
 		try (RedisSentinelConnection sentinelConnection = factory.getSentinelConnection()) {
 			assertThat(sentinelConnection.masters()).isNotNull();
-		} finally {
-			factory.destroy();
 		}
 	}
 
@@ -96,7 +94,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 				.clientName("clientName") //
 				.build();
 
-		JedisConnectionFactory factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
 		factory.afterPropertiesSet();
 		factory.start();
 
@@ -104,52 +102,46 @@ class JedisConnectionFactorySentinelIntegrationTests {
 
 			assertThat(factory.getUsePool()).isTrue();
 			assertThat(connection.getClientName()).isEqualTo("clientName");
-		} finally {
-			factory.destroy();
 		}
 	}
 
 	@Test // DATAREDIS-324
 	void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 
-		JedisConnectionFactory factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.afterPropertiesSet();
 		factory.start();
-		try {
-			assertThat(factory.getConnection().ping()).isEqualTo("PONG");
-		} finally {
-			factory.destroy();
+
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.ping()).isEqualTo("PONG");
 		}
 	}
 
 	@Test // DATAREDIS-552
 	void getClientNameShouldEqualWithFactorySetting() {
 
-		JedisConnectionFactory factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
 		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
 		factory.start();
 
-		try {
-			assertThat(factory.getConnection().getClientName()).isEqualTo("clientName");
-		} finally {
-			factory.destroy();
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.serverCommands().getClientName()).isEqualTo("clientName");
 		}
 	}
 
 	@Test // DATAREDIS-1127
-	void shouldNotFailOnFirstSentinelDown() {
+	void shouldNotFailOnFirstSentinelDown() throws IOException {
 
 		RedisSentinelConfiguration oneDownSentinelConfig = new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 1).sentinel("127.0.0.1", 26379);
 
-		JedisConnectionFactory factory = new JedisConnectionFactory(oneDownSentinelConfig);
+		factory = new JedisConnectionFactory(oneDownSentinelConfig);
 		factory.afterPropertiesSet();
 		factory.start();
-		try {
-			assertThat(factory.getSentinelConnection().isOpen()).isTrue();
-		} finally {
-			factory.destroy();
+
+		try (RedisSentinelConnection sentinelConnection = factory.getSentinelConnection()) {
+			assertThat(sentinelConnection.isOpen()).isTrue();
 		}
 	}
 }

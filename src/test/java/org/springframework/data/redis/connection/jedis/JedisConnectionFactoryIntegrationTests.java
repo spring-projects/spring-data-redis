@@ -52,7 +52,9 @@ class JedisConnectionFactoryIntegrationTests {
 		factory.afterPropertiesSet();
 		factory.start();
 
-		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
+		try (RedisConnection connection = factory.getConnection()) {
+			assertThat(connection.ping()).isEqualTo("PONG");
+		}
 	}
 
 	@Test // DATAREDIS-575

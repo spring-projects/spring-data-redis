@@ -20,17 +20,15 @@ import static org.assertj.core.api.Assertions.*;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.condition.EnabledOnRedisAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
+import org.springframework.data.redis.util.ConnectionVerifier;
 
 /**
  * Integration tests for Redis 6 ACL.
@@ -42,24 +40,17 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 @EnabledOnRedisAvailable(6382)
 class JedisAclIntegrationTests {
 
-	@AfterAll
-	static void afterAll() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 	@Test
 	void shouldConnectWithDefaultAuthentication() {
 
 		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration("localhost", 6382);
 		standaloneConfiguration.setPassword("foobared");
 
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(standaloneConfiguration);
-		connectionFactory.afterPropertiesSet();
-		ConnectionFactoryTracker.add(connectionFactory);
-
-		try (RedisConnection connection = connectionFactory.getConnection()) {
-			assertThat(connection.ping()).isEqualTo("PONG");
-		}
+		ConnectionVerifier.create(new JedisConnectionFactory(standaloneConfiguration)) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}) //
+				.verifyAndClose();
 	}
 
 	@Test // DATAREDIS-1046
@@ -69,13 +60,11 @@ class JedisAclIntegrationTests {
 		standaloneConfiguration.setUsername("spring");
 		standaloneConfiguration.setPassword("data");
 
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(standaloneConfiguration);
-		connectionFactory.afterPropertiesSet();
-		ConnectionFactoryTracker.add(connectionFactory);
-
-		try (RedisConnection connection = connectionFactory.getConnection()) {
-			assertThat(connection.ping()).isEqualTo("PONG");
-		}
+		ConnectionVerifier.create(new JedisConnectionFactory(standaloneConfiguration)) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}) //
+				.verifyAndClose();
 	}
 
 	@Test // DATAREDIS-1145
@@ -92,7 +81,7 @@ class JedisAclIntegrationTests {
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
-		try(RedisSentinelConnection connection = connectionFactory.getSentinelConnection()) {
+		try (RedisSentinelConnection connection = connectionFactory.getSentinelConnection()) {
 			assertThat(connection.masters()).isNotEmpty();
 		}
 
@@ -106,13 +95,13 @@ class JedisAclIntegrationTests {
 		standaloneConfiguration.setUsername("spring");
 		standaloneConfiguration.setPassword("data");
 
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(standaloneConfiguration);
-		connectionFactory.setUsePool(true);
-		connectionFactory.afterPropertiesSet();
-		ConnectionFactoryTracker.add(connectionFactory);
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(standaloneConfiguration,
+				JedisClientConfiguration.builder().usePooling().build());
 
-		try (RedisConnection connection = connectionFactory.getConnection()) {
-			assertThat(connection.ping()).isEqualTo("PONG");
-		}
+		ConnectionVerifier.create(connectionFactory) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}) //
+				.verifyAndClose();
 	}
 }

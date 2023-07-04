@@ -23,11 +23,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
-import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.util.ConnectionVerifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -68,16 +67,13 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		factory2.setHostName(SettingsUtils.getHost());
 		factory2.setPort(SettingsUtils.getPort());
 		factory2.setDatabase(1);
-		factory2.afterPropertiesSet();
-		factory2.start();
 
-		try (RedisConnection conn2 = factory2.getConnection()) {
-			conn2.openPipeline();
-		}
-		finally {
-			factory2.getConnection();
-			factory2.destroy();
-		}
+		ConnectionVerifier.create(factory2) //
+				.execute(conn2 -> conn2.openPipeline()) //
+				.verifyAndRun(connectionFactory -> {
+					connectionFactory.getConnection();
+					connectionFactory.destroy();
+				});
 	}
 
 	// Unsupported Ops

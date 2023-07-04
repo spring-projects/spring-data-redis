@@ -67,6 +67,7 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvaila
 import org.springframework.data.redis.test.extension.LettuceExtension;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.util.HexStringUtils;
+import org.springframework.data.redis.util.ConnectionVerifier;
 
 /**
  * @author Christoph Strobl
@@ -156,19 +157,11 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	void shouldCreateConnectionWithPooling() {
 
 		LettuceConnectionFactory factory = createConnectionFactory();
-		factory.afterPropertiesSet();
 
-		try {
-
-			factory.start();
-		RedisConnection connection = factory.getConnection();
-
-		assertThat(connection.ping()).isEqualTo("PONG");
-		connection.close();
-
-		} finally {
-			factory.destroy();
-		}
+		ConnectionVerifier.create(factory) //
+				.execute(connection -> {
+					assertThat(connection.ping()).isEqualTo("PONG");
+				}).verifyAndClose();
 	}
 
 	@Test // DATAREDIS-775
