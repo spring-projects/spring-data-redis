@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -39,6 +40,7 @@ import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory.State;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -104,6 +106,7 @@ class JedisConnectionFactoryUnitTests {
 		JedisCluster clusterMock = mock(JedisCluster.class);
 		JedisConnectionFactory factory = new JedisConnectionFactory();
 		ReflectionTestUtils.setField(factory, "cluster", clusterMock);
+		ReflectionTestUtils.setField(factory, "state", new AtomicReference(State.STARTED));
 
 		factory.destroy();
 

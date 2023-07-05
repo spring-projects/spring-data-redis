@@ -379,7 +379,18 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			resetConnection();
 			dispose(connectionProvider);
 			dispose(reactiveConnectionProvider);
-			this.client.close();
+			try {
+				Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
+				Duration timeout = clientConfiguration.getShutdownTimeout();
+				client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
+				state.set(State.STOPPED);
+			} catch (Exception e) {
+
+				if (log.isWarnEnabled()) {
+					log.warn((client != null ? ClassUtils.getShortName(client.getClass()) : "LettuceClient")
+							+ " did not shut down gracefully.", e);
+				}
+			}
 			state.set(State.STOPPED);
 		}
 	}
@@ -397,47 +408,17 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@Override
 	public void destroy() {
 
-		if (State.STOPPED.equals(state.get())) {
-			if (clusterCommandExecutor != null) {
-
-				try {
-					clusterCommandExecutor.destroy();
-				} catch (Exception ex) {
-					log.warn("Cannot properly close cluster command executor", ex);
-				}
-			}
-		} else if (state.compareAndSet(State.STARTED, State.STOPPING)) {
-
-			resetConnection();
-
-			if (clusterCommandExecutor != null) {
-
-				try {
-					clusterCommandExecutor.destroy();
-				} catch (Exception ex) {
-					log.warn("Cannot properly close cluster command executor", ex);
-				}
-			}
-
-			dispose(connectionProvider);
-			dispose(reactiveConnectionProvider);
+		stop();
+		client = null;
+		if (clusterCommandExecutor != null) {
 
 			try {
-				Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
-				Duration timeout = clientConfiguration.getShutdownTimeout();
-				client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
-				state.set(State.STOPPED);
-			} catch (Exception e) {
-
-				if (log.isWarnEnabled()) {
-					log.warn((client != null ? ClassUtils.getShortName(client.getClass()) : "LettuceClient")
-							+ " did not shut down gracefully.", e);
-				}
+				clusterCommandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
 			}
-			client = null;
 		}
 		state.set(State.DESTROYED);
-
 	}
 
 	private void dispose(LettuceConnectionProvider connectionProvider) {
@@ -1319,11 +1300,18 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	private void assertInitialized() {
 
-		Assert.state(State.STARTED.equals(state.get()),
-				"LettuceConnectionFactory was not initialized through afterPropertiesSet()");
-		Assert.state(!State.STOPPED.equals(state.get()),
-				"LettuceConnectionFactory was destroyed and cannot be used anymore");
+		State current = state.get();
 
+		if (State.STARTED.equals(current)) {
+			return;
+		}
+
+		switch (current) {
+			case CREATED, STOPPED -> throw new IllegalStateException(String.format("LettuceConnectionFactory has been %s. Use start() to initialize it", current));
+			case DESTROYED -> throw new IllegalStateException(
+					"LettuceConnectionFactory was destroyed and cannot be used anymore");
+			default -> throw new IllegalStateException(String.format("LettuceConnectionFactory is %s", current));
+		}
 	}
 
 	private static void applyToAll(RedisURI source, Consumer<RedisURI> action) {

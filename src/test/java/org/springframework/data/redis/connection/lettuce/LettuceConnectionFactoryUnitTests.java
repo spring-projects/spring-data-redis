@@ -1118,7 +1118,7 @@ class LettuceConnectionFactoryUnitTests {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getRequiredNativeClient)
-				.withMessageContaining("was not initialized through");
+				.withMessageContaining("Use start() to initialize");
 	}
 
 	@Test // GH-2057

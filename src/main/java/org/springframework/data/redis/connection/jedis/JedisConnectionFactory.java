@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.context.SmartLifecycle;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
@@ -44,9 +43,9 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -109,6 +108,7 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 	enum State {
 		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
 	}
+
 	private AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
 	/**
@@ -325,18 +325,33 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 
 		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
 			if (getUsePool() && !isRedisClusterAware()) {
-				this.pool.close();
-				this.pool = null;
+				if (pool != null) {
+					try {
+						this.pool.close();
+					} catch (Exception ex) {
+						log.warn("Cannot properly close Jedis pool", ex);
+					}
+					this.pool = null;
+				}
 			}
 
-			if (isRedisClusterAware()) {
+			if(this.clusterCommandExecutor != null) {
 				try {
 					this.clusterCommandExecutor.destroy();
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
+			}
+
+			if (this.cluster != null) {
+
 				this.topologyProvider = null;
-				this.cluster.close();
+
+				try {
+					cluster.close();
+				} catch (Exception ex) {
+					log.warn("Cannot properly close Jedis cluster", ex);
+				}
 			}
 			state.set(State.STOPPED);
 		}
@@ -460,33 +475,7 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 
 	public void destroy() {
 
-		state.set(State.STOPPING);
-
-		if (getUsePool() && pool != null) {
-
-			try {
-				pool.destroy();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close Jedis pool", ex);
-			}
-			pool = null;
-		}
-
-		if (cluster != null) {
-
-			try {
-				cluster.close();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close Jedis cluster", ex);
-			}
-
-			try {
-				clusterCommandExecutor.destroy();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close cluster command executor", ex);
-			}
-		}
-
+		stop();
 		state.set(State.DESTROYED);
 	}
 
@@ -913,8 +902,19 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 	}
 
 	private void assertInitialized() {
-		Assert.state(State.STARTED.equals(state.get()), "JedisConnectionFactory was not initialized through afterPropertiesSet()");
-		Assert.state(!State.STOPPED.equals(state.get()), "JedisConnectionFactory was destroyed and cannot be used anymore");
+
+		State current = state.get();
+
+		if (State.STARTED.equals(current)) {
+			return;
+		}
+
+		switch (current) {
+			case CREATED, STOPPED -> throw new IllegalStateException(String.format("JedisConnectionFactory has been %s. Use start() to initialize it", current));
+			case DESTROYED -> throw new IllegalStateException(
+					"JedisConnectionFactory was destroyed and cannot be used anymore");
+			default -> throw new IllegalStateException(String.format("JedisConnectionFactory is %s", current));
+		}
 	}
 
 	/**
