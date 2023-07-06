@@ -15,9 +15,18 @@
  */
 package org.springframework.data.redis.cache;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import static org.assertj.core.api.Assertions.*;
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.convert.converter.Converter;
@@ -28,6 +37,7 @@ import org.springframework.lang.Nullable;
  * Unit tests for {@link RedisCacheConfiguration}.
  *
  * @author Mark Paluch
+ * @author John Blum
  */
 class RedisCacheConfigurationUnitTests {
 
@@ -54,6 +64,42 @@ class RedisCacheConfigurationUnitTests {
 		config.configureKeyConverters(registry -> registry.addConverter(new DomainTypeConverter()));
 
 		assertThat(config.getConversionService().canConvert(DomainType.class, String.class)).isTrue();
+	}
+
+	@Test // GH-2628
+	@SuppressWarnings("deprecation")
+	void getTtlReturnsFixedDuration() {
+
+		Duration sixtySeconds = Duration.ofSeconds(60);
+
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+			.entryTtl(sixtySeconds);
+
+
+		assertThat(cacheConfiguration).isNotNull();
+		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds);
+		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds); // does not change!
+	}
+
+	@Test // GH-2628
+	@SuppressWarnings("deprecation")
+	public void getTtlCanReturnDynamicDuration() {
+
+		Duration thirtyMinutes = Duration.ofMinutes(30);
+		Duration twoHours = Duration.ofHours(2);
+
+		RedisCacheWriter.TtlFunction mockTtlFunction = mock(RedisCacheWriter.TtlFunction.class);
+
+		doReturn(thirtyMinutes).doReturn(twoHours).when(mockTtlFunction).getTimeToLive(any(), any());
+
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(mockTtlFunction);
+
+		assertThat(cacheConfiguration.getTtl()).isEqualTo(thirtyMinutes);
+		assertThat(cacheConfiguration.getTtl()).isEqualTo(twoHours);
+
+		verify(mockTtlFunction, times(2)).getTimeToLive(isNull(), isNull());
+		verifyNoMoreInteractions(mockTtlFunction);
 	}
 
 	private static class DomainType {
