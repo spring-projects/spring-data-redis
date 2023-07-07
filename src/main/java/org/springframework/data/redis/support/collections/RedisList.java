@@ -51,11 +51,12 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	}
 
 	/**
-	 * Constructs a new {@link RedisList} instance.
+	 * Factory method used to construct a new {@link RedisList} from a Redis list reference by
+	 * the given {@link String key}.
 	 *
 	 * @param key Redis key of this list.
 	 * @param operations {@link RedisOperations} for the value type of this list.
-	 * @param maxSize
+	 * @param maxSize {@link Integer} used to constrain the size of the list.
 	 * @since 2.6
 	 */
 	static <E> RedisList<E> create(String key, RedisOperations<String, E> operations, int maxSize) {
@@ -73,10 +74,10 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	}
 
 	/**
-	 * Constructs a new {@link DefaultRedisList} instance.
+	 * Constructs a new {@link DefaultRedisList}.
 	 *
 	 * @param boundOps {@link BoundListOperations} for the value type of this list.
-	 * @param maxSize
+	 * @param maxSize {@link Integer} constraining the size of the list.
 	 * @since 2.6
 	 */
 	static <E> RedisList<E> create(BoundListOperations<String, E> boundOps, int maxSize) {
@@ -107,6 +108,25 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @param destination must not be {@literal null}.
 	 * @param destinationPosition must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see Direction#first()
+	 * @see Direction#last()
+	 */
+	@Nullable
+	E moveFirstTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
+
+	/**
+	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
+	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
+	 * at {@link RedisList destination}.
+	 * <p>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param destination must not be {@literal null}.
+	 * @param destinationPosition must not be {@literal null}.
 	 * @param timeout must not be {@literal null} or negative.
 	 * @return
 	 * @since 2.6
@@ -122,25 +142,6 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 		return moveFirstTo(destination, destinationPosition,
 				TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
 	}
-
-	/**
-	 * Atomically returns and removes the first element of the list stored at the bound key, and pushes the element at the
-	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
-	 * at {@link RedisList destination}.
-	 * <p>
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
-	 *
-	 * @param destination must not be {@literal null}.
-	 * @param destinationPosition must not be {@literal null}.
-	 * @param timeout
-	 * @param unit must not be {@literal null}.
-	 * @return
-	 * @since 2.6
-	 * @see Direction#first()
-	 * @see Direction#last()
-	 */
-	@Nullable
-	E moveFirstTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
 
 	/**
 	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
@@ -166,6 +167,25 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @param destination must not be {@literal null}.
 	 * @param destinationPosition must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return
+	 * @since 2.6
+	 * @see Direction#first()
+	 * @see Direction#last()
+	 */
+	@Nullable
+	E moveLastTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
+
+	/**
+	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
+	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
+	 * at {@link RedisList destination}.
+	 * <p>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param destination must not be {@literal null}.
+	 * @param destinationPosition must not be {@literal null}.
 	 * @param timeout must not be {@literal null} or negative.
 	 * @return
 	 * @since 2.6
@@ -181,25 +201,6 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 		return moveLastTo(destination, destinationPosition,
 				TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
 	}
-
-	/**
-	 * Atomically returns and removes the last element of the list stored at the bound key, and pushes the element at the
-	 * first/last element (head/tail depending on the {@link Direction destinationPosition} argument) of the list stored
-	 * at {@link RedisList destination}.
-	 * <p>
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
-	 *
-	 * @param destination must not be {@literal null}.
-	 * @param destinationPosition must not be {@literal null}.
-	 * @param timeout
-	 * @param unit must not be {@literal null}.
-	 * @return
-	 * @since 2.6
-	 * @see Direction#first()
-	 * @see Direction#last()
-	 */
-	@Nullable
-	E moveLastTo(RedisList<E> destination, Direction destinationPosition, long timeout, TimeUnit unit);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from list at the bound key.
@@ -230,38 +231,35 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 */
 	RedisList<E> trim(long start, long end);
 
-	@Override
-	default void addFirst(E e) {
-		List.super.addFirst(e);
+	default void addFirst(E element) {
+		add(0, element);
 	}
 
-	@Override
-	default void addLast(E e) {
-		List.super.addLast(e);
+	default void addLast(E element) {
+		add(element);
 	}
 
-	@Override
+	@Nullable
 	default E getFirst() {
-		return List.super.getFirst();
+		return peekFirst();
 	}
 
-	@Override
+	@Nullable
 	default E getLast() {
-		return List.super.getLast();
+		return peekLast();
 	}
 
-	@Override
+	@Nullable
 	default E removeFirst() {
-		return List.super.removeFirst();
+		return pollFirst();
 	}
 
-	@Override
+	@Nullable
 	default E removeLast() {
-		return List.super.removeLast();
+		return pollLast();
 	}
 
-	@Override
 	default RedisList<E> reversed() {
-		throw new UnsupportedOperationException("Not Implemented");
+		return new ReversedRedisList<>(this, List.super.reversed(), BlockingDeque.super.reversed());
 	}
 }

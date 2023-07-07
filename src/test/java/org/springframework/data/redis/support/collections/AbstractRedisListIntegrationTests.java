@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,7 +63,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 	public void setUp() throws Exception {
 
 		super.setUp();
-		list = (RedisList<T>) collection;
+		this.list = (RedisList<T>) this.collection;
 	}
 
 	@ParameterizedRedisTest
@@ -568,5 +570,152 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t3);
 
 		assertThat(list.lastIndexOf(t1)).isEqualTo(2);
+	}
+
+	@ParameterizedRedisTest // GH-2602
+	void testReversed() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree));
+
+		assertThat(this.list).containsExactly(elementOne, elementTwo, elementThree);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList).isNotNull();
+		assertThat(reversedList).isNotSameAs(this.list);
+		assertThat(reversedList).hasSameSizeAs(this.list);
+		assertThat(reversedList).containsExactly(elementThree, elementTwo, elementOne);
+		assertThat(reversedList.reversed()).isSameAs(this.list);
+	}
+
+	@ParameterizedRedisTest // // GH-2602
+	public void testReversedListIterator() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+		T elementFour = getT();
+
+		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree, elementFour));
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList).containsExactly(elementFour, elementThree, elementTwo, elementOne);
+
+		List<T> expectedList = Arrays.asList(elementFour, elementThree, elementTwo, elementOne);
+
+		System.out.printf("LIST (%s)%n", expectedList);
+
+		Iterator<T> reversedListIterator = reversedList.iterator();
+
+		assertThat(reversedListIterator).isNotNull();
+		assertThat(reversedListIterator).hasNext();
+
+		int index = -1;
+
+		while (reversedListIterator.hasNext()) {
+			assertThat(reversedListIterator.next()).isEqualTo(expectedList.get(++index));
+			if (index == 1) {
+				reversedListIterator.remove();
+			}
+		}
+
+		assertThat(reversedList).containsExactly(elementFour, elementTwo, elementOne);
+
+		RedisList<T> reorderedList = reversedList.reversed();
+
+		assertThat(reorderedList).isSameAs(this.list);
+		assertThat(reorderedList).hasSameSizeAs(reversedList);
+		assertThat(reorderedList).containsExactly(elementOne, elementTwo, elementFour);
+	}
+
+	@ParameterizedRedisTest // GH-2602
+	void testReversedWithAddFirst() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		this.list.addAll(Arrays.asList(elementOne, elementTwo));
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		reversedList.addFirst(elementThree);
+
+		assertThat(reversedList).containsExactly(elementThree, elementTwo, elementOne);
+
+		RedisList<T> reorderedList = reversedList.reversed();
+
+		assertThat(reorderedList).isSameAs(this.list);
+		assertThat(reorderedList).containsExactly(elementOne, elementTwo, elementThree);
+	}
+
+	@ParameterizedRedisTest // GH-2602
+	void testReversedWithAddLast() {
+
+		T elementZero = getT();
+		T elementOne = getT();
+		T elementTwo = getT();
+
+		this.list.addAll(Arrays.asList(elementOne, elementTwo));
+
+		assertThat(this.list).containsExactly(elementOne, elementTwo);
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		reversedList.addLast(elementZero);
+
+		assertThat(reversedList).containsExactly(elementTwo, elementOne, elementZero);
+
+		RedisList<T> reorderedList = reversedList.reversed();
+
+		assertThat(reorderedList).isSameAs(this.list);
+		assertThat(reorderedList).containsExactly(elementZero, elementOne, elementTwo);
+	}
+
+	@ParameterizedRedisTest // GH-2602
+	void testReversedWithRemoveFirst() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree));
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList).containsExactly(elementThree, elementTwo, elementOne);
+		assertThat(reversedList.removeFirst()).isEqualTo(elementThree);
+		assertThat(reversedList).containsExactly(elementTwo, elementOne);
+
+		RedisList<T> reorderedList = reversedList.reversed();
+
+		assertThat(reorderedList).isSameAs(this.list);
+		assertThat(reorderedList).containsExactly(elementOne, elementTwo);
+	}
+
+	@ParameterizedRedisTest // GH-2602
+	void testReversedWithRemoveLast() {
+
+		T elementOne = getT();
+		T elementTwo = getT();
+		T elementThree = getT();
+
+		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree));
+
+		RedisList<T> reversedList = this.list.reversed();
+
+		assertThat(reversedList).containsExactly(elementThree, elementTwo, elementOne);
+		assertThat(reversedList.removeLast()).isEqualTo(elementOne);
+		assertThat(reversedList).containsExactly(elementThree, elementTwo);
+
+		RedisList<T> reorderedList = reversedList.reversed();
+
+		assertThat(reorderedList).isSameAs(this.list);
+		assertThat(reorderedList).containsExactly(elementTwo, elementThree);
 	}
 }

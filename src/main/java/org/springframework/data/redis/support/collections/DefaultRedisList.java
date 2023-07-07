@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisListCommands;
@@ -592,16 +591,5 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		if (capped) {
 			listOps.trim(0, maxSize - 1);
 		}
-	}
-
-	@Override
-	public RedisList<E> reversed() {
-
-		DefaultRedisList<E> redisList = new DefaultRedisList<>(getKey(), getOperations(), this.maxSize);
-
-		StreamSupport.stream(this.spliterator(), false)
-			.forEach(redisList::addFirst);
-
-		return redisList;
 	}
 }
