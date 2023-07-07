@@ -29,7 +29,7 @@ public class RedisListIntegrationTests extends AbstractRedisListIntegrationTests
 	 * Constructs a new <code>RedisListTests</code> instance.
 	 *
 	 * @param factory
-	 * @param connFactory
+	 * @param template
 	 */
 	public RedisListIntegrationTests(ObjectFactory<Object> factory, RedisTemplate<Object, Object> template) {
 		super(factory, template);

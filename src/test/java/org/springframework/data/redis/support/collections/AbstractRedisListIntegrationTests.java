@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +25,8 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisListCommands;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -165,8 +160,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 	@ParameterizedRedisTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void testIndexOfObject() {
-
-		assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
 
 		T t1 = getT();
 		T t2 = getT();
@@ -558,8 +551,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 	@EnabledOnCommand("LPOS")
 	void lastIndexOf() {
 
-		assumeThat(template.getConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
-
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -589,7 +580,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThat(reversedList).isNotSameAs(this.list);
 		assertThat(reversedList).hasSameSizeAs(this.list);
 		assertThat(reversedList).containsExactly(elementThree, elementTwo, elementOne);
-		assertThat(reversedList.reversed()).isSameAs(this.list);
+		assertThat(reversedList.reversed()).isEqualTo(this.list);
 	}
 
 	@ParameterizedRedisTest // // GH-2602
@@ -628,7 +619,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 		RedisList<T> reorderedList = reversedList.reversed();
 
-		assertThat(reorderedList).isSameAs(this.list);
+		assertThat(reorderedList).isEqualTo(this.list);
 		assertThat(reorderedList).hasSameSizeAs(reversedList);
 		assertThat(reorderedList).containsExactly(elementOne, elementTwo, elementFour);
 	}
@@ -650,7 +641,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 		RedisList<T> reorderedList = reversedList.reversed();
 
-		assertThat(reorderedList).isSameAs(this.list);
 		assertThat(reorderedList).containsExactly(elementOne, elementTwo, elementThree);
 	}
 
@@ -673,7 +663,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 		RedisList<T> reorderedList = reversedList.reversed();
 
-		assertThat(reorderedList).isSameAs(this.list);
 		assertThat(reorderedList).containsExactly(elementZero, elementOne, elementTwo);
 	}
 
@@ -694,7 +683,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 		RedisList<T> reorderedList = reversedList.reversed();
 
-		assertThat(reorderedList).isSameAs(this.list);
 		assertThat(reorderedList).containsExactly(elementOne, elementTwo);
 	}
 
@@ -715,7 +703,6 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 		RedisList<T> reorderedList = reversedList.reversed();
 
-		assertThat(reorderedList).isSameAs(this.list);
 		assertThat(reorderedList).containsExactly(elementTwo, elementThree);
 	}
 }

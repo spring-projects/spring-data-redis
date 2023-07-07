@@ -17,6 +17,7 @@ package org.springframework.data.redis.support.collections;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -46,18 +47,6 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	private volatile int maxSize = 0;
 	private volatile boolean capped = false;
-
-	private class DefaultRedisListIterator extends RedisIterator<E> {
-
-		public DefaultRedisListIterator(Iterator<E> delegate) {
-			super(delegate);
-		}
-
-		@Override
-		protected void removeFromRedisStorage(E item) {
-			DefaultRedisList.this.remove(item);
-		}
-	}
 
 	/**
 	 * Constructs a new, uncapped {@link DefaultRedisList} instance.
@@ -297,12 +286,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public ListIterator<E> listIterator() {
-		throw new UnsupportedOperationException();
+		return listIterator(0);
 	}
 
 	@Override
 	public ListIterator<E> listIterator(int index) {
-		throw new UnsupportedOperationException();
+		return new ListItr(index);
 	}
 
 	@Override
@@ -579,6 +568,11 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
+	public RedisList<E> reversed() {
+		return new ReversedRedisListView<>(this);
+	}
+
+	@Override
 	public DataType getType() {
 		return DataType.LIST;
 	}
@@ -590,6 +584,123 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	private void cap() {
 		if (capped) {
 			listOps.trim(0, maxSize - 1);
+		}
+	}
+
+	private class DefaultRedisListIterator extends RedisIterator<E> {
+
+		public DefaultRedisListIterator(Iterator<E> delegate) {
+			super(delegate);
+		}
+
+		@Override
+		protected void removeFromRedisStorage(E item) {
+			DefaultRedisList.this.remove(item);
+		}
+	}
+
+	private class Itr implements Iterator<E> {
+		/**
+		 * Index of element to be returned by subsequent call to next.
+		 */
+		int cursor = 0;
+
+		/**
+		 * Index of element returned by most recent call to next or previous. Reset to -1 if this element is deleted by a
+		 * call to remove.
+		 */
+		int lastRet = -1;
+
+		@Override
+		public boolean hasNext() {
+			return cursor != size();
+		}
+
+		@Override
+		public E next() {
+			try {
+				int i = cursor;
+				E next = get(i);
+				lastRet = i;
+				cursor = i + 1;
+				return next;
+			} catch (IndexOutOfBoundsException e) {
+				throw new NoSuchElementException(e);
+			}
+		}
+
+		@Override
+		public void remove() {
+			if (lastRet < 0)
+				throw new IllegalStateException();
+
+			try {
+				DefaultRedisList.this.remove(lastRet);
+				if (lastRet < cursor)
+					cursor--;
+				lastRet = -1;
+			} catch (IndexOutOfBoundsException e) {
+				throw new ConcurrentModificationException();
+			}
+		}
+
+	}
+
+	private class ListItr extends Itr implements ListIterator<E> {
+		ListItr(int index) {
+			cursor = index;
+		}
+
+		@Override
+		public boolean hasPrevious() {
+			return cursor != 0;
+		}
+
+		@Override
+		public E previous() {
+			try {
+				int i = cursor - 1;
+				E previous = get(i);
+				lastRet = cursor = i;
+				return previous;
+			} catch (IndexOutOfBoundsException e) {
+				throw new NoSuchElementException(e);
+			}
+		}
+
+		@Override
+		public int nextIndex() {
+			return cursor;
+		}
+
+		@Override
+		public int previousIndex() {
+			return cursor - 1;
+		}
+
+		@Override
+		public void set(E e) {
+			if (lastRet < 0)
+				throw new IllegalStateException();
+
+			try {
+				DefaultRedisList.this.set(lastRet, e);
+			} catch (IndexOutOfBoundsException ex) {
+				throw new ConcurrentModificationException();
+			}
+		}
+
+		@Override
+		public void add(E e) {
+
+			try {
+				int i = cursor;
+				DefaultRedisList.this.add(i, e);
+				lastRet = -1;
+				cursor = i + 1;
+			} catch (IndexOutOfBoundsException ex) {
+				throw new ConcurrentModificationException();
+			}
 		}
 	}
 }
