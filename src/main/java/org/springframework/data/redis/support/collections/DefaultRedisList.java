@@ -119,14 +119,14 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E moveFirstTo(RedisList<E> destination, RedisListCommands.Direction destinationPosition, long timeout,
-			TimeUnit unit) {
+		TimeUnit unit) {
 
 		Assert.notNull(destination, "Destination must not be null");
 		Assert.notNull(destinationPosition, "Destination position must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
 		E result = listOps.move(RedisListCommands.Direction.first(), destination.getKey(), destinationPosition, timeout,
-				unit);
+			unit);
 		potentiallyCap(destination);
 		return result;
 	}
@@ -144,14 +144,14 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E moveLastTo(RedisList<E> destination, RedisListCommands.Direction destinationPosition, long timeout,
-			TimeUnit unit) {
+		TimeUnit unit) {
 
 		Assert.notNull(destination, "Destination must not be null");
 		Assert.notNull(destinationPosition, "Destination position must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
 		E result = listOps.move(RedisListCommands.Direction.last(), destination.getKey(), destinationPosition, timeout,
-				unit);
+			unit);
 		potentiallyCap(destination);
 		return result;
 	}

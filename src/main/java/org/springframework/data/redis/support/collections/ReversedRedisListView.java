@@ -165,7 +165,7 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	public boolean addAll(Collection<? extends E> collection) {
 
 		return !org.springframework.util.CollectionUtils.isEmpty(collection)
-				&& this.base.addAll(0, Arrays.asList(reverse((E[]) collection.toArray())));
+			&& this.base.addAll(0, Arrays.asList(reverse((E[]) collection.toArray())));
 	}
 
 	@Override
