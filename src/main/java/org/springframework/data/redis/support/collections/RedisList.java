@@ -53,8 +53,13 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	}
 
 	/**
+<<<<<<< HEAD
 	 * Factory method used to construct a new {@link RedisList} from a Redis list reference by the given {@link String
 	 * key}.
+=======
+	 * Factory method used to construct a new {@link RedisList} from a Redis list reference by
+	 * the given {@link String key}.
+>>>>>>> 4c9e5912d (Create ReversedRedisList class and view of a wrapped RedisList in reverse order.)
 	 *
 	 * @param key Redis key of this list.
 	 * @param operations {@link RedisOperations} for the value type of this list.
