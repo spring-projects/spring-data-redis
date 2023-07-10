@@ -334,16 +334,11 @@ public class RedisCacheConfiguration {
 	 * was called during cache configuration.
 	 *
 	 * @return the configured {@link Duration TTL expiration}.
-	 * @deprecated use {@link #getTtlFunction()} instead.
+	 * @deprecated since 3.2.0. Use {@link #getTtlFunction()} instead.
 	 */
-	@Deprecated
-	@SuppressWarnings("all")
+	@Deprecated(since = "3.2.0")
 	public Duration getTtl() {
-
-		TtlFunction ttlFunction = getTtlFunction();
-
-		return ttlFunction instanceof FixedDurationTtlFunction it ? it.duration()
-			: ttlFunction.getTimeToLive(null, null);
+		return getTtlFunction().getTimeToLive(Object.class, null);
 	}
 
 	/**

@@ -98,7 +98,7 @@ class RedisCacheConfigurationUnitTests {
 		assertThat(cacheConfiguration.getTtl()).isEqualTo(thirtyMinutes);
 		assertThat(cacheConfiguration.getTtl()).isEqualTo(twoHours);
 
-		verify(mockTtlFunction, times(2)).getTimeToLive(isNull(), isNull());
+		verify(mockTtlFunction, times(2)).getTimeToLive(any(), isNull());
 		verifyNoMoreInteractions(mockTtlFunction);
 	}
 
