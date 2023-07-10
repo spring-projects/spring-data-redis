@@ -845,6 +845,7 @@ class RedisOperationsProducer {
 
     LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration());
     connectionFactory.afterPropertiesSet();
+	connectionFactory.start();
 
     return connectionFactory;
   }

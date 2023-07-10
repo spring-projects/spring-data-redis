@@ -30,8 +30,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Returns a suitable {@link RedisConnection connection} for interacting with Redis.
 	 *
 	 * @return {@link RedisConnection connection} for interacting with Redis.
-	 * @throws IllegalStateException if the connection factory requires initialization and the factory has not yet
-	 * been initialized.
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory has not yet been
+	 *           initialized.
 	 */
 	RedisConnection getConnection();
 
@@ -39,8 +39,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Returns a suitable {@link RedisClusterConnection connection} for interacting with Redis Cluster.
 	 *
 	 * @return a {@link RedisClusterConnection connection} for interacting with Redis Cluster.
-	 * @throws IllegalStateException if the connection factory requires initialization and the factory has not yet
-	 * been initialized.
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory has not yet been
+	 *           initialized.
 	 * @since 1.7
 	 */
 	RedisClusterConnection getClusterConnection();
@@ -48,12 +48,12 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type.
 	 * <p>
-	 * If {@literal false}, results of {@link RedisConnection#closePipeline()} and {@link RedisConnection#exec()}
-	 * will be of the type returned by the underlying driver. This method is mostly for backwards compatibility
-	 * with {@literal 1.0}. It is generally always a good idea to allow results to be converted and deserialized.
-	 * In fact, this is now the default behavior.
+	 * If {@literal false}, results of {@link RedisConnection#closePipeline()} and {@link RedisConnection#exec()} will be
+	 * of the type returned by the underlying driver. This method is mostly for backwards compatibility with
+	 * {@literal 1.0}. It is generally always a good idea to allow results to be converted and deserialized. In fact, this
+	 * is now the default behavior.
 	 *
-	 * @return a boolen indicating whether to convert pipeline and transaction results.
+	 * @return {@code true} to convert pipeline and transaction results; {@code false} otherwise.
 	 */
 	boolean getConvertPipelineAndTxResults();
 
@@ -61,8 +61,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Returns a suitable {@link RedisSentinelConnection connection} for interacting with Redis Sentinel.
 	 *
 	 * @return a {@link RedisSentinelConnection connection} for interacting with Redis Sentinel.
-	 * @throws IllegalStateException if the connection factory requires initialization and the factory has not yet
-	 * been initialized.
+	 * @throws IllegalStateException if the connection factory requires initialization and the factory has not yet been
+	 *           initialized.
 	 * @since 1.4
 	 */
 	RedisSentinelConnection getSentinelConnection();

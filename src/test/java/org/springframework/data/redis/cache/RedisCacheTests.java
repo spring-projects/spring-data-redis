@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +37,6 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -50,8 +49,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -443,7 +440,7 @@ public class RedisCacheTests {
 
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstname(), sample.getBirthdate())));
-		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> cache.put(key, sample));
+		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
 	}
 
 	@ParameterizedRedisTest // GH-2079

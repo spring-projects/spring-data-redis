@@ -64,7 +64,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Connection factory creating <a href="https://github.com/xetorthio/jedis">Jedis</a> based connections.
+ * Connection factory creating <a href="https://github.com/redis/jedis">Jedis</a> based connections.
  * <p>
  * {@link JedisConnectionFactory} should be configured using an environmental configuration and the
  * {@link JedisClientConfiguration client configuration}. Jedis supports the following environmental configurations:
@@ -74,8 +74,9 @@ import org.springframework.util.ObjectUtils;
  * <li>{@link RedisClusterConfiguration}</li>
  * </ul>
  * <p>
- * This connection factory must be {@link #afterPropertiesSet() initialized} prior to {@link #getConnection obtaining
- * connections}.
+ * This connection factory must be {@link #afterPropertiesSet() initialized} and {@link SmartLifecycle#start() started}
+ * prior to {@link #getConnection obtaining connections}. You can {@link SmartLifecycle#stop()} and
+ * {@link SmartLifecycle#start() restart} this connection factory if needed.
  *
  * @author Costin Leau
  * @author Thomas Darimont
@@ -86,30 +87,36 @@ import org.springframework.util.ObjectUtils;
  * @see JedisClientConfiguration
  * @see Jedis
  */
-public class JedisConnectionFactory implements RedisConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
+public class JedisConnectionFactory
+		implements RedisConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
 
 	private final JedisClientConfiguration clientConfiguration;
-	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().build();
-	private @Nullable Pool<Jedis> pool;
+
 	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
 			Protocol.DEFAULT_PORT);
 
 	private @Nullable RedisConfiguration configuration;
 
-	private @Nullable JedisCluster cluster;
-	private @Nullable ClusterTopologyProvider topologyProvider;
-	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
-
+	/**
+	 * Lifecycle state of this factory.
+	 */
 	enum State {
 		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
 	}
 
-	private AtomicReference<State> state = new AtomicReference<>(State.CREATED);
+	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
+
+	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().build();
+
+	private @Nullable Pool<Jedis> pool;
+	private @Nullable JedisCluster cluster;
+	private @Nullable ClusterTopologyProvider topologyProvider;
+	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance with default settings (default connection pooling).
@@ -253,115 +260,6 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 		this.configuration = clusterConfig;
 	}
 
-	/**
-	 * Returns a Jedis instance to be used as a Redis connection. The instance can be newly created or retrieved from a
-	 * pool.
-	 *
-	 * @return Jedis instance ready for wrapping into a {@link RedisConnection}.
-	 */
-	protected Jedis fetchJedisConnector() {
-		try {
-
-			if (getUsePool() && pool != null) {
-				return pool.getResource();
-			}
-
-			Jedis jedis = createJedis();
-			// force initialization (see Jedis issue #82)
-			jedis.connect();
-
-			return jedis;
-		} catch (Exception ex) {
-			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
-		}
-	}
-
-	private Jedis createJedis() {
-		return new Jedis(new HostAndPort(getHostName(), getPort()), this.clientConfig);
-	}
-
-	/**
-	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
-	 * connection. This implementation simply returns the connection.
-	 *
-	 * @param connection the jedis connection.
-	 * @return processed connection
-	 */
-	protected JedisConnection postProcessConnection(JedisConnection connection) {
-		return connection;
-	}
-
-	@Override
-	public void start() {
-
-		State current = state.getAndUpdate(state -> {
-			if (State.CREATED.equals(state) || State.STOPPED.equals(state)) {
-				return State.STARTING;
-			}
-			return state;
-		});
-
-		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
-
-			if (getUsePool() && !isRedisClusterAware()) {
-				this.pool = createPool();
-			}
-
-			if (isRedisClusterAware()) {
-
-				this.cluster = createCluster();
-				this.topologyProvider = createTopologyProvider(this.cluster);
-				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-						new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
-						EXCEPTION_TRANSLATION);
-			}
-
-			state.set(State.STARTED);
-		}
-	}
-
-	@Override
-	public void stop() {
-
-		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
-			if (getUsePool() && !isRedisClusterAware()) {
-				if (pool != null) {
-					try {
-						this.pool.close();
-					} catch (Exception ex) {
-						log.warn("Cannot properly close Jedis pool", ex);
-					}
-					this.pool = null;
-				}
-			}
-
-			if(this.clusterCommandExecutor != null) {
-				try {
-					this.clusterCommandExecutor.destroy();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			if (this.cluster != null) {
-
-				this.topologyProvider = null;
-
-				try {
-					cluster.close();
-				} catch (Exception ex) {
-					log.warn("Cannot properly close Jedis cluster", ex);
-				}
-			}
-			state.set(State.STOPPED);
-		}
-	}
-
-	@Override
-	public boolean isRunning() {
-		return State.STARTED.equals(state.get());
-	}
-
 	@Override
 	public void afterPropertiesSet() {
 		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
@@ -397,6 +295,76 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 		}
 
 		return builder.build();
+	}
+
+	@Override
+	public void start() {
+
+		State current = state
+				.getAndUpdate(state -> State.CREATED.equals(state) || State.STOPPED.equals(state) ? State.STARTING : state);
+
+		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
+
+			if (getUsePool() && !isRedisClusterAware()) {
+				this.pool = createPool();
+			}
+
+			if (isRedisClusterAware()) {
+
+				this.cluster = createCluster();
+				this.topologyProvider = createTopologyProvider(this.cluster);
+				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
+						new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
+						EXCEPTION_TRANSLATION);
+			}
+
+			state.set(State.STARTED);
+		}
+	}
+
+	@Override
+	public void stop() {
+
+		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+
+			if (getUsePool() && !isRedisClusterAware()) {
+				if (pool != null) {
+					try {
+						this.pool.close();
+						this.pool = null;
+					} catch (Exception ex) {
+						log.warn("Cannot properly close Jedis pool", ex);
+					}
+				}
+			}
+
+			if (this.clusterCommandExecutor != null) {
+				try {
+					this.clusterCommandExecutor.destroy();
+					this.clusterCommandExecutor = null;
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			if (this.cluster != null) {
+
+				this.topologyProvider = null;
+
+				try {
+					this.cluster.close();
+					this.cluster = null;
+				} catch (Exception ex) {
+					log.warn("Cannot properly close Jedis cluster", ex);
+				}
+			}
+			state.set(State.STOPPED);
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return State.STARTED.equals(state.get());
 	}
 
 	private Pool<Jedis> createPool() {
@@ -473,12 +441,14 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 		return new JedisCluster(hostAndPort, this.clientConfig, redirects, poolConfig);
 	}
 
+	@Override
 	public void destroy() {
 
 		stop();
 		state.set(State.DESTROYED);
 	}
 
+	@Override
 	public RedisConnection getConnection() {
 
 		assertInitialized();
@@ -498,7 +468,46 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, this.clientConfig, sentinelConfig)
 				: new JedisConnection(jedis, null, this.clientConfig, sentinelConfig));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
+
 		return postProcessConnection(connection);
+	}
+
+	/**
+	 * Returns a Jedis instance to be used as a Redis connection. The instance can be newly created or retrieved from a
+	 * pool.
+	 *
+	 * @return Jedis instance ready for wrapping into a {@link RedisConnection}.
+	 */
+	protected Jedis fetchJedisConnector() {
+		try {
+
+			if (getUsePool() && pool != null) {
+				return pool.getResource();
+			}
+
+			Jedis jedis = createJedis();
+			// force initialization (see Jedis issue #82)
+			jedis.connect();
+
+			return jedis;
+		} catch (Exception ex) {
+			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
+		}
+	}
+
+	private Jedis createJedis() {
+		return new Jedis(new HostAndPort(getHostName(), getPort()), this.clientConfig);
+	}
+
+	/**
+	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
+	 * connection. This implementation simply returns the connection.
+	 *
+	 * @param connection the jedis connection.
+	 * @return processed connection
+	 */
+	protected JedisConnection postProcessConnection(JedisConnection connection) {
+		return connection;
 	}
 
 	@Override
@@ -509,9 +518,24 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 		if (!isRedisClusterAware()) {
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured");
 		}
-		return new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider);
+
+		return postProcessConnection(
+				new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider));
 	}
 
+	/**
+	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
+	 * connection. This implementation simply returns the connection.
+	 *
+	 * @param connection the jedis connection.
+	 * @return processed connection.
+	 * @since 3.2
+	 */
+	protected JedisClusterConnection postProcessConnection(JedisClusterConnection connection) {
+		return connection;
+	}
+
+	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
@@ -790,22 +814,24 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
+	 * Specifies if pipelined results should be converted to the expected data type. If {@code false}, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
 	 * Jedis driver.
 	 *
-	 * @return Whether or not to convert pipeline and tx results.
+	 * @return {@code true} to convert pipeline and transaction results; {@code false} otherwise.
 	 */
+	@Override
 	public boolean getConvertPipelineAndTxResults() {
 		return convertPipelineAndTxResults;
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
+	 * Specifies if pipelined results should be converted to the expected data type. If {@code false}, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
 	 * Jedis driver.
 	 *
-	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results.
+	 * @param convertPipelineAndTxResults {@code true} to convert pipeline and transaction results; {@code false}
+	 *          otherwise.
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
@@ -910,7 +936,8 @@ public class JedisConnectionFactory implements RedisConnectionFactory, Initializ
 		}
 
 		switch (current) {
-			case CREATED, STOPPED -> throw new IllegalStateException(String.format("JedisConnectionFactory has been %s. Use start() to initialize it", current));
+			case CREATED, STOPPED -> throw new IllegalStateException(
+					String.format("JedisConnectionFactory has been %s. Use start() to initialize it", current));
 			case DESTROYED -> throw new IllegalStateException(
 					"JedisConnectionFactory was destroyed and cannot be used anymore");
 			default -> throw new IllegalStateException(String.format("JedisConnectionFactory is %s", current));

@@ -35,7 +35,6 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -334,7 +333,7 @@ class JedisConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		assertThat(connectionFactory.isRunning()).isFalse();
-		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> connectionFactory.getConnection());
+		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.getConnection());
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,

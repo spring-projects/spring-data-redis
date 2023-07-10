@@ -575,10 +575,13 @@ class LettuceConnectionFactoryTests {
 
 		assertThat(factory.isRunning()).isTrue();
 		factory.stop();
+
 		assertThat(factory.isRunning()).isFalse();
-		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> factory.getConnection());
+		assertThatIllegalStateException().isThrownBy(() -> factory.getConnection());
+
 		factory.start();
 		assertThat(factory.isRunning()).isTrue();
+
 		try (RedisConnection connection = factory.getConnection()) {
 			assertThat(connection.ping()).isEqualTo("PONG");
 		}

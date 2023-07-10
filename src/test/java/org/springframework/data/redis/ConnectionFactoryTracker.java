@@ -41,8 +41,8 @@ public abstract class ConnectionFactoryTracker {
 			throw new UnsupportedOperationException("Cannot track managed resource");
 		}
 
-		if(factory instanceof SmartLifecycle smartLifecycle) {
-			if(!smartLifecycle.isRunning() && smartLifecycle.isAutoStartup()) {
+		if (factory instanceof SmartLifecycle smartLifecycle) {
+			if (!smartLifecycle.isRunning() && smartLifecycle.isAutoStartup()) {
 				smartLifecycle.start();
 			}
 		}

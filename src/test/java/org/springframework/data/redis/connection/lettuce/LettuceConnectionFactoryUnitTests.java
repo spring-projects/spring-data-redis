@@ -15,20 +15,27 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
-import static org.springframework.data.redis.connection.ClusterTestVariables.CLUSTER_NODE_1;
-import static org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort;
-import static org.springframework.data.redis.test.extension.LettuceTestClientResources.getSharedClientResources;
-import static org.springframework.test.util.ReflectionTestUtils.getField;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.RedisConfiguration.*;
+import static org.springframework.data.redis.test.extension.LettuceTestClientResources.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
+
+import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.cluster.ClusterClientOptions;
+import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.resource.ClientResources;
+import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -40,7 +47,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -57,22 +63,6 @@ import org.springframework.data.redis.connection.RedisSocketConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import io.lettuce.core.AbstractRedisClient;
-import io.lettuce.core.ClientOptions;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.StatefulConnection;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.cluster.ClusterClientOptions;
-import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
-import io.lettuce.core.codec.ByteArrayCodec;
-import io.lettuce.core.codec.RedisCodec;
-import io.lettuce.core.resource.ClientResources;
-
-import reactor.test.StepVerifier;
 
 /**
  * Unit tests for {@link LettuceConnectionFactory}.
@@ -1244,7 +1234,7 @@ class LettuceConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		assertThat(connectionFactory.isRunning()).isFalse();
-		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> connectionFactory.getConnection());
+		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.getConnection());
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {

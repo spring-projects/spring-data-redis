@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -84,12 +83,14 @@ class JedisConnectionFactoryIntegrationTests {
 
 		factory.stop();
 		assertThat(factory.isRunning()).isFalse();
-		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> factory.getConnection());
+		assertThatIllegalStateException().isThrownBy(() -> factory.getConnection());
 
 		factory.start();
 		assertThat(factory.isRunning()).isTrue();
 		try (RedisConnection connection = factory.getConnection()) {
 			assertThat(connection.ping()).isEqualTo("PONG");
 		}
+
+		factory.destroy();
 	}
 }

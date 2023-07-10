@@ -23,7 +23,6 @@ import java.util.concurrent.Executor;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -150,6 +149,6 @@ class RedisMessageListenerContainerUnitTests {
 
 	@Test // GH-964
 	void failsOnDuplicateInit() {
-		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> container.afterPropertiesSet());
+		assertThatIllegalStateException().isThrownBy(() -> container.afterPropertiesSet());
 	}
 }
