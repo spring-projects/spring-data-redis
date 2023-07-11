@@ -326,14 +326,13 @@ class JedisConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(connectionFactory::getSentinelConnection);
 	}
 
-	@Test // GH-2503
-	void afterPropertiesSetDoesNotTriggerConnectionInitialization() {
+	@Test // GH-2503, GH-2635
+	void afterPropertiesTriggersConnectionInitialization() {
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		assertThat(connectionFactory.isRunning()).isFalse();
-		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.getConnection());
+		assertThat(connectionFactory.isRunning()).isTrue();
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,

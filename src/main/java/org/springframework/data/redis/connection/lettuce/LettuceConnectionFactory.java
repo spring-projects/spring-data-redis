@@ -128,6 +128,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
 
+	private int phase = DEFAULT_PHASE - 10;
+
 	/**
 	 * Lifecycle state of this factory.
 	 */
@@ -400,7 +402,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	@Override
 	public void afterPropertiesSet() {
-		// customization hook. initialization happens in start
+		if(isAutoStartup()) {
+			start();
+		}
 	}
 
 	@Override
@@ -1095,6 +1099,21 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	public boolean isClusterAware() {
 		return RedisConfiguration.isClusterConfiguration(configuration);
+	}
+
+	@Override
+	public int getPhase() {
+		return phase;
+	}
+
+	/**
+	 * Specify the lifecycle phase for pausing and resuming this executor.
+	 * The default is {@link #DEFAULT_PHASE} - 10.
+	 * @since 3.2
+	 * @see SmartLifecycle#getPhase()
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	/**
