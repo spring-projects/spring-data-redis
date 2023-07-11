@@ -1227,14 +1227,13 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(configuration).isEqualTo(expected);
 	}
 
-	@Test // GH-2503
-	void afterPropertiesSetDoesNotTriggerConnectionInitialization() {
+	@Test // GH-2503, GH-2635
+	void afterPropertiesSetTriggersConnectionInitialization() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		assertThat(connectionFactory.isRunning()).isFalse();
-		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.getConnection());
+		assertThat(connectionFactory.isRunning()).isTrue();
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {

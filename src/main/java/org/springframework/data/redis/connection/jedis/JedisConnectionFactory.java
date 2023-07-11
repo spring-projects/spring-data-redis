@@ -118,6 +118,8 @@ public class JedisConnectionFactory
 	private @Nullable ClusterTopologyProvider topologyProvider;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
+	private int phase = DEFAULT_PHASE - 10;
+
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance with default settings (default connection pooling).
 	 */
@@ -262,7 +264,11 @@ public class JedisConnectionFactory
 
 	@Override
 	public void afterPropertiesSet() {
+
 		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
+		if(isAutoStartup()) {
+			start();
+		}
 	}
 
 	JedisClientConfig createSentinelClientConfig(SentinelConfiguration sentinelConfiguration) {
@@ -851,6 +857,21 @@ public class JedisConnectionFactory
 	 */
 	public boolean isRedisClusterAware() {
 		return RedisConfiguration.isClusterConfiguration(configuration);
+	}
+
+	@Override
+	public int getPhase() {
+		return phase;
+	}
+
+	/**
+	 * Specify the lifecycle phase for pausing and resuming this executor.
+	 * The default is {@link #DEFAULT_PHASE} - 10.
+	 * @since 3.2
+	 * @see SmartLifecycle#getPhase()
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	@Override
