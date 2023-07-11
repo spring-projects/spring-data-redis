@@ -15,12 +15,16 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
@@ -32,21 +36,22 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
- * Integration test for RedisList
+ * Integration tests for RedisList
  *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author John Blum
  */
 public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedisCollectionIntegrationTests<T> {
 
 	protected RedisList<T> list;
 
 	/**
-	 * Constructs a new <code>AbstractRedisListTests</code> instance.
+	 * Constructs a new {@link AbstractRedisListIntegrationTests}.
 	 *
-	 * @param factory
-	 * @param template
+	 * @param factory {@link ObjectFactory} used to create different types of elements to store in the list.
+	 * @param template {@link RedisTemplate} used to perform operations on Redis.
 	 */
 	@SuppressWarnings("rawtypes")
 	AbstractRedisListIntegrationTests(ObjectFactory<T> factory, RedisTemplate template) {
@@ -63,6 +68,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testAddIndexObjectHead() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -77,6 +83,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testAddIndexObjectTail() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -91,6 +98,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testAddIndexObjectMiddle() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -104,6 +112,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void addAllIndexCollectionHead() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -115,7 +124,9 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		List<T> asList = Arrays.asList(t3, t4);
 
 		assertThat(list.get(0)).isEqualTo(t1);
+
 		list.addAll(0, asList);
+
 		// verify insertion order
 		assertThat(list.get(0)).isEqualTo(t3);
 		assertThat(list.get(1)).isEqualTo(t4);
@@ -123,6 +134,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void addAllIndexCollectionTail() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -143,6 +155,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void addAllIndexCollectionMiddle() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -175,6 +188,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testOffer() {
+
 		T t1 = getT();
 
 		assertThat(list.offer(t1)).isTrue();
@@ -183,11 +197,17 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testPeek() {
+
 		assertThat(list.peek()).isNull();
+
 		T t1 = getT();
+
 		list.add(t1);
+
 		assertThat(list.peek()).isEqualTo(t1);
+
 		list.clear();
+
 		assertThat(list.peek()).isNull();
 	}
 
@@ -197,8 +217,10 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::element);
 
 		T t1 = getT();
+
 		list.add(t1);
 		assertThat(list.element()).isEqualTo(t1);
+
 		list.clear();
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::element);
 	}
@@ -210,9 +232,13 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testPoll() {
+
 		assertThat(list.poll()).isNull();
+
 		T t1 = getT();
+
 		list.add(t1);
+
 		assertThat(list.poll()).isEqualTo(t1);
 		assertThat(list.poll()).isNull();
 	}
@@ -227,16 +253,20 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testRemove() {
+
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::remove);
 
 		T t1 = getT();
+
 		list.add(t1);
+
 		assertThat(list.remove()).isEqualTo(t1);
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(list::remove);
 	}
 
 	@ParameterizedRedisTest // GH-2039
 	@EnabledOnCommand("LMOVE")
+	@SuppressWarnings("unchecked")
 	void testMoveFirstTo() {
 
 		RedisList<T> target = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":target"));
@@ -258,6 +288,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest // GH-2039
 	@EnabledOnCommand("LMOVE")
+	@SuppressWarnings("unchecked")
 	void testMoveLastTo() {
 
 		RedisList<T> target = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":target"));
@@ -279,12 +310,15 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testRange() {
+
 		T t1 = getT();
 		T t2 = getT();
 
 		assertThat(list.range(0, -1)).isEmpty();
+
 		list.add(t1);
 		list.add(t2);
+
 		assertThat(list.range(0, -1)).hasSize(2);
 		assertThat(list.range(0, 0).get(0)).isEqualTo(t1);
 		assertThat(list.range(1, 1).get(0)).isEqualTo(t2);
@@ -297,22 +331,28 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testSet() {
+
 		T t1 = getT();
 		T t2 = getT();
+
 		list.add(t1);
 		list.set(0, t1);
+
 		assertThat(list.set(0, t2)).isEqualTo(t1);
 		assertThat(list.get(0)).isEqualTo(t2);
 	}
 
 	@ParameterizedRedisTest
 	void testTrim() {
+
 		T t1 = getT();
 		T t2 = getT();
 
 		assertThat(list.trim(0, 0)).isEmpty();
+
 		list.add(t1);
 		list.add(t2);
+
 		assertThat(list).hasSize(2);
 		assertThat(list.trim(0L, 0L)).hasSize(1);
 		assertThat(list).hasSize(1);
@@ -322,14 +362,22 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@SuppressWarnings("unchecked")
 	@ParameterizedRedisTest
-	void testCappedCollection() throws Exception {
+	void testCappedCollection() {
+
 		RedisList<T> cappedList = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":capped"), 1);
+
 		T first = getT();
+
 		cappedList.offer(first);
+
 		assertThat(cappedList).hasSize(1);
+
 		cappedList.add(getT());
+
 		assertThat(cappedList).hasSize(1);
+
 		T last = getT();
+
 		cappedList.add(last);
 		assertThat(cappedList).hasSize(1);
 		assertThat(cappedList.get(0)).isEqualTo(first);
@@ -337,15 +385,15 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testAddFirst() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
 
-		list.addFirst(t1);
-		list.addFirst(t2);
-		list.addFirst(t3);
+		Arrays.asList(t1, t2, t3).forEach(this.list::addFirst);
 
 		Iterator<T> iterator = list.iterator();
+
 		assertThat(iterator.next()).isEqualTo(t3);
 		assertThat(iterator.next()).isEqualTo(t2);
 		assertThat(iterator.next()).isEqualTo(t1);
@@ -353,11 +401,23 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testAddLast() {
-		testAdd();
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		Arrays.asList(t1, t2, t3).forEach(this.list::addLast);
+
+		Iterator<T> iterator = list.iterator();
+
+		assertThat(iterator.next()).isEqualTo(t1);
+		assertThat(iterator.next()).isEqualTo(t2);
+		assertThat(iterator.next()).isEqualTo(t3);
 	}
 
 	@ParameterizedRedisTest
 	void testDescendingIterator() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -367,14 +427,70 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t3);
 
 		Iterator<T> iterator = list.descendingIterator();
+
 		assertThat(iterator.next()).isEqualTo(t3);
 		assertThat(iterator.next()).isEqualTo(t2);
 		assertThat(iterator.next()).isEqualTo(t1);
+	}
 
+	@ParameterizedRedisTest // GH-2602
+	void testListIteratorAddNextPreviousIsCorrect() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		ListIterator<T> listIterator = this.list.listIterator();
+
+		assertThat(listIterator).isNotNull();
+
+		Arrays.asList(t1, t2, t3).forEach(listIterator::add);
+
+		assertThat(this.list).containsExactly(t1, t2, t3);
+		assertThat(listIterator.hasNext()).isFalse();
+		assertThat(listIterator.hasPrevious()).isTrue();
+		assertThat(listIterator.previous()).isEqualTo(t3);
+		assertThat(listIterator.previous()).isEqualTo(t2);
+		assertThat(listIterator.previous()).isEqualTo(t1);
+		assertThat(listIterator.hasPrevious()).isFalse();
+		assertThat(listIterator.hasNext()).isTrue();
+		assertThat(listIterator.next()).isEqualTo(t1);
+		assertThat(listIterator.next()).isEqualTo(t2);
+		assertThat(listIterator.next()).isEqualTo(t3);
+		assertThat(listIterator.hasNext()).isFalse();
+		assertThat(listIterator.hasPrevious()).isTrue();
+	}
+
+	@ParameterizedRedisTest // GH-2602
+	public void testListIteratorSetIsCorrect() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+		T t5 = getT();
+
+		Collections.addAll(this.list, t1, t2, t3, t2, t5);
+
+		assertThat(this.list).containsExactly(t1, t2, t3, t2, t5);
+
+		ListIterator<T> listIterator = this.list.listIterator();
+
+		int index = 0;
+
+		while (listIterator.hasNext()) {
+			listIterator.next();
+			if (index++ == 3) {
+				listIterator.set(t4);
+			}
+		}
+
+		assertThat(this.list).containsExactly(t1, t2, t3, t4, t5);
 	}
 
 	@ParameterizedRedisTest
 	void testDrainToCollectionWithMaxElements() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -386,12 +502,14 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		List<T> c = new ArrayList<>();
 
 		list.drainTo(c, 2);
+
 		assertThat(list).hasSize(1).contains(t3);
 		assertThat(c).hasSize(2).contains(t1, t2);
 	}
 
 	@ParameterizedRedisTest
 	void testDrainToCollection() {
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -403,12 +521,14 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		List<T> c = new ArrayList<>();
 
 		list.drainTo(c);
+
 		assertThat(list).isEmpty();
 		assertThat(c).hasSize(3).contains(t1, t2, t3);
 	}
 
 	@ParameterizedRedisTest
 	void testGetFirst() {
+
 		T t1 = getT();
 		T t2 = getT();
 
@@ -440,6 +560,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testPeekLast() {
+
 		T t1 = getT();
 		T t2 = getT();
 
@@ -457,6 +578,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 	@ParameterizedRedisTest
 	void testPollLast() {
+
 		T t1 = getT();
 		T t2 = getT();
 
@@ -464,6 +586,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t2);
 
 		T last = list.pollLast();
+
 		assertThat(last).isEqualTo(t2);
 		assertThat(list).hasSize(1).contains(t1);
 	}
@@ -478,6 +601,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t2);
 
 		T last = list.pollLast(1, TimeUnit.MILLISECONDS);
+
 		assertThat(last).isEqualTo(t2);
 		assertThat(list).hasSize(1).contains(t1);
 	}
@@ -527,8 +651,8 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t2);
 		list.add(t1);
 		list.add(t2);
-
 		list.removeLastOccurrence(t2);
+
 		assertThat(list).hasSize(3).containsExactly(t1, t2, t1);
 	}
 
@@ -570,7 +694,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		T elementTwo = getT();
 		T elementThree = getT();
 
-		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree));
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
 
 		assertThat(this.list).containsExactly(elementOne, elementTwo, elementThree);
 
@@ -591,15 +715,15 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		T elementThree = getT();
 		T elementFour = getT();
 
-		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree, elementFour));
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree, elementFour);
+
+		assertThat(this.list).containsExactly(elementOne, elementTwo, elementThree, elementFour);
+
+		List<T> expectedList = Arrays.asList(elementFour, elementThree, elementTwo, elementOne);
 
 		RedisList<T> reversedList = this.list.reversed();
 
 		assertThat(reversedList).containsExactly(elementFour, elementThree, elementTwo, elementOne);
-
-		List<T> expectedList = Arrays.asList(elementFour, elementThree, elementTwo, elementOne);
-
-		System.out.printf("LIST (%s)%n", expectedList);
 
 		Iterator<T> reversedListIterator = reversedList.iterator();
 
@@ -612,6 +736,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 			assertThat(reversedListIterator.next()).isEqualTo(expectedList.get(++index));
 			if (index == 1) {
 				reversedListIterator.remove();
+				++index;
 			}
 		}
 
@@ -631,7 +756,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		T elementTwo = getT();
 		T elementThree = getT();
 
-		this.list.addAll(Arrays.asList(elementOne, elementTwo));
+		Collections.addAll(this.list, elementOne, elementTwo);
 
 		RedisList<T> reversedList = this.list.reversed();
 
@@ -651,7 +776,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		T elementOne = getT();
 		T elementTwo = getT();
 
-		this.list.addAll(Arrays.asList(elementOne, elementTwo));
+		Collections.addAll(this.list, elementOne, elementTwo);
 
 		assertThat(this.list).containsExactly(elementOne, elementTwo);
 
@@ -673,7 +798,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		T elementTwo = getT();
 		T elementThree = getT();
 
-		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree));
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
 
 		RedisList<T> reversedList = this.list.reversed();
 
@@ -693,7 +818,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		T elementTwo = getT();
 		T elementThree = getT();
 
-		this.list.addAll(Arrays.asList(elementOne, elementTwo, elementThree));
+		Collections.addAll(this.list, elementOne, elementTwo, elementThree);
 
 		RedisList<T> reversedList = this.list.reversed();
 
@@ -704,5 +829,20 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		RedisList<T> reorderedList = reversedList.reversed();
 
 		assertThat(reorderedList).containsExactly(elementTwo, elementThree);
+	}
+
+	@SuppressWarnings("unused")
+	private static String toString(List<?> list) {
+
+		StringBuilder stringBuilder = new StringBuilder("[");
+
+		boolean comma = false;
+
+		for (Object element : list) {
+			stringBuilder.append(comma ? ", " : "").append(element);
+			comma = true;
+		}
+
+		return stringBuilder.append("]").toString();
 	}
 }

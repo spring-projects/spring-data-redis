@@ -15,7 +15,18 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -33,9 +44,9 @@ import org.springframework.lang.Nullable;
  * Implementation and view of an existing {@link RedisList} where the elements in the list (deque) are returned in
  * reverse order.
  *
- * @param <E>
  * @author John Blum
  * @author Mark Paluch
+ * @param <E> {@link Class type} of the {@link Object elements} contained in the underlying, wrapped {@link RedisList}.
  * @since 3.2
  */
 class ReversedRedisListView<E> implements RedisList<E> {
@@ -50,53 +61,48 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public String getKey() {
-		return base.getKey();
-	}
-
-	@Nullable
-	@Override
-	public DataType getType() {
-		return base.getType();
+		return this.base.getKey();
 	}
 
 	@Nullable
 	@Override
 	public Long getExpire() {
-		return base.getExpire();
+		return this.base.getExpire();
+	}
+
+	@Override
+	public RedisOperations<String, ?> getOperations() {
+		return this.base.getOperations();
+	}
+
+	@Nullable
+	@Override
+	public DataType getType() {
+		return this.base.getType();
 	}
 
 	@Nullable
 	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
-		return base.expire(timeout, unit);
+		return this.base.expire(timeout, unit);
 	}
 
 	@Nullable
 	@Override
 	public Boolean expireAt(Date date) {
-		return base.expireAt(date);
+		return this.base.expireAt(date);
 	}
 
 	@Nullable
 	@Override
 	public Boolean persist() {
-		return base.persist();
-	}
-
-	@Override
-	public void rename(String newKey) {
-		base.remove(newKey);
-	}
-
-	@Override
-	public RedisOperations<String, ?> getOperations() {
-		return base.getOperations();
+		return this.base.persist();
 	}
 
 	@Nullable
 	@Override
 	public E moveFirstTo(RedisList<E> destination, Direction destinationPosition) {
-		return base.moveLastTo(destination, destinationPosition);
+		return this.base.moveLastTo(destination, destinationPosition);
 	}
 
 	@Nullable
@@ -119,18 +125,23 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public List<E> range(long start, long end) {
-		return base.range(end, start);
+		return this.base.range(end, start);
+	}
+
+	@Override
+	public void rename(String newKey) {
+		this.base.rename(newKey);
 	}
 
 	@Override
 	public RedisList<E> trim(int start, int end) {
-		base.trim(end, start);
+		this.base.trim(end, start);
 		return this;
 	}
 
 	@Override
 	public RedisList<E> trim(long start, long end) {
-		base.trim(end, start);
+		this.base.trim(end, start);
 		return this;
 	}
 
@@ -155,69 +166,67 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	// ========== Collection ==========
 
 	@Override
-	public boolean add(E e) {
-
-		base.add(0, e);
+	public boolean add(E element) {
+		this.base.add(0, element);
 		return true;
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends E> c) {
+	@SuppressWarnings("unchecked")
+	public boolean addAll(Collection<? extends E> collection) {
 
-		@SuppressWarnings("unchecked")
-		E[] adds = (E[]) c.toArray();
-		if (adds.length == 0) {
-			return false;
-		} else {
-			base.addAll(0, Arrays.asList(reverse(adds)));
-			return true;
-		}
+		return !org.springframework.util.CollectionUtils.isEmpty(collection)
+			&& this.base.addAll(0, Arrays.asList(reverse((E[]) collection.toArray())));
 	}
 
 	@Override
 	public void clear() {
-		base.clear();
+		this.base.clear();
 	}
 
 	@Override
-	public boolean contains(Object o) {
-		return base.contains(o);
+	public boolean contains(Object element) {
+		return this.base.contains(element);
 	}
 
 	@Override
-	public boolean containsAll(Collection<?> c) {
-		return base.containsAll(c);
+	public boolean containsAll(Collection<?> collection) {
+		return this.base.containsAll(collection);
 	}
 
-	// copied from AbstractList
-	public boolean equals(Object o) {
-		if (o == this)
+	public boolean equals(Object obj) {
+
+		if (this == obj) {
 			return true;
-		if (!(o instanceof List))
-			return false;
-
-		ListIterator<E> e1 = listIterator();
-		ListIterator<?> e2 = ((List<?>) o).listIterator();
-		while (e1.hasNext() && e2.hasNext()) {
-			E o1 = e1.next();
-			Object o2 = e2.next();
-			if (!(o1 == null ? o2 == null : o1.equals(o2)))
-				return false;
 		}
-		return !(e1.hasNext() || e2.hasNext());
+
+		if (!(obj instanceof List<?> that)) {
+			return false;
+		}
+
+		ListIterator<E> thisListIterator = this.listIterator();
+		ListIterator<?> thatListIterator = that.listIterator();
+
+		while (thisListIterator.hasNext() && thatListIterator.hasNext()) {
+			if (!(Objects.equals(thisListIterator.next(), thatListIterator.next()))) {
+				return false;
+			}
+		}
+
+		return !(thisListIterator.hasNext() || thatListIterator.hasNext());
 	}
 
-	// copied from AbstractList
 	public int hashCode() {
 		int hashCode = 1;
-		for (E e : this)
-			hashCode = 31 * hashCode + (e == null ? 0 : e.hashCode());
+		for (E element : this) {
+			hashCode = 31 * hashCode + Objects.hashCode(element);
+		}
 		return hashCode;
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return base.isEmpty();
+		return this.base.isEmpty();
 	}
 
 	@Override
@@ -225,64 +234,60 @@ class ReversedRedisListView<E> implements RedisList<E> {
 		return StreamSupport.stream(spliterator(), true);
 	}
 
-	// copied from AbstractCollection
 	@Override
-	public boolean remove(Object o) {
+	public boolean remove(Object element) {
 
 		Iterator<E> it = iterator();
-		if (o == null) {
-			while (it.hasNext()) {
-				if (it.next() == null) {
-					it.remove();
-					return true;
-				}
-			}
-		} else {
-			while (it.hasNext()) {
-				if (o.equals(it.next())) {
-					it.remove();
-					return true;
-				}
+
+		while (it.hasNext()) {
+			if (Objects.equals(element, it.next())) {
+				it.remove();
+				return true;
 			}
 		}
+
 		return false;
 	}
 
-	// copied from AbstractCollection
 	@Override
-	public boolean removeAll(Collection<?> c) {
+	public boolean removeAll(Collection<?> collection) {
 
-		Objects.requireNonNull(c);
-		boolean modified = false;
+		Objects.requireNonNull(collection);
+
 		Iterator<?> it = iterator();
+		boolean modified = false;
+
 		while (it.hasNext()) {
-			if (c.contains(it.next())) {
+			if (collection.contains(it.next())) {
 				it.remove();
 				modified = true;
 			}
 		}
+
 		return modified;
 	}
 
-	// copied from AbstractCollection
 	@Override
-	public boolean retainAll(Collection<?> c) {
+	public boolean retainAll(Collection<?> collection) {
 
-		Objects.requireNonNull(c);
-		boolean modified = false;
+		Objects.requireNonNull(collection);
+
 		Iterator<E> it = iterator();
+		boolean modified = false;
+
 		while (it.hasNext()) {
-			if (!c.contains(it.next())) {
+			if (!collection.contains(it.next())) {
 				it.remove();
 				modified = true;
 			}
 		}
+
 		return modified;
 	}
 
 	@Override
 	public int size() {
-		return base.size();
+		return this.base.size();
 	}
 
 	@Override
@@ -292,34 +297,36 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public Object[] toArray() {
-		return reverse(base.toArray());
+		return reverse(this.base.toArray());
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] a) {
-		return toArrayReversed(base, a);
+	public <T> T[] toArray(T[] array) {
+		return toArrayReversed(this.base, array);
 	}
 
 	@Override
 	public <T> T[] toArray(IntFunction<T[]> generator) {
-		return reverse(base.toArray(generator));
+		return reverse(this.base.toArray(generator));
 	}
 
-	// copied from AbstractCollection
 	public String toString() {
-		Iterator<E> it = iterator();
-		if (!it.hasNext())
-			return "[]";
 
-		StringBuilder sb = new StringBuilder();
-		sb.append('[');
+		Iterator<E> it = iterator();
+
+		if (!it.hasNext()) {
+			return "[]";
+		}
+
+		StringBuilder stringBuilder = new StringBuilder("[");
+
 		for (;;) {
-			E e = it.next();
-			sb.append(e == this ? "(this Collection)" : e);
-			if (!it.hasNext())
-				return sb.append(']').toString();
-			sb.append(',').append(' ');
+			E element = it.next();
+			stringBuilder.append(element == this ? "(this Collection)" : element);
+			if (!it.hasNext()) {
+				return stringBuilder.append(']').toString();
+			}
+			stringBuilder.append(',').append(' ');
 		}
 	}
 
@@ -328,18 +335,22 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	@Override
 	public void add(int index, E element) {
 
-		int size = base.size();
+		int size = this.base.size();
+
 		checkClosedRange(index, size);
-		base.add(size - index, element);
+		this.base.add(size - index, element);
 	}
 
 	@Override
 	public boolean addAll(int index, Collection<? extends E> c) {
 
 		int size = base.size();
+
 		checkClosedRange(index, size);
+
 		@SuppressWarnings("unchecked")
 		E[] adds = (E[]) c.toArray();
+
 		if (adds.length == 0) {
 			return false;
 		} else {
@@ -349,22 +360,24 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	}
 
 	@Override
-	public E get(int i) {
+	public E get(int index) {
 		int size = base.size();
-		Objects.checkIndex(i, size);
-		return base.get(size - i - 1);
+		Objects.checkIndex(index, size);
+		return this.base.get(size - index - 1);
 	}
 
 	@Override
-	public int indexOf(Object o) {
-		int i = base.lastIndexOf(o);
-		return i == -1 ? -1 : base.size() - i - 1;
+	@SuppressWarnings("all")
+	public int indexOf(Object element) {
+		int lastIndex = this.base.lastIndexOf(element);
+		return lastIndex == -1 ? -1 : this.base.size() - lastIndex - 1;
 	}
 
 	@Override
-	public int lastIndexOf(Object o) {
-		int i = base.indexOf(o);
-		return i == -1 ? -1 : base.size() - i - 1;
+	@SuppressWarnings("all")
+	public int lastIndexOf(Object element) {
+		int index = this.base.indexOf(element);
+		return index == -1 ? -1 : this.base.size() - index - 1;
 	}
 
 	@Override
@@ -374,39 +387,38 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public ListIterator<E> listIterator(int index) {
-		int size = base.size();
+		int size = this.base.size();
 		checkClosedRange(index, size);
 		return new DescendingListIterator(size, index);
 	}
 
 	@Override
 	public E remove(int index) {
-		int size = base.size();
+		int size = this.base.size();
 		Objects.checkIndex(index, size);
-		return base.remove(size - index - 1);
+		return this.base.remove(size - index - 1);
 	}
 
 	@Override
 	public boolean removeIf(Predicate<? super E> filter) {
-		return base.removeIf(filter);
+		return this.base.removeIf(filter);
 	}
 
 	@Override
 	public void replaceAll(UnaryOperator<E> operator) {
-		base.replaceAll(operator);
+		this.base.replaceAll(operator);
 	}
 
 	@Override
-	public void sort(Comparator<? super E> c) {
-		base.sort(Collections.reverseOrder(c));
+	public void sort(Comparator<? super E> comparator) {
+		this.base.sort(Collections.reverseOrder(comparator));
 	}
 
 	@Override
 	public E set(int index, E element) {
-
-		int size = base.size();
+		int size = this.base.size();
 		Objects.checkIndex(index, size);
-		return base.set(size - index - 1, element);
+		return this.base.set(size - index - 1, element);
 	}
 
 	@Override
@@ -417,95 +429,138 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	// ========== BlockingDeque ==========
 
 	@Override
-	public boolean offerFirst(E e) {
-		return base.offerLast(e);
+	public E element() {
+		return peekLast();
 	}
 
 	@Override
-	public boolean offerLast(E e) {
-		return base.offerFirst(e);
+	public boolean offer(E element) {
+		return this.base.offerFirst(element);
 	}
 
 	@Override
-	public void putFirst(E e) throws InterruptedException {
-		base.putLast(e);
+	public boolean offer(E element, long timeout, TimeUnit unit) throws InterruptedException {
+		return this.base.offerFirst(element, timeout, unit);
 	}
 
 	@Override
-	public void putLast(E e) throws InterruptedException {
-		base.putFirst(e);
+	public boolean offerFirst(E element) {
+		return this.base.offerLast(element);
 	}
 
 	@Override
-	public boolean offerFirst(E e, long timeout, TimeUnit unit) throws InterruptedException {
-		return base.offerLast(e, timeout, unit);
+	public boolean offerFirst(E element, long timeout, TimeUnit unit) throws InterruptedException {
+		return this.base.offerLast(element, timeout, unit);
 	}
 
 	@Override
-	public boolean offerLast(E e, long timeout, TimeUnit unit) throws InterruptedException {
-		return base.offerFirst(e, timeout, unit);
+	public boolean offerLast(E element) {
+		return this.base.offerFirst(element);
 	}
 
 	@Override
-	public E takeFirst() throws InterruptedException {
-		return base.takeLast();
+	public boolean offerLast(E element, long timeout, TimeUnit unit) throws InterruptedException {
+		return this.base.offerFirst(element, timeout, unit);
 	}
 
 	@Override
-	public E takeLast() throws InterruptedException {
-		return base.takeFirst();
+	public void putFirst(E element) throws InterruptedException {
+		this.base.putLast(element);
+	}
+
+	@Override
+	public void putLast(E element) throws InterruptedException {
+		this.base.putFirst(element);
 	}
 
 	@Nullable
 	@Override
 	public E pollFirst(long timeout, TimeUnit unit) throws InterruptedException {
-		return base.pollLast(timeout, unit);
+		return this.base.pollLast(timeout, unit);
 	}
 
 	@Nullable
 	@Override
 	public E pollLast(long timeout, TimeUnit unit) throws InterruptedException {
-		return base.pollFirst(timeout, unit);
+		return this.base.pollFirst(timeout, unit);
 	}
 
 	@Override
-	public boolean removeFirstOccurrence(Object o) {
-		return base.removeLastOccurrence(o);
+	public void put(E element) throws InterruptedException {
+		this.base.offerFirst(element);
 	}
 
 	@Override
-	public boolean removeLastOccurrence(Object o) {
-		return base.removeFirstOccurrence(o);
+	public boolean removeFirstOccurrence(Object element) {
+		return this.base.removeLastOccurrence(element);
 	}
 
 	@Override
-	public boolean offer(E e) {
-		return base.offerFirst(e);
+	public boolean removeLastOccurrence(Object element) {
+		return this.base.removeFirstOccurrence(element);
 	}
 
 	@Override
-	public void put(E e) throws InterruptedException {
-		base.offerFirst(e);
+	public E take() throws InterruptedException {
+		return takeFirst();
 	}
 
 	@Override
-	public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
-		return base.offerFirst(e, timeout, unit);
+	public E takeFirst() throws InterruptedException {
+		return this.base.takeLast();
 	}
 
 	@Override
-	public E remove() {
-		return pollLast();
+	public E takeLast() throws InterruptedException {
+		return this.base.takeFirst();
+	}
+
+	// ========== Deque ==========
+
+	@Override
+	public Iterator<E> descendingIterator() {
+		return this.base.iterator();
+	}
+
+	@Override
+	public int drainTo(Collection<? super E> collection) {
+		return drainTo(collection, size());
+	}
+
+	@Override
+	public int drainTo(Collection<? super E> collection, int maxElements) {
+
+		if (this.equals(collection)) {
+			throw new IllegalArgumentException("Cannot drain a queue to itself");
+		}
+
+		int loop = Math.min(size(), maxElements);
+
+		for (int index = 0; index < loop; index++) {
+			collection.add(poll());
+		}
+
+		return loop;
+	}
+
+	@Override
+	public E peek() {
+		return peekLast();
+	}
+
+	@Override
+	public E peekFirst() {
+		return this.base.peekLast();
+	}
+
+	@Override
+	public E peekLast() {
+		return this.base.peekFirst();
 	}
 
 	@Override
 	public E poll() {
 		return pollLast();
-	}
-
-	@Override
-	public E take() throws InterruptedException {
-		return poll(0, TimeUnit.SECONDS);
 	}
 
 	@Nullable
@@ -515,113 +570,79 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	}
 
 	@Override
-	public E element() {
-		return peekLast();
-	}
-
-	@Override
-	public E peek() {
-		return peekLast();
-	}
-
-	@Override
-	public void push(E e) {
-		base.addLast(e);
-	}
-
-	@Override
 	public E pollFirst() {
-		return base.pollLast();
+		return this.base.pollLast();
 	}
 
 	@Override
 	public E pollLast() {
-		return base.pollLast();
-	}
-
-	@Override
-	public E peekFirst() {
-		return base.peekLast();
-	}
-
-	@Override
-	public E peekLast() {
-		return base.peekFirst();
+		return this.base.pollFirst();
 	}
 
 	@Override
 	public E pop() {
 
-		E e = poll();
-		if (e == null) {
+		E element = poll();
+
+		if (element == null) {
 			throw new NoSuchElementException();
 		}
-		return e;
+
+		return element;
 	}
 
 	@Override
-	public Iterator<E> descendingIterator() {
-		return base.iterator();
+	public void push(E element) {
+		this.base.addLast(element);
 	}
 
 	@Override
 	public int remainingCapacity() {
-		return base.remainingCapacity();
+		return this.base.remainingCapacity();
 	}
 
 	@Override
-	public int drainTo(Collection<? super E> c) {
-		return drainTo(c, size());
-	}
-
-	@Override
-	public int drainTo(Collection<? super E> c, int maxElements) {
-
-		if (this.equals(c)) {
-			throw new IllegalArgumentException("Cannot drain a queue to itself");
-		}
-
-		int size = size();
-		int loop = Math.min(size, maxElements);
-
-		for (int index = 0; index < loop; index++) {
-			c.add(poll());
-		}
-
-		return loop;
+	public E remove() {
+		return pollLast();
 	}
 
 	@Override
 	public RedisList<E> reversed() {
-		return base;
+		return this.base;
 	}
 
 	class DescendingIterator implements Iterator<E> {
+
 		final ListIterator<E> it = base.listIterator(base.size());
 
 		@Override
 		public boolean hasNext() {
-			return it.hasPrevious();
+			return this.it.hasPrevious();
 		}
 
 		@Override
 		public E next() {
-			return it.previous();
+			return this.it.previous();
 		}
 
 		@Override
 		public void remove() {
-			it.remove();
+			this.it.remove();
 		}
 	}
 
 	class DescendingListIterator implements ListIterator<E> {
+
 		final ListIterator<E> it;
 
-		DescendingListIterator(int size, int pos) {
-			if (pos < 0 || pos > size)
-				throw new IndexOutOfBoundsException();
-			it = base.listIterator(size - pos);
+		DescendingListIterator(int size, int position) {
+
+			if (position < 0 || position > size) {
+				String message = String.format("Position [%d] is out of bounds: [0, %d]", position, size);
+				throw new IndexOutOfBoundsException(message);
+			}
+
+			this.it = base.listIterator(size - position);
 		}
 
 		@Override
@@ -675,21 +696,30 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	 * Reverses the elements of an array in-place.
 	 *
 	 * @param <T> the array component type
-	 * @param a the array to be reversed
+	 * @param array the array to be reversed
 	 * @return the reversed array, always the same array as the argument
 	 */
-	static <T> T[] reverse(T[] a) {
-		int limit = a.length / 2;
-		for (int i = 0, j = a.length - 1; i < limit; i++, j--) {
-			T t = a[i];
-			a[i] = a[j];
-			a[j] = t;
+	static <T> T[] reverse(T[] array) {
+
+		int limit = array.length / 2;
+
+		for (int i = 0, j = array.length - 1; i < limit; i++, j--) {
+			swap(array, i, j);
 		}
-		return a;
+
+		return array;
 	}
 
-	static <T> T[] toArrayReversed(Collection<?> coll, T[] array) {
-		T[] newArray = reverse(coll.toArray(Arrays.copyOfRange(array, 0, 0)));
+	private static <T> void swap(T[] array, int indexOne, int indexTwo) {
+		T element = array[indexOne];
+		array[indexOne] = array[indexTwo];
+		array[indexTwo] = element;
+	}
+
+	static <T> T[] toArrayReversed(Collection<?> collection, T[] array) {
+
+		T[] newArray = reverse(collection.toArray(Arrays.copyOfRange(array, 0, 0)));
+
 		if (newArray.length > array.length) {
 			return newArray;
 		} else {

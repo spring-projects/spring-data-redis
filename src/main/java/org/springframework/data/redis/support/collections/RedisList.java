@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.springframework.data.redis.connection.RedisListCommands.*;
+import static org.springframework.data.redis.connection.RedisListCommands.Direction;
 
 import java.time.Duration;
 import java.util.Deque;
@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author John Blum
  */
 public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque<E> {
 
@@ -234,9 +235,9 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * This method is forward-compatible with Java 21 SequencedCollections.
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @param element the element to be added.
+	 * @param element element to be added to the head of the collection.
 	 */
 	@Override
 	default void addFirst(E element) {
@@ -246,23 +247,21 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * This method is forward-compatible with Java 21 SequencedCollections.
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @param element the element to be added.
+	 * @param element element to be added to be added the end of the collection.
 	 */
-	@Override
 	default void addLast(E element) {
 		add(element);
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @return the head of this deque.
-	 *         <p>
-	 *         This method is forward-compatible with Java 21 SequencedCollections.
+	 * @return the head of this {@link Deque}.
 	 */
-	@Override
 	@Nullable
 	default E getFirst() {
 		return peekFirst();
@@ -270,12 +269,11 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 
 	/**
 	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @return the tail of this deque.
-	 *         <p>
-	 *         This method is forward-compatible with Java 21 SequencedCollections.
+	 * @return the tail of this {@link Deque}.
 	 */
-	@Override
 	@Nullable
 	default E getLast() {
 		return peekLast();
@@ -283,12 +281,11 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 
 	/**
 	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @return the head of this deque.
-	 *         <p>
-	 *         This method is forward-compatible with Java 21 SequencedCollections.
+	 * @return the head of this {@link Deque}.
 	 */
-	@Override
 	@Nullable
 	default E removeFirst() {
 		return pollFirst();
@@ -296,27 +293,30 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 
 	/**
 	 * {@inheritDoc}
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @return the tail of this deque.
-	 *         <p>
-	 *         This method is forward-compatible with Java 21 SequencedCollections.
+	 * @return the tail of this {@link Deque}.
 	 */
-	@Override
 	@Nullable
 	default E removeLast() {
 		return pollLast();
 	}
 
 	/**
-	 * Returns a reverse-ordered view of this collection. The encounter order of elements in the returned view is the
-	 * inverse of the encounter order of elements in this collection. The reverse ordering affects all order-sensitive
-	 * operations, including those on the view collections of the returned view. If the collection implementation permits
-	 * modifications to this view, the modifications "write through" to the underlying collection. Changes to the
-	 * underlying collection might or might not be visible in this reversed view, depending upon the implementation.
+	 * Returns a reverse-ordered view of this collection.
 	 * <p>
-	 * This method is forward-compatible with Java 21 SequencedCollections.
+	 * The encounter order of elements returned by the view is the inverse of the encounter order of the elements
+	 * stored in this collection. The reverse ordering affects all order-sensitive operations, including any operations
+	 * on further views of the returned view. If the collection implementation permits modifications to this view,
+	 * the modifications "write-through" to the underlying collection. Changes to the underlying collection might
+	 * or might not be visible in this reversed view, depending upon the implementation.
+	 * <p>
+	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *
-	 * @return a reverse-ordered view of this collection
+	 * @return a reverse-ordered view of this collection.
 	 */
-	RedisList<E> reversed();
+	default RedisList<E> reversed() {
+		return new ReversedRedisListView<>(this);
+	}
 }
