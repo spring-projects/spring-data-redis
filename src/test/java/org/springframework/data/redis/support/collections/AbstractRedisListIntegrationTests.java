@@ -29,7 +29,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.core.RedisTemplate;
