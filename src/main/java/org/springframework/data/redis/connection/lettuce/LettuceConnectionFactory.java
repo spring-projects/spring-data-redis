@@ -89,9 +89,11 @@ import org.springframework.util.StringUtils;
  * <li>{@link RedisClusterConfiguration}</li>
  * </ul>
  * <p>
- * This connection factory must be {@link #afterPropertiesSet() initialized} and {@link SmartLifecycle#start() started}
- * prior to {@link #getConnection obtaining connections}. You can {@link SmartLifecycle#stop()} and
- * {@link SmartLifecycle#start() restart} this connection factory if needed.
+ * This connection factory implements {@link InitializingBean} and {@link SmartLifecycle} for flexible lifecycle
+ * control. It must be {@link #afterPropertiesSet() initialized} and {@link #start() started} before you can obtain a
+ * connection. {@link #afterPropertiesSet() Initialization} {@link SmartLifecycle#start() starts} this bean
+ * {@link #isAutoStartup() by default}. You can {@link SmartLifecycle#stop()} and {@link SmartLifecycle#start() restart}
+ * this connection factory if needed.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -120,6 +122,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
 
 	private @Nullable RedisConfiguration configuration;
+	private int phase = 0; // in between min and max values
 
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
@@ -127,8 +130,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private boolean convertPipelineAndTxResults = true;
 
 	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
-
-	private int phase = DEFAULT_PHASE - 10;
 
 	/**
 	 * Lifecycle state of this factory.
@@ -396,13 +397,28 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	public int getPhase() {
+		return phase;
+	}
+
+	/**
+	 * Specify the lifecycle phase for pausing and resuming this executor. The default is {@code 0}.
+	 *
+	 * @since 3.2
+	 * @see SmartLifecycle#getPhase()
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	@Override
 	public boolean isRunning() {
 		return State.STARTED.equals(state.get());
 	}
 
 	@Override
 	public void afterPropertiesSet() {
-		if(isAutoStartup()) {
+		if (isAutoStartup()) {
 			start();
 		}
 	}
@@ -1099,21 +1115,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	public boolean isClusterAware() {
 		return RedisConfiguration.isClusterConfiguration(configuration);
-	}
-
-	@Override
-	public int getPhase() {
-		return phase;
-	}
-
-	/**
-	 * Specify the lifecycle phase for pausing and resuming this executor.
-	 * The default is {@link #DEFAULT_PHASE} - 10.
-	 * @since 3.2
-	 * @see SmartLifecycle#getPhase()
-	 */
-	public void setPhase(int phase) {
-		this.phase = phase;
 	}
 
 	/**

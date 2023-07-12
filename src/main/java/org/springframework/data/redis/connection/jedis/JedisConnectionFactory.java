@@ -74,9 +74,11 @@ import org.springframework.util.ObjectUtils;
  * <li>{@link RedisClusterConfiguration}</li>
  * </ul>
  * <p>
- * This connection factory must be {@link #afterPropertiesSet() initialized} and {@link SmartLifecycle#start() started}
- * prior to {@link #getConnection obtaining connections}. You can {@link SmartLifecycle#stop()} and
- * {@link SmartLifecycle#start() restart} this connection factory if needed.
+ * This connection factory implements {@link InitializingBean} and {@link SmartLifecycle} for flexible lifecycle
+ * control. It must be {@link #afterPropertiesSet() initialized} and {@link #start() started} before you can obtain a
+ * connection. {@link #afterPropertiesSet() Initialization} {@link SmartLifecycle#start() starts} this bean
+ * {@link #isAutoStartup() by default}. You can {@link SmartLifecycle#stop()} and {@link SmartLifecycle#start() restart}
+ * this connection factory if needed.
  *
  * @author Costin Leau
  * @author Thomas Darimont
@@ -96,11 +98,14 @@ public class JedisConnectionFactory
 
 	private final JedisClientConfiguration clientConfiguration;
 
-	private boolean convertPipelineAndTxResults = true;
 	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
 			Protocol.DEFAULT_PORT);
 
 	private @Nullable RedisConfiguration configuration;
+
+	private int phase = 0; // in between min and max values
+
+	private boolean convertPipelineAndTxResults = true;
 
 	/**
 	 * Lifecycle state of this factory.
@@ -117,8 +122,6 @@ public class JedisConnectionFactory
 	private @Nullable JedisCluster cluster;
 	private @Nullable ClusterTopologyProvider topologyProvider;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
-
-	private int phase = DEFAULT_PHASE - 10;
 
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance with default settings (default connection pooling).
@@ -266,7 +269,8 @@ public class JedisConnectionFactory
 	public void afterPropertiesSet() {
 
 		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
-		if(isAutoStartup()) {
+
+		if (isAutoStartup()) {
 			start();
 		}
 	}
@@ -366,6 +370,21 @@ public class JedisConnectionFactory
 			}
 			state.set(State.STOPPED);
 		}
+	}
+
+	@Override
+	public int getPhase() {
+		return phase;
+	}
+
+	/**
+	 * Specify the lifecycle phase for pausing and resuming this executor. The default is {@code 0}.
+	 *
+	 * @since 3.2
+	 * @see SmartLifecycle#getPhase()
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	@Override
@@ -857,21 +876,6 @@ public class JedisConnectionFactory
 	 */
 	public boolean isRedisClusterAware() {
 		return RedisConfiguration.isClusterConfiguration(configuration);
-	}
-
-	@Override
-	public int getPhase() {
-		return phase;
-	}
-
-	/**
-	 * Specify the lifecycle phase for pausing and resuming this executor.
-	 * The default is {@link #DEFAULT_PHASE} - 10.
-	 * @since 3.2
-	 * @see SmartLifecycle#getPhase()
-	 */
-	public void setPhase(int phase) {
-		this.phase = phase;
 	}
 
 	@Override
