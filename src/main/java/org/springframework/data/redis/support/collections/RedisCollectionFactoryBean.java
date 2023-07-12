@@ -15,10 +15,13 @@
  */
 package org.springframework.data.redis.support.collections;
 
+import java.util.function.Supplier;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartFactoryBean;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
@@ -27,11 +30,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory bean that facilitates creation of Redis-based collections. Supports list, set, zset (or sortedSet), map (or
- * hash) and properties. Will use the key type if it exists or to create a dedicated collection (Properties vs Map).
- * Otherwise uses the provided type (default is list).
+ * hash) and properties. Uses the key and {@link CollectionType} to determine what collection type to use. The factory
+ * verifies the key type if a {@link CollectionType} is specified. Defaults to {@link CollectionType#LIST}.
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
+ * @see RedisStore
  */
 public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>, BeanNameAware, InitializingBean {
 
@@ -39,47 +44,73 @@ public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>,
 	 * Collection types supported by this factory.
 	 *
 	 * @author Costin Leau
+	 * @author Mark Paluch
 	 */
 	public enum CollectionType {
 		LIST {
 
+			@Override
 			public DataType dataType() {
 				return DataType.LIST;
 			}
 		},
 		SET {
 
+			@Override
 			public DataType dataType() {
 				return DataType.SET;
 			}
 		},
 		ZSET {
 
+			@Override
 			public DataType dataType() {
 				return DataType.ZSET;
 			}
 		},
 		MAP {
 
+			@Override
 			public DataType dataType() {
 				return DataType.HASH;
 			}
 		},
 		PROPERTIES {
 
+			@Override
 			public DataType dataType() {
 				return DataType.HASH;
 			}
 		};
 
 		abstract DataType dataType();
+
+		/**
+		 * Attempt to find a {@link CollectionType} by {@link DataType}. Defaults to {@link Supplier ifNotFound} when
+		 * {@code dataType} is {@literal null} or the collection type cannot be determined.
+		 *
+		 * @param dataType the {@link DataType} to look up.
+		 * @param ifNotFound supplier for a default value.
+		 * @since 3.2
+		 */
+		static CollectionType findCollectionType(@Nullable DataType dataType, Supplier<CollectionType> ifNotFound) {
+
+			for (CollectionType collectionType : values()) {
+				if (collectionType.dataType() == dataType) {
+					return collectionType;
+				}
+			}
+
+			return ifNotFound.get();
+		}
 	}
 
-	private @Nullable Lazy<RedisStore> store;
-	private @Nullable CollectionType type = null;
+	private @Nullable CollectionType type;
 	private @Nullable RedisTemplate<String, ?> template;
 	private @Nullable String key;
 	private @Nullable String beanName;
+
+	private @Nullable Lazy<RedisStore> store;
 
 	@Override
 	public void afterPropertiesSet() {
@@ -93,46 +124,40 @@ public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>,
 
 		store = Lazy.of(() -> {
 
-			DataType dt = template.type(key);
+			DataType keyType = template.type(key);
 
 			// can't create store
-			Assert.isTrue(!DataType.STRING.equals(dt), "Cannot create store on keys of type 'string'");
+			Assert.isTrue(!DataType.STREAM.equals(keyType), "Cannot create store on keys of type 'STREAM'");
 
-			RedisStore tmp = createStore(dt);
-
-			if (tmp == null) {
-				if (type == null) {
-					type = CollectionType.LIST;
-				}
-				tmp = createStore(type.dataType());
+			if (this.type == null) {
+				this.type = CollectionType.findCollectionType(keyType, () -> CollectionType.LIST);
 			}
-			return tmp;
+
+			if (keyType != null && DataType.NONE != keyType && this.type.dataType() != keyType) {
+				throw new IllegalArgumentException(
+						String.format("Cannot create collection type '%s' for a key containing '%s'", this.type, keyType));
+			}
+
+			return createStore(this.type, key, template);
 		});
 	}
 
-	@SuppressWarnings("unchecked")
-	private RedisStore createStore(DataType dt) {
-		switch (dt) {
-			case LIST:
-				return RedisList.create(key, template);
+	private RedisStore createStore(CollectionType collectionType, String key, RedisOperations<String, ?> operations) {
 
-			case SET:
-				return new DefaultRedisSet(key, template);
-
-			case ZSET:
-				return RedisZSet.create(key, template);
-
-			case HASH:
-				if (CollectionType.PROPERTIES.equals(type)) {
-					return new RedisProperties(key, template);
-				}
-				return new DefaultRedisMap(key, template);
-		}
-		return null;
+		return switch (collectionType) {
+			case LIST -> RedisList.create(key, operations);
+			case SET -> new DefaultRedisSet<>(key, operations);
+			case ZSET -> RedisZSet.create(key, operations);
+			case PROPERTIES -> new RedisProperties(key, operations);
+			case MAP -> new DefaultRedisMap<>(key, operations);
+		};
 	}
 
 	@Override
 	public RedisStore getObject() {
+
+		Assert.state(store != null,
+				"RedisCollectionFactoryBean is not initialized. Ensure to initialize this factory by calling afterPropertiesSet() before obtaining the factory object.");
 		return store.get();
 	}
 
