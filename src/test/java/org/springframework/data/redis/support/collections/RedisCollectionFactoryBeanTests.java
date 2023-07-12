@@ -36,6 +36,7 @@ import org.springframework.data.redis.test.extension.RedisStanalone;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class RedisCollectionFactoryBeanTests {
 
@@ -52,15 +53,17 @@ public class RedisCollectionFactoryBeanTests {
 
 	@BeforeEach
 	void setUp() {
+
 		this.template.delete("key");
 		this.template.delete("nosrt");
 	}
 
 	@AfterEach
 	void tearDown() throws Exception {
+
 		// clean up the whole db
 		template.execute((RedisCallback<Object>) connection -> {
-			connection.flushDb();
+			connection.serverCommands().flushDb();
 			return null;
 		});
 	}
@@ -70,6 +73,7 @@ public class RedisCollectionFactoryBeanTests {
 	}
 
 	private RedisStore createCollection(String key, CollectionType type) {
+
 		RedisCollectionFactoryBean fb = new RedisCollectionFactoryBean();
 		fb.setKey(key);
 		fb.setTemplate(template);
@@ -80,7 +84,8 @@ public class RedisCollectionFactoryBeanTests {
 	}
 
 	@Test
-	void testNone() throws Exception {
+	void testNone() {
+
 		RedisStore store = createCollection("nosrt", CollectionType.PROPERTIES);
 		assertThat(store).isInstanceOf(RedisProperties.class);
 
@@ -121,6 +126,7 @@ public class RedisCollectionFactoryBeanTests {
 
 	@Test
 	void testExistingCol() {
+
 		String key = "set";
 		String val = "value";
 
@@ -148,7 +154,6 @@ public class RedisCollectionFactoryBeanTests {
 		template.opsForList().leftPush("key", "value");
 		assertThatIllegalArgumentException().isThrownBy(() -> createCollection("key", CollectionType.SET))
 				.withMessageContaining("Cannot create collection type 'SET' for a key containing 'LIST'");
-
 	}
 
 	@Test // GH-2633
@@ -157,6 +162,33 @@ public class RedisCollectionFactoryBeanTests {
 		template.opsForStream().add("key", Map.of("k", "v"));
 		assertThatIllegalArgumentException().isThrownBy(() -> createCollection("key", CollectionType.LIST))
 				.withMessageContaining("Cannot create store on keys of type 'STREAM'");
+	}
 
+	@Test // Gh-2633
+	void shouldFailWhenNotInitialized() {
+
+		RedisCollectionFactoryBean fb = new RedisCollectionFactoryBean();
+		fb.setKey("key");
+		fb.setTemplate(template);
+		fb.setType(CollectionType.SET);
+
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> fb.getObject());
+	}
+
+	@Test // Gh-2633
+	void usesBeanNameIfNoKeyProvided() {
+
+		template.delete("key");
+		template.opsForHash().put("key", "k", "v");
+
+		RedisCollectionFactoryBean fb = new RedisCollectionFactoryBean();
+		fb.setBeanName("key");
+		fb.setTemplate(template);
+		fb.afterPropertiesSet();
+
+		assertThat(fb.getObject()).satisfies(value -> {
+			assertThat(value).isInstanceOf(RedisMap.class);
+			assertThat((RedisMap)value).containsEntry("k", "v");
+		});
 	}
 }

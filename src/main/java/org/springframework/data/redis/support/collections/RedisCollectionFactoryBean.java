@@ -45,6 +45,7 @@ public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>,
 	 *
 	 * @author Costin Leau
 	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 */
 	public enum CollectionType {
 		LIST {
@@ -95,6 +96,10 @@ public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>,
 		 */
 		static CollectionType findCollectionType(@Nullable DataType dataType, Supplier<CollectionType> ifNotFound) {
 
+			if (dataType == null) {
+				return ifNotFound.get();
+			}
+
 			for (CollectionType collectionType : values()) {
 				if (collectionType.dataType() == dataType) {
 					return collectionType;
@@ -135,7 +140,7 @@ public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>,
 
 			if (keyType != null && DataType.NONE != keyType && this.type.dataType() != keyType) {
 				throw new IllegalArgumentException(
-						String.format("Cannot create collection type '%s' for a key containing '%s'", this.type, keyType));
+						"Cannot create collection type '%s' for a key containing '%s'".formatted(this.type, keyType));
 			}
 
 			return createStore(this.type, key, template);

@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public enum DataType {
 
@@ -36,9 +37,9 @@ public enum DataType {
 	private static final Map<String, DataType> codeLookup = new ConcurrentHashMap<>(7);
 
 	static {
-		for (DataType type : EnumSet.allOf(DataType.class))
+		for (DataType type : EnumSet.allOf(DataType.class)) {
 			codeLookup.put(type.code, type);
-
+		}
 	}
 
 	private final String code;
@@ -63,9 +64,11 @@ public enum DataType {
 	 * @return actual enum corresponding to the given code
 	 */
 	public static DataType fromCode(String code) {
+
 		DataType data = codeLookup.get(code);
-		if (data == null)
-			throw new IllegalArgumentException("unknown data type code");
+		if (data == null) {
+			throw new IllegalArgumentException("unknown data type code %s".formatted(code));
+		}
 		return data;
 	}
 }
