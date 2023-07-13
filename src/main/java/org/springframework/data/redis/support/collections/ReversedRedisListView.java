@@ -15,18 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -44,9 +33,9 @@ import org.springframework.lang.Nullable;
  * Implementation and view of an existing {@link RedisList} where the elements in the list (deque) are returned in
  * reverse order.
  *
+ * @param <E> the type of elements in this collection.
  * @author John Blum
  * @author Mark Paluch
- * @param <E> {@link Class type} of the {@link Object elements} contained in the underlying, wrapped {@link RedisList}.
  * @since 3.2
  */
 class ReversedRedisListView<E> implements RedisList<E> {
@@ -176,7 +165,7 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	public boolean addAll(Collection<? extends E> collection) {
 
 		return !org.springframework.util.CollectionUtils.isEmpty(collection)
-			&& this.base.addAll(0, Arrays.asList(reverse((E[]) collection.toArray())));
+				&& this.base.addAll(0, Arrays.asList(reverse((E[]) collection.toArray())));
 	}
 
 	@Override
@@ -430,7 +419,13 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public E element() {
-		return peekLast();
+
+		E value = peek();
+		if (value == null) {
+			throw new NoSuchElementException();
+		}
+
+		return value;
 	}
 
 	@Override
@@ -603,7 +598,13 @@ class ReversedRedisListView<E> implements RedisList<E> {
 
 	@Override
 	public E remove() {
-		return pollLast();
+
+		E value = poll();
+		if (value == null) {
+			throw new NoSuchElementException();
+		}
+
+		return value;
 	}
 
 	@Override

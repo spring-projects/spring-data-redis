@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * <p>
  * Since using a {@link Comparator} does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
  *
+ * @param <E> the type of elements in this collection.
  * @author Costin Leau
  * @author Mark Paluch
  * @author Christoph Strobl

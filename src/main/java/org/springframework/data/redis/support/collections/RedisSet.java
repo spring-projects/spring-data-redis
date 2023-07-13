@@ -24,6 +24,7 @@ import org.springframework.data.redis.core.RedisOperations;
 /**
  * Redis extension for the {@link Set} contract. Supports {@link Set} specific operations backed by Redis operations.
  *
+ * @param <E> the type of elements in this collection.
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch

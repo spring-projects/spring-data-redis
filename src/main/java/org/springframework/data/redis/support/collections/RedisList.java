@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.springframework.data.redis.connection.RedisListCommands.Direction;
+import static org.springframework.data.redis.connection.RedisListCommands.*;
 
 import java.time.Duration;
 import java.util.Deque;
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * Redis extension for the {@link List} contract. Supports {@link List}, {@link Queue} and {@link Deque} contracts as
  * well as their equivalent blocking siblings {@link BlockingDeque} and {@link BlockingDeque}.
  *
+ * @param <E> the type of elements in this collection.
  * @author Costin Leau
  * @author Mark Paluch
  * @author John Blum

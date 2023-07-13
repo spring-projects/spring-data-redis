@@ -20,6 +20,7 @@ import java.util.Collection;
 /**
  * Redis extension for the {@link Collection} contract.
  *
+ * @param <E> the type of elements in this collection.
  * @author Costin Leau
  */
 public interface RedisCollection<E> extends RedisStore {

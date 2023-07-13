@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 /**
  * Iterator extension for Redis collection removal.
  *
+ * @param <E> the type of elements in this collection.
  * @author Costin Leau
  */
 abstract class RedisIterator<E> implements Iterator<E> {
@@ -43,6 +44,7 @@ abstract class RedisIterator<E> implements Iterator<E> {
 	 * @return
 	 * @see java.util.Iterator#hasNext()
 	 */
+	@Override
 	public boolean hasNext() {
 		return delegate.hasNext();
 	}
@@ -51,6 +53,7 @@ abstract class RedisIterator<E> implements Iterator<E> {
 	 * @return
 	 * @see java.util.Iterator#next()
 	 */
+	@Override
 	public E next() {
 		item = delegate.next();
 		return item;
@@ -59,6 +62,7 @@ abstract class RedisIterator<E> implements Iterator<E> {
 	/**
 	 * @see java.util.Iterator#remove()
 	 */
+	@Override
 	public void remove() {
 		delegate.remove();
 		removeFromRedisStorage(item);
