@@ -30,10 +30,10 @@ import org.springframework.util.Assert;
  */
 class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<T> {
 
-	private final static RedisSerializerToSerializationPairAdapter<?> BYTE_BUFFER = new RedisSerializerToSerializationPairAdapter<>(
+	private static final RedisSerializerToSerializationPairAdapter<?> BYTE_BUFFER = new RedisSerializerToSerializationPairAdapter<>(
 			null);
 
-	private final static RedisSerializerToSerializationPairAdapter<byte[]> BYTE_ARRAY = new RedisSerializerToSerializationPairAdapter<>(
+	private static final RedisSerializerToSerializationPairAdapter<byte[]> BYTE_ARRAY = new RedisSerializerToSerializationPairAdapter<>(
 			RedisSerializer.byteArray());
 
 	private final DefaultSerializationPair pair;

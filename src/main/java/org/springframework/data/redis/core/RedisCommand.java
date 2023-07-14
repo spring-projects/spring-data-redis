@@ -222,7 +222,7 @@ public enum RedisCommand {
 	private int minArgs = -1;
 	private int maxArgs = -1;
 
-	private final static Map<String, RedisCommand> commandLookup;
+	private static final Map<String, RedisCommand> commandLookup;
 
 	static {
 		commandLookup = buildCommandLookupTable();
