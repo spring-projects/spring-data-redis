@@ -42,7 +42,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker.Managed;
  */
 class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<MethodSource> {
 
-	private final static Namespace NAMESPACE = Namespace.create(MethodArgumentsProvider.class);
+	private static final Namespace NAMESPACE = Namespace.create(MethodArgumentsProvider.class);
 	private String[] methodNames = new String[0];
 
 	@Override
