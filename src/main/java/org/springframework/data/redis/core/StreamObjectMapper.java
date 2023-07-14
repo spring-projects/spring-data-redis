@@ -47,8 +47,8 @@ import org.springframework.util.Assert;
  */
 class StreamObjectMapper {
 
-	private final static RedisCustomConversions customConversions = new RedisCustomConversions();
-	private final static ConversionService conversionService;
+	private static final RedisCustomConversions customConversions = new RedisCustomConversions();
+	private static final ConversionService conversionService;
 
 	private final HashMapper<Object, Object, Object> mapper;
 	private final @Nullable HashMapper<Object, Object, Object> objectHashMapper;

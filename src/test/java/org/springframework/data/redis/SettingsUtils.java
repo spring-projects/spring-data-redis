@@ -34,7 +34,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
  */
 public abstract class SettingsUtils {
 
-	private final static Properties DEFAULTS = new Properties();
+	private static final Properties DEFAULTS = new Properties();
 	private static final Properties SETTINGS;
 
 	static {

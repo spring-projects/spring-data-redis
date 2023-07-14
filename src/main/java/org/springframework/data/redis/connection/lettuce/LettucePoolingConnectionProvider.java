@@ -60,7 +60,7 @@ import org.springframework.util.Assert;
  */
 class LettucePoolingConnectionProvider implements LettuceConnectionProvider, RedisClientProvider, DisposableBean {
 
-	private final static Log log = LogFactory.getLog(LettucePoolingConnectionProvider.class);
+	private static final Log log = LogFactory.getLog(LettucePoolingConnectionProvider.class);
 
 	private final LettuceConnectionProvider connectionProvider;
 	private final GenericObjectPoolConfig poolConfig;
