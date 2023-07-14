@@ -92,7 +92,7 @@ import org.springframework.util.ObjectUtils;
 public class JedisConnectionFactory
 		implements RedisConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
 
-	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
+	private static final Log log = LogFactory.getLog(JedisConnectionFactory.class);
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
 

@@ -25,7 +25,7 @@ import com.thoughtworks.xstream.security.AnyTypePermission;
  */
 public final class XstreamOxmSerializerSingleton {
 
-	private final static XstreamOxmSerializerSingleton instance = new XstreamOxmSerializerSingleton();
+	private static final XstreamOxmSerializerSingleton instance = new XstreamOxmSerializerSingleton();
 
 	private final OxmSerializer serializer;
 
