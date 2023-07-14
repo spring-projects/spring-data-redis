@@ -54,7 +54,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
 @MethodSource("testParams")
 public class LegacyRedisCacheTests {
 
-	private final static String CACHE_NAME = "testCache";
+	private static final String CACHE_NAME = "testCache";
 	private ObjectFactory<Object> keyFactory;
 	private ObjectFactory<Object> valueFactory;
 	private RedisConnectionFactory connectionFactory;
