@@ -44,6 +44,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Shyngys Sapraliyev
  */
 @MethodSource("testParams")
 public class DefaultRedisCacheWriterTests {
@@ -101,6 +102,45 @@ public class DefaultRedisCacheWriterTests {
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
 			assertThat(connection.ttl(binaryCacheKey)).isGreaterThan(0);
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2351
+	void getWithMaxIdleShouldResetEntryTtl() {
+
+		Duration maxIdle = Duration.ofSeconds(1);
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes(),
+				Expiration.from(Duration.ofMinutes(1)), SetOption.upsert()));
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+
+		writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(10), maxIdle);
+
+		doWithConnection(connection -> {
+			assertThat(writer.get(CACHE_NAME, binaryCacheKey, maxIdle))
+					.isEqualTo(binaryCacheValue);
+			assertThat(connection.ttl(binaryCacheKey))
+					.isEqualTo(maxIdle.getSeconds());
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2351
+	void getEternalMaxIdleShouldNotExpireEntry() {
+
+		Duration maxIdle = Duration.ZERO;
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes()));
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory);
+
+		writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO, maxIdle);
+
+		doWithConnection(connection -> {
+				assertThat(writer.get(CACHE_NAME, binaryCacheKey, maxIdle))
+						.isEqualTo(binaryCacheValue);
+				assertThat(connection.ttl(binaryCacheKey))
+						.isEqualTo(-1);
 		});
 	}
 
