@@ -38,11 +38,13 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 public class RedisCacheConfiguration {
 
 	private final Duration ttl;
+	private final Duration maxIdle;
 	private final boolean cacheNullValues;
 	private final CacheKeyPrefix keyPrefix;
 	private final boolean usePrefix;
@@ -53,10 +55,11 @@ public class RedisCacheConfiguration {
 	private final ConversionService conversionService;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
+	private RedisCacheConfiguration(Duration ttl, Duration maxIdle,
+			Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
 			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
 			ConversionService conversionService) {
-
+		this.maxIdle = maxIdle;
 		this.ttl = ttl;
 		this.cacheNullValues = cacheNullValues;
 		this.usePrefix = usePrefix;
@@ -123,8 +126,8 @@ public class RedisCacheConfiguration {
 
 		registerDefaultConverters(conversionService);
 
-		return new RedisCacheConfiguration(Duration.ZERO, true, true, CacheKeyPrefix.simple(),
-				SerializationPair.fromSerializer(RedisSerializer.string()),
+		return new RedisCacheConfiguration(Duration.ZERO, Duration.ZERO, true, true,
+				CacheKeyPrefix.simple(), SerializationPair.fromSerializer(RedisSerializer.string()),
 				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
 	}
 
@@ -138,8 +141,23 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttl, "TTL duration must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, usePrefix, keyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
+	}
+
+	/**
+	 * Set the ttl to apply for cache entries on fetch
+	 * Using with {@link Duration#ZERO} will not affect cache entries
+	 *
+	 * @param maxIdle must not be {@literal null}.
+	 * @return new {@link RedisCacheConfiguration}.
+	 */
+	public RedisCacheConfiguration maxIdle(Duration maxIdle) {
+
+		Assert.notNull(maxIdle, "maxIdle duration must not be null!");
+
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, usePrefix, keyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -169,8 +187,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, true, cacheKeyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, true, cacheKeyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -182,8 +200,8 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(ttl, false, usePrefix, keyPrefix, keySerializationPair, valueSerializationPair,
-				conversionService);
+		return new RedisCacheConfiguration(ttl, maxIdle, false, usePrefix, keyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -195,8 +213,8 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, false, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, false,
+				keyPrefix, keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -209,7 +227,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(conversionService, "ConversionService must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -223,7 +241,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -237,8 +255,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
-				valueSerializationPair, conversionService);
+		return new RedisCacheConfiguration(ttl, maxIdle, cacheNullValues, usePrefix, keyPrefix,
+				keySerializationPair, valueSerializationPair, conversionService);
 	}
 
 	/**
@@ -295,6 +313,13 @@ public class RedisCacheConfiguration {
 	 */
 	public ConversionService getConversionService() {
 		return conversionService;
+	}
+
+	/**
+	 * @return The max idle time for cache entries. Never {@literal null}.
+	 */
+	public Duration getMaxIdle() {
+		return maxIdle;
 	}
 
 	/**

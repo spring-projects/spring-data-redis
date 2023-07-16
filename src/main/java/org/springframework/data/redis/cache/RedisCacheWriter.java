@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 public interface RedisCacheWriter extends CacheStatisticsProvider {
@@ -96,18 +97,20 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param key The key for the cache entry. Must not be {@literal null}.
 	 * @param value The value stored for the key. Must not be {@literal null}.
 	 * @param ttl Optional expiration time. Can be {@literal null}.
+	 * @param maxIdle Optional max idle time. Can be {@literal null}.
 	 */
-	void put(String name, byte[] key, byte[] value, @Nullable Duration ttl);
+	void put(String name, byte[] key, byte[] value, @Nullable Duration ttl, @Nullable Duration maxIdle);
 
 	/**
 	 * Get the binary value representation from Redis stored for the given key.
 	 *
 	 * @param name must not be {@literal null}.
 	 * @param key must not be {@literal null}.
+	 * @param maxIdle Optional max idle time. Can be {@literal null}.
 	 * @return {@literal null} if key does not exist.
 	 */
 	@Nullable
-	byte[] get(String name, byte[] key);
+	byte[] get(String name, byte[] key, @Nullable Duration maxIdle);
 
 	/**
 	 * Write the given value to Redis if the key does not already exist.
@@ -116,10 +119,11 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param key The key for the cache entry. Must not be {@literal null}.
 	 * @param value The value stored for the key. Must not be {@literal null}.
 	 * @param ttl Optional expiration time. Can be {@literal null}.
+	 * @param maxIdle Optional max idle time. Can be {@literal null}.
 	 * @return {@literal null} if the value has been written, the value stored for the key if it already exists.
 	 */
 	@Nullable
-	byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl);
+	byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl, @Nullable Duration maxIdle);
 
 	/**
 	 * Remove the given key from Redis.

@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author André Prata
+ * @author Shyngys Sapraliyev
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -93,7 +94,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+	public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl, @Nullable Duration maxIdle) {
 
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(key, "Key must not be null!");
@@ -104,7 +105,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			if (shouldExpireWithin(ttl)) {
 				connection.set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS), SetOption.upsert());
 			} else {
-				connection.set(key, value);
+				if (shouldExpireMaxIdleWithin(maxIdle)) {
+					connection.set(key, value, Expiration.from(maxIdle), SetOption.upsert());
+				} else {
+					connection.set(key, value);
+				}
 			}
 
 			return "OK";
@@ -114,12 +119,18 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public byte[] get(String name, byte[] key) {
+	public byte[] get(String name, byte[] key, @Nullable Duration maxIdle) {
 
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(key, "Key must not be null!");
 
-		byte[] result = execute(name, connection -> connection.get(key));
+		byte[] result;
+
+		if (shouldExpireMaxIdleWithin(maxIdle)) {
+			result = execute(name, connection -> connection.getEx(key, Expiration.from(maxIdle)));
+		} else {
+			result = execute(name, connection -> connection.get(key));
+		}
 
 		statistics.incGets(name);
 
@@ -133,7 +144,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+	public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl, @Nullable Duration maxIdle) {
 
 		Assert.notNull(name, "Name must not be null!");
 		Assert.notNull(key, "Key must not be null!");
@@ -152,7 +163,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				if (shouldExpireWithin(ttl)) {
 					put = connection.set(key, value, Expiration.from(ttl), SetOption.ifAbsent());
 				} else {
-					put = connection.setNX(key, value);
+					if (shouldExpireMaxIdleWithin(maxIdle)) {
+						put = connection.set(key, value, Expiration.from(maxIdle), SetOption.ifAbsent());
+					} else {
+						put = connection.setNX(key, value);
+					}
 				}
 
 				if (put) {
@@ -316,6 +331,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
 		return ttl != null && !ttl.isZero() && !ttl.isNegative();
+	}
+
+	private static boolean shouldExpireMaxIdleWithin(@Nullable Duration maxIdle) {
+		return maxIdle != null && !maxIdle.isZero() && !maxIdle.isNegative();
 	}
 
 	private static byte[] createCacheLockKey(String name) {

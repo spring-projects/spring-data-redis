@@ -433,12 +433,13 @@ public class RedisCacheTests {
 
 		cache = new RedisCache("foo", new RedisCacheWriter() {
 			@Override
-			public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+			public void put(String name, byte[] key, byte[] value,
+					@Nullable Duration ttl, @Nullable Duration maxIdle) {
 				storage.set(value);
 			}
 
 			@Override
-			public byte[] get(String name, byte[] key) {
+			public byte[] get(String name, byte[] key, @Nullable Duration maxIdle) {
 
 				prepare.countDown();
 				try {
@@ -451,7 +452,8 @@ public class RedisCacheTests {
 			}
 
 			@Override
-			public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+			public byte[] putIfAbsent(String name, byte[] key, byte[] value,
+					@Nullable Duration ttl, @Nullable Duration maxIdle) {
 				return new byte[0];
 			}
 

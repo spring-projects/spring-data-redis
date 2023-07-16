@@ -81,7 +81,7 @@ public class DefaultRedisCacheWriterTests {
 
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
-		writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -96,7 +96,7 @@ public class DefaultRedisCacheWriterTests {
 	void putShouldAddExpiringEntry() {
 
 		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
-				Duration.ofSeconds(1));
+				Duration.ofSeconds(1), Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -109,7 +109,8 @@ public class DefaultRedisCacheWriterTests {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes()));
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		nonLockingRedisCacheWriter(connectionFactory)
+				.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -124,7 +125,7 @@ public class DefaultRedisCacheWriterTests {
 				Expiration.from(1, TimeUnit.MINUTES), SetOption.upsert()));
 
 		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
-				Duration.ofSeconds(5));
+				Duration.ofSeconds(5), Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -139,7 +140,7 @@ public class DefaultRedisCacheWriterTests {
 
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
-		assertThat(writer.get(CACHE_NAME, binaryCacheKey))
+		assertThat(writer.get(CACHE_NAME, binaryCacheKey, Duration.ZERO))
 				.isEqualTo(binaryCacheValue);
 
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getGets()).isOne();
@@ -149,7 +150,8 @@ public class DefaultRedisCacheWriterTests {
 
 	@ParameterizedRedisTest // DATAREDIS-481
 	void getShouldReturnNullWhenKeyDoesNotExist() {
-		assertThat(nonLockingRedisCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey)).isNull();
+		assertThat(nonLockingRedisCacheWriter(connectionFactory)
+				.get(CACHE_NAME, binaryCacheKey, Duration.ZERO)).isNull();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-481, DATAREDIS-1082
@@ -158,7 +160,7 @@ public class DefaultRedisCacheWriterTests {
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
 		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
-				Duration.ZERO)).isNull();
+				Duration.ZERO, Duration.ZERO)).isNull();
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -174,7 +176,7 @@ public class DefaultRedisCacheWriterTests {
 
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
-		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, "foo".getBytes(), Duration.ZERO))
+		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, "foo".getBytes(), Duration.ZERO, Duration.ZERO))
 				.isEqualTo(binaryCacheValue);
 
 		doWithConnection(connection -> {
@@ -189,7 +191,8 @@ public class DefaultRedisCacheWriterTests {
 
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
-		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(5))).isNull();
+		assertThat(writer.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(5), Duration.ZERO))
+				.isNull();
 
 		doWithConnection(connection -> {
 			assertThat(connection.ttl(binaryCacheKey)).isGreaterThan(3).isLessThan(6);
@@ -234,7 +237,8 @@ public class DefaultRedisCacheWriterTests {
 
 		((DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory)).lock(CACHE_NAME);
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		nonLockingRedisCacheWriter(connectionFactory)
+				.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -246,8 +250,8 @@ public class DefaultRedisCacheWriterTests {
 
 		((DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory)).lock(CACHE_NAME);
 
-		lockingRedisCacheWriter(connectionFactory).put(CACHE_NAME + "-no-the-other-cache", binaryCacheKey, binaryCacheValue,
-				Duration.ZERO);
+		lockingRedisCacheWriter(connectionFactory)
+				.put(CACHE_NAME + "-no-the-other-cache", binaryCacheKey, binaryCacheValue, Duration.ZERO, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -267,7 +271,7 @@ public class DefaultRedisCacheWriterTests {
 		Thread th = new Thread(() -> {
 
 			beforeWrite.countDown();
-			writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+			writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO, Duration.ZERO);
 			afterWrite.countDown();
 		});
 		th.start();
@@ -317,7 +321,7 @@ public class DefaultRedisCacheWriterTests {
 			};
 
 			try {
-				writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+				writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO, Duration.ZERO);
 			} catch (Exception e) {
 				exceptionRef.set(e);
 			} finally {
@@ -342,7 +346,7 @@ public class DefaultRedisCacheWriterTests {
 		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
 		CacheStatistics stats = cw.getCacheStatistics(CACHE_NAME);
 
-		cw.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(5));
+		cw.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ofSeconds(5), Duration.ZERO);
 
 		assertThat(stats).isNotNull();
 		assertThat(stats.getPuts()).isZero();

@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Piotr Mionskowski
+ * @author Shyngys Sapraliyev
  * @see RedisCacheConfiguration
  * @see RedisCacheWriter
  * @since 2.0
@@ -82,7 +83,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@Override
 	protected Object lookup(Object key) {
 
-		byte[] value = cacheWriter.get(name, createAndConvertCacheKey(key));
+		byte[] value = cacheWriter.get(name, createAndConvertCacheKey(key), cacheConfig.getMaxIdle());
 
 		if (value == null) {
 			return null;
@@ -145,7 +146,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 					name));
 		}
 
-		cacheWriter.put(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue), cacheConfig.getTtl());
+		cacheWriter.put(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
+				cacheConfig.getTtl(), cacheConfig.getMaxIdle());
 	}
 
 	@Override
@@ -158,7 +160,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		byte[] result = cacheWriter.putIfAbsent(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-				cacheConfig.getTtl());
+				cacheConfig.getTtl(), cacheConfig.getMaxIdle());
 
 		if (result == null) {
 			return null;
