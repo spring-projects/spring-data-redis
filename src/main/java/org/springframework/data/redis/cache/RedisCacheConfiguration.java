@@ -152,7 +152,7 @@ public class RedisCacheConfiguration {
 	 * @param maxIdle must not be {@literal null}.
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
-	public RedisCacheConfiguration maxIdle(Duration maxIdle) {
+	public RedisCacheConfiguration entryMaxIdle(Duration maxIdle) {
 
 		Assert.notNull(maxIdle, "maxIdle duration must not be null!");
 
