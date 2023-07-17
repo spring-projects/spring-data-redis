@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
  * @author John Blum
  * @see org.springframework.beans.factory.InitializingBean
  */
-public class RedisAccessor implements InitializingBean {
+public abstract class RedisAccessor implements InitializingBean {
 
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
