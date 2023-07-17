@@ -17,6 +17,8 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -117,4 +119,23 @@ class RedisCommandUnitTests {
 			}
 		}
 	}
+
+	@Test // GH-2646
+	void commandRequiresArgumentsIsCorrect() {
+
+		Arrays.stream(RedisCommand.values()).forEach(command ->
+				assertThat(command.requiresArguments())
+						.describedAs("Redis command [%s] failed required arguments check", command)
+						.isEqualTo(command.minArgs > 0));
+	}
+
+	@Test // GH-2646
+	void commandRequiresExactNumberOfArgumentsIsCorrect() {
+
+		Arrays.stream(RedisCommand.values()).forEach(command ->
+				assertThat(command.requiresExactNumberOfArguments())
+						.describedAs("Redis command [%s] failed requires exact arguments check")
+						.isEqualTo(command.minArgs == command.maxArgs));
+	}
+
 }

@@ -257,8 +257,8 @@ public enum RedisCommand {
 	private final boolean read;
 	private final boolean write;
 
-	private final int minArgs;
-	private final int maxArgs;
+	final int minArgs;
+	final int maxArgs;
 
 	private final @Nullable String alias;
 
@@ -313,7 +313,7 @@ public enum RedisCommand {
 	 * @return {@literal true} if the command requires arguments
 	 */
 	public boolean requiresArguments() {
-		return minArgs >= 0;
+		return minArgs > 0;
 	}
 
 	/**
