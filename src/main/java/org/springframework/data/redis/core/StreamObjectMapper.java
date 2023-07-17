@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * mapping strategies.
  *
  * @author Mark Paluch
+ * @author John Blum
  * @since 2.2
  * @see ObjectHashMapper
  * @see #doGetHashMapper(ConversionService, Class)
@@ -54,9 +55,9 @@ class StreamObjectMapper {
 	private final @Nullable HashMapper<Object, Object, Object> objectHashMapper;
 
 	static {
-		DefaultConversionService cs = new DefaultConversionService();
-		customConversions.registerConvertersIn(cs);
-		conversionService = cs;
+		DefaultConversionService defaultConversionService = new DefaultConversionService();
+		customConversions.registerConvertersIn(defaultConversionService);
+		conversionService = defaultConversionService;
 	}
 
 	/**
@@ -71,24 +72,23 @@ class StreamObjectMapper {
 
 		this.mapper = (HashMapper) mapper;
 
-		if (mapper instanceof ObjectHashMapper) {
+		if (mapper instanceof ObjectHashMapper objHashMapper) {
 
-			ObjectHashMapper ohm = (ObjectHashMapper) mapper;
-			this.objectHashMapper = new HashMapper<Object, Object, Object>() {
+			this.objectHashMapper = new HashMapper<>() {
 
 				@Override
 				public Map<Object, Object> toHash(Object object) {
-					return (Map) ohm.toHash(object);
+					return (Map) objHashMapper.toHash(object);
 				}
 
 				@Override
 				public Object fromHash(Map<Object, Object> hash) {
 
-					Map<byte[], byte[]> map = hash.entrySet().stream()
-							.collect(Collectors.toMap(e -> conversionService.convert(e.getKey(), byte[].class),
-									e -> conversionService.convert(e.getValue(), byte[].class)));
+					Map<byte[], byte[]> map = hash.entrySet().stream().collect(Collectors.toMap(
+							keyMapper -> conversionService.convert(keyMapper.getKey(), byte[].class),
+							valueMapper -> conversionService.convert(valueMapper.getValue(), byte[].class)));
 
-					return ohm.fromHash(map);
+					return objHashMapper.fromHash(map);
 				}
 			};
 		} else {
@@ -175,7 +175,7 @@ class StreamObjectMapper {
 
 	@SuppressWarnings("unchecked")
 	final <V, HK, HV> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType) {
-		return (HashMapper) doGetHashMapper(conversionService, targetType);
+		return (HashMapper<V, HK, HV>) doGetHashMapper(conversionService, targetType);
 	}
 
 	/**
