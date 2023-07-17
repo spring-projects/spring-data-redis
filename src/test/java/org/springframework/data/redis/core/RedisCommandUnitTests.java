@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Oscar Cai
+ * @author John Blum
  */
 class RedisCommandUnitTests {
 
@@ -100,5 +101,20 @@ class RedisCommandUnitTests {
 	void shouldThrowExceptionOnInvalidArgumentCountForZaddWhenExpectedMinimalMatch() {
 		assertThatIllegalArgumentException().isThrownBy(() -> RedisCommand.ZADD.validateArgumentCount(2))
 				.withMessageContaining("ZADD command requires at least 3 arguments");
+	}
+
+	@Test // GH-2644
+	void isRepresentedByIsCorrectForAllCommandsAndTheirAliases() {
+
+		for (RedisCommand command : RedisCommand.values()) {
+
+			assertThat(command.isRepresentedBy(command.name())).isTrue();
+			assertThat(command.isRepresentedBy(command.name().toLowerCase())).isTrue();
+
+			for (String alias : command.getAliases()) {
+				assertThat(command.isRepresentedBy(alias)).isTrue();
+				assertThat(command.isRepresentedBy(alias.toUpperCase())).isTrue();
+			}
+		}
 	}
 }
