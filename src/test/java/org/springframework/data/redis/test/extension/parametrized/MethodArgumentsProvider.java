@@ -43,6 +43,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker.Managed;
 class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<MethodSource> {
 
 	private static final Namespace NAMESPACE = Namespace.create(MethodArgumentsProvider.class);
+
 	private String[] methodNames = new String[0];
 
 	@Override
@@ -55,6 +56,7 @@ class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<M
 
 		Store store = context.getRoot().getStore(NAMESPACE);
 		Object testInstance = context.getTestInstance().orElse(null);
+
 		return Arrays.stream(this.methodNames).map(factoryMethodName -> getMethod(context, factoryMethodName))
 				.map(method -> (CloseablePararmeters) store.getOrComputeIfAbsent(new SourceKey(method, testInstance),
 						key -> new CloseablePararmeters(ReflectionUtils.invokeMethod(method, testInstance), context)))
@@ -63,6 +65,7 @@ class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<M
 	}
 
 	private Method getMethod(ExtensionContext context, String factoryMethodName) {
+
 		if (StringUtils.isNotBlank(factoryMethodName)) {
 			if (factoryMethodName.contains("#")) {
 				return getMethodByFullyQualifiedName(factoryMethodName);
@@ -74,6 +77,7 @@ class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<M
 	}
 
 	private Method getMethodByFullyQualifiedName(String fullyQualifiedMethodName) {
+
 		String[] methodParts = ReflectionUtils.parseFullyQualifiedMethodName(fullyQualifiedMethodName);
 		String className = methodParts[0];
 		String methodName = methodParts[1];
@@ -93,8 +97,8 @@ class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<M
 	private static Arguments toArguments(Object item) {
 
 		// Nothing to do except cast.
-		if (item instanceof Arguments) {
-			return (Arguments) item;
+		if (item instanceof Arguments arguments) {
+			return arguments;
 		}
 
 		// Pass all multidimensional arrays "as is", in contrast to Object[].
@@ -105,8 +109,8 @@ class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<M
 
 		// Special treatment for one-dimensional reference arrays.
 		// See https://github.com/junit-team/junit5/issues/1665
-		if (item instanceof Object[]) {
-			return arguments((Object[]) item);
+		if (item instanceof Object[] array) {
+			return arguments(array);
 		}
 
 		// Pass everything else "as is".
@@ -136,41 +140,40 @@ class MethodArgumentsProvider implements ArgumentsProvider, AnnotationConsumer<M
 		}
 
 		private void close0(Object object) {
+
 			if (object instanceof Managed) {
 				return;
 			}
 
-			if (object instanceof CloseableResource) {
+			if (object instanceof CloseableResource closeableResource) {
 				try {
-					((CloseableResource) object).close();
-				} catch (Throwable e) {
-					throw new RuntimeException(e);
+					closeableResource.close();
+					return;
+				} catch (Throwable cause) {
+					throw new RuntimeException(cause);
 				}
-
-				return;
 			}
 
-			if (object instanceof Closeable) {
+			if (object instanceof Closeable closeable) {
 				try {
-					((AutoCloseable) object).close();
-				} catch (Throwable e) {
-					throw new RuntimeException(e);
+					closeable.close();
+					return;
+				} catch (Throwable cause) {
+					throw new RuntimeException(cause);
 				}
-				return;
 			}
 
-			if (object instanceof Arguments) {
-				close0(((Arguments) object).get());
+			if (object instanceof Arguments arguments) {
+				close0(arguments.get());
 			}
 
-			if (object instanceof Object[]) {
-				Arrays.asList((Object[]) object).forEach(this::close0);
+			if (object instanceof Object[] array) {
+				Arrays.asList(array).forEach(this::close0);
 			}
 
-			if (object instanceof Iterable<?>) {
-				((Iterable<Object>) object).forEach(this::close0);
+			if (object instanceof Iterable<?> iterableObject) {
+				iterableObject.forEach(this::close0);
 			}
 		}
 	}
-
 }

@@ -55,12 +55,15 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
 public class LegacyRedisCacheTests {
 
 	private static final String CACHE_NAME = "testCache";
-	private ObjectFactory<Object> keyFactory;
-	private ObjectFactory<Object> valueFactory;
-	private RedisConnectionFactory connectionFactory;
+
 	private final boolean allowCacheNullValues;
 
+	private ObjectFactory<Object> keyFactory;
+	private ObjectFactory<Object> valueFactory;
+
 	private RedisCache cache;
+
+	private RedisConnectionFactory connectionFactory;
 
 	public LegacyRedisCacheTests(RedisTemplate template, ObjectFactory<Object> keyFactory,
 			ObjectFactory<Object> valueFactory, boolean allowCacheNullValues) {
@@ -69,8 +72,7 @@ public class LegacyRedisCacheTests {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
 		this.allowCacheNullValues = allowCacheNullValues;
-
-		cache = createCache();
+		this.cache = createCache();
 	}
 
 	public static Collection<Object[]> testParams() {
@@ -93,11 +95,11 @@ public class LegacyRedisCacheTests {
 		return target;
 	}
 
-	@SuppressWarnings("unchecked")
 	private RedisCache createCache() {
 
 		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
 				.entryTtl(Duration.ofSeconds(10));
+
 		if (!allowCacheNullValues) {
 			cacheConfiguration = cacheConfiguration.disableCachingNullValues();
 		}
@@ -116,6 +118,7 @@ public class LegacyRedisCacheTests {
 
 	@ParameterizedRedisTest
 	void testCachePut() {
+
 		Object key = getKey();
 		Object value = getValue();
 
@@ -130,6 +133,7 @@ public class LegacyRedisCacheTests {
 
 	@ParameterizedRedisTest
 	void testCacheClear() {
+
 		Object key1 = getKey();
 		Object value1 = getValue();
 
@@ -382,7 +386,7 @@ public class LegacyRedisCacheTests {
 
 			this.redisCache = redisCache;
 
-			cacheLoader = new TestCacheLoader<String>("test") {
+			cacheLoader = new TestCacheLoader<>("test") {
 
 				@Override
 				public String call() {

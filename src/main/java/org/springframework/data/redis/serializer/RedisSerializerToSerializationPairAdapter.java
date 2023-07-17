@@ -26,17 +26,18 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @since 2.0
  */
 class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<T> {
 
-	private static final RedisSerializerToSerializationPairAdapter<?> BYTE_BUFFER = new RedisSerializerToSerializationPairAdapter<>(
-			null);
+	private static final RedisSerializerToSerializationPairAdapter<?> BYTE_BUFFER =
+			new RedisSerializerToSerializationPairAdapter<>(null);
 
-	private static final RedisSerializerToSerializationPairAdapter<byte[]> BYTE_ARRAY = new RedisSerializerToSerializationPairAdapter<>(
-			RedisSerializer.byteArray());
+	private static final RedisSerializerToSerializationPairAdapter<byte[]> BYTE_ARRAY =
+			new RedisSerializerToSerializationPairAdapter<>(RedisSerializer.byteArray());
 
-	private final DefaultSerializationPair pair;
+	private final DefaultSerializationPair<T> pair;
 
 	RedisSerializerToSerializationPairAdapter(@Nullable RedisSerializer<T> serializer) {
 		pair = new DefaultSerializationPair<>(new DefaultRedisElementReader<>(serializer),
@@ -50,7 +51,7 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	@SuppressWarnings("unchecked")
 	@Deprecated
 	static <T> SerializationPair<T> raw() {
-		return (SerializationPair) byteBuffer();
+		return (SerializationPair<T>) byteBuffer();
 	}
 
 	/**
@@ -65,16 +66,17 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	 * @return the {@link RedisSerializerToSerializationPairAdapter} for {@link ByteBuffer}.
 	 * @since 2.2
 	 */
+	@SuppressWarnings("unchecked")
 	static SerializationPair<ByteBuffer> byteBuffer() {
-		return (SerializationPair) BYTE_BUFFER;
+		return (SerializationPair<ByteBuffer>) BYTE_BUFFER;
 	}
 
 	/**
 	 * Create a {@link SerializationPair} from given {@link RedisSerializer}.
 	 *
+	 * @param <T> {@link Class type} of {@link Object} handled by the {@link RedisSerializer}.
 	 * @param redisSerializer must not be {@literal null}.
-	 * @param <T>
-	 * @return
+	 * @return the given {@link RedisSerializer} adapted as a {@link SerializationPair}.
 	 */
 	public static <T> SerializationPair<T> from(RedisSerializer<T> redisSerializer) {
 
