@@ -219,8 +219,8 @@ public enum RedisCommand {
 	private boolean write = true;
 	private Set<String> alias = new HashSet<>(1);
 
-	private int minArgs = -1;
-	private int maxArgs = -1;
+	final int minArgs;
+	final int maxArgs;
 
 	private final static Map<String, RedisCommand> commandLookup;
 
@@ -281,7 +281,7 @@ public enum RedisCommand {
 	 * @return {@literal true} if the command requires arguments
 	 */
 	public boolean requiresArguments() {
-		return minArgs >= 0;
+		return minArgs > 0;
 	}
 
 	/**

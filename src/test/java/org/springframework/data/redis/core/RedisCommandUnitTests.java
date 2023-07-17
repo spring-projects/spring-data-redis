@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +29,7 @@ import org.junit.jupiter.api.Test;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Oscar Cai
+ * @author John Blum
  */
 class RedisCommandUnitTests {
 
@@ -100,5 +104,23 @@ class RedisCommandUnitTests {
 	void shouldThrowExceptionOnInvalidArgumentCountForZaddWhenExpectedMinimalMatch() {
 		assertThatIllegalArgumentException().isThrownBy(() -> RedisCommand.ZADD.validateArgumentCount(2))
 				.withMessageContaining("ZADD command requires at least 3 arguments");
+	}
+
+	@Test // GH-2646
+	void commandRequiresArgumentsIsCorrect() {
+
+		Arrays.stream(RedisCommand.values()).forEach(command ->
+			assertThat(command.requiresArguments())
+				.describedAs("Redis command [%s] failed required arguments check", command)
+				.isEqualTo(command.minArgs > 0));
+	}
+
+	@Test // GH-2646
+	void commandRequiresExactNumberOfArgumentsIsCorrect() {
+
+		Arrays.stream(RedisCommand.values()).forEach(command ->
+			assertThat(command.requiresExactNumberOfArguments())
+				.describedAs("Redis command [%s] failed requires exact arguments check")
+				.isEqualTo(command.minArgs == command.maxArgs));
 	}
 }
