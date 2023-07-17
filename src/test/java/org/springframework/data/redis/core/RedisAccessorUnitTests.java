@@ -41,7 +41,7 @@ class RedisAccessorUnitTests {
 
 		RedisConnectionFactory mockConnectionFactory = mock(RedisConnectionFactory.class);
 
-		RedisAccessor redisAccessor = new RedisAccessor();
+		RedisAccessor redisAccessor = new TestRedisAccessor();
 
 		assertThat(redisAccessor.getConnectionFactory()).isNull();
 
@@ -61,7 +61,7 @@ class RedisAccessorUnitTests {
 	void getRequiredConnectionFactoryWhenNull() {
 
 		assertThatIllegalStateException()
-			.isThrownBy(() -> new RedisAccessor().getRequiredConnectionFactory())
+			.isThrownBy(() -> new TestRedisAccessor().getRequiredConnectionFactory())
 			.withMessage("RedisConnectionFactory is required")
 			.withNoCause();
 	}
@@ -71,7 +71,7 @@ class RedisAccessorUnitTests {
 
 		RedisConnectionFactory mockConnectionFactory = mock(RedisConnectionFactory.class);
 
-		RedisAccessor redisAccessor = spy(new RedisAccessor());
+		RedisAccessor redisAccessor = spy(new TestRedisAccessor());
 
 		doReturn(mockConnectionFactory).when(redisAccessor).getRequiredConnectionFactory();
 
@@ -81,4 +81,7 @@ class RedisAccessorUnitTests {
 		verify(redisAccessor, times(1)).getRequiredConnectionFactory();
 		verifyNoMoreInteractions(redisAccessor);
 	}
+
+	static class TestRedisAccessor extends RedisAccessor { }
+
 }
