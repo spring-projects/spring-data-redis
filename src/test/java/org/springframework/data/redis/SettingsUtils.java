@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author John Blum
  */
 public abstract class SettingsUtils {
 
@@ -66,14 +67,14 @@ public abstract class SettingsUtils {
 	 * @return the Redis port.
 	 */
 	public static int getPort() {
-		return Integer.valueOf(SETTINGS.getProperty("port"));
+		return Integer.parseInt(SETTINGS.getProperty("port"));
 	}
 
 	/**
 	 * @return the Redis Cluster port.
 	 */
 	public static int getSentinelPort() {
-		return Integer.valueOf(SETTINGS.getProperty("sentinelPort"));
+		return Integer.parseInt(SETTINGS.getProperty("sentinelPort"));
 	}
 
 	/**
@@ -87,7 +88,7 @@ public abstract class SettingsUtils {
 	 * @return the Redis Cluster port.
 	 */
 	public static int getClusterPort() {
-		return Integer.valueOf(SETTINGS.getProperty("clusterPort"));
+		return Integer.parseInt(SETTINGS.getProperty("clusterPort"));
 	}
 
 
