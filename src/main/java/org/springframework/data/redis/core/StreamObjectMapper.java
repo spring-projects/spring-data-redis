@@ -72,13 +72,13 @@ class StreamObjectMapper {
 
 		this.mapper = (HashMapper) mapper;
 
-		if (mapper instanceof ObjectHashMapper objHashMapper) {
+		if (mapper instanceof ObjectHashMapper ohm) {
 
 			this.objectHashMapper = new HashMapper<>() {
 
 				@Override
 				public Map<Object, Object> toHash(Object object) {
-					return (Map) objHashMapper.toHash(object);
+					return (Map) ohm.toHash(object);
 				}
 
 				@Override
@@ -88,7 +88,7 @@ class StreamObjectMapper {
 							keyMapper -> conversionService.convert(keyMapper.getKey(), byte[].class),
 							valueMapper -> conversionService.convert(valueMapper.getValue(), byte[].class)));
 
-					return objHashMapper.fromHash(map);
+					return ohm.fromHash(map);
 				}
 			};
 		} else {
