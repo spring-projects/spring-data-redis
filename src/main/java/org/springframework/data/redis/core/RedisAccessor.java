@@ -19,15 +19,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
- * Base class for {@link RedisTemplate} defining common properties. Not intended to be used directly.
+ * Base class for {@link RedisTemplate} implementations defining common properties. Not intended to be used directly.
  *
  * @author Costin Leau
  * @author John Blum
- * @see org.springframework.beans.factory.InitializingBean
  */
 public abstract class RedisAccessor implements InitializingBean {
 
@@ -62,7 +61,10 @@ public abstract class RedisAccessor implements InitializingBean {
 	 * @since 2.0
 	 */
 	public RedisConnectionFactory getRequiredConnectionFactory() {
-		return RedisAssertions.requireState(getConnectionFactory(), "RedisConnectionFactory is required");
+
+		RedisConnectionFactory connectionFactory = getConnectionFactory();
+		Assert.state(connectionFactory != null, "RedisConnectionFactory is required");
+		return connectionFactory;
 	}
 
 	/**
