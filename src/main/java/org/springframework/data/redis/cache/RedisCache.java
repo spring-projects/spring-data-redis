@@ -17,6 +17,7 @@ package org.springframework.data.redis.cache;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -188,9 +189,19 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@Override
 	protected Object lookup(Object key) {
 
-		byte[] value = getCacheWriter().get(getName(), createAndConvertCacheKey(key));
+		byte[] value = getCacheConfiguration().isTtiExpirationEnabled()
+			? getCacheWriter().get(getName(), createAndConvertCacheKey(key), getTimeToLive(key))
+			: getCacheWriter().get(getName(), createAndConvertCacheKey(key));
 
 		return value != null ? deserializeCacheValue(value) : null;
+	}
+
+	private Duration getTimeToLive(Object key) {
+		return getTimeToLive(key, null);
+	}
+
+	private Duration getTimeToLive(Object key, @Nullable Object value) {
+		return getCacheConfiguration().getTtlFunction().getTimeToLive(key, value);
 	}
 
 	@Override
@@ -208,7 +219,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		getCacheWriter().put(getName(), createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-			getCacheConfiguration().getTtlFunction().getTimeToLive(key, value));
+			getTimeToLive(key, value));
 	}
 
 	@Override
@@ -221,7 +232,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		byte[] result = getCacheWriter().putIfAbsent(getName(), createAndConvertCacheKey(key),
-			serializeCacheValue(cacheValue), getCacheConfiguration().getTtlFunction().getTimeToLive(key, value));
+			serializeCacheValue(cacheValue), getTimeToLive(key, value));
 
 		return result != null ? new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result))) : null;
 	}

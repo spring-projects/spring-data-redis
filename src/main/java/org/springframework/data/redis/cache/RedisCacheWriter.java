@@ -85,7 +85,9 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 */
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
-		return lockingRedisCacheWriter(connectionFactory, Duration.ofMillis(50), TtlFunction.persistent(), batchStrategy);
+
+		return lockingRedisCacheWriter(connectionFactory, Duration.ofMillis(50), TtlFunction.persistent(),
+				batchStrategy);
 	}
 
 	/**
@@ -104,9 +106,33 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
-		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtlFunction, CacheStatisticsCollector.none(),
-				batchStrategy);
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtlFunction,
+				CacheStatisticsCollector.none(), batchStrategy);
 	}
+
+	/**
+	 * Get the binary value representation from Redis stored for the given key.
+	 *
+	 * @param name must not be {@literal null}.
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} if key does not exist.
+	 * @see #get(String, byte[], Duration)
+	 */
+	@Nullable
+	default byte[] get(String name, byte[] key) {
+		return get(name, key, null);
+	}
+
+	/**
+	 * Get the binary value representation from Redis stored for the given key and set the given
+	 * {@link Duration TTL expiration} for the cache entry.
+	 *
+	 * @param name must not be {@literal null}.
+	 * @param key must not be {@literal null}.
+	 * @param ttl {@link Duration} specifying the {@literal expiration timeout} for the cache entry.
+	 * @return {@literal null} if key does not exist or has {@literal expired}.
+	 */
+	byte[] get(String name, byte[] key, @Nullable Duration ttl);
 
 	/**
 	 * Write the given key/value pair to Redis and set the expiration time if defined.
@@ -117,16 +143,6 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param ttl Optional expiration time. Can be {@literal null}.
 	 */
 	void put(String name, byte[] key, byte[] value, @Nullable Duration ttl);
-
-	/**
-	 * Get the binary value representation from Redis stored for the given key.
-	 *
-	 * @param name must not be {@literal null}.
-	 * @param key must not be {@literal null}.
-	 * @return {@literal null} if key does not exist.
-	 */
-	@Nullable
-	byte[] get(String name, byte[] key);
 
 	/**
 	 * Write the given value to Redis if the key does not already exist.

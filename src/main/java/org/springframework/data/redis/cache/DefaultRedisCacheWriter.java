@@ -124,12 +124,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public byte[] get(String name, byte[] key) {
+	public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		byte[] result = execute(name, connection -> connection.get(key));
+		byte[] result = shouldExpireWithin(ttl)
+			? execute(name, connection -> connection.getEx(key, Expiration.from(ttl)))
+			: execute(name, connection -> connection.get(key));
 
 		statistics.incGets(name);
 

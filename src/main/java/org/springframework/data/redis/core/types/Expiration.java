@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.types;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
@@ -217,6 +218,25 @@ public class Expiration {
 	 */
 	public boolean isUnixTimestamp() {
 		return false;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Expiration that)) {
+			return false;
+		}
+
+		return this.getTimeUnit().toMillis(getExpirationTime()) == that.getTimeUnit().toMillis(that.getExpirationTime());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getExpirationTime(), getTimeUnit());
 	}
 
 	/**
