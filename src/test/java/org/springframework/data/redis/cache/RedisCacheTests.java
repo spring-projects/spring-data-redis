@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.awaitility.Awaitility.await;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -34,9 +34,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -46,9 +48,12 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
+
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -92,8 +97,22 @@ public class RedisCacheTests {
 
 		doWithConnection(RedisConnection::flushAll);
 
-		cache = new RedisCache("cache", RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
-				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
+		this.cache = new RedisCache("cache", usingRedisCacheWriter(), usingRedisCacheConfiguration());
+	}
+
+	private RedisCacheWriter usingRedisCacheWriter() {
+		return RedisCacheWriter.nonLockingRedisCacheWriter(this.connectionFactory);
+	}
+
+	private RedisCacheConfiguration usingRedisCacheConfiguration() {
+		return usingRedisCacheConfiguration(Function.identity());
+	}
+
+	private RedisCacheConfiguration usingRedisCacheConfiguration(
+			Function<RedisCacheConfiguration, RedisCacheConfiguration> customizer) {
+
+		return customizer.apply(RedisCacheConfiguration.defaultCacheConfig()
+				.serializeValuesWith(SerializationPair.fromSerializer(this.serializer)));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-481
@@ -455,6 +474,7 @@ public class RedisCacheTests {
 		AtomicReference<byte[]> storage = new AtomicReference<>();
 
 		cache = new RedisCache("foo", new RedisCacheWriter() {
+
 			@Override
 			public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 				storage.set(value);
@@ -462,6 +482,11 @@ public class RedisCacheTests {
 
 			@Override
 			public byte[] get(String name, byte[] key) {
+				return get(name, key, null);
+			}
+
+			@Override
+			public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
 
 				prepare.countDown();
 				try {
@@ -523,6 +548,52 @@ public class RedisCacheTests {
 		tpe.shutdown();
 
 		assertThat(retrievals).hasValue(1);
+	}
+
+	@EnabledOnCommand("GETEX")
+	@ParameterizedRedisTest // GH-2351
+	void cacheGetWithTimeToIdleExpirationWhenEntryNotExpiredShouldReturnValue() {
+
+		doWithConnection(connection -> connection.set(this.binaryCacheKey, this.binarySample));
+
+		RedisCache cache = new RedisCache("cache", usingRedisCacheWriter(),
+				usingRedisCacheConfiguration(withTtiExpiration()));
+
+		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
+
+		for (int count = 0; count < 5; count++) {
+			await().atMost(Duration.ofMillis(100));
+			assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
+		}
+	}
+
+	@EnabledOnCommand("GETEX")
+	@ParameterizedRedisTest // GH-2351
+	void cacheGetWithTimeToIdleExpirationAfterEntryExpiresShouldReturnNull() {
+
+		doWithConnection(connection -> connection.set(this.binaryCacheKey, this.binarySample));
+
+		RedisCache cache = new RedisCache("cache", usingRedisCacheWriter(),
+				usingRedisCacheConfiguration(withTtiExpiration()));
+
+		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
+
+		await().atMost(Duration.ofMillis(200));
+
+		assertThat(cache.get(this.cacheKey, Person.class)).isNull();
+	}
+
+	@Nullable
+	private Object unwrap(@Nullable Object value) {
+		return value instanceof ValueWrapper wrapper ? wrapper.get() : value;
+	}
+
+	private Function<RedisCacheConfiguration, RedisCacheConfiguration> withTtiExpiration() {
+
+		Function<RedisCacheConfiguration, RedisCacheConfiguration> entryTtlFunction =
+			cacheConfiguration -> cacheConfiguration.entryTtl(Duration.ofMillis(100));
+
+		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {

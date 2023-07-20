@@ -75,7 +75,6 @@ class RedisCacheConfigurationUnitTests {
 		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
 			.entryTtl(sixtySeconds);
 
-
 		assertThat(cacheConfiguration).isNotNull();
 		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds);
 		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds); // does not change!
@@ -83,7 +82,7 @@ class RedisCacheConfigurationUnitTests {
 
 	@Test // GH-2628
 	@SuppressWarnings("deprecation")
-	public void getTtlCanReturnDynamicDuration() {
+	public void getTtlReturnsDynamicDuration() {
 
 		Duration thirtyMinutes = Duration.ofMinutes(30);
 		Duration twoHours = Duration.ofHours(2);
@@ -100,6 +99,21 @@ class RedisCacheConfigurationUnitTests {
 
 		verify(mockTtlFunction, times(2)).getTimeToLive(any(), isNull());
 		verifyNoMoreInteractions(mockTtlFunction);
+	}
+
+	@Test // GH-2351
+	public void enableTtiExpirationShouldConfigureTti() {
+
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
+
+		assertThat(cacheConfiguration).isNotNull();
+		assertThat(cacheConfiguration.isTimeToIdleEnabled()).isFalse();
+
+		RedisCacheConfiguration ttiEnabledCacheConfiguration = cacheConfiguration.enableTimeToIdle();
+
+		assertThat(ttiEnabledCacheConfiguration).isNotNull();
+		assertThat(ttiEnabledCacheConfiguration).isNotSameAs(cacheConfiguration);
+		assertThat(ttiEnabledCacheConfiguration.isTimeToIdleEnabled()).isTrue();
 	}
 
 	private static class DomainType {

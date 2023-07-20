@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.core.types;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
 /**
+ * Unit tests for {@link Expiration}.
+ *
  * @author Mark Paluch
+ * @author John Blum
  */
 class ExpirationUnitTests {
 
@@ -52,5 +55,39 @@ class ExpirationUnitTests {
 
 		assertThat(expiration.getExpirationTime()).isEqualTo(5L * 60);
 		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.SECONDS);
+	}
+
+	@Test // GH-2351
+	void equalValuedExpirationsAreEqual() {
+
+		Expiration sixtyThousandMilliseconds = Expiration.milliseconds(60_000L);
+		Expiration sixtySeconds = Expiration.seconds(60L);
+		Expiration oneMinute = Expiration.from(1L, TimeUnit.MINUTES);
+
+		assertThat(sixtyThousandMilliseconds).isEqualTo(sixtySeconds);
+		assertThat(sixtySeconds).isEqualTo(oneMinute);
+		assertThat(oneMinute).isEqualTo(sixtyThousandMilliseconds);
+	}
+
+	@Test // GH-2351
+	void unequalValuedExpirationsAreNotEqual() {
+
+		Expiration sixtySeconds = Expiration.seconds(60L);
+		Expiration sixtyMilliseconds = Expiration.milliseconds(60L);
+
+		assertThat(sixtySeconds).isNotEqualTo(sixtyMilliseconds);
+	}
+
+	@Test // GH-2351
+	void hashCodeIsCorrect() {
+
+		Expiration expiration = Expiration.seconds(60);
+
+		assertThat(expiration).hasSameHashCodeAs(Expiration.seconds(60));
+		assertThat(expiration).hasSameHashCodeAs(Expiration.from(Duration.ofSeconds(60L)));
+		assertThat(expiration).hasSameHashCodeAs(Expiration.from(1, TimeUnit.MINUTES));
+		assertThat(expiration).doesNotHaveSameHashCodeAs(60L);
+		assertThat(expiration).doesNotHaveSameHashCodeAs(Duration.ofSeconds(60L));
+		assertThat(expiration).doesNotHaveSameHashCodeAs(Expiration.from(60L, TimeUnit.MINUTES));
 	}
 }
