@@ -257,8 +257,8 @@ public enum RedisCommand {
 	private final boolean read;
 	private final boolean write;
 
-	final int minArgs;
-	final int maxArgs;
+	private final int minArgs;
+	private final int maxArgs;
 
 	private final @Nullable String alias;
 

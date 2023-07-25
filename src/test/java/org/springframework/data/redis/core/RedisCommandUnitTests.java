@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Unit tests for {@link RedisCommand}.
@@ -123,19 +124,19 @@ class RedisCommandUnitTests {
 	@Test // GH-2646
 	void commandRequiresArgumentsIsCorrect() {
 
-		Arrays.stream(RedisCommand.values()).forEach(command ->
-				assertThat(command.requiresArguments())
+		Arrays.stream(RedisCommand.values())
+				.forEach(command -> assertThat(command.requiresArguments())
 						.describedAs("Redis command [%s] failed required arguments check", command)
-						.isEqualTo(command.minArgs > 0));
+						.isEqualTo((int) ReflectionTestUtils.getField(command, "minArgs") > 0));
 	}
 
 	@Test // GH-2646
 	void commandRequiresExactNumberOfArgumentsIsCorrect() {
 
-		Arrays.stream(RedisCommand.values()).forEach(command ->
-				assertThat(command.requiresExactNumberOfArguments())
-						.describedAs("Redis command [%s] failed requires exact arguments check")
-						.isEqualTo(command.minArgs == command.maxArgs));
+		Arrays.stream(RedisCommand.values())
+				.forEach(command -> assertThat(command.requiresExactNumberOfArguments())
+						.describedAs("Redis command [%s] failed requires exact arguments check").isEqualTo(
+								ReflectionTestUtils.getField(command, "minArgs") == ReflectionTestUtils.getField(command, "maxArgs")));
 	}
 
 }
