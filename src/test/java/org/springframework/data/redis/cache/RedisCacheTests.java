@@ -480,6 +480,11 @@ public class RedisCacheTests {
 			}
 
 			@Override
+			public byte[] get(String name, byte[] key) {
+				return get(name, key, null);
+			}
+
+			@Override
 			public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
 
 				prepare.countDown();
@@ -545,7 +550,7 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2351
-	void cacheGetWithTtiExpirationWhenEntryNotExpiredShouldReturnValue() {
+	void cacheGetWithTimeToIdleExpirationWhenEntryNotExpiredShouldReturnValue() {
 
 		doWithConnection(connection -> connection.set(this.binaryCacheKey, this.binarySample));
 
@@ -561,7 +566,7 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2351
-	void cacheGetWithTtiExpirationAfterEntryExpiresShouldReturnNull() {
+	void cacheGetWithTimeToIdleExpirationAfterEntryExpiresShouldReturnNull() {
 
 		doWithConnection(connection -> connection.set(this.binaryCacheKey, this.binarySample));
 
@@ -585,7 +590,7 @@ public class RedisCacheTests {
 		Function<RedisCacheConfiguration, RedisCacheConfiguration> entryTtlFunction =
 			cacheConfiguration -> cacheConfiguration.entryTtl(Duration.ofMillis(100));
 
-		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTtiExpiration);
+		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {

@@ -189,7 +189,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@Override
 	protected Object lookup(Object key) {
 
-		byte[] value = getCacheConfiguration().isTtiExpirationEnabled()
+		byte[] value = getCacheConfiguration().isTimeToIdleEnabled()
 			? getCacheWriter().get(getName(), createAndConvertCacheKey(key), getTimeToLive(key))
 			: getCacheWriter().get(getName(), createAndConvertCacheKey(key));
 

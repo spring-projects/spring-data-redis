@@ -57,8 +57,8 @@ class ExpirationUnitTests {
 		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.SECONDS);
 	}
 
-	@Test
-	public void equalValuedExpirationsAreEqual() {
+	@Test // GH-2351
+	void equalValuedExpirationsAreEqual() {
 
 		Expiration sixtyThousandMilliseconds = Expiration.milliseconds(60_000L);
 		Expiration sixtySeconds = Expiration.seconds(60L);
@@ -69,8 +69,8 @@ class ExpirationUnitTests {
 		assertThat(oneMinute).isEqualTo(sixtyThousandMilliseconds);
 	}
 
-	@Test
-	public void unequalValuedExpirationsAreNotEqual() {
+	@Test // GH-2351
+	void unequalValuedExpirationsAreNotEqual() {
 
 		Expiration sixtySeconds = Expiration.seconds(60L);
 		Expiration sixtyMilliseconds = Expiration.milliseconds(60L);
@@ -79,7 +79,7 @@ class ExpirationUnitTests {
 	}
 
 	@Test // GH-2351
-	public void hashCodeIsCorrect() {
+	void hashCodeIsCorrect() {
 
 		Expiration expiration = Expiration.seconds(60);
 

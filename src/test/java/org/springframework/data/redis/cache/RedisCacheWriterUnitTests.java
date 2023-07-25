@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,23 +35,25 @@ import org.junit.jupiter.api.Test;
  *
  * @author John Blum
  */
-public class RedisCacheWriterUnitTests {
+class RedisCacheWriterUnitTests {
 
 	@Test // GH-2351
-	void defaultGetCallsGetWithNullTtlExpiration() {
+	void defaultGetWithNameKeyAndTtlCallsGetWithNameAndKeyDiscardingTtl() {
 
 		byte[] key = "TestKey".getBytes();
 		byte[] value = "TestValue".getBytes();
 
+		Duration thirtyMinutes = Duration.ofMinutes(30);
+
 		RedisCacheWriter cacheWriter = mock(RedisCacheWriter.class);
 
-		doCallRealMethod().when(cacheWriter).get(anyString(), any());
-		doReturn(value).when(cacheWriter).get(anyString(), any(), any());
+		doCallRealMethod().when(cacheWriter).get(anyString(), any(), any());
+		doReturn(value).when(cacheWriter).get(anyString(), any());
 
-		assertThat(cacheWriter.get("TestCacheName", key)).isEqualTo(value);
+		assertThat(cacheWriter.get("TestCacheName", key, thirtyMinutes)).isEqualTo(value);
 
+		verify(cacheWriter, times(1)).get(eq("TestCacheName"), eq(key), eq(thirtyMinutes));
 		verify(cacheWriter, times(1)).get(eq("TestCacheName"), eq(key));
-		verify(cacheWriter, times(1)).get(eq("TestCacheName"), eq(key), isNull());
 		verifyNoMoreInteractions(cacheWriter);
 	}
 }

@@ -47,11 +47,11 @@ import org.springframework.util.Assert;
 public class RedisCacheConfiguration {
 
 	protected static final boolean DEFAULT_CACHE_NULL_VALUES = true;
-	protected static final boolean DEFAULT_ENABLE_TTI_EXPIRATION = false;
+	protected static final boolean DEFAULT_ENABLE_TIME_TO_IDLE_EXPIRATION = false;
 	protected static final boolean DEFAULT_USE_PREFIX = true;
 	protected static final boolean DO_NOT_CACHE_NULL_VALUES = false;
 	protected static final boolean DO_NOT_USE_PREFIX = false;
-	protected static final boolean ENABLE_IDLE_TIME_EXPIRATION = true;
+	protected static final boolean USE_TIME_TO_IDLE_EXPIRATION = true;
 
 	/**
 	 * Default {@link RedisCacheConfiguration} using the following:
@@ -112,7 +112,7 @@ public class RedisCacheConfiguration {
 
 		return new RedisCacheConfiguration(TtlFunction.persistent(),
 				DEFAULT_CACHE_NULL_VALUES,
-				DEFAULT_ENABLE_TTI_EXPIRATION,
+				DEFAULT_ENABLE_TIME_TO_IDLE_EXPIRATION,
 				DEFAULT_USE_PREFIX,
 				CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(RedisSerializer.string()),
@@ -121,7 +121,7 @@ public class RedisCacheConfiguration {
 	}
 
 	private final boolean cacheNullValues;
-	private final boolean enableTtiExpiration;
+	private final boolean enableTimeToIdle;
 	private final boolean usePrefix;
 
 	private final CacheKeyPrefix keyPrefix;
@@ -134,13 +134,13 @@ public class RedisCacheConfiguration {
 	private final TtlFunction ttlFunction;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(TtlFunction ttlFunction, Boolean cacheNullValues, Boolean enableTtiExpiration,
+	private RedisCacheConfiguration(TtlFunction ttlFunction, Boolean cacheNullValues, Boolean enableTimeToIdle,
 			Boolean usePrefix, CacheKeyPrefix keyPrefix, SerializationPair<String> keySerializationPair,
 			SerializationPair<?> valueSerializationPair, ConversionService conversionService) {
 
 		this.ttlFunction = ttlFunction;
 		this.cacheNullValues = cacheNullValues;
-		this.enableTtiExpiration = enableTtiExpiration;
+		this.enableTimeToIdle = enableTimeToIdle;
 		this.usePrefix = usePrefix;
 		this.keyPrefix = keyPrefix;
 		this.keySerializationPair = keySerializationPair;
@@ -175,7 +175,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(cacheKeyPrefix, "Function used to compute prefix must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
 				DEFAULT_USE_PREFIX, cacheKeyPrefix, getKeySerializationPair(), getValueSerializationPair(),
 				getConversionService());
 	}
@@ -189,7 +189,7 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(getTtlFunction(), DO_NOT_CACHE_NULL_VALUES, isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(getTtlFunction(), DO_NOT_CACHE_NULL_VALUES, isTimeToIdleEnabled(),
 				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
 				getConversionService());
 	}
@@ -202,7 +202,7 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
 				DO_NOT_USE_PREFIX, getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
@@ -221,9 +221,10 @@ public class RedisCacheConfiguration {
 	 *
 	 * @return this {@link RedisCacheConfiguration}.
 	 * @see <a href="https://redis.io/commands/getex/">GETEX</a>
+	 * @since 3.2.0
 	 */
-	public RedisCacheConfiguration enableTtiExpiration() {
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), ENABLE_IDLE_TIME_EXPIRATION,
+	public RedisCacheConfiguration enableTimeToIdle() {
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), USE_TIME_TO_IDLE_EXPIRATION,
 				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
 				getConversionService());
 	}
@@ -253,7 +254,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttlFunction, "TtlFunction must not be null");
 
-		return new RedisCacheConfiguration(ttlFunction, getAllowCacheNullValues(), isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(ttlFunction, getAllowCacheNullValues(), isTimeToIdleEnabled(),
 				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
 				getConversionService());
 	}
@@ -268,7 +269,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
 				usePrefix(), getKeyPrefix(), keySerializationPair, getValueSerializationPair(), getConversionService());
 	}
 
@@ -282,7 +283,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
 				usePrefix(), getKeyPrefix(), getKeySerializationPair(), valueSerializationPair, getConversionService());
 	}
 
@@ -296,7 +297,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(conversionService, "ConversionService must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTtiExpirationEnabled(),
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
 				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), conversionService);
 	}
 
@@ -310,14 +311,15 @@ public class RedisCacheConfiguration {
 	/**
 	 * Determines whether {@literal time-to-idle (TTI) expiration} has been enabled for caching.
 	 * <p>
-	 * Use {@link #enableTtiExpiration()} to opt-in and enable {@literal time-to-idle (TTI) expiration} for caching.
+	 * Use {@link #enableTimeToIdle()} to opt-in and enable {@literal time-to-idle (TTI) expiration} for caching.
 	 *
 	 * @return {@literal true} if {@literal time-to-idle (TTI) expiration} was configured and enabled for caching.
 	 * Defaults to {@literal false}.
 	 * @see <a href="https://redis.io/commands/getex/">GETEX</a>
+	 * @since 3.2.0
 	 */
-	public boolean isTtiExpirationEnabled() {
-		return this.enableTtiExpiration;
+	public boolean isTimeToIdleEnabled() {
+		return this.enableTimeToIdle;
 	}
 
 	/**

@@ -119,9 +119,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @see #get(String, byte[], Duration)
 	 */
 	@Nullable
-	default byte[] get(String name, byte[] key) {
-		return get(name, key, null);
-	}
+	byte[] get(String name, byte[] key);
 
 	/**
 	 * Get the binary value representation from Redis stored for the given key and set the given
@@ -132,7 +130,10 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param ttl {@link Duration} specifying the {@literal expiration timeout} for the cache entry.
 	 * @return {@literal null} if key does not exist or has {@literal expired}.
 	 */
-	byte[] get(String name, byte[] key, @Nullable Duration ttl);
+	@Nullable
+	default byte[] get(String name, byte[] key, @Nullable Duration ttl) {
+		return get(name, key);
+	}
 
 	/**
 	 * Write the given key/value pair to Redis and set the expiration time if defined.

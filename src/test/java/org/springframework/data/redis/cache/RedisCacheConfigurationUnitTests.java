@@ -107,13 +107,13 @@ class RedisCacheConfigurationUnitTests {
 		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
 
 		assertThat(cacheConfiguration).isNotNull();
-		assertThat(cacheConfiguration.isTtiExpirationEnabled()).isFalse();
+		assertThat(cacheConfiguration.isTimeToIdleEnabled()).isFalse();
 
-		RedisCacheConfiguration ttiEnabledCacheConfiguration = cacheConfiguration.enableTtiExpiration();
+		RedisCacheConfiguration ttiEnabledCacheConfiguration = cacheConfiguration.enableTimeToIdle();
 
 		assertThat(ttiEnabledCacheConfiguration).isNotNull();
 		assertThat(ttiEnabledCacheConfiguration).isNotSameAs(cacheConfiguration);
-		assertThat(ttiEnabledCacheConfiguration.isTtiExpirationEnabled()).isTrue();
+		assertThat(ttiEnabledCacheConfiguration.isTimeToIdleEnabled()).isTrue();
 	}
 
 	private static class DomainType {

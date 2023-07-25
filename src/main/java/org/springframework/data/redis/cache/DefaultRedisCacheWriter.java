@@ -124,6 +124,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
+	public byte[] get(String name, byte[] key) {
+		return get(name, key, null);
+	}
+
+	@Override
 	public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
 
 		Assert.notNull(name, "Name must not be null");

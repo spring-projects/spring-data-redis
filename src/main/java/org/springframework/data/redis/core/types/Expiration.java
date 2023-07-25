@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link Expiration} holds a {@link Long numeric value} with an associated {@link TimeUnit}.
@@ -236,7 +237,7 @@ public class Expiration {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getExpirationTime(), getTimeUnit());
+		return ObjectUtils.nullSafeHashCode(new Object[] { getExpirationTime(), getTimeUnit() });
 	}
 
 	/**
