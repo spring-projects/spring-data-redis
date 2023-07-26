@@ -127,7 +127,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 
 			Assert.notNull(tuple, "SerializationPair must not be null");
 
-			this.hashValueTuple = tuple;
+			this.stringTuple = tuple;
 			return this;
 		}
 

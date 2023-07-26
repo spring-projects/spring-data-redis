@@ -15,11 +15,13 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * Unit tests for {@link RedisSerializationContext}.
@@ -135,6 +137,48 @@ class RedisSerializationContextUnitTests {
 						.write("hello".getBytes()));
 
 		assertThat(deserialized).isEqualTo("hello".getBytes());
+	}
+
+	@Test
+	void shouldEncodeAndDecodeUtf8StringValue() {
+		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
+				.<String, String>newSerializationContext(StringRedisSerializer.UTF_8)
+				.string(StringRedisSerializer.UTF_8)
+				.build();
+		RedisSerializationContext.SerializationPair<String> serializationPair = serializationContext.getStringSerializationPair();
+
+		assertThat(serializationPair.write("üßØ"))
+				.isEqualTo(ByteBuffer.wrap("üßØ".getBytes(StandardCharsets.UTF_8)));
+		assertThat(serializationPair.read(ByteBuffer.wrap("üßØ".getBytes(StandardCharsets.UTF_8))))
+				.isEqualTo("üßØ");
+	}
+
+	@Test
+	void shouldEncodeAndDecodeAsciiStringValue() {
+		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
+				.<String, String>newSerializationContext(StringRedisSerializer.US_ASCII)
+				.string(StringRedisSerializer.US_ASCII)
+				.build();
+		RedisSerializationContext.SerializationPair<String> serializationPair = serializationContext.getStringSerializationPair();
+
+		assertThat(serializationPair.write("üßØ"))
+				.isEqualTo(ByteBuffer.wrap("???".getBytes(StandardCharsets.US_ASCII)));
+		assertThat(serializationPair.read(ByteBuffer.wrap("üßØ".getBytes(StandardCharsets.US_ASCII))))
+				.isEqualTo("???");
+	}
+
+	@Test
+	void shouldEncodeAndDecodeIso88591StringValue() {
+		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
+				.<String, String>newSerializationContext(StringRedisSerializer.ISO_8859_1)
+				.string(StringRedisSerializer.ISO_8859_1)
+				.build();
+		RedisSerializationContext.SerializationPair<String> serializationPair = serializationContext.getStringSerializationPair();
+
+		assertThat(serializationPair.write("üßØ"))
+				.isEqualTo(ByteBuffer.wrap("üßØ".getBytes(StandardCharsets.ISO_8859_1)));
+		assertThat(serializationPair.read(ByteBuffer.wrap("üßØ".getBytes(StandardCharsets.ISO_8859_1))))
+				.isEqualTo("üßØ");
 	}
 
 	private RedisSerializationContext<String, Long> createSerializationContext() {
