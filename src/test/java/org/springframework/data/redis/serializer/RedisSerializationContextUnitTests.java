@@ -20,14 +20,14 @@ import org.junit.jupiter.api.Test;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Unit tests for {@link RedisSerializationContext}.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Zhou KQ
  */
 class RedisSerializationContextUnitTests {
 
