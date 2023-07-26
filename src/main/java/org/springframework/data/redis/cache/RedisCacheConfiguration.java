@@ -218,6 +218,8 @@ public class RedisCacheConfiguration {
 	 * is applied to all {@link Cache} operations, both read and write alike, and {@link Cache} operations passed with
 	 * expiration are used consistently across the application, then in effect, an application can achieve
 	 * {@literal TTI} expiration-like behavior.
+	 * <p>
+	 * Requires Redis 6.2.0 or newer.
 	 *
 	 * @return this {@link RedisCacheConfiguration}.
 	 * @see <a href="https://redis.io/commands/getex/">GETEX</a>

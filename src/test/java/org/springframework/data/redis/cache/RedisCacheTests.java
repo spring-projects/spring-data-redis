@@ -15,10 +15,11 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.awaitility.Awaitility.*;
+
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -38,7 +39,6 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -52,8 +52,6 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -98,21 +96,6 @@ public class RedisCacheTests {
 		doWithConnection(RedisConnection::flushAll);
 
 		this.cache = new RedisCache("cache", usingRedisCacheWriter(), usingRedisCacheConfiguration());
-	}
-
-	private RedisCacheWriter usingRedisCacheWriter() {
-		return RedisCacheWriter.nonLockingRedisCacheWriter(this.connectionFactory);
-	}
-
-	private RedisCacheConfiguration usingRedisCacheConfiguration() {
-		return usingRedisCacheConfiguration(Function.identity());
-	}
-
-	private RedisCacheConfiguration usingRedisCacheConfiguration(
-			Function<RedisCacheConfiguration, RedisCacheConfiguration> customizer) {
-
-		return customizer.apply(RedisCacheConfiguration.defaultCacheConfig()
-				.serializeValuesWith(SerializationPair.fromSerializer(this.serializer)));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-481
@@ -554,7 +537,7 @@ public class RedisCacheTests {
 	@ParameterizedRedisTest // GH-2351
 	void cacheGetWithTimeToIdleExpirationWhenEntryNotExpiredShouldReturnValue() {
 
-		doWithConnection(connection -> connection.set(this.binaryCacheKey, this.binarySample));
+		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
 
 		RedisCache cache = new RedisCache("cache", usingRedisCacheWriter(),
 				usingRedisCacheConfiguration(withTtiExpiration()));
@@ -562,6 +545,7 @@ public class RedisCacheTests {
 		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
 
 		for (int count = 0; count < 5; count++) {
+
 			await().atMost(Duration.ofMillis(100));
 			assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
 		}
@@ -571,7 +555,7 @@ public class RedisCacheTests {
 	@ParameterizedRedisTest // GH-2351
 	void cacheGetWithTimeToIdleExpirationAfterEntryExpiresShouldReturnNull() {
 
-		doWithConnection(connection -> connection.set(this.binaryCacheKey, this.binarySample));
+		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
 
 		RedisCache cache = new RedisCache("cache", usingRedisCacheWriter(),
 				usingRedisCacheConfiguration(withTtiExpiration()));
@@ -586,6 +570,21 @@ public class RedisCacheTests {
 	@Nullable
 	private Object unwrap(@Nullable Object value) {
 		return value instanceof ValueWrapper wrapper ? wrapper.get() : value;
+	}
+
+	private RedisCacheWriter usingRedisCacheWriter() {
+		return RedisCacheWriter.nonLockingRedisCacheWriter(this.connectionFactory);
+	}
+
+	private RedisCacheConfiguration usingRedisCacheConfiguration() {
+		return usingRedisCacheConfiguration(Function.identity());
+	}
+
+	private RedisCacheConfiguration usingRedisCacheConfiguration(
+			Function<RedisCacheConfiguration, RedisCacheConfiguration> customizer) {
+
+		return customizer.apply(RedisCacheConfiguration.defaultCacheConfig()
+				.serializeValuesWith(SerializationPair.fromSerializer(this.serializer)));
 	}
 
 	private Function<RedisCacheConfiguration, RedisCacheConfiguration> withTtiExpiration() {
