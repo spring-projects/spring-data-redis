@@ -48,6 +48,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
@@ -549,6 +550,7 @@ public class RedisCacheTests {
 		assertThat(retrievals).hasValue(1);
 	}
 
+	@EnabledOnCommand("GETEX")
 	@ParameterizedRedisTest // GH-2351
 	void cacheGetWithTimeToIdleExpirationWhenEntryNotExpiredShouldReturnValue() {
 
@@ -565,6 +567,7 @@ public class RedisCacheTests {
 		}
 	}
 
+	@EnabledOnCommand("GETEX")
 	@ParameterizedRedisTest // GH-2351
 	void cacheGetWithTimeToIdleExpirationAfterEntryExpiresShouldReturnNull() {
 
