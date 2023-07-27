@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -67,10 +66,10 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	/**
 	 * Factory method returning a {@literal Builder} used to construct and configure a {@link RedisCacheManager}
-	 * using the given {@link RedisCacheWriter}.
+	 * initialized with the given {@link RedisCacheWriter}.
 	 *
-	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing
-	 * appropriate Redis commands; must not be {@literal null}.
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
+	 * by executing appropriate Redis commands; must not be {@literal null}.
 	 * @return new {@link RedisCacheManagerBuilder}.
 	 * @throws IllegalArgumentException if the given {@link RedisCacheWriter} is {@literal null}.
 	 * @see org.springframework.data.redis.cache.RedisCacheWriter
@@ -84,7 +83,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	/**
 	 * Factory method returning a {@literal Builder} used to construct and configure a {@link RedisCacheManager}
-	 * using the given {@link RedisConnectionFactory}.
+	 * initialized with the given {@link RedisConnectionFactory}.
 	 *
 	 * @param connectionFactory {@link RedisConnectionFactory} used by the {@link RedisCacheManager}
 	 * to acquire connections to Redis when performing {@link RedisCache} operations; must not be {@literal null}.
@@ -100,8 +99,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	/**
-	 * Factory method used to construct a new {@link RedisCacheManager} using the given {@link RedisConnectionFactory}
-	 * with caching defaults applied.
+	 * Factory method used to construct a new {@link RedisCacheManager} initialized with
+	 * the given {@link RedisConnectionFactory} and using the defaults for caching.
 	 *
 	 * <dl>
 	 * <dt>locking</dt>
@@ -143,8 +142,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
 	 * and a default {@link RedisCacheConfiguration}.
-	 *
-	 * Allows cache creation at runtime.
+	 * <p>
+	 * Allows {@link RedisCache cache} creation at runtime.
 	 *
 	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
 	 * by executing appropriate Redis commands; must not be {@literal null}.
@@ -161,13 +160,13 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	/**
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
-	 * and a default {@link RedisCacheConfiguration}, and whether to allow cache creation at runtime.
+	 * and default {@link RedisCacheConfiguration}, and whether to allow cache creation at runtime.
 	 *
 	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
 	 * by executing appropriate Redis commands; must not be {@literal null}.
 	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
 	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
-	 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+	 * @param allowRuntimeCacheCreation boolean specifying whether to allow creation of undeclared caches at runtime;
 	 * {@literal true} by default. Maybe just use {@link RedisCacheConfiguration#defaultCacheConfig()}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
 	 * are {@literal null}.
@@ -190,8 +189,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
 	 * and a default {@link RedisCacheConfiguration}, along with an optional, initial set of {@link String cache names}
 	 * used to create {@link RedisCache Redis caches} on startup.
-	 *
-	 * Allows cache creation at runtime.
+	 * <p>
+	 * Allows {@link RedisCache cache} creation at runtime.
 	 *
 	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
 	 * by executing appropriate Redis commands; must not be {@literal null}.
@@ -213,15 +212,15 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
 	 * and default {@link RedisCacheConfiguration}, and whether to allow cache creation at runtime.
-	 *
-	 * Additionally, the optional, initial set of {@link String cache names} witll be used to create
+	 * <p>
+	 * Additionally, the optional, initial set of {@link String cache names} will be used to create
 	 * {@link RedisCache Redis caches} on startup.
 	 *
 	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
 	 * by executing appropriate Redis commands; must not be {@literal null}.
 	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
 	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
-	 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+	 * @param allowRuntimeCacheCreation boolean specifying whether to allow creation of undeclared caches at runtime;
 	 * {@literal true} by default. Maybe just use {@link RedisCacheConfiguration#defaultCacheConfig()}.
 	 * @param initialCacheNames optional set of {@link String cache names} used to create {@link RedisCache Redis caches}
 	 * on startup. The default {@link RedisCacheConfiguration} will be applied to each cache.
@@ -244,11 +243,11 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Creates new {@link RedisCacheManager} using given {@link RedisCacheWriter} and default
 	 * {@link RedisCacheConfiguration}.
-	 *
+	 * <p>
 	 * Additionally, an initial {@link RedisCache} will be created and configured using the associated
 	 * {@link RedisCacheConfiguration} for each {@link String named} {@link RedisCache} in the given {@link Map}.
-	 *
-	 * Allows cache creation at runtime.
+	 * <p>
+	 * Allows {@link RedisCache cache} creation at runtime.
 	 *
 	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
 	 * by executing appropriate Redis commands; must not be {@literal null}.
@@ -271,7 +270,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Creates a new {@link RedisCacheManager} initialized with the given {@link RedisCacheWriter}
 	 * and a default {@link RedisCacheConfiguration}, and whether to allow {@link RedisCache} creation at runtime.
-	 *
+	 * <p>
 	 * Additionally, an initial {@link RedisCache} will be created and configured using the associated
 	 * {@link RedisCacheConfiguration} for each {@link String named} {@link RedisCache} in the given {@link Map}.
 	 *
@@ -279,11 +278,11 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * by executing appropriate Redis commands; must not be {@literal null}.
 	 * @param defaultCacheConfiguration {@link RedisCacheConfiguration} applied to new {@link RedisCache Redis caches}
 	 * by default when no cache-specific {@link RedisCacheConfiguration} is provided; must not be {@literal null}.
-	 * @param allowRuntimeCacheCreation boolean to allow creation of undeclared caches at runtime;
+	 * @param allowRuntimeCacheCreation boolean specifying whether to allow creation of undeclared caches at runtime;
 	 * {@literal true} by default. Maybe just use {@link RedisCacheConfiguration#defaultCacheConfig()}.
-	 * @param initialCacheConfigurations {@link Map} of declared, known {@link String cache names} along with associated
-	 * {@link RedisCacheConfiguration} used to create and configure {@link RedisCache Redis caches} on startup;
-	 * must not be {@literal null}.
+	 * @param initialCacheConfigurations {@link Map} of declared, known {@link String cache names} along with
+	 * the associated {@link RedisCacheConfiguration} used to create and configure {@link RedisCache Redis caches}
+	 * on startup; must not be {@literal null}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
 	 * are {@literal null}.
 	 * @see org.springframework.data.redis.cache.RedisCacheConfiguration
@@ -333,7 +332,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		getCacheNames().forEach(cacheName -> {
 			RedisCache cache = (RedisCache) lookupCache(cacheName);
-			cacheConfigurationMap.put(cacheName, cache != null ? cache.getCacheConfiguration() : null);
+			RedisCacheConfiguration cacheConfiguration = cache != null ? cache.getCacheConfiguration() : null;
+			cacheConfigurationMap.put(cacheName, cacheConfiguration);
 		});
 
 		return Collections.unmodifiableMap(cacheConfigurationMap);
@@ -381,7 +381,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		return getInitialCacheConfiguration().entrySet().stream()
 			.map(entry -> createRedisCache(entry.getKey(), entry.getValue()))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private RedisCacheConfiguration resolveCacheConfiguration(@Nullable RedisCacheConfiguration cacheConfiguration) {
@@ -462,10 +462,10 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		}
 
 		/**
-		 * Disable {@link RedisCache} creation at runtime for unconfigured, undeclared caches.
-		 *
-		 * {@link RedisCacheManager#getMissingCache(String)} returns {@literal null} for any unconfigured {@link Cache}
-		 * instead of a new {@link RedisCache} instance. This allows the
+		 * Disable {@link RedisCache} creation at runtime for non-configured, undeclared caches.
+		 * <p>
+		 * {@link RedisCacheManager#getMissingCache(String)} returns {@literal null} for any non-configured, undeclared
+		 * {@link Cache} instead of a new {@link RedisCache} instance. This allows the
 		 * {@link org.springframework.cache.support.CompositeCacheManager} to participate.
 		 *
 		 * @return this {@link RedisCacheManagerBuilder}.
