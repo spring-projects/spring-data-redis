@@ -17,8 +17,6 @@ package org.springframework.data.redis.connection;
 
 import java.io.Serializable;
 
-import org.springframework.lang.Nullable;
-
 /**
  * Class encapsulating a Redis message body and its properties.
  *

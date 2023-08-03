@@ -671,7 +671,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (wasListening) {
 				CompletableFuture<Void> future = new CompletableFuture<>();
 
-				getRequiredSubscriber().addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronizion(patterns,
+				getRequiredSubscriber().addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns,
 						channels, () -> future.complete(null)));
 				getRequiredSubscriber().subscribeChannel(channels.toArray(new byte[channels.size()][]));
 				getRequiredSubscriber().subscribePattern(patterns.toArray(new byte[patterns.size()][]));
@@ -1212,7 +1212,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void eventuallyPerformSubscription(RedisConnection connection, BackOffExecution backOffExecution,
 				CompletableFuture<Void> subscriptionDone, Collection<byte[]> patterns, Collection<byte[]> channels) {
 
-			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronizion(patterns, channels,
+			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
 					() -> subscriptionDone.complete(null)));
 
 			doSubscribe(connection, patterns, channels);
@@ -1240,7 +1240,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		}
 
-		void addSynchronization(SynchronizingMessageListener.SubscriptionSynchronizion synchronizer) {
+		void addSynchronization(SynchronizingMessageListener.SubscriptionSynchronization synchronizer) {
 			this.synchronizingMessageListener.addSynchronization(synchronizer);
 		}
 
@@ -1413,7 +1413,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				initiallySubscribeToChannels = Collections.emptySet();
 				// perform channel subscription later as the first call to (p)subscribe blocks the client
 				addSynchronization(
-						new SynchronizingMessageListener.SubscriptionSynchronizion(patterns, Collections.emptySet(), () -> {
+						new SynchronizingMessageListener.SubscriptionSynchronization(patterns, Collections.emptySet(), () -> {
 							try {
 								subscribeChannel(channels.toArray(new byte[0][]));
 							} catch (Exception e) {
@@ -1424,7 +1424,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				initiallySubscribeToChannels = channels;
 			}
 
-			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronizion(patterns, channels,
+			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
 					() -> subscriptionDone.complete(null)));
 
 			executor.execute(() -> {
