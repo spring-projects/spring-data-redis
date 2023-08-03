@@ -58,7 +58,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createFlux(connection -> connection.lRange(rawKey(key), start, end).map(this::readValue));
+		return createFlux(listCommands -> listCommands.lRange(rawKey(key), start, end).map(this::readValue));
 	}
 
 	@Override
@@ -66,7 +66,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lTrim(rawKey(key), start, end));
+		return createMono(listCommands -> listCommands.lTrim(rawKey(key), start, end));
 	}
 
 	@Override
@@ -74,7 +74,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lLen(rawKey(key)));
+		return createMono(listCommands -> listCommands.lLen(rawKey(key)));
 	}
 
 	@Override
@@ -97,10 +97,10 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notEmpty(values, "Values must not be null or empty");
 
-		return createMono(connection -> Flux.fromIterable(values) //
+		return createMono(listCommands -> Flux.fromIterable(values) //
 				.map(this::rawValue) //
 				.collectList() //
-				.flatMap(serialized -> connection.lPush(rawKey(key), serialized)));
+				.flatMap(serialized -> listCommands.lPush(rawKey(key), serialized)));
 	}
 
 	@Override
@@ -108,7 +108,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lPushX(rawKey(key), rawValue(value)));
+		return createMono(listCommands -> listCommands.lPushX(rawKey(key), rawValue(value)));
 	}
 
 	@Override
@@ -116,7 +116,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
+		return createMono(listCommands ->
+				listCommands.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
 	}
 
 	@Override
@@ -139,10 +140,10 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notEmpty(values, "Values must not be null or empty");
 
-		return createMono(connection -> Flux.fromIterable(values) //
+		return createMono(listCommands -> Flux.fromIterable(values) //
 				.map(this::rawValue) //
 				.collectList() //
-				.flatMap(serialized -> connection.rPush(rawKey(key), serialized)));
+				.flatMap(serialized -> listCommands.rPush(rawKey(key), serialized)));
 	}
 
 	@Override
@@ -150,7 +151,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.rPushX(rawKey(key), rawValue(value)));
+		return createMono(listCommands -> listCommands.rPushX(rawKey(key), rawValue(value)));
 	}
 
 	@Override
@@ -158,7 +159,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
+		return createMono(listCommands ->
+				listCommands.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
 	}
 
 	@Override
@@ -169,8 +171,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(from, "From direction must not be null");
 		Assert.notNull(to, "To direction must not be null");
 
-		return createMono(
-				connection -> connection.lMove(rawKey(sourceKey), rawKey(destinationKey), from, to).map(this::readValue));
+		return createMono(listCommands ->
+				listCommands.lMove(rawKey(sourceKey), rawKey(destinationKey), from, to).map(this::readValue));
 	}
 
 	@Override
@@ -182,8 +184,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(to, "To direction must not be null");
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		return createMono(connection -> connection.bLMove(rawKey(sourceKey), rawKey(destinationKey), from, to, timeout)
-				.map(this::readValue));
+		return createMono(listCommands ->
+				listCommands.bLMove(rawKey(sourceKey), rawKey(destinationKey), from, to, timeout).map(this::readValue));
 	}
 
 	@Override
@@ -191,7 +193,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lSet(rawKey(key), index, rawValue(value)));
+		return createMono(listCommands -> listCommands.lSet(rawKey(key), index, rawValue(value)));
 	}
 
 	@Override
@@ -200,7 +202,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lRem(rawKey(key), count, rawValue((V) value)));
+		return createMono(listCommands -> listCommands.lRem(rawKey(key), count, rawValue((V) value)));
 	}
 
 	@Override
@@ -208,7 +210,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lIndex(rawKey(key), index).map(this::readValue));
+		return createMono(listCommands -> listCommands.lIndex(rawKey(key), index).map(this::readValue));
 	}
 
 	@Override
@@ -216,7 +218,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lPos(rawKey(key), rawValue(value)));
+		return createMono(listCommands -> listCommands.lPos(rawKey(key), rawValue(value)));
 	}
 
 	@Override
@@ -224,7 +226,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
+		return createMono(listCommands ->
+				listCommands.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
 	}
 
 	@Override
@@ -232,7 +235,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.lPop(rawKey(key)).map(this::readValue));
+		return createMono(listCommands -> listCommands.lPop(rawKey(key)).map(this::readValue));
 
 	}
 
@@ -243,8 +246,9 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(timeout, "Duration must not be null");
 		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
-		return createMono(connection -> connection.blPop(Collections.singletonList(rawKey(key)), timeout)
-				.map(popResult -> readValue(popResult.getValue())));
+		return createMono(listCommands ->
+				listCommands.blPop(Collections.singletonList(rawKey(key)), timeout)
+						.map(popResult -> readValue(popResult.getValue())));
 	}
 
 	@Override
@@ -252,7 +256,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.rPop(rawKey(key)).map(this::readValue));
+		return createMono(listCommands -> listCommands.rPop(rawKey(key)).map(this::readValue));
 	}
 
 	@Override
@@ -262,8 +266,9 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(timeout, "Duration must not be null");
 		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
-		return createMono(connection -> connection.brPop(Collections.singletonList(rawKey(key)), timeout)
-				.map(popResult -> readValue(popResult.getValue())));
+		return createMono(listCommands ->
+				listCommands.brPop(Collections.singletonList(rawKey(key)), timeout)
+						.map(popResult -> readValue(popResult.getValue())));
 	}
 
 	@Override
@@ -272,8 +277,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(destinationKey, "Destination key must not be null");
 
-		return createMono(
-				connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey)).map(this::readValue));
+		return createMono(listCommands ->
+				listCommands.rPopLPush(rawKey(sourceKey), rawKey(destinationKey)).map(this::readValue));
 	}
 
 	@Override
@@ -284,8 +289,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(timeout, "Duration must not be null");
 		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
-		return createMono(
-				connection -> connection.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
+		return createMono(listCommands ->
+				listCommands.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
 	}
 
 	@Override
