@@ -68,7 +68,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(point, "Point must not be null");
 		Assert.notNull(member, "Member must not be null");
 
-		return createMono(connection -> connection.geoAdd(rawKey(key), point, rawValue(member)));
+		return createMono(geoCommands -> geoCommands.geoAdd(rawKey(key), point, rawValue(member)));
 	}
 
 	@Override
@@ -77,7 +77,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(location, "GeoLocation must not be null");
 
-		return createMono(connection -> connection.geoAdd(rawKey(key),
+		return createMono(geoCommands -> geoCommands.geoAdd(rawKey(key),
 				new GeoLocation<>(rawValue(location.getName()), location.getPoint())));
 	}
 
@@ -87,13 +87,13 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null");
 
-		return createMono(connection -> {
+		return createMono(geoCommands -> {
 
 			Mono<List<GeoLocation<ByteBuffer>>> serializedList = Flux
 					.fromIterable(() -> memberCoordinateMap.entrySet().iterator())
 					.map(entry -> new GeoLocation<>(rawValue(entry.getKey()), entry.getValue())).collectList();
 
-			return serializedList.flatMap(list -> connection.geoAdd(rawKey(key), list));
+			return serializedList.flatMap(list -> geoCommands.geoAdd(rawKey(key), list));
 		});
 	}
 
@@ -103,12 +103,12 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(geoLocations, "GeoLocations must not be null");
 
-		return createMono(connection -> {
+		return createMono(geoCommands -> {
 
 			Mono<List<GeoLocation<ByteBuffer>>> serializedList = Flux.fromIterable(geoLocations)
 					.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint())).collectList();
 
-			return serializedList.flatMap(list -> connection.geoAdd(rawKey(key), list));
+			return serializedList.flatMap(list -> geoCommands.geoAdd(rawKey(key), list));
 		});
 	}
 
@@ -118,11 +118,11 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(locations, "Locations must not be null");
 
-		return createFlux(connection -> Flux.from(locations)
+		return createFlux(geoCommands -> Flux.from(locations)
 				.map(locationList -> locationList.stream()
 						.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint()))
 						.collect(Collectors.toList()))
-				.flatMap(list -> connection.geoAdd(rawKey(key), list)));
+				.flatMap(list -> geoCommands.geoAdd(rawKey(key), list)));
 	}
 
 	@Override
@@ -132,7 +132,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(member1, "Member 1 must not be null");
 		Assert.notNull(member2, "Member 2 must not be null");
 
-		return createMono(connection -> connection.geoDist(rawKey(key), rawValue(member1), rawValue(member2)));
+		return createMono(geoCommands -> geoCommands.geoDist(rawKey(key), rawValue(member1), rawValue(member2)));
 	}
 
 	@Override
@@ -143,7 +143,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(member2, "Member 2 must not be null");
 		Assert.notNull(metric, "Metric must not be null");
 
-		return createMono(connection -> connection.geoDist(rawKey(key), rawValue(member1), rawValue(member2), metric));
+		return createMono(geoCommands -> geoCommands.geoDist(rawKey(key), rawValue(member1), rawValue(member2), metric));
 	}
 
 	@Override
@@ -152,7 +152,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
 
-		return createMono(connection -> connection.geoHash(rawKey(key), rawValue(member)));
+		return createMono(geoCommands -> geoCommands.geoHash(rawKey(key), rawValue(member)));
 	}
 
 	@Override
@@ -163,10 +163,10 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notEmpty(members, "Members must not be null or empty");
 		Assert.noNullElements(members, "Members must not contain null elements");
 
-		return createMono(connection -> Flux.fromArray(members) //
+		return createMono(geoCommands -> Flux.fromArray(members) //
 				.map(this::rawValue) //
 				.collectList() //
-				.flatMap(serialized -> connection.geoHash(rawKey(key), serialized)));
+				.flatMap(serialized -> geoCommands.geoHash(rawKey(key), serialized)));
 	}
 
 	@Override
@@ -175,7 +175,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
 
-		return createMono(connection -> connection.geoPos(rawKey(key), rawValue(member)));
+		return createMono(geoCommands -> geoCommands.geoPos(rawKey(key), rawValue(member)));
 	}
 
 	@Override
@@ -186,10 +186,10 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notEmpty(members, "Members must not be null or empty");
 		Assert.noNullElements(members, "Members must not contain null elements");
 
-		return createMono(connection -> Flux.fromArray(members) //
+		return createMono(geoCommands -> Flux.fromArray(members) //
 				.map(this::rawValue) //
 				.collectList() //
-				.flatMap(serialized -> connection.geoPos(rawKey(key), serialized)));
+				.flatMap(serialized -> geoCommands.geoPos(rawKey(key), serialized)));
 	}
 
 	@Override
@@ -198,7 +198,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(within, "Circle must not be null");
 
-		return createFlux(connection -> connection.geoRadius(rawKey(key), within).map(this::readGeoResult));
+		return createFlux(geoCommands -> geoCommands.geoRadius(rawKey(key), within).map(this::readGeoResult));
 	}
 
 	@Override
@@ -208,7 +208,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(within, "Circle must not be null");
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null");
 
-		return createFlux(connection -> connection.geoRadius(rawKey(key), within, args) //
+		return createFlux(geoCommands -> geoCommands.geoRadius(rawKey(key), within, args) //
 				.map(this::readGeoResult));
 	}
 
@@ -218,8 +218,9 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
 
-		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
-				.map(this::readGeoResult));
+		return createFlux(geoCommands ->
+				geoCommands.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
+					.map(this::readGeoResult));
 	}
 
 	@Override
@@ -229,7 +230,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(member, "Member must not be null");
 		Assert.notNull(distance, "Distance must not be null");
 
-		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
+		return createFlux(geoCommands -> geoCommands.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
 				.map(this::readGeoResult));
 	}
 
@@ -241,7 +242,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(distance, "Distance must not be null");
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null");
 
-		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args))
+		return createFlux(geoCommands -> geoCommands.geoRadiusByMember(rawKey(key), rawValue(member), distance, args))
 				.map(this::readGeoResult);
 	}
 
@@ -308,8 +309,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	@SuppressWarnings("unchecked")
 	private GeoReference<ByteBuffer> getGeoReference(GeoReference<V> reference) {
 		return reference instanceof GeoReference.GeoMemberReference
-				? GeoReference
-						.fromMember(rawValue(((GeoMemberReference<V>) reference).getMember()))
+				? GeoReference.fromMember(rawValue(((GeoMemberReference<V>) reference).getMember()))
 				: (GeoReference<ByteBuffer>) reference;
 	}
 
@@ -327,7 +327,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 	private GeoResult<GeoLocation<V>> readGeoResult(GeoResult<GeoLocation<ByteBuffer>> source) {
 
-		return new GeoResult<>(new GeoLocation(readValue(source.getContent().getName()), source.getContent().getPoint()),
+		return new GeoResult<>(new GeoLocation<>(readValue(source.getContent().getName()), source.getContent().getPoint()),
 				source.getDistance());
 	}
 }

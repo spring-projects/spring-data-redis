@@ -53,10 +53,10 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 		Assert.notEmpty(values, "Values must not be null or empty");
 		Assert.noNullElements(values, "Values must not contain null elements");
 
-		return createMono(connection -> Flux.fromArray(values) //
+		return createMono(hyperLogLogCommands -> Flux.fromArray(values) //
 				.map(this::rawValue) //
 				.collectList() //
-				.flatMap(serializedValues -> connection.pfAdd(rawKey(key), serializedValues)));
+				.flatMap(serializedValues -> hyperLogLogCommands.pfAdd(rawKey(key), serializedValues)));
 	}
 
 	@Override
@@ -66,10 +66,10 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 		Assert.notEmpty(keys, "Keys must not be null or empty");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
-		return createMono(connection -> Flux.fromArray(keys) //
+		return createMono(hyperLogLogCommands -> Flux.fromArray(keys) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMap(connection::pfCount));
+				.flatMap(hyperLogLogCommands::pfCount));
 	}
 
 	@Override
@@ -80,10 +80,10 @@ class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogO
 		Assert.notEmpty(sourceKeys, "Source keys must not be null or empty");
 		Assert.noNullElements(sourceKeys, "Source keys must not contain null elements");
 
-		return createMono(connection -> Flux.fromArray(sourceKeys) //
+		return createMono(hyperLogLogCommands -> Flux.fromArray(sourceKeys) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMap(serialized -> connection.pfMerge(rawKey(destination), serialized)));
+				.flatMap(serialized -> hyperLogLogCommands.pfMerge(rawKey(destination), serialized)));
 	}
 
 	@Override
