@@ -81,7 +81,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 				if (objectMapper.isSimpleType(targetType) || ClassUtils.isAssignable(ByteBuffer.class, targetType)) {
 
-					return new HashMapper<Object, Object, Object>() {
+					return new HashMapper<>() {
 
 						@Override
 						public Map<Object, Object> toHash(Object object) {
@@ -101,7 +101,9 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 						@Override
 						public Object fromHash(Map<Object, Object> hash) {
+
 							Object value = hash.values().iterator().next();
+
 							if (ClassUtils.isAssignableValue(targetType, value)) {
 								return value;
 							}
@@ -130,7 +132,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(recordIds, "MessageIds must not be null");
 		Assert.notEmpty(recordIds, "MessageIds must not be empty");
 
-		return createMono(connection -> connection.xAck(rawKey(key), group, recordIds));
+		return createMono(streamCommands -> streamCommands.xAck(rawKey(key), group, recordIds));
 	}
 
 	@Override
@@ -141,13 +143,13 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
 
-		return createMono(connection -> connection.xAdd(serializeRecord(input)));
+		return createMono(streamCommands -> streamCommands.xAdd(serializeRecord(input)));
 	}
 
 	@Override
 	public Flux<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions) {
 
-		return createFlux(connection -> connection.xClaim(rawKey(key), consumerGroup, newOwner, xClaimOptions)
+		return createFlux(streamCommands -> streamCommands.xClaim(rawKey(key), consumerGroup, newOwner, xClaimOptions)
 				.map(this::deserializeRecord));
 	}
 
@@ -157,7 +159,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(recordIds, "MessageIds must not be null");
 
-		return createMono(connection -> connection.xDel(rawKey(key), recordIds));
+		return createMono(streamCommands -> streamCommands.xDel(rawKey(key), recordIds));
 	}
 
 	@Override
@@ -167,7 +169,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(readOffset, "ReadOffset must not be null");
 		Assert.notNull(group, "Group must not be null");
 
-		return createMono(connection -> connection.xGroupCreate(rawKey(key), group, readOffset, true));
+		return createMono(streamCommands -> streamCommands.xGroupCreate(rawKey(key), group, readOffset, true));
 	}
 
 	@Override
@@ -176,7 +178,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(consumer, "Consumer must not be null");
 
-		return createMono(connection -> connection.xGroupDelConsumer(rawKey(key), consumer));
+		return createMono(streamCommands -> streamCommands.xGroupDelConsumer(rawKey(key), consumer));
 	}
 
 	@Override
@@ -185,7 +187,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(group, "Group must not be null");
 
-		return createMono(connection -> connection.xGroupDestroy(rawKey(key), group));
+		return createMono(streamCommands -> streamCommands.xGroupDestroy(rawKey(key), group));
 	}
 
 	@Override
@@ -194,7 +196,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(group, "Group must not be null");
 
-		return createFlux(connection -> connection.xInfoConsumers(rawKey(key), group));
+		return createFlux(streamCommands -> streamCommands.xInfoConsumers(rawKey(key), group));
 	}
 
 	@Override
@@ -202,7 +204,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.xInfo(rawKey(key)));
+		return createMono(streamCommands -> streamCommands.xInfo(rawKey(key)));
 	}
 
 	@Override
@@ -210,28 +212,31 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createFlux(connection -> connection.xInfoGroups(rawKey(key)));
+		return createFlux(streamCommands -> streamCommands.xInfoGroups(rawKey(key)));
 	}
 
 	@Override
 	public Mono<PendingMessages> pending(K key, String group, Range<?> range, long count) {
 
 		ByteBuffer rawKey = rawKey(key);
-		return createMono(connection -> connection.xPending(rawKey, group, range, count));
+
+		return createMono(streamCommands -> streamCommands.xPending(rawKey, group, range, count));
 	}
 
 	@Override
 	public Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, long count) {
 
 		ByteBuffer rawKey = rawKey(key);
-		return createMono(connection -> connection.xPending(rawKey, consumer, range, count));
+
+		return createMono(streamCommands -> streamCommands.xPending(rawKey, consumer, range, count));
 	}
 
 	@Override
 	public Mono<PendingMessagesSummary> pending(K key, String group) {
 
 		ByteBuffer rawKey = rawKey(key);
-		return createMono(connection -> connection.xPending(rawKey, group));
+
+		return createMono(streamCommands -> streamCommands.xPending(rawKey, group));
 	}
 
 	@Override
@@ -239,7 +244,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.xLen(rawKey(key)));
+		return createMono(streamCommands -> streamCommands.xLen(rawKey(key)));
 	}
 
 	@Override
@@ -249,35 +254,39 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(connection -> connection.xRange(rawKey(key), range, limit).map(this::deserializeRecord));
+		return createFlux(streamCommands ->
+				streamCommands.xRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Flux<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
 		Assert.notNull(readOptions, "StreamReadOptions must not be null");
 		Assert.notNull(streams, "Streams must not be null");
 
-		return createFlux(connection -> {
+		return createFlux(streamCommands -> {
 
 			StreamOffset<ByteBuffer>[] streamOffsets = rawStreamOffsets(streams);
 
-			return connection.xRead(readOptions, streamOffsets).map(this::deserializeRecord);
+			return streamCommands.xRead(readOptions, streamOffsets).map(this::deserializeRecord);
 		});
 	}
 
 	@Override
-	public Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams) {
+	@SuppressWarnings("unchecked")
+	public Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions,
+			StreamOffset<K>... streams) {
 
 		Assert.notNull(consumer, "Consumer must not be null");
 		Assert.notNull(readOptions, "StreamReadOptions must not be null");
 		Assert.notNull(streams, "Streams must not be null");
 
-		return createFlux(connection -> {
+		return createFlux(streamCommands -> {
 
 			StreamOffset<ByteBuffer>[] streamOffsets = rawStreamOffsets(streams);
 
-			return connection.xReadGroup(consumer, readOptions, streamOffsets).map(this::deserializeRecord);
+			return streamCommands.xReadGroup(consumer, readOptions, streamOffsets).map(this::deserializeRecord);
 		});
 	}
 
@@ -288,7 +297,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(connection -> connection.xRevRange(rawKey(key), range, limit).map(this::deserializeRecord));
+		return createFlux(streamCommands ->
+				streamCommands.xRevRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
 
 	@Override
@@ -300,7 +310,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	public Mono<Long> trim(K key, long count, boolean approximateTrimming) {
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.xTrim(rawKey(key), count, approximateTrimming));
+		return createMono(streamCommands -> streamCommands.xTrim(rawKey(key), count, approximateTrimming));
 	}
 
 	@Override
@@ -333,20 +343,20 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		return serializationContext.getKeySerializationPair().write(key);
 	}
 
-	@SuppressWarnings("unchecked")
 	private ByteBuffer rawHashKey(HK key) {
 		try {
 			return serializationContext.getHashKeySerializationPair().write(key);
-		} catch (IllegalStateException e) {}
+		} catch (IllegalStateException ignore) {}
+
 		return ByteBuffer.wrap(objectMapper.getConversionService().convert(key, byte[].class));
 	}
 
-	@SuppressWarnings("unchecked")
 	private ByteBuffer rawValue(HV value) {
 
 		try {
 			return serializationContext.getHashValueSerializationPair().write(value);
-		} catch (IllegalStateException e) {}
+		} catch (IllegalStateException ignore) {}
+
 		return ByteBuffer.wrap(objectMapper.getConversionService().convert(value, byte[].class));
 	}
 

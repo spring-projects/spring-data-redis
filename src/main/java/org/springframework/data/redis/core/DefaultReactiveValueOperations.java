@@ -60,7 +60,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.set(rawKey(key), rawValue(value)));
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value)));
 	}
 
 	@Override
@@ -69,8 +69,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(timeout, "Duration must not be null");
 
-		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.UPSERT));
+		return createMono(stringCommands ->
+				stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.UPSERT));
 	}
 
 	@Override
@@ -78,8 +78,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_ABSENT));
+		return createMono(stringCommands ->
+				stringCommands.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_ABSENT));
 	}
 
 	@Override
@@ -88,8 +88,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(timeout, "Duration must not be null");
 
-		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_ABSENT));
+		return createMono(stringCommands ->
+				stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_ABSENT));
 	}
 
 	@Override
@@ -97,8 +97,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_PRESENT));
+		return createMono(stringCommands ->
+				stringCommands.set(rawKey(key), rawValue(value), Expiration.persistent(), SetOption.SET_IF_PRESENT));
 	}
 
 	@Override
@@ -107,8 +107,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(timeout, "Duration must not be null");
 
-		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_PRESENT));
+		return createMono(stringCommands ->
+				stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_PRESENT));
 	}
 
 	@Override
@@ -116,12 +116,12 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(map, "Map must not be null");
 
-		return createMono(connection -> {
+		return createMono(stringCommands -> {
 
 			Mono<Map<ByteBuffer, ByteBuffer>> serializedMap = Flux.fromIterable(() -> map.entrySet().iterator())
 					.collectMap(entry -> rawKey(entry.getKey()), entry -> rawValue(entry.getValue()));
 
-			return serializedMap.flatMap(connection::mSet);
+			return serializedMap.flatMap(stringCommands::mSet);
 		});
 	}
 
@@ -130,12 +130,12 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(map, "Map must not be null");
 
-		return createMono(connection -> {
+		return createMono(stringCommands -> {
 
 			Mono<Map<ByteBuffer, ByteBuffer>> serializedMap = Flux.fromIterable(() -> map.entrySet().iterator())
 					.collectMap(entry -> rawKey(entry.getKey()), entry -> rawValue(entry.getValue()));
 
-			return serializedMap.flatMap(connection::mSetNX);
+			return serializedMap.flatMap(stringCommands::mSetNX);
 		});
 	}
 
@@ -145,7 +145,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.get(rawKey((K) key)) //
+		return createMono(stringCommands -> stringCommands.get(rawKey((K) key)) //
 				.map(this::readValue));
 	}
 
@@ -154,7 +154,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.getDel(rawKey(key)) //
+		return createMono(stringCommands -> stringCommands.getDel(rawKey(key)) //
 				.map(this::readValue));
 	}
 
@@ -164,7 +164,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(timeout, "Timeout must not be null");
 
-		return createMono(connection -> connection.getEx(rawKey(key), Expiration.from(timeout)) //
+		return createMono(stringCommands -> stringCommands.getEx(rawKey(key), Expiration.from(timeout)) //
 				.map(this::readValue));
 	}
 
@@ -173,7 +173,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.getEx(rawKey(key), Expiration.persistent()) //
+		return createMono(stringCommands -> stringCommands.getEx(rawKey(key), Expiration.persistent()) //
 				.map(this::readValue));
 	}
 
@@ -182,7 +182,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.getSet(rawKey(key), rawValue(value)).map(value()::read));
+		return createMono(stringCommands -> stringCommands.getSet(rawKey(key), rawValue(value)).map(value()::read));
 	}
 
 	@Override
@@ -190,8 +190,9 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(keys, "Keys must not be null");
 
-		return createMono(connection -> Flux.fromIterable(keys).map(key()::write).collectList().flatMap(connection::mGet)
-				.map(this::deserializeValues));
+		return createMono(stringCommands ->
+				Flux.fromIterable(keys).map(key()::write).collectList().flatMap(stringCommands::mGet)
+						.map(this::deserializeValues));
 	}
 
 	@Override
@@ -240,8 +241,8 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		return createMono(
-				connection -> connection.append(rawKey(key), serializationContext.getStringSerializationPair().write(value)));
+		return createMono(stringCommands ->
+				stringCommands.append(rawKey(key), serializationContext.getStringSerializationPair().write(value)));
 	}
 
 	@Override
@@ -249,7 +250,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.getRange(rawKey(key), start, end) //
+		return createMono(stringCommands -> stringCommands.getRange(rawKey(key), start, end) //
 				.map(stringSerializationPair()::read));
 	}
 
@@ -258,7 +259,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.setRange(rawKey(key), rawValue(value), offset));
+		return createMono(stringCommands -> stringCommands.setRange(rawKey(key), rawValue(value), offset));
 	}
 
 	@Override
@@ -266,7 +267,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.strLen(rawKey(key)));
+		return createMono(stringCommands -> stringCommands.strLen(rawKey(key)));
 	}
 
 	@Override
@@ -274,7 +275,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.setBit(rawKey(key), offset, value));
+		return createMono(stringCommands -> stringCommands.setBit(rawKey(key), offset, value));
 	}
 
 	@Override
@@ -282,7 +283,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.getBit(rawKey(key), offset));
+		return createMono(stringCommands -> stringCommands.getBit(rawKey(key), offset));
 	}
 
 	@Override
@@ -291,7 +292,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(subCommands, "BitFieldSubCommands must not be null");
 
-		return createMono(connection -> connection.bitField(rawKey(key), subCommands));
+		return createMono(stringCommands -> stringCommands.bitField(rawKey(key), subCommands));
 	}
 
 	@Override
