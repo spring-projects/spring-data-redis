@@ -245,7 +245,7 @@ class ParameterizedTestContext {
 
 		@Override
 		public Object resolve(ParameterContext parameterContext, Object[] arguments) {
-			ArgumentsAccessor accessor = new DefaultArgumentsAccessor(arguments);
+			ArgumentsAccessor accessor = new DefaultArgumentsAccessor(parameterContext, 1, arguments);
 			try {
 				return this.argumentsAggregator.aggregateArguments(accessor, parameterContext);
 			} catch (Exception ex) {
