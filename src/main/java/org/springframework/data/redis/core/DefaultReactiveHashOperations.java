@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -127,8 +126,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection //
-				.hashCommands().hRandField(rawKey(key))).map(this::readHashKey);
+		return createMono(hashCommands -> hashCommands.hRandField(rawKey(key))).map(this::readHashKey);
 	}
 
 	@Override
@@ -136,8 +134,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection //
-				.hashCommands().hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
+		return createMono(hashCommands ->hashCommands.hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
 	}
 
 	@Override
@@ -145,8 +142,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateFlux(connection -> connection //
-				.hashCommands().hRandField(rawKey(key), count)).map(this::readHashKey);
+		return createFlux(hashCommands -> hashCommands.hRandField(rawKey(key), count)).map(this::readHashKey);
 	}
 
 	@Override

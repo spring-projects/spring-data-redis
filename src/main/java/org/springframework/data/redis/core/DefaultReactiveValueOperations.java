@@ -28,6 +28,7 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.ReactiveNumberCommands;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
@@ -200,7 +201,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands().incr(rawKey(key)));
+		return createNumericMono(numberCommands -> numberCommands.incr(rawKey(key)));
 	}
 
 	@Override
@@ -208,7 +209,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+		return createNumericMono(numberCommands -> numberCommands.incrBy(rawKey(key), delta));
 	}
 
 	@Override
@@ -216,7 +217,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands().incrBy(rawKey(key), delta));
+		return createNumericMono(numberCommands -> numberCommands.incrBy(rawKey(key), delta));
 	}
 
 	@Override
@@ -224,7 +225,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands().decr(rawKey(key)));
+		return createNumericMono(numberCommands -> numberCommands.decr(rawKey(key)));
 	}
 
 	@Override
@@ -232,7 +233,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands().decrBy(rawKey(key), delta));
+		return createNumericMono(numberCommands -> numberCommands.decrBy(rawKey(key), delta));
 	}
 
 	@Override
@@ -301,6 +302,13 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+	}
+
+	private <T> Mono<T> createNumericMono(Function<ReactiveNumberCommands, Publisher<T>> function) {
+
+		Assert.notNull(function, "Function must not be null");
+
+		return template.doCreateMono(connection -> function.apply(connection.numberCommands()));
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveStringCommands, Publisher<T>> function) {
