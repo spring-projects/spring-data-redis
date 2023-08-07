@@ -26,7 +26,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -276,7 +275,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(reference, "GeoReference must not be null");
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return template.doCreateFlux(connection -> connection.geoCommands()
+		return createFlux(geoCommands -> geoCommands
 				.geoSearch(rawKey(key), rawReference, geoPredicate, args).map(this::readGeoResult));
 	}
 
@@ -288,7 +287,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(reference, "GeoReference must not be null");
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return template.doCreateMono(connection -> connection.geoCommands().geoSearchStore(rawKey(destKey), rawKey(key),
+		return createMono(geoCommands -> geoCommands.geoSearchStore(rawKey(destKey), rawKey(key),
 				rawReference, geoPredicate, args));
 	}
 
