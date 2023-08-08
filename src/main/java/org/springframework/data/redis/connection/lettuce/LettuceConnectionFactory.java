@@ -111,181 +111,8 @@ import org.springframework.util.StringUtils;
 public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
 		InitializingBean, DisposableBean, SmartLifecycle {
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
-			LettuceExceptionConverter.INSTANCE);
-
-	private final Log log = LogFactory.getLog(getClass());
-
-	/** Synchronization monitor for the shared Connection */
-	private final Object connectionMonitor = new Object();
-
-	private final LettuceClientConfiguration clientConfiguration;
-
-	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
-
-	private @Nullable RedisConfiguration configuration;
-	private int phase = 0; // in between min and max values
-
-	private boolean validateConnection = false;
-	private boolean shareNativeConnection = true;
-	private boolean eagerInitialization = false;
-	private boolean convertPipelineAndTxResults = true;
-
-	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
-
-	/**
-	 * Lifecycle state of this factory.
-	 */
-	enum State {
-		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
-	}
-
-	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
-
-	private @Nullable AbstractRedisClient client;
-	private @Nullable LettuceConnectionProvider connectionProvider;
-	private @Nullable LettuceConnectionProvider reactiveConnectionProvider;
-	private @Nullable SharedConnection<byte[]> connection;
-	private @Nullable SharedConnection<ByteBuffer> reactiveConnection;
-	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
-	 */
-	public LettuceConnectionFactory() {
-		this(new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
-	 */
-	public LettuceConnectionFactory(RedisStandaloneConfiguration configuration) {
-		this(configuration, new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance given {@link LettuceClientConfiguration}.
-	 *
-	 * @param clientConfig must not be {@literal null}
-	 * @since 2.0
-	 */
-	private LettuceConnectionFactory(LettuceClientConfiguration clientConfig) {
-
-		Assert.notNull(clientConfig, "LettuceClientConfiguration must not be null");
-
-		this.clientConfiguration = clientConfig;
-		this.configuration = this.standaloneConfig;
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
-	 */
-	public LettuceConnectionFactory(String host, int port) {
-		this(new RedisStandaloneConfiguration(host, port), new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSocketConfiguration}.
-	 *
-	 * @param redisConfiguration must not be {@literal null}.
-	 * @since 2.1
-	 */
-	public LettuceConnectionFactory(RedisConfiguration redisConfiguration) {
-		this(redisConfiguration, new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}.
-	 *
-	 * @param sentinelConfiguration must not be {@literal null}.
-	 * @since 1.6
-	 */
-	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
-		this(sentinelConfiguration, new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration}
-	 * applied to create a {@link RedisClusterClient}.
-	 *
-	 * @param clusterConfiguration must not be {@literal null}.
-	 * @since 1.7
-	 */
-	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration) {
-		this(clusterConfiguration, new MutableLettuceClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisStandaloneConfiguration} and
-	 * {@link LettuceClientConfiguration}.
-	 *
-	 * @param standaloneConfig must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
-	 * @since 2.0
-	 */
-	public LettuceConnectionFactory(RedisStandaloneConfiguration standaloneConfig,
-			LettuceClientConfiguration clientConfig) {
-
-		this(clientConfig);
-
-		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null");
-
-		this.standaloneConfig = standaloneConfig;
-		this.configuration = this.standaloneConfig;
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given
-	 * {@link RedisStaticMasterReplicaConfiguration} and {@link LettuceClientConfiguration}.
-	 *
-	 * @param redisConfiguration must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
-	 * @since 2.1
-	 */
-	public LettuceConnectionFactory(RedisConfiguration redisConfiguration, LettuceClientConfiguration clientConfig) {
-
-		this(clientConfig);
-
-		Assert.notNull(redisConfiguration, "RedisConfiguration must not be null");
-
-		this.configuration = redisConfiguration;
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration} and
-	 * {@link LettuceClientConfiguration}.
-	 *
-	 * @param sentinelConfiguration must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
-	 * @since 2.0
-	 */
-	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
-			LettuceClientConfiguration clientConfig) {
-
-		this(clientConfig);
-
-		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null");
-
-		this.configuration = sentinelConfiguration;
-	}
-
-	/**
-	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration} and
-	 * {@link LettuceClientConfiguration}.
-	 *
-	 * @param clusterConfiguration must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
-	 * @since 2.0
-	 */
-	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration,
-			LettuceClientConfiguration clientConfig) {
-
-		this(clientConfig);
-
-		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null");
-
-		this.configuration = clusterConfiguration;
-	}
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
+			new PassThroughExceptionTranslationStrategy(LettuceExceptionConverter.INSTANCE);
 
 	/**
 	 * Creates a {@link RedisConfiguration} based on a {@link String URI} according to the following:
@@ -298,11 +125,12 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @param redisUri the connection URI in the format of a {@link RedisURI}.
 	 * @return an appropriate {@link RedisConfiguration} instance representing the Redis URI.
 	 * @since 2.5.3
+	 * @see #createRedisConfiguration(RedisURI)
 	 * @see RedisURI
 	 */
 	public static RedisConfiguration createRedisConfiguration(String redisUri) {
 
-		Assert.hasText(redisUri, "RedisURI must not be null and not empty");
+		Assert.hasText(redisUri, "RedisURI must not be null or empty");
 
 		return createRedisConfiguration(RedisURI.create(redisUri));
 	}
@@ -335,11 +163,190 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		return LettuceConverters.createRedisStandaloneConfiguration(redisUri);
 	}
 
+	private boolean validateConnection = false;
+	private boolean shareNativeConnection = true;
+	private boolean eagerInitialization = false;
+	private boolean convertPipelineAndTxResults = true;
+
+	private int phase = 0; // in between min and max values
+
+	private @Nullable AbstractRedisClient client;
+
+	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
+
+	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
+
+	private final LettuceClientConfiguration clientConfiguration;
+
+	private @Nullable LettuceConnectionProvider connectionProvider;
+	private @Nullable LettuceConnectionProvider reactiveConnectionProvider;
+
+	private final Log log = LogFactory.getLog(getClass());
+
+	/** Synchronization monitor for the shared Connection */
+	private final Object connectionMonitor = new Object();
+
+	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
+
+	private @Nullable RedisConfiguration configuration;
+
+	private RedisStandaloneConfiguration standaloneConfig =
+			new RedisStandaloneConfiguration("localhost", 6379);
+
+	private @Nullable SharedConnection<byte[]> connection;
+	private @Nullable SharedConnection<ByteBuffer> reactiveConnection;
+
+	/**
+	 * Lifecycle state of this factory.
+	 */
+	enum State {
+		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
+	 */
+	public LettuceConnectionFactory() {
+		this(new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
+	 */
+	public LettuceConnectionFactory(String host, int port) {
+		this(new RedisStandaloneConfiguration(host, port), new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance given {@link LettuceClientConfiguration}.
+	 *
+	 * @param clientConfiguration must not be {@literal null}
+	 * @since 2.0
+	 */
+	private LettuceConnectionFactory(LettuceClientConfiguration clientConfiguration) {
+
+		Assert.notNull(clientConfiguration, "LettuceClientConfiguration must not be null");
+
+		this.clientConfiguration = clientConfiguration;
+		this.configuration = this.standaloneConfig;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSocketConfiguration}.
+	 *
+	 * @param redisConfiguration must not be {@literal null}.
+	 * @since 2.1
+	 */
+	public LettuceConnectionFactory(RedisConfiguration redisConfiguration) {
+		this(redisConfiguration, new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given
+	 * {@link RedisStaticMasterReplicaConfiguration} and {@link LettuceClientConfiguration}.
+	 *
+	 * @param redisConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
+	 * @since 2.1
+	 */
+	public LettuceConnectionFactory(RedisConfiguration redisConfiguration,
+			LettuceClientConfiguration clientConfiguration) {
+
+		this(clientConfiguration);
+
+		Assert.notNull(redisConfiguration, "RedisConfiguration must not be null");
+
+		this.configuration = redisConfiguration;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration}
+	 * applied to create a {@link RedisClusterClient}.
+	 *
+	 * @param clusterConfiguration must not be {@literal null}.
+	 * @since 1.7
+	 */
+	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration) {
+		this(clusterConfiguration, new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param clusterConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration,
+			LettuceClientConfiguration clientConfiguration) {
+
+		this(clientConfiguration);
+
+		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null");
+
+		this.configuration = clusterConfiguration;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}.
+	 *
+	 * @param sentinelConfiguration must not be {@literal null}.
+	 * @since 1.6
+	 */
+	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
+		this(sentinelConfiguration, new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param sentinelConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+			LettuceClientConfiguration clientConfiguration) {
+
+		this(clientConfiguration);
+
+		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null");
+
+		this.configuration = sentinelConfiguration;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
+	 */
+	public LettuceConnectionFactory(RedisStandaloneConfiguration configuration) {
+		this(configuration, new MutableLettuceClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisStandaloneConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param standaloneConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceConnectionFactory(RedisStandaloneConfiguration standaloneConfiguration,
+			LettuceClientConfiguration clientConfiguration) {
+
+		this(clientConfiguration);
+
+		Assert.notNull(standaloneConfiguration, "RedisStandaloneConfiguration must not be null");
+
+		this.standaloneConfig = standaloneConfiguration;
+		this.configuration = this.standaloneConfig;
+	}
+
 	@Override
 	public void start() {
 
-		State current = state
-				.getAndUpdate(state -> State.CREATED.equals(state) || State.STOPPED.equals(state) ? State.STARTING : state);
+		State current = state.getAndUpdate(state ->
+				State.CREATED.equals(state) || State.STOPPED.equals(state) ? State.STARTING : state);
 
 		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
 
@@ -350,7 +357,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 					createConnectionProvider(client, LettuceReactiveRedisConnection.CODEC));
 
 			if (isClusterAware()) {
-
 				this.clusterCommandExecutor = new ClusterCommandExecutor(
 						new LettuceClusterTopologyProvider((RedisClusterClient) client),
 						new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider),
@@ -386,10 +392,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 					client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
 					client = null;
-				} catch (Exception e) {
-
+				} catch (Exception cause) {
 					if (log.isWarnEnabled()) {
-						log.warn(ClassUtils.getShortName(client.getClass()) + " did not shut down gracefully.", e);
+						log.warn(ClassUtils.getShortName(client.getClass()) + " did not shut down gracefully.", cause);
 					}
 				}
 			}
@@ -430,26 +435,26 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		stop();
 		client = null;
-		if (clusterCommandExecutor != null) {
 
+		if (clusterCommandExecutor != null) {
 			try {
 				clusterCommandExecutor.destroy();
 			} catch (Exception ex) {
 				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
+
 		state.set(State.DESTROYED);
 	}
 
 	private void dispose(@Nullable LettuceConnectionProvider connectionProvider) {
 
-		if (connectionProvider instanceof DisposableBean) {
+		if (connectionProvider instanceof DisposableBean disposableBean) {
 			try {
-				((DisposableBean) connectionProvider).destroy();
-			} catch (Exception e) {
-
+				disposableBean.destroy();
+			} catch (Exception cause) {
 				if (log.isWarnEnabled()) {
-					log.warn(connectionProvider + " did not shut down gracefully.", e);
+					log.warn(connectionProvider + " did not shut down gracefully.", cause);
 				}
 			}
 		}
@@ -464,9 +469,11 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			return getClusterConnection();
 		}
 
-		LettuceConnection connection = doCreateLettuceConnection(getSharedConnection(), connectionProvider, getTimeout(),
-				getDatabase());
+		LettuceConnection connection = doCreateLettuceConnection(getSharedConnection(), connectionProvider,
+				getTimeout(), getDatabase());
+
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
+
 		return connection;
 	}
 
@@ -484,6 +491,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		StatefulRedisClusterConnection<byte[], byte[]> sharedConnection = getSharedClusterConnection();
 
 		LettuceClusterTopologyProvider topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
+
 		return doCreateLettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider,
 				clusterCommandExecutor, clientConfiguration.getCommandTimeout());
 	}
@@ -505,6 +513,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			long timeout, int database) {
 
 		LettuceConnection connection = new LettuceConnection(sharedConnection, connectionProvider, timeout, database);
+
 		connection.setPipeliningFlushPolicy(this.pipeliningFlushPolicy);
 
 		return connection;
@@ -530,6 +539,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnection, connectionProvider,
 				topologyProvider, clusterCommandExecutor, commandTimeout);
+
 		connection.setPipeliningFlushPolicy(this.pipeliningFlushPolicy);
 
 		return connection;
@@ -865,7 +875,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 
 		if (RedisConfiguration.isDatabaseIndexAware(configuration)) {
-
 			((WithDatabaseIndex) configuration).setDatabase(index);
 			return;
 		}
@@ -930,7 +939,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		AbstractRedisClient client = getNativeClient();
 
-		Assert.state(client != null, "Client not yet initialized; Did you forget to call initialize the bean");
+		Assert.state(client != null,
+			"Client not yet initialized; Did you forget to call initialize the bean");
 
 		return client;
 	}
@@ -965,7 +975,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	public void setPassword(String password) {
 
 		if (RedisConfiguration.isAuthenticationAware(configuration)) {
-
 			((WithPassword) configuration).setPassword(password);
 			return;
 		}
@@ -1025,7 +1034,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @since 2.0
 	 */
 	public LettuceClientConfiguration getClientConfiguration() {
-		return clientConfiguration;
+		return this.clientConfiguration;
 	}
 
 	/**
@@ -1033,7 +1042,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @since 2.0
 	 */
 	public RedisStandaloneConfiguration getStandaloneConfiguration() {
-		return standaloneConfig;
+		return this.standaloneConfig;
 	}
 
 	/**
@@ -1042,7 +1051,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	@Nullable
 	public RedisSocketConfiguration getSocketConfiguration() {
-		return isDomainSocketAware() ? (RedisSocketConfiguration) configuration : null;
+		return isDomainSocketAware() ? (RedisSocketConfiguration) this.configuration : null;
 	}
 
 	/**
@@ -1051,7 +1060,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	@Nullable
 	public RedisSentinelConfiguration getSentinelConfiguration() {
-		return isRedisSentinelAware() ? (RedisSentinelConfiguration) configuration : null;
+		return isRedisSentinelAware() ? (RedisSentinelConfiguration) this.configuration : null;
 	}
 
 	/**
@@ -1060,7 +1069,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	@Nullable
 	public RedisClusterConfiguration getClusterConfiguration() {
-		return isClusterAware() ? (RedisClusterConfiguration) configuration : null;
+		return isClusterAware() ? (RedisClusterConfiguration) this.configuration : null;
 	}
 
 	/**
@@ -1125,8 +1134,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	@Nullable
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
+
 		return shareNativeConnection && !isClusterAware()
-				? (StatefulRedisConnection) getOrCreateSharedConnection().getConnection()
+				? (StatefulRedisConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
 				: null;
 	}
 
@@ -1138,8 +1148,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	@Nullable
 	protected StatefulRedisClusterConnection<byte[], byte[]> getSharedClusterConnection() {
+
 		return shareNativeConnection && isClusterAware()
-				? (StatefulRedisClusterConnection) getOrCreateSharedConnection().getConnection()
+				? (StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
 				: null;
 	}
 
@@ -1157,9 +1168,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		LettuceConnectionProvider connectionProvider = doCreateConnectionProvider(client, codec);
 
-		if (this.clientConfiguration instanceof LettucePoolingClientConfiguration) {
-			return new LettucePoolingConnectionProvider(connectionProvider,
-					(LettucePoolingClientConfiguration) this.clientConfiguration);
+		if (this.clientConfiguration instanceof LettucePoolingClientConfiguration poolingClientConfiguration) {
+			return new LettucePoolingConnectionProvider(connectionProvider, poolingClientConfiguration);
 		}
 
 		return connectionProvider;
@@ -1181,7 +1191,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		return isStaticMasterReplicaAware() ? createStaticMasterReplicaConnectionProvider((RedisClient) client, codec)
 				: isClusterAware() ? createClusterConnectionProvider((RedisClusterClient) client, codec)
-						: createStandaloneConnectionProvider((RedisClient) client, codec);
+				: createStandaloneConnectionProvider((RedisClient) client, codec);
 	}
 
 	@SuppressWarnings("all")
@@ -1190,7 +1200,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		List<RedisURI> nodes = ((RedisStaticMasterReplicaConfiguration) this.configuration).getNodes().stream()
 				.map(it -> createRedisURIAndApplySettings(it.getHostName(), it.getPort()))
-				.peek(it -> it.setDatabase(getDatabase())).collect(Collectors.toList());
+				.peek(it -> it.setDatabase(getDatabase()))
+				.collect(Collectors.toList());
 
 		return new StaticMasterReplicaConnectionProvider(client, codec, nodes,
 				getClientConfiguration().getReadFrom().orElse(null));
@@ -1208,12 +1219,14 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		return isStaticMasterReplicaAware() ? createStaticMasterReplicaClient()
 				: isRedisSentinelAware() ? createSentinelClient()
-						: isClusterAware() ? createClusterClient() : createBasicClient();
+				: isClusterAware() ? createClusterClient()
+				: createBasicClient();
 	}
 
 	private RedisClient createStaticMasterReplicaClient() {
 
-		RedisClient redisClient = this.clientConfiguration.getClientResources().map(RedisClient::create)
+		RedisClient redisClient = this.clientConfiguration.getClientResources()
+				.map(RedisClient::create)
 				.orElseGet(RedisClient::create);
 
 		this.clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
@@ -1237,8 +1250,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@SuppressWarnings("all")
 	private RedisURI getSentinelRedisURI() {
 
-		RedisURI redisUri = LettuceConverters
-				.sentinelConfigurationToRedisURI((RedisSentinelConfiguration) this.configuration);
+		RedisSentinelConfiguration sentinelConfiguration = (RedisSentinelConfiguration) this.configuration;
+
+		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
 		applyToAll(redisUri, it -> {
 
@@ -1256,8 +1270,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 			redisUri.setCredentialsProvider(factory.createCredentialsProvider(this.configuration));
 
-			RedisCredentialsProvider sentinelCredentials = factory
-					.createSentinelCredentialsProvider((RedisSentinelConfiguration) this.configuration);
+			RedisCredentialsProvider sentinelCredentials =
+					factory.createSentinelCredentialsProvider((RedisSentinelConfiguration) this.configuration);
 
 			redisUri.getSentinels().forEach(it -> it.setCredentialsProvider(sentinelCredentials));
 		});
@@ -1270,44 +1284,50 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		List<RedisURI> initialUris = new ArrayList<>();
 
-		ClusterConfiguration configuration = (ClusterConfiguration) this.configuration;
+		ClusterConfiguration clusterConfiguration = (ClusterConfiguration) this.configuration;
 
-		configuration.getClusterNodes().stream().map(node -> createRedisURIAndApplySettings(node.getHost(), node.getPort()))
+		clusterConfiguration.getClusterNodes().stream()
+				.map(node -> createRedisURIAndApplySettings(node.getHost(), node.getPort()))
 				.forEach(initialUris::add);
 
 		RedisClusterClient clusterClient = this.clientConfiguration.getClientResources()
 				.map(clientResources -> RedisClusterClient.create(clientResources, initialUris))
 				.orElseGet(() -> RedisClusterClient.create(initialUris));
 
-		clusterClient.setOptions(getClusterClientOptions(configuration));
+		clusterClient.setOptions(getClusterClientOptions(clusterConfiguration));
 
 		return clusterClient;
 	}
 
-	private ClusterClientOptions getClusterClientOptions(ClusterConfiguration configuration) {
+	private ClusterClientOptions getClusterClientOptions(ClusterConfiguration clusterConfiguration) {
 
 		Optional<ClientOptions> clientOptions = this.clientConfiguration.getClientOptions();
 
-		ClusterClientOptions clusterClientOptions = clientOptions.filter(ClusterClientOptions.class::isInstance)
-				.map(ClusterClientOptions.class::cast).orElseGet(() -> clientOptions
-						.map(it -> ClusterClientOptions.builder(it).build()).orElseGet(ClusterClientOptions::create));
+		Optional<ClusterClientOptions> clusterClientOptions = clientOptions
+				.filter(ClusterClientOptions.class::isInstance)
+				.map(ClusterClientOptions.class::cast);
 
-		if (configuration.getMaxRedirects() != null) {
-			return clusterClientOptions.mutate().maxRedirects(configuration.getMaxRedirects()).build();
+		ClusterClientOptions resolvedClusterClientOptions = clusterClientOptions.orElseGet(() -> clientOptions
+				.map(it -> ClusterClientOptions.builder(it).build())
+				.orElseGet(ClusterClientOptions::create));
+
+		if (clusterConfiguration.getMaxRedirects() != null) {
+			return resolvedClusterClientOptions.mutate().maxRedirects(clusterConfiguration.getMaxRedirects()).build();
 		}
 
-		return clusterClientOptions;
+		return resolvedClusterClientOptions;
 	}
 
 	@SuppressWarnings("all")
 	private RedisClient createBasicClient() {
 
 		RedisURI uri = isDomainSocketAware()
-				? createRedisSocketURIAndApplySettings(((DomainSocketConfiguration) this.configuration).getSocket())
+				? createRedisSocketURIAndApplySettings(getSocketConfiguration().getSocket())
 				: createRedisURIAndApplySettings(getHostName(), getPort());
 
 		RedisClient redisClient = this.clientConfiguration.getClientResources()
-				.map(clientResources -> RedisClient.create(clientResources, uri)).orElseGet(() -> RedisClient.create(uri));
+				.map(clientResources -> RedisClient.create(clientResources, uri))
+				.orElseGet(() -> RedisClient.create(uri));
 
 		this.clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
 
@@ -1376,8 +1396,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			getRedisPassword().toOptional().ifPresent(builder::withPassword);
 		}
 
-		clientConfiguration.getRedisCredentialsProviderFactory()
-				.ifPresent(factory -> builder.withAuthentication(factory.createCredentialsProvider(this.configuration)));
+		clientConfiguration.getRedisCredentialsProviderFactory().ifPresent(factory ->
+				builder.withAuthentication(factory.createCredentialsProvider(this.configuration)));
 	}
 
 	@Override
@@ -1399,6 +1419,12 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	private long getClientTimeout() {
 		return clientConfiguration.getCommandTimeout().toMillis();
+	}
+
+	private void logWarning(String message, Object... arguments) {
+		if (this.log.isWarnEnabled()) {
+			this.log.warn(String.format(message, arguments));
+		}
 	}
 
 	/**
@@ -1474,9 +1500,10 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 						if (connection instanceof StatefulRedisClusterConnection) {
 							((StatefulRedisClusterConnection) connection).sync().ping();
 						}
+
 						valid = true;
-					} catch (Exception e) {
-						log.debug("Validation failed", e);
+					} catch (Exception cause) {
+						log.debug("Validation failed", cause);
 					}
 				}
 
@@ -1516,10 +1543,13 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		private boolean useSsl;
 		private boolean verifyPeer = true;
 		private boolean startTls;
+
 		private @Nullable ClientResources clientResources;
-		private @Nullable String clientName;
+
 		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		private Duration shutdownTimeout = Duration.ofMillis(100);
+
+		private @Nullable String clientName;
 
 		@Override
 		public boolean isUseSsl() {
@@ -1626,8 +1656,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 			try {
 				return delegate.getConnection(connectionType);
-			} catch (RuntimeException e) {
-				throw translateException(e);
+			} catch (RuntimeException cause) {
+				throw translateException(cause);
 			}
 		}
 
@@ -1636,8 +1666,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 			try {
 				return ((TargetAware) delegate).getConnection(connectionType, redisURI);
-			} catch (RuntimeException e) {
-				throw translateException(e);
+			} catch (RuntimeException cause) {
+				throw translateException(cause);
 			}
 		}
 
@@ -1689,15 +1719,14 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		@Override
 		public void destroy() throws Exception {
 
-			if (delegate instanceof DisposableBean) {
-				((DisposableBean) delegate).destroy();
+			if (delegate instanceof DisposableBean disposableBean) {
+				disposableBean.destroy();
 			}
 		}
 
-		private RuntimeException translateException(Throwable e) {
-			return e instanceof RedisConnectionFailureException ? (RedisConnectionFailureException) e
-					: new RedisConnectionFailureException("Unable to connect to Redis", e);
+		private RuntimeException translateException(Throwable cause) {
+			return cause instanceof RedisConnectionFailureException connectionFailure ? connectionFailure
+					: new RedisConnectionFailureException("Unable to connect to Redis", cause);
 		}
-
 	}
 }

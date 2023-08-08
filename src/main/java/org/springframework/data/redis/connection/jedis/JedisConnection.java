@@ -15,21 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.CommandArguments;
-import redis.clients.jedis.CommandObject;
-import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Transaction;
-import redis.clients.jedis.commands.ProtocolCommand;
-import redis.clients.jedis.commands.ServerCommands;
-import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.jedis.util.Pool;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -47,7 +32,25 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.AbstractRedisConnection;
+import org.springframework.data.redis.connection.FutureResult;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisCommands;
+import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
+import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.RedisScriptingCommands;
+import org.springframework.data.redis.connection.RedisServerCommands;
+import org.springframework.data.redis.connection.RedisSetCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.connection.jedis.JedisInvoker.ResponseCommands;
 import org.springframework.data.redis.connection.jedis.JedisResult.JedisResultBuilder;
@@ -55,6 +58,24 @@ import org.springframework.data.redis.connection.jedis.JedisResult.JedisStatusRe
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import redis.clients.jedis.BuilderFactory;
+import redis.clients.jedis.CommandArguments;
+import redis.clients.jedis.CommandObject;
+import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisClientConfig;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
+import redis.clients.jedis.Transaction;
+import redis.clients.jedis.commands.ProtocolCommand;
+import redis.clients.jedis.commands.ServerCommands;
+import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.util.Pool;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/redis/jedis">Jedis</a> library.
@@ -78,17 +99,22 @@ import org.springframework.util.CollectionUtils;
  */
 public class JedisConnection extends AbstractRedisConnection {
 
-	private final Log LOGGER = LogFactory.getLog(getClass());
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
+			new FallbackExceptionTranslationStrategy(JedisExceptionConverter.INSTANCE);
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
-			JedisExceptionConverter.INSTANCE);
+	private boolean convertPipelineAndTxResults = true;
 
 	private final Jedis jedis;
 
+	private final JedisClientConfig sentinelConfig;
+
 	private final JedisInvoker invoker = new JedisInvoker((directFunction, pipelineFunction, converter,
 			nullDefault) -> doInvoke(false, directFunction, pipelineFunction, converter, nullDefault));
+
 	private final JedisInvoker statusInvoker = new JedisInvoker((directFunction, pipelineFunction, converter,
 			nullDefault) -> doInvoke(true, directFunction, pipelineFunction, converter, nullDefault));
+
+	private volatile @Nullable JedisSubscription subscription;
 
 	private final JedisGeoCommands geoCommands = new JedisGeoCommands(this);
 	private final JedisHashCommands hashCommands = new JedisHashCommands(this);
@@ -102,62 +128,58 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final JedisStringCommands stringCommands = new JedisStringCommands(this);
 	private final JedisZSetCommands zSetCommands = new JedisZSetCommands(this);
 
-	private final @Nullable Pool<Jedis> pool;
-	private final JedisClientConfig sentinelConfig;
+	private final Log LOGGER = LogFactory.getLog(getClass());
 
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
+
+	private final @Nullable Pool<Jedis> pool;
+
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<>();
 
-	private volatile @Nullable JedisSubscription subscription;
-	private volatile @Nullable Transaction transaction;
 	private volatile @Nullable Pipeline pipeline;
 
-	private boolean convertPipelineAndTxResults = true;
+	private volatile @Nullable Transaction transaction;
 
 	/**
-	 * Constructs a new <code>JedisConnection</code> instance.
+	 * Constructs a new {@link JedisConnection}.
 	 *
-	 * @param jedis Jedis entity
+	 * @param jedis {@link Jedis} client.
 	 */
 	public JedisConnection(Jedis jedis) {
 		this(jedis, null, 0);
 	}
 
 	/**
-	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
+	 * Constructs a new <{@link JedisConnection} backed by a Jedis {@link Pool}.
 	 *
-	 * @param jedis
-	 * @param pool can be null, if no pool is used
-	 * @param dbIndex
+	 * @param jedis {@link Jedis} client.
+	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
+	 * @param dbIndex {@link Integer index} of the Redis database to use.
 	 */
 	public JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex) {
 		this(jedis, pool, dbIndex, null);
 	}
 
 	/**
-	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
+	 * Constructs a new <{@link JedisConnection} backed by a Jedis {@link Pool}.
 	 *
-	 * @param jedis
-	 * @param pool can be null, if no pool is used
-	 * @param dbIndex
-	 * @param clientName the client name, can be {@literal null}.
+	 * @param jedis {@link Jedis} client.
+	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
+	 * @param dbIndex {@link Integer index} of the Redis database to use.
+	 * @param clientName {@link String name} given to this client; can be {@literal null}.
 	 * @since 1.8
 	 */
 	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex, @Nullable String clientName) {
 		this(jedis, pool, createConfig(dbIndex, clientName), createConfig(dbIndex, clientName));
 	}
 
-	private static DefaultJedisClientConfig createConfig(int dbIndex, @Nullable String clientName) {
-		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
-	}
-
 	/**
-	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
+	 * Constructs a new <{@link JedisConnection} backed by a Jedis {@link Pool}.
 	 *
-	 * @param jedis
-	 * @param pool can be null, if no pool is used
-	 * @param nodeConfig node configuration
-	 * @param sentinelConfig sentinel configuration
+	 * @param jedis {@link Jedis} client.
+	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
+	 * @param nodeConfig {@literal Redis Node} configuration
+	 * @param sentinelConfig {@literal Redis Sentinel} configuration
 	 * @since 2.5
 	 */
 	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, JedisClientConfig nodeConfig,
@@ -173,11 +195,15 @@ public class JedisConnection extends AbstractRedisConnection {
 		if (nodeConfig.getDatabase() != jedis.getDB()) {
 			try {
 				select(nodeConfig.getDatabase());
-			} catch (DataAccessException ex) {
+			} catch (DataAccessException cause) {
 				close();
-				throw ex;
+				throw cause;
 			}
 		}
+	}
+
+	private static DefaultJedisClientConfig createConfig(int dbIndex, @Nullable String clientName) {
+		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
 	}
 
 	@Nullable
@@ -211,9 +237,9 @@ public class JedisConnection extends AbstractRedisConnection {
 		});
 	}
 
-	protected DataAccessException convertJedisAccessException(Exception ex) {
-		DataAccessException exception = EXCEPTION_TRANSLATION.translate(ex);
-		return exception != null ? exception : new RedisSystemException(ex.getMessage(), ex);
+	protected DataAccessException convertJedisAccessException(Exception cause) {
+		DataAccessException exception = EXCEPTION_TRANSLATION.translate(cause);
+		return exception != null ? exception : new RedisSystemException(cause.getMessage(), cause);
 	}
 
 	@Override
@@ -290,6 +316,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 				CommandArguments arguments = new CommandArguments(protocolCommand).addObjects(args);
 				CommandObject<Object> commandObject = new CommandObject<>(arguments, BuilderFactory.RAW_OBJECT);
+
 				if (isPipelined()) {
 					pipeline(newJedisResult(getRequiredPipeline().executeCommand(commandObject)));
 				} else {
@@ -308,64 +335,42 @@ public class JedisConnection extends AbstractRedisConnection {
 		super.close();
 
 		JedisSubscription subscription = this.subscription;
-		try {
-			if (subscription != null) {
-				subscription.close();
-			}
-		} catch (Exception ex) {
-			LOGGER.debug("Cannot terminate subscription", ex);
-		} finally {
+
+		if (subscription != null) {
+			doExceptionThrowingOperationSafely(subscription::close, "Cannot terminate subscription");
 			this.subscription = null;
 		}
 
-		// return the connection to the pool
-		if (pool != null) {
+		Jedis jedis = getJedis();
+
+		// Return connection to the pool
+		if (this.pool != null) {
 			jedis.close();
-			return;
 		}
-
-		// else close the connection normally (doing the try/catch dance)
-
-		try {
-			jedis.quit();
-		} catch (Exception ex) {
-			LOGGER.debug("Failed to QUIT during close", ex);
+		else {
+			doExceptionThrowingOperationSafely(jedis::quit, "Failed to quit during close");
+			doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
 		}
-
-		try {
-			jedis.disconnect();
-		} catch (Exception ex) {
-			LOGGER.debug("Failed to disconnect during close", ex);
-		}
-	}
-
-	private Exception handleCloseException(@Nullable Exception exceptionToThrow, Exception cause) {
-
-		if (exceptionToThrow == null) {
-			return cause;
-		}
-
-		return exceptionToThrow;
 	}
 
 	@Override
 	public Jedis getNativeConnection() {
-		return jedis;
+		return this.jedis;
 	}
 
 	@Override
 	public boolean isClosed() {
-		return doWithJedis(it -> !it.isConnected());
+		return !Boolean.TRUE.equals(doWithJedis(Jedis::isConnected));
 	}
 
 	@Override
 	public boolean isQueueing() {
-		return transaction != null;
+		return this.transaction != null;
 	}
 
 	@Override
 	public boolean isPipelined() {
-		return pipeline != null;
+		return this.pipeline != null;
 	}
 
 	@Override
@@ -382,6 +387,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public List<Object> closePipeline() {
+
 		if (pipeline != null) {
 			try {
 				return convertPipelineResults();
@@ -390,14 +396,19 @@ public class JedisConnection extends AbstractRedisConnection {
 				pipelinedResults.clear();
 			}
 		}
+
 		return Collections.emptyList();
 	}
 
 	private List<Object> convertPipelineResults() {
+
 		List<Object> results = new ArrayList<>();
+
 		getRequiredPipeline().sync();
+
 		Exception cause = null;
-		for (JedisResult result : pipelinedResults) {
+
+		for (JedisResult<?, ?> result : pipelinedResults) {
 			try {
 
 				Object data = result.get();
@@ -418,13 +429,16 @@ public class JedisConnection extends AbstractRedisConnection {
 				results.add(e);
 			}
 		}
+
 		if (cause != null) {
 			throw new RedisPipelineException(cause, results);
 		}
+
 		return results;
 	}
 
-	void pipeline(JedisResult result) {
+	void pipeline(JedisResult<?, ?> result) {
+
 		if (isQueueing()) {
 			transaction(result);
 		} else {
@@ -441,7 +455,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		Assert.notNull(message, "Message must not be null");
 
-		return invoke().just(j -> j.echo(message));
+		return invoke().just(jedis -> jedis.echo(message));
 	}
 
 	@Override
@@ -451,6 +465,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public void discard() {
+
 		try {
 			getRequiredTransaction().discard();
 		} catch (Exception ex) {
@@ -463,8 +478,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public List<Object> exec() {
-		try {
 
+		try {
 			if (transaction == null) {
 				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
 			}
@@ -474,8 +489,8 @@ public class JedisConnection extends AbstractRedisConnection {
 			return !CollectionUtils.isEmpty(results)
 					? new TransactionResultConverter<>(txResults, JedisExceptionConverter.INSTANCE).convert(results)
 					: results;
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		} catch (Exception cause) {
+			throw convertJedisAccessException(cause);
 		} finally {
 			txResults.clear();
 			transaction = null;
@@ -484,38 +499,34 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Nullable
 	public Pipeline getPipeline() {
-		return pipeline;
+		return this.pipeline;
 	}
 
 	public Pipeline getRequiredPipeline() {
 
 		Pipeline pipeline = getPipeline();
 
-		if (pipeline == null) {
-			throw new IllegalStateException("Connection has no active pipeline");
-		}
+		Assert.state(pipeline != null, "Connection has no active pipeline");
 
 		return pipeline;
 	}
 
 	@Nullable
 	public Transaction getTransaction() {
-		return transaction;
+		return this.transaction;
 	}
 
 	public Transaction getRequiredTransaction() {
 
 		Transaction transaction = getTransaction();
 
-		if (transaction == null) {
-			throw new IllegalStateException("Connection has no active transaction");
-		}
+		Assert.state(transaction != null, "Connection has no active transaction");
 
 		return transaction;
 	}
 
 	public Jedis getJedis() {
-		return jedis;
+		return this.jedis;
 	}
 
 	/**
@@ -525,7 +536,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @since 2.5
 	 */
 	JedisInvoker invoke() {
-		return invoker;
+		return this.invoker;
 	}
 
 	/**
@@ -536,7 +547,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @since 2.5
 	 */
 	JedisInvoker invokeStatus() {
-		return statusInvoker;
+		return this.statusInvoker;
 	}
 
 	<T> JedisResult<T, T> newJedisResult(Response<T> response) {
@@ -555,6 +566,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public void multi() {
+
 		if (isQueueing()) {
 			return;
 		}
@@ -563,8 +575,8 @@ public class JedisConnection extends AbstractRedisConnection {
 			throw new InvalidDataAccessApiUsageException("Cannot use Transaction while a pipeline is open");
 		}
 
-		doWithJedis(it -> {
-			this.transaction = it.multi();
+		doWithJedis(jedis -> {
+			this.transaction = jedis.multi();
 		});
 	}
 
@@ -580,13 +592,14 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public void watch(byte[]... keys) {
+
 		if (isQueueing()) {
 			throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
 		}
-		doWithJedis(it -> {
 
+		doWithJedis(jedis -> {
 			for (byte[] key : keys) {
-				it.watch(key);
+				jedis.watch(key);
 			}
 		});
 	}
@@ -597,17 +610,18 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
-		return invoke().just(j -> j.publish(channel, message));
+		return invoke().just(jedis -> jedis.publish(channel, message));
 	}
 
 	@Override
 	public Subscription getSubscription() {
-		return subscription;
+		return this.subscription;
 	}
 
 	@Override
 	public boolean isSubscribed() {
-		return (subscription != null && subscription.isAlive());
+		Subscription subscription = getSubscription();
+		return subscription != null && subscription.isAlive();
 	}
 
 	@Override
@@ -666,11 +680,12 @@ public class JedisConnection extends AbstractRedisConnection {
 	protected boolean isActive(RedisNode node) {
 
 		Jedis verification = null;
+
 		try {
 			verification = getJedis(node);
 			verification.connect();
 			return verification.ping().equalsIgnoreCase("pong");
-		} catch (Exception e) {
+		} catch (Exception cause) {
 			return false;
 		} finally {
 			if (verification != null) {
@@ -694,9 +709,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			return callback.apply(getJedis());
-
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		} catch (Exception cause) {
+			throw convertJedisAccessException(cause);
 		}
 	}
 
@@ -704,9 +718,26 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			callback.accept(getJedis());
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+		} catch (Exception cause) {
+			throw convertJedisAccessException(cause);
 		}
 	}
 
+	private void doExceptionThrowingOperationSafely(ExceptionThrowingOperation operation, String logMessage) {
+
+		try {
+			operation.run();
+		}
+		catch (Exception cause) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(logMessage, cause);
+			}
+		}
+	}
+
+
+	@FunctionalInterface
+	private interface ExceptionThrowingOperation {
+		void run() throws Exception;
+	}
 }
