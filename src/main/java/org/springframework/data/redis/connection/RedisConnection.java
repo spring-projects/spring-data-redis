@@ -27,6 +27,10 @@ import org.springframework.dao.DataAccessException;
  * <p>
  * Additionally, performs exception translation between the underlying Redis client library and Spring DAO exceptions.
  * The methods follow as much as possible the Redis names and conventions.
+ * <p>
+ * Spring Data Redis {@link RedisConnection connections}, unlike perhaps their underlying native connection (for example:
+ * the Lettuce {@literal StatefulRedisConnection}) are not Thread-safe. Please refer to the corresponding the Javadoc
+ * for Redis client library (driver) specific connections provided by Spring Data Redis for more details.
  *
  * @author Costin Leau
  * @author Christoph Strobl

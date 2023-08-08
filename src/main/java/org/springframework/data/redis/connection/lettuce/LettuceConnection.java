@@ -79,6 +79,13 @@ import org.springframework.util.ObjectUtils;
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/mp911de/lettuce">Lettuce</a> Redis
  * client.
+ * <p>
+ * WARNING: While the underlying Lettuce {@literal RedisClient} and {@literal StatefulRedisConnection} instances used by
+ * {@link LettuceConnection} are Thread-safe, this class itself is not Thread-safe. Therefore, instances of {@link LettuceConnection}
+ * should not be shared across multiple Threads when executing Redis commands and other operations. If optimal performance
+ * is required by your application(s), then we recommend direct access to the low-level, API provided by the underlying
+ * Lettuce client library (driver), where such Thread-safety guarantees can be made. Simply call {@link #getNativeConnection()}
+ * and use the native resource as required.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -89,6 +96,7 @@ import org.springframework.util.ObjectUtils;
  * @author Ninad Divadkar
  * @author Tamil Selvan
  * @author ihaohong
+ * @author John Blum
  */
 public class LettuceConnection extends AbstractRedisConnection {
 

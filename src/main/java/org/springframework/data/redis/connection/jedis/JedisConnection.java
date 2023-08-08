@@ -59,6 +59,11 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/redis/jedis">Jedis</a> library.
+ * <p>
+ * WARNING: The {@link JedisConnection} class is not Thread-safe. This class requires and uses a
+ * {@literal Jedis} instance from the Jedis client library (driver), which is very clearly
+ * <a href="https://github.com/redis/jedis/wiki/Getting-started#using-jedis-in-a-multithreaded-environment">documented</a>
+ * as not Thread-safe.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -72,6 +77,8 @@ import org.springframework.util.CollectionUtils;
  * @author Ninad Divadkar
  * @author Guy Korland
  * @author Dengliming
+ * @author John Blum
+ * @see redis.clients.jedis.Jedis
  */
 public class JedisConnection extends AbstractRedisConnection {
 
