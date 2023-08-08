@@ -35,12 +35,13 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to <a href="https://redis.io/topics/cluster-spec">Redis Cluster</a>. Useful when setting up a high availability Redis
+ * Configuration class used to set up a {@link RedisConnection} via {@link RedisConnectionFactory} for connecting
+ * to <a href="https://redis.io/topics/cluster-spec">Redis Cluster</a>. Useful when setting up a highly available Redis
  * environment.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 1.7
  */
 public class RedisClusterConfiguration implements RedisConfiguration, ClusterConfiguration {
@@ -57,14 +58,14 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	private @Nullable String username = null;
 
 	/**
-	 * Creates new {@link RedisClusterConfiguration}.
+	 * Creates a new, default {@link RedisClusterConfiguration}.
 	 */
 	public RedisClusterConfiguration() {
 		this(new MapPropertySource("RedisClusterConfiguration", Collections.emptyMap()));
 	}
 
 	/**
-	 * Creates {@link RedisClusterConfiguration} for given hostPort combinations.
+	 * Creates a new {@link RedisClusterConfiguration} for given {@link String hostPort} combinations.
 	 *
 	 * <pre>
 	 * <code>
@@ -80,7 +81,8 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	}
 
 	/**
-	 * Creates {@link RedisClusterConfiguration} looking up values in given {@link PropertySource}.
+	 * Creates a new {@link RedisClusterConfiguration} looking up configuration values from the given
+	 * {@link PropertySource}.
 	 *
 	 * <pre>
 	 * <code>

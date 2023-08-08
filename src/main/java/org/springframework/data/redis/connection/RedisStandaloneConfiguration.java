@@ -23,24 +23,28 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to a single node <a href="https://redis.io/">Redis</a> installation.
+ * Configuration class used to set up a {@link RedisConnection} with {@link RedisConnectionFactory} for connecting
+ * to a single node <a href="https://redis.io/">Redis</a> instance.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @since 2.0
  */
 public class RedisStandaloneConfiguration
 		implements RedisConfiguration, WithHostAndPort, WithPassword, WithDatabaseIndex {
 
-	private static final String DEFAULT_HOST = "localhost";
 	private static final int DEFAULT_PORT = 6379;
 
-	private String hostName = DEFAULT_HOST;
-	private int port = DEFAULT_PORT;
+	private static final String DEFAULT_HOST = "localhost";
+
 	private int database;
-	private @Nullable String username = null;
+	private int port = DEFAULT_PORT;
+
 	private RedisPassword password = RedisPassword.none();
+
+	private String hostName = DEFAULT_HOST;
+	private @Nullable String username = null;
 
 	/**
 	 * Create a new default {@link RedisStandaloneConfiguration}.

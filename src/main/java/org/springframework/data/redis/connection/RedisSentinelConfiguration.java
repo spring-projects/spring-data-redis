@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.StringUtils.*;
+import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,14 +32,15 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
- * to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>. Useful when setting up a high availability Redis
+ * Configuration class used to set up a {@link RedisConnection} with {@link RedisConnectionFactory} for connecting
+ * to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>. Useful when setting up a highly available Redis
  * environment.
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Vikas Garg
+ * @author John Blum
  * @since 1.4
  */
 public class RedisSentinelConfiguration implements RedisConfiguration, SentinelConfiguration {
@@ -49,24 +50,27 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private static final String REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.username";
 	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
 
-	private @Nullable NamedNode master;
-	private Set<RedisNode> sentinels;
 	private int database;
 
-	private @Nullable String dataNodeUsername = null;
-	private @Nullable String sentinelUsername = null;
+	private @Nullable NamedNode master;
+
 	private RedisPassword dataNodePassword = RedisPassword.none();
 	private RedisPassword sentinelPassword = RedisPassword.none();
 
+	private final Set<RedisNode> sentinels;
+
+	private @Nullable String dataNodeUsername = null;
+	private @Nullable String sentinelUsername = null;
+
 	/**
-	 * Creates new {@link RedisSentinelConfiguration}.
+	 * Creates a new, default {@link RedisSentinelConfiguration}.
 	 */
 	public RedisSentinelConfiguration() {
 		this(new MapPropertySource("RedisSentinelConfiguration", Collections.emptyMap()));
 	}
 
 	/**
-	 * Creates {@link RedisSentinelConfiguration} for given hostPort combinations.
+	 * Creates a new {@link RedisSentinelConfiguration} for given {@link String hostPort} combinations.
 	 *
 	 * <pre>
 	 * sentinelHostAndPorts[0] = 127.0.0.1:23679 sentinelHostAndPorts[1] = 127.0.0.1:23680 ...
@@ -80,7 +84,8 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	}
 
 	/**
-	 * Creates {@link RedisSentinelConfiguration} looking up values in given {@link PropertySource}.
+	 * Creates a new {@link RedisSentinelConfiguration} looking up configuration values from the given
+	 * {@link PropertySource}.
 	 *
 	 * <pre>
 	 * <code>
