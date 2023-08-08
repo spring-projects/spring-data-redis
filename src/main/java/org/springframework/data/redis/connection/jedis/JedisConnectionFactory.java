@@ -98,19 +98,32 @@ public class JedisConnectionFactory
 		implements RedisConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
 
 	private static final Log log = LogFactory.getLog(JedisConnectionFactory.class);
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
-			JedisExceptionConverter.INSTANCE);
 
-	private final JedisClientConfiguration clientConfiguration;
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
+			new PassThroughExceptionTranslationStrategy(JedisExceptionConverter.INSTANCE);
 
-	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
-			Protocol.DEFAULT_PORT);
-
-	private @Nullable RedisConfiguration configuration;
+	private boolean convertPipelineAndTxResults = true;
 
 	private int phase = 0; // in between min and max values
 
-	private boolean convertPipelineAndTxResults = true;
+	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
+
+	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
+
+	private @Nullable ClusterTopologyProvider topologyProvider;
+
+	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().build();
+
+	private final JedisClientConfiguration clientConfiguration;
+
+	private @Nullable JedisCluster cluster;
+
+	private @Nullable Pool<Jedis> pool;
+
+	private @Nullable RedisConfiguration configuration;
+
+	private RedisStandaloneConfiguration standaloneConfig =
+			new RedisStandaloneConfiguration("localhost", Protocol.DEFAULT_PORT);
 
 	/**
 	 * Lifecycle state of this factory.
@@ -118,15 +131,6 @@ public class JedisConnectionFactory
 	enum State {
 		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
 	}
-
-	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
-
-	private JedisClientConfig clientConfig = DefaultJedisClientConfig.builder().build();
-
-	private @Nullable Pool<Jedis> pool;
-	private @Nullable JedisCluster cluster;
-	private @Nullable ClusterTopologyProvider topologyProvider;
-	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
 
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance with default settings (default connection pooling).
@@ -138,14 +142,14 @@ public class JedisConnectionFactory
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance given {@link JedisClientConfiguration}.
 	 *
-	 * @param clientConfig must not be {@literal null}
+	 * @param clientConfiguration must not be {@literal null}
 	 * @since 2.0
 	 */
-	private JedisConnectionFactory(JedisClientConfiguration clientConfig) {
+	private JedisConnectionFactory(JedisClientConfiguration clientConfiguration) {
 
-		Assert.notNull(clientConfig, "JedisClientConfiguration must not be null");
+		Assert.notNull(clientConfiguration, "JedisClientConfiguration must not be null");
 
-		this.clientConfiguration = clientConfig;
+		this.clientConfiguration = clientConfiguration;
 	}
 
 	/**
@@ -158,138 +162,142 @@ public class JedisConnectionFactory
 	}
 
 	/**
-	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
-	 * {@link JedisSentinelPool}.
-	 *
-	 * @param sentinelConfig must not be {@literal null}.
-	 * @since 1.4
-	 */
-	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig) {
-		this(sentinelConfig, new MutableJedisClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
-	 * {@link JedisSentinelPool}.
-	 *
-	 * @param sentinelConfig the sentinel configuration to use.
-	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
-	 * @since 1.4
-	 */
-	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, @Nullable JedisPoolConfig poolConfig) {
-
-		this.configuration = sentinelConfig;
-		this.clientConfiguration = MutableJedisClientConfiguration
-				.create(poolConfig != null ? poolConfig : new JedisPoolConfig());
-	}
-
-	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
 	 * to create a {@link JedisCluster}.
 	 *
-	 * @param clusterConfig must not be {@literal null}.
+	 * @param clusterConfiguration must not be {@literal null}.
 	 * @since 1.7
 	 */
-	public JedisConnectionFactory(RedisClusterConfiguration clusterConfig) {
-		this(clusterConfig, new MutableJedisClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
-	 * to create a {@link JedisCluster}.
-	 *
-	 * @param clusterConfig must not be {@literal null}.
-	 * @since 1.7
-	 */
-	public JedisConnectionFactory(RedisClusterConfiguration clusterConfig, JedisPoolConfig poolConfig) {
-
-		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null");
-
-		this.configuration = clusterConfig;
-		this.clientConfiguration = MutableJedisClientConfiguration.create(poolConfig);
-	}
-
-	/**
-	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisStandaloneConfiguration}.
-	 *
-	 * @param standaloneConfig must not be {@literal null}.
-	 * @since 2.0
-	 */
-	public JedisConnectionFactory(RedisStandaloneConfiguration standaloneConfig) {
-		this(standaloneConfig, new MutableJedisClientConfiguration());
-	}
-
-	/**
-	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisStandaloneConfiguration} and
-	 * {@link JedisClientConfiguration}.
-	 *
-	 * @param standaloneConfig must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
-	 * @since 2.0
-	 */
-	public JedisConnectionFactory(RedisStandaloneConfiguration standaloneConfig, JedisClientConfiguration clientConfig) {
-
-		this(clientConfig);
-
-		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null");
-
-		this.standaloneConfig = standaloneConfig;
-	}
-
-	/**
-	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisSentinelConfiguration} and
-	 * {@link JedisClientConfiguration}.
-	 *
-	 * @param sentinelConfig must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
-	 * @since 2.0
-	 */
-	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, JedisClientConfiguration clientConfig) {
-
-		this(clientConfig);
-
-		Assert.notNull(sentinelConfig, "RedisSentinelConfiguration must not be null");
-
-		this.configuration = sentinelConfig;
+	public JedisConnectionFactory(RedisClusterConfiguration clusterConfiguration) {
+		this(clusterConfiguration, new MutableJedisClientConfiguration());
 	}
 
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} and
 	 * {@link JedisClientConfiguration}.
 	 *
-	 * @param clusterConfig must not be {@literal null}.
-	 * @param clientConfig must not be {@literal null}.
+	 * @param clusterConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
 	 * @since 2.0
 	 */
-	public JedisConnectionFactory(RedisClusterConfiguration clusterConfig, JedisClientConfiguration clientConfig) {
+	public JedisConnectionFactory(RedisClusterConfiguration clusterConfiguration,
+			JedisClientConfiguration clientConfiguration) {
 
-		this(clientConfig);
+		this(clientConfiguration);
 
-		Assert.notNull(clusterConfig, "RedisClusterConfiguration must not be null");
+		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null");
 
-		this.configuration = clusterConfig;
+		this.configuration = clusterConfiguration;
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
+	 * to create a {@link JedisCluster}.
+	 *
+	 * @param clusterConfiguration must not be {@literal null}.
+	 * @since 1.7
+	 */
+	public JedisConnectionFactory(RedisClusterConfiguration clusterConfiguration, JedisPoolConfig poolConfig) {
+
+		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null");
+
+		this.configuration = clusterConfiguration;
+		this.clientConfiguration = MutableJedisClientConfiguration.create(poolConfig);
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
+	 * {@link JedisSentinelPool}.
+	 *
+	 * @param sentinelConfiguration must not be {@literal null}.
+	 * @since 1.4
+	 */
+	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
+		this(sentinelConfiguration, new MutableJedisClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisSentinelConfiguration} and
+	 * {@link JedisClientConfiguration}.
+	 *
+	 * @param sentinelConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+			JedisClientConfiguration clientConfiguration) {
+
+		this(clientConfiguration);
+
+		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null");
+
+		this.configuration = sentinelConfiguration;
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
+	 * {@link JedisSentinelPool}.
+	 *
+	 * @param sentinelConfiguration the sentinel configuration to use.
+	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
+	 * @since 1.4
+	 */
+	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+			@Nullable JedisPoolConfig poolConfig) {
+
+		this.configuration = sentinelConfiguration;
+		this.clientConfiguration = MutableJedisClientConfiguration
+			.create(poolConfig != null ? poolConfig : new JedisPoolConfig());
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisStandaloneConfiguration}.
+	 *
+	 * @param standaloneConfiguration must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public JedisConnectionFactory(RedisStandaloneConfiguration standaloneConfiguration) {
+		this(standaloneConfiguration, new MutableJedisClientConfiguration());
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisStandaloneConfiguration} and
+	 * {@link JedisClientConfiguration}.
+	 *
+	 * @param standaloneConfiguration must not be {@literal null}.
+	 * @param clientConfiguration must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public JedisConnectionFactory(RedisStandaloneConfiguration standaloneConfiguration,
+			JedisClientConfiguration clientConfiguration) {
+
+		this(clientConfiguration);
+
+		Assert.notNull(standaloneConfiguration, "RedisStandaloneConfiguration must not be null");
+
+		this.standaloneConfig = standaloneConfiguration;
+	}
+
+	@Nullable
+	protected ClusterCommandExecutor getClusterCommandExecutor() {
+		return this.clusterCommandExecutor;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
 
-		clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
+		this.clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
 
 		if (isAutoStartup()) {
 			start();
 		}
 	}
 
-	JedisClientConfig createSentinelClientConfig(SentinelConfiguration sentinelConfiguration) {
-		return createClientConfig(0, sentinelConfiguration.getSentinelUsername(),
-				sentinelConfiguration.getSentinelPassword());
-	}
-
 	private JedisClientConfig createClientConfig(int database, @Nullable String username, RedisPassword password) {
 
 		DefaultJedisClientConfig.Builder builder = DefaultJedisClientConfig.builder();
 
-		clientConfiguration.getClientName().ifPresent(builder::clientName);
+		this.clientConfiguration.getClientName().ifPresent(builder::clientName);
 		builder.connectionTimeoutMillis(getConnectTimeout());
 		builder.socketTimeoutMillis(getReadTimeout());
 
@@ -304,21 +312,25 @@ public class JedisConnectionFactory
 
 			builder.ssl(true);
 
-			clientConfiguration.getSslSocketFactory().ifPresent(builder::sslSocketFactory);
-			clientConfiguration.getHostnameVerifier().ifPresent(builder::hostnameVerifier);
-			clientConfiguration.getSslParameters().ifPresent(builder::sslParameters);
+			this.clientConfiguration.getSslSocketFactory().ifPresent(builder::sslSocketFactory);
+			this.clientConfiguration.getHostnameVerifier().ifPresent(builder::hostnameVerifier);
+			this.clientConfiguration.getSslParameters().ifPresent(builder::sslParameters);
 		}
 
 		return builder.build();
 	}
 
+	JedisClientConfig createSentinelClientConfig(SentinelConfiguration sentinelConfiguration) {
+		return createClientConfig(0, sentinelConfiguration.getSentinelUsername(),
+			sentinelConfiguration.getSentinelPassword());
+	}
+
 	@Override
 	public void start() {
 
-		State current = state
-				.getAndUpdate(state -> State.CREATED.equals(state) || State.STOPPED.equals(state) ? State.STARTING : state);
+		State current = this.state.getAndUpdate(state -> isCreatedOrStopped(state) ? State.STARTING : state);
 
-		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
+		if (isCreatedOrStopped(current)) {
 
 			if (getUsePool() && !isRedisClusterAware()) {
 				this.pool = createPool();
@@ -333,17 +345,21 @@ public class JedisConnectionFactory
 						EXCEPTION_TRANSLATION);
 			}
 
-			state.set(State.STARTED);
+			this.state.set(State.STARTED);
 		}
+	}
+
+	private boolean isCreatedOrStopped(@Nullable State state) {
+		return State.CREATED.equals(state) || State.STOPPED.equals(state);
 	}
 
 	@Override
 	public void stop() {
 
-		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+		if (this.state.compareAndSet(State.STARTED, State.STOPPING)) {
 
 			if (getUsePool() && !isRedisClusterAware()) {
-				if (pool != null) {
+				if (this.pool != null) {
 					try {
 						this.pool.close();
 						this.pool = null;
@@ -353,12 +369,14 @@ public class JedisConnectionFactory
 				}
 			}
 
-			if (this.clusterCommandExecutor != null) {
+			ClusterCommandExecutor clusterCommandExecutor = this.clusterCommandExecutor;
+
+			if (clusterCommandExecutor != null) {
 				try {
-					this.clusterCommandExecutor.destroy();
+					clusterCommandExecutor.destroy();
 					this.clusterCommandExecutor = null;
-				} catch (Exception e) {
-					throw new RuntimeException(e);
+				} catch (Exception cause) {
+					throw new RuntimeException(cause);
 				}
 			}
 
@@ -369,17 +387,18 @@ public class JedisConnectionFactory
 				try {
 					this.cluster.close();
 					this.cluster = null;
-				} catch (Exception ex) {
-					log.warn("Cannot properly close Jedis cluster", ex);
+				} catch (Exception cause) {
+					log.warn("Cannot properly close Jedis cluster", cause);
 				}
 			}
-			state.set(State.STOPPED);
+
+			this.state.set(State.STOPPED);
 		}
 	}
 
 	@Override
 	public int getPhase() {
-		return phase;
+		return this.phase;
 	}
 
 	/**
@@ -394,7 +413,7 @@ public class JedisConnectionFactory
 
 	@Override
 	public boolean isRunning() {
-		return State.STARTED.equals(state.get());
+		return State.STARTED.equals(this.state.get());
 	}
 
 	private Pool<Jedis> createPool() {
@@ -417,6 +436,7 @@ public class JedisConnectionFactory
 		GenericObjectPoolConfig<Jedis> poolConfig = getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig();
 
 		JedisClientConfig sentinelConfig = createSentinelClientConfig(config);
+
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
 				poolConfig, this.clientConfig, sentinelConfig);
 	}
@@ -431,7 +451,7 @@ public class JedisConnectionFactory
 		return new JedisPool(getPoolConfig(), new HostAndPort(getHostName(), getPort()), this.clientConfig);
 	}
 
-	private JedisCluster createCluster() {
+	JedisCluster createCluster() {
 		return createCluster((RedisClusterConfiguration) this.configuration, getPoolConfig());
 	}
 
@@ -462,6 +482,7 @@ public class JedisConnectionFactory
 		Assert.notNull(clusterConfig, "Cluster configuration must not be null");
 
 		Set<HostAndPort> hostAndPort = new HashSet<>();
+
 		for (RedisNode node : clusterConfig.getClusterNodes()) {
 			hostAndPort.add(new HostAndPort(node.getHost(), node.getPort()));
 		}
@@ -491,12 +512,15 @@ public class JedisConnectionFactory
 		JedisClientConfig sentinelConfig = this.clientConfig;
 
 		SentinelConfiguration sentinelConfiguration = getSentinelConfiguration();
+
 		if (sentinelConfiguration != null) {
 			sentinelConfig = createSentinelClientConfig(sentinelConfiguration);
 		}
 
-		JedisConnection connection = (getUsePool() ? new JedisConnection(jedis, pool, this.clientConfig, sentinelConfig)
-				: new JedisConnection(jedis, null, this.clientConfig, sentinelConfig));
+		JedisConnection connection = getUsePool()
+				? new JedisConnection(jedis, this.pool, this.clientConfig, sentinelConfig)
+				: new JedisConnection(jedis, null, this.clientConfig, sentinelConfig);
+
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 
 		return postProcessConnection(connection);
@@ -509,19 +533,21 @@ public class JedisConnectionFactory
 	 * @return Jedis instance ready for wrapping into a {@link RedisConnection}.
 	 */
 	protected Jedis fetchJedisConnector() {
+
 		try {
 
-			if (getUsePool() && pool != null) {
-				return pool.getResource();
+			if (getUsePool() && this.pool != null) {
+				return this.pool.getResource();
 			}
 
 			Jedis jedis = createJedis();
+
 			// force initialization (see Jedis issue #82)
 			jedis.connect();
 
 			return jedis;
-		} catch (Exception ex) {
-			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
+		} catch (Exception cause) {
+			throw new RedisConnectionFailureException("Cannot get Jedis connection", cause);
 		}
 	}
 
@@ -549,8 +575,10 @@ public class JedisConnectionFactory
 			throw new InvalidDataAccessApiUsageException("Cluster is not configured");
 		}
 
-		return postProcessConnection(
-				new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider));
+		JedisClusterConnection clusterConnection =
+				new JedisClusterConnection(this.cluster, getClusterCommandExecutor(), this.topologyProvider);
+
+		return postProcessConnection(clusterConnection);
 	}
 
 	/**
@@ -703,13 +731,8 @@ public class JedisConnectionFactory
 	 * @return the use of connection pooling.
 	 */
 	public boolean getUsePool() {
-
 		// Jedis Sentinel cannot operate without a pool.
-		if (isRedisSentinelAware()) {
-			return true;
-		}
-
-		return clientConfiguration.isUsePooling();
+		return isRedisSentinelAware() || getClientConfiguration().isUsePooling();
 	}
 
 	/**
@@ -812,7 +835,7 @@ public class JedisConnectionFactory
 	 * @since 2.0
 	 */
 	public JedisClientConfiguration getClientConfiguration() {
-		return clientConfiguration;
+		return this.clientConfiguration;
 	}
 
 	/**
@@ -821,7 +844,7 @@ public class JedisConnectionFactory
 	 */
 	@Nullable
 	public RedisStandaloneConfiguration getStandaloneConfiguration() {
-		return standaloneConfig;
+		return this.standaloneConfig;
 	}
 
 	/**
@@ -1078,6 +1101,5 @@ public class JedisConnectionFactory
 		public void setConnectTimeout(Duration connectTimeout) {
 			this.connectTimeout = connectTimeout;
 		}
-
 	}
 }

@@ -38,6 +38,7 @@ import io.lettuce.core.resource.ClientResources;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -63,6 +64,8 @@ import org.springframework.data.redis.connection.RedisSocketConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
 
 /**
  * Unit tests for {@link LettuceConnectionFactory}.
@@ -1125,6 +1128,7 @@ class LettuceConnectionFactoryUnitTests {
 
 	@Test // GH-2116
 	void createRedisConfigurationRequiresRedisUri() {
+
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> LettuceConnectionFactory.createRedisConfiguration((RedisURI) null))
 				.withMessage("RedisURI must not be null");
@@ -1234,6 +1238,35 @@ class LettuceConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		assertThat(connectionFactory.isRunning()).isTrue();
+	}
+
+	@Test // GH-2594
+	void createRedisConfigurationWithNullInvalidRedisUriString() {
+
+		Arrays.asList("  ", "", null).forEach(redisUri ->
+			assertThatIllegalArgumentException()
+				.isThrownBy(() -> LettuceConnectionFactory.createRedisConfiguration(redisUri))
+				.withMessage("RedisURI must not be null or empty")
+				.withNoCause());
+	}
+
+	@Test
+	public void createRedisConfigurationWithValidRedisUriString() {
+
+		RedisConfiguration redisConfiguration =
+				LettuceConnectionFactory.createRedisConfiguration("redis://skullbox:6789");
+
+		assertThat(redisConfiguration).isInstanceOf(RedisStandaloneConfiguration.class);
+
+		assertThat(redisConfiguration)
+			.asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
+			.extracting(RedisStandaloneConfiguration::getHostName)
+			.isEqualTo("skullbox");
+
+		assertThat(redisConfiguration)
+			.asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
+			.extracting(RedisStandaloneConfiguration::getPort)
+			.isEqualTo(6789);
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
