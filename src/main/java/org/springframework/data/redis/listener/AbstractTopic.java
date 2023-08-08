@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 package org.springframework.data.redis.listener;
 
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
  * Abstract base class for defining {@link Topic Topics}.
  *
  * @author John Blum
- * @see org.springframework.data.redis.listener.Topic
- * @since 3.2.0
+ * @since 3.1.3
  */
 abstract class AbstractTopic implements Topic {
 
 	private final String name;
 
-	AbstractTopic(String label, String name) {
-		Assert.notNull(name,() -> label + " must not be null");
+	AbstractTopic(String name) {
 		this.name = name;
 	}
 

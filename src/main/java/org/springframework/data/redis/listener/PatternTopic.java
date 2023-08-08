@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
+import org.springframework.util.Assert;
+
 /**
  * {@link Topic} {@link String pattern} matching multiple Redis channels.
  *
@@ -25,22 +27,24 @@ package org.springframework.data.redis.listener;
 public class PatternTopic extends AbstractTopic {
 
 	/**
-	 * Create a new {@link PatternTopic} for channel subscriptions based on a {@code pattern}.
-	 *
-	 * @param pattern {@link String pattern} used to match channels; must not be {@literal null} or {@literal empty}.
-	 * @return the {@link PatternTopic} for the given {@code pattern}.
-	 * @since 2.1
-	 */
-	public static PatternTopic of(String pattern) {
-		return new PatternTopic(pattern);
-	}
-
-	/**
 	 * Constructs a new {@link PatternTopic} instance.
 	 *
 	 * @param channelPattern must not be {@literal null}.
 	 */
 	public PatternTopic(String channelPattern) {
-		super("Pattern", channelPattern);
+
+		super(channelPattern);
+		Assert.notNull(channelPattern, "Pattern must not be null");
+	}
+
+	/**
+	 * Create a new {@link PatternTopic} for channel subscriptions based on a {@code pattern}.
+	 *
+	 * @param pattern {@link String pattern} used to match channels; must not be {@literal null} or empty.
+	 * @return the {@link PatternTopic} for the given {@code pattern}.
+	 * @since 2.1
+	 */
+	public static PatternTopic of(String pattern) {
+		return new PatternTopic(pattern);
 	}
 }
