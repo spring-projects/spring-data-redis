@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
+import org.springframework.util.Assert;
+
 /**
  * {@link Topic Channel Topic} implementation mapping to a Redis channel.
  *
@@ -25,22 +27,24 @@ package org.springframework.data.redis.listener;
 public class ChannelTopic extends AbstractTopic {
 
 	/**
-	 * Create a new {@link ChannelTopic} for channel subscriptions.
-	 *
-	 * @param channelName {@link String name} of the Redis channel; must not be {@literal null} or {@literal empty}.
-	 * @return the {@link ChannelTopic} for the given {@code channelName}.
-	 * @since 2.1
-	 */
-	public static ChannelTopic of(String channelName) {
-		return new ChannelTopic(channelName);
-	}
-
-	/**
 	 * Constructs a new {@link ChannelTopic} instance.
 	 *
 	 * @param channelName must not be {@literal null}.
 	 */
 	public ChannelTopic(String channelName) {
-		super("Topic name", channelName);
+
+		super(channelName);
+		Assert.notNull(channelName, "Channel name must not be null");
+	}
+
+	/**
+	 * Create a new {@link ChannelTopic} for channel subscriptions.
+	 *
+	 * @param channelName {@link String name} of the Redis channel; must not be {@literal null}.
+	 * @return the {@link ChannelTopic} for the given {@code channelName}.
+	 * @since 2.1
+	 */
+	public static ChannelTopic of(String channelName) {
+		return new ChannelTopic(channelName);
 	}
 }
