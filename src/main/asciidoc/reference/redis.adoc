@@ -74,11 +74,15 @@ One of the first tasks when using Redis and Spring is to connect to the store th
 [[redis:connectors:connection]]
 === RedisConnection and RedisConnectionFactory
 
-`RedisConnection` provides the core building block for Redis communication, as it handles the communication with the Redis back end. It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception {spring-framework-reference}/data-access.html#dao-exceptions[hierarchy] so that you can switch the connectors without any code changes, as the operation semantics remain the same.
+`RedisConnection` provides the core building block for Redis communication, as it handles the communication with the Redis backend. It also automatically translates underlying connecting library exceptions to Spring's consistent {spring-framework-reference}/data-access.html#dao-exceptions[DAO exception hierarchy] so that you can switch connectors without any code changes, as the operation semantics remain the same.
 
 NOTE: For the corner cases where the native library API is required, `RedisConnection` provides a dedicated method (`getNativeConnection`) that returns the raw, underlying object used for communication.
 
 Active `RedisConnection` objects are created through `RedisConnectionFactory`. In addition, the factory acts as `PersistenceExceptionTranslator` objects, meaning that, once declared, they let you do transparent exception translation. For example, you can do exception translation through the use of the `@Repository` annotation and AOP. For more information, see the dedicated {spring-framework-reference}/data-access.html#orm-exception-translation[section] in the Spring Framework documentation.
+
+WARNING:  `RedisConnection` classes, such as `JedisConnection` and `LettuceConnection`, are **not** Thread-safe. While the underlying native connection, such as Lettuce's `StatefulRedisConnection`, may be Thread-safe, Spring Data Redis's `LettuceConnection` class itself is not Thread-safe. Therefore, you should **not** share instances of a `RedisConnection` across multiple Threads. This is especially true for transactional, or blocking Redis operations and commands, such as `BLPOP`. In transactional and pipelining operations, for instance, `RedisConnection` holds onto unguarded mutable state to complete the operation correctly, thereby making it unsafe to use with multiple Threads. This is by design.
+
+TIP: If you need to share (stateful) Redis resources, like connections, across multiple Threads, for performance reasons or otherwise, then you should acquire the native connection and use the Redis client library (driver) API directly. Alternatively, you can use the `RedisTemplate`, which acquires and manages connections for operations (and Redis commands) in a Thread-safe manner. See <<redis:template,documentation>> on `RedisTemplate` for more details.
 
 NOTE: Depending on the underlying configuration, the factory can return a new connection or an existing connection (when a pool or shared native connection is used).
 
