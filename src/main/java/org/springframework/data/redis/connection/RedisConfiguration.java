@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -206,6 +207,14 @@ public interface RedisConfiguration {
 		void setUsername(@Nullable String username);
 
 		/**
+		 * Get the username to use when connecting.
+		 *
+		 * @return {@literal null} if none set.
+		 */
+		@Nullable
+		String getUsername();
+
+		/**
 		 * Create and set a {@link RedisPassword} for given {@link String}.
 		 *
 		 * @param password can be {@literal null}.
@@ -229,14 +238,6 @@ public interface RedisConfiguration {
 		 * @param password must not be {@literal null} use {@link RedisPassword#none()} instead.
 		 */
 		void setPassword(RedisPassword password);
-
-		/**
-		 * Get the username to use when connecting.
-		 *
-		 * @return {@literal null} if none set.
-		 */
-		@Nullable
-		String getUsername();
 
 		/**
 		 * Get the RedisPassword to use when connecting.
@@ -335,6 +336,53 @@ public interface RedisConfiguration {
 		 * @return path to the Redis socket.
 		 */
 		String getSocket();
+	}
+
+	/**
+	 * Configuration interface suitable for Redis cluster environments.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.1
+	 */
+	interface ClusterConfiguration extends WithPassword {
+
+		/**
+		 * Configures the {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
+		 *
+		 * @param executor {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
+		 */
+		void setAsyncTaskExecutor(AsyncTaskExecutor executor);
+
+		/**
+		 * Returns the configured {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
+		 *
+		 * @return the configured {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
+		 */
+		AsyncTaskExecutor getAsyncTaskExecutor();
+
+		/**
+		 * Returns an {@link Collections#unmodifiableSet(Set) Set} of {@link RedisNode cluster nodes}.
+		 *
+		 * @return {@link Set} of {@link RedisNode cluster nodes}. Never {@literal null}.
+		 */
+		Set<RedisNode> getClusterNodes();
+
+		/**
+		 * @return max number of redirects to follow or {@literal null} if not set.
+		 */
+		@Nullable
+		Integer getMaxRedirects();
+
+	}
+
+	/**
+	 * Configuration interface suitable for single node redis connections using local unix domain socket.
+	 *
+	 * @author Christoph Strobl
+	 * @since 2.1
+	 */
+	interface DomainSocketConfiguration extends WithDomainSocket, WithDatabaseIndex, WithPassword {
+
 	}
 
 	/**
@@ -460,28 +508,6 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * Configuration interface suitable for Redis cluster environments.
-	 *
-	 * @author Christoph Strobl
-	 * @since 2.1
-	 */
-	interface ClusterConfiguration extends WithPassword {
-
-		/**
-		 * Returns an {@link Collections#unmodifiableSet(Set)} of {@literal cluster nodes}.
-		 *
-		 * @return {@link Set} of nodes. Never {@literal null}.
-		 */
-		Set<RedisNode> getClusterNodes();
-
-		/**
-		 * @return max number of redirects to follow or {@literal null} if not set.
-		 */
-		@Nullable
-		Integer getMaxRedirects();
-	}
-
-	/**
 	 * Configuration interface suitable for Redis master/replica environments with fixed hosts.
 	 *
 	 * @author Christoph Strobl
@@ -494,15 +520,5 @@ public interface RedisConfiguration {
 		 * @return unmodifiable {@link List} of {@link RedisStandaloneConfiguration nodes}.
 		 */
 		List<RedisStandaloneConfiguration> getNodes();
-	}
-
-	/**
-	 * Configuration interface suitable for single node redis connections using local unix domain socket.
-	 *
-	 * @author Christoph Strobl
-	 * @since 2.1
-	 */
-	interface DomainSocketConfiguration extends WithDomainSocket, WithDatabaseIndex, WithPassword {
-
 	}
 }

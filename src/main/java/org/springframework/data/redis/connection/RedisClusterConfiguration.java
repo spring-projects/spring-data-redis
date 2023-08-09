@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
@@ -50,6 +51,8 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
 
 	private @Nullable Integer maxRedirects;
+
+	private @Nullable AsyncTaskExecutor executor;
 
 	private RedisPassword password = RedisPassword.none();
 
@@ -109,6 +112,13 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		}
 	}
 
+	private void appendClusterNodes(Set<String> hostAndPorts) {
+
+		for (String hostAndPort : hostAndPorts) {
+			addClusterNode(RedisNode.fromString(hostAndPort));
+		}
+	}
+
 	/**
 	 * Set {@literal cluster nodes} to connect to.
 	 *
@@ -140,6 +150,15 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	}
 
 	/**
+	 * @param host Redis cluster node host name or ip address.
+	 * @param port Redis cluster node port.
+	 * @return this.
+	 */
+	public RedisClusterConfiguration clusterNode(String host, Integer port) {
+		return clusterNode(new RedisNode(host, port));
+	}
+
+	/**
 	 * @return this.
 	 */
 	public RedisClusterConfiguration clusterNode(RedisNode node) {
@@ -147,11 +166,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		this.clusterNodes.add(node);
 
 		return this;
-	}
-
-	@Override
-	public Integer getMaxRedirects() {
-		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
 	}
 
 	/**
@@ -164,20 +178,9 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		this.maxRedirects = maxRedirects;
 	}
 
-	/**
-	 * @param host Redis cluster node host name or ip address.
-	 * @param port Redis cluster node port.
-	 * @return this.
-	 */
-	public RedisClusterConfiguration clusterNode(String host, Integer port) {
-		return clusterNode(new RedisNode(host, port));
-	}
-
-	private void appendClusterNodes(Set<String> hostAndPorts) {
-
-		for (String hostAndPort : hostAndPorts) {
-			addClusterNode(RedisNode.fromString(hostAndPort));
-		}
+	@Override
+	public Integer getMaxRedirects() {
+		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
 	}
 
 	@Override
@@ -192,13 +195,23 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	}
 
 	@Override
+	public void setPassword(RedisPassword password) {
+		this.password = RedisAssertions.requireNonNull(password, "RedisPassword must not be null");
+	}
+
+	@Override
 	public RedisPassword getPassword() {
 		return password;
 	}
 
 	@Override
-	public void setPassword(RedisPassword password) {
-		this.password = RedisAssertions.requireNonNull(password, "RedisPassword must not be null");
+	public void setAsyncTaskExecutor(@Nullable AsyncTaskExecutor executor) {
+		this.executor = executor;
+	}
+
+	@Nullable @Override
+	public AsyncTaskExecutor getAsyncTaskExecutor() {
+		return this.executor;
 	}
 
 	@Override

@@ -233,6 +233,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		while (!done) {
 
 			done = true;
+
 			for (Map.Entry<NodeExecution, Future<NodeResult<T>>> entry : futures.entrySet()) {
 
 				if (!entry.getValue().isDone() && !entry.getValue().isCancelled()) {
@@ -240,9 +241,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 				} else {
 
 					NodeExecution execution = entry.getKey();
+
 					try {
 
 						String futureId = ObjectUtils.getIdentityHexString(entry.getValue());
+
 						if (!saveGuard.contains(futureId)) {
 
 							if (execution.isPositional()) {
@@ -250,19 +253,22 @@ public class ClusterCommandExecutor implements DisposableBean {
 							} else {
 								result.add(entry.getValue().get());
 							}
+
 							saveGuard.add(futureId);
 						}
-					} catch (ExecutionException e) {
+					} catch (ExecutionException cause) {
 
-						RuntimeException ex = convertToDataAccessException((Exception) e.getCause());
+						RuntimeException exception = convertToDataAccessException((Exception) cause.getCause());
 
-						exceptions.put(execution.getNode(), ex != null ? ex : e.getCause());
-					} catch (InterruptedException e) {
+						exceptions.put(execution.getNode(), exception != null ? exception : cause.getCause());
+					} catch (InterruptedException cause) {
 
 						Thread.currentThread().interrupt();
 
-						RuntimeException ex = convertToDataAccessException((Exception) e.getCause());
-						exceptions.put(execution.getNode(), ex != null ? ex : e.getCause());
+						RuntimeException exception = convertToDataAccessException((Exception) cause.getCause());
+
+						exceptions.put(execution.getNode(), exception != null ? exception : cause.getCause());
+
 						break;
 					}
 				}
@@ -271,7 +277,6 @@ public class ClusterCommandExecutor implements DisposableBean {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-
 				done = true;
 				Thread.currentThread().interrupt();
 			}
@@ -280,18 +285,19 @@ public class ClusterCommandExecutor implements DisposableBean {
 		if (!exceptions.isEmpty()) {
 			throw new ClusterCommandExecutionFailureException(new ArrayList<>(exceptions.values()));
 		}
+
 		return result;
 	}
 
 	/**
 	 * Run {@link MultiKeyClusterCommandCallback} with on a curated set of nodes serving one or more keys.
 	 *
-	 * @param cmd must not be {@literal null}.
+	 * @param commandCallback must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException if a failure occurs while executing the given
 	 * {@link MultiKeyClusterCommandCallback command}.
 	 */
-	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(MultiKeyClusterCommandCallback<S, T> cmd,
+	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(MultiKeyClusterCommandCallback<S, T> commandCallback,
 			Iterable<byte[]> keys) {
 
 		Map<RedisClusterNode, PositionalKeys> nodeKeyMap = new HashMap<>();
@@ -309,8 +315,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 			if (entry.getKey().isMaster()) {
 				for (PositionalKey key : entry.getValue()) {
-					futures.put(new NodeExecution(entry.getKey(), key),
-							executor.submit(() -> executeMultiKeyCommandOnSingleNode(cmd, entry.getKey(), key.getBytes())));
+					futures.put(new NodeExecution(entry.getKey(), key), this.executor.submit(() ->
+							executeMultiKeyCommandOnSingleNode(commandCallback, entry.getKey(), key.getBytes())));
 				}
 			}
 		}
@@ -318,10 +324,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 		return collectResults(futures);
 	}
 
-	private <S, T> NodeResult<T> executeMultiKeyCommandOnSingleNode(MultiKeyClusterCommandCallback<S, T> cmd,
+	private <S, T> NodeResult<T> executeMultiKeyCommandOnSingleNode(MultiKeyClusterCommandCallback<S, T> commandCallback,
 			RedisClusterNode node, byte[] key) {
 
-		Assert.notNull(cmd, "MultiKeyCommandCallback must not be null");
+		Assert.notNull(commandCallback, "MultiKeyCommandCallback must not be null");
 		Assert.notNull(node, "RedisClusterNode must not be null");
 		Assert.notNull(key, "Keys for execution must not be null");
 
@@ -330,7 +336,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(client, "Could not acquire resource for node; Is your cluster info up to date");
 
 		try {
-			return new NodeResult<>(node, cmd.doInCluster(client, key), key);
+			return new NodeResult<>(node, commandCallback.doInCluster(client, key), key);
 		} catch (RuntimeException ex) {
 
 			RuntimeException translatedException = convertToDataAccessException(ex);
@@ -345,8 +351,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 	}
 
 	@Nullable
-	private DataAccessException convertToDataAccessException(Exception e) {
-		return exceptionTranslationStrategy.translate(e);
+	private DataAccessException convertToDataAccessException(Exception cause) {
+		return exceptionTranslationStrategy.translate(cause);
 	}
 
 	/**
@@ -361,12 +367,12 @@ public class ClusterCommandExecutor implements DisposableBean {
 	@Override
 	public void destroy() throws Exception {
 
-		if (executor instanceof DisposableBean) {
-			((DisposableBean) executor).destroy();
+		if (this.executor instanceof DisposableBean disposableBean) {
+			disposableBean.destroy();
 		}
 
-		if (resourceProvider instanceof DisposableBean) {
-			((DisposableBean) resourceProvider).destroy();
+		if (this.resourceProvider instanceof DisposableBean disposableBean) {
+			disposableBean.destroy();
 		}
 	}
 
