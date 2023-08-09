@@ -15,12 +15,16 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPoolConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -33,14 +37,24 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory.State;
+import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
+import redis.clients.jedis.JedisClientConfig;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * Unit tests for {@link JedisConnectionFactory}.
@@ -335,24 +349,59 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isRunning()).isTrue();
 	}
 
-	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
-			JedisPoolConfig poolConfig) {
+	@Test // GH-2594
+	void configuresCustomTaskExecutorCorrectly() {
 
-		// we have to use a spy here as jedis would start connecting to redis sentinels when the pool is created.
-		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(sentinelConfig, poolConfig));
-		doReturn(null).when(factorySpy).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
-		doReturn(null).when(factorySpy).createRedisPool();
-		return factorySpy;
+		AsyncTaskExecutor mockTaskExecutor = mock(AsyncTaskExecutor.class);
+		ClusterTopologyProvider mockClusterTopologyProvider = mock(ClusterTopologyProvider.class);
+		JedisCluster mockJedisCluster = mock(JedisCluster.class);
+
+		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+
+		clusterConfiguration.setAsyncTaskExecutor(mockTaskExecutor);
+
+		JedisConnectionFactory connectionFactory = initSpyedConnectionFactory(clusterConfiguration, null);
+
+		doReturn(false).when(connectionFactory).getUsePool();
+		doReturn(mockJedisCluster).when(connectionFactory).createCluster();
+		doReturn(mockClusterTopologyProvider).when(connectionFactory).createTopologyProvider(eq(mockJedisCluster));
+
+		connectionFactory.start();
+
+		assertThat(connectionFactory.isRunning()).isTrue();
+
+		ClusterCommandExecutor clusterCommandExecutor = connectionFactory.getClusterCommandExecutor();
+
+		assertThat(clusterCommandExecutor).isNotNull();
+		assertThat(ReflectionTestUtils.getField(clusterCommandExecutor, "executor")).isEqualTo(mockTaskExecutor);
 	}
 
-	private JedisConnectionFactory initSpyedConnectionFactory(RedisClusterConfiguration clusterConfig,
-			JedisPoolConfig poolConfig) {
+	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+			@Nullable JedisPoolConfig poolConfig) {
+
+		// we have to use a spy here as jedis would start connecting to redis sentinels when the pool is created.
+		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(sentinelConfiguration, poolConfig));
+
+		doReturn(null).when(connectionFactorySpy)
+				.createRedisSentinelPool(any(RedisSentinelConfiguration.class));
+
+		doReturn(null).when(connectionFactorySpy).createRedisPool();
+
+		return connectionFactorySpy;
+	}
+
+	private JedisConnectionFactory initSpyedConnectionFactory(RedisClusterConfiguration clusterConfiguration,
+			@Nullable JedisPoolConfig poolConfig) {
 
 		JedisCluster clusterMock = mock(JedisCluster.class);
-		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(clusterConfig));
-		doReturn(clusterMock).when(factorySpy).createCluster(any(RedisClusterConfiguration.class),
-				any(GenericObjectPoolConfig.class));
-		doReturn(null).when(factorySpy).createRedisPool();
-		return factorySpy;
+
+		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(clusterConfiguration, poolConfig));
+
+		doReturn(clusterMock).when(connectionFactorySpy)
+				.createCluster(any(RedisClusterConfiguration.class), any(GenericObjectPoolConfig.class));
+
+		doReturn(null).when(connectionFactorySpy).createRedisPool();
+
+		return connectionFactorySpy;
 	}
 }

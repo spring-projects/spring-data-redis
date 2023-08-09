@@ -46,6 +46,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -337,12 +338,9 @@ public class JedisConnectionFactory
 			}
 
 			if (isRedisClusterAware()) {
-
 				this.cluster = createCluster();
 				this.topologyProvider = createTopologyProvider(this.cluster);
-				this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-						new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
-						EXCEPTION_TRANSLATION);
+				this.clusterCommandExecutor = newClusterCommandExecutor();
 			}
 
 			this.state.set(State.STARTED);
@@ -351,6 +349,24 @@ public class JedisConnectionFactory
 
 	private boolean isCreatedOrStopped(@Nullable State state) {
 		return State.CREATED.equals(state) || State.STOPPED.equals(state);
+	}
+
+	private ClusterCommandExecutor newClusterCommandExecutor() {
+
+		return new ClusterCommandExecutor(this.topologyProvider, newClusterNodeResourceProvider(),
+				EXCEPTION_TRANSLATION, resolveTaskExecutor(this.configuration));
+	}
+
+	private ClusterNodeResourceProvider newClusterNodeResourceProvider() {
+		return new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider);
+	}
+
+	@Nullable
+	private AsyncTaskExecutor resolveTaskExecutor(@Nullable RedisConfiguration redisConfiguration) {
+
+		return redisConfiguration instanceof RedisConfiguration.ClusterConfiguration clusterConfiguration
+			? clusterConfiguration.getAsyncTaskExecutor()
+			: null;
 	}
 
 	@Override

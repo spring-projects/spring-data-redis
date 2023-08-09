@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
+import static org.springframework.data.redis.connection.lettuce.LettuceConnection.PipeliningFlushPolicy;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
@@ -49,16 +49,29 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.ClusterTopologyProvider;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
-import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisSocketConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -342,33 +355,65 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		this.configuration = this.standaloneConfig;
 	}
 
+	@Nullable
+	protected ClusterCommandExecutor getClusterCommandExecutor() {
+		return this.clusterCommandExecutor;
+	}
+
 	@Override
 	public void start() {
 
-		State current = state.getAndUpdate(state ->
-				State.CREATED.equals(state) || State.STOPPED.equals(state) ? State.STARTING : state);
+		State current = this.state.getAndUpdate(state -> isCreatedOrStopped(state) ? State.STARTING : state);
 
-		if (State.CREATED.equals(current) || State.STOPPED.equals(current)) {
+		if (isCreatedOrStopped(current)) {
 
 			this.client = createClient();
-
-			this.connectionProvider = new ExceptionTranslatingConnectionProvider(createConnectionProvider(client, CODEC));
-			this.reactiveConnectionProvider = new ExceptionTranslatingConnectionProvider(
-					createConnectionProvider(client, LettuceReactiveRedisConnection.CODEC));
+			this.connectionProvider = newExceptionTranslatingConnectionProvider(this.client, LettuceConnection.CODEC);
+			this.reactiveConnectionProvider = newExceptionTranslatingConnectionProvider(this.client,
+					LettuceReactiveRedisConnection.CODEC);
 
 			if (isClusterAware()) {
-				this.clusterCommandExecutor = new ClusterCommandExecutor(
-						new LettuceClusterTopologyProvider((RedisClusterClient) client),
-						new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider),
-						EXCEPTION_TRANSLATION);
+				this.clusterCommandExecutor = newClusterCommandExecutor();
 			}
 
-			state.set(State.STARTED);
+			this.state.set(State.STARTED);
 
 			if (getEagerInitialization() && getShareNativeConnection()) {
 				initConnection();
 			}
 		}
+	}
+
+	private boolean isCreatedOrStopped(@Nullable State state) {
+		return State.CREATED.equals(state) || State.STOPPED.equals(state);
+	}
+
+	private ClusterCommandExecutor newClusterCommandExecutor() {
+
+		return new ClusterCommandExecutor(newClusterTopologyProvider(), newClusterNodeResourceProvider(),
+				EXCEPTION_TRANSLATION, resolveTaskExecutor(this.configuration));
+	}
+
+	private LettuceClusterConnection.LettuceClusterNodeResourceProvider newClusterNodeResourceProvider() {
+		return new LettuceClusterConnection.LettuceClusterNodeResourceProvider(this.connectionProvider);
+	}
+
+	private LettuceClusterTopologyProvider newClusterTopologyProvider() {
+		return new LettuceClusterTopologyProvider((RedisClusterClient) this.client);
+	}
+
+	@Nullable
+	private AsyncTaskExecutor resolveTaskExecutor(RedisConfiguration redisConfiguration) {
+
+		return redisConfiguration instanceof ClusterConfiguration clusterConfiguration
+				? clusterConfiguration.getAsyncTaskExecutor()
+				: null;
+	}
+
+	private ExceptionTranslatingConnectionProvider newExceptionTranslatingConnectionProvider(AbstractRedisClient client,
+			RedisCodec<?, ?> codec) {
+
+		return new ExceptionTranslatingConnectionProvider(createConnectionProvider(client, codec));
 	}
 
 	@Override
@@ -420,7 +465,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	@Override
 	public boolean isRunning() {
-		return State.STARTED.equals(state.get());
+		return State.STARTED.equals(this.state.get());
 	}
 
 	@Override
@@ -434,17 +479,20 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	public void destroy() {
 
 		stop();
-		client = null;
+		this.client = null;
+
+		ClusterCommandExecutor clusterCommandExecutor = getClusterCommandExecutor();
 
 		if (clusterCommandExecutor != null) {
 			try {
 				clusterCommandExecutor.destroy();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close cluster command executor", ex);
+				this.clusterCommandExecutor = null;
+			} catch (Exception cause) {
+				log.warn("Cannot properly close cluster command executor", cause);
 			}
 		}
 
-		state.set(State.DESTROYED);
+		this.state.set(State.DESTROYED);
 	}
 
 	private void dispose(@Nullable LettuceConnectionProvider connectionProvider) {
@@ -472,7 +520,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		LettuceConnection connection = doCreateLettuceConnection(getSharedConnection(), connectionProvider,
 				getTimeout(), getDatabase());
 
-		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
+		connection.setConvertPipelineAndTxResults(this.convertPipelineAndTxResults);
 
 		return connection;
 	}
@@ -492,8 +540,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		LettuceClusterTopologyProvider topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
 
-		return doCreateLettuceClusterConnection(sharedConnection, connectionProvider, topologyProvider,
-				clusterCommandExecutor, clientConfiguration.getCommandTimeout());
+		return doCreateLettuceClusterConnection(sharedConnection, this.connectionProvider, topologyProvider,
+				getClusterCommandExecutor(), this.clientConfiguration.getCommandTimeout());
 	}
 
 	/**
@@ -819,7 +867,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return native connection shared.
 	 */
 	public boolean getShareNativeConnection() {
-		return shareNativeConnection;
+		return this.shareNativeConnection;
 	}
 
 	/**
@@ -842,7 +890,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @since 2.2
 	 */
 	public boolean getEagerInitialization() {
-		return eagerInitialization;
+		return this.eagerInitialization;
 	}
 
 	/**
@@ -1164,7 +1212,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		return shareNativeConnection ? getOrCreateSharedReactiveConnection().getConnection() : null;
 	}
 
-	private LettuceConnectionProvider createConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
+	LettuceConnectionProvider createConnectionProvider(AbstractRedisClient client, RedisCodec<?, ?> codec) {
 
 		LettuceConnectionProvider connectionProvider = doCreateConnectionProvider(client, codec);
 

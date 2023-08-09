@@ -15,12 +15,15 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-import static org.springframework.data.redis.connection.RedisConfiguration.*;
-import static org.springframework.data.redis.test.extension.LettuceTestClientResources.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
+import static org.springframework.data.redis.connection.ClusterTestVariables.CLUSTER_NODE_1;
+import static org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort;
+import static org.springframework.data.redis.test.extension.LettuceTestClientResources.getSharedClientResources;
+import static org.springframework.test.util.ReflectionTestUtils.getField;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
@@ -43,6 +46,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -50,8 +54,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -63,9 +69,6 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSocketConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import org.assertj.core.api.InstanceOfAssertFactories;
 
 /**
  * Unit tests for {@link LettuceConnectionFactory}.
@@ -823,7 +826,7 @@ class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
-		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout")).isEqualTo(2000L);
+		assertThat(getField(clusterConnection, "timeout")).isEqualTo(2000L);
 
 		clusterConnection.close();
 	}
@@ -839,7 +842,7 @@ class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		RedisClusterConnection clusterConnection = connectionFactory.getClusterConnection();
-		assertThat(ReflectionTestUtils.getField(clusterConnection, "timeout")).isEqualTo(2000L);
+		assertThat(getField(clusterConnection, "timeout")).isEqualTo(2000L);
 
 		clusterConnection.close();
 	}
@@ -1250,8 +1253,8 @@ class LettuceConnectionFactoryUnitTests {
 				.withNoCause());
 	}
 
-	@Test
-	public void createRedisConfigurationWithValidRedisUriString() {
+	@Test // GH-2594
+	void createRedisConfigurationWithValidRedisUriString() {
 
 		RedisConfiguration redisConfiguration =
 				LettuceConnectionFactory.createRedisConfiguration("redis://skullbox:6789");
@@ -1267,6 +1270,31 @@ class LettuceConnectionFactoryUnitTests {
 			.asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
 			.extracting(RedisStandaloneConfiguration::getPort)
 			.isEqualTo(6789);
+	}
+
+	@Test // GH-2594
+	void configuresCustomTaskExecutorCorrectly() {
+
+		AsyncTaskExecutor mockTaskExecutor = mock(AsyncTaskExecutor.class);
+		LettuceConnectionProvider mockConnectionProvider = mock(LettuceConnectionProvider.class);
+		RedisClusterClient mockRedisClient = mock(RedisClusterClient.class);
+
+		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+
+		clusterConfiguration.setAsyncTaskExecutor(mockTaskExecutor);
+
+		LettuceConnectionFactory connectionFactory = spy(new LettuceConnectionFactory(clusterConfiguration));
+
+		doReturn(mockRedisClient).when(connectionFactory).createClient();
+		doReturn(mockConnectionProvider).when(connectionFactory).createConnectionProvider(eq(mockRedisClient), any());
+
+		connectionFactory.start();
+
+		assertThat(connectionFactory.isRunning()).isTrue();
+
+		ClusterCommandExecutor clusterCommandExecutor = connectionFactory.getClusterCommandExecutor();
+
+		assertThat(getField(clusterCommandExecutor, "executor")).isEqualTo(mockTaskExecutor);
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
