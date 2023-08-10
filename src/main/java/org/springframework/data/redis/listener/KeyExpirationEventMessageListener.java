@@ -25,24 +25,35 @@ import org.springframework.lang.Nullable;
 /**
  * {@link MessageListener} publishing {@link RedisKeyExpiredEvent}s via {@link ApplicationEventPublisher} by listening
  * to Redis keyspace notifications for key expirations.
+ * <p>
+ * For development-time convenience the {@link #setKeyspaceNotificationsConfigParameter(String)} is set to
+ * {@literal "Ex"}, by default. However, it is strongly recommended that users specifically set
+ * {@literal notify-keyspace-events} to the appropriate value on the Redis server, in {@literal redis.conf}.
+ * <p>
+ * Any Redis server configuration coming from your Spring (Data Redis) application only occurs during Spring container
+ * initialization, and is not persisted across Redis server restarts.
  *
  * @author Christoph Strobl
+ * @author John Blum
  * @since 1.7
  */
 public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener implements
 		ApplicationEventPublisherAware {
+
+	private static final String EXPIRED_KEY_EVENTS = "Ex";
 
 	private static final Topic KEYEVENT_EXPIRED_TOPIC = new PatternTopic("__keyevent@*__:expired");
 
 	private @Nullable ApplicationEventPublisher publisher;
 
 	/**
-	 * Creates new {@link MessageListener} for {@code __keyevent@*__:expired} messages.
+	 * Creates new {@link MessageListener} for {@code __keyevent@*__:expired} messages and configures notification on
+	 * expired keys ({@literal Ex}).
 	 *
 	 * @param listenerContainer must not be {@literal null}.
 	 */
 	public KeyExpirationEventMessageListener(RedisMessageListenerContainer listenerContainer) {
-		super(listenerContainer);
+		super(listenerContainer, EXPIRED_KEY_EVENTS);
 	}
 
 	@Override
