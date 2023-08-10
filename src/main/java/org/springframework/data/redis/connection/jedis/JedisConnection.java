@@ -41,7 +41,6 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -60,10 +59,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/redis/jedis">Jedis</a> library.
  * <p>
- * WARNING: The {@link JedisConnection} class is not Thread-safe. This class requires and uses a
- * {@literal Jedis} instance from the Jedis client library (driver), which is very clearly
- * <a href="https://github.com/redis/jedis/wiki/Getting-started#using-jedis-in-a-multithreaded-environment">documented</a>
- * as not Thread-safe.
+ * This class is not Thread-safe and instances should not be shared across threads.
  *
  * @author Costin Leau
  * @author Jennifer Hickey

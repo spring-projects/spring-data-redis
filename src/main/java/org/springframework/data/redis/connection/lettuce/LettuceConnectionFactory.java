@@ -68,8 +68,10 @@ import org.springframework.util.StringUtils;
 /**
  * Connection factory creating <a href="https://github.com/mp911de/lettuce">Lettuce</a>-based connections.
  * <p>
- * This factory creates a new {@link LettuceConnection} on each call to {@link #getConnection()}. Multiple
- * {@link LettuceConnection}s share a single thread-safe native connection by default.
+ * This factory creates a new {@link LettuceConnection} on each call to {@link #getConnection()}. While multiple
+ * {@link LettuceConnection}s share a single thread-safe native connection by default, {@link LettuceConnection} and its
+ * {@link LettuceClusterConnection clustered variant} are not Thread-safe and instances should not be shared across
+ * threads.
  * <p>
  * The shared native connection is never closed by {@link LettuceConnection}, therefore it is not validated by default
  * on {@link #getConnection()}. Use {@link #setValidateConnection(boolean)} to change this behavior if necessary. If
