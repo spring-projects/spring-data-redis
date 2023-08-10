@@ -22,15 +22,14 @@ import org.springframework.dao.DataAccessException;
 /**
  * A connection to a Redis server.
  * <p>
- * The {@link RedisConnection} interface serves as a common abstraction across various Redis client libraries
- * (or drivers).
+ * The {@link RedisConnection} interface serves as a common abstraction across various Redis client libraries (or
+ * drivers).
  * <p>
  * Additionally, performs exception translation between the underlying Redis client library and Spring DAO exceptions.
  * The methods follow as much as possible the Redis names and conventions.
  * <p>
- * Spring Data Redis {@link RedisConnection connections}, unlike perhaps their underlying native connection (for example:
- * the Lettuce {@literal StatefulRedisConnection}) are not Thread-safe. Please refer to the corresponding the Javadoc
- * for Redis client library (driver) specific connections provided by Spring Data Redis for more details.
+ * {@link RedisConnection Redis connections}, unlike perhaps their underlying native connection are not Thread-safe and
+ * should not be shared across multiple threads.
  *
  * @author Costin Leau
  * @author Christoph Strobl

@@ -28,6 +28,9 @@ import org.springframework.util.Assert;
  * {@link RedisClusterNode} can be obtained from {@link #clusterGetNodes()} or it can be constructed using either
  * {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} or the {@link RedisClusterNode#getId()
  * node Id}.
+ * <p>
+ * {@link RedisClusterConnection Redis connections}, unlike perhaps their underlying native connection are not
+ * Thread-safe and should not be shared across multiple threads.
  *
  * @author Christoph Strobl
  * @author Mark Paluch

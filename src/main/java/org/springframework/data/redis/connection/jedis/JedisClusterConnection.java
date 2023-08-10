@@ -35,7 +35,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.dao.DataAccessException;
@@ -61,6 +60,8 @@ import org.springframework.util.Assert;
  * {@link RedisClusterConnection} implementation on top of {@link JedisCluster}.<br/>
  * Uses the native {@link JedisCluster} api where possible and falls back to direct node communication using
  * {@link Jedis} where needed.
+ * <p>
+ * This class is not Thread-safe and instances should not be shared across threads.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
