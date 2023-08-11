@@ -103,27 +103,6 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-
-		Assert.notNull(name, "Name must not be null");
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(value, "Value must not be null");
-
-		execute(name, connection -> {
-
-			if (shouldExpireWithin(ttl)) {
-				connection.set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS), SetOption.upsert());
-			} else {
-				connection.set(key, value);
-			}
-
-			return "OK";
-		});
-
-		statistics.incPuts(name);
-	}
-
-	@Override
 	public byte[] get(String name, byte[] key) {
 		return get(name, key, null);
 	}
@@ -135,8 +114,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null");
 
 		byte[] result = shouldExpireWithin(ttl)
-			? execute(name, connection -> connection.getEx(key, Expiration.from(ttl)))
-			: execute(name, connection -> connection.get(key));
+			? execute(name, connection -> connection.stringCommands().getEx(key, Expiration.from(ttl)))
+			: execute(name, connection -> connection.stringCommands().get(key));
 
 		statistics.incGets(name);
 
@@ -147,6 +126,28 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		return result;
+	}
+
+	@Override
+	public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		execute(name, connection -> {
+
+			if (shouldExpireWithin(ttl)) {
+				connection.stringCommands()
+						.set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS), SetOption.upsert());
+			} else {
+				connection.stringCommands().set(key, value);
+			}
+
+			return "OK";
+		});
+
+		statistics.incPuts(name);
 	}
 
 	@Override
@@ -167,9 +168,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				boolean put;
 
 				if (shouldExpireWithin(ttl)) {
-					put = connection.set(key, value, Expiration.from(ttl), SetOption.ifAbsent());
+					put = isTrue(connection.stringCommands().set(key, value, Expiration.from(ttl), SetOption.ifAbsent()));
 				} else {
-					put = connection.setNX(key, value);
+					put = isTrue(connection.stringCommands().setNX(key, value));
 				}
 
 				if (put) {
@@ -177,7 +178,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					return null;
 				}
 
-				return connection.get(key);
+				return connection.stringCommands().get(key);
 
 			} finally {
 				if (isLockingCacheWriter()) {
@@ -193,7 +194,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		execute(name, connection -> connection.del(key));
+		execute(name, connection -> connection.keyCommands().del(key));
 		statistics.incDeletes(name);
 	}
 
@@ -257,6 +258,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		execute(name, connection -> doLock(name, name, null, connection));
 	}
 
+	@Nullable
+	private Boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue,
+			RedisConnection connection) {
+
+		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
+
+		return connection.stringCommands()
+				.set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT);
+	}
+
 	/**
 	 * Explicitly remove a write lock from a cache.
 	 *
@@ -266,20 +277,13 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		executeLockFree(connection -> doUnlock(name, connection));
 	}
 
-	private Boolean doLock(String name, Object contextualKey, Object contextualValue, RedisConnection connection) {
-
-		Expiration expiration = lockTtl == null ? Expiration.persistent()
-				: Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
-
-		return connection.set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT);
-	}
-
+	@Nullable
 	private Long doUnlock(String name, RedisConnection connection) {
-		return connection.del(createCacheLockKey(name));
+		return connection.keyCommands().del(createCacheLockKey(name));
 	}
 
 	boolean doCheckLock(String name, RedisConnection connection) {
-		return connection.exists(createCacheLockKey(name));
+		return isTrue(connection.keyCommands().exists(createCacheLockKey(name)));
 	}
 
 	/**
@@ -291,24 +295,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private <T> T execute(String name, Function<RedisConnection, T> callback) {
 
-		RedisConnection connection = connectionFactory.getConnection();
-
-		try {
+		try (RedisConnection connection = connectionFactory.getConnection()) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 			return callback.apply(connection);
-		} finally {
-			connection.close();
 		}
 	}
 
 	private void executeLockFree(Consumer<RedisConnection> callback) {
 
-		RedisConnection connection = connectionFactory.getConnection();
-
-		try {
+		try (RedisConnection connection = connectionFactory.getConnection()) {
 			callback.accept(connection);
-		} finally {
-			connection.close();
 		}
 	}
 
@@ -337,11 +333,15 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 	}
 
-	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
-		return ttl != null && !ttl.isZero() && !ttl.isNegative();
-	}
-
 	private static byte[] createCacheLockKey(String name) {
 		return (name + "~lock").getBytes(StandardCharsets.UTF_8);
+	}
+
+	private boolean isTrue(@Nullable Boolean value) {
+		return Boolean.TRUE.equals(value);
+	}
+
+	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
+		return ttl != null && !ttl.isZero() && !ttl.isNegative();
 	}
 }

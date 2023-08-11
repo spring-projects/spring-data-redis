@@ -28,17 +28,14 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
 
 /**
- * A collection of predefined {@link BatchStrategy} implementations using {@code KEYS} or {@code SCAN} command.
+ * Collection of predefined {@link BatchStrategy} implementations using the Redis {@code KEYS} or {@code SCAN} command.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @since 2.6
  */
 public abstract class BatchStrategies {
-
-	private BatchStrategies() {
-		// can't touch this - oh-oh oh oh oh-oh-oh
-	}
 
 	/**
 	 * A {@link BatchStrategy} using a single {@code KEYS} and {@code DEL} command to remove all matching keys.
@@ -66,6 +63,10 @@ public abstract class BatchStrategies {
 		Assert.isTrue(batchSize > 0, "Batch size must be greater than zero");
 
 		return new Scan(batchSize);
+	}
+
+	private BatchStrategies() {
+		// can't touch this - oh-oh oh oh oh-oh-oh
 	}
 
 	/**
@@ -108,9 +109,11 @@ public abstract class BatchStrategies {
 			long count = 0;
 
 			PartitionIterator<byte[]> partitions = new PartitionIterator<>(cursor, batchSize);
+
 			while (partitions.hasNext()) {
 
 				List<byte[]> keys = partitions.next();
+
 				count += keys.size();
 
 				if (keys.size() > 0) {
@@ -141,7 +144,7 @@ public abstract class BatchStrategies {
 
 		@Override
 		public boolean hasNext() {
-			return iterator.hasNext();
+			return this.iterator.hasNext();
 		}
 
 		@Override
@@ -151,9 +154,10 @@ public abstract class BatchStrategies {
 				throw new NoSuchElementException();
 			}
 
-			List<T> list = new ArrayList<>(size);
-			while (list.size() < size && iterator.hasNext()) {
-				list.add(iterator.next());
+			List<T> list = new ArrayList<>(this.size);
+
+			while (list.size() < this.size && this.iterator.hasNext()) {
+				list.add(this.iterator.next());
 			}
 
 			return list;
