@@ -32,12 +32,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * {@link CacheManager} backed by a {@link RedisCache}.
+ * {@link CacheManager} implementation for Redis backed by {@link RedisCache}.
  * <p>
- * This {@link CacheManager} creates {@link Cache caches} by default upon first write. Empty {@link Cache caches}
+ * This {@link CacheManager} creates {@link Cache caches} on first write, by default. Empty {@link Cache caches}
  * are not visible in Redis due to how Redis represents empty data structures.
  * <p>
- * {@link Cache Caches} requiring a different {@link RedisCacheConfiguration} than the default cache configuration
+ * {@link Cache Caches} requiring a different {@link RedisCacheConfiguration cache configuration}
+ * than the {@link RedisCacheConfiguration#defaultCacheConfig() default cache configuration}
  * can be specified via {@link RedisCacheManagerBuilder#withInitialCacheConfigurations(Map)} or individually
  * using {@link RedisCacheManagerBuilder#withCacheConfiguration(String, RedisCacheConfiguration)}.
  *
@@ -45,7 +46,10 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Yanming Zhou
  * @author John Blum
+ * @see org.springframework.cache.Cache
+ * @see org.springframework.cache.CacheManager
  * @see org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager
+ * @see org.springframework.data.redis.connection.RedisConnectionFactory
  * @see org.springframework.data.redis.cache.RedisCacheConfiguration
  * @see org.springframework.data.redis.cache.RedisCacheWriter
  * @since 2.0
@@ -100,7 +104,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	/**
 	 * Factory method used to construct a new {@link RedisCacheManager} initialized with
-	 * the given {@link RedisConnectionFactory} and using the defaults for caching.
+	 * the given {@link RedisConnectionFactory} and using {@link RedisCacheConfiguration#defaultCacheConfig() defaults}
+	 * for caching.
 	 *
 	 * <dl>
 	 * <dt>locking</dt>
@@ -127,7 +132,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
-		return new RedisCacheManager(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+		return new RedisCacheManager(org.springframework.data.redis.cache.RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
 			RedisCacheConfiguration.defaultCacheConfig());
 	}
 
@@ -359,6 +364,17 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return Collections.unmodifiableMap(this.initialCacheConfiguration);
 	}
 
+	/**
+	 * Returns a reference to the configured {@link RedisCacheWriter} used to perform {@link RedisCache} operations,
+	 * such as reading from and writing to the cache.
+	 *
+	 * @return a reference to the configured {@link RedisCacheWriter}.
+	 * @see org.springframework.data.redis.cache.RedisCacheWriter
+	 */
+	protected RedisCacheWriter getCacheWriter() {
+		return this.cacheWriter;
+	}
+
 	@Override
 	protected RedisCache getMissingCache(String name) {
 		return isAllowRuntimeCacheCreation() ? createRedisCache(name, getDefaultCacheConfiguration()) : null;
@@ -373,7 +389,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * @return a new {@link RedisCache} instance; never {@literal null}.
 	 */
 	protected RedisCache createRedisCache(String name, @Nullable RedisCacheConfiguration cacheConfiguration) {
-		return new RedisCache(name, cacheWriter, resolveCacheConfiguration(cacheConfiguration));
+		return new RedisCache(name, getCacheWriter(), resolveCacheConfiguration(cacheConfiguration));
 	}
 
 	@Override
@@ -630,19 +646,19 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 			Assert.state(cacheWriter != null, "CacheWriter must not be null;"
 				+ " You can provide one via 'RedisCacheManagerBuilder#cacheWriter(RedisCacheWriter)'");
 
-			RedisCacheWriter resolvedCacheWriter = !CacheStatisticsCollector.none().equals(statisticsCollector)
-				? cacheWriter.withStatisticsCollector(statisticsCollector)
-				: cacheWriter;
+			RedisCacheWriter resolvedCacheWriter = !CacheStatisticsCollector.none().equals(this.statisticsCollector)
+					? this.cacheWriter.withStatisticsCollector(this.statisticsCollector)
+					: this.cacheWriter;
 
 			RedisCacheManager cacheManager = newRedisCacheManager(resolvedCacheWriter);
 
-			cacheManager.setTransactionAware(enableTransactions);
+			cacheManager.setTransactionAware(this.enableTransactions);
 
 			return cacheManager;
 		}
 
 		private RedisCacheManager newRedisCacheManager(RedisCacheWriter cacheWriter) {
-			return new RedisCacheManager(cacheWriter, cacheDefaults(), allowRuntimeCacheCreation, initialCaches);
+			return new RedisCacheManager(cacheWriter, cacheDefaults(), this.allowRuntimeCacheCreation, this.initialCaches);
 		}
 	}
 }
