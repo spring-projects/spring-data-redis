@@ -26,10 +26,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -127,7 +128,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateMono(connection -> connection //
-				.hashCommands().hRandField(rawKey(key))).map(this::readHashKey);
+				.hashCommands().hRandField(rawKey(key))).map(this::readRequiredHashKey);
 	}
 
 	@Override
@@ -145,7 +146,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 
 		return template.doCreateFlux(connection -> connection //
-				.hashCommands().hRandField(rawKey(key), count)).map(this::readHashKey);
+				.hashCommands().hRandField(rawKey(key), count)).map(this::readRequiredHashKey);
 	}
 
 	@Override
@@ -163,7 +164,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 
 		return createFlux(connection -> connection.hKeys(rawKey(key)) //
-				.map(this::readHashKey));
+				.map(this::readRequiredHashKey));
 	}
 
 	@Override
@@ -211,7 +212,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 
 		return createFlux(connection -> connection.hVals(rawKey(key)) //
-				.map(this::readHashValue));
+				.map(this::readRequiredHashValue));
 	}
 
 	@Override
@@ -268,13 +269,37 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private HK readHashKey(ByteBuffer value) {
 		return (HK) serializationContext.getHashKeySerializationPair().read(value);
 	}
 
+	private HK readRequiredHashKey(ByteBuffer buffer) {
+
+		HK hashKey = readHashKey(buffer);
+
+		if (hashKey == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized hash key is null");
+		}
+
+		return hashKey;
+	}
+
 	@SuppressWarnings("unchecked")
-	private HV readHashValue(ByteBuffer value) {
-		return (HV) (value == null ? value : serializationContext.getHashValueSerializationPair().read(value));
+	@Nullable
+	private HV readHashValue(@Nullable ByteBuffer value) {
+		return (HV) (value == null ? null : serializationContext.getHashValueSerializationPair().read(value));
+	}
+
+	private HV readRequiredHashValue(ByteBuffer buffer) {
+
+		HV hashValue = readHashValue(buffer);
+
+		if (hashValue == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized hash value is null");
+		}
+
+		return hashValue;
 	}
 
 	private Map.Entry<HK, HV> deserializeHashEntry(Map.Entry<ByteBuffer, ByteBuffer> source) {

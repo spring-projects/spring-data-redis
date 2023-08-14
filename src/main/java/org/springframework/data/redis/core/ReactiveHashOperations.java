@@ -18,12 +18,18 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Redis map specific operations working on a hash.
+ * <p>
+ * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
+ * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
+ * particular element as Reactive Streams prohibit the usage of {@code null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
-
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -55,6 +55,11 @@ import org.springframework.util.ClassUtils;
  * <p>
  * Note that while the template is generified, it is up to the serializers/deserializers to properly convert the given
  * Objects to and from binary data.
+ * <p>
+ * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
+ * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
+ * particular element as Reactive Streams prohibit the usage of {@code null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -331,7 +336,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		return doCreateFlux(connection -> connection.keyCommands().keys(rawKey(pattern))) //
 				.flatMap(Flux::fromIterable) //
-				.map(this::readKey);
+				.map(this::readRequiredKey);
 	}
 
 	@Override
@@ -340,12 +345,12 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(options, "ScanOptions must not be null");
 
 		return doCreateFlux(connection -> connection.keyCommands().scan(options)) //
-				.map(this::readKey);
+				.map(this::readRequiredKey);
 	}
 
 	@Override
 	public Mono<K> randomKey() {
-		return doCreateMono(connection -> connection.keyCommands().randomKey()).map(this::readKey);
+		return doCreateMono(connection -> connection.keyCommands().randomKey()).map(this::readRequiredKey);
 	}
 
 	@Override
@@ -666,7 +671,19 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return getSerializationContext().getKeySerializationPair().getWriter().write(key);
 	}
 
+	@Nullable
 	private K readKey(ByteBuffer buffer) {
 		return getSerializationContext().getKeySerializationPair().getReader().read(buffer);
+	}
+
+	private K readRequiredKey(ByteBuffer buffer) {
+
+		K key = readKey(buffer);
+
+		if (key == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized key is null");
+		}
+
+		return key;
 	}
 }

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -110,7 +111,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.zRandMember(rawKey(key))).map(this::readValue);
+		return createMono(connection -> connection.zRandMember(rawKey(key))).map(this::readRequiredValue);
 	}
 
 	@Override
@@ -119,7 +120,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.isTrue(count > 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
 
-		return createFlux(connection -> connection.zRandMember(rawKey(key), count)).map(this::readValue);
+		return createFlux(connection -> connection.zRandMember(rawKey(key), count)).map(this::readRequiredValue);
 	}
 
 	@Override
@@ -128,7 +129,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.isTrue(count > 0, "Use a positive number for count; This method is already allowing duplicate elements");
 
-		return createFlux(connection -> connection.zRandMember(rawKey(key), -count)).map(this::readValue);
+		return createFlux(connection -> connection.zRandMember(rawKey(key), -count)).map(this::readRequiredValue);
 	}
 
 	@Override
@@ -181,7 +182,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRange(rawKey(key), range).map(this::readValue));
+		return createFlux(connection -> connection.zRange(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -199,7 +200,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRangeByScore(rawKey(key), range).map(this::readValue));
+		return createFlux(connection -> connection.zRangeByScore(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -217,7 +218,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRangeByScore(rawKey(key), range, limit).map(this::readValue));
+		return createFlux(connection -> connection.zRangeByScore(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -237,7 +238,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRevRange(rawKey(key), range).map(this::readValue));
+		return createFlux(connection -> connection.zRevRange(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -255,7 +256,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRevRangeByScore(rawKey(key), range).map(this::readValue));
+		return createFlux(connection -> connection.zRevRangeByScore(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -274,7 +275,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRevRangeByScore(rawKey(key), range, limit).map(this::readValue));
+		return createFlux(
+				connection -> connection.zRevRangeByScore(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -474,7 +476,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMapMany(connection::zDiff).map(this::readValue));
+				.flatMapMany(connection::zDiff).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -512,7 +514,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMapMany(connection::zInter).map(this::readValue));
+				.flatMapMany(connection::zInter).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -580,7 +582,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMapMany(connection::zUnion).map(this::readValue));
+				.flatMapMany(connection::zUnion).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -653,7 +655,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRangeByLex(rawKey(key), range).map(this::readValue));
+		return createFlux(connection -> connection.zRangeByLex(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -663,7 +665,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(connection -> connection.zRangeByLex(rawKey(key), range, limit).map(this::readValue));
+		return createFlux(connection -> connection.zRangeByLex(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -672,7 +674,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(connection -> connection.zRevRangeByLex(rawKey(key), range).map(this::readValue));
+		return createFlux(connection -> connection.zRevRangeByLex(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -682,7 +684,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(connection -> connection.zRevRangeByLex(rawKey(key), range, limit).map(this::readValue));
+		return createFlux(connection -> connection.zRevRangeByLex(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -725,8 +727,20 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		return serializationContext.getValueSerializationPair().write(value);
 	}
 
+	@Nullable
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
+	}
+
+	private V readRequiredValue(ByteBuffer buffer) {
+
+		V v = readValue(buffer);
+
+		if (v == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized sorted set value is null");
+		}
+
+		return v;
 	}
 
 	private TypedTuple<V> readTypedTuple(Tuple raw) {

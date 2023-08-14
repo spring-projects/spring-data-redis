@@ -27,12 +27,14 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -146,7 +148,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.get(rawKey((K) key)) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -155,7 +157,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.getDel(rawKey(key)) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -165,7 +167,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(timeout, "Timeout must not be null");
 
 		return createMono(connection -> connection.getEx(rawKey(key), Expiration.from(timeout)) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -174,7 +176,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.getEx(rawKey(key), Expiration.persistent()) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -182,7 +184,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.getSet(rawKey(key), rawValue(value)).map(value()::read));
+		return createMono(connection -> connection.getSet(rawKey(key), rawValue(value)).mapNotNull(value()::read));
 	}
 
 	@Override
@@ -250,7 +252,7 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(connection -> connection.getRange(rawKey(key), start, end) //
-				.map(stringSerializationPair()::read));
+				.mapNotNull(stringSerializationPair()::read));
 	}
 
 	@Override
@@ -317,8 +319,20 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 		return serializationContext.getValueSerializationPair().write(value);
 	}
 
+	@Nullable
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
+	}
+
+	private V readRequiredValue(ByteBuffer buffer) {
+
+		V v = readValue(buffer);
+
+		if (v == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized value is null");
+		}
+
+		return v;
 	}
 
 	private SerializationPair<String> stringSerializationPair() {
@@ -348,4 +362,5 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return result;
 	}
+
 }

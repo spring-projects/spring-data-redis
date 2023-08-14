@@ -28,8 +28,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveSetCommands;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -88,7 +90,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.sPop(rawKey(key)).map(this::readValue));
+		return createMono(connection -> connection.sPop(rawKey(key)).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -96,7 +98,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createFlux(connection -> connection.sPop(rawKey(key), count).map(this::readValue));
+		return createFlux(connection -> connection.sPop(rawKey(key), count).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -176,7 +178,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 				.map(this::rawKey) //
 				.collectList() //
 				.flatMapMany(connection::sInter) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -238,7 +240,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 				.map(this::rawKey) //
 				.collectList() //
 				.flatMapMany(connection::sUnion) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -300,7 +302,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 				.map(this::rawKey) //
 				.collectList() //
 				.flatMapMany(connection::sDiff) //
-				.map(this::readValue));
+				.map(this::readRequiredValue));
 	}
 
 	@Override
@@ -340,7 +342,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createFlux(connection -> connection.sMembers(rawKey(key)).map(this::readValue));
+		return createFlux(connection -> connection.sMembers(rawKey(key)).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -349,7 +351,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(options, "ScanOptions must not be null");
 
-		return createFlux(connection -> connection.sScan(rawKey(key), options).map(this::readValue));
+		return createFlux(connection -> connection.sScan(rawKey(key), options).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -357,7 +359,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(connection -> connection.sRandMember(rawKey(key)).map(this::readValue));
+		return createMono(connection -> connection.sRandMember(rawKey(key)).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -365,7 +367,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.isTrue(count > 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
 
-		return createFlux(connection -> connection.sRandMember(rawKey(key), count).map(this::readValue));
+		return createFlux(connection -> connection.sRandMember(rawKey(key), count).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -373,7 +375,7 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 		Assert.isTrue(count > 0, "Use a positive number for count; This method is already allowing duplicate elements");
 
-		return createFlux(connection -> connection.sRandMember(rawKey(key), -count).map(this::readValue));
+		return createFlux(connection -> connection.sRandMember(rawKey(key), -count).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -416,7 +418,19 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 		return serializationContext.getValueSerializationPair().write(value);
 	}
 
+	@Nullable
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
+	}
+
+	private V readRequiredValue(ByteBuffer buffer) {
+
+		V v = readValue(buffer);
+
+		if (v == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized set value is null");
+		}
+
+		return v;
 	}
 }

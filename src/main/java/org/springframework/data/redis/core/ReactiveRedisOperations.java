@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -41,6 +42,11 @@ import org.springframework.util.Assert;
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link ReactiveRedisTemplate}. Not often
  * used but a useful option for extensibility and testability (as it can be easily mocked or stubbed).
+ * <p>
+ * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
+ * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
+ * particular element as Reactive Streams prohibit the usage of {@code null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

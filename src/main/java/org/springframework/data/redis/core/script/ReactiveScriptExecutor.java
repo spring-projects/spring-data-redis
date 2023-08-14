@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.script;
 
 import reactor.core.publisher.Flux;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +27,11 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Executes {@link RedisScript}s using reactive infrastructure.
+ * <p>
+ * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
+ * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
+ * particular element as Reactive Streams prohibit the usage of {@code null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
