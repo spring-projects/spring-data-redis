@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Redis map specific operations working on a hash.
+ * Reactive Redis operations for Hash Commands.
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when

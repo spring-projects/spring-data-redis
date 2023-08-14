@@ -29,7 +29,7 @@ import org.springframework.data.redis.core.ListOperations.MoveTo;
 import org.springframework.util.Assert;
 
 /**
- * Redis list specific operations.
+ * Reactive Redis operations for List Commands.
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when

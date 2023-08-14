@@ -35,7 +35,7 @@ import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 
 /**
- * Reactive Redis operations for geo commands.
+ * Reactive Redis operations for Geo Commands.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

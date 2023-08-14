@@ -33,7 +33,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.lang.Nullable;
 
 /**
- * Redis ZSet/sorted set specific operations.
+ * Reactive Redis operations for Sorted (ZSet) Commands.
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
