@@ -469,7 +469,7 @@ public abstract class Converters {
 	 * @return
 	 * @since 2.6
 	 */
-	public static <K, V> Map.Entry<K, V> entryOf(K key, V value) {
+	public static <K, V> Map.Entry<K, V> entryOf(@Nullable K key, @Nullable V value) {
 		return new AbstractMap.SimpleImmutableEntry<>(key, value);
 	}
 

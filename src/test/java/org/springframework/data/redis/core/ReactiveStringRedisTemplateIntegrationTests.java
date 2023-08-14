@@ -20,9 +20,13 @@ import reactor.test.StepVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.serializer.RedisElementReader;
+import org.springframework.data.redis.serializer.RedisElementWriter;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration tests for {@link ReactiveStringRedisTemplate}.
@@ -54,5 +58,31 @@ public class ReactiveStringRedisTemplateIntegrationTests {
 
 		template.opsForValue().set("key", "value").as(StepVerifier::create).expectNext(true).verifyComplete();
 		template.opsForValue().get("key").as(StepVerifier::create).expectNext("value").verifyComplete();
+	}
+
+	@Test // GH-2655
+	void keysFailsOnNullElements() {
+
+		template.opsForValue().set("a", "1").as(StepVerifier::create).expectNext(true).verifyComplete();
+		template.opsForValue().set("b", "1").as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		RedisElementWriter<String> writer = RedisElementWriter.from(StringRedisSerializer.UTF_8);
+		RedisElementReader<String> reader = RedisElementReader.from(StringRedisSerializer.UTF_8);
+		RedisSerializationContext<String, String> nullReadingContext = RedisSerializationContext
+				.<String, String> newSerializationContext(StringRedisSerializer.UTF_8).key(buffer -> {
+
+					String read = reader.read(buffer);
+					if ("a".equals(read)) {
+						return null;
+					}
+
+					return read;
+				}, writer).build();
+
+		ReactiveRedisTemplate<String, String> customTemplate = new ReactiveRedisTemplate<>(template.getConnectionFactory(),
+				nullReadingContext);
+
+		customTemplate.keys("b").as(StepVerifier::create).expectNext("b").verifyComplete();
+		customTemplate.keys("a").as(StepVerifier::create).verifyError(InvalidDataAccessApiUsageException.class);
 	}
 }

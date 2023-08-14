@@ -35,7 +35,7 @@ import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 
 /**
- * Reactive Redis operations for geo commands.
+ * Reactive Redis operations for Geo Commands.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -289,8 +289,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference,
-			BoundingBox boundingBox) {
+	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference, BoundingBox boundingBox) {
 		return search(key, reference, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
@@ -306,8 +305,8 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference,
-			BoundingBox boundingBox, GeoSearchCommandArgs args) {
+	default Flux<GeoResult<GeoLocation<M>>> search(K key, GeoReference<M> reference, BoundingBox boundingBox,
+			GeoSearchCommandArgs args) {
 		return search(key, reference, GeoShape.byBox(boundingBox), args);
 	}
 
@@ -383,8 +382,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference,
-			BoundingBox boundingBox) {
+	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference, BoundingBox boundingBox) {
 		return searchAndStore(key, destKey, reference, boundingBox, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
 
@@ -400,8 +398,8 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference,
-			BoundingBox boundingBox, GeoSearchStoreCommandArgs args) {
+	default Mono<Long> searchAndStore(K key, K destKey, GeoReference<M> reference, BoundingBox boundingBox,
+			GeoSearchStoreCommandArgs args) {
 		return searchAndStore(key, destKey, reference, GeoShape.byBox(boundingBox), args);
 	}
 

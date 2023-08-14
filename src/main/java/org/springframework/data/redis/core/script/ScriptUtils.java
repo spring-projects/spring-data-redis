@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.dao.NonTransientDataAccessException;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.lang.Nullable;
 
 /**
  * Utilities for Lua script execution and result deserialization.
@@ -71,6 +72,7 @@ class ScriptUtils {
 	 * @param result must not be {@literal null}.
 	 * @return the deserialized result.
 	 */
+	@Nullable
 	@SuppressWarnings({ "unchecked" })
 	static <T> T deserializeResult(RedisElementReader<T> reader, Object result) {
 

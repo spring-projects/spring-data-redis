@@ -39,6 +39,7 @@ import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -320,6 +321,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return serializationContext.getValueSerializationPair().write(value);
 	}
 
+	@Nullable
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
 	}

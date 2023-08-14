@@ -18,7 +18,7 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Mono;
 
 /**
- * Redis cardinality specific operations working on a HyperLogLog multiset.
+ * Reactive Redis operations for working on a HyperLogLog multiset.
  *
  * @author Mark Paluch
  * @since 2.0

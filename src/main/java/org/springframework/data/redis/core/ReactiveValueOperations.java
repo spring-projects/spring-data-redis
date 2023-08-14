@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +27,11 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
 
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
+ * <p>
+ * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
+ * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
+ * particular element as Reactive Streams prohibit the usage of {@code null} values.
  *
  * @author Mark Paluch
  * @author Jiahe Cai

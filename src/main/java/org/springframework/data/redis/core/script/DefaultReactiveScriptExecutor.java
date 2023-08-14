@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -79,7 +80,6 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,
 			RedisElementReader<T> resultReader) {
 
@@ -134,7 +134,16 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	}
 
 	protected <T> Flux<T> deserializeResult(RedisElementReader<T> reader, Flux<T> result) {
-		return result.map(it -> ScriptUtils.deserializeResult(reader, it));
+		return result.map(it -> {
+
+			T value = ScriptUtils.deserializeResult(reader, it);
+
+			if (value == null) {
+				throw new InvalidDataAccessApiUsageException("Deserialized script result is null");
+			}
+
+			return value;
+		});
 	}
 
 	protected SerializationPair<K> keySerializer() {

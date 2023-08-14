@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +33,12 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.lang.Nullable;
 
 /**
- * Redis ZSet/sorted set specific operations.
+ * Reactive Redis operations for Sorted (ZSet) Commands.
+ * <p>
+ * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
+ * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
+ * particular element as Reactive Streams prohibit the usage of {@code null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
