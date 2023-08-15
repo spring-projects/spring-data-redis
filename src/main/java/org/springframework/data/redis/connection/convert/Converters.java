@@ -57,6 +57,8 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
+ * @author Sorokin Evgeniy
  */
 public abstract class Converters {
 
@@ -554,20 +556,28 @@ public abstract class Converters {
 		public RedisClusterNode convert(String source) {
 
 			String[] args = source.split(" ");
-			String[] hostAndPort = StringUtils.split(args[HOST_PORT_INDEX], ":");
 
-			Assert.notNull(hostAndPort, "ClusterNode information does not define host and port");
+			int lastColonIndex = args[HOST_PORT_INDEX].lastIndexOf(":");
+
+			Assert.isTrue(lastColonIndex >= 0 && lastColonIndex < args[HOST_PORT_INDEX].length() - 1,
+					"ClusterNode information does not define host and port");
+
+			String portPart = args[HOST_PORT_INDEX].substring(lastColonIndex + 1);
+			String hostPart = args[HOST_PORT_INDEX].substring(0, lastColonIndex);
 
 			SlotRange range = parseSlotRange(args);
 			Set<Flag> flags = parseFlags(args);
 
-			String portPart = hostAndPort[1];
 			if (portPart.contains("@")) {
 				portPart = portPart.substring(0, portPart.indexOf('@'));
 			}
 
+			if (hostPart.startsWith("[") && hostPart.endsWith("]")) {
+				hostPart = hostPart.substring(1, hostPart.length() - 1);
+			}
+
 			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-					.listeningAt(hostAndPort[0], Integer.valueOf(portPart)) //
+					.listeningAt(hostPart, Integer.valueOf(portPart)) //
 					.withId(args[ID_INDEX]) //
 					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA) //
 					.serving(range) //
