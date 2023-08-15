@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisNode.NodeType;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sorokin Evgeniy
  */
 class ConvertersUnitTests {
 
@@ -59,6 +60,12 @@ class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_IMPORTING_SLOT = "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected [5461-<-0f2ee5df45d18c50aca07228cc18b1da96fd5e84]";
 
 	private static final String CLUSTER_NODE_WITHOUT_HOST = "ef570f86c7b1a953846668debc177a3a16733420 :6379 fail,master - 0 0 1 connected";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_IPV6_HOST = "67adfe3df1058896e3cb49d2863e0f70e7e159fa 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@16380,redis-master master,nofailover - 0 1692108412315 1 connected 0-5460";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_IPV6_HOST_SQUARE_BRACKETS = "67adfe3df1058896e3cb49d2863e0f70e7e159fa [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@16380,redis-master master,nofailover - 0 1692108412315 1 connected 0-5460";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST = "67adfe3df1058896e3cb49d2863e0f70e7e159fa 2a02:6b8:c67:9c:0:6d8b:33da:5a2c: master,nofailover - 0 1692108412315 1 connected 0-5460";
 
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
@@ -222,4 +229,36 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(0);
 	}
 
+	@Test // https://github.com/spring-projects/spring-data-redis/issues/2678
+	void toClusterNodeWithIPv6Hostname() {
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV6_HOST);
+
+		assertThat(node.getId()).isEqualTo("67adfe3df1058896e3cb49d2863e0f70e7e159fa");
+		assertThat(node.getHost()).isEqualTo("2a02:6b8:c67:9c:0:6d8b:33da:5a2c");
+		assertThat(node.hasValidHost()).isTrue();
+		assertThat(node.getPort()).isEqualTo(6380);
+		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+		assertThat(node.getFlags()).contains(Flag.MASTER);
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+	}
+
+	@Test // https://github.com/spring-projects/spring-data-redis/issues/2678
+	void toClusterNodeWithIPv6HostnameSquareBrackets() {
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV6_HOST_SQUARE_BRACKETS);
+
+		assertThat(node.getId()).isEqualTo("67adfe3df1058896e3cb49d2863e0f70e7e159fa");
+		assertThat(node.getHost()).isEqualTo("2a02:6b8:c67:9c:0:6d8b:33da:5a2c");
+		assertThat(node.hasValidHost()).isTrue();
+		assertThat(node.getPort()).isEqualTo(6380);
+		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+		assertThat(node.getFlags()).contains(Flag.MASTER);
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+	}
+
+	@Test // https://github.com/spring-projects/spring-data-redis/issues/2678
+	void toClusterNodeWithInvalidIPv6Hostname() {
+		assertThatIllegalArgumentException().isThrownBy(() -> Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST));
+	}
 }
