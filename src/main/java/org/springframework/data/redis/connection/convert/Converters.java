@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -171,7 +173,7 @@ public abstract class Converters {
 	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
 
 		if (!StringUtils.hasText(clusterNodes)) {
-			return Collections.emptySet();
+				return Collections.emptySet();
 		}
 
 		String[] lines = clusterNodes.split(CLUSTER_NODES_LINE_SEPARATOR);
@@ -535,11 +537,22 @@ public abstract class Converters {
 
 		INSTANCE;
 
+		/**
+		 * Support following printf patterns:
+		 * <ul>
+		 * <li>{@code %s:%i} (Redis 3)</li>
+		 * <li>{@code %s:%i@%i} (Redis 4, with bus port)</li>
+		 * <li>{@code %s:%i@%i,%s} (Redis 7, with announced hostname)</li>
+		 * </ul>
+		 */
+		static final Pattern clusterEndpointPattern = Pattern
+				.compile("\\[?([0-9a-zA-Z\\-_\\.:]*)\\]?:([0-9]+)(?:@[0-9]+(?:,([^,].*))?)?");
 		private static final Map<String, Flag> flagLookupMap;
 
 		static {
 
 			flagLookupMap = new LinkedHashMap<>(Flag.values().length, 1);
+
 			for (Flag flag : Flag.values()) {
 				flagLookupMap.put(flag.getRaw(), flag);
 			}
@@ -557,32 +570,28 @@ public abstract class Converters {
 
 			String[] args = source.split(" ");
 
-			int lastColonIndex = args[HOST_PORT_INDEX].lastIndexOf(":");
+			Matcher matcher = clusterEndpointPattern.matcher(args[HOST_PORT_INDEX]);
 
-			Assert.isTrue(lastColonIndex >= 0 && lastColonIndex < args[HOST_PORT_INDEX].length() - 1,
-					"ClusterNode information does not define host and port");
+			Assert.isTrue(matcher.matches(), "ClusterNode information does not define host and port");
 
-			String portPart = args[HOST_PORT_INDEX].substring(lastColonIndex + 1);
-			String hostPart = args[HOST_PORT_INDEX].substring(0, lastColonIndex);
+			String addressPart = matcher.group(1);
+			String portPart = matcher.group(2);
+			String hostnamePart = matcher.group(3);
 
 			SlotRange range = parseSlotRange(args);
 			Set<Flag> flags = parseFlags(args);
 
-			if (portPart.contains("@")) {
-				portPart = portPart.substring(0, portPart.indexOf('@'));
-			}
-
-			if (hostPart.startsWith("[") && hostPart.endsWith("]")) {
-				hostPart = hostPart.substring(1, hostPart.length() - 1);
-			}
-
 			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-					.listeningAt(hostPart, Integer.valueOf(portPart)) //
+					.listeningAt(addressPart, Integer.parseInt(portPart)) //
 					.withId(args[ID_INDEX]) //
 					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA) //
 					.serving(range) //
 					.withFlags(flags) //
 					.linkState(parseLinkState(args));
+
+			if (hostnamePart != null) {
+				nodeBuilder.withName(hostnamePart);
+			}
 
 			if (!args[MASTER_ID_INDEX].isEmpty() && !args[MASTER_ID_INDEX].startsWith("-")) {
 				nodeBuilder.replicaOf(args[MASTER_ID_INDEX]);
