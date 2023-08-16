@@ -18,13 +18,18 @@ package org.springframework.data.redis.connection.convert;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
+import org.springframework.data.redis.connection.convert.Converters.ClusterNodesConverter;
 
 /**
  * Unit tests for {@link Converters}.
@@ -184,8 +189,8 @@ class ConvertersUnitTests {
 	@Test // DATAREDIS-315
 	void toSetOfRedisClusterNodesShouldParseLinkStateAndDisconnectedCorrectly() {
 
-		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(
-				CLUSTER_NODE_WITH_FAIL_FLAG_AND_DISCONNECTED_LINK_STATE).iterator();
+		Iterator<RedisClusterNode> nodes = Converters
+				.toSetOfRedisClusterNodes(CLUSTER_NODE_WITH_FAIL_FLAG_AND_DISCONNECTED_LINK_STATE).iterator();
 
 		RedisClusterNode node = nodes.next();
 		assertThat(node.getId()).isEqualTo("b8b5ee73b1d1997abff694b3fe8b2397d2138b6d");
@@ -243,8 +248,9 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
 	}
 
-	@Test // https://github.com/spring-projects/spring-data-redis/issues/2678
+	@Test // GH-2678
 	void toClusterNodeWithIPv6HostnameSquareBrackets() {
+
 		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV6_HOST_SQUARE_BRACKETS);
 
 		assertThat(node.getId()).isEqualTo("67adfe3df1058896e3cb49d2863e0f70e7e159fa");
@@ -257,8 +263,43 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
 	}
 
-	@Test // https://github.com/spring-projects/spring-data-redis/issues/2678
+	@Test // GH-2678
 	void toClusterNodeWithInvalidIPv6Hostname() {
-		assertThatIllegalArgumentException().isThrownBy(() -> Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST));
+	}
+
+	@ParameterizedTest // GH-2678
+	@MethodSource("clusterNodesEndpoints")
+	void shouldAcceptHostPatterns(String endpoint, String expectedAddress, String expectedPort, String expectedHostname) {
+
+		Matcher matcher = ClusterNodesConverter.clusterEndpointPattern.matcher(endpoint);
+		assertThat(matcher.matches()).isTrue();
+
+		assertThat(matcher.group(1)).isEqualTo(expectedAddress);
+		assertThat(matcher.group(2)).isEqualTo(expectedPort);
+		assertThat(matcher.group(3)).isEqualTo(expectedHostname);
+	}
+
+	static Stream<Arguments> clusterNodesEndpoints() {
+
+		return Stream.of(
+				// IPv4 with Host, Redis 3
+				Arguments.of("1.2.4.4:7379", "1.2.4.4", "7379", null),
+				// IPv6 with Host, Redis 3
+				Arguments.of("6b8:c67:9c:0:6d8b:33da:5a2c:6380", "6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null),
+				// Assuming IPv6 in brackets with Host, Redis 3
+				Arguments.of("[6b8:c67:9c:0:6d8b:33da:5a2c]:6380", "6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null),
+
+				// IPv4 with Host and Bus Port, Redis 4
+				Arguments.of("127.0.0.1:7382@17382", "127.0.0.1", "7382", null),
+				// IPv6 with Host and Bus Port, Redis 4
+				Arguments.of("6b8:c67:9c:0:6d8b:33da:5a2c:6380", "6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null),
+
+				// Hostname with Port and Bus Port, Redis 7
+				Arguments.of("my.host-name.com:7379@17379", "my.host-name.com", "7379", null),
+
+				// With hostname, Redis 7
+				Arguments.of("1.2.4.4:7379@17379,my.host-name.com", "1.2.4.4", "7379", "my.host-name.com"));
 	}
 }
