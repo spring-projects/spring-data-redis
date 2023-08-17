@@ -19,10 +19,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.convert.converter.Converter;
@@ -50,20 +51,22 @@ final class BinaryConverters {
 
 	static Collection<?> getConvertersToRegister() {
 
-		return Set.of(
-			new BinaryConverters.StringToBytesConverter(),
-			new BinaryConverters.BytesToStringConverter(),
-			new BinaryConverters.NumberToBytesConverter(),
-			new BinaryConverters.BytesToNumberConverterFactory(),
-			new BinaryConverters.EnumToBytesConverter(),
-			new BinaryConverters.BytesToEnumConverterFactory(),
-			new BinaryConverters.BooleanToBytesConverter(),
-			new BinaryConverters.BytesToBooleanConverter(),
-			new BinaryConverters.DateToBytesConverter(),
-			new BinaryConverters.BytesToDateConverter(),
-			new BinaryConverters.UuidToBytesConverter(),
-			new BinaryConverters.BytesToUuidConverter()
-		);
+		List<Object> converters = new ArrayList<>(12);
+
+		converters.add(new StringToBytesConverter());
+		converters.add(new BytesToStringConverter());
+		converters.add(new NumberToBytesConverter());
+		converters.add(new BytesToNumberConverterFactory());
+		converters.add(new EnumToBytesConverter());
+		converters.add(new BytesToEnumConverterFactory());
+		converters.add(new BooleanToBytesConverter());
+		converters.add(new BytesToBooleanConverter());
+		converters.add(new DateToBytesConverter());
+		converters.add(new BytesToDateConverter());
+		converters.add(new UuidToBytesConverter());
+		converters.add(new BytesToUuidConverter());
+
+		return converters;
 	}
 
 	/**

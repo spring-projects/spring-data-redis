@@ -37,7 +37,7 @@ public class RedisCustomConversions extends org.springframework.data.convert.Cus
 
 	static {
 
-		List<Object> converters = new ArrayList<>();
+		List<Object> converters = new ArrayList<>(35);
 
 		converters.addAll(BinaryConverters.getConvertersToRegister());
 		converters.addAll(Jsr310Converters.getConvertersToRegister());
