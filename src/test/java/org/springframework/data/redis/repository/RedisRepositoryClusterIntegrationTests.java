@@ -32,7 +32,6 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
-import org.springframework.lang.NonNullApi;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -52,13 +51,14 @@ class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationT
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
 			keyspaceConfiguration = MyKeyspaceConfiguration.class,
 			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class }) })
+					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class, UserRepository.class }) })
 	static class Config {
 
 		@Bean
 		RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory connectionFactory) {
 
 			RedisTemplate<byte[], byte[]> template = new RedisTemplate<>();
+
 			template.setConnectionFactory(connectionFactory);
 
 			return template;

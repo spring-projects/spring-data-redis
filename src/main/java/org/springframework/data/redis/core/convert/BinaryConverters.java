@@ -20,7 +20,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.core.convert.converter.Converter;
@@ -45,6 +47,24 @@ final class BinaryConverters {
 	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
 	private BinaryConverters() {}
+
+	static Collection<?> getConvertersToRegister() {
+
+		return Set.of(
+			new BinaryConverters.StringToBytesConverter(),
+			new BinaryConverters.BytesToStringConverter(),
+			new BinaryConverters.NumberToBytesConverter(),
+			new BinaryConverters.BytesToNumberConverterFactory(),
+			new BinaryConverters.EnumToBytesConverter(),
+			new BinaryConverters.BytesToEnumConverterFactory(),
+			new BinaryConverters.BooleanToBytesConverter(),
+			new BinaryConverters.BytesToBooleanConverter(),
+			new BinaryConverters.DateToBytesConverter(),
+			new BinaryConverters.BytesToDateConverter(),
+			new BinaryConverters.UuidToBytesConverter(),
+			new BinaryConverters.BytesToUuidConverter()
+		);
+	}
 
 	/**
 	 * @author Christoph Strobl
