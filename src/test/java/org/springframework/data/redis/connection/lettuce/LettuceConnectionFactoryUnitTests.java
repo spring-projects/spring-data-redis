@@ -15,15 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.redis.connection.ClusterTestVariables.CLUSTER_NODE_1;
-import static org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort;
-import static org.springframework.data.redis.test.extension.LettuceTestClientResources.getSharedClientResources;
-import static org.springframework.test.util.ReflectionTestUtils.getField;
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.RedisConfiguration.*;
+import static org.springframework.data.redis.test.extension.LettuceTestClientResources.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
@@ -54,10 +51,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -1050,8 +1045,7 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConfiguration.clusterNode("localhost", 1234).setMaxRedirects(42);
 
 		LettuceClientConfiguration clientConfiguration = LettuceTestClientConfiguration.builder()
-				.clientOptions(ClusterClientOptions.builder().validateClusterNodeMembership(false).build())
-				.build();
+				.clientOptions(ClusterClientOptions.builder().validateClusterNodeMembership(false).build()).build();
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfiguration,
 				clientConfiguration);
@@ -1246,55 +1240,24 @@ class LettuceConnectionFactoryUnitTests {
 	@Test // GH-2594
 	void createRedisConfigurationWithNullInvalidRedisUriString() {
 
-		Arrays.asList("  ", "", null).forEach(redisUri ->
-			assertThatIllegalArgumentException()
-				.isThrownBy(() -> LettuceConnectionFactory.createRedisConfiguration(redisUri))
-				.withMessage("RedisURI must not be null or empty")
-				.withNoCause());
+		Arrays.asList("  ", "", null)
+				.forEach(redisUri -> assertThatIllegalArgumentException()
+						.isThrownBy(() -> LettuceConnectionFactory.createRedisConfiguration(redisUri))
+						.withMessage("RedisURI must not be null or empty").withNoCause());
 	}
 
 	@Test // GH-2594
 	void createRedisConfigurationWithValidRedisUriString() {
 
-		RedisConfiguration redisConfiguration =
-				LettuceConnectionFactory.createRedisConfiguration("redis://skullbox:6789");
+		RedisConfiguration redisConfiguration = LettuceConnectionFactory.createRedisConfiguration("redis://skullbox:6789");
 
 		assertThat(redisConfiguration).isInstanceOf(RedisStandaloneConfiguration.class);
 
-		assertThat(redisConfiguration)
-			.asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
-			.extracting(RedisStandaloneConfiguration::getHostName)
-			.isEqualTo("skullbox");
+		assertThat(redisConfiguration).asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
+				.extracting(RedisStandaloneConfiguration::getHostName).isEqualTo("skullbox");
 
-		assertThat(redisConfiguration)
-			.asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
-			.extracting(RedisStandaloneConfiguration::getPort)
-			.isEqualTo(6789);
-	}
-
-	@Test // GH-2594
-	void configuresCustomTaskExecutorCorrectly() {
-
-		AsyncTaskExecutor mockTaskExecutor = mock(AsyncTaskExecutor.class);
-		LettuceConnectionProvider mockConnectionProvider = mock(LettuceConnectionProvider.class);
-		RedisClusterClient mockRedisClient = mock(RedisClusterClient.class);
-
-		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
-
-		clusterConfiguration.setAsyncTaskExecutor(mockTaskExecutor);
-
-		LettuceConnectionFactory connectionFactory = spy(new LettuceConnectionFactory(clusterConfiguration));
-
-		doReturn(mockRedisClient).when(connectionFactory).createClient();
-		doReturn(mockConnectionProvider).when(connectionFactory).createConnectionProvider(eq(mockRedisClient), any());
-
-		connectionFactory.start();
-
-		assertThat(connectionFactory.isRunning()).isTrue();
-
-		ClusterCommandExecutor clusterCommandExecutor = connectionFactory.getClusterCommandExecutor();
-
-		assertThat(getField(clusterCommandExecutor, "executor")).isEqualTo(mockTaskExecutor);
+		assertThat(redisConfiguration).asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
+				.extracting(RedisStandaloneConfiguration::getPort).isEqualTo(6789);
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
@@ -1342,8 +1305,7 @@ class LettuceConnectionFactoryUnitTests {
 				return false;
 			}
 
-			return Objects.equals(this.getHostName(), that.getHostName())
-				&& Objects.equals(this.getPort(), that.getPort());
+			return Objects.equals(this.getHostName(), that.getHostName()) && Objects.equals(this.getPort(), that.getPort());
 		}
 
 		@Override
@@ -1354,10 +1316,7 @@ class LettuceConnectionFactoryUnitTests {
 		@Override
 		public String toString() {
 
-			return "CustomRedisConfiguration{" +
-				"hostName='" + hostName + '\'' +
-				", port=" + port +
-				'}';
+			return "CustomRedisConfiguration{" + "hostName='" + hostName + '\'' + ", port=" + port + '}';
 		}
 	}
 }

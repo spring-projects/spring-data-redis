@@ -32,24 +32,20 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
  * {@link ClusterCommandExecutor} takes care of running commands across the known cluster nodes. By providing an
- * {@link AsyncTaskExecutor} the execution behavior can be influenced.
+ * {@link AsyncTaskExecutor} the execution behavior can be configured.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
  */
 public class ClusterCommandExecutor implements DisposableBean {
-
-	protected static final AsyncTaskExecutor DEFAULT_TASK_EXECUTOR = new SimpleAsyncTaskExecutor();
 
 	private int maxRedirects = 5;
 
@@ -71,14 +67,14 @@ public class ClusterCommandExecutor implements DisposableBean {
 	public ClusterCommandExecutor(ClusterTopologyProvider topologyProvider, ClusterNodeResourceProvider resourceProvider,
 			ExceptionTranslationStrategy exceptionTranslation) {
 
-		this(topologyProvider, resourceProvider, exceptionTranslation, DEFAULT_TASK_EXECUTOR);
+		this(topologyProvider, resourceProvider, exceptionTranslation, new SimpleAsyncTaskExecutor());
 	}
 
 	/**
 	 * @param topologyProvider must not be {@literal null}.
 	 * @param resourceProvider must not be {@literal null}.
 	 * @param exceptionTranslation must not be {@literal null}.
-	 * @param executor can be {@literal null}. Defaulted to {@link ThreadPoolTaskExecutor}.
+	 * @param executor the task executor to null, defaults to {@link SimpleAsyncTaskExecutor} if {@literal null}.
 	 */
 	public ClusterCommandExecutor(ClusterTopologyProvider topologyProvider, ClusterNodeResourceProvider resourceProvider,
 			ExceptionTranslationStrategy exceptionTranslation, @Nullable AsyncTaskExecutor executor) {
@@ -90,11 +86,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		this.topologyProvider = topologyProvider;
 		this.resourceProvider = resourceProvider;
 		this.exceptionTranslationStrategy = exceptionTranslation;
-		this.executor = resolveTaskExecutor(executor);
-	}
-
-	private @NonNull AsyncTaskExecutor resolveTaskExecutor(@Nullable AsyncTaskExecutor taskExecutor) {
-		return taskExecutor != null ? taskExecutor : DEFAULT_TASK_EXECUTOR;
+		this.executor = executor != null ? executor : new SimpleAsyncTaskExecutor();
 	}
 
 	/**
@@ -149,9 +141,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 			RuntimeException translatedException = convertToDataAccessException(cause);
 
 			if (translatedException instanceof ClusterRedirectException clusterRedirectException) {
-				return executeCommandOnSingleNode(cmd, topologyProvider.getTopology()
-						.lookup(clusterRedirectException.getTargetHost(), clusterRedirectException.getTargetPort()),
-						redirectCount + 1);
+				return executeCommandOnSingleNode(cmd, topologyProvider.getTopology().lookup(
+						clusterRedirectException.getTargetHost(), clusterRedirectException.getTargetPort()), redirectCount + 1);
 			} else {
 				throw translatedException != null ? translatedException : cause;
 			}
@@ -182,7 +173,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param cmd must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException if a failure occurs while executing the given
-	 * {@link ClusterCommandCallback command} on any given {@link RedisClusterNode node}.
+	 *           {@link ClusterCommandCallback command} on any given {@link RedisClusterNode node}.
 	 */
 	public <S, T> MultiNodeResult<T> executeCommandOnAllNodes(final ClusterCommandCallback<S, T> cmd) {
 		return executeCommandAsyncOnNodes(cmd, getClusterTopology().getActiveMasterNodes());
@@ -193,7 +184,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param nodes must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException if a failure occurs while executing the given
-	 * {@link ClusterCommandCallback command} on any given {@link RedisClusterNode node}.
+	 *           {@link ClusterCommandCallback command} on any given {@link RedisClusterNode node}.
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
 	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(ClusterCommandCallback<S, T> callback,
@@ -295,7 +286,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param commandCallback must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException if a failure occurs while executing the given
-	 * {@link MultiKeyClusterCommandCallback command}.
+	 *           {@link MultiKeyClusterCommandCallback command}.
 	 */
 	public <S, T> MultiNodeResult<T> executeMultiKeyCommand(MultiKeyClusterCommandCallback<S, T> commandCallback,
 			Iterable<byte[]> keys) {
@@ -315,8 +306,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 			if (entry.getKey().isMaster()) {
 				for (PositionalKey key : entry.getValue()) {
-					futures.put(new NodeExecution(entry.getKey(), key), this.executor.submit(() ->
-							executeMultiKeyCommandOnSingleNode(commandCallback, entry.getKey(), key.getBytes())));
+					futures.put(new NodeExecution(entry.getKey(), key), this.executor
+							.submit(() -> executeMultiKeyCommandOnSingleNode(commandCallback, entry.getKey(), key.getBytes())));
 				}
 			}
 		}
@@ -366,10 +357,6 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 	@Override
 	public void destroy() throws Exception {
-
-		if (this.executor instanceof DisposableBean disposableBean) {
-			disposableBean.destroy();
-		}
 
 		if (this.resourceProvider instanceof DisposableBean disposableBean) {
 			disposableBean.destroy();

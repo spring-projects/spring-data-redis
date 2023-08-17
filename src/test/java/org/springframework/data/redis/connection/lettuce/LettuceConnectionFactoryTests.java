@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
+import static org.mockito.Mockito.*;
 
 import io.lettuce.core.EpollProvider;
 import io.lettuce.core.KqueueProvider;
@@ -36,10 +37,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -567,6 +570,24 @@ class LettuceConnectionFactoryTests {
 		assertThat(factory.getSharedClusterConnection()).isNotNull();
 
 		factory.getConnection().close();
+		factory.destroy();
+	}
+
+	@Test // GH-2594
+	@EnabledOnRedisClusterAvailable
+	void configuresExecutorCorrectly() {
+
+		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().build();
+		AsyncTaskExecutor mockTaskExecutor = mock(AsyncTaskExecutor.class);
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SettingsUtils.clusterConfiguration(),
+				configuration);
+		factory.setExecutor(mockTaskExecutor);
+		factory.start();
+
+		ClusterCommandExecutor clusterCommandExecutor = factory.getRequiredClusterCommandExecutor();
+		assertThat(clusterCommandExecutor).extracting("executor").isEqualTo(mockTaskExecutor);
+
 		factory.destroy();
 	}
 
