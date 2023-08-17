@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.core.convert;
 
 import java.time.Duration;
@@ -21,6 +20,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -47,9 +48,11 @@ public abstract class Jsr310Converters {
 			Jsr310Converters.class.getClassLoader());
 
 	/**
-	 * Returns the converters to be registered. Will only return converters in case we're running on Java 8.
+	 * Returns the {@link Converter Converters} to be registered.
+	 * <p>
+	 * Will only return {@link Converter Converters} in case we're running on Java 8.
 	 *
-	 * @return
+	 * @return the {@link Converter Converters} to be registered.
 	 */
 	public static Collection<Converter<?, ?>> getConvertersToRegister() {
 
@@ -58,6 +61,7 @@ public abstract class Jsr310Converters {
 		}
 
 		List<Converter<?, ?>> converters = new ArrayList<>();
+
 		converters.add(new LocalDateTimeToBytesConverter());
 		converters.add(new BytesToLocalDateTimeConverter());
 		converters.add(new LocalDateToBytesConverter());
@@ -74,6 +78,10 @@ public abstract class Jsr310Converters {
 		converters.add(new BytesToPeriodConverter());
 		converters.add(new DurationToBytesConverter());
 		converters.add(new BytesToDurationConverter());
+		converters.add(new OffsetDateTimeToBytesConverter());
+		converters.add(new BytesToOffsetDateTimeConverter());
+		converters.add(new OffsetTimeToBytesConverter());
+		converters.add(new BytesToOffsetTimeConverter());
 
 		return converters;
 	}
@@ -296,4 +304,51 @@ public abstract class Jsr310Converters {
 		}
 	}
 
+	/**
+	 * @author John Blum
+	 * @see java.time.OffsetDateTime
+	 */
+	static class OffsetDateTimeToBytesConverter extends StringBasedConverter implements Converter<OffsetDateTime, byte[]> {
+
+		@Override
+		public byte[] convert(OffsetDateTime source) {
+			return fromString(source.toString());
+		}
+	}
+
+	/**
+	 * @author John Blum
+	 * @see java.time.OffsetDateTime
+	 */
+	static class BytesToOffsetDateTimeConverter extends StringBasedConverter implements Converter<byte[], OffsetDateTime> {
+
+		@Override
+		public OffsetDateTime convert(byte[] source) {
+			return OffsetDateTime.parse(toString(source));
+		}
+	}
+
+	/**
+	 * @author John Blum
+	 * @see java.time.OffsetTime
+	 */
+	static class OffsetTimeToBytesConverter extends StringBasedConverter implements Converter<OffsetTime, byte[]> {
+
+		@Override
+		public byte[] convert(OffsetTime source) {
+			return fromString(source.toString());
+		}
+	}
+
+	/**
+	 * @author John Blum
+	 * @see java.time.OffsetTime
+	 */
+	static class BytesToOffsetTimeConverter extends StringBasedConverter implements Converter<byte[], OffsetTime> {
+
+		@Override
+		public OffsetTime convert(byte[] source) {
+			return OffsetTime.parse(toString(source));
+		}
+	}
 }
