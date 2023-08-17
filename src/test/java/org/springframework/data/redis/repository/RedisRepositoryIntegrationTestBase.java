@@ -30,7 +30,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -53,9 +52,7 @@ import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
  * Base for testing Redis repository support in different configurations.
@@ -483,9 +480,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	@Test // GH-2677
 	void shouldProperlyHandleEntityWithOffsetJavaTimeTypes() {
 
-		User jonDoe = User.as("Jon Doe")
-				.expires(OffsetTime.now().plusMinutes(5))
-				.lastAccess(OffsetDateTime.now());
+		User jonDoe = User.of("Jon Doe").expires(OffsetTime.now().plusMinutes(5)).lastAccess(OffsetDateTime.now());
 
 		this.userRepository.save(jonDoe);
 
@@ -498,9 +493,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(loadedJonDoe.getExpiration()).isEqualTo(jonDoe.getExpiration());
 	}
 
-	public static interface PersonRepository
-			extends PagingAndSortingRepository<Person, String>, CrudRepository<Person, String>,
-			QueryByExampleExecutor<Person> {
+	public static interface PersonRepository extends PagingAndSortingRepository<Person, String>,
+			CrudRepository<Person, String>, QueryByExampleExecutor<Person> {
 
 		List<Person> findByFirstname(String firstname);
 
@@ -543,7 +537,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 	public interface ImmutableObjectRepository extends CrudRepository<Immutable, String> {}
 
-	public interface UserRepository extends CrudRepository<User, String> { }
+	public interface UserRepository extends CrudRepository<User, String> {}
 
 	/**
 	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
@@ -613,20 +607,18 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	@RedisHash("Users")
 	static class User {
 
-		static User as(@NonNull String name) {
-			Assert.hasText(name, () -> String.format("Name [%s] of User is required", name));
-			return new User(name);
-		}
+		@Id private final String name;
 
 		private OffsetDateTime lastAccessed;
 
 		private OffsetTime expiration;
 
-		@Id
-		private final String name;
-
-		private User(@NonNull String name) {
+		private User(String name) {
 			this.name = name;
+		}
+
+		static User of(String name) {
+			return new User(name);
 		}
 
 		@Nullable
@@ -643,38 +635,15 @@ public abstract class RedisRepositoryIntegrationTestBase {
 			return this.name;
 		}
 
-		public User lastAccess(@Nullable OffsetDateTime dateTime) {
+		public User lastAccess(OffsetDateTime dateTime) {
 			this.lastAccessed = dateTime;
 			return this;
 		}
 
-		public User expires(@Nullable OffsetTime time) {
+		public User expires(OffsetTime time) {
 			this.expiration = time;
 			return this;
 		}
 
-		@Override
-		public boolean equals(Object obj) {
-
-			if (this == obj) {
-				return true;
-			}
-
-			if (!(obj instanceof User that)) {
-				return false;
-			}
-
-			return this.getName().equals(that.getName());
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(getName());
-		}
-
-		@Override
-		public String toString() {
-			return getName();
-		}
 	}
 }

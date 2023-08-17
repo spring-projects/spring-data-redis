@@ -28,39 +28,27 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.ReadingConverter;
-import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.redis.core.convert.BinaryConverters.StringBasedConverter;
-import org.springframework.util.ClassUtils;
 
 /**
- * Helper class to register JSR-310 specific {@link Converter} implementations in case the we're running on Java 8.
+ * Helper class to register JSR-310 specific {@link Converter} implementations.
  *
  * @author Mark Paluch
+ * @author John Blum
  */
 public abstract class Jsr310Converters {
 
-	private static final boolean JAVA_8_IS_PRESENT = ClassUtils.isPresent("java.time.LocalDateTime",
-			Jsr310Converters.class.getClassLoader());
-
 	/**
 	 * Returns the {@link Converter Converters} to be registered.
-	 * <p>
-	 * Will only return {@link Converter Converters} in case we're running on Java 8.
 	 *
 	 * @return the {@link Converter Converters} to be registered.
 	 */
 	public static Collection<Converter<?, ?>> getConvertersToRegister() {
 
-		if (!JAVA_8_IS_PRESENT) {
-			return Collections.emptySet();
-		}
-
-		List<Converter<?, ?>> converters = new ArrayList<>();
+		List<Converter<?, ?>> converters = new ArrayList<>(20);
 
 		converters.add(new LocalDateTimeToBytesConverter());
 		converters.add(new BytesToLocalDateTimeConverter());
@@ -88,19 +76,15 @@ public abstract class Jsr310Converters {
 
 	public static boolean supports(Class<?> type) {
 
-		if (!JAVA_8_IS_PRESENT) {
-			return false;
-		}
-
 		return Arrays.<Class<?>> asList(LocalDateTime.class, LocalDate.class, LocalTime.class, Instant.class,
-				ZonedDateTime.class, ZoneId.class, Period.class, Duration.class).contains(type);
+				ZonedDateTime.class, ZoneId.class, Period.class, Duration.class, OffsetDateTime.class, OffsetTime.class)
+				.contains(type);
 	}
 
 	/**
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class LocalDateTimeToBytesConverter extends StringBasedConverter implements Converter<LocalDateTime, byte[]> {
 
 		@Override
@@ -113,7 +97,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToLocalDateTimeConverter extends StringBasedConverter implements Converter<byte[], LocalDateTime> {
 
 		@Override
@@ -126,7 +109,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class LocalDateToBytesConverter extends StringBasedConverter implements Converter<LocalDate, byte[]> {
 
 		@Override
@@ -139,7 +121,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToLocalDateConverter extends StringBasedConverter implements Converter<byte[], LocalDate> {
 
 		@Override
@@ -152,7 +133,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class LocalTimeToBytesConverter extends StringBasedConverter implements Converter<LocalTime, byte[]> {
 
 		@Override
@@ -165,7 +145,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToLocalTimeConverter extends StringBasedConverter implements Converter<byte[], LocalTime> {
 
 		@Override
@@ -178,7 +157,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class ZonedDateTimeToBytesConverter extends StringBasedConverter implements Converter<ZonedDateTime, byte[]> {
 
 		@Override
@@ -191,7 +169,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToZonedDateTimeConverter extends StringBasedConverter implements Converter<byte[], ZonedDateTime> {
 
 		@Override
@@ -204,7 +181,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class InstantToBytesConverter extends StringBasedConverter implements Converter<Instant, byte[]> {
 
 		@Override
@@ -217,7 +193,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToInstantConverter extends StringBasedConverter implements Converter<byte[], Instant> {
 
 		@Override
@@ -230,7 +205,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class ZoneIdToBytesConverter extends StringBasedConverter implements Converter<ZoneId, byte[]> {
 
 		@Override
@@ -243,7 +217,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToZoneIdConverter extends StringBasedConverter implements Converter<byte[], ZoneId> {
 
 		@Override
@@ -256,7 +229,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class PeriodToBytesConverter extends StringBasedConverter implements Converter<Period, byte[]> {
 
 		@Override
@@ -269,7 +241,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToPeriodConverter extends StringBasedConverter implements Converter<byte[], Period> {
 
 		@Override
@@ -282,7 +253,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@WritingConverter
 	static class DurationToBytesConverter extends StringBasedConverter implements Converter<Duration, byte[]> {
 
 		@Override
@@ -295,7 +265,6 @@ public abstract class Jsr310Converters {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	@ReadingConverter
 	static class BytesToDurationConverter extends StringBasedConverter implements Converter<byte[], Duration> {
 
 		@Override
@@ -306,9 +275,10 @@ public abstract class Jsr310Converters {
 
 	/**
 	 * @author John Blum
-	 * @see java.time.OffsetDateTime
+	 * @since 3.0.9
 	 */
-	static class OffsetDateTimeToBytesConverter extends StringBasedConverter implements Converter<OffsetDateTime, byte[]> {
+	static class OffsetDateTimeToBytesConverter extends StringBasedConverter
+			implements Converter<OffsetDateTime, byte[]> {
 
 		@Override
 		public byte[] convert(OffsetDateTime source) {
@@ -318,9 +288,10 @@ public abstract class Jsr310Converters {
 
 	/**
 	 * @author John Blum
-	 * @see java.time.OffsetDateTime
+	 * @since 3.0.9
 	 */
-	static class BytesToOffsetDateTimeConverter extends StringBasedConverter implements Converter<byte[], OffsetDateTime> {
+	static class BytesToOffsetDateTimeConverter extends StringBasedConverter
+			implements Converter<byte[], OffsetDateTime> {
 
 		@Override
 		public OffsetDateTime convert(byte[] source) {
@@ -330,7 +301,7 @@ public abstract class Jsr310Converters {
 
 	/**
 	 * @author John Blum
-	 * @see java.time.OffsetTime
+	 * @since 3.0.9
 	 */
 	static class OffsetTimeToBytesConverter extends StringBasedConverter implements Converter<OffsetTime, byte[]> {
 
@@ -342,7 +313,7 @@ public abstract class Jsr310Converters {
 
 	/**
 	 * @author John Blum
-	 * @see java.time.OffsetTime
+	 * @since 3.0.9
 	 */
 	static class BytesToOffsetTimeConverter extends StringBasedConverter implements Converter<byte[], OffsetTime> {
 
