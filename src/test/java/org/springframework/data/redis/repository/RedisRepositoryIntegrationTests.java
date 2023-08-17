@@ -56,8 +56,7 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
 			keyspaceConfiguration = MyKeyspaceConfiguration.class,
 			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class }) })
-
+					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class, UserRepository.class }) })
 	static class Config {
 
 		@Bean
@@ -67,6 +66,7 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 			connectionFactory.afterPropertiesSet();
 
 			RedisTemplate<String, String> template = new RedisTemplate<>();
+
 			template.setDefaultSerializer(StringRedisSerializer.UTF_8);
 			template.setConnectionFactory(connectionFactory);
 
@@ -104,6 +104,7 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 	public void shouldConsiderCustomTypeMapper() {
 
 		Person rand = new Person();
+
 		rand.id = "rand";
 		rand.firstname = "rand";
 		rand.lastname = "al'thor";

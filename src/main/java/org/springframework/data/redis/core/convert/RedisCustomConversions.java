@@ -39,18 +39,7 @@ public class RedisCustomConversions extends org.springframework.data.convert.Cus
 
 		List<Object> converters = new ArrayList<>();
 
-		converters.add(new BinaryConverters.StringToBytesConverter());
-		converters.add(new BinaryConverters.BytesToStringConverter());
-		converters.add(new BinaryConverters.NumberToBytesConverter());
-		converters.add(new BinaryConverters.BytesToNumberConverterFactory());
-		converters.add(new BinaryConverters.EnumToBytesConverter());
-		converters.add(new BinaryConverters.BytesToEnumConverterFactory());
-		converters.add(new BinaryConverters.BooleanToBytesConverter());
-		converters.add(new BinaryConverters.BytesToBooleanConverter());
-		converters.add(new BinaryConverters.DateToBytesConverter());
-		converters.add(new BinaryConverters.BytesToDateConverter());
-		converters.add(new BinaryConverters.UuidToBytesConverter());
-		converters.add(new BinaryConverters.BytesToUuidConverter());
+		converters.addAll(BinaryConverters.getConvertersToRegister());
 		converters.addAll(Jsr310Converters.getConvertersToRegister());
 
 		STORE_CONVERTERS = Collections.unmodifiableList(converters);

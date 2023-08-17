@@ -50,7 +50,7 @@ class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationT
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
 			keyspaceConfiguration = MyKeyspaceConfiguration.class,
 			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class }) })
+					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class, UserRepository.class }) })
 	static class Config {
 
 		@Bean
@@ -62,6 +62,7 @@ class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationT
 			connectionFactory.afterPropertiesSet();
 
 			RedisTemplate<byte[], byte[]> template = new RedisTemplate<>();
+
 			template.setConnectionFactory(connectionFactory);
 
 			return template;
