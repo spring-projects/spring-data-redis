@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.StringUtils.commaDelimitedListToSet;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +24,6 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
@@ -36,8 +33,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Configuration class used to set up a {@link RedisConnection} via {@link RedisConnectionFactory} for connecting
- * to <a href="https://redis.io/topics/cluster-spec">Redis Cluster</a>. Useful when setting up a highly available Redis
+ * Configuration class used to set up a {@link RedisConnection} via {@link RedisConnectionFactory} for connecting to
+ * <a href="https://redis.io/topics/cluster-spec">Redis Cluster</a>. Useful when setting up a highly available Redis
  * environment.
  *
  * @author Christoph Strobl
@@ -51,8 +48,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
 
 	private @Nullable Integer maxRedirects;
-
-	private @Nullable AsyncTaskExecutor executor;
 
 	private RedisPassword password = RedisPassword.none();
 
@@ -103,10 +98,12 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		this.clusterNodes = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)) {
+
 			Object redisClusterNodes = propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY);
-			appendClusterNodes(commaDelimitedListToSet(String.valueOf(redisClusterNodes)));
+			appendClusterNodes(StringUtils.commaDelimitedListToSet(String.valueOf(redisClusterNodes)));
 		}
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
+
 			Object clusterMaxRedirects = propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY);
 			this.maxRedirects = NumberUtils.parseNumber(String.valueOf(clusterMaxRedirects), Integer.class);
 		}
@@ -205,16 +202,6 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	}
 
 	@Override
-	public void setAsyncTaskExecutor(@Nullable AsyncTaskExecutor executor) {
-		this.executor = executor;
-	}
-
-	@Nullable @Override
-	public AsyncTaskExecutor getAsyncTaskExecutor() {
-		return this.executor;
-	}
-
-	@Override
 	public boolean equals(@Nullable Object obj) {
 
 		if (this == obj) {
@@ -226,9 +213,9 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 		}
 
 		return ObjectUtils.nullSafeEquals(this.clusterNodes, that.clusterNodes)
-			&& ObjectUtils.nullSafeEquals(this.maxRedirects, that.maxRedirects)
-			&& ObjectUtils.nullSafeEquals(this.username, that.username)
-			&& ObjectUtils.nullSafeEquals(this.password, that.password);
+				&& ObjectUtils.nullSafeEquals(this.maxRedirects, that.maxRedirects)
+				&& ObjectUtils.nullSafeEquals(this.username, that.username)
+				&& ObjectUtils.nullSafeEquals(this.password, that.password);
 	}
 
 	@Override

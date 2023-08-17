@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -345,20 +344,6 @@ public interface RedisConfiguration {
 	 * @since 2.1
 	 */
 	interface ClusterConfiguration extends WithPassword {
-
-		/**
-		 * Configures the {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
-		 *
-		 * @param executor {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
-		 */
-		void setAsyncTaskExecutor(AsyncTaskExecutor executor);
-
-		/**
-		 * Returns the configured {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
-		 *
-		 * @return the configured {@link AsyncTaskExecutor} used to execute commands asynchronously across the cluster.
-		 */
-		AsyncTaskExecutor getAsyncTaskExecutor();
 
 		/**
 		 * Returns an {@link Collections#unmodifiableSet(Set) Set} of {@link RedisNode cluster nodes}.
