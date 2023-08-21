@@ -77,7 +77,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@Nullable
 	Boolean add(K key, V value, double score);
 
 	/**
@@ -90,7 +89,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
 	 */
-	@Nullable
 	Boolean addIfAbsent(K key, V value, double score);
 
 	/**
@@ -101,7 +99,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@Nullable
 	Long add(K key, Set<TypedTuple<V>> tuples);
 
 	/**
@@ -113,7 +110,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
 	 */
-	@Nullable
 	Long addIfAbsent(K key, Set<TypedTuple<V>> tuples);
 
 	/**
@@ -124,7 +120,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
-	@Nullable
 	Long remove(K key, Object... values);
 
 	/**
@@ -136,7 +131,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
-	@Nullable
 	Double incrementScore(K key, V value, double delta);
 
 	/**
@@ -147,6 +141,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
+	@Nullable
 	V randomMember(K key);
 
 	/**
@@ -159,7 +154,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
 	Set<V> distinctRandomMembers(K key, long count);
 
 	/**
@@ -172,7 +166,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
 	List<V> randomMembers(K key, long count);
 
 	/**
@@ -195,7 +188,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> distinctRandomMembersWithScore(K key, long count);
 
 	/**
@@ -208,7 +200,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
 	List<TypedTuple<V>> randomMembersWithScore(K key, long count);
 
 	/**
@@ -242,7 +233,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	@Nullable
 	Set<V> range(K key, long start, long end);
 
 	/**
@@ -254,7 +244,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> rangeWithScores(K key, long start, long end);
 
 	/**
@@ -266,7 +255,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<V> rangeByScore(K key, double min, double max);
 
 	/**
@@ -278,7 +266,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max);
 
 	/**
@@ -293,7 +280,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<V> rangeByScore(K key, double min, double max, long offset, long count);
 
 	/**
@@ -308,7 +294,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max, long offset, long count);
 
 	/**
@@ -320,7 +305,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	@Nullable
 	Set<V> reverseRange(K key, long start, long end);
 
 	/**
@@ -332,7 +316,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end);
 
 	/**
@@ -344,7 +327,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<V> reverseRangeByScore(K key, double min, double max);
 
 	/**
@@ -357,7 +339,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max);
 
 	/**
@@ -372,7 +353,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<V> reverseRangeByScore(K key, double min, double max, long offset, long count);
 
 	/**
@@ -387,7 +367,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count);
 
 	/**
@@ -399,7 +378,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
-	@Nullable
 	Long count(K key, double min, double max);
 
 	/**
@@ -413,7 +391,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 * @deprecated since 3.0. Please use #lexCount(Range) instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
 	default Long lexCount(K key, org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
 		return lexCount(key, range.toRange());
@@ -429,7 +406,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
-	@Nullable
 	Long lexCount(K key, Range<String> range);
 
 	/**
@@ -452,7 +428,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	Set<TypedTuple<V>> popMin(K key, long count);
 
 	/**
@@ -509,7 +484,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	Set<TypedTuple<V>> popMax(K key, long count);
 
 	/**
@@ -554,7 +528,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
-	@Nullable
 	Long size(K key);
 
 	/**
@@ -565,7 +538,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
-	@Nullable
 	Long zCard(K key);
 
 	/**
@@ -588,7 +560,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	List<Double> score(K key, Object... o);
 
 	/**
@@ -600,7 +571,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
-	@Nullable
 	Long removeRange(K key, long start, long end);
 
 	/**
@@ -613,7 +583,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #removeRangeByLex(Object, Range)} instead;
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
 	default Long removeRangeByLex(K key, org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
 		return removeRangeByLex(key, range.toRange());
@@ -628,7 +597,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
-	@Nullable
 	Long removeRangeByLex(K key, Range<String> range);
 
 	/**
@@ -640,7 +608,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Long removeRangeByScore(K key, double min, double max);
 
 	/**
@@ -652,7 +619,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
 	default Set<V> difference(K key, K otherKey) {
 		return difference(key, Collections.singleton(otherKey));
 	}
@@ -666,7 +632,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
 	Set<V> difference(K key, Collection<K> otherKeys);
 
 	/**
@@ -678,7 +643,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
 	default Set<TypedTuple<V>> differenceWithScores(K key, K otherKey) {
 		return differenceWithScores(key, Collections.singleton(otherKey));
 	}
@@ -692,7 +656,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> differenceWithScores(K key, Collection<K> otherKeys);
 
 	/**
@@ -717,7 +680,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
 	default Set<V> intersect(K key, K otherKey) {
 		return intersect(key, Collections.singleton(otherKey));
 	}
@@ -731,7 +693,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
 	Set<V> intersect(K key, Collection<K> otherKeys);
 
 	/**
@@ -743,7 +704,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
 	default Set<TypedTuple<V>> intersectWithScores(K key, K otherKey) {
 		return intersectWithScores(key, Collections.singleton(otherKey));
 	}
@@ -757,7 +717,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys);
 
 	/**
@@ -770,7 +729,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
 	default Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
 		return intersectWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
@@ -786,7 +744,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights);
 
 	/**
@@ -798,7 +755,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
 	Long intersectAndStore(K key, K otherKey, K destKey);
 
 	/**
@@ -810,7 +766,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
@@ -824,7 +779,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
 	default Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
@@ -841,7 +795,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
@@ -853,7 +806,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
 	default Set<V> union(K key, K otherKey) {
 		return union(key, Collections.singleton(otherKey));
 	}
@@ -867,7 +819,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
 	Set<V> union(K key, Collection<K> otherKeys);
 
 	/**
@@ -879,7 +830,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
 	default Set<TypedTuple<V>> unionWithScores(K key, K otherKey) {
 		return unionWithScores(key, Collections.singleton(otherKey));
 	}
@@ -893,7 +843,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys);
 
 	/**
@@ -906,7 +855,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
 	default Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
 		return unionWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
@@ -922,7 +870,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
 	Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate, Weights weights);
 
 	/**
@@ -934,7 +881,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
 	Long unionAndStore(K key, K otherKey, K destKey);
 
 	/**
@@ -946,7 +892,6 @@ public interface ZSetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	/**
@@ -960,7 +905,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
 	default Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
@@ -977,7 +921,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
 
 	/**
@@ -1005,7 +948,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #rangeByLex(Object, Range)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
 	default Set<V> rangeByLex(K key, org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
 		return rangeByLex(key, range.toRange());
@@ -1021,7 +963,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
 	default Set<V> rangeByLex(K key, Range<String> range) {
 		return rangeByLex(key, range, Limit.unlimited());
 	}
@@ -1040,7 +981,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #rangeByLex(Object, Range, Limit)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
 	default Set<V> rangeByLex(K key, org.springframework.data.redis.connection.RedisZSetCommands.Range range,
 			Limit limit) {
@@ -1059,7 +999,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
 	Set<V> rangeByLex(K key, Range<String> range, Limit limit);
 
 	/**
@@ -1074,7 +1013,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Object, Range)}
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
 	default Set<V> reverseRangeByLex(K key, org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
 		return reverseRangeByLex(key, range.toRange());
@@ -1090,7 +1028,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
 	default Set<V> reverseRangeByLex(K key, Range<String> range) {
 		return reverseRangeByLex(key, range, Limit.unlimited());
 	}
@@ -1109,7 +1046,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Object, Range, Limit)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
 	default Set<V> reverseRangeByLex(K key, org.springframework.data.redis.connection.RedisZSetCommands.Range range,
 			Limit limit) {
@@ -1128,7 +1064,6 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
 	Set<V> reverseRangeByLex(K key, Range<String> range, Limit limit);
 
 	/**
@@ -1143,7 +1078,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #rangeByLex(Object, Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	default Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
 		return rangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
 	}
@@ -1162,7 +1096,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #rangeByLex(Object, Range, Limit)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit);
 
 	/**
@@ -1177,7 +1110,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #reverseRangeByLex(Object, Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	default Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
 		return reverseRangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
 	}
@@ -1196,7 +1128,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #reverseRangeByLex(Object, Range, Limit)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range, Limit limit);
 
 	/**
@@ -1211,7 +1142,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #rangeByScore(Object, double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	default Long rangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
 		return rangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
@@ -1230,7 +1160,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #rangeByScore(Object, double, double, long, long)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	Long rangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range, Limit limit);
 
 	/**
@@ -1245,7 +1174,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #reverseRangeByScore(Object, double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	default Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
@@ -1264,7 +1192,6 @@ public interface ZSetOperations<K, V> {
 	 * @see #reverseRangeByScore(Object, double, double, long, long)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
 	Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range, Limit limit);
 
 	/**

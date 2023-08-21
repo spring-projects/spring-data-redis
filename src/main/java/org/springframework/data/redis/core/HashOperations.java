@@ -123,7 +123,6 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
 	List<HK> randomKeys(H key, long count);
 
 	/**
@@ -135,7 +134,6 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
 	Map<HK, HV> randomEntries(H key, long count);
 
 	/**
@@ -154,8 +152,8 @@ public interface HashOperations<H, HK, HV> {
 	 * @param hashKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/hstrlen">Redis Documentation: HSTRLEN</a>
 	 */
-	@Nullable
 	Long lengthOfValue(H key, HK hashKey);
 
 	/**

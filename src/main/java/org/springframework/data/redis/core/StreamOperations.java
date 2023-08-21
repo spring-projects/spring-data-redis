@@ -66,7 +66,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return length of acknowledged records. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	@Nullable
 	Long acknowledge(K key, String group, String... recordIds);
 
 	/**
@@ -78,7 +77,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return length of acknowledged records. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	@Nullable
 	default Long acknowledge(K key, String group, RecordId... recordIds) {
 		return acknowledge(key, group, Arrays.stream(recordIds).map(RecordId::getValue).toArray(String[]::new));
 	}
@@ -104,7 +102,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
 	default RecordId add(K key, Map<? extends HK, ? extends HV> content) {
 		return add(StreamRecords.newRecord().in(key).ofMap(content));
 	}
@@ -116,7 +113,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	@Nullable
 	@SuppressWarnings("unchecked")
 	default RecordId add(MapRecord<K, ? extends HK, ? extends HV> record) {
 		return add((Record) record);
@@ -131,7 +127,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see ObjectRecord
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
 	RecordId add(Record<K, ?> record);
 
 	/**
@@ -185,7 +180,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	@Nullable
 	default Long delete(K key, String... recordIds) {
 		return delete(key, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 	}
@@ -196,7 +190,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param record must not be {@literal null}.
 	 * @return he {@link Mono} emitting the number of removed records.
 	 */
-	@Nullable
 	default Long delete(Record<K, ?> record) {
 		return delete(record.getStream(), record.getId());
 	}
@@ -210,7 +203,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return the {@link Mono} emitting the number of removed records.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	@Nullable
 	Long delete(K key, RecordId... recordIds);
 
 	/**
@@ -233,7 +225,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param group name of the consumer group.
 	 * @return {@literal OK} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
 	String createGroup(K key, ReadOffset readOffset, String group);
 
 	/**
@@ -243,7 +234,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param consumer consumer identified by group name and consumer key.
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
 	Boolean deleteConsumer(K key, Consumer consumer);
 
 	/**
@@ -253,7 +243,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param group name of the consumer group.
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
 	Boolean destroyGroup(K key, String group);
 
 	/**
@@ -296,7 +285,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
 	PendingMessagesSummary pending(K key, String group);
 
 	/**
@@ -348,7 +336,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return length of the stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
-	@Nullable
 	Long size(K key);
 
 	/**
@@ -359,7 +346,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
 	default List<MapRecord<K, HK, HV>> range(K key, Range<String> range) {
 		return range(key, range, Limit.unlimited());
 	}
@@ -373,7 +359,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
 	List<MapRecord<K, HK, HV>> range(K key, Range<String> range, Limit limit);
 
 	/**
@@ -413,7 +398,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
 	default List<MapRecord<K, HK, HV>> read(StreamOffset<K>... streams) {
 		return read(StreamReadOptions.empty(), streams);
 	}
@@ -438,7 +422,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
 	List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams);
 
 	/**
@@ -450,7 +433,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
 	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, StreamReadOptions readOptions,
 			StreamOffset<K>... streams) {
 
@@ -467,7 +449,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
 	default List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamOffset<K>... streams) {
 		return read(consumer, StreamReadOptions.empty(), streams);
 	}
@@ -481,7 +462,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
 	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, Consumer consumer, StreamOffset<K>... streams) {
 		return read(targetType, consumer, StreamReadOptions.empty(), streams);
 	}
@@ -495,7 +475,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
 	List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams);
 
 	/**
@@ -508,7 +487,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
 	default <V> List<ObjectRecord<K, V>> read(Class<V> targetType, Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<K>... streams) {
 
@@ -525,7 +503,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
 	default List<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range) {
 		return reverseRange(key, range, Limit.unlimited());
 	}
@@ -539,7 +516,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
 	List<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range, Limit limit);
 
 	/**
@@ -581,7 +557,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	@Nullable
 	Long trim(K key, long count);
 
 	/**
@@ -594,7 +569,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	@Nullable
 	Long trim(K key, long count, boolean approximateTrimming);
 
 	/**
@@ -631,7 +605,6 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return the mapped {@link ObjectRecord object records}.
 	 * @since 2.x
 	 */
-	@Nullable
 	default <V> List<ObjectRecord<K, V>> map(@Nullable List<MapRecord<K, HK, HV>> records, Class<V> targetType) {
 
 		Assert.notNull(records, "Records must not be null");

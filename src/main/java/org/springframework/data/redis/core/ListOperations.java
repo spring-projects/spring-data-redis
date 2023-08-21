@@ -46,7 +46,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	@Nullable
 	List<V> range(K key, long start, long end);
 
 	/**
@@ -66,7 +65,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
-	@Nullable
 	Long size(K key);
 
 	/**
@@ -77,7 +75,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
 	Long leftPush(K key, V value);
 
 	/**
@@ -88,7 +85,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
 	Long leftPushAll(K key, V... values);
 
 	/**
@@ -100,7 +96,6 @@ public interface ListOperations<K, V> {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
 	Long leftPushAll(K key, Collection<V> values);
 
 	/**
@@ -111,7 +106,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
-	@Nullable
 	Long leftPushIfPresent(K key, V value);
 
 	/**
@@ -123,7 +117,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
-	@Nullable
 	Long leftPush(K key, V pivot, V value);
 
 	/**
@@ -134,7 +127,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
 	Long rightPush(K key, V value);
 
 	/**
@@ -145,7 +137,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
 	Long rightPushAll(K key, V... values);
 
 	/**
@@ -157,7 +148,6 @@ public interface ListOperations<K, V> {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
 	Long rightPushAll(K key, Collection<V> values);
 
 	/**
@@ -168,7 +158,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
-	@Nullable
 	Long rightPushIfPresent(K key, V value);
 
 	/**
@@ -180,7 +169,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
-	@Nullable
 	Long rightPush(K key, V pivot, V value);
 
 	/**
@@ -364,7 +352,6 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
-	@Nullable
 	Long remove(K key, long count, Object value);
 
 	/**
@@ -401,7 +388,6 @@ public interface ListOperations<K, V> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
-	@Nullable
 	Long lastIndexOf(K key, V value);
 
 	/**
@@ -478,7 +464,6 @@ public interface ListOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	List<V> rightPop(K key, long count);
 
 	/**
