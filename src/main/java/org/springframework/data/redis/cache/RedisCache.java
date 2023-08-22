@@ -17,12 +17,14 @@ package org.springframework.data.redis.cache;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
@@ -168,7 +170,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 					name));
 		}
 
-		cacheWriter.put(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue), cacheConfig.getTtl());
+		cacheWriter.put(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue), convertDuration(cacheConfig.getTtl(), cacheConfig.getTtlOffset()));
 	}
 
 	/*
@@ -185,7 +187,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		byte[] result = cacheWriter.putIfAbsent(name, createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-				cacheConfig.getTtl());
+				convertDuration(cacheConfig.getTtl(), cacheConfig.getTtlOffset()));
 
 		if (result == null) {
 			return null;
@@ -398,5 +400,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		// allow contextual cache names by computing the key prefix on every call.
 		return cacheConfig.getKeyPrefixFor(name) + key;
+	}
+	
+	private Duration convertDuration(Duration ttl, Duration ttlOffset) {
+		if (ttl != null && !ttl.isNegative() && !ttl.isZero() && ttlOffset != null && !ttlOffset.isNegative() && !ttlOffset.isZero()) {
+			return ttl.plusMillis(ThreadLocalRandom.current().nextLong(ttlOffset.toMillis()));
+		}
+		return ttl;
 	}
 }

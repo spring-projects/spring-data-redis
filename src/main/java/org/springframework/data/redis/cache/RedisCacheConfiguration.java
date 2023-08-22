@@ -41,11 +41,14 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Da Liu
  * @since 2.0
  */
 public class RedisCacheConfiguration {
 
 	private final Duration ttl;
+	private final Duration ttlOffset;
+	
 	private final boolean cacheNullValues;
 	private final CacheKeyPrefix keyPrefix;
 	private final boolean usePrefix;
@@ -56,11 +59,12 @@ public class RedisCacheConfiguration {
 	private final ConversionService conversionService;
 
 	@SuppressWarnings("unchecked")
-	private RedisCacheConfiguration(Duration ttl, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
+	private RedisCacheConfiguration(Duration ttl, Duration ttlOffset, Boolean cacheNullValues, Boolean usePrefix, CacheKeyPrefix keyPrefix,
 			SerializationPair<String> keySerializationPair, SerializationPair<?> valueSerializationPair,
 			ConversionService conversionService) {
 
 		this.ttl = ttl;
+		this.ttlOffset = ttlOffset;
 		this.cacheNullValues = cacheNullValues;
 		this.usePrefix = usePrefix;
 		this.keyPrefix = keyPrefix;
@@ -126,7 +130,7 @@ public class RedisCacheConfiguration {
 
 		registerDefaultConverters(conversionService);
 
-		return new RedisCacheConfiguration(Duration.ZERO, true, true, CacheKeyPrefix.simple(),
+		return new RedisCacheConfiguration(Duration.ZERO, Duration.ZERO, true, true, CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(RedisSerializer.string()),
 				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
 	}
@@ -141,7 +145,21 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttl, "TTL duration must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+				valueSerializationPair, conversionService);
+	}
+	
+	/**
+	 * Set the bound of random time-offset added to (ttl). This option can effectively avoid cache avalanche problem. Use {@link Duration#ZERO} to declare an eternal cache.
+	 *
+	 * @param ttlOffset must not be {@literal null}.
+	 * @return new {@link RedisCacheConfiguration}.
+	 */
+	public RedisCacheConfiguration entryTtlOffset(Duration ttlOffset) {
+
+		Assert.notNull(ttlOffset, "TTL-OFFSET duration must not be null!");
+
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -191,7 +209,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(cacheKeyPrefix, "Function for computing prefix must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, true, cacheKeyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, true, cacheKeyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -204,7 +222,7 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(ttl, false, usePrefix, keyPrefix, keySerializationPair, valueSerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, false, usePrefix, keyPrefix, keySerializationPair, valueSerializationPair,
 				conversionService);
 	}
 
@@ -217,7 +235,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, false, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, false, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -231,7 +249,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(conversionService, "ConversionService must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -245,7 +263,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -259,7 +277,7 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null!");
 
-		return new RedisCacheConfiguration(ttl, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
+		return new RedisCacheConfiguration(ttl, ttlOffset, cacheNullValues, usePrefix, keyPrefix, keySerializationPair,
 				valueSerializationPair, conversionService);
 	}
 
@@ -321,6 +339,13 @@ public class RedisCacheConfiguration {
 		return ttl;
 	}
 
+	/**
+	 * @return The bound of random time-offset added to (ttl) for cache entries. Never {@literal null}.
+	 */
+	public Duration getTtlOffset() {
+		return ttlOffset;
+	}
+	
 	/**
 	 * @return The {@link ConversionService} used for cache key to {@link String} conversion. Never {@literal null}.
 	 */
