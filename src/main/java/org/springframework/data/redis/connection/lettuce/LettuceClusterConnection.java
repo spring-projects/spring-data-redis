@@ -29,6 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -538,6 +540,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	 */
 	static class LettuceClusterNodeResourceProvider implements ClusterNodeResourceProvider, DisposableBean {
 
+		private final Lock lock = new ReentrantLock();
 		private final LettuceConnectionProvider connectionProvider;
 		private volatile @Nullable StatefulRedisClusterConnection<byte[], byte[]> connection;
 
@@ -552,10 +555,13 @@ public class LettuceClusterConnection extends LettuceConnection
 			Assert.notNull(node, "Node must not be null");
 
 			if (connection == null) {
-				synchronized (this) {
+				lock.lock();
+				try {
 					if (connection == null) {
 						this.connection = connectionProvider.getConnection(StatefulRedisClusterConnection.class);
 					}
+				} finally {
+					lock.unlock();
 				}
 			}
 

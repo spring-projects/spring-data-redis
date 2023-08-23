@@ -25,6 +25,8 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.lang.Nullable;
@@ -44,7 +46,7 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 	private final RedisCodec<?, ?> codec;
 	private final Optional<ReadFrom> readFrom;
 
-	private final Object monitor = new Object();
+	private final Lock lock = new ReentrantLock();
 
 	private volatile boolean initialized;
 
@@ -84,16 +86,19 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 			// partitions have to be initialized before asynchronous usage.
 			// Needs to happen only once. Initialize eagerly if
 			// blocking is not an options.
-			synchronized (monitor) {
+			lock.lock();
+			try {
 				if (!initialized) {
 					client.getPartitions();
 					initialized = true;
 				}
+			} finally {
+				lock.unlock();
 			}
 		}
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)
-			|| connectionType.equals(StatefulRedisClusterPubSubConnection.class)) {
+				|| connectionType.equals(StatefulRedisClusterPubSubConnection.class)) {
 
 			return client.connectPubSubAsync(codec) //
 					.thenApply(connectionType::cast);

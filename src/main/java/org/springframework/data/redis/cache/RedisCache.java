@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
@@ -58,6 +60,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	private static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
+	private final Lock lock = new ReentrantLock();
+
 	private final RedisCacheConfiguration cacheConfiguration;
 
 	private final RedisCacheWriter cacheWriter;
@@ -68,12 +72,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * Create a new {@link RedisCache}.
 	 *
 	 * @param name {@link String name} for this {@link Cache}; must not be {@literal null}.
-	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing
-	 * the necessary Redis commands; must not be {@literal null}.
-	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation;
-	 * must not be {@literal null}.
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing the
+	 *          necessary Redis commands; must not be {@literal null}.
+	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation; must not
+	 *          be {@literal null}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
-	 * are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
+	 *           are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
 	 */
 	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfiguration) {
 
@@ -92,7 +96,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * Get the {@link RedisCacheConfiguration} used to configure this {@link RedisCache} on initialization.
 	 *
 	 * @return an immutable {@link RedisCacheConfiguration} used to configure this {@link RedisCache} on initialization;
-	 * never {@literal null}.
+	 *         never {@literal null}.
 	 */
 	public RedisCacheConfiguration getCacheConfiguration() {
 		return this.cacheConfiguration;
@@ -108,11 +112,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Gets the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String}
-	 * when accessing entries in the cache.
+	 * Gets the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String} when
+	 * accessing entries in the cache.
 	 *
-	 * @return the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String}
-	 * when accessing entries in the cache.
+	 * @return the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String} when
+	 *         accessing entries in the cache.
 	 * @see RedisCacheConfiguration#getConversionService()
 	 * @see #getCacheConfiguration()
 	 */
@@ -153,21 +157,27 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Nullable
 	@SuppressWarnings("unchecked")
-	private synchronized <T> T getSynchronized(Object key, Callable<T> valueLoader) {
+	private <T> T getSynchronized(Object key, Callable<T> valueLoader) {
 
-		ValueWrapper result = get(key);
+		lock.lock();
+		try {
+			ValueWrapper result = get(key);
 
-		return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
+			return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
+		} finally {
+			lock.unlock();
+
+		}
+
 	}
 
 	/**
-	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts}
-	 * the {@link Object loaded value} in the cache.
+	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts} the
+	 * {@link Object loaded value} in the cache.
 	 *
 	 * @param <T> {@link Class type} of the loaded {@link Object cache value}.
 	 * @param key {@link Object key} mapped to the loaded {@link Object cache value}.
-	 * @param valueLoader {@link Callable} object used to load the {@link Object value}
-	 * for the given {@link Object key}.
+	 * @param valueLoader {@link Callable} object used to load the {@link Object value} for the given {@link Object key}.
 	 * @return the loaded {@link Object value}.
 	 */
 	protected <T> T loadCacheValue(Object key, Callable<T> valueLoader) {
@@ -176,8 +186,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		try {
 			value = valueLoader.call();
-		}
-		catch (Exception cause) {
+		} catch (Exception cause) {
 			throw new ValueRetrievalException(key, valueLoader, cause);
 		}
 
@@ -190,8 +199,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	protected Object lookup(Object key) {
 
 		byte[] value = getCacheConfiguration().isTimeToIdleEnabled()
-			? getCacheWriter().get(getName(), createAndConvertCacheKey(key), getTimeToLive(key))
-			: getCacheWriter().get(getName(), createAndConvertCacheKey(key));
+				? getCacheWriter().get(getName(), createAndConvertCacheKey(key), getTimeToLive(key))
+				: getCacheWriter().get(getName(), createAndConvertCacheKey(key));
 
 		return value != null ? deserializeCacheValue(value) : null;
 	}
@@ -212,14 +221,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		if (nullCacheValueIsNotAllowed(cacheValue)) {
 
 			String message = String.format("Cache '%s' does not allow 'null' values; Avoid storing null"
-				+ " via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null'"
-				+ " via RedisCacheConfiguration", getName());
+					+ " via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null'"
+					+ " via RedisCacheConfiguration", getName());
 
 			throw new IllegalArgumentException(message);
 		}
 
 		getCacheWriter().put(getName(), createAndConvertCacheKey(key), serializeCacheValue(cacheValue),
-			getTimeToLive(key, value));
+				getTimeToLive(key, value));
 	}
 
 	@Override
@@ -232,7 +241,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		byte[] result = getCacheWriter().putIfAbsent(getName(), createAndConvertCacheKey(key),
-			serializeCacheValue(cacheValue), getTimeToLive(key, value));
+				serializeCacheValue(cacheValue), getTimeToLive(key, value));
 
 		return result != null ? new SimpleValueWrapper(fromStoreValue(deserializeCacheValue(result))) : null;
 	}
@@ -313,7 +322,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 *
 	 * @param value array of bytes to deserialize; must not be {@literal null}.
 	 * @return an {@link Object} deserialized from the array of bytes using the configured value
-	 * {@link RedisSerializationContext.SerializationPair}; can be {@literal null}.
+	 *         {@link RedisSerializationContext.SerializationPair}; can be {@literal null}.
 	 * @see RedisCacheConfiguration#getValueSerializationPair()
 	 */
 	@Nullable
@@ -359,8 +368,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		if (conversionService.canConvert(source, TypeDescriptor.valueOf(String.class))) {
 			try {
 				return conversionService.convert(key, String.class);
-			}
-			catch (ConversionFailedException cause) {
+			} catch (ConversionFailedException cause) {
 
 				// May fail if the given key is a collection
 				if (isCollectionLikeOrMap(source)) {
@@ -375,8 +383,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		String message = String.format("Cannot convert cache key %s to String; Please register a suitable Converter"
-				+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
+		String message = String.format(
+				"Cannot convert cache key %s to String; Please register a suitable Converter"
+						+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
 				source, key.getClass().getName());
 
 		throw new IllegalStateException(message);
@@ -413,13 +422,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			target.append("}");
 
 			return target.toString();
-		}
-		else if (source.isCollection() || source.isArray()) {
+		} else if (source.isCollection() || source.isArray()) {
 
 			StringJoiner stringJoiner = new StringJoiner(",");
 
 			Collection<?> collection = source.isCollection() ? (Collection<?>) key
-				: Arrays.asList(ObjectUtils.toObjectArray(key));
+					: Arrays.asList(ObjectUtils.toObjectArray(key));
 
 			for (Object collectedKey : collection) {
 				stringJoiner.add(convertKey(collectedKey));

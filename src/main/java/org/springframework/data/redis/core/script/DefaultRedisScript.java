@@ -16,6 +16,8 @@
 package org.springframework.data.redis.core.script;
 
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
@@ -37,7 +39,7 @@ import org.springframework.util.Assert;
  */
 public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
-	private final Object shaModifiedMonitor = new Object();
+	private final Lock lock = new ReentrantLock();
 
 	private @Nullable ScriptSource scriptSource;
 	private @Nullable String sha1;
@@ -76,11 +78,14 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 	public String getSha1() {
 
-		synchronized (shaModifiedMonitor) {
+		lock.lock();
+		try {
 			if (sha1 == null || scriptSource.isModified()) {
 				this.sha1 = DigestUtils.sha1DigestAsHex(getScriptAsString());
 			}
 			return sha1;
+		} finally {
+			lock.unlock();
 		}
 	}
 
