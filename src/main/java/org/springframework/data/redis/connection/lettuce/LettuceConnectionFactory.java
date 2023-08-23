@@ -41,6 +41,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -138,6 +140,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
+
+	private final Lock lock = new ReentrantLock();
 
 	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
 
@@ -1480,7 +1484,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		@Nullable
 		StatefulConnection<E, E> getConnection() {
 
-			synchronized (this.connectionMonitor) {
+			lock.lock();
+			try {
 
 				if (this.connection == null) {
 					this.connection = getNativeConnection();
@@ -1491,6 +1496,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 				}
 
 				return this.connection;
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -1508,7 +1515,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		 */
 		void validateConnection() {
 
-			synchronized (this.connectionMonitor) {
+			lock.lock();
+			try {
 
 				boolean valid = false;
 
@@ -1535,6 +1543,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 					resetConnection();
 					this.connection = getNativeConnection();
 				}
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -1543,13 +1553,16 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		 */
 		void resetConnection() {
 
-			synchronized (this.connectionMonitor) {
+			lock.lock();
+			try {
 
 				if (this.connection != null) {
 					this.connectionProvider.release(this.connection);
 				}
 
 				this.connection = null;
+			} finally {
+				lock.unlock();
 			}
 		}
 	}

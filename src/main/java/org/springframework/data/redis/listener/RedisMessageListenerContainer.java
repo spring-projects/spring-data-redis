@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1155,7 +1157,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private volatile @Nullable RedisConnection connection;
 
 		private final RedisConnectionFactory connectionFactory;
-		private final Object localMonitor = new Object();
+		private final Lock lock = new ReentrantLock();
 		private final DispatchMessageListener delegateListener = new DispatchMessageListener();
 		private final SynchronizingMessageListener synchronizingMessageListener = new SynchronizingMessageListener(
 				delegateListener, delegateListener);
@@ -1176,7 +1178,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		public CompletableFuture<Void> initialize(BackOffExecution backOffExecution, Collection<byte[]> patterns,
 				Collection<byte[]> channels) {
 
-			synchronized (localMonitor) {
+			lock.lock();
+			try {
 
 				CompletableFuture<Void> initFuture = new CompletableFuture<>();
 				try {
@@ -1200,6 +1203,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 
 				return initFuture;
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -1243,7 +1248,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		public void unsubscribeAll() {
 
-			synchronized (localMonitor) {
+			lock.lock();
+			try {
 
 				RedisConnection connection = this.connection;
 				if (connection == null) {
@@ -1251,6 +1257,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 
 				doUnsubscribe(connection);
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -1266,7 +1274,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		 */
 		public void cancel() {
 
-			synchronized (localMonitor) {
+			lock.lock();
+			try {
 
 				RedisConnection connection = this.connection;
 				if (connection == null) {
@@ -1274,6 +1283,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 
 				doCancel(connection);
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -1309,7 +1320,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		 */
 		public void closeConnection() {
 
-			synchronized (localMonitor) {
+			lock.lock();
+			try {
 
 				RedisConnection connection = this.connection;
 				this.connection = null;
@@ -1322,6 +1334,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						logger.warn("Error closing subscription connection", e);
 					}
 				}
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -1367,7 +1381,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				return;
 			}
 
-			synchronized (localMonitor) {
+			lock.lock();
+			try {
 				RedisConnection connection = this.connection;
 				if (connection != null) {
 					Subscription sub = connection.getSubscription();
@@ -1375,6 +1390,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						function.accept(sub, data);
 					}
 				}
+			} finally {
+				lock.unlock();
 			}
 		}
 
