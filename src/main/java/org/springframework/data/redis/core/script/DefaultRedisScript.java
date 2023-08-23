@@ -72,10 +72,12 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 		this.resultType = resultType;
 	}
 
+	@Override
 	public void afterPropertiesSet() {
 		Assert.state(this.scriptSource != null, "Either script, script location," + " or script source is required");
 	}
 
+	@Override
 	public String getSha1() {
 
 		lock.lock();
@@ -89,11 +91,13 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 		}
 	}
 
+	@Override
 	@Nullable
 	public Class<T> getResultType() {
 		return this.resultType;
 	}
 
+	@Override
 	public String getScriptAsString() {
 
 		try {
