@@ -41,7 +41,7 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 	public ConvertingCursor(Cursor<S> cursor, Converter<S, T> converter) {
 
 		Assert.notNull(cursor, "Cursor delegate must not be 'null'");
-		Assert.notNull(cursor, "Converter must not be 'null'");
+		Assert.notNull(converter, "Converter must not be 'null'");
 		this.delegate = cursor;
 		this.converter = converter;
 	}
