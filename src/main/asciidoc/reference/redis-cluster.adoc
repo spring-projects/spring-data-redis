@@ -3,6 +3,7 @@
 
 Working with https://redis.io/topics/cluster-spec[Redis Cluster] requires Redis Server version 3.0+. See the https://redis.io/topics/cluster-tutorial[Cluster Tutorial] for more information.
 
+[[cluster.enable]]
 == Enabling Redis Cluster
 
 Cluster support is based on the same building blocks as non-clustered communication. `RedisClusterConnection`, an extension to `RedisConnection`, handles the communication with the Redis Cluster and translates errors into the Spring DAO exception hierarchy.
