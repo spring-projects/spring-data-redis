@@ -16,3 +16,8 @@ out
 work
 *.rdb
 *.aof
+build/
+node_modules
+node
+package.json
+package-lock.json

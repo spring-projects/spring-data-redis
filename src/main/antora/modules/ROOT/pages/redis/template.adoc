@@ -1,0 +1,383 @@
+[[redis:template]]
+= Working with Objects through `RedisTemplate`
+
+Most users are likely to use `RedisTemplate` and its corresponding package, `org.springframework.data.redis.core` or its reactive variant `ReactiveRedisTemplate`.
+The template is, in fact, the central class of the Redis module, due to its rich feature set.
+The template offers a high-level abstraction for Redis interactions.
+While `[Reactive]RedisConnection` offers low-level methods that accept and return binary values (`byte` arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.
+
+The `RedisTemplate` class implements the `RedisOperations` interface and its reactive variant `ReactiveRedisTemplate` implements `ReactiveRedisOperations`.
+
+NOTE: The preferred way to reference operations on a `[Reactive]RedisTemplate` instance is through the
+`[Reactive]RedisOperations` interface.
+
+Moreover, the template provides operations views (following the grouping from the Redis command https://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type or certain key (through the `KeyBound` interfaces) as described in the following table:
+
+.Operational views
+[tabs]
+======
+Imperative::
++
+[width="80%",cols="<1,<2",options="header",role="primary"]
+|====
+|Interface
+|Description
+
+2+^|_Key Type Operations_
+
+|`GeoOperations`
+|Redis geospatial operations, such as `GEOADD`, `GEORADIUS`,...
+
+|`HashOperations`
+|Redis hash operations
+
+|`HyperLogLogOperations`
+|Redis HyperLogLog operations, such as `PFADD`, `PFCOUNT`,...
+
+|`ListOperations`
+|Redis list operations
+
+|`SetOperations`
+|Redis set operations
+
+|`ValueOperations`
+|Redis string (or value) operations
+
+|`ZSetOperations`
+|Redis zset (or sorted set) operations
+
+2+^|_Key Bound Operations_
+
+|`BoundGeoOperations`
+|Redis key bound geospatial operations
+
+|`BoundHashOperations`
+|Redis hash key bound operations
+
+|`BoundKeyOperations`
+|Redis key bound operations
+
+|`BoundListOperations`
+|Redis list key bound operations
+
+|`BoundSetOperations`
+|Redis set key bound operations
+
+|`BoundValueOperations`
+|Redis string (or value) key bound operations
+
+|`BoundZSetOperations`
+|Redis zset (or sorted set) key bound operations
+
+|====
+
+Reactive::
++
+[width="80%",cols="<1,<2",options="header",role="secondary"]
+|====
+|Interface
+|Description
+
+2+^|_Key Type Operations_
+
+|`ReactiveGeoOperations`
+|Redis geospatial operations such as `GEOADD`, `GEORADIUS`, and others)
+
+|`ReactiveHashOperations`
+|Redis hash operations
+
+|`ReactiveHyperLogLogOperations`
+|Redis HyperLogLog operations such as (`PFADD`, `PFCOUNT`, and others)
+
+|`ReactiveListOperations`
+|Redis list operations
+
+|`ReactiveSetOperations`
+|Redis set operations
+
+|`ReactiveValueOperations`
+|Redis string (or value) operations
+
+|`ReactiveZSetOperations`
+|Redis zset (or sorted set) operations
+|====
+======
+
+Once configured, the template is thread-safe and can be reused across multiple instances.
+
+`RedisTemplate` uses a Java-based serializer for most of its operations.
+This means that any object written or read by the template is serialized and deserialized through Java.
+
+You can change the serialization mechanism on the template, and the Redis module offers several implementations, which are available in the `org.springframework.data.redis.serializer` package.
+See <<redis:serializer,Serializers>> for more information.
+You can also set any of the serializers to null and use RedisTemplate with raw byte arrays by setting the `enableDefaultSerializer` property to `false`.
+Note that the template requires all keys to be non-null.
+However, values can be null as long as the underlying serializer accepts them.
+Read the Javadoc of each serializer for more information.
+
+For cases where you need a certain template view, declare the view as a dependency and inject the template.
+The container automatically performs the conversion, eliminating the `opsFor[X]` calls, as shown in the following example:
+
+.Configuring Template API
+[tabs]
+======
+Java Imperative::
++
+[source,java,role="primary"]
+----
+@Configuration
+class MyConfig {
+
+  @Bean
+  LettuceConnectionFactory connectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
+
+    RedisTemplate<String, String> template = new RedisTemplate<>();
+    template.setConnectionFactory(redisConnectionFactory);
+    return template;
+  }
+}
+----
+
+Java Reactive::
++
+[source,java,role="secondary"]
+----
+@Configuration
+class MyConfig {
+
+  @Bean
+  LettuceConnectionFactory connectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  ReactiveRedisTemplate<String, String> ReactiveRedisTemplate(ReactoveRedisConnectionFactory connectionFactory) {
+    return new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
+  }
+}
+----
+
+XML::
++
+[source,xml,role="tertiary"]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"/>
+  <!-- redis template definition -->
+  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate" p:connection-factory-ref="redisConnectionFactory"/>
+  ...
+
+</beans>
+----
+======
+
+.Pushing an item to a List using `[Reactive]RedisTemplate`
+[tabs]
+======
+Imperative::
++
+[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+----
+public class Example {
+
+  // inject the actual operations
+  @Autowired
+  private RedisOperations<String, String> operations;
+
+  // inject the template as ListOperations
+  @Resource(name="redisTemplate")
+  private ListOperations<String, String> listOps;
+
+  public void addLink(String userId, URL url) {
+    listOps.leftPush(userId, url.toExternalForm());
+  }
+}
+----
+
+Reactive::
++
+[source,java,indent=0,subs="verbatim,quotes",role="secondary"]
+----
+public class Example {
+
+  // inject the actual template
+  @Autowired
+  private ReactiveRedisOperations<String, String> operations;
+
+  public Mono<Long> addLink(String userId, URL url) {
+    return operations.opsForList().leftPush(userId, url.toExternalForm());
+  }
+}
+----
+======
+
+[[redis:string]]
+== String-focused Convenience Classes
+
+Since it is quite common for the keys and values stored in Redis to be `java.lang.String`, the Redis modules provides two extensions to `RedisConnection` and `RedisTemplate`, respectively the `StringRedisConnection` (and its `DefaultStringRedisConnection` implementation) and `StringRedisTemplate` as a convenient one-stop solution for intensive String operations.
+In addition to being bound to `String` keys, the template and the connection use the `StringRedisSerializer` underneath, which means the stored keys and values are human-readable (assuming the same encoding is used both in Redis and your code).
+The following listings show an example:
+
+[tabs]
+======
+Java Imperative::
++
+[source,java,role="primary"]
+----
+@Configuration
+class RedisConfiguration {
+
+  @Bean
+  LettuceConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+
+    StringRedisTemplate template = new StringRedisTemplate();
+    template.setConnectionFactory(redisConnectionFactory);
+    return template;
+  }
+}
+----
+
+Java Reactive::
++
+[source,java,role="secondary"]
+----
+@Configuration
+class RedisConfiguration {
+
+  @Bean
+  LettuceConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  ReactiveStringRedisTemplate reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
+    return new ReactiveStringRedisTemplate<>(factory);
+  }
+}
+----
+
+XML::
++
+[source,xml,role="tertiary"]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"/>
+
+  <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" p:connection-factory-ref="redisConnectionFactory"/>
+
+</beans>
+----
+======
+
+[tabs]
+======
+Imperative::
++
+[source,java,role="primary"]
+----
+public class Example {
+
+  @Autowired
+  private StringRedisTemplate redisTemplate;
+
+  public void addLink(String userId, URL url) {
+    redisTemplate.opsForList().leftPush(userId, url.toExternalForm());
+  }
+}
+----
+
+Reactive::
++
+[source,java,role="secondary"]
+----
+public class Example {
+
+  @Autowired
+  private ReactiveStringRedisTemplate redisTemplate;
+
+  public Mono<Long> addLink(String userId, URL url) {
+    return redisTemplate.opsForList().leftPush(userId, url.toExternalForm());
+  }
+}
+----
+======
+
+As with the other Spring templates, `RedisTemplate` and `StringRedisTemplate` let you talk directly to Redis through the `RedisCallback` interface.
+This feature gives complete control to you, as it talks directly to the `RedisConnection`.
+Note that the callback receives an instance of `StringRedisConnection` when a `StringRedisTemplate` is used.
+The following example shows how to use the `RedisCallback` interface:
+
+[source,java]
+----
+public void useCallback() {
+
+  redisOperations.execute(new RedisCallback<Object>() {
+    public Object doInRedis(RedisConnection connection) throws DataAccessException {
+      Long size = connection.dbSize();
+      // Can cast to StringRedisConnection if using a StringRedisTemplate
+      ((StringRedisConnection)connection).set("key", "value");
+    }
+   });
+}
+----
+
+[[redis:serializer]]
+== Serializers
+
+From the framework perspective, the data stored in Redis is only bytes.
+While Redis itself supports various types, for the most part, these refer to the way the data is stored rather than what it represents.
+It is up to the user to decide whether the information gets translated into strings or any other objects.
+
+In Spring Data, the conversion between the user (custom) types and raw data (and vice-versa) is handled by Spring Data Redis in the `org.springframework.data.redis.serializer` package.
+
+This package contains two types of serializers that, as the name implies, take care of the serialization process:
+
+* Two-way serializers based on ``RedisSerializer``.
+* Element readers and writers that use `RedisElementReader` and ``RedisElementWriter``.
+
+The main difference between these variants is that `RedisSerializer` primarily serializes to `byte[]` while readers and writers use `ByteBuffer`.
+
+Multiple implementations are available (including two that have been already mentioned in this documentation):
+
+* `JdkSerializationRedisSerializer`, which is used by default for `RedisCache` and `RedisTemplate`.
+* the `StringRedisSerializer`.
+
+However, one can use `OxmSerializer` for Object/XML mapping through Spring {spring-framework-docs}/data-access.html#oxm[OXM] support or `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
+
+Do note that the storage format is not limited only to values.
+It can be used for keys, values, or hashes without any restrictions.
+
+[WARNING]
+====
+By default, `RedisCache` and `RedisTemplate` are configured to use Java native serialization.
+Java native serialization is known for allowing the running of remote code caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode.
+Manipulated input could lead to unwanted code being run in the application during the deserialization step.
+As a consequence, do not use serialization in untrusted environments.
+In general, we strongly recommend any other message format (such as JSON) instead.
+
+If you are concerned about security vulnerabilities due to Java serialization, consider the general-purpose serialization filter mechanism at the core JVM level:
+
+* https://docs.oracle.com/en/java/javase/17/core/serialization-filtering1.html[Filter Incoming Serialization Data].
+* https://openjdk.org/jeps/290[JEP 290].
+* https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data[OWASP: Deserialization of untrusted data].
+====

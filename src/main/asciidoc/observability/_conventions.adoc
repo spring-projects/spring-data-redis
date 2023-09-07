@@ -1,6 +1,0 @@
-[[observability-conventions]]
-=== Observability - Conventions
-
-Below you can find a list of all `GlobalObservabilityConventions` and `ObservabilityConventions` declared by this project.
-
-

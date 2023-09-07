@@ -1,0 +1,20 @@
+[[spring-data-redis-reference-documentation]]
+= Spring Data Redis
+:revnumber: {version}
+:revdate: {localdate}
+:feature-scroll: true
+
+_Spring Data Redis provides Redis connectivity and repository support for the Redis database.
+It eases development of applications with a consistent programming model that need to access Redis data sources._
+
+[horizontal]
+xref:redis.adoc[Redis] :: Redis support and connectivity
+xref:repositories.adoc[Repositories] :: Redis Repositories
+xref:observability.adoc[Observability] :: Observability Integration
+https://github.com/spring-projects/spring-data-commons/wiki[Wiki] :: What's New, Upgrade Notes, Supported Versions, additional cross-version information.
+
+Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch, Jay Bryant
+
+(C) 2008-2023 VMware, Inc.
+
+Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.

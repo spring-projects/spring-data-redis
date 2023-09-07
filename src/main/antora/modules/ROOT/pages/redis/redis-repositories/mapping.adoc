@@ -1,0 +1,242 @@
+[[redis.repositories.mapping]]
+= Object-to-Hash Mapping
+
+The Redis Repository support persists Objects to Hashes.
+This requires an Object-to-Hash conversion which is done by a `RedisConverter`.
+The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
+
+Given the `Person` type from the previous sections, the default mapping looks like the following:
+
+====
+[source,text]
+----
+_class = org.example.Person                 <1>
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand                            <2>
+lastname = al’thor
+address.city = emond's field                <3>
+address.country = andor
+----
+
+<1> The `_class` attribute is included on the root level as well as on any nested interface or abstract types.
+<2> Simple property values are mapped by path.
+<3> Properties of complex types are mapped by their dot path.
+====
+
+[[mapping-conversion]]
+== Data Mapping and Type Conversion
+
+This section explains how types are mapped to and from a Hash representation:
+
+[cols="1,2,3",options="header"]
+.Default Mapping Rules
+|===
+| Type
+| Sample
+| Mapped Value
+
+| Simple Type +
+(for example, String)
+| String firstname = "rand";
+| firstname = "rand"
+
+| Byte array (`byte[]`)
+| byte[] image = "rand".getBytes();
+| image = "rand"
+
+| Complex Type +
+(for example, Address)
+| Address address = new Address("emond's field");
+| address.city = "emond's field"
+
+| List +
+of Simple Type
+| List<String> nicknames = asList("dragon reborn", "lews therin");
+| nicknames.[0] = "dragon reborn", +
+nicknames.[1] = "lews therin"
+
+| Map +
+of Simple Type
+| Map<String, String> atts = asMap({"eye-color", "grey"}, {"...
+| atts.[eye-color] = "grey", +
+atts.[hair-color] = "...
+
+| List +
+of Complex Type
+| List<Address> addresses = asList(new Address("em...
+| addresses.[0].city = "emond's field", +
+addresses.[1].city = "...
+
+| Map +
+of Complex Type
+| Map<String, Address> addresses = asMap({"home", new Address("em...
+| addresses.[home].city = "emond's field", +
+addresses.[work].city = "...
+|===
+
+CAUTION: Due to the flat representation structure, Map keys need to be simple types, such as ``String`` or ``Number``.
+
+Mapping behavior can be customized by registering the corresponding `Converter` in `RedisCustomConversions`.
+Those converters can take care of converting from and to a single `byte[]` as well as `Map<String,byte[]>`.
+The first one is suitable for (for example) converting a complex type to (for example) a binary JSON representation that still uses the default mappings hash structure.
+The second option offers full control over the resulting hash.
+
+WARNING: Writing objects to a Redis hash deletes the content from the hash and re-creates the whole hash, so data that has not been mapped is lost.
+
+The following example shows two sample byte array converters:
+
+.Sample byte[] Converters
+====
+[source,java]
+----
+@WritingConverter
+public class AddressToBytesConverter implements Converter<Address, byte[]> {
+
+  private final Jackson2JsonRedisSerializer<Address> serializer;
+
+  public AddressToBytesConverter() {
+
+    serializer = new Jackson2JsonRedisSerializer<Address>(Address.class);
+    serializer.setObjectMapper(new ObjectMapper());
+  }
+
+  @Override
+  public byte[] convert(Address value) {
+    return serializer.serialize(value);
+  }
+}
+
+@ReadingConverter
+public class BytesToAddressConverter implements Converter<byte[], Address> {
+
+  private final Jackson2JsonRedisSerializer<Address> serializer;
+
+  public BytesToAddressConverter() {
+
+    serializer = new Jackson2JsonRedisSerializer<Address>(Address.class);
+    serializer.setObjectMapper(new ObjectMapper());
+  }
+
+  @Override
+  public Address convert(byte[] value) {
+    return serializer.deserialize(value);
+  }
+}
+----
+====
+
+Using the preceding byte array `Converter` produces output similar to the following:
+
+====
+[source,text]
+----
+_class = org.example.Person
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand
+lastname = al’thor
+address = { city : "emond's field", country : "andor" }
+----
+====
+
+The following example shows two examples of `Map` converters:
+
+.Sample Map<String,byte[]> Converters
+====
+[source,java]
+----
+@WritingConverter
+public class AddressToMapConverter implements Converter<Address, Map<String,byte[]>> {
+
+  @Override
+  public Map<String,byte[]> convert(Address source) {
+    return singletonMap("ciudad", source.getCity().getBytes());
+  }
+}
+
+@ReadingConverter
+public class MapToAddressConverter implements Converter<Map<String, byte[]>, Address> {
+
+  @Override
+  public Address convert(Map<String,byte[]> source) {
+    return new Address(new String(source.get("ciudad")));
+  }
+}
+----
+====
+
+Using the preceding Map `Converter` produces output similar to the following:
+
+====
+[source,text]
+----
+_class = org.example.Person
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand
+lastname = al’thor
+ciudad = "emond's field"
+----
+====
+
+NOTE: Custom conversions have no effect on index resolution. xref:redis/redis-repositories/indexes.adoc[Secondary Indexes] are still created, even for custom converted types.
+
+[[customizing-type-mapping]]
+== Customizing Type Mapping
+
+If you want to avoid writing the entire Java class name as type information and would rather like to use a key, you can use the `@TypeAlias` annotation on the entity class being persisted.
+If you need to customize the mapping even more, look at the https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/convert/TypeInformationMapper.html[`TypeInformationMapper`] interface.
+An instance of that interface can be configured at the `DefaultRedisTypeMapper`, which can be configured on `MappingRedisConverter`.
+
+The following example shows how to define a type alias for an entity:
+
+.Defining `@TypeAlias` for an entity
+====
+[source,java]
+----
+@TypeAlias("pers")
+class Person {
+
+}
+----
+====
+
+The resulting document contains `pers` as the value in a `_class` field.
+
+[[configuring-custom-type-mapping]]
+=== Configuring Custom Type Mapping
+
+The following example demonstrates how to configure a custom `RedisTypeMapper` in `MappingRedisConverter`:
+
+.Configuring a custom `RedisTypeMapper` via Spring Java Config
+====
+[source,java]
+----
+class CustomRedisTypeMapper extends DefaultRedisTypeMapper {
+  //implement custom type mapping here
+}
+----
+
+[source,java]
+----
+@Configuration
+class SampleRedisConfiguration {
+
+  @Bean
+  public MappingRedisConverter redisConverter(RedisMappingContext mappingContext,
+        RedisCustomConversions customConversions, ReferenceResolver referenceResolver) {
+
+    MappingRedisConverter mappingRedisConverter = new MappingRedisConverter(mappingContext, null, referenceResolver,
+            customTypeMapper());
+
+    mappingRedisConverter.setCustomConversions(customConversions);
+
+    return mappingRedisConverter;
+  }
+
+  @Bean
+  public RedisTypeMapper customTypeMapper() {
+    return new CustomRedisTypeMapper();
+  }
+}
+----
+====
+

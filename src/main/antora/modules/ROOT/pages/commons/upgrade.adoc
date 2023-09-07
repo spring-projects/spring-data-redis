@@ -1,0 +1,6 @@
+include::{commons}@data-commons::page$upgrade.adoc[]
+
+Once you’ve decided to upgrade your application, you can find detailed information regarding specific features in the rest of the document.
+You can find xref:upgrading.adoc#redis.upgrading[migration guides] specific to major version migrations at the end of this document.
+
+Spring Data's documentation is specific to that version, so any information that you find in here will contain the most up-to-date changes that are in that version.

@@ -97,10 +97,10 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 Having trouble with Spring Data? We’d love to help!
 
 * Check the
-https://docs.spring.io/spring-data/redis/docs/current/reference/html/[reference documentation], and https://docs.spring.io/spring-data/redis/docs/current/api/[Javadocs].
+https://docs.spring.io/spring-data/redis/docs/reference/[reference documentation], and https://docs.spring.io/spring-data/redis/docs/current/api/[Javadocs].
 * Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
 If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
-* If you are upgrading, check out the https://docs.spring.io/spring-data/redis/docs/current/changelog.txt[changelog] for "`new and noteworthy`" features.
+* If you are upgrading, check out the https://github.com/spring-projects/spring-data-commons/wiki#release-notes[Release notes] for "`new and noteworthy`" features.
 * Ask a question - we monitor https://stackoverflow.com[stackoverflow.com] for questions tagged with https://stackoverflow.com/tags/spring-data[`spring-data-redis`].
 You can also chat with the community on https://gitter.im/spring-projects/spring-data[Gitter].
 * Report bugs with Spring Data Redis at https://github.com/spring-projects/spring-data-redis/issues/new[github.com/spring-projects/spring-data-redis].
@@ -136,10 +136,10 @@ Building the documentation builds also the project without running tests.
 
 [source,bash]
 ----
- $ ./mvnw clean install -Pdistribute
+ $ ./mvnw clean install -Pantora
 ----
 
-The generated documentation is available from `target/site/reference/html/index.html`.
+The generated documentation is available from `target/antora/site/index.html`.
 
 == Guides
 
