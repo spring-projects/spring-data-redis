@@ -1,0 +1,173 @@
+[[redis.repositories.indexes]]
+= Secondary Indexes
+
+https://redis.io/topics/indexes[Secondary indexes] are used to enable lookup operations based on native Redis structures.
+Values are written to the according indexes on every save and are removed when objects are deleted or xref:redis/redis-repositories/expirations.adoc[expire].
+
+[[redis.repositories.indexes.simple]]
+== Simple Property Index
+
+Given the sample `Person` entity shown earlier, we can create an index for `firstname` by annotating the property with `@Indexed`, as shown in the following example:
+
+.Annotation driven indexing
+====
+[source,java]
+----
+@RedisHash("people")
+public class Person {
+
+  @Id String id;
+  @Indexed String firstname;
+  String lastname;
+  Address address;
+}
+----
+====
+
+Indexes are built up for actual property values.
+Saving two Persons (for example, "rand" and "aviendha") results in setting up indexes similar to the following:
+
+====
+[source,text]
+----
+SADD people:firstname:rand e2c7dcee-b8cd-4424-883e-736ce564363e
+SADD people:firstname:aviendha a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
+----
+====
+
+It is also possible to have indexes on nested elements.
+Assume `Address` has a `city` property that is annotated with `@Indexed`.
+In that case, once `person.address.city` is not `null`, we have Sets for each city, as shown in the following example:
+
+====
+[source,text]
+----
+SADD people:address.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e
+----
+====
+
+Furthermore, the programmatic setup lets you define indexes on map keys and list properties, as shown in the following example:
+
+====
+[source,java]
+----
+@RedisHash("people")
+public class Person {
+
+  // ... other properties omitted
+
+  Map<String,String> attributes;      <1>
+  Map<String Person> relatives;       <2>
+  List<Address> addresses;            <3>
+}
+----
+
+<1> `SADD people:attributes.map-key:map-value e2c7dcee-b8cd-4424-883e-736ce564363e`
+<2> `SADD people:relatives.map-key.firstname:tam e2c7dcee-b8cd-4424-883e-736ce564363e`
+<3> `SADD people:addresses.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e`
+====
+
+CAUTION: Indexes cannot be resolved on xref:redis/redis-repositories/usage.adoc#redis.repositories.references[References].
+
+As with keyspaces, you can configure indexes without needing to annotate the actual domain type, as shown in the following example:
+
+.Index Setup with @EnableRedisRepositories
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories(indexConfiguration = MyIndexConfiguration.class)
+public class ApplicationConfig {
+
+  //... RedisConnectionFactory and RedisTemplate Bean definitions omitted
+
+  public static class MyIndexConfiguration extends IndexConfiguration {
+
+    @Override
+    protected Iterable<IndexDefinition> initialConfiguration() {
+      return Collections.singleton(new SimpleIndexDefinition("people", "firstname"));
+    }
+  }
+}
+----
+====
+
+Again, as with keyspaces, you can programmatically configure indexes, as shown in the following example:
+
+.Programmatic Index setup
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories
+public class ApplicationConfig {
+
+  //... RedisConnectionFactory and RedisTemplate Bean definitions omitted
+
+  @Bean
+  public RedisMappingContext keyValueMappingContext() {
+    return new RedisMappingContext(
+      new MappingConfiguration(
+        new KeyspaceConfiguration(), new MyIndexConfiguration()));
+  }
+
+  public static class MyIndexConfiguration extends IndexConfiguration {
+
+    @Override
+    protected Iterable<IndexDefinition> initialConfiguration() {
+      return Collections.singleton(new SimpleIndexDefinition("people", "firstname"));
+    }
+  }
+}
+----
+====
+
+[[redis.repositories.indexes.geospatial]]
+== Geospatial Index
+
+Assume the `Address` type contains a `location` property of type `Point` that holds the geo coordinates of the particular address.
+By annotating the property with `@GeoIndexed`, Spring Data Redis adds those values by using Redis `GEO` commands, as shown in the following example:
+
+====
+[source,java]
+----
+@RedisHash("people")
+public class Person {
+
+  Address address;
+
+  // ... other properties omitted
+}
+
+public class Address {
+
+  @GeoIndexed Point location;
+
+  // ... other properties omitted
+}
+
+public interface PersonRepository extends CrudRepository<Person, String> {
+
+  List<Person> findByAddressLocationNear(Point point, Distance distance);     <1>
+  List<Person> findByAddressLocationWithin(Circle circle);                    <2>
+}
+
+Person rand = new Person("rand", "al'thor");
+rand.setAddress(new Address(new Point(13.361389D, 38.115556D)));
+
+repository.save(rand);                                                        <3>
+
+repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200)); <4>
+----
+
+<1> Query method declaration on a nested property, using `Point` and `Distance`.
+<2> Query method declaration on a nested property, using `Circle` to search within.
+<3> `GEOADD people:address:location 13.361389 38.115556 e2c7dcee-b8cd-4424-883e-736ce564363e`
+<4> `GEORADIUS people:address:location 15.0 37.0 200.0 km`
+====
+
+In the preceding example the, longitude and latitude values are stored by using `GEOADD` that use the object's `id` as the member's name.
+The finder methods allow usage of `Circle` or `Point, Distance` combinations for querying those values.
+
+NOTE: It is **not** possible to combine `near` and `within` with other criteria.
+

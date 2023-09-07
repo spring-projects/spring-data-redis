@@ -1,0 +1,41 @@
+[[redis.getting-started]]
+= Getting Started
+
+An easy way to bootstrap setting up a working environment is to create a Spring-based project via https://start.spring.io/#!type=maven-project&dependencies=data-redis[start.spring.io] or create a Spring project in https://spring.io/tools[Spring Tools].
+
+[[redis.examples-repo]]
+== Examples Repository
+
+The GitHub https://github.com/spring-projects/spring-data-examples[spring-data-examples repository] hosts several examples that you can download and play around with to get a feel for how the library works.
+
+[[redis.hello-world]]
+== Hello World
+
+First, you need to set up a running Redis server.
+Spring Data Redis requires Redis 2.6 or above and Spring Data Redis integrates with https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis], two popular open-source Java libraries for Redis.
+
+Now you can create a simple Java application that stores and reads a value to and from Redis.
+
+Create the main application to run, as the following example shows:
+
+[tabs]
+======
+Imperative::
++
+[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+----
+include::example$examples/RedisApplication.java[tags=file]
+----
+
+Reactive::
++
+[source,java,indent=0,subs="verbatim,quotes",role="secondary"]
+----
+include::example$examples/ReactiveRedisApplication.java[tags=file]
+----
+======
+
+Even in this simple example, there are a few notable things to point out:
+
+* You can create an instance of `RedisTemplate` (or `ReactiveRedisTemplate` for reactive usage) with a `RedisConnectionFactory`. Connection factories are an abstraction on top of the supported drivers.
+* There's no single way to use Redis as it comes with support for a wide range of data structures such as plain keys ("strings"), lists, sets, sorted sets, streams, hashes and so on.

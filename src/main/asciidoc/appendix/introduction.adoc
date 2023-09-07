@@ -1,8 +1,0 @@
-[[appendix]]
-= Appendix Document Structure
-
-The appendix contains various additional detail that complements the information in the rest of the reference documentation:
-
-* "`<<appendix:schema>>`" defines the schemas provided by Spring Data Redis.
-
-* "`<<appendix:command-reference>>`" details which commands are supported by `RedisTemplate`.

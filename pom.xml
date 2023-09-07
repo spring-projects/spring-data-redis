@@ -19,6 +19,7 @@
 
 	<properties>
 		<springdata.keyvalue>3.2.0-SNAPSHOT</springdata.keyvalue>
+		<springdata.commons>3.2.0-SNAPSHOT</springdata.commons>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.20</xstream>
@@ -370,6 +371,28 @@
 							<groups>RuntimeHintsTests</groups>
 							<argLine>-javaagent:${org.springframework:spring-core-test:jar}</argLine>
 						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>antora-process-resources</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/antora/resources/antora-resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		<profile>
+			<id>antora</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.spring.maven.antora</groupId>
+						<artifactId>antora-maven-plugin</artifactId>
 					</plugin>
 				</plugins>
 			</build>

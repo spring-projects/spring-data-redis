@@ -1,0 +1,43 @@
+[[redis]]
+= Redis
+:page-section-summary-toc: 1
+
+One of the key-value stores supported by Spring Data is https://redis.io[Redis].
+To quote the Redis project home page:
+
+[quote]
+Redis is an advanced key-value store.
+It is similar to memcached but the dataset is not volatile, and values can be strings, exactly like in memcached, but also lists, sets, and ordered sets.
+All this data types can be manipulated with atomic operations to push/pop elements, add/remove elements, perform server side union, intersection, difference between sets, and so forth.
+Redis supports different kind of sorting abilities.
+
+Spring Data Redis provides easy configuration and access to Redis from Spring applications.
+It offers both low-level and high-level abstractions for interacting with the store, freeing the user from infrastructural concerns.
+
+Spring Data support for Redis contains a wide range of features:
+
+* xref:redis/template.adoc[`RedisTemplate` and `ReactiveRedisTemplate` helper class] that increases productivity when performing common Redis operations.
+Includes integrated serialization between objects and values.
+* Exception translation into Spring's portable Data Access Exception hierarchy.
+* Automatic implementation of xref:repositories.adoc[Repository interfaces], including support for custom query methods.
+* Feature-rich xref:redis/redis-repositories/mapping.adoc[Object Mapping] integrated with Spring's Conversion Service.
+* Annotation-based mapping metadata that is extensible to support other metadata formats.
+* xref:redis/transactions.adoc[Transactions] and xref:redis/pipelining.adoc[Pipelining].
+* xref:redis/redis-cache.adoc[Redis Cache] integration through Spring's Cache abstraction.
+* xref:redis/pubsub.adoc[Redis Pub/Sub Messaging] and xref:redis/redis-streams.adoc[Redis Stream] Listeners.
+* xref:redis/support-classes.adoc[Redis Collection Implementations] for Java such as `RedisList` or `RedisSet`.
+
+== Why Spring Data Redis?
+
+The Spring Framework is the leading full-stack Java/JEE application framework.
+It provides a lightweight container and a non-invasive programming model enabled by the use of dependency injection, AOP, and portable service abstractions.
+
+https://en.wikipedia.org/wiki/NoSQL[NoSQL] storage systems provide an alternative to classical RDBMS for horizontal scalability and speed.
+In terms of implementation, key-value stores represent one of the largest (and oldest) members in the NoSQL space.
+
+The Spring Data Redis (SDR) framework makes it easy to write Spring applications that use the Redis key-value store by eliminating the redundant tasks and boilerplate code required for interacting with the store through Spring's excellent infrastructure support.
+
+[[redis:architecture]]
+== Redis Support High-level View
+
+The Redis support provides several components.For most tasks, the high-level abstractions and support services are the best choice.Note that, at any point, you can move between layers.For example, you can get a low-level connection (or even the native library) to communicate directly with Redis.

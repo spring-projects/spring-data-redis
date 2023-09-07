@@ -1,0 +1,161 @@
+[[redis.repositories.usage]]
+= Usage
+
+Spring Data Redis lets you easily implement domain entities, as shown in the following example:
+
+.Sample Person Entity
+====
+[source,java]
+----
+@RedisHash("people")
+public class Person {
+
+  @Id String id;
+  String firstname;
+  String lastname;
+  Address address;
+}
+----
+====
+
+We have a pretty simple domain object here.
+Note that it has a `@RedisHash` annotation on its type and a property named `id` that is annotated with `org.springframework.data.annotation.Id`.
+Those two items are responsible for creating the actual key used to persist the hash.
+
+NOTE: Properties annotated with `@Id` as well as those named `id` are considered as the identifier properties.
+Those with the annotation are favored over others.
+
+To now actually have a component responsible for storage and retrieval, we need to define a repository interface, as shown in the following example:
+
+.Basic Repository Interface To Persist Person Entities
+====
+[source,java]
+----
+public interface PersonRepository extends CrudRepository<Person, String> {
+
+}
+----
+====
+
+As our repository extends `CrudRepository`, it provides basic CRUD and finder operations.
+The thing we need in between to glue things together is the corresponding Spring configuration, shown in the following example:
+
+.JavaConfig for Redis Repositories
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories
+public class ApplicationConfig {
+
+  @Bean
+  public RedisConnectionFactory connectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+
+  @Bean
+  public RedisTemplate<?, ?> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+
+    RedisTemplate<byte[], byte[]> template = new RedisTemplate<byte[], byte[]>();
+    template.setConnectionFactory(redisConnectionFactory);
+    return template;
+  }
+}
+----
+====
+
+Given the preceding setup, we can inject `PersonRepository` into our components, as shown in the following example:
+
+.Access to Person Entities
+====
+[source,java]
+----
+@Autowired PersonRepository repo;
+
+public void basicCrudOperations() {
+
+  Person rand = new Person("rand", "al'thor");
+  rand.setAddress(new Address("emond's field", "andor"));
+
+  repo.save(rand);                                         <1>
+
+  repo.findOne(rand.getId());                              <2>
+
+  repo.count();                                            <3>
+
+  repo.delete(rand);                                       <4>
+}
+----
+
+<1> Generates a new `id` if the current value is `null` or reuses an already set `id` value and stores properties of type `Person` inside the Redis Hash with a key that has a pattern of `keyspace:id` -- in this case, it might be `people:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
+<2> Uses the provided `id` to retrieve the object stored at `keyspace:id`.
+<3> Counts the total number of entities available within the keyspace, `people`, defined by `@RedisHash` on `Person`.
+<4> Removes the key for the given object from Redis.
+====
+
+[[redis.repositories.references]]
+== Persisting References
+
+Marking properties with `@Reference` allows storing a simple key reference instead of copying values into the hash itself.
+On loading from Redis, references are resolved automatically and mapped back into the object, as shown in the following example:
+
+.Sample Property Reference
+====
+[source,text]
+----
+_class = org.example.Person
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand
+lastname = al’thor
+mother = people:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56      <1>
+----
+
+<1> Reference stores the whole key (`keyspace:id`) of the referenced object.
+====
+
+WARNING: Referenced Objects are not persisted when the referencing object is saved.
+You must persist changes on referenced objects separately, since only the reference is stored.
+Indexes set on properties of referenced types are not resolved.
+
+[[redis.repositories.partial-updates]]
+== Persisting Partial Updates
+
+In some cases, you need not load and rewrite the entire entity just to set a new value within it.
+A session timestamp for the last active time might be such a scenario where you want to alter one property.
+`PartialUpdate` lets you define `set` and `delete` actions on existing objects while taking care of updating potential expiration times of both the entity itself and index structures.
+The following example shows a partial update:
+
+.Sample Partial Update
+====
+[source,java]
+----
+PartialUpdate<Person> update = new PartialUpdate<Person>("e2c7dcee", Person.class)
+  .set("firstname", "mat")                                                           <1>
+  .set("address.city", "emond's field")                                              <2>
+  .del("age");                                                                       <3>
+
+template.update(update);
+
+update = new PartialUpdate<Person>("e2c7dcee", Person.class)
+  .set("address", new Address("caemlyn", "andor"))                                   <4>
+  .set("attributes", singletonMap("eye-color", "grey"));                             <5>
+
+template.update(update);
+
+update = new PartialUpdate<Person>("e2c7dcee", Person.class)
+  .refreshTtl(true);                                                                 <6>
+  .set("expiration", 1000);
+
+template.update(update);
+----
+
+<1> Set the simple `firstname` property to `mat`.
+<2> Set the simple 'address.city' property to 'emond's field' without having to pass in the entire object.
+This does not work when a custom conversion is registered.
+<3> Remove the `age` property.
+<4> Set complex `address` property.
+<5> Set a map of values, which removes the previously existing map and replaces the values with the given ones.
+<6> Automatically update the server expiration time when altering xref:redis/redis-repositories/expirations.adoc[Time To Live].
+====
+
+NOTE: Updating complex objects as well as map (or other collection) structures requires further interaction with Redis to determine existing values, which means that rewriting the entire entity might be faster.

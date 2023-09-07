@@ -1,0 +1,15 @@
+[[redis.repositories]]
+= Redis Repositories
+:page-section-summary-toc: 1
+
+This chapter explains the basic foundations of Spring Data repositories and Redis specifics.
+Before continuing to the Redis specifics, make sure you have a sound understanding of the basic concepts.
+
+The goal of the Spring Data repository abstraction is to significantly reduce the amount of boilerplate code required to implement data access layers for various persistence stores.
+
+Working with Redis Repositories lets you seamlessly convert and store domain objects in Redis Hashes, apply custom mapping strategies, and use secondary indexes.
+
+IMPORTANT: Redis Repositories require at least Redis Server version 2.8.0 and do not work with transactions.
+Make sure to use a `RedisTemplate` with xref:redis/transactions.adoc#tx.spring[disabled transaction support].
+
+
