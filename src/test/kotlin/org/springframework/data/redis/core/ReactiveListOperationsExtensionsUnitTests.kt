@@ -32,6 +32,7 @@ import java.time.Duration
  * @author Mark Paluch
  * @author Sebastien Deleuze
  * @author Wonwoo Lee
+ * @author John Blum
  */
 class ReactiveListOperationsExtensionsUnitTests {
 
@@ -290,11 +291,27 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test // GH-2692
+	fun leftPopWithCount() {
+
+		val operations = mockk<ReactiveListOperations<String, String>>()
+
+		every { operations.leftPop(any(), any<Long>()) } returns Flux.just("foo", "bar", "baz")
+
+		runBlocking {
+			assertThat(operations.leftPopAsFlow("TestKey", 3L).toList()).containsExactly("foo", "bar", "baz")
+		}
+
+		verify {
+			operations.leftPop("TestKey", 3L)
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun blockingLeftPop() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
-		every { operations.leftPop(any(), any()) } returns Mono.just("foo")
+		every { operations.leftPop(any(), any<Duration>()) } returns Mono.just("foo")
 
 		runBlocking {
 			assertThat(operations.leftPopAndAwait("foo", Duration.ofDays(1))).isEqualTo("foo")
@@ -320,11 +337,28 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
+	@Test // GH-2692
+	fun rightPopWithCount() {
+
+		val operations = mockk<ReactiveListOperations<String, String>>()
+
+		every { operations.rightPop(any(), any<Long>()) } returns Flux.just("foo", "bar", "baz")
+
+		runBlocking {
+			assertThat(operations.rightPopAsFlow("TestKey", 3L).toList())
+					.containsExactly("foo", "bar", "baz")
+		}
+
+		verify {
+			operations.rightPop("TestKey", 3L)
+		}
+	}
+
 	@Test // DATAREDIS-937
 	fun blockingRightPop() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
-		every { operations.rightPop(any(), any()) } returns Mono.just("foo")
+		every { operations.rightPop(any(), any<Duration>()) } returns Mono.just("foo")
 
 		runBlocking {
 			assertThat(operations.rightPopAndAwait("foo", Duration.ofDays(1))).isEqualTo("foo")

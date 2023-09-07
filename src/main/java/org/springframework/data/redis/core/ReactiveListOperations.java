@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @see <a href="https://redis.io/commands#list">Redis Documentation: List Commands</a>
  * @since 2.0
  */
@@ -326,6 +327,16 @@ public interface ReactiveListOperations<K, V> {
 	Mono<V> leftPop(K key, Duration timeout);
 
 	/**
+	 * Removes {@link Long count} elements from the left-side of the Redis list stored at key.
+	 *
+	 * @param key {@link K Key} referring to the list stored in Redis; must not be {@literal null}.
+	 * @param count {@link Long count} of the number of elements to remove from the left-side of the Redis list.
+	 * @return a {@link Flux} containing the elements removed from the Redis list.
+	 * @since 3.2
+	 */
+	Flux<V> leftPop(K key, long count);
+
+	/**
 	 * Removes and returns last element in list stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -346,6 +357,16 @@ public interface ReactiveListOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	Mono<V> rightPop(K key, Duration timeout);
+
+	/**
+	 * Removes {@link Long count} elements from the right-side of the Redis list stored at key.
+	 *
+	 * @param key {@link K Key} referring to the list stored in Redis; must not be {@literal null}.
+	 * @param count {@link Long count} of the number of elements to remove from the right-side of the Redis list.
+	 * @return a {@link Flux} containing the elements removed from the Redis list.
+	 * @since 3.2
+	 */
+	Flux<V> rightPop(K key, long count);
 
 	/**
 	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.

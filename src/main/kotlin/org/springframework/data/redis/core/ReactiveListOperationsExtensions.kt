@@ -184,6 +184,15 @@ suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPopAndAwait(key:
 		leftPop(key, timeout).awaitFirstOrNull()
 
 /**
+ * Coroutines variant of [ReactiveListOperations.leftPop] with count.
+ *
+ * @author John Blum
+ * @since 3.2
+ */
+fun <K : Any, V : Any> ReactiveListOperations<K, V>.leftPopAsFlow(key: K, count :Long): Flow<V> =
+		leftPop(key, count).asFlow()
+
+/**
  * Coroutines variant of [ReactiveListOperations.rightPop].
  *
  * @author Mark Paluch
@@ -200,6 +209,15 @@ suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key
  */
 suspend fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAndAwait(key: K, timeout: Duration): V? =
 		rightPop(key, timeout).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveListOperations.rightPop] with count.
+ *
+ * @author John Blum
+ * @since 3.2
+ */
+fun <K : Any, V : Any> ReactiveListOperations<K, V>.rightPopAsFlow(key: K, count:Long): Flow<V> =
+		rightPop(key, count).asFlow()
 
 /**
  * Coroutines variant of [ReactiveListOperations.rightPopAndLeftPush].

@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @since 2.0
  */
 class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V> {
@@ -244,11 +245,19 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(timeout, "Duration must not be null");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
+		Assert.isTrue(isZeroOrGreaterOneSecond(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(listCommands ->
 				listCommands.blPop(Collections.singletonList(rawKey(key)), timeout)
 						.map(popResult -> readValue(popResult.getValue())));
+	}
+
+	@Override
+	public Flux<V> leftPop(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createFlux(listCommands -> listCommands.lPop(rawKey(key), count).map(this::readValue));
 	}
 
 	@Override
@@ -264,11 +273,19 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(timeout, "Duration must not be null");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
+		Assert.isTrue(isZeroOrGreaterOneSecond(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(listCommands ->
 				listCommands.brPop(Collections.singletonList(rawKey(key)), timeout)
 						.map(popResult -> readValue(popResult.getValue())));
+	}
+
+	@Override
+	public Flux<V> rightPop(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createFlux(listCommands -> listCommands.rPop(rawKey(key), count).map(this::readValue));
 	}
 
 	@Override
@@ -287,7 +304,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(destinationKey, "Destination key must not be null");
 		Assert.notNull(timeout, "Duration must not be null");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
+		Assert.isTrue(isZeroOrGreaterOneSecond(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(listCommands ->
 				listCommands.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
@@ -315,7 +332,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return template.doCreateFlux(connection -> function.apply(connection.listCommands()));
 	}
 
-	private boolean isZeroOrGreater1Second(Duration timeout) {
+	private boolean isZeroOrGreaterOneSecond(Duration timeout) {
 		return timeout.isZero() || timeout.getNano() % TimeUnit.NANOSECONDS.convert(1, TimeUnit.SECONDS) == 0;
 	}
 
