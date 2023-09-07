@@ -15,10 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -35,11 +33,14 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
+import reactor.test.StepVerifier;
+
 /**
  * Integration tests for {@link DefaultReactiveListOperations}.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  */
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
@@ -458,6 +459,38 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.leftPop(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2692
+	@SuppressWarnings("all")
+	void leftPopWithNullKey() {
+
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> this.listOperations.leftPop(null, 100L))
+			.withMessage("Key must not be null")
+			.withNoCause();
+	}
+
+	@ParameterizedRedisTest // GH-2692
+	void leftPopWithCount() {
+
+		assumeThat(this.valueFactory).isInstanceOf(ByteBufferObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		listOperations.leftPushAll(key, value1, value2, value3)
+				.as(StepVerifier::create)
+				.expectNext(3L)
+				.verifyComplete();
+
+		listOperations.leftPop(key, 2)
+				.as(StepVerifier::create)
+				.expectNext(value3)
+				.expectNext(value2)
+				.verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPop() {
 
@@ -470,6 +503,38 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.rightPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
 		listOperations.rightPop(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2692
+	@SuppressWarnings("all")
+	void rightPopWithNullKey() {
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> this.listOperations.rightPop(null, 100L))
+				.withMessage("Key must not be null")
+				.withNoCause();
+	}
+
+	@ParameterizedRedisTest // GH-2692
+	void rightPopWithCount() {
+
+		assumeThat(this.valueFactory).isInstanceOf(ByteBufferObjectFactory.class);
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		listOperations.rightPushAll(key, value3, value2, value1)
+			.as(StepVerifier::create)
+			.expectNext(3L)
+			.verifyComplete();
+
+		listOperations.rightPop(key, 2)
+			.as(StepVerifier::create)
+			.expectNext(value1)
+			.expectNext(value2)
+			.verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
