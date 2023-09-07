@@ -18,6 +18,7 @@
 	</parent>
 
 	<properties>
+		<source.level>21</source.level>
 		<springdata.keyvalue>3.2.0-SNAPSHOT</springdata.keyvalue>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
