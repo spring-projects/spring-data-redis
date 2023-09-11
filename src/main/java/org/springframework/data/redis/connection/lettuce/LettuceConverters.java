@@ -707,10 +707,7 @@ public abstract class LettuceConverters extends Converters {
 						case SAT -> BitFieldArgs.OverflowType.SAT;
 						case FAIL -> BitFieldArgs.OverflowType.FAIL;
 						case WRAP -> BitFieldArgs.OverflowType.WRAP;
-						default -> throw new IllegalArgumentException(
-								String.format("Invalid OVERFLOW; Expected one the following %s but got %s",
-										Arrays.toString(Overflow.values()), overflow));
-					};
+          };
 
 					args = args.overflow(type);
 				}
@@ -900,8 +897,7 @@ public abstract class LettuceConverters extends Converters {
 		return switch (option) {
 			case ASYNC -> FlushMode.ASYNC;
 			case SYNC -> FlushMode.SYNC;
-			default -> throw new IllegalArgumentException("Flush option " + option + " is not supported");
-		};
+    };
 	}
 
 	/**

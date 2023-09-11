@@ -291,8 +291,7 @@ class LettuceStringCommands implements RedisStringCommands {
 					}
 					yield it.bitopNot(destination, keys[0]);
 				}
-				default -> throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
-			};
+      };
 		});
 	}
 

@@ -440,7 +440,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			case MIGRATING -> client.clusterSetSlotMigrating(slot, nodeId);
 			case STABLE -> client.clusterSetSlotStable(slot);
 			case NODE -> client.clusterSetSlotNode(slot, nodeId);
-			default -> throw new IllegalArgumentException(String.format("Unknown AddSlots mode '%s'", mode));
 		}, node);
 
 	}

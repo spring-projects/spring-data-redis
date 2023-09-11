@@ -293,7 +293,6 @@ abstract class JedisConverters extends Converters {
 			case OR -> BitOP.OR;
 			case NOT -> BitOP.NOT;
 			case XOR -> BitOP.XOR;
-			default -> throw new IllegalArgumentException();
 		};
 	}
 
@@ -740,7 +739,6 @@ abstract class JedisConverters extends Converters {
 		return switch (option) {
 			case ASYNC -> FlushMode.ASYNC;
 			case SYNC -> FlushMode.SYNC;
-			default -> throw new IllegalArgumentException("Flush option " + option + " is not supported");
 		};
 	}
 

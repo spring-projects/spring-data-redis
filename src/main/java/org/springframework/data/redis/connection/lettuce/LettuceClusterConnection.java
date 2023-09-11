@@ -424,7 +424,6 @@ public class LettuceClusterConnection extends LettuceConnection
 			case IMPORTING -> client.clusterSetSlotImporting(slot, nodeId);
 			case NODE -> client.clusterSetSlotNode(slot, nodeId);
 			case STABLE -> client.clusterSetSlotStable(slot);
-			default -> throw new InvalidDataAccessApiUsageException("Invalid import mode for cluster slot: " + slot);
 		}, node);
 	}
 

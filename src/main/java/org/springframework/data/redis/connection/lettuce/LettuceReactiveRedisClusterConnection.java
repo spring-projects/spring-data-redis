@@ -288,8 +288,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 				case IMPORTING -> cmd.clusterSetSlotImporting(slot, nodeId);
 				case NODE -> cmd.clusterSetSlotNode(slot, nodeId);
 				case STABLE -> cmd.clusterSetSlotStable(slot);
-				default -> throw new InvalidDataAccessApiUsageException("Invalid import mode for cluster slot: " + slot);
-			};
+      };
 
 		}).then();
 	}
