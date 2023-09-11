@@ -43,10 +43,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisZSetCommands} implementation for {@literal Lettuce}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author John Blum
  * @since 2.0
  */
 class LettuceZSetCommands implements RedisZSetCommands {
@@ -532,10 +535,6 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	/**
 	 * @since 1.4
-	 * @param key
-	 * @param cursorId
-	 * @param options
-	 * @return
 	 */
 	public Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
 
@@ -761,6 +760,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		if (source.contains(Flag.CH)) {
 			target.ch();
 		}
+
 		return target;
 	}
 }

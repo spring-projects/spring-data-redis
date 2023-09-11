@@ -97,11 +97,13 @@ public abstract class TimeoutUtils {
 	}
 
 	private static long roundUpIfNecessary(long timeout, long convertedTimeout) {
+
 		// A 0 timeout blocks some Redis ops indefinitely, round up if that's
 		// not the intention
 		if (timeout > 0 && convertedTimeout == 0) {
 			return 1;
 		}
+
 		return convertedTimeout;
 	}
 }

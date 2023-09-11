@@ -38,6 +38,7 @@ import org.springframework.util.ReflectionUtils;
  * automatically by translating interface calls to actual {@code …Operations} interfaces.
  *
  * @author Mark Paluch
+ * @author John Blum
  * @since 3.0
  */
 class BoundOperationsProxyFactory {
@@ -54,7 +55,6 @@ class BoundOperationsProxyFactory {
 	 * @param type the {@link DataType} for which to create a proxy object.
 	 * @param operations the {@link RedisOperations} instance.
 	 * @param operationsTargetFunction function to extract the actual delegate for method calls.
-	 * @param <T>
 	 * @return the proxy object.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -90,7 +90,7 @@ class BoundOperationsProxyFactory {
 
 		return targetMethodCache.computeIfAbsent(method, it -> {
 
-			Class[] paramTypes;
+			Class<?>[] paramTypes;
 
 			if (isStreamRead(method)) {
 				paramTypes = new Class[it.getParameterCount()];
@@ -144,13 +144,10 @@ class BoundOperationsProxyFactory {
 					yield null;
 				}
 				case "getOperations" -> delegate.getOps();
+				default -> method.getDeclaringClass() == boundOperationsInterface
+						? doInvoke(invocation, method, operationsTarget, true)
+						: doInvoke(invocation, method, delegate, false);
 			};
-
-			if (method.getDeclaringClass() == boundOperationsInterface) {
-				return doInvoke(invocation, method, operationsTarget, true);
-			}
-
-			return doInvoke(invocation, method, delegate, false);
 		}
 
 		@Nullable
