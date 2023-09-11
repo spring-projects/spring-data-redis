@@ -33,7 +33,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -99,6 +98,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Muchnik
+ * @author John Blum
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -158,6 +158,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
 				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(redisOps));
+
 		mappingConverter.setCustomConversions(customConversions == null ? new RedisCustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
@@ -191,6 +192,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	public Object put(Object id, Object item, String keyspace) {
 
 		RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
+
 		if (!(item instanceof RedisData)) {
 			converter.write(item, rdo);
 		}
@@ -229,7 +231,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 
 				if (expires(rdo)) {
-
 					connection.del(phantomKey);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
@@ -239,11 +240,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			}
 
 			IndexWriter indexWriter = new IndexWriter(connection, converter);
+
 			if (isNew) {
 				indexWriter.createIndexes(key, rdo.getIndexedData());
 			} else {
 				indexWriter.deleteAndUpdateIndexes(key, rdo.getIndexedData());
 			}
+
 			return null;
 		});
 
@@ -253,10 +256,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	@Override
 	public boolean contains(Object id, String keyspace) {
 
-		Boolean exists = redisOps
-				.execute((RedisCallback<Boolean>) connection -> connection.sIsMember(toBytes(keyspace), toBytes(id)));
+		RedisCallback<Boolean> command = connection -> connection.sIsMember(toBytes(keyspace), toBytes(id));
 
-		return exists != null ? exists : false;
+		return Boolean.TRUE.equals(this.redisOps.execute(command));
 	}
 
 	@Nullable
@@ -274,14 +276,16 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		byte[] binId = createKey(stringKeyspace, stringId);
 
-		Map<byte[], byte[]> raw = redisOps
-				.execute((RedisCallback<Map<byte[], byte[]>>) connection -> connection.hGetAll(binId));
+		RedisCallback<Map<byte[], byte[]>> command = connection -> connection.hGetAll(binId);
+
+		Map<byte[], byte[]> raw = redisOps.execute(command);
 
 		if (CollectionUtils.isEmpty(raw)) {
 			return null;
 		}
 
 		RedisData data = new RedisData(raw);
+
 		data.setId(stringId);
 		data.setKeyspace(stringKeyspace);
 
@@ -299,9 +303,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		byte[] binId = toBytes(id);
 		byte[] binKeyspace = toBytes(keyspace);
 
-		T o = get(id, keyspace, type);
+		T value = get(id, keyspace, type);
 
-		if (o != null) {
+		if (value != null) {
 
 			byte[] keyToDelete = createKey(asString(keyspace), asString(id));
 
@@ -314,9 +318,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				if (RedisKeyValueAdapter.this.keepShadowCopy()) {
 
 					RedisPersistentEntity<?> persistentEntity = converter.getMappingContext().getPersistentEntity(type);
+
 					if (persistentEntity != null && persistentEntity.isExpiring()) {
 
 						byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+
 						connection.del(phantomKey);
 					}
 				}
@@ -324,7 +330,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			});
 		}
 
-		return o;
+		return value;
 	}
 
 	@Override
@@ -344,7 +350,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @param type the desired target type.
 	 * @param offset index value to start reading.
 	 * @param rows maximum number or entities to return.
-	 * @param <T>
 	 * @return never {@literal null}.
 	 * @since 2.5
 	 */
@@ -362,6 +367,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		offset = Math.max(0, offset);
+
 		if (rows > 0) {
 			keys = keys.subList((int) offset, Math.min((int) offset + rows, keys.size()));
 		}
@@ -456,6 +462,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					if (keepShadowCopy()) { // add phantom key so values can be restored
 
 						byte[] phantomKey = ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
+
 						connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 						connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
 					}
@@ -479,6 +486,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			RedisConnection connection) {
 
 		redisUpdateObject.addFieldToRemove(toBytes(path));
+
 		byte[] value = connection.hGet(redisUpdateObject.targetKey, toBytes(path));
 
 		if (value != null && value.length > 0) {
@@ -530,7 +538,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 *
 	 * @param callback must not be {@literal null}.
 	 * @see RedisOperations#execute(RedisCallback)
-	 * @return
 	 */
 	@Nullable
 	public <T> T execute(RedisCallback<T> callback) {
@@ -551,7 +558,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	private String asString(Object value) {
-		return value instanceof String ? (String) value
+		return value instanceof String stringValue ? stringValue
 				: getConverter().getConversionService().convert(value, String.class);
 	}
 
@@ -561,10 +568,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
-	 *
-	 * @param source
-	 * @return
-	 * @throws ConverterNotFoundException
 	 */
 	public byte[] toBytes(Object source) {
 
@@ -577,13 +580,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Read back and set {@link TimeToLive} for the property.
-	 *
-	 * @param key
-	 * @param target
-	 * @return
 	 */
 	@Nullable
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T> T readBackTimeToLiveIfSet(@Nullable byte[] key, @Nullable T target) {
 
 		if (target == null || key == null) {
@@ -591,9 +589,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		RedisPersistentEntity<?> entity = this.converter.getMappingContext().getRequiredPersistentEntity(target.getClass());
+
 		if (entity.hasExplictTimeToLiveProperty()) {
 
 			RedisPersistentProperty ttlProperty = entity.getExplicitTimeToLiveProperty();
+
 			if (ttlProperty == null) {
 				return target;
 			}
@@ -635,7 +635,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	/**
 	 * Configure usage of {@link KeyExpirationEventMessageListener}.
 	 *
-	 * @param enableKeyspaceEvents
 	 * @since 1.8
 	 */
 	public void setEnableKeyspaceEvents(EnableKeyspaceEvents enableKeyspaceEvents) {
@@ -764,10 +763,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		/**
 		 * Creates new {@link MappingExpirationListener}.
-		 *
-		 * @param listenerContainer
-		 * @param ops
-		 * @param converter
 		 */
 		MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
 				RedisConverter converter) {
@@ -791,23 +786,24 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
 
-				Map<byte[], byte[]> hash1 = connection.hGetAll(phantomKey);
+				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
 
-				if (!CollectionUtils.isEmpty(hash1)) {
+				if (!CollectionUtils.isEmpty(phantomValue)) {
 					connection.del(phantomKey);
 				}
 
-				return hash1;
+				return phantomValue;
 			});
 
 			Object value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
 
 			byte[] channelAsBytes = message.getChannel();
+
 			String channel = !ObjectUtils.isEmpty(channelAsBytes)
 					? converter.getConversionService().convert(channelAsBytes, String.class)
 					: null;
 
-			RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
+			RedisKeyExpiredEvent<?> event = new RedisKeyExpiredEvent<>(channel, key, value);
 
 			ops.execute((RedisCallback<Void>) connection -> {
 
@@ -910,6 +906,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		static class Index {
+
 			final DataType type;
 			final byte[] key;
 
@@ -917,7 +914,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				this.key = key;
 				this.type = type;
 			}
-
 		}
 	}
 }

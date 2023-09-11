@@ -155,11 +155,13 @@ public abstract class RedisConnectionUtils {
 				// Use same RedisConnection for further Redis actions within the transaction.
 				// Thread-bound object will get removed by synchronization at transaction completion.
 				RedisConnectionHolder holderToUse = conHolder;
+
 				if (holderToUse == null) {
 					holderToUse = new RedisConnectionHolder(connection);
 				} else {
 					holderToUse.setConnection(connection);
 				}
+
 				holderToUse.requested();
 
 				// Consider callback-scope connection binding vs. transaction scope binding
@@ -193,25 +195,26 @@ public abstract class RedisConnectionUtils {
 		return factory.getConnection();
 	}
 
-	private static void potentiallyRegisterTransactionSynchronisation(RedisConnectionHolder connHolder,
+	private static void potentiallyRegisterTransactionSynchronisation(RedisConnectionHolder connectionHolder,
 			final RedisConnectionFactory factory) {
 
 		// Should go actually into RedisTransactionManager
 
-		if (!connHolder.isTransactionActive()) {
+		if (!connectionHolder.isTransactionActive()) {
 
-			connHolder.setTransactionActive(true);
-			connHolder.setSynchronizedWithTransaction(true);
-			connHolder.requested();
+			connectionHolder.setTransactionActive(true);
+			connectionHolder.setSynchronizedWithTransaction(true);
+			connectionHolder.requested();
 
-			RedisConnection conn = connHolder.getRequiredConnection();
+			RedisConnection connection = connectionHolder.getRequiredConnection();
 			boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+
 			if (!readOnly) {
-				conn.multi();
+				connection.multi();
 			}
 
 			TransactionSynchronizationManager
-					.registerSynchronization(new RedisTransactionSynchronizer(connHolder, conn, factory, readOnly));
+					.registerSynchronization(new RedisTransactionSynchronizer(connectionHolder, connection, factory, readOnly));
 		}
 	}
 
@@ -224,6 +227,7 @@ public abstract class RedisConnectionUtils {
 			RedisConnectionFactory factory) {
 
 		ProxyFactory proxyFactory = new ProxyFactory(connection);
+
 		proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory));
 		proxyFactory.addInterface(RedisConnectionProxy.class);
 
@@ -259,8 +263,8 @@ public abstract class RedisConnectionUtils {
 
 			// release transactional/read-only and non-transactional/non-bound connections.
 			// transactional connections for read-only transactions get no synchronizer registered
-
 			unbindConnection(factory);
+
 			return;
 		}
 
@@ -271,21 +275,21 @@ public abstract class RedisConnectionUtils {
 	 * Determine whether the given two RedisConnections are equal, asking the target {@link RedisConnection} in case of a
 	 * proxy. Used to detect equality even if the user passed in a raw target Connection while the held one is a proxy.
 	 *
-	 * @param conHolder the {@link RedisConnectionHolder} for the held Connection (potentially a proxy)
-	 * @param passedInCon the {@link RedisConnection} passed-in by the user (potentially a target Connection without
+	 * @param connectionHolder the {@link RedisConnectionHolder} for the held Connection (potentially a proxy)
+	 * @param passedInConnetion the {@link RedisConnection} passed-in by the user (potentially a target Connection without
 	 *          proxy)
 	 * @return whether the given Connections are equal
 	 * @see #getTargetConnection
 	 */
-	private static boolean connectionEquals(RedisConnectionHolder conHolder, RedisConnection passedInCon) {
+	private static boolean connectionEquals(RedisConnectionHolder connectionHolder, RedisConnection passedInConnetion) {
 
-		if (!conHolder.hasConnection()) {
+		if (!connectionHolder.hasConnection()) {
 			return false;
 		}
 
-		RedisConnection heldCon = conHolder.getRequiredConnection();
+		RedisConnection heldConnection = connectionHolder.getRequiredConnection();
 
-		return heldCon.equals(passedInCon) || getTargetConnection(heldCon).equals(passedInCon);
+		return heldConnection.equals(passedInConnetion) || getTargetConnection(heldConnection).equals(passedInConnetion);
 	}
 
 	/**
@@ -293,19 +297,19 @@ public abstract class RedisConnectionUtils {
 	 * {@link RedisConnection} is a proxy, it will be unwrapped until a non-proxy {@link RedisConnection} is found.
 	 * Otherwise, the passed-in {@link RedisConnection} will be returned as-is.
 	 *
-	 * @param con the {@link RedisConnection} proxy to unwrap
+	 * @param connection the {@link RedisConnection} proxy to unwrap
 	 * @return the innermost target Connection, or the passed-in one if no proxy
 	 * @see RedisConnectionProxy#getTargetConnection()
 	 */
-	private static RedisConnection getTargetConnection(RedisConnection con) {
+	private static RedisConnection getTargetConnection(RedisConnection connection) {
 
-		RedisConnection conToUse = con;
+		RedisConnection connectionToUse = connection;
 
-		while (conToUse instanceof RedisConnectionProxy) {
-			conToUse = ((RedisConnectionProxy) conToUse).getTargetConnection();
+		while (connectionToUse instanceof RedisConnectionProxy) {
+			connectionToUse = ((RedisConnectionProxy) connectionToUse).getTargetConnection();
 		}
 
-		return conToUse;
+		return connectionToUse;
 	}
 
 	/**
@@ -317,9 +321,10 @@ public abstract class RedisConnectionUtils {
 	 */
 	public static void unbindConnection(RedisConnectionFactory factory) {
 
-		RedisConnectionHolder conHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
+		RedisConnectionHolder connectionHolder =
+				(RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
 
-		if (conHolder == null) {
+		if (connectionHolder == null) {
 			return;
 		}
 
@@ -327,16 +332,17 @@ public abstract class RedisConnectionUtils {
 			log.debug("Unbinding Redis Connection");
 		}
 
-		if (conHolder.isTransactionActive()) {
+		if (connectionHolder.isTransactionActive()) {
 			if (log.isDebugEnabled()) {
 				log.debug("Redis Connection will be closed when outer transaction finished");
 			}
 		} else {
 
-			RedisConnection connection = conHolder.getConnection();
-			conHolder.released();
+			RedisConnection connection = connectionHolder.getConnection();
 
-			if (!conHolder.isOpen()) {
+			connectionHolder.released();
+
+			if (!connectionHolder.isOpen()) {
 
 				TransactionSynchronizationManager.unbindResourceIfPossible(factory);
 
@@ -349,18 +355,18 @@ public abstract class RedisConnectionUtils {
 	 * Return whether the given Redis connection is transactional, that is, bound to the current thread by Spring's
 	 * transaction facilities.
 	 *
-	 * @param conn Redis connection to check
-	 * @param connFactory Redis connection factory that the connection was created with
+	 * @param connection Redis connection to check
+	 * @param connectionFactory Redis connection factory that the connection was created with
 	 * @return whether the connection is transactional or not
 	 */
-	public static boolean isConnectionTransactional(RedisConnection conn, RedisConnectionFactory connFactory) {
+	public static boolean isConnectionTransactional(RedisConnection connection, RedisConnectionFactory connectionFactory) {
 
-		Assert.notNull(connFactory, "No RedisConnectionFactory specified");
+		Assert.notNull(connectionFactory, "No RedisConnectionFactory specified");
 
-		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager
-				.getResource(connFactory);
+		RedisConnectionHolder connectionHolder = (RedisConnectionHolder) TransactionSynchronizationManager
+				.getResource(connectionFactory);
 
-		return connHolder != null && connectionEquals(connHolder, conn);
+		return connectionHolder != null && connectionEquals(connectionHolder, connection);
 	}
 
 	private static void doCloseConnection(@Nullable RedisConnection connection) {
@@ -392,15 +398,16 @@ public abstract class RedisConnectionUtils {
 	 */
 	private static class RedisTransactionSynchronizer implements TransactionSynchronization {
 
-		private final RedisConnectionHolder connHolder;
+		private final RedisConnectionHolder connectionHolder;
 		private final RedisConnection connection;
 		private final RedisConnectionFactory factory;
+
 		private final boolean readOnly;
 
-		RedisTransactionSynchronizer(RedisConnectionHolder connHolder, RedisConnection connection,
+		RedisTransactionSynchronizer(RedisConnectionHolder connectionHolder, RedisConnection connection,
 				RedisConnectionFactory factory, boolean readOnly) {
 
-			this.connHolder = connHolder;
+			this.connectionHolder = connectionHolder;
 			this.connection = connection;
 			this.factory = factory;
 			this.readOnly = readOnly;
@@ -423,10 +430,10 @@ public abstract class RedisConnectionUtils {
 					log.debug("Closing bound connection after transaction completed with " + status);
 				}
 
-				connHolder.setTransactionActive(false);
+				connectionHolder.setTransactionActive(false);
 				doCloseConnection(connection);
 				TransactionSynchronizationManager.unbindResource(factory);
-				connHolder.reset();
+				connectionHolder.reset();
 			}
 		}
 	}
@@ -527,12 +534,12 @@ public abstract class RedisConnectionUtils {
 		 * Return whether this holder currently has a {@link RedisConnection}.
 		 */
 		protected boolean hasConnection() {
-			return (this.connection != null);
+			return this.connection != null;
 		}
 
 		@Nullable
 		public RedisConnection getConnection() {
-			return connection;
+			return this.connection;
 		}
 
 		public RedisConnection getRequiredConnection() {

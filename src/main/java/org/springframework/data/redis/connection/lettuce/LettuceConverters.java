@@ -37,7 +37,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
-import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.data.redis.connection.Limit;
@@ -79,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author dengliming
  * @author Chris Bono
  * @author Vikas Garg
+ * @author John Blum
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -92,7 +92,6 @@ public abstract class LettuceConverters extends Converters {
 	private static final long INDEXED_RANGE_END = -1;
 
 	static {
-
 		PLUS_BYTES = toBytes("+");
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
@@ -100,7 +99,9 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	public static Point geoCoordinatesToPoint(@Nullable GeoCoordinates geoCoordinate) {
-		return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+
+		return geoCoordinate != null
+				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
 				: null;
 	}
 
@@ -109,15 +110,19 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	public static Converter<List<ScoredValue<byte[]>>, List<Tuple>> scoredValuesToTupleList() {
+
 		return source -> {
 
 			if (source == null) {
 				return null;
 			}
+
 			List<Tuple> tuples = new ArrayList<>(source.size());
+
 			for (ScoredValue<byte[]> value : source) {
 				tuples.add(LettuceConverters.toTuple(value));
 			}
+
 			return tuples;
 		};
 	}
@@ -127,8 +132,7 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * @return
-	 * @sice 1.3
+	 * @since 1.3
 	 */
 	public static Converter<Long, Boolean> longToBooleanConverter() {
 		return Converters::toBoolean;
@@ -147,7 +151,9 @@ public abstract class LettuceConverters extends Converters {
 		if (source == null) {
 			return null;
 		}
+
 		List<byte[]> list = new ArrayList<>(2);
+
 		list.add(source.getKey());
 		list.add(source.getValue());
 
@@ -155,25 +161,33 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	public static List<byte[]> toBytesList(Collection<byte[]> source) {
+
 		if (source instanceof List) {
 			return (List<byte[]>) source;
 		}
+
 		return source != null ? new ArrayList<>(source) : null;
 	}
 
 	public static Tuple toTuple(@Nullable ScoredValue<byte[]> source) {
-		return source != null && source.hasValue() ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+
+		return source != null && source.hasValue()
+				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
 				: null;
 	}
 
 	public static String toString(@Nullable byte[] source) {
+
 		if (source == null || Arrays.equals(source, new byte[0])) {
 			return null;
 		}
+
 		return new String(source);
 	}
 
 	public static ScriptOutputType toScriptOutputType(ReturnType returnType) {
+
+		Assert.notNull(returnType, () -> "Return type " + returnType + " is not a supported script output type");
 
 		return switch (returnType) {
 			case BOOLEAN -> ScriptOutputType.BOOLEAN;
@@ -181,30 +195,29 @@ public abstract class LettuceConverters extends Converters {
 			case VALUE -> ScriptOutputType.VALUE;
 			case INTEGER -> ScriptOutputType.INTEGER;
 			case STATUS -> ScriptOutputType.STATUS;
-			default ->
-				throw new IllegalArgumentException("Return type " + returnType + " is not a supported script output type");
 		};
 	}
 
 	public static boolean toBoolean(Position where) {
 		Assert.notNull(where, "list positions are mandatory");
-		return (Position.AFTER.equals(where) ? false : true);
+		return !Position.AFTER.equals(where);
 	}
 
 	public static int toInt(boolean value) {
-		return (value ? 1 : 0);
+		return value ? 1 : 0;
 	}
 
 	public static Map<byte[], byte[]> toMap(List<byte[]> source) {
+
 		if (CollectionUtils.isEmpty(source)) {
 			return Collections.emptyMap();
 		}
 
 		Map<byte[], byte[]> target = new LinkedHashMap<>();
+		Iterator<byte[]> keyValue = source.iterator();
 
-		Iterator<byte[]> kv = source.iterator();
-		while (kv.hasNext()) {
-			target.put(kv.next(), kv.hasNext() ? kv.next() : null);
+		while (keyValue.hasNext()) {
+			target.put(keyValue.next(), keyValue.hasNext() ? keyValue.next() : null);
 		}
 
 		return target;
@@ -213,6 +226,7 @@ public abstract class LettuceConverters extends Converters {
 	public static SortArgs toSortArgs(SortParameters params) {
 
 		SortArgs args = new SortArgs();
+
 		if (params == null) {
 			return args;
 		}
@@ -235,10 +249,13 @@ public abstract class LettuceConverters extends Converters {
 				args.desc();
 			}
 		}
+
 		Boolean isAlpha = params.isAlphabetic();
+
 		if (isAlpha != null && isAlpha) {
 			args.alpha();
 		}
+
 		return args;
 	}
 
@@ -254,7 +271,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert a {@link Limit} to a Lettuce {@link io.lettuce.core.Limit}.
 	 *
-	 * @param limit
 	 * @return a lettuce {@link io.lettuce.core.Limit}.
 	 * @since 2.0
 	 */
@@ -266,8 +282,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Range} to a lettuce {@link Range}.
 	 *
-	 * @param range
-	 * @return
 	 * @since 2.0
 	 */
 	public static <T> Range<T> toRange(org.springframework.data.domain.Range<T> range) {
@@ -277,9 +291,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert a {@link org.springframework.data.domain.Range} to a lettuce {@link Range}.
 	 *
-	 * @param range
-	 * @param convertNumberToBytes
-	 * @return
 	 * @since 2.2
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -287,6 +298,7 @@ public abstract class LettuceConverters extends Converters {
 
 		Range.Boundary upper = RangeConverter.convertBound(range.getUpperBound(), convertNumberToBytes, null,
 				it -> it.getBytes(StandardCharsets.UTF_8));
+
 		Range.Boundary lower = RangeConverter.convertBound(range.getLowerBound(), convertNumberToBytes, null,
 				it -> it.getBytes(StandardCharsets.UTF_8));
 
@@ -296,8 +308,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert a {@link org.springframework.data.domain.Range} to a lettuce {@link Range} and reverse boundaries.
 	 *
-	 * @param range
-	 * @return
 	 * @since 2.0
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -305,6 +315,7 @@ public abstract class LettuceConverters extends Converters {
 
 		Range.Boundary upper = RangeConverter.convertBound(range.getUpperBound(), false, null,
 				it -> it.getBytes(StandardCharsets.UTF_8));
+
 		Range.Boundary lower = RangeConverter.convertBound(range.getLowerBound(), false, null,
 				it -> it.getBytes(StandardCharsets.UTF_8));
 
@@ -324,9 +335,11 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		List<RedisServer> sentinels = new ArrayList<>();
+
 		for (Map<String, String> info : source) {
 			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
 		}
+
 		return sentinels;
 	}
 
@@ -343,6 +356,7 @@ public abstract class LettuceConverters extends Converters {
 		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
 		RedisPassword sentinelPassword = sentinelConfiguration.getSentinelPassword();
 		RedisURI.Builder builder = RedisURI.builder();
+
 		for (RedisNode sentinel : sentinels) {
 
 			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getHost(), sentinel.getPort());
@@ -383,6 +397,7 @@ public abstract class LettuceConverters extends Converters {
 	static RedisStandaloneConfiguration createRedisStandaloneConfiguration(RedisURI redisURI) {
 
 		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration();
+
 		standaloneConfiguration.setHostName(redisURI.getHost());
 		standaloneConfiguration.setPort(redisURI.getPort());
 		standaloneConfiguration.setDatabase(redisURI.getDatabase());
@@ -402,6 +417,7 @@ public abstract class LettuceConverters extends Converters {
 	static RedisSocketConfiguration createRedisSocketConfiguration(RedisURI redisURI) {
 
 		RedisSocketConfiguration socketConfiguration = new RedisSocketConfiguration();
+
 		socketConfiguration.setSocket(redisURI.getSocket());
 		socketConfiguration.setDatabase(redisURI.getDatabase());
 
@@ -420,16 +436,21 @@ public abstract class LettuceConverters extends Converters {
 	static RedisSentinelConfiguration createRedisSentinelConfiguration(RedisURI redisURI) {
 
 		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
+
 		if (!ObjectUtils.isEmpty(redisURI.getSentinelMasterId())) {
 			sentinelConfiguration.setMaster(redisURI.getSentinelMasterId());
 		}
+
 		sentinelConfiguration.setDatabase(redisURI.getDatabase());
 
 		for (RedisURI sentinelNodeRedisUri : redisURI.getSentinels()) {
+
 			RedisNode sentinelNode = new RedisNode(sentinelNodeRedisUri.getHost(), sentinelNodeRedisUri.getPort());
+
 			if (sentinelNodeRedisUri.getPassword() != null) {
 				sentinelConfiguration.setSentinelPassword(sentinelNodeRedisUri.getPassword());
 			}
+
 			sentinelConfiguration.addSentinel(sentinelNode);
 		}
 
@@ -450,10 +471,7 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	public static byte[] toBytes(@Nullable String source) {
-		if (source == null) {
-			return null;
-		}
-		return source.getBytes();
+		return source != null ? source.getBytes() : null;
 	}
 
 	public static byte[] toBytes(Integer source) {
@@ -465,8 +483,6 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.6
 	 */
 	public static byte[] toBytes(Double source) {
@@ -489,8 +505,6 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.7
 	 */
 	public static RedisClusterNode toRedisClusterNode(io.lettuce.core.cluster.models.partitions.RedisClusterNode source) {
@@ -507,18 +521,22 @@ public abstract class LettuceConverters extends Converters {
 	private static Set<Flag> parseFlags(@Nullable Set<NodeFlag> source) {
 
 		Set<Flag> flags = new LinkedHashSet<>(source != null ? source.size() : 8, 1);
+
 		for (NodeFlag flag : source) {
-			switch (flag) {
-				case NOFLAGS -> flags.add(Flag.NOFLAGS);
-				case EVENTUAL_FAIL -> flags.add(Flag.PFAIL);
-				case FAIL -> flags.add(Flag.FAIL);
-				case HANDSHAKE -> flags.add(Flag.HANDSHAKE);
-				case MASTER -> flags.add(Flag.MASTER);
-				case MYSELF -> flags.add(Flag.MYSELF);
-				case NOADDR -> flags.add(Flag.NOADDR);
-				case SLAVE, REPLICA -> flags.add(Flag.REPLICA);
+			if (Objects.nonNull(flag)) {
+				switch (flag) {
+					case NOFLAGS -> flags.add(Flag.NOFLAGS);
+					case EVENTUAL_FAIL -> flags.add(Flag.PFAIL);
+					case FAIL -> flags.add(Flag.FAIL);
+					case HANDSHAKE -> flags.add(Flag.HANDSHAKE);
+					case MASTER -> flags.add(Flag.MASTER);
+					case MYSELF -> flags.add(Flag.MYSELF);
+					case NOADDR -> flags.add(Flag.NOADDR);
+					case SLAVE, REPLICA -> flags.add(Flag.REPLICA);
+				}
 			}
 		}
+
 		return flags;
 	}
 
@@ -559,12 +577,12 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		if (option != null) {
-
 			switch (option) {
 				case SET_IF_ABSENT -> args.nx();
 				case SET_IF_PRESENT -> args.xx();
 			}
 		}
+
 		return args;
 	}
 
@@ -572,7 +590,6 @@ public abstract class LettuceConverters extends Converters {
 	 * Convert {@link Expiration} to {@link GetExArgs}.
 	 *
 	 * @param expiration can be {@literal null}.
-	 * @return
 	 * @since 2.6
 	 */
 	static GetExArgs toGetExArgs(@Nullable Expiration expiration) {
@@ -613,22 +630,19 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert {@link Metric} into {@link GeoArgs.Unit}.
 	 *
-	 * @param metric
-	 * @return
 	 * @since 1.8
 	 */
 	public static GeoArgs.Unit toGeoArgsUnit(Metric metric) {
 
-		Metric metricToUse = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
-				: metric;
+		Metric metricToUse = metric == null
+				|| ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric;
+
 		return ObjectUtils.caseInsensitiveValueOf(GeoArgs.Unit.values(), metricToUse.getAbbreviation());
 	}
 
 	/**
 	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoArgs}.
 	 *
-	 * @param args
-	 * @return
 	 * @since 1.8
 	 */
 	public static GeoArgs toGeoArgs(GeoRadiusCommandArgs args) {
@@ -638,8 +652,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert {@link GeoCommandArgs} into {@link GeoArgs}.
 	 *
-	 * @param args
-	 * @return
 	 * @since 2.6
 	 */
 	public static GeoArgs toGeoArgs(GeoCommandArgs args) {
@@ -673,8 +685,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert {@link BitFieldSubCommands} into {@link BitFieldArgs}.
 	 *
-	 * @param subCommands
-	 * @return
 	 * @since 2.1
 	 */
 	public static BitFieldArgs toBitFieldArgs(BitFieldSubCommands subCommands) {
@@ -683,36 +693,34 @@ public abstract class LettuceConverters extends Converters {
 
 		for (BitFieldSubCommand subCommand : subCommands) {
 
-			BitFieldArgs.BitFieldType bft = subCommand.getType().isSigned()
+			BitFieldArgs.BitFieldType bitFieldType = subCommand.getType().isSigned()
 					? BitFieldArgs.signed(subCommand.getType().getBits())
 					: BitFieldArgs.unsigned(subCommand.getType().getBits());
 
-			BitFieldArgs.Offset offset;
-			if (subCommand.getOffset().isZeroBased()) {
-				offset = BitFieldArgs.offset((int) subCommand.getOffset().getValue());
-			} else {
-				offset = BitFieldArgs.typeWidthBasedOffset((int) subCommand.getOffset().getValue());
-			}
+			BitFieldArgs.Offset offset = subCommand.getOffset().isZeroBased()
+					? BitFieldArgs.offset((int) subCommand.getOffset().getValue())
+					: BitFieldArgs.typeWidthBasedOffset((int) subCommand.getOffset().getValue());
 
 			if (subCommand instanceof BitFieldGet) {
-				args = args.get(bft, offset);
+				args = args.get(bitFieldType, offset);
 			} else if (subCommand instanceof BitFieldSet) {
-				args = args.set(bft, offset, ((BitFieldSet) subCommand).getValue());
+				args = args.set(bitFieldType, offset, ((BitFieldSet) subCommand).getValue());
 			} else if (subCommand instanceof BitFieldIncrBy) {
 
 				BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) subCommand).getOverflow();
+
 				if (overflow != null) {
 
 					BitFieldArgs.OverflowType type = switch (overflow) {
 						case SAT -> BitFieldArgs.OverflowType.SAT;
 						case FAIL -> BitFieldArgs.OverflowType.FAIL;
 						case WRAP -> BitFieldArgs.OverflowType.WRAP;
-          };
+          			};
 
 					args = args.overflow(type);
 				}
 
-				args = args.incrBy(bft, (int) subCommand.getOffset().getValue(), ((BitFieldIncrBy) subCommand).getValue());
+				args = args.incrBy(bitFieldType, (int) subCommand.getOffset().getValue(), ((BitFieldIncrBy) subCommand).getValue());
 			}
 		}
 
@@ -736,6 +744,7 @@ public abstract class LettuceConverters extends Converters {
 		KeyScanArgs scanArgs = new KeyScanArgs();
 
 		byte[] pattern = options.getBytePattern();
+
 		if (pattern != null) {
 			scanArgs.match(pattern);
 		}
@@ -754,7 +763,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Get {@link Converter} capable of {@link Set} of {@link Byte} into {@link GeoResults}.
 	 *
-	 * @return
 	 * @since 1.8
 	 */
 	public static Converter<Set<byte[]>, GeoResults<GeoLocation<byte[]>>> bytesSetToGeoResultsConverter() {
@@ -767,9 +775,11 @@ public abstract class LettuceConverters extends Converters {
 
 			List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<>(source.size());
 			Iterator<byte[]> it = source.iterator();
+
 			while (it.hasNext()) {
 				results.add(new GeoResult<>(new GeoLocation<>(it.next(), null), new Distance(0D)));
 			}
+
 			return new GeoResults<>(results);
 		};
 	}
@@ -777,8 +787,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Get {@link Converter} capable of convering {@link GeoWithin} into {@link GeoResults}.
 	 *
-	 * @param metric
-	 * @return
 	 * @since 1.8
 	 */
 	public static Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> geoRadiusResponseToGeoResultsConverter(
@@ -793,9 +801,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Return {@link Optional} lower bound from {@link Range}.
 	 *
-	 * @param range
-	 * @param <T>
-	 * @return
 	 * @since 2.0.9
 	 */
 	static <T extends Comparable<T>> Optional<T> getLowerBound(org.springframework.data.domain.Range<T> range) {
@@ -805,9 +810,6 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Return {@link Optional} upper bound from {@link Range}.
 	 *
-	 * @param range
-	 * @param <T>
-	 * @return
 	 * @since 2.0.9
 	 */
 	static <T extends Comparable<T>> Optional<T> getUpperBound(org.springframework.data.domain.Range<T> range) {
@@ -818,7 +820,6 @@ public abstract class LettuceConverters extends Converters {
 	 * Return the lower bound index from {@link Range} or {@literal 0} (zero) if the lower range is not bounded to point
 	 * to the first element. To be used with index-based commands such as {@code LRANGE}, {@code GETRANGE}.
 	 *
-	 * @param range
 	 * @return the lower index bound value or {@literal 0} for the first element if not bounded.
 	 * @since 2.0.9
 	 */
@@ -830,7 +831,6 @@ public abstract class LettuceConverters extends Converters {
 	 * Return the upper bound index from {@link Range} or {@literal -1} (minus one) if the upper range is not bounded to
 	 * point to the last element. To be used with index-based commands such as {@code LRANGE}, {@code GETRANGE}.
 	 *
-	 * @param range
 	 * @return the upper index bound value or {@literal -1} for the last element if not bounded.
 	 * @since 2.0.9
 	 */
@@ -866,6 +866,7 @@ public abstract class LettuceConverters extends Converters {
 
 			BoxShape boxPredicate = (BoxShape) predicate;
 			BoundingBox boundingBox = boxPredicate.getBoundingBox();
+
 			return GeoSearch.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
 					toGeoArgsUnit(boxPredicate.getMetric()));
 		}
@@ -882,6 +883,7 @@ public abstract class LettuceConverters extends Converters {
 		if (reference instanceof GeoReference.GeoCoordinateReference) {
 
 			GeoCoordinateReference<?> coordinates = (GeoCoordinateReference<?>) reference;
+
 			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
 		}
 
@@ -897,26 +899,26 @@ public abstract class LettuceConverters extends Converters {
 		return switch (option) {
 			case ASYNC -> FlushMode.ASYNC;
 			case SYNC -> FlushMode.SYNC;
-    };
+    	};
 	}
 
 	/**
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	static enum GeoResultsConverterFactory {
+	enum GeoResultsConverterFactory {
 
 		INSTANCE;
 
 		Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
-			return new GeoResultsConverter(
-					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+			return new GeoResultsConverter(metric == null
+					|| ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
 
 		private static class GeoResultsConverter
 				implements Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> {
 
-			private Metric metric;
+			private final Metric metric;
 
 			public GeoResultsConverter(Metric metric) {
 				this.metric = metric;
@@ -942,7 +944,7 @@ public abstract class LettuceConverters extends Converters {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	static enum GeoResultConverterFactory {
+	enum GeoResultConverterFactory {
 
 		INSTANCE;
 
@@ -952,7 +954,7 @@ public abstract class LettuceConverters extends Converters {
 
 		private static class GeoResultConverter implements Converter<GeoWithin<byte[]>, GeoResult<GeoLocation<byte[]>>> {
 
-			private Metric metric;
+			private final Metric metric;
 
 			public GeoResultConverter(Metric metric) {
 				this.metric = metric;

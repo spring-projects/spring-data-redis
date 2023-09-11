@@ -98,6 +98,7 @@ import org.springframework.util.StringUtils;
  * @author Ninad Divadkar
  * @author Guy Korland
  * @author dengliming
+ * @author John Blum
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
@@ -122,7 +123,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * {@link ListConverter} converting jedis {@link redis.clients.jedis.resps.Tuple} to {@link Tuple}.
 	 *
-	 * @return
 	 * @since 1.4
 	 */
 	static ListConverter<redis.clients.jedis.resps.Tuple, Tuple> tuplesToTuples() {
@@ -145,7 +145,6 @@ abstract class JedisConverters extends Converters {
 	 * Map a {@link Set} of {@link Tuple} by {@code value} to its {@code score}.
 	 *
 	 * @param tuples must not be {@literal null}.
-	 * @return
 	 * @since 2.0
 	 */
 	public static Map<byte[], Double> toTupleMap(Set<Tuple> tuples) {
@@ -170,8 +169,6 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.6
 	 */
 	public static byte[] toBytes(Double source) {
@@ -204,24 +201,23 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.7
 	 */
 	@SuppressWarnings("unchecked")
 	public static RedisClusterNode toNode(Object source) {
 
 		List<Object> values = (List<Object>) source;
+
 		RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
 				((Number) values.get(1)).intValue());
+
 		List<Object> nodeInfo = (List<Object>) values.get(2);
+
 		return new RedisClusterNode(toString((byte[]) nodeInfo.get(0)), ((Number) nodeInfo.get(1)).intValue(), range);
 
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.3
 	 */
 	public static List<RedisClientInfo> toListOfRedisClientInformation(String source) {
@@ -234,8 +230,6 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.4
 	 */
 	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
@@ -288,6 +282,7 @@ abstract class JedisConverters extends Converters {
 	}
 
 	public static BitOP toBitOp(BitOperation bitOp) {
+
 		return switch (bitOp) {
 			case AND -> BitOP.AND;
 			case OR -> BitOP.OR;
@@ -297,12 +292,9 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link Bound} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
-	 * {@literal ZRANGEBYLEX}.
+	 * Converts a given {@link org.springframework.data.domain.Range.Bound} to its binary representation suitable for
+	 * {@literal ZRANGEBY*} commands, despite {@literal ZRANGEBYLEX}.
 	 *
-	 * @param boundary
-	 * @param defaultValue
-	 * @return
 	 * @since 1.6
 	 */
 	public static byte[] boundaryToBytesForZRange(@Nullable org.springframework.data.domain.Range.Bound<?> boundary,
@@ -316,10 +308,9 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link Bound} to its binary representation suitable for ZRANGEBYLEX command.
+	 * Converts a given {@link org.springframework.data.domain.Range.Bound} to its binary representation suitable for
+	 * {@literal ZRANGEBYLEX} command.
 	 *
-	 * @param boundary
-	 * @return
 	 * @since 1.6
 	 */
 	public static byte[] boundaryToBytesForZRangeByLex(
@@ -342,7 +333,6 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param expiration must not be {@literal null}.
-	 * @return
 	 * @since 2.2
 	 */
 	public static SetParams toSetCommandExPxArgument(Expiration expiration) {
@@ -359,8 +349,6 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param expiration must not be {@literal null}.
-	 * @param params
-	 * @return
 	 * @since 2.2
 	 */
 	public static SetParams toSetCommandExPxArgument(Expiration expiration, SetParams params) {
@@ -395,7 +383,6 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param expiration must not be {@literal null}.
-	 * @return
 	 * @since 2.6
 	 */
 	static GetExParams toGetExParams(Expiration expiration) {
@@ -429,7 +416,6 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param option must not be {@literal null}.
-	 * @return
 	 * @since 2.2
 	 */
 	public static SetParams toSetCommandNxXxArgument(SetOption option) {
@@ -448,8 +434,6 @@ abstract class JedisConverters extends Converters {
 	 * </dl>
 	 *
 	 * @param option must not be {@literal null}.
-	 * @param params
-	 * @return
 	 * @since 2.2
 	 */
 	public static SetParams toSetCommandNxXxArgument(SetOption option, SetParams params) {
@@ -492,9 +476,6 @@ abstract class JedisConverters extends Converters {
 
 	/**
 	 * Convert {@link ScanOptions} to Jedis {@link ScanParams}.
-	 *
-	 * @param options
-	 * @return
 	 */
 	public static ScanParams toScanParams(ScanOptions options) {
 
@@ -523,8 +504,6 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
 	 * @since 1.8
 	 */
 	public static List<String> toStrings(List<byte[]> source) {
@@ -547,7 +526,6 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @return
 	 * @since 1.8
 	 */
 	public static ListConverter<redis.clients.jedis.GeoCoordinate, Point> geoCoordinateToPointConverter() {
@@ -555,7 +533,6 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * @return
 	 * @since 2.5
 	 */
 	@Nullable
@@ -566,8 +543,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Convert {@link Point} into {@link GeoCoordinate}.
 	 *
-	 * @param source
-	 * @return
 	 * @since 1.8
 	 */
 	public static GeoCoordinate toGeoCoordinate(Point source) {
@@ -577,8 +552,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Get a {@link Converter} capable of converting {@link GeoRadiusResponse} into {@link GeoResults}.
 	 *
-	 * @param metric
-	 * @return
 	 * @since 1.8
 	 */
 	public static Converter<List<GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> geoRadiusResponseToGeoResultsConverter(
@@ -589,8 +562,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Convert {@link Metric} into {@link GeoUnit}.
 	 *
-	 * @param metric
-	 * @return
 	 * @since 1.8
 	 */
 	public static GeoUnit toGeoUnit(Metric metric) {
@@ -640,8 +611,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoRadiusParam}.
 	 *
-	 * @param source
-	 * @return
 	 * @since 1.8
 	 */
 	public static GeoRadiusParam toGeoRadiusParam(GeoRadiusCommandArgs source) {
@@ -677,9 +646,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Convert a timeout to seconds using {@code double} representation including fraction of seconds.
 	 *
-	 * @param timeout
-	 * @param unit
-	 * @return
 	 * @since 2.6
 	 */
 	static double toSeconds(long timeout, TimeUnit unit) {
@@ -697,7 +663,6 @@ abstract class JedisConverters extends Converters {
 	/**
 	 * Convert given {@link BitFieldSubCommands} into argument array.
 	 *
-	 * @param source
 	 * @return never {@literal null}.
 	 * @since 1.8
 	 */

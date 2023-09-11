@@ -32,10 +32,11 @@ import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Redis specific query creator.
+ * {@link AbstractQueryCreator} implementation for Redis.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 1.7
  */
 public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisOperationChain>, RedisOperationChain> {
@@ -56,8 +57,10 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			case TRUE -> sink.sismember(part.getProperty().toDotPath(), true);
 			case FALSE -> sink.sismember(part.getProperty().toDotPath(), false);
 			case WITHIN, NEAR -> sink.near(getNearPath(part, iterator));
-			default -> throw new IllegalArgumentException(
-					String.format("%s is not supported for Redis query derivation", part.getType()));
+			default -> {
+				String message = String.format("%s is not supported for Redis query derivation", part.getType());
+				throw new IllegalArgumentException(message);
+			}
 		}
 
 		return sink;
@@ -96,22 +99,21 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 	private NearPath getNearPath(Part part, Iterator<Object> iterator) {
 
-		Object o = iterator.next();
+		Object value = iterator.next();
 
 		Point point;
 		Distance distance;
 
-		if (o instanceof Circle) {
+		if (value instanceof Circle) {
+			point = ((Circle) value).getCenter();
+			distance = ((Circle) value).getRadius();
+		} else if (value instanceof Point) {
 
-			point = ((Circle) o).getCenter();
-			distance = ((Circle) o).getRadius();
-		} else if (o instanceof Point) {
-
-			point = (Point) o;
+			point = (Point) value;
 
 			if (!iterator.hasNext()) {
-				throw new InvalidDataAccessApiUsageException(
-						"Expected to find distance value for geo query; Are you missing a parameter");
+				String message = "Expected to find distance value for geo query; Are you missing a parameter";
+				throw new InvalidDataAccessApiUsageException(message);
 			}
 
 			Object distObject = iterator.next();
@@ -120,12 +122,18 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			} else if (distObject instanceof Number) {
 				distance = new Distance(((Number) distObject).doubleValue(), Metrics.KILOMETERS);
 			} else {
-				throw new InvalidDataAccessApiUsageException(String
-						.format("Expected to find Distance or Numeric value for geo query but was %s", distObject.getClass()));
+
+				String message = String.format("Expected to find Distance or Numeric value for geo query but was %s",
+						distObject.getClass());
+
+				throw new InvalidDataAccessApiUsageException(message);
 			}
 		} else {
-			throw new InvalidDataAccessApiUsageException(
-					String.format("Expected to find a Circle or Point/Distance for geo query but was %s.", o.getClass()));
+
+			String message = String.format("Expected to find a Circle or Point/Distance for geo query but was %s.",
+					value.getClass());
+
+			throw new InvalidDataAccessApiUsageException(message);
 		}
 
 		return new NearPath(part.getProperty().toDotPath(), point, distance);
