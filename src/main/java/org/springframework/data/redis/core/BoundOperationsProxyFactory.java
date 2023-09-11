@@ -137,17 +137,14 @@ class BoundOperationsProxyFactory {
 
 			Method method = invocation.getMethod();
 
-			switch (method.getName()) {
-				case "getKey":
-					return delegate.getKey();
-
-				case "rename":
+			return switch (method.getName()) {
+				case "getKey" -> delegate.getKey();
+				case "rename" -> {
 					delegate.rename(invocation.getArguments()[0]);
-					return null;
-
-				case "getOperations":
-					return delegate.getOps();
-			}
+					yield null;
+				}
+				case "getOperations" -> delegate.getOps();
+			};
 
 			if (method.getDeclaringClass() == boundOperationsInterface) {
 				return doInvoke(invocation, method, operationsTarget, true);

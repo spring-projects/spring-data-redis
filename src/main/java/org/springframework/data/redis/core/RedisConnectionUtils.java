@@ -412,14 +412,8 @@ public abstract class RedisConnectionUtils {
 			try {
 				if (!readOnly) {
 					switch (status) {
-
-						case TransactionSynchronization.STATUS_COMMITTED:
-							connection.exec();
-							break;
-
-						case TransactionSynchronization.STATUS_ROLLED_BACK:
-						case TransactionSynchronization.STATUS_UNKNOWN:
-						default:
+						case TransactionSynchronization.STATUS_COMMITTED -> connection.exec();
+						case TransactionSynchronization.STATUS_ROLLED_BACK, TransactionSynchronization.STATUS_UNKNOWN ->
 							connection.discard();
 					}
 				}
@@ -445,8 +439,7 @@ public abstract class RedisConnectionUtils {
 	 * @author Mark Paluch
 	 * @since 1.3
 	 */
-	static class ConnectionSplittingInterceptor
-			implements MethodInterceptor {
+	static class ConnectionSplittingInterceptor implements MethodInterceptor {
 
 		private final RedisConnectionFactory factory;
 
@@ -501,7 +494,6 @@ public abstract class RedisConnectionUtils {
 				throw e.getCause();
 			}
 		}
-
 
 		private boolean isPotentiallyThreadBoundCommand(RedisCommand command) {
 			return RedisCommand.UNKNOWN.equals(command) || !command.isReadonly();
@@ -607,8 +599,8 @@ public abstract class RedisConnectionUtils {
 	 * Subinterface of {@link RedisConnection} to be implemented by {@link RedisConnection} proxies. Allows access to the
 	 * underlying target {@link RedisConnection}.
 	 *
-	 * @since 2.4.2
 	 * @see RedisConnectionUtils#getTargetConnection(RedisConnection)
+	 * @since 2.4.2
 	 */
 	public interface RedisConnectionProxy extends RedisConnection, RawTargetAccess {
 
