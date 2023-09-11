@@ -52,21 +52,12 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	private RedisOperationChain from(Part part, Iterator<Object> iterator, RedisOperationChain sink) {
 
 		switch (part.getType()) {
-			case SIMPLE_PROPERTY:
-				sink.sismember(part.getProperty().toDotPath(), iterator.next());
-				break;
-			case TRUE:
-				sink.sismember(part.getProperty().toDotPath(), true);
-				break;
-			case FALSE:
-				sink.sismember(part.getProperty().toDotPath(), false);
-				break;
-			case WITHIN:
-			case NEAR:
-				sink.near(getNearPath(part, iterator));
-				break;
-			default:
-				throw new IllegalArgumentException(String.format("%s is not supported for Redis query derivation", part.getType()));
+			case SIMPLE_PROPERTY -> sink.sismember(part.getProperty().toDotPath(), iterator.next());
+			case TRUE -> sink.sismember(part.getProperty().toDotPath(), true);
+			case FALSE -> sink.sismember(part.getProperty().toDotPath(), false);
+			case WITHIN, NEAR -> sink.near(getNearPath(part, iterator));
+			default -> throw new IllegalArgumentException(
+					String.format("%s is not supported for Redis query derivation", part.getType()));
 		}
 
 		return sink;

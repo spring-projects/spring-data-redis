@@ -76,14 +76,10 @@ public abstract class TimeoutUtils {
 	 */
 	public static double toDoubleSeconds(long timeout, TimeUnit unit) {
 
-		switch (unit) {
-			case MILLISECONDS:
-			case MICROSECONDS:
-			case NANOSECONDS:
-				return unit.toMillis(timeout) / 1000d;
-			default:
-				return unit.toSeconds(timeout);
-		}
+		return switch (unit) {
+			case MILLISECONDS, MICROSECONDS, NANOSECONDS -> unit.toMillis(timeout) / 1000d;
+			default -> unit.toSeconds(timeout);
+		};
 	}
 
 	/**

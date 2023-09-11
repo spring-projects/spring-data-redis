@@ -283,18 +283,12 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 			RedisClusterNode nodeToUse = lookup(node);
 			String nodeId = nodeToUse.getId();
 
-			switch (mode) {
-				case MIGRATING:
-					return cmd.clusterSetSlotMigrating(slot, nodeId);
-				case IMPORTING:
-					return cmd.clusterSetSlotImporting(slot, nodeId);
-				case NODE:
-					return cmd.clusterSetSlotNode(slot, nodeId);
-				case STABLE:
-					return cmd.clusterSetSlotStable(slot);
-				default:
-					throw new InvalidDataAccessApiUsageException("Invalid import mode for cluster slot: " + slot);
-			}
+			return switch (mode) {
+				case MIGRATING -> cmd.clusterSetSlotMigrating(slot, nodeId);
+				case IMPORTING -> cmd.clusterSetSlotImporting(slot, nodeId);
+				case NODE -> cmd.clusterSetSlotNode(slot, nodeId);
+				case STABLE -> cmd.clusterSetSlotStable(slot);
+      };
 
 		}).then();
 	}
@@ -359,12 +353,11 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	protected Mono<RedisReactiveCommands<ByteBuffer, ByteBuffer>> getCommands(RedisNode node) {
 
 		if (StringUtils.hasText(node.getId())) {
-			return getConnection().cast(StatefulRedisClusterConnection.class)
-					.flatMap(it -> {
-						StatefulRedisClusterConnection<ByteBuffer, ByteBuffer> connection = it;
-						return Mono.fromCompletionStage(connection.getConnectionAsync(node.getId()))
-								.map(StatefulRedisConnection::reactive);
-					});
+			return getConnection().cast(StatefulRedisClusterConnection.class).flatMap(it -> {
+				StatefulRedisClusterConnection<ByteBuffer, ByteBuffer> connection = it;
+				return Mono.fromCompletionStage(connection.getConnectionAsync(node.getId()))
+						.map(StatefulRedisConnection::reactive);
+			});
 		}
 
 		return getConnection().flatMap(it -> Mono.fromCompletionStage(it.getConnectionAsync(node.getHost(), node.getPort()))
