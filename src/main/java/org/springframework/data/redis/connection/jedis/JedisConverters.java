@@ -288,18 +288,13 @@ abstract class JedisConverters extends Converters {
 	}
 
 	public static BitOP toBitOp(BitOperation bitOp) {
-		switch (bitOp) {
-			case AND:
-				return BitOP.AND;
-			case OR:
-				return BitOP.OR;
-			case NOT:
-				return BitOP.NOT;
-			case XOR:
-				return BitOP.XOR;
-			default:
-				throw new IllegalArgumentException();
-		}
+		return switch (bitOp) {
+			case AND -> BitOP.AND;
+			case OR -> BitOP.OR;
+			case NOT -> BitOP.NOT;
+			case XOR -> BitOP.XOR;
+			default -> throw new IllegalArgumentException();
+		};
 	}
 
 	/**
@@ -462,14 +457,11 @@ abstract class JedisConverters extends Converters {
 
 		SetParams paramsToUse = params == null ? SetParams.setParams() : params;
 
-		switch (option) {
-			case SET_IF_PRESENT:
-				return paramsToUse.xx();
-			case SET_IF_ABSENT:
-				return paramsToUse.nx();
-			default:
-				return paramsToUse;
-		}
+		return switch (option) {
+			case SET_IF_PRESENT -> paramsToUse.xx();
+			case SET_IF_ABSENT -> paramsToUse.nx();
+			default -> paramsToUse;
+		};
 	}
 
 	private static byte[] boundaryToBytes(org.springframework.data.domain.Range.Bound<?> boundary, byte[] inclPrefix,
@@ -663,24 +655,16 @@ abstract class JedisConverters extends Converters {
 		if (source.hasFlags()) {
 			for (Flag flag : source.getFlags()) {
 				switch (flag) {
-					case WITHCOORD:
-						param.withCoord();
-						break;
-					case WITHDIST:
-						param.withDist();
-						break;
+					case WITHCOORD -> param.withCoord();
+					case WITHDIST -> param.withDist();
 				}
 			}
 		}
 
 		if (source.hasSortDirection()) {
 			switch (source.getSortDirection()) {
-				case ASC:
-					param.sortAscending();
-					break;
-				case DESC:
-					param.sortDescending();
-					break;
+				case ASC -> param.sortAscending();
+				case DESC -> param.sortDescending();
 			}
 		}
 
@@ -702,12 +686,12 @@ abstract class JedisConverters extends Converters {
 	static double toSeconds(long timeout, TimeUnit unit) {
 
 		switch (unit) {
-			case MILLISECONDS:
-			case MICROSECONDS:
-			case NANOSECONDS:
+			case MILLISECONDS, MICROSECONDS, NANOSECONDS -> {
 				return unit.toMillis(timeout) / 1000d;
-			default:
+			}
+			default -> {
 				return unit.toSeconds(timeout);
+			}
 		}
 	}
 
@@ -753,14 +737,11 @@ abstract class JedisConverters extends Converters {
 			return FlushMode.SYNC;
 		}
 
-		switch (option) {
-			case ASYNC:
-				return FlushMode.ASYNC;
-			case SYNC:
-				return FlushMode.SYNC;
-			default:
-				throw new IllegalArgumentException("Flush option " + option + " is not supported");
-		}
+		return switch (option) {
+			case ASYNC -> FlushMode.ASYNC;
+			case SYNC -> FlushMode.SYNC;
+			default -> throw new IllegalArgumentException("Flush option " + option + " is not supported");
+		};
 	}
 
 	static GeoSearchParam toGeoSearchParams(GeoReference<byte[]> reference, GeoShape predicate,

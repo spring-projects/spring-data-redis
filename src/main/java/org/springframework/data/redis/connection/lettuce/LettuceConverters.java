@@ -175,20 +175,15 @@ public abstract class LettuceConverters extends Converters {
 
 	public static ScriptOutputType toScriptOutputType(ReturnType returnType) {
 
-		switch (returnType) {
-			case BOOLEAN:
-				return ScriptOutputType.BOOLEAN;
-			case MULTI:
-				return ScriptOutputType.MULTI;
-			case VALUE:
-				return ScriptOutputType.VALUE;
-			case INTEGER:
-				return ScriptOutputType.INTEGER;
-			case STATUS:
-				return ScriptOutputType.STATUS;
-			default:
+		return switch (returnType) {
+			case BOOLEAN -> ScriptOutputType.BOOLEAN;
+			case MULTI -> ScriptOutputType.MULTI;
+			case VALUE -> ScriptOutputType.VALUE;
+			case INTEGER -> ScriptOutputType.INTEGER;
+			case STATUS -> ScriptOutputType.STATUS;
+			default ->
 				throw new IllegalArgumentException("Return type " + returnType + " is not a supported script output type");
-		}
+		};
 	}
 
 	public static boolean toBoolean(Position where) {
@@ -514,31 +509,14 @@ public abstract class LettuceConverters extends Converters {
 		Set<Flag> flags = new LinkedHashSet<>(source != null ? source.size() : 8, 1);
 		for (NodeFlag flag : source) {
 			switch (flag) {
-				case NOFLAGS:
-					flags.add(Flag.NOFLAGS);
-					break;
-				case EVENTUAL_FAIL:
-					flags.add(Flag.PFAIL);
-					break;
-				case FAIL:
-					flags.add(Flag.FAIL);
-					break;
-				case HANDSHAKE:
-					flags.add(Flag.HANDSHAKE);
-					break;
-				case MASTER:
-					flags.add(Flag.MASTER);
-					break;
-				case MYSELF:
-					flags.add(Flag.MYSELF);
-					break;
-				case NOADDR:
-					flags.add(Flag.NOADDR);
-					break;
-				case SLAVE:
-				case REPLICA:
-					flags.add(Flag.REPLICA);
-					break;
+				case NOFLAGS -> flags.add(Flag.NOFLAGS);
+				case EVENTUAL_FAIL -> flags.add(Flag.PFAIL);
+				case FAIL -> flags.add(Flag.FAIL);
+				case HANDSHAKE -> flags.add(Flag.HANDSHAKE);
+				case MASTER -> flags.add(Flag.MASTER);
+				case MYSELF -> flags.add(Flag.MYSELF);
+				case NOADDR -> flags.add(Flag.NOADDR);
+				case SLAVE, REPLICA -> flags.add(Flag.REPLICA);
 			}
 		}
 		return flags;
@@ -562,20 +540,20 @@ public abstract class LettuceConverters extends Converters {
 			} else if (!expiration.isPersistent()) {
 
 				switch (expiration.getTimeUnit()) {
-					case MILLISECONDS:
+					case MILLISECONDS -> {
 						if (expiration.isUnixTimestamp()) {
 							args.pxAt(expiration.getConverted(TimeUnit.MILLISECONDS));
 						} else {
 							args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
 						}
-						break;
-					default:
+					}
+					default -> {
 						if (expiration.isUnixTimestamp()) {
 							args.exAt(expiration.getConverted(TimeUnit.SECONDS));
 						} else {
 							args.ex(expiration.getConverted(TimeUnit.SECONDS));
 						}
-						break;
+					}
 				}
 			}
 		}
@@ -583,14 +561,8 @@ public abstract class LettuceConverters extends Converters {
 		if (option != null) {
 
 			switch (option) {
-				case SET_IF_ABSENT:
-					args.nx();
-					break;
-				case SET_IF_PRESENT:
-					args.xx();
-					break;
-				default:
-					break;
+				case SET_IF_ABSENT -> args.nx();
+				case SET_IF_PRESENT -> args.xx();
 			}
 		}
 		return args;
@@ -686,12 +658,8 @@ public abstract class LettuceConverters extends Converters {
 
 		if (args.hasSortDirection()) {
 			switch (args.getSortDirection()) {
-				case ASC:
-					geoArgs.asc();
-					break;
-				case DESC:
-					geoArgs.desc();
-					break;
+				case ASC -> geoArgs.asc();
+				case DESC -> geoArgs.desc();
 			}
 		}
 
@@ -735,23 +703,15 @@ public abstract class LettuceConverters extends Converters {
 				BitFieldIncrBy.Overflow overflow = ((BitFieldIncrBy) subCommand).getOverflow();
 				if (overflow != null) {
 
-					BitFieldArgs.OverflowType type;
+					BitFieldArgs.OverflowType type = switch (overflow) {
+						case SAT -> BitFieldArgs.OverflowType.SAT;
+						case FAIL -> BitFieldArgs.OverflowType.FAIL;
+						case WRAP -> BitFieldArgs.OverflowType.WRAP;
+						default -> throw new IllegalArgumentException(
+								String.format("Invalid OVERFLOW; Expected one the following %s but got %s",
+										Arrays.toString(Overflow.values()), overflow));
+					};
 
-					switch (overflow) {
-						case SAT:
-							type = BitFieldArgs.OverflowType.SAT;
-							break;
-						case FAIL:
-							type = BitFieldArgs.OverflowType.FAIL;
-							break;
-						case WRAP:
-							type = BitFieldArgs.OverflowType.WRAP;
-							break;
-						default:
-							throw new IllegalArgumentException(
-									String.format("Invalid OVERFLOW; Expected one the following %s but got %s",
-											Arrays.toString(Overflow.values()), overflow));
-					}
 					args = args.overflow(type);
 				}
 
@@ -937,14 +897,11 @@ public abstract class LettuceConverters extends Converters {
 			return FlushMode.SYNC;
 		}
 
-		switch (option) {
-			case ASYNC:
-				return FlushMode.ASYNC;
-			case SYNC:
-				return FlushMode.SYNC;
-			default:
-				throw new IllegalArgumentException("Flush option " + option + " is not supported");
-		}
+		return switch (option) {
+			case ASYNC -> FlushMode.ASYNC;
+			case SYNC -> FlushMode.SYNC;
+			default -> throw new IllegalArgumentException("Flush option " + option + " is not supported");
+		};
 	}
 
 	/**

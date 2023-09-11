@@ -329,25 +329,16 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			ByteBuffer destinationKey = command.getDestinationKey();
 			ByteBuffer[] sourceKeys = command.getKeys().toArray(new ByteBuffer[0]);
 
-			switch (command.getBitOp()) {
-				case AND:
-					result = cmd.bitopAnd(destinationKey, sourceKeys);
-					break;
-				case OR:
-					result = cmd.bitopOr(destinationKey, sourceKeys);
-					break;
-				case XOR:
-					result = cmd.bitopXor(destinationKey, sourceKeys);
-					break;
-				case NOT:
-
+			result = switch (command.getBitOp()) {
+				case AND -> cmd.bitopAnd(destinationKey, sourceKeys);
+				case OR -> cmd.bitopOr(destinationKey, sourceKeys);
+				case XOR -> cmd.bitopXor(destinationKey, sourceKeys);
+				case NOT -> {
 					Assert.isTrue(sourceKeys.length == 1, "BITOP NOT does not allow more than 1 source key.");
-
-					result = cmd.bitopNot(destinationKey, sourceKeys[0]);
-					break;
-				default:
-					throw new IllegalArgumentException(String.format("Unknown BITOP '%s'.", command.getBitOp()));
-			}
+					yield cmd.bitopNot(destinationKey, sourceKeys[0]);
+				}
+				default -> throw new IllegalArgumentException(String.format("Unknown BITOP '%s'.", command.getBitOp()));
+			};
 
 			return result.map(value -> new NumericResponse<>(command, value));
 		}));

@@ -281,21 +281,18 @@ class LettuceStringCommands implements RedisStringCommands {
 
 		return connection.invoke().just(it -> {
 
-			switch (op) {
-				case AND:
-					return it.bitopAnd(destination, keys);
-				case OR:
-					return it.bitopOr(destination, keys);
-				case XOR:
-					return it.bitopXor(destination, keys);
-				case NOT:
+			return switch (op) {
+				case AND -> it.bitopAnd(destination, keys);
+				case OR -> it.bitopOr(destination, keys);
+				case XOR -> it.bitopXor(destination, keys);
+				case NOT -> {
 					if (keys.length != 1) {
 						throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 					}
-					return it.bitopNot(destination, keys[0]);
-				default:
-					throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
-			}
+					yield it.bitopNot(destination, keys[0]);
+				}
+				default -> throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
+			};
 		});
 	}
 
