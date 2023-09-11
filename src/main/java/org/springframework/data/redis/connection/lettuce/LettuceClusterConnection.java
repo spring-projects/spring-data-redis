@@ -419,19 +419,11 @@ public class LettuceClusterConnection extends LettuceConnection
 		RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(node);
 		String nodeId = nodeToUse.getId();
 
-		clusterCommandExecutor.executeCommandOnSingleNode((LettuceClusterCommandCallback<String>) client -> {
-			switch (mode) {
-				case MIGRATING:
-					return client.clusterSetSlotMigrating(slot, nodeId);
-				case IMPORTING:
-					return client.clusterSetSlotImporting(slot, nodeId);
-				case NODE:
-					return client.clusterSetSlotNode(slot, nodeId);
-				case STABLE:
-					return client.clusterSetSlotStable(slot);
-				default:
-					throw new InvalidDataAccessApiUsageException("Invalid import mode for cluster slot: " + slot);
-			}
+		clusterCommandExecutor.executeCommandOnSingleNode((LettuceClusterCommandCallback<String>) client -> switch (mode) {
+			case MIGRATING -> client.clusterSetSlotMigrating(slot, nodeId);
+			case IMPORTING -> client.clusterSetSlotImporting(slot, nodeId);
+			case NODE -> client.clusterSetSlotNode(slot, nodeId);
+			case STABLE -> client.clusterSetSlotStable(slot);
 		}, node);
 	}
 

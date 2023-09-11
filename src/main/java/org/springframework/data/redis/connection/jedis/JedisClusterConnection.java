@@ -435,20 +435,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(node);
 		String nodeId = nodeToUse.getId();
 
-		clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> {
-
-			switch (mode) {
-				case IMPORTING:
-					return client.clusterSetSlotImporting(slot, nodeId);
-				case MIGRATING:
-					return client.clusterSetSlotMigrating(slot, nodeId);
-				case STABLE:
-					return client.clusterSetSlotStable(slot);
-				case NODE:
-					return client.clusterSetSlotNode(slot, nodeId);
-			}
-
-			throw new IllegalArgumentException(String.format("Unknown AddSlots mode '%s'", mode));
+		clusterCommandExecutor.executeCommandOnSingleNode((JedisClusterCommandCallback<String>) client -> switch (mode) {
+			case IMPORTING -> client.clusterSetSlotImporting(slot, nodeId);
+			case MIGRATING -> client.clusterSetSlotMigrating(slot, nodeId);
+			case STABLE -> client.clusterSetSlotStable(slot);
+			case NODE -> client.clusterSetSlotNode(slot, nodeId);
 		}, node);
 
 	}

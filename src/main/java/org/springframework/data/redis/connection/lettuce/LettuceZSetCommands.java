@@ -703,15 +703,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		if (aggregate != null) {
 			switch (aggregate) {
-				case MIN:
-					args.min();
-					break;
-				case MAX:
-					args.max();
-					break;
-				default:
-					args.sum();
-					break;
+				case MIN -> args.min();
+				case MAX -> args.max();
+				default -> args.sum();
 			}
 		}
 
@@ -726,15 +720,9 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 		if (aggregate != null) {
 			switch (aggregate) {
-				case MIN:
-					args.min();
-					break;
-				case MAX:
-					args.max();
-					break;
-				default:
-					args.sum();
-					break;
+				case MIN -> args.min();
+				case MAX -> args.max();
+				default -> args.sum();
 			}
 		}
 

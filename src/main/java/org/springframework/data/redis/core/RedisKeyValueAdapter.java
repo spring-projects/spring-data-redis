@@ -826,14 +826,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	private boolean keepShadowCopy() {
 
-		switch (shadowCopy) {
-			case OFF:
-				return false;
-			case ON:
-				return true;
-			default:
-				return this.expirationListener.get() != null;
-		}
+		return switch (shadowCopy) {
+			case OFF -> false;
+			case ON -> true;
+			default -> this.expirationListener.get() != null;
+		};
 	}
 
 	/**
