@@ -21,7 +21,6 @@ import io.lettuce.core.api.async.RedisStringAsyncCommands;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -31,9 +30,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisStringCommands} implementation for {@literal Lettuce}.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author John Blum
  * @since 2.0
  */
 class LettuceStringCommands implements RedisStringCommands {
@@ -279,9 +281,8 @@ class LettuceStringCommands implements RedisStringCommands {
 			throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 		}
 
-		return connection.invoke().just(it -> {
-
-			return switch (op) {
+		return connection.invoke().just(it ->
+			switch (op) {
 				case AND -> it.bitopAnd(destination, keys);
 				case OR -> it.bitopOr(destination, keys);
 				case XOR -> it.bitopXor(destination, keys);
@@ -291,8 +292,7 @@ class LettuceStringCommands implements RedisStringCommands {
 					}
 					yield it.bitopNot(destination, keys[0]);
 				}
-      };
-		});
+      		});
 	}
 
 	@Nullable
@@ -324,11 +324,13 @@ class LettuceStringCommands implements RedisStringCommands {
 	}
 
 	private static <T extends Comparable<T>> T getUpperValue(Range<T> range) {
+
 		return range.getUpperBound().getValue()
 				.orElseThrow(() -> new IllegalArgumentException("Range does not contain upper bound value"));
 	}
 
 	private static <T extends Comparable<T>> T getLowerValue(Range<T> range) {
+
 		return range.getLowerBound().getValue()
 				.orElseThrow(() -> new IllegalArgumentException("Range does not contain lower bound value"));
 	}

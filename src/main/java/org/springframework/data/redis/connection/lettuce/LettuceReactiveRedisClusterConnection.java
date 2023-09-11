@@ -36,7 +36,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
@@ -83,7 +82,6 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 	 * @throws IllegalArgumentException when {@code client} is {@literal null}.
 	 * @since 2.0.1
 	 */
-	@SuppressWarnings("unchecked")
 	LettuceReactiveRedisClusterConnection(StatefulConnection<ByteBuffer, ByteBuffer> sharedConnection,
 			LettuceConnectionProvider connectionProvider, RedisClusterClient client) {
 
@@ -278,18 +276,17 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		Assert.notNull(node, "Node must not be null");
 		Assert.notNull(mode, "AddSlots mode must not be null");
 
-		return execute(node, cmd -> {
+		return execute(node, commands -> {
 
 			RedisClusterNode nodeToUse = lookup(node);
 			String nodeId = nodeToUse.getId();
 
 			return switch (mode) {
-				case MIGRATING -> cmd.clusterSetSlotMigrating(slot, nodeId);
-				case IMPORTING -> cmd.clusterSetSlotImporting(slot, nodeId);
-				case NODE -> cmd.clusterSetSlotNode(slot, nodeId);
-				case STABLE -> cmd.clusterSetSlotStable(slot);
-      };
-
+				case MIGRATING -> commands.clusterSetSlotMigrating(slot, nodeId);
+				case IMPORTING -> commands.clusterSetSlotImporting(slot, nodeId);
+				case NODE -> commands.clusterSetSlotNode(slot, nodeId);
+				case STABLE -> commands.clusterSetSlotStable(slot);
+      		};
 		}).then();
 	}
 
@@ -349,7 +346,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		return getConnection().map(StatefulRedisClusterConnection::reactive);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	protected Mono<RedisReactiveCommands<ByteBuffer, ByteBuffer>> getCommands(RedisNode node) {
 
 		if (StringUtils.hasText(node.getId())) {
