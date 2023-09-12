@@ -241,6 +241,14 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	}
 
 	@Override
+	public Flux<V> leftPop(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createFlux(listCommands -> listCommands.lPop(rawKey(key), count).map(this::readValue));
+	}
+
+	@Override
 	public Mono<V> leftPop(K key, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -253,19 +261,19 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	}
 
 	@Override
-	public Flux<V> leftPop(K key, long count) {
-
-		Assert.notNull(key, "Key must not be null");
-
-		return createFlux(listCommands -> listCommands.lPop(rawKey(key), count).map(this::readValue));
-	}
-
-	@Override
 	public Mono<V> rightPop(K key) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(listCommands -> listCommands.rPop(rawKey(key)).map(this::readValue));
+	}
+
+	@Override
+	public Flux<V> rightPop(K key, long count) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createFlux(listCommands -> listCommands.rPop(rawKey(key), count).map(this::readValue));
 	}
 
 	@Override
@@ -278,14 +286,6 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return createMono(listCommands ->
 				listCommands.brPop(Collections.singletonList(rawKey(key)), timeout)
 						.map(popResult -> readValue(popResult.getValue())));
-	}
-
-	@Override
-	public Flux<V> rightPop(K key, long count) {
-
-		Assert.notNull(key, "Key must not be null");
-
-		return createFlux(listCommands -> listCommands.rPop(rawKey(key), count).map(this::readValue));
 	}
 
 	@Override

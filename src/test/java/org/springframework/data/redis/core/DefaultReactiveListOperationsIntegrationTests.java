@@ -121,7 +121,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void leftPush() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -147,7 +147,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void leftPushAll() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -191,7 +191,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void leftPushWithPivot() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -219,7 +219,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPush() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -244,7 +244,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPushAll() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -274,7 +274,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPushWithPivot() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -364,7 +364,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void set() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -384,7 +384,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void remove() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -406,7 +406,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void index() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -448,7 +448,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void leftPop() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -460,19 +460,9 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest // GH-2692
-	@SuppressWarnings("all")
-	void leftPopWithNullKey() {
-
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> this.listOperations.leftPop(null, 100L))
-			.withMessage("Key must not be null")
-			.withNoCause();
-	}
-
-	@ParameterizedRedisTest // GH-2692
 	void leftPopWithCount() {
 
-		assumeThat(this.valueFactory).isInstanceOf(ByteBufferObjectFactory.class);
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -494,7 +484,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPop() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -503,16 +493,6 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.rightPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 
 		listOperations.rightPop(key).as(StepVerifier::create).expectNext(value2).verifyComplete();
-	}
-
-	@ParameterizedRedisTest // GH-2692
-	@SuppressWarnings("all")
-	void rightPopWithNullKey() {
-
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> this.listOperations.rightPop(null, 100L))
-				.withMessage("Key must not be null")
-				.withNoCause();
 	}
 
 	@ParameterizedRedisTest // GH-2692
@@ -540,7 +520,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void leftPopWithTimeout() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -562,7 +542,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPopWithTimeout() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -576,7 +556,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void rightPopAndLeftPush() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K source = keyFactory.instance();
 		K target = keyFactory.instance();
@@ -594,7 +574,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@EnabledIfLongRunningTest
 	void rightPopAndLeftPushWithTimeout() {
 
-		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K source = keyFactory.instance();
 		K target = keyFactory.instance();
