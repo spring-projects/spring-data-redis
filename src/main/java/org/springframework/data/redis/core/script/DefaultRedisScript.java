@@ -39,11 +39,13 @@ import org.springframework.util.Assert;
  */
 public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
+	private @Nullable Class<T> resultType;
+
 	private final Lock lock = new ReentrantLock();
 
 	private @Nullable ScriptSource scriptSource;
+
 	private @Nullable String sha1;
-	private @Nullable Class<T> resultType;
 
 	/**
 	 * Creates a new {@link DefaultRedisScript}
@@ -81,6 +83,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	public String getSha1() {
 
 		lock.lock();
+
 		try {
 			if (sha1 == null || scriptSource.isModified()) {
 				this.sha1 = DigestUtils.sha1DigestAsHex(getScriptAsString());

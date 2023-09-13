@@ -554,7 +554,9 @@ public class LettuceClusterConnection extends LettuceConnection
 	static class LettuceClusterNodeResourceProvider implements ClusterNodeResourceProvider, DisposableBean {
 
 		private final Lock lock = new ReentrantLock();
+
 		private final LettuceConnectionProvider connectionProvider;
+
 		private volatile @Nullable StatefulRedisClusterConnection<byte[], byte[]> connection;
 
 		LettuceClusterNodeResourceProvider(LettuceConnectionProvider connectionProvider) {
@@ -567,14 +569,16 @@ public class LettuceClusterConnection extends LettuceConnection
 
 			Assert.notNull(node, "Node must not be null");
 
-			if (connection == null) {
-				lock.lock();
+			if (this.connection == null) {
+
+				this.lock.lock();
+
 				try {
-					if (connection == null) {
-						this.connection = connectionProvider.getConnection(StatefulRedisClusterConnection.class);
+					if (this.connection == null) {
+						this.connection = this.connectionProvider.getConnection(StatefulRedisClusterConnection.class);
 					}
 				} finally {
-					lock.unlock();
+					this.lock.unlock();
 				}
 			}
 
@@ -586,6 +590,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		@Override
 		public void destroy() throws Exception {
+
 			if (this.connection != null) {
 				this.connectionProvider.release(this.connection);
 			}

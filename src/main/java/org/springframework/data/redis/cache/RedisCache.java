@@ -69,15 +69,15 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	private final String name;
 
 	/**
-	 * Create a new {@link RedisCache}.
+	 * Create a new {@link RedisCache} with the given {@link String name}.
 	 *
 	 * @param name {@link String name} for this {@link Cache}; must not be {@literal null}.
-	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing the
-	 *          necessary Redis commands; must not be {@literal null}.
-	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation; must not
-	 *          be {@literal null}.
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by
+	 * executing the necessary Redis commands; must not be {@literal null}.
+	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation;
+	 * must not be {@literal null}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
-	 *           are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
+	 * are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
 	 */
 	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfiguration) {
 
@@ -160,15 +160,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	private <T> T getSynchronized(Object key, Callable<T> valueLoader) {
 
 		lock.lock();
+
 		try {
 			ValueWrapper result = get(key);
 
 			return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
 		} finally {
 			lock.unlock();
-
 		}
-
 	}
 
 	/**
@@ -422,6 +421,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			target.append("}");
 
 			return target.toString();
+
 		} else if (source.isCollection() || source.isArray()) {
 
 			StringJoiner stringJoiner = new StringJoiner(",");

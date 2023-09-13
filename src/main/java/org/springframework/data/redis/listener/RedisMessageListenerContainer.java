@@ -125,33 +125,28 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private @Nullable ErrorHandler errorHandler;
-
-	private @Nullable Executor subscriptionExecutor;
-
-	private @Nullable Executor taskExecutor;
-
-	private @Nullable RedisConnectionFactory connectionFactory;
-
-	private RedisSerializer<String> serializer = RedisSerializer.string();
-
-	private long maxSubscriptionRegistrationWaitingTime = DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME;
-
-	private BackOff backOff = new FixedBackOff(DEFAULT_RECOVERY_INTERVAL, FixedBackOff.UNLIMITED_ATTEMPTS);
-	private @Nullable String beanName;
-
 	// whether the container has been initialized via afterPropertiesSet
 	private boolean afterPropertiesSet = false;
 
 	// whether the TaskExecutor was created by the container
 	private boolean manageExecutor = false;
 
-	private @Nullable Subscriber subscriber;
+	private long maxSubscriptionRegistrationWaitingTime = DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME;
 
 	private final AtomicBoolean started = new AtomicBoolean();
 
 	// whether the container is running (or not)
 	private final AtomicReference<State> state = new AtomicReference<>(State.notListening());
+
+	private BackOff backOff = new FixedBackOff(DEFAULT_RECOVERY_INTERVAL, FixedBackOff.UNLIMITED_ATTEMPTS);
+
+	private volatile CompletableFuture<Void> listenFuture = new CompletableFuture<>();
+	private volatile CompletableFuture<Void> unsubscribeFuture = new CompletableFuture<>();
+
+	private @Nullable ErrorHandler errorHandler;
+
+	private @Nullable Executor subscriptionExecutor;
+	private @Nullable Executor taskExecutor;
 
 	// Lookup maps; to avoid creation of hashes for each message, the maps use raw byte arrays (wrapped to respect
 	// the equals/hashcode contract)
@@ -163,9 +158,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	// lookup map between listeners and channels
 	private final Map<MessageListener, Set<Topic>> listenerTopics = new ConcurrentHashMap<>();
 
-	private volatile CompletableFuture<Void> listenFuture = new CompletableFuture<>();
+	private @Nullable RedisConnectionFactory connectionFactory;
 
-	private volatile CompletableFuture<Void> unsubscribeFuture = new CompletableFuture<>();
+	private RedisSerializer<String> serializer = RedisSerializer.string();
+
+	private @Nullable String beanName;
+
+	private @Nullable Subscriber subscriber;
 
 	/**
 	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown while processing a Message. By default,
@@ -323,8 +322,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * Destroy the container and stop it.
-	 *
-	 * @throws Exception
 	 */
 	@Override
 	public void destroy() throws Exception {
@@ -397,7 +394,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private CompletableFuture<Void> lazyListen(BackOffExecution backOffExecution) {
 
 		if (!hasTopics()) {
-			logger.debug("Postpone listening for Redis messages until actual listeners are added");
+			logDebug(() -> "Postpone listening for Redis messages until actual listeners are added");
 			return CompletableFuture.completedFuture(null);
 		}
 
@@ -430,13 +427,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		CompletableFuture<Void> listenFuture = getRequiredSubscriber().initialize(backOffExecution,
 				patternMapping.keySet().stream().map(ByteArrayWrapper::getArray).collect(Collectors.toList()),
 				channelMapping.keySet().stream().map(ByteArrayWrapper::getArray).collect(Collectors.toList()));
+
 		listenFuture.whenComplete((unused, throwable) -> {
 
 			if (throwable == null) {
-				logger.debug("RedisMessageListenerContainer listeners registered successfully");
+				logDebug(() -> "RedisMessageListenerContainer listeners registered successfully");
 				this.state.set(State.listening());
 			} else {
-				logger.debug("Failed to start RedisMessageListenerContainer listeners", throwable);
+				logDebug(() -> "Failed to start RedisMessageListenerContainer listeners", throwable);
 				this.state.set(State.notListening());
 			}
 
@@ -448,7 +446,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		});
 
-		logger.debug("Subscribing to topics for RedisMessageListenerContainer");
+		logDebug(() -> "Subscribing to topics for RedisMessageListenerContainer");
 
 		return true;
 	}
@@ -484,18 +482,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public void stop(Runnable callback) {
 
 		if (this.started.compareAndSet(true, false)) {
-
 			stopListening();
-
-			if (logger.isDebugEnabled()) {
-				logger.debug("Stopped RedisMessageListenerContainer");
-			}
-
+			logDebug(() -> "Stopped RedisMessageListenerContainer");
 			callback.run();
 		}
 	}
 
 	private void stopListening() {
+
 		while (!doUnsubscribe()) {
 			// busy-loop, allow for synchronization against doSubscribe therefore we want to retry.
 		}
@@ -523,9 +517,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			this.listenFuture = new CompletableFuture<>();
 			this.unsubscribeFuture = new CompletableFuture<>();
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("Stopped listening");
-			}
+			logDebug(() -> "Stopped listening");
 
 			return true;
 		} else {
@@ -850,7 +842,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		} else {
 			// Rare case: listener thread failed after container shutdown.
 			// Log at debug level, to avoid spamming the shutdown logger.
-			logger.debug("Listener exception after container shutdown", cause);
+			logDebug(() -> "Listener exception after container shutdown", cause);
 		}
 	}
 
@@ -873,22 +865,23 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Handle subscription task exception. Will attempt to restart the subscription if the Exception is a connection
 	 * failure (for example, Redis was restarted).
 	 *
-	 * @param ex Throwable exception
+	 * @param cause Throwable exception
 	 */
 	protected void handleSubscriptionException(CompletableFuture<Void> future, BackOffExecution backOffExecution,
-			Throwable ex) {
+			Throwable cause) {
 
 		getRequiredSubscriber().closeConnection();
 
-		if (ex instanceof RedisConnectionFailureException && isRunning()) {
+		if (cause instanceof RedisConnectionFailureException && isRunning()) {
 
 			BackOffExecution loggingBackOffExecution = () -> {
 
 				long recoveryInterval = backOffExecution.nextBackOff();
 
 				if (recoveryInterval != BackOffExecution.STOP) {
-					logger.error(String.format("Connection failure occurred: %s; Restarting subscription task after %s ms", ex,
-							recoveryInterval), ex);
+					String message = String.format("Connection failure occurred: %s; Restarting subscription task after %s ms",
+						cause, recoveryInterval);
+					logger.error(message, cause);
 				}
 
 				return recoveryInterval;
@@ -904,16 +897,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				return;
 			}
 
-			logger.error("SubscriptionTask aborted with exception:", ex);
-			future.completeExceptionally(new IllegalStateException("Subscription attempts exceeded", ex));
+			logger.error("SubscriptionTask aborted with exception:", cause);
+			future.completeExceptionally(new IllegalStateException("Subscription attempts exceeded", cause));
 			return;
 		}
 
 		if (isRunning()) { // log only if the container is still running to prevent close errors from logging
-			logger.error("SubscriptionTask aborted with exception:", ex);
+			logger.error("SubscriptionTask aborted with exception:", cause);
 		}
 
-		future.completeExceptionally(ex);
+		future.completeExceptionally(cause);
 	}
 
 	/**
@@ -928,6 +921,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		try {
+
 			if (subscriptionExecutor instanceof ScheduledExecutorService) {
 				((ScheduledExecutorService) subscriptionExecutor).schedule(retryRunnable, recoveryInterval,
 						TimeUnit.MILLISECONDS);
@@ -937,8 +931,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 
 			return true;
-		} catch (InterruptedException interEx) {
-			logger.debug("Thread interrupted while sleeping the recovery interval");
+
+		} catch (InterruptedException ignore) {
+			logDebug(() -> "Thread interrupted while sleeping the recovery interval");
 			Thread.currentThread().interrupt();
 			return false;
 		}
@@ -1011,6 +1006,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug(message.get());
+		}
+	}
+
+	private void logDebug(Supplier<String> message, Throwable cause) {
+
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug(message.get(), cause);
 		}
 	}
 
@@ -1154,11 +1156,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	class Subscriber {
 
+		private final DispatchMessageListener delegateListener = new DispatchMessageListener();
+
+		private final Lock lock = new ReentrantLock();
+
 		private volatile @Nullable RedisConnection connection;
 
 		private final RedisConnectionFactory connectionFactory;
-		private final Lock lock = new ReentrantLock();
-		private final DispatchMessageListener delegateListener = new DispatchMessageListener();
+
 		private final SynchronizingMessageListener synchronizingMessageListener = new SynchronizingMessageListener(
 				delegateListener, delegateListener);
 
@@ -1178,18 +1183,21 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		public CompletableFuture<Void> initialize(BackOffExecution backOffExecution, Collection<byte[]> patterns,
 				Collection<byte[]> channels) {
 
-			lock.lock();
-			try {
+			return doInLock(() -> {
 
 				CompletableFuture<Void> initFuture = new CompletableFuture<>();
+
 				try {
-					RedisConnection connection = connectionFactory.getConnection();
+
+					RedisConnection connection = this.connectionFactory.getConnection();
+
 					this.connection = connection;
 
 					if (connection.isSubscribed()) {
 
 						initFuture.completeExceptionally(
-								new IllegalStateException("Retrieved connection is already subscribed; aborting listening"));
+							new IllegalStateException("Retrieved connection is already subscribed; aborting listening"));
+
 						return initFuture;
 					}
 
@@ -1198,14 +1206,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					} catch (Throwable t) {
 						handleSubscriptionException(initFuture, backOffExecution, t);
 					}
-				} catch (RuntimeException e) {
-					initFuture.completeExceptionally(e);
+				} catch (RuntimeException cause) {
+					initFuture.completeExceptionally(cause);
 				}
 
 				return initFuture;
-			} finally {
-				lock.unlock();
-			}
+			});
 		}
 
 		/**
@@ -1248,21 +1254,18 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		public void unsubscribeAll() {
 
-			lock.lock();
-			try {
+			doInLock(() -> {
 
 				RedisConnection connection = this.connection;
-				if (connection == null) {
-					return;
-				}
 
-				doUnsubscribe(connection);
-			} finally {
-				lock.unlock();
-			}
+				if (connection != null) {
+					doUnsubscribe(connection);
+				}
+			});
 		}
 
 		void doUnsubscribe(RedisConnection connection) {
+
 			closeSubscription(connection);
 			closeConnection();
 
@@ -1274,18 +1277,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		 */
 		public void cancel() {
 
-			lock.lock();
-			try {
+			doInLock(() -> {
 
 				RedisConnection connection = this.connection;
-				if (connection == null) {
-					return;
-				}
 
-				doCancel(connection);
-			} finally {
-				lock.unlock();
-			}
+				if (connection != null) {
+					doCancel(connection);
+				}
+			});
 		}
 
 		void doCancel(RedisConnection connection) {
@@ -1295,22 +1294,18 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		void closeSubscription(RedisConnection connection) {
 
-			if (logger.isTraceEnabled()) {
-				logger.trace("Cancelling Redis subscription...");
-			}
+			logTrace(() -> "Cancelling Redis subscription...");
 
-			Subscription sub = connection.getSubscription();
+			Subscription subscription = connection.getSubscription();
 
-			if (sub != null) {
+			if (subscription != null) {
 
-				if (logger.isTraceEnabled()) {
-					logger.trace("Unsubscribing from all channels");
-				}
+				logTrace(() -> "Unsubscribing from all channels");
 
 				try {
-					sub.close();
-				} catch (Exception e) {
-					logger.warn("Unable to unsubscribe from subscriptions", e);
+					subscription.close();
+				} catch (Exception cause) {
+					logger.warn("Unable to unsubscribe from subscriptions", cause);
 				}
 			}
 		}
@@ -1320,23 +1315,21 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		 */
 		public void closeConnection() {
 
-			lock.lock();
-			try {
+			doInLock(() -> {
 
 				RedisConnection connection = this.connection;
+
 				this.connection = null;
 
 				if (connection != null) {
-					logger.trace("Closing connection");
+					logTrace(() -> "Closing connection");
 					try {
 						connection.close();
-					} catch (Exception e) {
-						logger.warn("Error closing subscription connection", e);
+					} catch (Exception cause) {
+						logger.warn("Error closing subscription connection", cause);
 					}
 				}
-			} finally {
-				lock.unlock();
-			}
+			});
 		}
 
 		/**
@@ -1381,20 +1374,31 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				return;
 			}
 
-			lock.lock();
-			try {
+			doInLock(() -> {
 				RedisConnection connection = this.connection;
 				if (connection != null) {
-					Subscription sub = connection.getSubscription();
-					if (sub != null) {
-						function.accept(sub, data);
+					Subscription subscription = connection.getSubscription();
+					if (subscription != null) {
+						function.accept(subscription, data);
 					}
 				}
-			} finally {
-				lock.unlock();
-			}
+			});
 		}
 
+		private void doInLock(Runnable runner) {
+			doInLock(() -> { runner.run(); return null; });
+		}
+
+		private <T> T doInLock(Supplier<T> supplier) {
+
+			this.lock.lock();
+
+			try {
+				return supplier.get();
+			} finally {
+				this.lock.unlock();
+			}
+		}
 	}
 
 	/**
@@ -1443,7 +1447,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
 					() -> subscriptionDone.complete(null)));
 
-			executor.execute(() -> {
+			this.executor.execute(() -> {
 
 				try {
 					doSubscribe(connection, patterns, initiallySubscribeToChannels);

@@ -33,22 +33,26 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Connection provider for Cluster connections.
+ * {@link LettuceConnectionProvider} and {@link RedisClientProvider} for Redis Cluster connections.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Bruce Cloud
+ * @author John Blum
  * @since 2.0
  */
 class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClientProvider {
 
-	private final RedisClusterClient client;
-	private final RedisCodec<?, ?> codec;
-	private final Optional<ReadFrom> readFrom;
+	private volatile boolean initialized;
 
 	private final Lock lock = new ReentrantLock();
 
-	private volatile boolean initialized;
+	@Nullable
+	private final ReadFrom readFrom;
+
+	private final RedisClusterClient client;
+
+	private final RedisCodec<?, ?> codec;
 
 	/**
 	 * Create new {@link ClusterConnectionProvider}.
@@ -75,7 +79,11 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 
 		this.client = client;
 		this.codec = codec;
-		this.readFrom = Optional.ofNullable(readFrom);
+		this.readFrom = readFrom;
+	}
+
+	private Optional<ReadFrom> getReadFrom() {
+		return Optional.ofNullable(this.readFrom);
 	}
 
 	@Override
@@ -83,10 +91,10 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 
 		if (!initialized) {
 
-			// partitions have to be initialized before asynchronous usage.
-			// Needs to happen only once. Initialize eagerly if
-			// blocking is not an options.
+			// Partitions have to be initialized before asynchronous usage.
+			// Needs to happen only once. Initialize eagerly if blocking is not an options.
 			lock.lock();
+
 			try {
 				if (!initialized) {
 					client.getPartitions();
@@ -100,27 +108,25 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)
 				|| connectionType.equals(StatefulRedisClusterPubSubConnection.class)) {
 
-			return client.connectPubSubAsync(codec) //
-					.thenApply(connectionType::cast);
+			return client.connectPubSubAsync(codec).thenApply(connectionType::cast);
 		}
 
 		if (StatefulRedisClusterConnection.class.isAssignableFrom(connectionType)
 				|| connectionType.equals(StatefulConnection.class)) {
 
-			return client.connectAsync(codec) //
-					.thenApply(connection -> {
-
-						readFrom.ifPresent(connection::setReadFrom);
+			return client.connectAsync(codec).thenApply(connection -> {
+						getReadFrom().ifPresent(connection::setReadFrom);
 						return connectionType.cast(connection);
 					});
 		}
 
-		return LettuceFutureUtils
-				.failed(new InvalidDataAccessApiUsageException("Connection type " + connectionType + " not supported"));
+		String message = String.format("Connection type %s not supported", connectionType);
+
+		return LettuceFutureUtils.failed(new InvalidDataAccessApiUsageException(message));
 	}
 
 	@Override
 	public RedisClusterClient getRedisClient() {
-		return client;
+		return this.client;
 	}
 }

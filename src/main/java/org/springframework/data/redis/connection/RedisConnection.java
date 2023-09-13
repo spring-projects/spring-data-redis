@@ -29,7 +29,7 @@ import org.springframework.dao.DataAccessException;
  * The methods follow as much as possible the Redis names and conventions.
  * <p>
  * {@link RedisConnection Redis connections}, unlike perhaps their underlying native connection are not Thread-safe and
- * should not be shared across multiple threads.
+ * should not be shared across multiple threads, concurrently or simultaneously.
  *
  * @author Costin Leau
  * @author Christoph Strobl

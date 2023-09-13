@@ -805,11 +805,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 */
 	public static class JedisClusterTopologyProvider implements ClusterTopologyProvider {
 
-		private final Object lock = new Object();
-		private final JedisCluster cluster;
-		private final long cacheTimeMs;
 		private long time = 0;
+
+		private final long cacheTimeMs;
+
 		private @Nullable ClusterTopology cached;
+
+		private final JedisCluster cluster;
 
 		/**
 		 * Create new {@link JedisClusterTopologyProvider}. Uses a default cache timeout of 100 milliseconds.
@@ -847,6 +849,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			Map<String, Exception> errors = new LinkedHashMap<>();
 
 			List<Entry<String, ConnectionPool>> list = new ArrayList<>(cluster.getClusterNodes().entrySet());
+
 			Collections.shuffle(list);
 
 			for (Entry<String, ConnectionPool> entry : list) {
@@ -854,25 +857,26 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				try (Connection connection = entry.getValue().getResource()) {
 
 					time = System.currentTimeMillis();
+
 					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(new Jedis(connection).clusterNodes());
 
-					synchronized (lock) {
-						cached = new ClusterTopology(nodes);
-					}
+					cached = new ClusterTopology(nodes);
+
 					return cached;
-				} catch (Exception ex) {
-					errors.put(entry.getKey(), ex);
+
+				} catch (Exception cause) {
+					errors.put(entry.getKey(), cause);
 				}
 			}
 
-			StringBuilder sb = new StringBuilder();
+			StringBuilder stringBuilder = new StringBuilder();
 
 			for (Entry<String, Exception> entry : errors.entrySet()) {
-				sb.append(String.format("\r\n\t- %s failed: %s", entry.getKey(), entry.getValue().getMessage()));
+				stringBuilder.append(String.format("\r\n\t- %s failed: %s", entry.getKey(), entry.getValue().getMessage()));
 			}
 
 			throw new ClusterStateFailureException(
-					"Could not retrieve cluster information; CLUSTER NODES returned with error" + sb.toString());
+					"Could not retrieve cluster information; CLUSTER NODES returned with error" + stringBuilder);
 		}
 
 		/**
