@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Roman Bezpalko
+ * @author John Blum
  * @since 2.0
  */
 class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> {
@@ -424,12 +425,12 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 
 	private V readRequiredValue(ByteBuffer buffer) {
 
-		V v = readValue(buffer);
+		V value = readValue(buffer);
 
-		if (v == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized set value is null");
+		if (value != null) {
+			return value;
 		}
 
-		return v;
+		throw new InvalidDataAccessApiUsageException("Deserialized set value is null");
 	}
 }

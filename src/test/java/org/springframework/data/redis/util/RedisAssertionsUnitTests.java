@@ -16,6 +16,7 @@
 package org.springframework.data.redis.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.doReturn;
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Unit Tests for {@link RedisAssertions}.
@@ -76,6 +79,24 @@ class RedisAssertionsUnitTests {
 
 		verify(this.mockSupplier, times(1)).get();
 		verifyNoMoreInteractions(this.mockSupplier);
+	}
+
+	@Test
+	void requireNonNullWithRuntimeExceptionSupplierIsSuccessful() {
+
+		assertThat(RedisAssertions.requireNonNull("mock", () -> new InvalidDataAccessApiUsageException("TEST")))
+			.isEqualTo("mock");
+	}
+
+	@Test
+	@SuppressWarnings("all")
+	void requireNonNullWithThrowsRuntimeException() {
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+			.isThrownBy(() -> RedisAssertions.requireNonNull(null,
+				() -> new InvalidDataAccessApiUsageException("TEST")))
+			.withMessage("TEST")
+			.withNoCause();
 	}
 
 	@Test

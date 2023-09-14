@@ -351,12 +351,12 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 	private V readRequiredValue(ByteBuffer buffer) {
 
-		V v = readValue(buffer);
+		V value = readValue(buffer);
 
-		if (v == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized list value is null");
+		if (value != null) {
+			return value;
 		}
 
-		return v;
+		throw new InvalidDataAccessApiUsageException("Deserialized list value is null");
 	}
 }

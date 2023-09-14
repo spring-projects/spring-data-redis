@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @since 2.0
  */
 class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
@@ -62,7 +63,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.noNullElements(hashKeys, "Hash keys must not contain null elements");
 
 		return createMono(hashCommands -> Flux.fromArray(hashKeys) //
-				.map(o -> (HK) o).map(this::rawHashKey) //
+				.map(hashKey -> (HK) hashKey)
+				.map(this::rawHashKey) //
 				.collectList() //
 				.flatMap(hks -> hashCommands.hDel(rawKey(key), hks)));
 	}
@@ -84,8 +86,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return createMono(hashCommands ->
-				hashCommands.hGet(rawKey(key), rawHashKey((HK) hashKey)).map(this::readHashValue));
+		return createMono(hashCommands -> hashCommands.hGet(rawKey(key), rawHashKey((HK) hashKey))
+				.map(this::readHashValue));
 	}
 
 	@Override
@@ -107,8 +109,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return template.doCreateMono(connection -> connection //
-				.numberCommands() //
+		return template.doCreateMono(connection -> connection.numberCommands()
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
@@ -118,8 +119,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return template.doCreateMono(connection -> connection //
-				.numberCommands() //
+		return template.doCreateMono(connection -> connection.numberCommands()
 				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
@@ -128,8 +128,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection //
-				.hashCommands().hRandField(rawKey(key))).map(this::readRequiredHashKey);
+		return template.doCreateMono(connection -> connection.hashCommands().hRandField(rawKey(key)))
+				.map(this::readRequiredHashKey);
 	}
 
 	@Override
@@ -137,7 +137,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(hashCommands ->hashCommands.hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
+		return createMono(hashCommands -> hashCommands.hRandFieldWithValues(rawKey(key)))
+				.map(this::deserializeHashEntry);
 	}
 
 	@Override
@@ -145,8 +146,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateFlux(connection -> connection //
-				.hashCommands().hRandField(rawKey(key), count)).map(this::readRequiredHashKey);
+		return template.doCreateFlux(connection -> connection.hashCommands().hRandField(rawKey(key), count))
+				.map(this::readRequiredHashKey);
 	}
 
 	@Override
@@ -154,8 +155,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateFlux(connection -> connection //
-				.hashCommands().hRandFieldWithValues(rawKey(key), count)).map(this::deserializeHashEntry);
+		return template.doCreateFlux(connection -> connection.hashCommands().hRandFieldWithValues(rawKey(key), count))
+				.map(this::deserializeHashEntry);
 	}
 
 	@Override
@@ -211,7 +212,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createFlux(connection -> connection.hVals(rawKey(key)) //
+		return createFlux(hashCommands -> hashCommands.hVals(rawKey(key)) //
 				.map(this::readRequiredHashValue));
 	}
 
@@ -278,28 +279,28 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		HK hashKey = readHashKey(buffer);
 
-		if (hashKey == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized hash key is null");
+		if (hashKey != null) {
+			return hashKey;
 		}
 
-		return hashKey;
+		throw new InvalidDataAccessApiUsageException("Deserialized hash key is null");
 	}
 
 	@SuppressWarnings("unchecked")
 	@Nullable
 	private HV readHashValue(@Nullable ByteBuffer value) {
-		return (HV) (value == null ? null : serializationContext.getHashValueSerializationPair().read(value));
+		return value != null ? (HV) serializationContext.getHashValueSerializationPair().read(value) : null;
 	}
 
 	private HV readRequiredHashValue(ByteBuffer buffer) {
 
 		HV hashValue = readHashValue(buffer);
 
-		if (hashValue == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized hash value is null");
+		if (hashValue != null) {
+			return hashValue;
 		}
 
-		return hashValue;
+		throw new InvalidDataAccessApiUsageException("Deserialized hash value is null");
 	}
 
 	private Map.Entry<HK, HV> deserializeHashEntry(Map.Entry<ByteBuffer, ByteBuffer> source) {
@@ -309,9 +310,11 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	private List<HV> deserializeHashValues(List<ByteBuffer> source) {
 
 		List<HV> values = new ArrayList<>(source.size());
+
 		for (ByteBuffer byteBuffer : source) {
 			values.add(readHashValue(byteBuffer));
 		}
+
 		return values;
 	}
 }

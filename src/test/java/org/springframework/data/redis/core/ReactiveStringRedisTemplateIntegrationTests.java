@@ -36,7 +36,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @ExtendWith(LettuceConnectionFactoryExtension.class)
 public class ReactiveStringRedisTemplateIntegrationTests {
 
-	private ReactiveRedisConnectionFactory connectionFactory;
+	private final ReactiveRedisConnectionFactory connectionFactory;
 
 	private ReactiveStringRedisTemplate template;
 
@@ -66,17 +66,16 @@ public class ReactiveStringRedisTemplateIntegrationTests {
 		template.opsForValue().set("a", "1").as(StepVerifier::create).expectNext(true).verifyComplete();
 		template.opsForValue().set("b", "1").as(StepVerifier::create).expectNext(true).verifyComplete();
 
-		RedisElementWriter<String> writer = RedisElementWriter.from(StringRedisSerializer.UTF_8);
 		RedisElementReader<String> reader = RedisElementReader.from(StringRedisSerializer.UTF_8);
+		RedisElementWriter<String> writer = RedisElementWriter.from(StringRedisSerializer.UTF_8);
+
 		RedisSerializationContext<String, String> nullReadingContext = RedisSerializationContext
-				.<String, String> newSerializationContext(StringRedisSerializer.UTF_8).key(buffer -> {
+				.<String, String>newSerializationContext(StringRedisSerializer.UTF_8).key(buffer -> {
 
 					String read = reader.read(buffer);
-					if ("a".equals(read)) {
-						return null;
-					}
 
-					return read;
+					return "a".equals(read) ? null : read;
+
 				}, writer).build();
 
 		ReactiveRedisTemplate<String, String> customTemplate = new ReactiveRedisTemplate<>(template.getConnectionFactory(),

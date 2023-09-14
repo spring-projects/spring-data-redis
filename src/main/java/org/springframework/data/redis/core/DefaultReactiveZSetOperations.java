@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -744,13 +745,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	private V readRequiredValue(ByteBuffer buffer) {
 
-		V v = readValue(buffer);
-
-		if (v == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized sorted set value is null");
-		}
-
-		return v;
+		return RedisAssertions.requireNonNull(readValue(buffer),
+				() -> new InvalidDataAccessApiUsageException("Deserialized sorted set value is null"));
 	}
 
 	private TypedTuple<V> readTypedTuple(Tuple raw) {

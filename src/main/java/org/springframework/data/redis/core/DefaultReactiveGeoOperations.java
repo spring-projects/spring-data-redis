@@ -91,7 +91,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 			Mono<List<GeoLocation<ByteBuffer>>> serializedList = Flux
 					.fromIterable(() -> memberCoordinateMap.entrySet().iterator())
-					.map(entry -> new GeoLocation<>(rawValue(entry.getKey()), entry.getValue())).collectList();
+					.map(entry -> new GeoLocation<>(rawValue(entry.getKey()), entry.getValue()))
+					.collectList();
 
 			return serializedList.flatMap(list -> geoCommands.geoAdd(rawKey(key), list));
 		});
@@ -106,7 +107,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(geoCommands -> {
 
 			Mono<List<GeoLocation<ByteBuffer>>> serializedList = Flux.fromIterable(geoLocations)
-					.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint())).collectList();
+					.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint()))
+					.collectList();
 
 			return serializedList.flatMap(list -> geoCommands.geoAdd(rawKey(key), list));
 		});
@@ -220,7 +222,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 		return createFlux(geoCommands ->
 				geoCommands.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
-					.map(this::readGeoResult));
+						.map(this::readGeoResult));
 	}
 
 	@Override
@@ -265,7 +267,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 
-		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
+		return template.doCreateMono(connection -> connection.keyCommands().del(rawKey(key))).map(count -> count != 0);
 	}
 
 	@Override
@@ -274,10 +276,11 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(reference, "GeoReference must not be null");
+
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return createFlux(geoCommands -> geoCommands
-				.geoSearch(rawKey(key), rawReference, geoPredicate, args).map(this::readGeoResult));
+		return createFlux(geoCommands -> geoCommands.geoSearch(rawKey(key), rawReference, geoPredicate, args)
+				.map(this::readGeoResult));
 	}
 
 	@Override
@@ -286,6 +289,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(reference, "GeoReference must not be null");
+
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
 		return createMono(geoCommands -> geoCommands.geoSearchStore(rawKey(destKey), rawKey(key),

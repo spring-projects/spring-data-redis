@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Jiahe Cai
+ * @author John Blum
  * @since 2.0
  */
 class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K, V> {
@@ -336,13 +337,13 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 	private V readRequiredValue(ByteBuffer buffer) {
 
-		V v = readValue(buffer);
+		V value = readValue(buffer);
 
-		if (v == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized value is null");
+		if (value != null) {
+			return value;
 		}
 
-		return v;
+		throw new InvalidDataAccessApiUsageException("Deserialized value is null");
 	}
 
 	private SerializationPair<String> stringSerializationPair() {
@@ -372,5 +373,4 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return result;
 	}
-
 }

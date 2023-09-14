@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author John Blum
  * @param <K> The type of keys that may be passed during script execution
  * @since 2.0
  */
@@ -105,44 +106,41 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 
 		Flux<T> result = connection.scriptingCommands().evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
 
-		result = result.onErrorResume(e -> {
+		result = result.onErrorResume(cause -> {
 
-			if (ScriptUtils.exceptionContainsNoScriptError(e)) {
+			if (ScriptUtils.exceptionContainsNoScriptError(cause)) {
 				return connection.scriptingCommands().eval(scriptBytes(script), returnType, numKeys, keysAndArgs);
 			}
 
-			return Flux
-					.error(e instanceof RuntimeException ? (RuntimeException) e : new RedisSystemException(e.getMessage(), e));
+			return Flux.error(cause instanceof RuntimeException ? cause
+					: new RedisSystemException(cause.getMessage(), cause));
 		});
 
 		return script.returnsRawValue() ? result : deserializeResult(resultReader, result);
 	}
 
-	@SuppressWarnings("Convert2MethodRef")
+	@SuppressWarnings({ "Convert2MethodRef", "rawtypes", "unchecked" })
 	protected ByteBuffer[] keysAndArgs(RedisElementWriter argsWriter, List<K> keys, List<?> args) {
 
 		return Stream.concat(keys.stream().map(t -> keySerializer().getWriter().write(t)),
 				args.stream().map(t -> argsWriter.write(t))).toArray(size -> new ByteBuffer[size]);
 	}
 
-	/**
-	 * @param script
-	 * @return
-	 */
 	protected ByteBuffer scriptBytes(RedisScript<?> script) {
 		return serializationContext.getStringSerializationPair().getWriter().write(script.getScriptAsString());
 	}
 
 	protected <T> Flux<T> deserializeResult(RedisElementReader<T> reader, Flux<T> result) {
+
 		return result.map(it -> {
 
 			T value = ScriptUtils.deserializeResult(reader, it);
 
-			if (value == null) {
-				throw new InvalidDataAccessApiUsageException("Deserialized script result is null");
+			if (value != null) {
+				return value;
 			}
 
-			return value;
+			throw new InvalidDataAccessApiUsageException("Deserialized script result is null");
 		});
 	}
 
@@ -169,6 +167,6 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	}
 
 	public ReactiveRedisConnectionFactory getConnectionFactory() {
-		return connectionFactory;
+		return this.connectionFactory;
 	}
 }

@@ -64,9 +64,10 @@ import org.springframework.util.ClassUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Petromir Dzhunev
- * @since 2.0
+ * @author John Blum
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
+ * @since 2.0
  */
 public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V> {
 
@@ -680,10 +681,10 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 		K key = readKey(buffer);
 
-		if (key == null) {
-			throw new InvalidDataAccessApiUsageException("Deserialized key is null");
+		if (key != null) {
+			return key;
 		}
 
-		return key;
+		throw new InvalidDataAccessApiUsageException("Deserialized key is null");
 	}
 }
