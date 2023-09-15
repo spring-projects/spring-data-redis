@@ -25,7 +25,6 @@ import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map.Entry;
 
@@ -43,7 +42,10 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
+ * Unit tests for {@link JedisConnection}.
+ *
  * @author Christoph Strobl
+ * @author John Blum
  */
 class JedisConnectionUnitTests {
 
@@ -165,11 +167,11 @@ class JedisConnectionUnitTests {
 
 			connection.scan(ScanOptions.NONE);
 
-			verify(jedisSpy, never()).quit();
+			verify(jedisSpy, never()).disconnect();
 		}
 
 		@Test // DATAREDIS-531, GH-2006
-		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+		public void scanShouldCloseTheConnectionWhenCursorIsClosed() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(any(byte[].class),
 					any(ScanParams.class));
@@ -177,7 +179,7 @@ class JedisConnectionUnitTests {
 			Cursor<byte[]> cursor = connection.scan(ScanOptions.NONE);
 			cursor.close();
 
-			verify(jedisSpy, times(1)).quit();
+			verify(jedisSpy, times(1)).disconnect();
 		}
 
 		@Test // DATAREDIS-531
@@ -188,11 +190,11 @@ class JedisConnectionUnitTests {
 
 			connection.sScan("foo".getBytes(), ScanOptions.NONE);
 
-			verify(jedisSpy, never()).quit();
+			verify(jedisSpy, never()).disconnect();
 		}
 
 		@Test // DATAREDIS-531
-		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
@@ -200,7 +202,7 @@ class JedisConnectionUnitTests {
 			Cursor<byte[]> cursor = connection.sScan("foo".getBytes(), ScanOptions.NONE);
 			cursor.close();
 
-			verify(jedisSpy, times(1)).quit();
+			verify(jedisSpy, times(1)).disconnect();
 		}
 
 		@Test // DATAREDIS-531
@@ -211,11 +213,11 @@ class JedisConnectionUnitTests {
 
 			connection.zScan("foo".getBytes(), ScanOptions.NONE);
 
-			verify(jedisSpy, never()).quit();
+			verify(jedisSpy, never()).disconnect();
 		}
 
 		@Test // DATAREDIS-531
-		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
@@ -223,7 +225,7 @@ class JedisConnectionUnitTests {
 			Cursor<Tuple> cursor = connection.zScan("foo".getBytes(), ScanOptions.NONE);
 			cursor.close();
 
-			verify(jedisSpy, times(1)).quit();
+			verify(jedisSpy, times(1)).disconnect();
 		}
 
 		@Test // DATAREDIS-531
@@ -234,19 +236,20 @@ class JedisConnectionUnitTests {
 
 			connection.hScan("foo".getBytes(), ScanOptions.NONE);
 
-			verify(jedisSpy, never()).quit();
+			verify(jedisSpy, never()).disconnect();
 		}
 
 		@Test // DATAREDIS-531
-		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
 					any(byte[].class), any(ScanParams.class));
 
 			Cursor<Entry<byte[], byte[]>> cursor = connection.hScan("foo".getBytes(), ScanOptions.NONE);
+
 			cursor.close();
 
-			verify(jedisSpy, times(1)).quit();
+			verify(jedisSpy, times(1)).disconnect();
 		}
 
 		@Test // DATAREDIS-714
@@ -369,7 +372,5 @@ class JedisConnectionUnitTests {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.hScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
-
 	}
-
 }

@@ -15,12 +15,11 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.Jedis;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -38,9 +37,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import redis.clients.jedis.Jedis;
+
 /**
+ * {@link RedisClusterServerCommands} implementation for Jedis.
+ *
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @author John Blum
  * @since 2.0
  */
 class JedisClusterServerCommands implements RedisClusterServerCommands {
@@ -82,7 +86,8 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 			return null;
 		}
 
-		Collections.sort(result, Collections.reverseOrder());
+		result.sort(Collections.reverseOrder());
+
 		return result.get(0);
 	}
 
@@ -221,7 +226,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	public void shutdown() {
 		connection.getClusterCommandExecutor().executeCommandOnAllNodes((JedisClusterCommandCallback<String>) jedis -> {
 			jedis.shutdown();
-			return null;
+			return "success";
 		});
 	}
 
@@ -229,12 +234,12 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	public void shutdown(RedisClusterNode node) {
 		executeCommandOnSingleNode(jedis -> {
 			jedis.shutdown();
-			return null;
+			return "success";
 		}, node);
 	}
 
 	@Override
-	public void shutdown(ShutdownOption option) {
+	public void shutdown(@Nullable ShutdownOption option) {
 
 		if (option == null) {
 			shutdown();
@@ -249,21 +254,26 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		List<NodeResult<List<String>>> mapResult = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<List<String>>) client -> client.configGet(pattern))
+		JedisClusterCommandCallback<Map<String, String>> command = jedis -> jedis.configGet(pattern);
+
+		List<NodeResult<Map<String, String>>> nodeResults = connection.getClusterCommandExecutor()
+				.executeCommandOnAllNodes(command)
 				.getResults();
 
-		List<String> result = new ArrayList<>();
-		for (NodeResult<List<String>> entry : mapResult) {
+		Properties nodesConfiguration = new Properties();
 
-			String prefix = entry.getNode().asString();
-			int i = 0;
-			for (String value : entry.getValue()) {
-				result.add((i++ % 2 == 0 ? (prefix + ".") : "") + value);
+		for (NodeResult<Map<String, String>> nodeResult : nodeResults) {
+
+			String prefix = nodeResult.getNode().asString();
+
+			for (Entry<String, String> entry : nodeResult.getValue().entrySet()) {
+				String newKey = prefix.concat(".").concat(entry.getKey());
+				String value = entry.getValue();
+				nodesConfiguration.setProperty(newKey, value);
 			}
 		}
 
-		return Converters.toProperties(result);
+		return nodesConfiguration;
 	}
 
 	@Override
@@ -271,10 +281,10 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
+		JedisClusterCommandCallback<Properties> command = client -> Converters.toProperties(client.configGet(pattern));
+
 		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode(
-						(JedisClusterCommandCallback<Properties>) client -> Converters.toProperties(client.configGet(pattern)),
-						node)
+				.executeCommandOnSingleNode(command, node)
 				.getValue();
 	}
 
@@ -322,19 +332,19 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public Long time(TimeUnit timeUnit) {
 
-		return convertListOfStringToTime(
-				connection.getClusterCommandExecutor()
-						.executeCommandOnArbitraryNode((JedisClusterCommandCallback<List<String>>) Jedis::time).getValue(),
-				timeUnit);
+		JedisClusterCommandCallback<List<String>> command = Jedis::time;
+
+		return convertListOfStringToTime(connection.getClusterCommandExecutor()
+				.executeCommandOnArbitraryNode(command).getValue(), timeUnit);
 	}
 
 	@Override
 	public Long time(RedisClusterNode node, TimeUnit timeUnit) {
 
-		return convertListOfStringToTime(
-				connection.getClusterCommandExecutor()
-						.executeCommandOnSingleNode((JedisClusterCommandCallback<List<String>>) Jedis::time, node).getValue(),
-				timeUnit);
+		JedisClusterCommandCallback<List<String>> command = Jedis::time;
+
+		return convertListOfStringToTime(connection.getClusterCommandExecutor()
+				.executeCommandOnSingleNode(command, node).getValue(), timeUnit);
 	}
 
 	@Override
@@ -343,8 +353,9 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 		String hostAndPort = String.format("%s:%s", host, port);
 
-		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.clientKill(hostAndPort));
+		JedisClusterCommandCallback<String> command = jedis -> jedis.clientKill(hostAndPort);
+
+		connection.getClusterCommandExecutor().executeCommandOnAllNodes(command);
 	}
 
 	@Override
@@ -360,21 +371,26 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	@Override
 	public List<RedisClientInfo> getClientList() {
 
+		JedisClusterCommandCallback<String> command = Jedis::clientList;
+
 		Collection<String> map = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) Jedis::clientList).resultsAsList();
+				.executeCommandOnAllNodes(command).resultsAsList();
 
 		ArrayList<RedisClientInfo> result = new ArrayList<>();
+
 		for (String infos : map) {
 			result.addAll(JedisConverters.toListOfRedisClientInformation(infos));
 		}
+
 		return result;
 	}
 
 	@Override
 	public List<RedisClientInfo> getClientList(RedisClusterNode node) {
 
-		return JedisConverters
-				.toListOfRedisClientInformation(executeCommandOnSingleNode(Jedis::clientList, node).getValue());
+		JedisClusterCommandCallback<String> command = Jedis::clientList;
+
+		return JedisConverters.toListOfRedisClientInformation(executeCommandOnSingleNode(command, node).getValue());
 	}
 
 	@Override
@@ -403,8 +419,10 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 
 		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getHost(), target.getPort());
 
-		executeCommandOnSingleNode(client -> client.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse),
-				node);
+		JedisClusterCommandCallback<String> command = jedis ->
+				jedis.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse);
+
+		executeCommandOnSingleNode(command, node);
 	}
 
 	private Long convertListOfStringToTime(List<String> serverTimeInformation, TimeUnit timeUnit) {
@@ -416,12 +434,11 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1), timeUnit);
 	}
 
-	private <T> NodeResult<T> executeCommandOnSingleNode(JedisClusterCommandCallback<T> cmd, RedisClusterNode node) {
-		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(cmd, node);
+	private <T> NodeResult<T> executeCommandOnSingleNode(JedisClusterCommandCallback<T> command, RedisClusterNode node) {
+		return connection.getClusterCommandExecutor().executeCommandOnSingleNode(command, node);
 	}
 
-	private <T> MultiNodeResult<T> executeCommandOnAllNodes(JedisClusterCommandCallback<T> cmd) {
-		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(cmd);
+	private <T> MultiNodeResult<T> executeCommandOnAllNodes(JedisClusterCommandCallback<T> command) {
+		return connection.getClusterCommandExecutor().executeCommandOnAllNodes(command);
 	}
-
 }

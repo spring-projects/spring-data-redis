@@ -22,6 +22,7 @@ import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.ZParams;
 import redis.clients.jedis.params.ZRangeParams;
 import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.util.KeyValue;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.zset.Aggregate;
-import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -42,11 +42,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisZSetCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Clement Ong
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author John Blum
  * @since 2.0
  */
 class JedisZSetCommands implements RedisZSetCommands {
@@ -74,8 +77,10 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(tuples, "Tuples must not be null");
 
-		return connection.invoke().just(Jedis::zadd, PipelineBinaryCommands::zadd, key, JedisConverters.toTupleMap(tuples),
-				JedisConverters.toZAddParams(args));
+		Long count = connection.invoke().just(Jedis::zadd, PipelineBinaryCommands::zadd, key,
+				JedisConverters.toTupleMap(tuples), JedisConverters.toZAddParams(args));
+
+		return count != null ? count : 0L;
 	}
 
 	@Override
@@ -424,7 +429,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 
-		return connection.invoke().just(Jedis::zdiff, PipelineBinaryCommands::zdiff, sets);
+		return connection.invoke().fromMany(Jedis::zdiff, PipelineBinaryCommands::zdiff, sets).toSet();
 	}
 
 	@Override
@@ -450,7 +455,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 
-		return connection.invoke().just(Jedis::zinter, PipelineBinaryCommands::zinter, new ZParams(), sets);
+		return connection.invoke().fromMany(Jedis::zinter, PipelineBinaryCommands::zinter, new ZParams(), sets).toSet();
 	}
 
 	@Override
@@ -504,7 +509,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 
-		return connection.invoke().just(Jedis::zunion, PipelineBinaryCommands::zunion, new ZParams(), sets);
+		return connection.invoke().fromMany(Jedis::zunion, PipelineBinaryCommands::zunion, new ZParams(), sets).toSet();
 	}
 
 	@Override
@@ -772,21 +777,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		return zRangeParams;
 	}
 
-	/**
-	 * Workaround for broken Jedis BZPOP signature.
-	 *
-	 * @param bytes
-	 * @return
-	 */
 	@Nullable
-	@SuppressWarnings("unchecked")
-	private static Tuple toTuple(List<?> bytes) {
-
-		if (bytes.isEmpty()) {
-			return null;
-		}
-
-		return new DefaultTuple((byte[]) bytes.get(1), Double.parseDouble(new String((byte[]) bytes.get(2))));
+	private static Tuple toTuple(@Nullable KeyValue<?, redis.clients.jedis.resps.Tuple> keyValue) {
+		return keyValue != null ? JedisConverters.toTuple(keyValue.getValue()) : null;
 	}
-
 }

@@ -59,9 +59,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.CommandObject;
@@ -130,6 +127,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private final Log LOGGER = LogFactory.getLog(getClass());
 
+	@SuppressWarnings("rawtypes")
 	private List<JedisResult> pipelinedResults = new ArrayList<>();
 
 	private final @Nullable Pool<Jedis> pool;
@@ -348,7 +346,6 @@ public class JedisConnection extends AbstractRedisConnection {
 			jedis.close();
 		}
 		else {
-			doExceptionThrowingOperationSafely(jedis::quit, "Failed to quit during close");
 			doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
 		}
 	}
@@ -480,6 +477,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	public List<Object> exec() {
 
 		try {
+
 			if (transaction == null) {
 				throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
 			}
@@ -489,6 +487,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			return !CollectionUtils.isEmpty(results)
 					? new TransactionResultConverter<>(txResults, JedisExceptionConverter.INSTANCE).convert(results)
 					: results;
+
 		} catch (Exception cause) {
 			throw convertJedisAccessException(cause);
 		} finally {

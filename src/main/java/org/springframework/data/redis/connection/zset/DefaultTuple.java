@@ -18,23 +18,27 @@ package org.springframework.data.redis.connection.zset;
 import java.util.Arrays;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Default implementation for {@link Tuple} interface.
  *
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author John Blum
  */
 public class DefaultTuple implements Tuple {
+
+	private static final Double ZERO = 0.0d;
 
 	private final Double score;
 	private final byte[] value;
 
 	/**
-	 * Constructs a new <code>DefaultTuple</code> instance.
+	 * Constructs a new {@link DefaultTuple}.
 	 *
-	 * @param value
-	 * @param score
+	 * @param value {@link byte[]} of the member's raw value.
+	 * @param score {@link Double score} of the raw value used in sorting.
 	 */
 	public DefaultTuple(byte[] value, Double score) {
 
@@ -43,29 +47,25 @@ public class DefaultTuple implements Tuple {
 	}
 
 	public Double getScore() {
-		return score;
+		return this.score;
 	}
 
 	public byte[] getValue() {
-		return value;
+		return this.value;
 	}
 
 	public boolean equals(@Nullable Object obj) {
-		if (this == obj)
+
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+
+		if (!(obj instanceof DefaultTuple that)) {
 			return false;
-		if (!(obj instanceof DefaultTuple))
-			return false;
-		DefaultTuple other = (DefaultTuple) obj;
-		if (score == null) {
-			if (other.score != null)
-				return false;
-		} else if (!score.equals(other.score))
-			return false;
-		if (!Arrays.equals(value, other.value))
-			return false;
-		return true;
+		}
+
+		return ObjectUtils.nullSafeEquals(this.score, that.score)
+			&& Arrays.equals(this.value, that.value);
 	}
 
 	public int hashCode() {
@@ -76,19 +76,21 @@ public class DefaultTuple implements Tuple {
 		return result;
 	}
 
-	public int compareTo(Double o) {
-		Double d = (score == null ? Double.valueOf(0.0d) : score);
-		Double a = (o == null ? Double.valueOf(0.0d) : o);
-		return d.compareTo(a);
+	public int compareTo(Double value) {
+
+		Double ourScore = getScore();
+		Double thisScore = ourScore != null ? ourScore : ZERO;
+		Double thatScore = value != null ? value : ZERO;
+
+		return thisScore.compareTo(thatScore);
 	}
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append(getClass().getSimpleName());
-		sb.append(" [score=").append(score);
-		sb.append(", value=").append(value == null ? "null" : new String(value));
-		sb.append(']');
-		return sb.toString();
+
+		return getClass().getSimpleName()
+			+ " { score=" + getScore()
+			+ ", value=" + Arrays.toString(getValue())
+			+ " }";
 	}
 }

@@ -78,10 +78,11 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	public static Collection<Object[]> testParams() {
 
 		List<Object[]> params = new ArrayList<>();
+
 		params.addAll(AbstractOperationsTestParams
 				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		if(RedisDetector.isClusterAvailable()) {
+		if (RedisDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
 		}
@@ -89,7 +90,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		params.addAll(AbstractOperationsTestParams
 				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		if(RedisDetector.isClusterAvailable()) {
+		if (RedisDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
 		}
@@ -398,11 +399,11 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 
 		K key = keyFactory.instance();
 		HK hashKey = hashKeyFactory.instance();
-		HV value = hashValueFactory.instance();
+		HV hashValue = hashValueFactory.instance();
 
-		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, hashValue));
+
 		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
-
 		streamOps.read(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(key, ReadOffset.lastConsumed()));
 

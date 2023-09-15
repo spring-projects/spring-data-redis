@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +88,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import redis.clients.jedis.util.SafeEncoder;
+
 /**
  * Jedis type converters.
  *
@@ -114,10 +117,20 @@ abstract class JedisConverters extends Converters {
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
+
 	}
 
-	public static Converter<String, byte[]> stringToBytes() {
+	@Nullable
+	static <T> Set<T> toSet(@Nullable List<T> list) {
+		return list != null ? new LinkedHashSet<>(list) : null;
+	}
+
+	static Converter<String, byte[]> stringToBytes() {
 		return JedisConverters::toBytes;
+	}
+
+	static ListConverter<String, byte[]> stringListToByteList() {
+		return new ListConverter<>(stringToBytes());
 	}
 
 	/**
@@ -129,16 +142,16 @@ abstract class JedisConverters extends Converters {
 		return new ListConverter<>(JedisConverters::toTuple);
 	}
 
-	static ListConverter<String, byte[]> stringListToByteList() {
-		return new ListConverter<>(stringToBytes());
+	static Tuple toTuple(redis.clients.jedis.resps.Tuple source) {
+		return new DefaultTuple(source.getBinaryElement(), source.getScore());
+	}
+
+	static List<Tuple> toTupleList(List<redis.clients.jedis.resps.Tuple> source) {
+		return tuplesToTuples().convert(source);
 	}
 
 	static Set<Tuple> toTupleSet(Set<redis.clients.jedis.resps.Tuple> source) {
 		return new SetConverter<>(JedisConverters::toTuple).convert(source);
-	}
-
-	public static Tuple toTuple(redis.clients.jedis.resps.Tuple source) {
-		return new DefaultTuple(source.getBinaryElement(), source.getScore());
 	}
 
 	/**
@@ -255,6 +268,7 @@ abstract class JedisConverters extends Converters {
 	public static SortingParams toSortingParams(@Nullable SortParameters params) {
 
 		SortingParams jedisParams = null;
+
 		if (params != null) {
 			jedisParams = new SortingParams();
 			byte[] byPattern = params.getByPattern();
@@ -278,6 +292,7 @@ abstract class JedisConverters extends Converters {
 				jedisParams.alpha();
 			}
 		}
+
 		return jedisParams;
 	}
 
@@ -386,8 +401,10 @@ abstract class JedisConverters extends Converters {
 	 * @since 2.6
 	 */
 	static GetExParams toGetExParams(Expiration expiration) {
+		return toGetExParams(expiration, new GetExParams());
+	}
 
-		GetExParams params = new GetExParams();
+	static GetExParams toGetExParams(Expiration expiration, GetExParams params) {
 
 		if (expiration.isPersistent()) {
 			return params.persist();
@@ -584,18 +601,14 @@ abstract class JedisConverters extends Converters {
 			return new ZAddParams();
 		}
 
-		ZAddParams target = new ZAddParams() {
+		ZAddParams target = new ZAddParams();
 
-			{
-				if (source.contains(ZAddArgs.Flag.GT)) {
-					addParam("gt");
-				}
-				if (source.contains(ZAddArgs.Flag.LT)) {
-					addParam("lt");
-				}
-			}
-		};
-
+		if (source.contains(ZAddArgs.Flag.GT)) {
+			target.gt();
+		}
+		if (source.contains(ZAddArgs.Flag.LT)) {
+			target.lt();
+		}
 		if (source.contains(ZAddArgs.Flag.XX)) {
 			target.xx();
 		}
@@ -605,6 +618,7 @@ abstract class JedisConverters extends Converters {
 		if (source.contains(ZAddArgs.Flag.CH)) {
 			target.ch();
 		}
+
 		return target;
 	}
 

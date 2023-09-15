@@ -21,6 +21,17 @@ package org.springframework.data.redis.connection.zset;
 public interface Tuple extends Comparable<Double> {
 
 	/**
+	 * Create a new {@link Tuple} with the {@link byte[] raw value} and given {@link Double score}.
+	 *
+	 * @param value {@link byte[]} of the member's raw value.
+	 * @param score {@link Double score} given to the {@code value} used in sorting.
+	 * @return a {@link Tuple} capturing the {@link byte[] value} with its {@link Double score}.
+	 */
+	static Tuple of(byte[] value, Double score) {
+		return new DefaultTuple(value, score);
+	}
+
+	/**
 	 * @return the raw value of the member.
 	 */
 	byte[] getValue();
@@ -30,14 +41,4 @@ public interface Tuple extends Comparable<Double> {
 	 */
 	Double getScore();
 
-	/**
-	 * Create a new {@link Tuple}.
-	 *
-	 * @param value
-	 * @param score
-	 * @return
-	 */
-	static Tuple of(byte[] value, Double score) {
-		return new DefaultTuple(value, score);
-	}
 }

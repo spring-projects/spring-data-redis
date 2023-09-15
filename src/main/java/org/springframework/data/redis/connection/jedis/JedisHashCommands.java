@@ -37,8 +37,11 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * {@link RedisHashCommands} implementation for Jedis.
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 2.0
  */
 class JedisHashCommands implements RedisHashCommands {
@@ -122,7 +125,7 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, 1L)
-				.get(it -> it.isEmpty() ? null : it.entrySet().iterator().next());
+				.get(mapEntryList -> mapEntryList.isEmpty() ? null : mapEntryList.get(0));
 	}
 
 	@Nullable
@@ -141,12 +144,16 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke()
-				.from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, count).get(it -> {
+				.from(Jedis::hrandfieldWithValues, PipelineBinaryCommands::hrandfieldWithValues, key, count)
+				.get(mapEntryList -> {
 
-					List<Entry<byte[], byte[]>> entries = new ArrayList<>(it.size());
-					it.forEach((k, v) -> entries.add(Converters.entryOf(k, v)));
+					List<Entry<byte[], byte[]>> convertedMapEntryList = new ArrayList<>(mapEntryList.size());
 
-					return entries;
+					mapEntryList.forEach(entry ->
+							convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
+
+					return convertedMapEntryList;
+
 				});
 	}
 
