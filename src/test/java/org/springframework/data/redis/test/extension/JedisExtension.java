@@ -45,7 +45,7 @@ import org.springframework.data.util.Lazy;
  * callbacks. The following resource types are supported by this extension:
  * <ul>
  * <li>{@link Jedis} (singleton)</li>
- * <li>{@link JediCluster} (singleton)</li>
+ * <li>{@link JedisCluster} (singleton)</li>
  * </ul>
  *
  * <pre class="code">
@@ -66,6 +66,7 @@ import org.springframework.data.util.Lazy;
  * is managed by this extension.
  *
  * @author Mark Paluch
+ * @author John Blum
  * @see ParameterResolver
  * @see BeforeEachCallback
  */
@@ -86,18 +87,14 @@ public class JedisExtension implements ParameterResolver {
 	}
 
 	/**
-	 * Attempt to resolve the {@code requestedResourceType}.
-	 *
-	 * @param extensionContext
-	 * @param requestedResourceType
-	 * @param <T>
-	 * @return
+	 * Attempt to resolve the {@link Class requestedResourceType}.
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T resolve(ExtensionContext extensionContext, Class<T> requestedResourceType) {
 
 		ExtensionContext.Store store = getStore(extensionContext);
 
-		return (T) store.getOrComputeIfAbsent(requestedResourceType, it -> findSupplier(requestedResourceType).get());
+		return (T) store.getOrComputeIfAbsent(requestedResourceType, it -> doGetInstance(requestedResourceType));
 	}
 
 	@Override
@@ -111,6 +108,10 @@ public class JedisExtension implements ParameterResolver {
 		return store.getOrComputeIfAbsent(parameter.getType(), it -> doGetInstance(parameterizedType));
 	}
 
+	private Object doGetInstance(Type parameterizedType) {
+		return findSupplier(parameterizedType).get();
+	}
+
 	@SuppressWarnings("unchecked")
 	private static Supplier<Object> findSupplier(Type type) {
 
@@ -120,17 +121,11 @@ public class JedisExtension implements ParameterResolver {
 
 			ResolvableType providedType = ResolvableType.forType(it.getClass()).as(Supplier.class).getGeneric(0);
 
-			if (requested.isAssignableFrom(providedType)) {
-				return true;
-			}
-			return false;
+			return requested.isAssignableFrom(providedType);
+
 		}).findFirst().orElseThrow(() -> new NoSuchElementException("Cannot find a factory for " + type));
 
 		return (Supplier) supplier;
-	}
-
-	private Object doGetInstance(Type parameterizedType) {
-		return findSupplier(parameterizedType).get();
 	}
 
 	private ExtensionContext.Store getStore(ExtensionContext extensionContext) {
@@ -139,11 +134,13 @@ public class JedisExtension implements ParameterResolver {
 
 	static class ResourceFunction {
 
-		final ResolvableType dependsOn;
-		final ResolvableType provides;
 		final Function<Object, Object> function;
 
+		final ResolvableType dependsOn;
+		final ResolvableType provides;
+
 		public ResourceFunction(ResolvableType dependsOn, ResolvableType provides, Function<?, ?> function) {
+
 			this.dependsOn = dependsOn;
 			this.provides = provides;
 			this.function = (Function) function;
@@ -155,9 +152,11 @@ public class JedisExtension implements ParameterResolver {
 		INSTANCE;
 
 		final Lazy<Jedis> lazy = Lazy.of(() -> {
+
 			Jedis client = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort());
 
-			ShutdownQueue.INSTANCE.register(client);
+			ShutdownQueue.register(client);
+
 			return client;
 		});
 
@@ -172,9 +171,13 @@ public class JedisExtension implements ParameterResolver {
 		INSTANCE;
 
 		final Lazy<JedisCluster> lazy = Lazy.of(() -> {
-			JedisCluster client = new JedisCluster(new HostAndPort(SettingsUtils.getHost(), SettingsUtils.getClusterPort()));
 
-			ShutdownQueue.INSTANCE.register(client);
+			HostAndPort hostAndPort = new HostAndPort(SettingsUtils.getHost(), SettingsUtils.getClusterPort());
+
+			JedisCluster client = new JedisCluster(hostAndPort);
+
+			ShutdownQueue.register(client);
+
 			return client;
 		});
 
@@ -183,5 +186,4 @@ public class JedisExtension implements ParameterResolver {
 			return lazy.get();
 		}
 	}
-
 }
