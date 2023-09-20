@@ -209,7 +209,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			Function<ResponseCommands, Response<Object>> pipelineFunction, Converter<Object, Object> converter,
 			Supplier<Object> nullDefault) {
 
-		return doWithJedis(it -> {
+		return doWithJedis(jedis -> {
 
 			if (isQueueing()) {
 
@@ -225,7 +225,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				return null;
 			}
 
-			Object result = directFunction.apply(getJedis());
+			Object result = directFunction.apply(jedis);
 
 			if (result == null) {
 				return nullDefault.get();
@@ -378,7 +378,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 
 		if (pipeline == null) {
-			pipeline = jedis.pipelined();
+			pipeline = getJedis().pipelined();
 		}
 	}
 
@@ -411,7 +411,8 @@ public class JedisConnection extends AbstractRedisConnection {
 				Object data = result.get();
 
 				if (!result.isStatus()) {
-					results.add(result.conversionRequired() ? result.convert(data) : data);
+					Object resolvedData = result.conversionRequired() ? result.convert(data) : data;
+					results.add(resolvedData);
 				}
 			} catch (JedisDataException e) {
 				DataAccessException dataAccessException = convertJedisAccessException(e);
@@ -550,17 +551,20 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	<T> JedisResult<T, T> newJedisResult(Response<T> response) {
-		return JedisResultBuilder.<T, T> forResponse(response).build();
+		return JedisResultBuilder.<T, T>forResponse(response).build();
 	}
 
 	<T, R> JedisResult<T, R> newJedisResult(Response<T> response, Converter<T, R> converter, Supplier<R> defaultValue) {
 
-		return JedisResultBuilder.<T, R> forResponse(response).mappedWith(converter)
-				.convertPipelineAndTxResults(convertPipelineAndTxResults).mapNullTo(defaultValue).build();
+		return JedisResultBuilder.<T, R>forResponse(response)
+				.convertPipelineAndTxResults(this.convertPipelineAndTxResults)
+				.mapNullTo(defaultValue)
+				.mappedWith(converter)
+				.build();
 	}
 
 	<T> JedisStatusResult<T, T> newStatusResult(Response<T> response) {
-		return JedisResultBuilder.<T, T> forResponse(response).buildStatusResult();
+		return JedisResultBuilder.<T, T>forResponse(response).buildStatusResult();
 	}
 
 	@Override

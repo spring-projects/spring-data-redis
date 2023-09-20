@@ -82,7 +82,7 @@ class JedisInvoker {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
-		return synchronizer.invoke(function::apply, it -> {
+		return synchronizer.invoke(function::apply, responseCommands -> {
 			throw new InvalidDataAccessApiUsageException("Operation not supported by Jedis in pipelining/transaction mode");
 		}, Converters.identityConverter(), () -> null);
 	}
@@ -115,7 +115,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return synchronizer.invoke(it -> function.apply(it, t1), it -> pipelineFunction.apply(it, t1));
+		return synchronizer.invoke(jedis -> function.apply(jedis, t1),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1));
 	}
 
 	/**
@@ -133,7 +134,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return synchronizer.invoke(it -> function.apply(it, t1, t2), it -> pipelineFunction.apply(it, t1, t2));
+		return synchronizer.invoke(jedis -> function.apply(jedis, t1, t2),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2));
 	}
 
 	/**
@@ -152,7 +154,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3), it -> pipelineFunction.apply(it, t1, t2, t3));
+		return synchronizer.invoke(jedis -> function.apply(jedis, t1, t2, t3),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3));
 	}
 
 	/**
@@ -172,7 +175,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4),
+		return synchronizer.invoke(jedis -> function.apply(jedis, t1, t2, t3, t4),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4));
 	}
 
@@ -194,7 +197,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4, t5),
+		return synchronizer.invoke(jedis -> function.apply(jedis, t1, t2, t3, t4, t5),
 				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5));
 	}
 
@@ -217,8 +220,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return synchronizer.invoke(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
-				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
+		return synchronizer.invoke(jedis -> function.apply(jedis, t1, t2, t3, t4, t5, t6),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4, t5, t6));
 	}
 
 	/**
@@ -265,7 +268,7 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return from(it -> function.apply(it, t1), it -> pipelineFunction.apply(it, t1));
+		return from(jedis -> function.apply(jedis, t1), responseCommands -> pipelineFunction.apply(responseCommands, t1));
 	}
 
 	/**
@@ -283,7 +286,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return from(it -> function.apply(it, t1, t2), it -> pipelineFunction.apply(it, t1, t2));
+		return from(jedis -> function.apply(jedis, t1, t2),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2));
 	}
 
 	/**
@@ -302,7 +306,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return from(it -> function.apply(it, t1, t2, t3), it -> pipelineFunction.apply(it, t1, t2, t3));
+		return from(jedis -> function.apply(jedis, t1, t2, t3),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3));
 	}
 
 	/**
@@ -322,7 +327,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return from(it -> function.apply(it, t1, t2, t3, t4), it -> pipelineFunction.apply(it, t1, t2, t3, t4));
+		return from(jedis -> function.apply(jedis, t1, t2, t3, t4),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4));
 	}
 
 	/**
@@ -343,7 +349,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return from(it -> function.apply(it, t1, t2, t3, t4, t5), it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5));
+		return from(jedis -> function.apply(jedis, t1, t2, t3, t4, t5),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4, t5));
 	}
 
 	/**
@@ -365,8 +372,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return from(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
-				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
+		return from(jedis -> function.apply(jedis, t1, t2, t3, t4, t5, t6),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4, t5, t6));
 	}
 
 	/**
@@ -414,7 +421,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return fromMany(it -> function.apply(it, t1), it -> pipelineFunction.apply(it, t1));
+		return fromMany(jedis -> function.apply(jedis, t1),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1));
 	}
 
 	/**
@@ -432,7 +440,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return fromMany(it -> function.apply(it, t1, t2), it -> pipelineFunction.apply(it, t1, t2));
+		return fromMany(jedis -> function.apply(jedis, t1, t2),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2));
 	}
 
 	/**
@@ -451,7 +460,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return fromMany(it -> function.apply(it, t1, t2, t3), it -> pipelineFunction.apply(it, t1, t2, t3));
+		return fromMany(jedis -> function.apply(jedis, t1, t2, t3),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3));
 	}
 
 	/**
@@ -472,7 +482,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return fromMany(it -> function.apply(it, t1, t2, t3, t4), it -> pipelineFunction.apply(it, t1, t2, t3, t4));
+		return fromMany(jedis -> function.apply(jedis, t1, t2, t3, t4),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4));
 	}
 
 	/**
@@ -494,7 +505,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return fromMany(it -> function.apply(it, t1, t2, t3, t4, t5), it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5));
+		return fromMany(jedis -> function.apply(jedis, t1, t2, t3, t4, t5),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4, t5));
 	}
 
 	/**
@@ -517,8 +529,8 @@ class JedisInvoker {
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
 
-		return fromMany(it -> function.apply(it, t1, t2, t3, t4, t5, t6),
-				it -> pipelineFunction.apply(it, t1, t2, t3, t4, t5, t6));
+		return fromMany(jedis -> function.apply(jedis, t1, t2, t3, t4, t5, t6),
+				responseCommands -> pipelineFunction.apply(responseCommands, t1, t2, t3, t4, t5, t6));
 	}
 
 	/**
