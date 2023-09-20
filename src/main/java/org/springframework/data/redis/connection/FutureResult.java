@@ -21,22 +21,25 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
 
 /**
- * The result of an asynchronous operation
+ * Result of an asynchronous operation
  *
+ * @param <T> The data type of the object that holds the future result (usually type of the
+ *          {@link java.util.concurrent.Future} or response wrapper).
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Mark Paluch
- * @param <T> The data type of the object that holds the future result (usually type of the
- *          {@link java.util.concurrent.Future} or response wrapper).
+ * @author John Blum
  */
 public abstract class FutureResult<T> {
 
-	private T resultHolder;
-	private final Supplier<?> defaultConversionResult;
-
 	private boolean status = false;
 
-	@SuppressWarnings("rawtypes") //
+	private final T resultHolder;
+
+	private final Supplier<?> defaultConversionResult;
+
+
+	@SuppressWarnings("rawtypes")
 	protected Converter converter;
 
 	/**
@@ -71,21 +74,12 @@ public abstract class FutureResult<T> {
 	 * @param defaultConversionResult must not be {@literal null}.
 	 * @since 2.1
 	 */
+	@SuppressWarnings("rawtypes")
 	public FutureResult(T resultHolder, @Nullable Converter converter, Supplier<?> defaultConversionResult) {
 
 		this.resultHolder = resultHolder;
 		this.converter = converter != null ? converter : val -> val;
 		this.defaultConversionResult = defaultConversionResult;
-	}
-
-	/**
-	 * Get the object holding the actual result.
-	 *
-	 * @return never {@literal null}.
-	 * @since 1.1
-	 */
-	public T getResultHolder() {
-		return resultHolder;
 	}
 
 	/**
@@ -98,11 +92,9 @@ public abstract class FutureResult<T> {
 	@Nullable
 	public Object convert(@Nullable Object result) {
 
-		if (result == null) {
-			return computeDefaultResult(null);
-		}
+		Object resolvedResult = result != null ? getConverter().convert(result) : null;
 
-		return computeDefaultResult(converter.convert(result));
+		return computeDefaultResult(resolvedResult);
 	}
 
 	@Nullable
@@ -112,7 +104,17 @@ public abstract class FutureResult<T> {
 
 	@SuppressWarnings("rawtypes")
 	public Converter getConverter() {
-		return converter;
+		return this.converter;
+	}
+
+	/**
+	 * Get the object holding the actual result.
+	 *
+	 * @return never {@literal null}.
+	 * @since 1.1
+	 */
+	public T getResultHolder() {
+		return this.resultHolder;
 	}
 
 	/**
@@ -121,7 +123,7 @@ public abstract class FutureResult<T> {
 	 * @return true if this is a status result (i.e. OK)
 	 */
 	public boolean isStatus() {
-		return status;
+		return this.status;
 	}
 
 	/**
@@ -144,4 +146,5 @@ public abstract class FutureResult<T> {
 	 * @since 2.1
 	 */
 	public abstract boolean conversionRequired();
+
 }
