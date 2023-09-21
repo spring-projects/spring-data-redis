@@ -126,32 +126,6 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 		this.javaType = javaType;
 	}
 
-	@SuppressWarnings("unchecked")
-	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
-
-		if (SerializationUtils.isEmpty(bytes)) {
-			return null;
-		}
-		try {
-			return (T) this.reader.read(this.mapper, bytes, javaType);
-		} catch (Exception ex) {
-			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
-		}
-	}
-
-	@Override
-	public byte[] serialize(@Nullable Object t) throws SerializationException {
-
-		if (t == null) {
-			return SerializationUtils.EMPTY_ARRAY;
-		}
-		try {
-			return this.writer.write(this.mapper, t);
-		} catch (Exception ex) {
-			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
-		}
-	}
-
 	/**
 	 * Sets the {@code ObjectMapper} for this view. If not set, a default {@link ObjectMapper#ObjectMapper() ObjectMapper}
 	 * is used.
@@ -169,6 +143,33 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 		Assert.notNull(mapper, "'objectMapper' must not be null");
 		this.mapper = mapper;
+	}
+
+	@Override
+	public byte[] serialize(@Nullable T value) throws SerializationException {
+
+		if (value == null) {
+			return SerializationUtils.EMPTY_ARRAY;
+		}
+		try {
+			return this.writer.write(this.mapper, value);
+		} catch (Exception ex) {
+			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
+		}
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
+
+		if (SerializationUtils.isEmpty(bytes)) {
+			return null;
+		}
+		try {
+			return (T) this.reader.read(this.mapper, bytes, javaType);
+		} catch (Exception ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
+		}
 	}
 
 	/**

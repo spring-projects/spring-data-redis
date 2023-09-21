@@ -85,6 +85,24 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 	}
 
 	@Override
+	public byte[] serialize(@Nullable Object value) throws SerializationException {
+
+		if (value == null) {
+			return SerializationUtils.EMPTY_ARRAY;
+		}
+
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		StreamResult result = new StreamResult(stream);
+
+		try {
+			marshaller.marshal(value, result);
+		} catch (Exception ex) {
+			throw new SerializationException("Cannot serialize object", ex);
+		}
+		return stream.toByteArray();
+	}
+
+	@Override
 	public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
 
 		if (SerializationUtils.isEmpty(bytes)) {
@@ -96,23 +114,5 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		} catch (Exception ex) {
 			throw new SerializationException("Cannot deserialize bytes", ex);
 		}
-	}
-
-	@Override
-	public byte[] serialize(@Nullable Object t) throws SerializationException {
-
-		if (t == null) {
-			return SerializationUtils.EMPTY_ARRAY;
-		}
-
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		StreamResult result = new StreamResult(stream);
-
-		try {
-			marshaller.marshal(t, result);
-		} catch (Exception ex) {
-			throw new SerializationException("Cannot serialize object", ex);
-		}
-		return stream.toByteArray();
 	}
 }

@@ -22,7 +22,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.lang.Nullable;
@@ -42,8 +41,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 
 	private final Class<T> type;
 	private final Charset charset;
-
-	private Converter converter = new Converter(new DefaultConversionService());
+	private Converter converter;
 
 	public GenericToStringSerializer(Class<T> type) {
 		this(type, StandardCharsets.UTF_8);
@@ -55,18 +53,42 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 
 		this.type = type;
 		this.charset = charset;
+		this.converter = new Converter(DefaultConversionService.getSharedInstance());
 	}
 
+	/**
+	 * Set the {@link ConversionService} to be used.
+	 *
+	 * @param conversionService the conversion service to be used, must not be {@literal null}.
+	 */
 	public void setConversionService(ConversionService conversionService) {
 
-		Assert.notNull(conversionService, "non null conversion service required");
+		Assert.notNull(conversionService, "ConversionService must not be null");
+
 		converter = new Converter(conversionService);
 	}
 
+	/**
+	 * Set the {@link TypeConverter} to be used.
+	 *
+	 * @param typeConverter the conversion service to be used, must not be {@literal null}.
+	 */
 	public void setTypeConverter(TypeConverter typeConverter) {
 
-		Assert.notNull(typeConverter, "non null type converter required");
+		Assert.notNull(typeConverter, "TypeConverter must not be null");
+
 		converter = new Converter(typeConverter);
+	}
+
+	@Override
+	public byte[] serialize(@Nullable T value) {
+
+		if (value == null) {
+			return null;
+		}
+
+		String string = converter.convert(value, String.class);
+		return string.getBytes(charset);
 	}
 
 	@Override
@@ -81,29 +103,14 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
-	public byte[] serialize(@Nullable T object) {
-		if (object == null) {
-			return null;
-		}
-		String string = converter.convert(object, String.class);
-		return string.getBytes(charset);
-	}
-
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-
-		// TODO: This code can never happen...
-		if (converter == null && beanFactory instanceof ConfigurableBeanFactory) {
-			ConfigurableBeanFactory cFB = (ConfigurableBeanFactory) beanFactory;
-			ConversionService conversionService = cFB.getConversionService();
-
-			converter = (conversionService != null ? new Converter(conversionService)
-					: new Converter(cFB.getTypeConverter()));
-		}
+		// no-op
 	}
 
-	private class Converter {
-		private final ConversionService conversionService;
-		private final TypeConverter typeConverter;
+	private final static class Converter {
+
+		private final @Nullable ConversionService conversionService;
+		private final @Nullable TypeConverter typeConverter;
 
 		public Converter(ConversionService conversionService) {
 			this.conversionService = conversionService;
@@ -115,11 +122,11 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 			this.typeConverter = typeConverter;
 		}
 
+		@Nullable
 		<E> E convert(Object value, Class<E> targetType) {
-			if (conversionService != null) {
-				return conversionService.convert(value, targetType);
-			}
-			return typeConverter.convertIfNecessary(value, targetType);
+
+			return conversionService != null ? conversionService.convert(value, targetType)
+					: typeConverter.convertIfNecessary(value, targetType);
 		}
 	}
 }

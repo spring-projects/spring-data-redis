@@ -31,7 +31,7 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
 	private final @Nullable RedisSerializer<T> serializer;
 
-	DefaultRedisElementReader(RedisSerializer<T> serializer) {
+	DefaultRedisElementReader(@Nullable RedisSerializer<T> serializer) {
 		this.serializer = serializer;
 	}
 

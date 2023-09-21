@@ -198,14 +198,14 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	@Override
-	public byte[] serialize(@Nullable Object source) throws SerializationException {
+	public byte[] serialize(@Nullable Object value) throws SerializationException {
 
-		if (source == null) {
+		if (value == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}
 
 		try {
-			return writer.write(mapper, source);
+			return writer.write(mapper, value);
 		} catch (IOException e) {
 			throw new SerializationException("Could not write JSON: " + e.getMessage(), e);
 		}

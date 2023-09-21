@@ -29,8 +29,8 @@ enum ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
 
 	@Nullable
 	@Override
-	public byte[] serialize(@Nullable byte[] bytes) throws SerializationException {
-		return bytes;
+	public byte[] serialize(@Nullable byte[] value) throws SerializationException {
+		return value;
 	}
 
 	@Nullable

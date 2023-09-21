@@ -17,6 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +37,7 @@ public interface RedisElementWriter<T> {
 	 * @param element can be {@literal null}.
 	 * @return the {@link ByteBuffer} representing {@code element} in its binary form.
 	 */
-	ByteBuffer write(T element);
+	ByteBuffer write(@Nullable T element);
 
 	/**
 	 * Create new {@link RedisElementWriter} using given {@link RedisSerializer}.
