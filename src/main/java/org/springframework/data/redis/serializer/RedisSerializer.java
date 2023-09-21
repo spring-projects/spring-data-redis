@@ -20,8 +20,9 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Basic interface serialization and deserialization of Objects to byte arrays (binary data). It is recommended that
- * implementations are designed to handle null objects/empty arrays on serialization and deserialization side. Note that
- * Redis does not accept null keys or values but can return null replies (for non existing keys).
+ * implementations are designed to handle {@literal null} objects/empty arrays on serialization and deserialization
+ * side. Note that Redis does not accept {@literal null} keys or values but can return null replies (for non-existing
+ * keys).
  *
  * @author Mark Pollack
  * @author Costin Leau
@@ -30,26 +31,8 @@ import org.springframework.util.ClassUtils;
 public interface RedisSerializer<T> {
 
 	/**
-	 * Serialize the given object to binary data.
-	 *
-	 * @param t object to serialize. Can be {@literal null}.
-	 * @return the equivalent binary data. Can be {@literal null}.
-	 */
-	@Nullable
-	byte[] serialize(@Nullable T t) throws SerializationException;
-
-	/**
-	 * Deserialize an object from the given binary data.
-	 *
-	 * @param bytes object binary representation. Can be {@literal null}.
-	 * @return the equivalent object instance. Can be {@literal null}.
-	 */
-	@Nullable
-	T deserialize(@Nullable byte[] bytes) throws SerializationException;
-
-	/**
-	 * Obtain a {@link RedisSerializer} using java serialization.<br />
-	 * <strong>Note:</strong> Ensure that your domain objects are actually {@link java.io.Serializable serializable}.
+	 * Obtain a {@link RedisSerializer} using java serialization. <strong>Note:</strong> Ensure that your domain objects
+	 * are actually {@link java.io.Serializable serializable}.
 	 *
 	 * @return never {@literal null}.
 	 * @since 2.1
@@ -59,7 +42,7 @@ public interface RedisSerializer<T> {
 	}
 
 	/**
-	 * Obtain a {@link RedisSerializer} using java serialization with the given {@link ClassLoader}.<br />
+	 * Obtain a {@link RedisSerializer} using java serialization with the given {@link ClassLoader}.
 	 * <strong>Note:</strong> Ensure that your domain objects are actually {@link java.io.Serializable serializable}.
 	 *
 	 * @param classLoader the {@link ClassLoader} to use for deserialization. Can be {@literal null}.
@@ -102,10 +85,39 @@ public interface RedisSerializer<T> {
 		return ByteArrayRedisSerializer.INSTANCE;
 	}
 
+	/**
+	 * Serialize the given object to binary data.
+	 *
+	 * @param value object to serialize. Can be {@literal null}.
+	 * @return the equivalent binary data. Can be {@literal null}.
+	 */
+	@Nullable
+	byte[] serialize(@Nullable T value) throws SerializationException;
+
+	/**
+	 * Deserialize an object from the given binary data.
+	 *
+	 * @param bytes object binary representation. Can be {@literal null}.
+	 * @return the equivalent object instance. Can be {@literal null}.
+	 */
+	@Nullable
+	T deserialize(@Nullable byte[] bytes) throws SerializationException;
+
+	/**
+	 * Check whether the given value {@code type} can be serialized by this serializer.
+	 *
+	 * @param type the value type.
+	 * @return {@code true} if the value type can be serialized; {@code false} otherwise.
+	 */
 	default boolean canSerialize(Class<?> type) {
 		return ClassUtils.isAssignable(getTargetType(), type);
 	}
 
+	/**
+	 * Return the serializer target type.
+	 *
+	 * @return the serializer target type.
+	 */
 	default Class<?> getTargetType() {
 		return Object.class;
 	}

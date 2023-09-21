@@ -35,7 +35,7 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 	}
 
 	@Override
-	public ByteBuffer write(T value) {
+	public ByteBuffer write(@Nullable T value) {
 
 		if (serializer != null && (value == null || serializer.canSerialize(value.getClass()))) {
 			return ByteBuffer.wrap(serializer.serialize(value));
@@ -51,6 +51,5 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 
 		throw new IllegalStateException(
 				String.format("Cannot serialize value of type %s without a serializer", value.getClass()));
-
 	}
 }

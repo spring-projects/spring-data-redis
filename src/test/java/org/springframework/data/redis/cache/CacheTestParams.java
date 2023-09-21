@@ -108,8 +108,8 @@ class CacheTestParams {
 
 		@Override
 		@Nullable
-		public byte[] serialize(@Nullable Object o) throws SerializationException {
-			return serializer.serialize(o);
+		public byte[] serialize(@Nullable Object value) throws SerializationException {
+			return serializer.serialize(value);
 		}
 
 		@Override

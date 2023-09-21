@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -311,7 +310,7 @@ class MessageListenerUnitTests {
 	static class PojoRedisSerializer implements RedisSerializer<Pojo> {
 
 		@Override
-		public byte[] serialize(Pojo t) throws SerializationException {
+		public byte[] serialize(Pojo value) throws SerializationException {
 			return new byte[0];
 		}
 

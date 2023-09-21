@@ -82,6 +82,20 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	}
 
 	@Override
+	public byte[] serialize(@Nullable Object value) {
+
+		if (value == null) {
+			return SerializationUtils.EMPTY_ARRAY;
+		}
+
+		try {
+			return serializer.convert(value);
+		} catch (Exception cause) {
+			throw new SerializationException("Cannot serialize", cause);
+		}
+	}
+
+	@Override
 	public Object deserialize(@Nullable byte[] bytes) {
 
 		if (SerializationUtils.isEmpty(bytes)) {
@@ -92,20 +106,6 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 			return deserializer.convert(bytes);
 		} catch (Exception cause) {
 			throw new SerializationException("Cannot deserialize", cause);
-		}
-	}
-
-	@Override
-	public byte[] serialize(@Nullable Object object) {
-
-		if (object == null) {
-			return SerializationUtils.EMPTY_ARRAY;
-		}
-
-		try {
-			return serializer.convert(object);
-		} catch (Exception cause) {
-			throw new SerializationException("Cannot serialize", cause);
 		}
 	}
 }

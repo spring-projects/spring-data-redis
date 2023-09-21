@@ -66,21 +66,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 
-	/**
-	 * Register {@link NullValueSerializer} in the given {@link ObjectMapper} with an optional
-	 * {@code classPropertyTypeName}. This method should be called by code that customizes
-	 * {@link GenericJackson2JsonRedisSerializer} by providing an external {@link ObjectMapper}.
-	 *
-	 * @param objectMapper the object mapper to customize.
-	 * @param classPropertyTypeName name of the type property. Defaults to {@code @class} if {@literal null}/empty.
-	 * @since 2.2
-	 */
-	public static void registerNullValueSerializer(ObjectMapper objectMapper, @Nullable String classPropertyTypeName) {
-
-		// Simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here
-		// since we need the type hint embedded for deserialization using the default typing feature.
-		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
-	}
 
 	private final JacksonObjectReader reader;
 
@@ -204,6 +189,22 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
+	 * Register {@link NullValueSerializer} in the given {@link ObjectMapper} with an optional
+	 * {@code classPropertyTypeName}. This method should be called by code that customizes
+	 * {@link GenericJackson2JsonRedisSerializer} by providing an external {@link ObjectMapper}.
+	 *
+	 * @param objectMapper the object mapper to customize.
+	 * @param classPropertyTypeName name of the type property. Defaults to {@code @class} if {@literal null}/empty.
+	 * @since 2.2
+	 */
+	public static void registerNullValueSerializer(ObjectMapper objectMapper, @Nullable String classPropertyTypeName) {
+
+		// Simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here
+		// since we need the type hint embedded for deserialization using the default typing feature.
+		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
+	}
+
+	/**
 	 * Gets the configured {@link ObjectMapper} used internally by this {@link GenericJackson2JsonRedisSerializer}
 	 * to de/serialize {@link Object objects} as {@literal JSON}.
 	 *
@@ -214,14 +215,14 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	@Override
-	public byte[] serialize(@Nullable Object source) throws SerializationException {
+	public byte[] serialize(@Nullable Object value) throws SerializationException {
 
-		if (source == null) {
+		if (value == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}
 
 		try {
-			return writer.write(mapper, source);
+			return writer.write(mapper, value);
 		} catch (IOException cause) {
 			String message = String.format("Could not write JSON: %s", cause.getMessage());
 			throw new SerializationException(message, cause);
