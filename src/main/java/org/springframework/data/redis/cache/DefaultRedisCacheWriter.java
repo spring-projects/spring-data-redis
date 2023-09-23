@@ -15,19 +15,28 @@
  */
 package org.springframework.data.redis.cache;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * {@link RedisCacheWriter} implementation capable of reading/writing binary data from/to Redis in {@literal standalone}
@@ -114,8 +123,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null");
 
 		byte[] result = shouldExpireWithin(ttl)
-			? execute(name, connection -> connection.stringCommands().getEx(key, Expiration.from(ttl)))
-			: execute(name, connection -> connection.stringCommands().get(key));
+				? execute(name, connection -> connection.stringCommands().getEx(key, Expiration.from(ttl)))
+				: execute(name, connection -> connection.stringCommands().get(key));
 
 		statistics.incGets(name);
 
@@ -126,6 +135,81 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		return result;
+	}
+
+	@Override
+	public boolean isRetrieveSupported() {
+		return isReactive();
+	}
+
+	@Override
+	public CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl) {
+
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
+
+		CompletableFuture<byte[]> result = nonBlockingRetrieveFunction(name).apply(key, ttl);
+
+		result = result.thenApply(cachedValue -> {
+
+			statistics.incGets(name);
+
+			if (cachedValue != null) {
+				statistics.incHits(name);
+			} else {
+				statistics.incMisses(name);
+			}
+
+			return cachedValue;
+		});
+
+		return result;
+	}
+
+	private BiFunction<byte[], Duration, CompletableFuture<byte[]>> nonBlockingRetrieveFunction(String cacheName) {
+		return isReactive() ? reactiveRetrieveFunction(cacheName) : asyncRetrieveFunction(cacheName);
+	}
+
+	// TODO: Possibly remove if we rely on the default Cache.retrieve(..) behavior
+	//  after assessing RedisCacheWriter.isRetrieveSupported().
+	// Function applied for Cache.retrieve(key) when a non-reactive Redis driver is used, such as Jedis.
+	private BiFunction<byte[], Duration, CompletableFuture<byte[]>> asyncRetrieveFunction(String cacheName) {
+
+		return (key, ttl) -> {
+
+			Supplier<byte[]> getKey = () -> execute(cacheName, connection -> connection.stringCommands().get(key));
+
+			Supplier<byte[]> getKeyWithExpiration = () -> execute(cacheName, connection ->
+					connection.stringCommands().getEx(key, Expiration.from(ttl)));
+
+			return shouldExpireWithin(ttl)
+				? CompletableFuture.supplyAsync(getKeyWithExpiration)
+				: CompletableFuture.supplyAsync(getKey);
+
+		};
+	}
+
+	// Function applied for Cache.retrieve(key) when a reactive Redis driver is used, such as Lettuce.
+	private BiFunction<byte[], Duration, CompletableFuture<byte[]>> reactiveRetrieveFunction(String cacheName) {
+
+		return (key, ttl) -> {
+
+			ByteBuffer wrappedKey = ByteBuffer.wrap(key);
+
+			Flux<?> cacheLockCheckFlux = Flux.interval(Duration.ZERO, this.sleepTime).takeUntil(count ->
+					executeLockFree(connection -> !doCheckLock(cacheName, connection)));
+
+			Mono<ByteBuffer> getMono = shouldExpireWithin(ttl)
+					? executeReactively(connection -> connection.stringCommands().getEx(wrappedKey, Expiration.from(ttl)))
+					: executeReactively(connection -> connection.stringCommands().get(wrappedKey));
+
+			Mono<ByteBuffer> result = cacheLockCheckFlux.then(getMono);
+
+			@SuppressWarnings("all")
+			Mono<byte[]> byteArrayResult = result.map(DefaultRedisCacheWriter::nullSafeGetBytes);
+
+			return byteArrayResult.toFuture();
+		};
 	}
 
 	@Override
@@ -282,30 +366,40 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return connection.keyCommands().del(createCacheLockKey(name));
 	}
 
-	boolean doCheckLock(String name, RedisConnection connection) {
-		return isTrue(connection.keyCommands().exists(createCacheLockKey(name)));
-	}
-
-	/**
-	 * @return {@literal true} if {@link RedisCacheWriter} uses locks.
-	 */
-	private boolean isLockingCacheWriter() {
-		return !sleepTime.isZero() && !sleepTime.isNegative();
-	}
-
 	private <T> T execute(String name, Function<RedisConnection, T> callback) {
 
-		try (RedisConnection connection = connectionFactory.getConnection()) {
+		try (RedisConnection connection = this.connectionFactory.getConnection()) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 			return callback.apply(connection);
 		}
 	}
 
-	private void executeLockFree(Consumer<RedisConnection> callback) {
+	private <T> T executeLockFree(Function<RedisConnection, T> callback) {
 
-		try (RedisConnection connection = connectionFactory.getConnection()) {
-			callback.accept(connection);
+		try (RedisConnection connection = this.connectionFactory.getConnection()) {
+			return callback.apply(connection);
 		}
+	}
+
+	private <T> T executeReactively(Function<ReactiveRedisConnection, T> callback) {
+
+		ReactiveRedisConnection connection = getReactiveRedisConnectionFactory().getReactiveConnection();
+
+		try {
+			return callback.apply(connection);
+		}
+		finally {
+			connection.closeLater();
+		}
+	}
+
+	/**
+	 * Determines whether this {@link RedisCacheWriter} uses locks during caching operations.
+	 *
+	 * @return {@literal true} if {@link RedisCacheWriter} uses locks.
+	 */
+	private boolean isLockingCacheWriter() {
+		return !this.sleepTime.isZero() && !this.sleepTime.isNegative();
 	}
 
 	private void checkAndPotentiallyWaitUntilUnlocked(String name, RedisConnection connection) {
@@ -318,27 +412,44 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		try {
 			while (doCheckLock(name, connection)) {
-				Thread.sleep(sleepTime.toMillis());
+				Thread.sleep(this.sleepTime.toMillis());
 			}
 		} catch (InterruptedException cause) {
 
-			// Re-interrupt current thread, to allow other participants to react.
+			// Re-interrupt current Thread to allow other participants to react.
 			Thread.currentThread().interrupt();
 
 			String message = String.format("Interrupted while waiting to unlock cache %s", name);
 
 			throw new PessimisticLockingFailureException(message, cause);
 		} finally {
-			statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
+			this.statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}
+	}
+
+	boolean doCheckLock(String name, RedisConnection connection) {
+		return isTrue(connection.keyCommands().exists(createCacheLockKey(name)));
+	}
+
+	private boolean isReactive() {
+		return this.connectionFactory instanceof ReactiveRedisConnectionFactory;
+	}
+
+	private ReactiveRedisConnectionFactory getReactiveRedisConnectionFactory() {
+		return (ReactiveRedisConnectionFactory) this.connectionFactory;
 	}
 
 	private static byte[] createCacheLockKey(String name) {
 		return (name + "~lock").getBytes(StandardCharsets.UTF_8);
 	}
 
-	private boolean isTrue(@Nullable Boolean value) {
+	private static boolean isTrue(@Nullable Boolean value) {
 		return Boolean.TRUE.equals(value);
+	}
+
+	@Nullable
+	private static byte[] nullSafeGetBytes(@Nullable ByteBuffer value) {
+		return value != null ? ByteUtils.getBytes(value) : null;
 	}
 
 	private static boolean shouldExpireWithin(@Nullable Duration ttl) {

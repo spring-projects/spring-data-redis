@@ -16,6 +16,8 @@
 package org.springframework.data.redis.cache;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.lang.Nullable;
@@ -134,6 +136,51 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	default byte[] get(String name, byte[] key, @Nullable Duration ttl) {
 		return get(name, key);
 	}
+
+	/**
+	 * Determines whether the asynchronous {@link #retrieve(String, byte[])}
+	 * and {@link #retrieve(String, byte[], Duration)} cache operations are supported by the implementation.
+	 * <p>
+	 * The main factor for whether the {@literal retrieve} operation can be supported will primarily be determined by
+	 * the Redis driver in use at runtime.
+	 * <p>
+	 * Returns {@literal false} by default. This will have an effect of {@link RedisCache#retrieve(Object)}
+	 * and {@link RedisCache#retrieve(Object, Supplier)} throwing an {@link UnsupportedOperationException}.
+	 *
+	 * @return {@literal true} if asynchronous {@literal retrieve} operations are supported by the implementation.
+	 */
+	default boolean isRetrieveSupported() {
+		return false;
+	}
+
+	/**
+	 * Returns the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
+	 * <p>
+	 * This operation is non-blocking.
+	 *
+	 * @param name {@link String} with the name of the {@link RedisCache}.
+	 * @param key {@link byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
+	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
+	 * @see #retrieve(String, byte[], Duration)
+	 * @since 3.2.0
+	 */
+	default CompletableFuture<byte[]> retrieve(String name, byte[] key) {
+		return retrieve(name, key, null);
+	}
+
+	/**
+	 * Returns the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}
+	 * setting the {@link Duration TTL expiration} for the cache entry.
+	 * <p>
+	 * This operation is non-blocking.
+	 *
+	 * @param name {@link String} with the name of the {@link RedisCache}.
+	 * @param key {@link byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
+	 * @param ttl {@link Duration} specifying the {@literal expiration timeout} for the cache entry.
+	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
+	 * @since 3.2.0
+	 */
+	CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl);
 
 	/**
 	 * Write the given key/value pair to Redis and set the expiration time if defined.

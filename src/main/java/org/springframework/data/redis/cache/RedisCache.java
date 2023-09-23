@@ -46,7 +46,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * {@link org.springframework.cache.Cache} implementation using for Redis as the underlying store for cache data.
+ * {@link AbstractValueAdaptingCache Cache} implementation using Redis as the underlying store for cache data.
  * <p>
  * Use {@link RedisCacheManager} to create {@link RedisCache} instances.
  *
@@ -61,7 +61,7 @@ import org.springframework.util.ReflectionUtils;
 @SuppressWarnings("unused")
 public class RedisCache extends AbstractValueAdaptingCache {
 
-	private static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
+	static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
 	private final Lock lock = new ReentrantLock();
 
@@ -293,12 +293,36 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	public CompletableFuture<?> retrieve(Object key) {
+
+		if (getCacheWriter().isRetrieveSupported()) {
+			return retrieveValue(key).thenApply(this::nullSafeDeserializedStoreValue);
+		}
+
 		return super.retrieve(key);
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> CompletableFuture<T> retrieve(Object key, Supplier<CompletableFuture<T>> valueLoader) {
+
+		if (getCacheWriter().isRetrieveSupported()) {
+			return retrieveValue(key)
+				.thenApply(this::nullSafeDeserializedStoreValue)
+				.thenCompose(cachedValue -> cachedValue != null
+					? CompletableFuture.completedFuture((T) cachedValue)
+					: valueLoader.get());
+		}
+
 		return super.retrieve(key, valueLoader);
+	}
+
+	CompletableFuture<byte[]> retrieveValue(Object key) {
+		return getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key));
+	}
+
+	@Nullable
+	Object nullSafeDeserializedStoreValue(@Nullable byte[] value) {
+		return value != null ? fromStoreValue(deserializeCacheValue(value)) : null;
 	}
 
 	/**
