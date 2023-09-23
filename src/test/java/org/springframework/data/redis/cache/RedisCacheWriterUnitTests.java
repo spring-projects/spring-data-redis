@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +56,25 @@ class RedisCacheWriterUnitTests {
 
 		verify(cacheWriter, times(1)).get(eq("TestCacheName"), eq(key), eq(thirtyMinutes));
 		verify(cacheWriter, times(1)).get(eq("TestCacheName"), eq(key));
+		verifyNoMoreInteractions(cacheWriter);
+	}
+
+	@Test // GH-2650
+	void defaultRetrieveWithNameAndKeyCallsRetrieveWithNameKeyAndTtl() throws Exception {
+
+		byte[] key = "TestKey".getBytes();
+		byte[] value = "TestValue".getBytes();
+
+		RedisCacheWriter cacheWriter = mock(RedisCacheWriter.class);
+
+		doCallRealMethod().when(cacheWriter).retrieve(anyString(), any());
+		doReturn(CompletableFuture.completedFuture(value)).when(cacheWriter).retrieve(anyString(), any(), any());
+
+		assertThat(cacheWriter.retrieve("TestCacheName", key).thenApply(String::new).get())
+				.isEqualTo("TestValue");
+
+		verify(cacheWriter, times(1)).retrieve(eq("TestCacheName"), eq(key));
+		verify(cacheWriter, times(1)).retrieve(eq("TestCacheName"), eq(key), isNull());
 		verifyNoMoreInteractions(cacheWriter);
 	}
 }
