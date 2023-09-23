@@ -31,6 +31,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Guy Korland
+ * @author John Blum
  * @since 1.7
  */
 public final class ByteUtils {
@@ -251,13 +252,10 @@ public final class ByteUtils {
 	 * @param buffer must not be {@literal null}.
 	 * @return the extracted bytes.
 	 * @since 2.1
+	 * @deprecated Since 3.2. Use {@link #getBytes(ByteBuffer)} instead.
 	 */
+	@Deprecated(since = "3.2")
 	public static byte[] extractBytes(ByteBuffer buffer) {
-
-		ByteBuffer duplicate = buffer.duplicate();
-		byte[] bytes = new byte[duplicate.remaining()];
-		duplicate.get(bytes);
-
-		return bytes;
+		return getBytes(buffer);
 	}
 }

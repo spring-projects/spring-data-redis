@@ -43,7 +43,7 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 			return (T) buffer;
 		}
 
-		return serializer.deserialize(ByteUtils.extractBytes(buffer));
+		return serializer.deserialize(ByteUtils.getBytes(buffer));
 	}
 
 }
