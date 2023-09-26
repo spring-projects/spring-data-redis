@@ -25,7 +25,7 @@
 		<xstream>1.4.20</xstream>
 		<pool>2.11.1</pool>
 		<lettuce>6.2.6.RELEASE</lettuce>
-		<jedis>4.4.4</jedis>
+		<jedis>4.4.5</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.96.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
