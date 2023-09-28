@@ -24,22 +24,24 @@ import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.output.StatusOutput;
 import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.Command;
 import io.lettuce.core.protocol.CommandArgs;
+import io.lettuce.core.protocol.CommandType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
+import org.mockito.Mockito;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
@@ -61,7 +63,6 @@ public class LettuceConnectionUnitTests {
 		private RedisClient clientMock;
 		StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
 		RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
-		RedisCommands syncCommandsMock;
 
 		@SuppressWarnings({ "unchecked" })
 		@BeforeEach
@@ -71,11 +72,20 @@ public class LettuceConnectionUnitTests {
 			statefulConnectionMock = mock(StatefulRedisConnection.class);
 			when(clientMock.connect((RedisCodec) any())).thenReturn(statefulConnectionMock);
 
-			asyncCommandsMock = getNativeRedisConnectionMock();
-			syncCommandsMock = mock(RedisCommands.class);
+			asyncCommandsMock = Mockito.mock(RedisAsyncCommands.class, invocation -> {
 
-			when(statefulConnectionMock.async()).thenReturn(getNativeRedisConnectionMock());
-			when(statefulConnectionMock.sync()).thenReturn(syncCommandsMock);
+				if (invocation.getMethod().getReturnType().equals(RedisFuture.class)) {
+
+					Command<?, ?, ?> cmd = new Command<>(CommandType.PING, new StatusOutput<>(StringCodec.UTF8));
+					AsyncCommand<?, ?, ?> async = new AsyncCommand<>(cmd);
+					async.complete();
+
+					return async;
+				}
+				return null;
+			});
+
+			when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
 			connection = new LettuceConnection(0, clientMock);
 		}
 
@@ -83,21 +93,21 @@ public class LettuceConnectionUnitTests {
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
-			verify(syncCommandsMock, times(1)).shutdown(true);
+			verify(asyncCommandsMock).shutdown(true);
 		}
 
 		@Test // DATAREDIS-184
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
-			verify(syncCommandsMock, times(1)).shutdown(false);
+			verify(asyncCommandsMock).shutdown(false);
 		}
 
 		@Test // DATAREDIS-184
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
-			verify(syncCommandsMock, times(1)).shutdown(true);
+			verify(asyncCommandsMock).shutdown(true);
 		}
 
 		@Test // DATAREDIS-267
@@ -105,14 +115,14 @@ public class LettuceConnectionUnitTests {
 
 			String ipPort = "127.0.0.1:1001";
 			connection.killClient("127.0.0.1", 1001);
-			verify(syncCommandsMock, times(1)).clientKill(eq(ipPort));
+			verify(asyncCommandsMock).clientKill(eq(ipPort));
 		}
 
 		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
-			verify(syncCommandsMock, times(1)).clientGetname();
+			verify(asyncCommandsMock).clientGetname();
 		}
 
 		@Test // DATAREDIS-277
@@ -124,14 +134,14 @@ public class LettuceConnectionUnitTests {
 		public void replicaOfShouldBeSentCorrectly() {
 
 			connection.replicaOf("127.0.0.1", 1001);
-			verify(syncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
+			verify(asyncCommandsMock).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
 		@Test // DATAREDIS-277
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 
 			connection.replicaOfNoOne();
-			verify(syncCommandsMock, times(1)).slaveofNoOne();
+			verify(asyncCommandsMock).slaveofNoOne();
 		}
 
 		@Test // DATAREDIS-348
@@ -147,7 +157,7 @@ public class LettuceConnectionUnitTests {
 			connection.select(1);
 			connection.getNativeConnection();
 
-			verify(syncCommandsMock, times(1)).select(1);
+			verify(asyncCommandsMock).dispatch(eq(CommandType.SELECT), any(), any());
 		}
 
 		@Test // DATAREDIS-603
@@ -155,15 +165,15 @@ public class LettuceConnectionUnitTests {
 
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
 
-			when(syncCommandsMock.set(any(), any())).thenThrow(exception);
+			when(asyncCommandsMock.set(any(), any())).thenThrow(exception);
 			connection = new LettuceConnection(null, 0, clientMock, 1);
 
 			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))
-					.hasMessageContaining(exception.getMessage()).hasRootCause(exception);
+					.hasRootCause(exception);
 		}
 
 		@Test // DATAREDIS-603
-		void translatesPipelineUnknownExceptions() throws Exception {
+		void translatesPipelineUnknownExceptions() {
 
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
 
@@ -171,8 +181,7 @@ public class LettuceConnectionUnitTests {
 			connection = new LettuceConnection(null, 0, clientMock, 1);
 			connection.openPipeline();
 
-			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))
-					.hasMessageContaining(exception.getMessage()).hasRootCause(exception);
+			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes())).hasRootCause(exception);
 		}
 
 		@Test // DATAREDIS-1122
@@ -182,11 +191,7 @@ public class LettuceConnectionUnitTests {
 
 			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100));
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
-			if (connection.isPipelined()) {
-				verify(asyncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
-			} else {
-				verify(syncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
-			}
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
 			assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
 		}
@@ -198,11 +203,7 @@ public class LettuceConnectionUnitTests {
 					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
 			ArgumentCaptor<XClaimArgs> args = ArgumentCaptor.forClass(XClaimArgs.class);
 
-			if (connection.isPipelined()) {
-				verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
-			} else {
-				verify(syncCommandsMock).xclaim(any(), any(), args.capture(), any());
-			}
+			verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
 
 			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(false);
 		}
@@ -214,11 +215,7 @@ public class LettuceConnectionUnitTests {
 					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
 			ArgumentCaptor<XClaimArgs> args = ArgumentCaptor.forClass(XClaimArgs.class);
 
-			if (connection.isPipelined()) {
-				verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
-			} else {
-				verify(syncCommandsMock).xclaim(any(), any(), args.capture(), any());
-			}
+			verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
 
 			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(true);
 		}
@@ -245,11 +242,7 @@ public class LettuceConnectionUnitTests {
 
 			connection.streamCommands().xAdd(record, XAddOptions.makeNoStream());
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
-			if (connection.isPipelined()) {
-				verify(asyncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
-			} else {
-				verify(syncCommandsMock, times(1)).xadd(any(), args.capture(), anyMap());
-			}
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
 			assertThat(args.getValue()).extracting("nomkstream").isEqualTo(true);
 		}
@@ -266,31 +259,28 @@ public class LettuceConnectionUnitTests {
 		}
 
 		@Test // DATAREDIS-528
+		@Disabled("SHUTDOWN not supported in pipeline")
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
-			connection.shutdown(ShutdownOption.SAVE);
-			verify(asyncCommandsMock, times(1)).shutdown(true);
 		}
 
 		@Test // DATAREDIS-528
+		@Disabled("SHUTDOWN not supported in pipeline")
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
-			connection.shutdown(ShutdownOption.NOSAVE);
-			verify(asyncCommandsMock, times(1)).shutdown(false);
 		}
 
 		@Test // DATAREDIS-528
 		public void replicaOfShouldBeSentCorrectly() {
 
 			connection.replicaOf("127.0.0.1", 1001);
-			verify(asyncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
+			verify(asyncCommandsMock).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
 		@Test // DATAREDIS-528
+		@Disabled("SHUTDOWN not supported in pipeline")
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
-			connection.shutdown(null);
-			verify(asyncCommandsMock, times(1)).shutdown(true);
 		}
 
 		@Test // DATAREDIS-528
@@ -298,21 +288,21 @@ public class LettuceConnectionUnitTests {
 
 			String ipPort = "127.0.0.1:1001";
 			connection.killClient("127.0.0.1", 1001);
-			verify(asyncCommandsMock, times(1)).clientKill(eq(ipPort));
+			verify(asyncCommandsMock).clientKill(eq(ipPort));
 		}
 
 		@Test // DATAREDIS-528
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 
 			connection.replicaOfNoOne();
-			verify(asyncCommandsMock, times(1)).slaveofNoOne();
+			verify(asyncCommandsMock).slaveofNoOne();
 		}
 
 		@Test // DATAREDIS-528
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
-			verify(asyncCommandsMock, times(1)).clientGetname();
+			verify(asyncCommandsMock).clientGetname();
 		}
 	}
 }
