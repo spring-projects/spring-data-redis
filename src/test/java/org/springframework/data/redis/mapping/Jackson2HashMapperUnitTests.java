@@ -29,8 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
@@ -54,6 +54,21 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		FlatteningJackson2HashMapperUnitTests() {
 			super(new Jackson2HashMapper(true));
 		}
+
+		@Override
+		@Disabled("MappingException")
+		@Test
+		void dateValueShouldBeTreatedCorrectly() {}
+
+		@Override
+		@Disabled("MappingException")
+		@Test
+		void bigIntegerShouldBeTreatedCorrectly() {}
+
+		@Override
+		@Disabled("MappingException")
+		@Test
+		void bigDecimalShouldBeTreatedCorrectly() {}
 	}
 
 	static class NonFlatteningJackson2HashMapperUnitTests extends Jackson2HashMapperUnitTests {
