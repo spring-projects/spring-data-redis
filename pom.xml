@@ -210,23 +210,6 @@
 		<dependency>
 			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-se</artifactId>
-			<classifier>jakarta</classifier>
-			<version>${webbeans}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-spi</artifactId>
-			<classifier>jakarta</classifier>
-			<version>${webbeans}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-impl</artifactId>
-			<classifier>jakarta</classifier>
 			<version>${webbeans}</version>
 			<scope>test</scope>
 		</dependency>
