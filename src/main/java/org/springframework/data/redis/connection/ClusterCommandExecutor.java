@@ -15,10 +15,28 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,6 +61,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author John Blum
  * @since 1.7
  */
 public class ClusterCommandExecutor implements DisposableBean {
@@ -58,7 +77,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	private final ExceptionTranslationStrategy exceptionTranslationStrategy;
 
 	/**
-	 * Create a new instance of {@link ClusterCommandExecutor}.
+	 * Create a new {@link ClusterCommandExecutor}.
 	 *
 	 * @param topologyProvider must not be {@literal null}.
 	 * @param resourceProvider must not be {@literal null}.
@@ -92,40 +111,47 @@ public class ClusterCommandExecutor implements DisposableBean {
 	/**
 	 * Run {@link ClusterCommandCallback} on a random node.
 	 *
-	 * @param commandCallback must not be {@literal null}.
+	 * @param clusterCommand must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	public <T> NodeResult<T> executeCommandOnArbitraryNode(ClusterCommandCallback<?, T> commandCallback) {
+	public <T> NodeResult<T> executeCommandOnArbitraryNode(ClusterCommandCallback<?, T> clusterCommand) {
 
-		Assert.notNull(commandCallback, "ClusterCommandCallback must not be null");
+		Assert.notNull(clusterCommand, "ClusterCommandCallback must not be null");
 
 		List<RedisClusterNode> nodes = new ArrayList<>(getClusterTopology().getActiveNodes());
 
-		return executeCommandOnSingleNode(commandCallback, nodes.get(new Random().nextInt(nodes.size())));
+		RedisClusterNode arbitraryNode = nodes.get(new Random().nextInt(nodes.size()));
+
+		return executeCommandOnSingleNode(clusterCommand, arbitraryNode);
 	}
 
 	/**
 	 * Run {@link ClusterCommandCallback} on given {@link RedisClusterNode}.
 	 *
-	 * @param cmd must not be {@literal null}.
+	 * @param clusterCommand must not be {@literal null}.
 	 * @param node must not be {@literal null}.
 	 * @return the {@link NodeResult} from the single, targeted {@link RedisClusterNode}.
 	 * @throws IllegalArgumentException in case no resource can be acquired for given node.
 	 */
-	public <S, T> NodeResult<T> executeCommandOnSingleNode(ClusterCommandCallback<S, T> cmd, RedisClusterNode node) {
-		return executeCommandOnSingleNode(cmd, node, 0);
+	public <S, T> NodeResult<T> executeCommandOnSingleNode(ClusterCommandCallback<S, T> clusterCommand,
+			RedisClusterNode node) {
+
+		return executeCommandOnSingleNode(clusterCommand, node, 0);
 	}
 
-	private <S, T> NodeResult<T> executeCommandOnSingleNode(ClusterCommandCallback<S, T> cmd, RedisClusterNode node,
-			int redirectCount) {
+	private <S, T> NodeResult<T> executeCommandOnSingleNode(ClusterCommandCallback<S, T> clusterCommand,
+			RedisClusterNode node, int redirectCount) {
 
-		Assert.notNull(cmd, "ClusterCommandCallback must not be null");
+		Assert.notNull(clusterCommand, "ClusterCommandCallback must not be null");
 		Assert.notNull(node, "RedisClusterNode must not be null");
 
-		if (redirectCount > maxRedirects) {
-			throw new TooManyClusterRedirectionsException(String.format(
-					"Cannot follow Cluster Redirects over more than %s legs; Please consider increasing the number of redirects to follow; Current value is: %s.",
-					redirectCount, maxRedirects));
+		if (redirectCount > this.maxRedirects) {
+
+			String message = String.format("Cannot follow Cluster Redirects over more than %s legs;"
+					+ " Please consider increasing the number of redirects to follow; Current value is: %s.",
+							redirectCount, this.maxRedirects);
+
+			throw new TooManyClusterRedirectionsException(message);
 		}
 
 		RedisClusterNode nodeToUse = lookupNode(node);
@@ -135,14 +161,15 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(client, "Could not acquire resource for node; Is your cluster info up to date");
 
 		try {
-			return new NodeResult<>(node, cmd.doInCluster(client));
+			return new NodeResult<>(node, clusterCommand.doInCluster(client));
 		} catch (RuntimeException cause) {
 
 			RuntimeException translatedException = convertToDataAccessException(cause);
 
 			if (translatedException instanceof ClusterRedirectException clusterRedirectException) {
-				return executeCommandOnSingleNode(cmd, topologyProvider.getTopology().lookup(
-						clusterRedirectException.getTargetHost(), clusterRedirectException.getTargetPort()), redirectCount + 1);
+				return executeCommandOnSingleNode(clusterCommand, topologyProvider.getTopology()
+						.lookup(clusterRedirectException.getTargetHost(), clusterRedirectException.getTargetPort()),
+					redirectCount + 1);
 			} else {
 				throw translatedException != null ? translatedException : cause;
 			}
@@ -152,10 +179,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 	}
 
 	/**
-	 * Lookup node from the topology.
+	 * Lookup {@link RedisClusterNode node} from the {@link ClusterTopology topology}.
 	 *
-	 * @param node must not be {@literal null}.
-	 * @return never {@literal null}.
+	 * @param node {@link RedisClusterNode node} to lookup; must not be {@literal null}.
+	 * @return the resolved {@link RedisClusterNode node} from the {@link ClusterTopology topology}; never {@literal null}.
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
 	private RedisClusterNode lookupNode(RedisClusterNode node) {
@@ -170,56 +197,59 @@ public class ClusterCommandExecutor implements DisposableBean {
 	/**
 	 * Run {@link ClusterCommandCallback} on all reachable master nodes.
 	 *
-	 * @param cmd must not be {@literal null}.
+	 * @param clusterCommand must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException if a failure occurs while executing the given
 	 *           {@link ClusterCommandCallback command} on any given {@link RedisClusterNode node}.
 	 */
-	public <S, T> MultiNodeResult<T> executeCommandOnAllNodes(final ClusterCommandCallback<S, T> cmd) {
-		return executeCommandAsyncOnNodes(cmd, getClusterTopology().getActiveMasterNodes());
+	public <S, T> MultiNodeResult<T> executeCommandOnAllNodes(ClusterCommandCallback<S, T> clusterCommand) {
+		return executeCommandAsyncOnNodes(clusterCommand, getClusterTopology().getActiveMasterNodes());
 	}
 
 	/**
-	 * @param callback must not be {@literal null}.
+	 * @param clusterCommand must not be {@literal null}.
 	 * @param nodes must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws ClusterCommandExecutionFailureException if a failure occurs while executing the given
 	 *           {@link ClusterCommandCallback command} on any given {@link RedisClusterNode node}.
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
-	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(ClusterCommandCallback<S, T> callback,
+	public <S, T> MultiNodeResult<T> executeCommandAsyncOnNodes(ClusterCommandCallback<S, T> clusterCommand,
 			Iterable<RedisClusterNode> nodes) {
 
-		Assert.notNull(callback, "Callback must not be null");
+		Assert.notNull(clusterCommand, "Callback must not be null");
 		Assert.notNull(nodes, "Nodes must not be null");
 
+		ClusterTopology topology = this.topologyProvider.getTopology();
 		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<>();
-		ClusterTopology topology = topologyProvider.getTopology();
 
 		for (RedisClusterNode node : nodes) {
 			try {
 				resolvedRedisClusterNodes.add(topology.lookup(node));
-			} catch (ClusterStateFailureException e) {
-				throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), e);
+			} catch (ClusterStateFailureException cause) {
+				throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), cause);
 			}
 		}
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 
 		for (RedisClusterNode node : resolvedRedisClusterNodes) {
-			futures.put(new NodeExecution(node), executor.submit(() -> executeCommandOnSingleNode(callback, node)));
+			Callable<NodeResult<T>> nodeCommandExecution = () -> executeCommandOnSingleNode(clusterCommand, node);
+			futures.put(new NodeExecution(node), executor.submit(nodeCommandExecution));
 		}
 
 		return collectResults(futures);
 	}
 
-	private <T> MultiNodeResult<T> collectResults(Map<NodeExecution, Future<NodeResult<T>>> futures) {
-
-		boolean done = false;
+	<T> MultiNodeResult<T> collectResults(Map<NodeExecution, Future<NodeResult<T>>> futures) {
 
 		Map<RedisClusterNode, Throwable> exceptions = new HashMap<>();
 		MultiNodeResult<T> result = new MultiNodeResult<>();
-		Set<String> saveGuard = new HashSet<>();
+		Set<String> safeguard = new HashSet<>();
+
+		BiConsumer<NodeExecution, Throwable> exceptionHandler = getExceptionHandlerFunction(exceptions);
+
+		boolean done = false;
 
 		while (!done) {
 
@@ -227,49 +257,33 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 			for (Map.Entry<NodeExecution, Future<NodeResult<T>>> entry : futures.entrySet()) {
 
-				if (!entry.getValue().isDone() && !entry.getValue().isCancelled()) {
-					done = false;
-				} else {
+				NodeExecution nodeExecution = entry.getKey();
+				Future<NodeResult<T>> futureNodeResult = entry.getValue();
+				String futureId = ObjectUtils.getIdentityHexString(futureNodeResult);
 
-					NodeExecution execution = entry.getKey();
+				try {
+					if (!safeguard.contains(futureId)) {
 
-					try {
+						NodeResult<T> nodeResult = futureNodeResult.get(10L, TimeUnit.MICROSECONDS);
 
-						String futureId = ObjectUtils.getIdentityHexString(entry.getValue());
-
-						if (!saveGuard.contains(futureId)) {
-
-							if (execution.isPositional()) {
-								result.add(execution.getPositionalKey(), entry.getValue().get());
-							} else {
-								result.add(entry.getValue().get());
-							}
-
-							saveGuard.add(futureId);
+						if (nodeExecution.isPositional()) {
+							result.add(nodeExecution.getPositionalKey(), nodeResult);
+						} else {
+							result.add(nodeResult);
 						}
-					} catch (ExecutionException cause) {
 
-						RuntimeException exception = convertToDataAccessException((Exception) cause.getCause());
-
-						exceptions.put(execution.getNode(), exception != null ? exception : cause.getCause());
-					} catch (InterruptedException cause) {
-
-						Thread.currentThread().interrupt();
-
-						RuntimeException exception = convertToDataAccessException((Exception) cause.getCause());
-
-						exceptions.put(execution.getNode(), exception != null ? exception : cause.getCause());
-
-						break;
+						safeguard.add(futureId);
 					}
+				} catch (ExecutionException exception) {
+					safeguard.add(futureId);
+					exceptionHandler.accept(nodeExecution, exception.getCause());
+				} catch (TimeoutException ignore) {
+					done = false;
+				} catch (InterruptedException cause) {
+					Thread.currentThread().interrupt();
+					exceptionHandler.accept(nodeExecution, cause);
+					break;
 				}
-			}
-
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				done = true;
-				Thread.currentThread().interrupt();
 			}
 		}
 
@@ -278,6 +292,17 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		return result;
+	}
+
+	private BiConsumer<NodeExecution, Throwable> getExceptionHandlerFunction(Map<RedisClusterNode, Throwable> exceptions) {
+
+		return (nodeExecution, throwable) -> {
+
+			DataAccessException dataAccessException = convertToDataAccessException((Exception) throwable);
+			Throwable resolvedException = dataAccessException != null ? dataAccessException : throwable;
+
+			exceptions.putIfAbsent(nodeExecution.getNode(), resolvedException);
+		};
 	}
 
 	/**
@@ -306,8 +331,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 			if (entry.getKey().isMaster()) {
 				for (PositionalKey key : entry.getValue()) {
-					futures.put(new NodeExecution(entry.getKey(), key), this.executor
-							.submit(() -> executeMultiKeyCommandOnSingleNode(commandCallback, entry.getKey(), key.getBytes())));
+					futures.put(new NodeExecution(entry.getKey(), key), this.executor.submit(() ->
+							executeMultiKeyCommandOnSingleNode(commandCallback, entry.getKey(), key.getBytes())));
 				}
 			}
 		}
@@ -328,10 +353,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		try {
 			return new NodeResult<>(node, commandCallback.doInCluster(client, key), key);
-		} catch (RuntimeException ex) {
+		} catch (RuntimeException cause) {
 
-			RuntimeException translatedException = convertToDataAccessException(ex);
-			throw translatedException != null ? translatedException : ex;
+			RuntimeException translatedException = convertToDataAccessException(cause);
+
+			throw translatedException != null ? translatedException : cause;
 		} finally {
 			this.resourceProvider.returnResourceForSpecificNode(node, client);
 		}
@@ -343,7 +369,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 	@Nullable
 	private DataAccessException convertToDataAccessException(Exception cause) {
-		return exceptionTranslationStrategy.translate(cause);
+		return this.exceptionTranslationStrategy.translate(cause);
 	}
 
 	/**
@@ -395,7 +421,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
-	private static class NodeExecution {
+	static class NodeExecution {
 
 		private final RedisClusterNode node;
 		private final @Nullable PositionalKey positionalKey;
@@ -414,7 +440,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * Get the {@link RedisClusterNode} the execution happens on.
 		 */
 		RedisClusterNode getNode() {
-			return node;
+			return this.node;
 		}
 
 		/**
@@ -423,30 +449,31 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @since 2.0.3
 		 */
 		PositionalKey getPositionalKey() {
-			return positionalKey;
+			return this.positionalKey;
 		}
 
 		boolean isPositional() {
-			return positionalKey != null;
+			return this.positionalKey != null;
 		}
 	}
 
 	/**
-	 * {@link NodeResult} encapsulates the actual value returned by a {@link ClusterCommandCallback} on a given
-	 * {@link RedisClusterNode}.
+	 * {@link NodeResult} encapsulates the actual {@link T value} returned by a {@link ClusterCommandCallback}
+	 * on a given {@link RedisClusterNode}.
 	 *
+	 * @param <T> {@link Class Type} of the {@link Object value} returned in the result.
 	 * @author Christoph Strobl
-	 * @param <T>
+	 * @author John Blum
 	 * @since 1.7
 	 */
 	public static class NodeResult<T> {
 
 		private RedisClusterNode node;
-		private @Nullable T value;
 		private ByteArrayWrapper key;
+		private @Nullable T value;
 
 		/**
-		 * Create new {@link NodeResult}.
+		 * Create a new {@link NodeResult}.
 		 *
 		 * @param node must not be {@literal null}.
 		 * @param value can be {@literal null}.
@@ -456,7 +483,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		/**
-		 * Create new {@link NodeResult}.
+		 * Create a new {@link NodeResult}.
 		 *
 		 * @param node must not be {@literal null}.
 		 * @param value can be {@literal null}.
@@ -465,9 +492,26 @@ public class ClusterCommandExecutor implements DisposableBean {
 		public NodeResult(RedisClusterNode node, @Nullable T value, byte[] key) {
 
 			this.node = node;
-			this.value = value;
-
 			this.key = new ByteArrayWrapper(key);
+			this.value = value;
+		}
+
+		/**
+		 * Get the {@link RedisClusterNode} the command was executed on.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public RedisClusterNode getNode() {
+			return this.node;
+		}
+
+		/**
+		 * Return the {@link byte[] key} mapped to the value stored in Redis.
+		 *
+		 * @return a {@link byte[] byte array} of the key mapped to the value stored in Redis.
+		 */
+		public byte[] getKey() {
+			return this.key.getArray();
 		}
 
 		/**
@@ -477,25 +521,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		@Nullable
 		public T getValue() {
-			return value;
-		}
-
-		/**
-		 * Get the {@link RedisClusterNode} the command was executed on.
-		 *
-		 * @return never {@literal null}.
-		 */
-		public RedisClusterNode getNode() {
-			return node;
-		}
-
-		/**
-		 * Returns the key as an array of bytes.
-		 *
-		 * @return the key as an array of bytes.
-		 */
-		public byte[] getKey() {
-			return key.getArray();
+			return this.value;
 		}
 
 		/**
@@ -512,6 +538,34 @@ public class ClusterCommandExecutor implements DisposableBean {
 			Assert.notNull(mapper, "Mapper function must not be null");
 
 			return mapper.apply(getValue());
+		}
+
+		@Override
+		public boolean equals(@Nullable Object obj) {
+
+			if (obj == this) {
+				return true;
+			}
+
+			if (!(obj instanceof NodeResult<?> that)) {
+				return false;
+			}
+
+			return ObjectUtils.nullSafeEquals(this.getNode(), that.getNode())
+				&& Objects.equals(this.key, that.key)
+				&& Objects.equals(this.getValue(), that.getValue());
+		}
+
+		@Override
+		public int hashCode() {
+
+			int hashValue = 17;
+
+			hashValue = 37 * hashValue + ObjectUtils.nullSafeHashCode(getNode());
+			hashValue = 37 * hashValue + ObjectUtils.nullSafeHashCode(this.key);
+			hashValue = 37 * hashValue + ObjectUtils.nullSafeHashCode(getValue());
+
+			return hashValue;
 		}
 	}
 
@@ -566,12 +620,14 @@ public class ClusterCommandExecutor implements DisposableBean {
 			if (positionalResults.isEmpty()) {
 
 				List<NodeResult<T>> clone = new ArrayList<>(nodeResults);
+
 				clone.sort(new ResultByReferenceKeyPositionComparator(keys));
 
 				return toList(clone);
 			}
 
 			Map<PositionalKey, NodeResult<T>> result = new TreeMap<>(new ResultByKeyPositionComparator(keys));
+
 			result.putAll(positionalResults);
 
 			return result.values().stream().map(tNodeResult -> tNodeResult.value).collect(Collectors.toList());
@@ -604,10 +660,12 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		private List<T> toList(Collection<NodeResult<T>> source) {
 
-			ArrayList<T> result = new ArrayList<>();
+			List<T> result = new ArrayList<>();
+
 			for (NodeResult<T> nodeResult : source) {
 				result.add(nodeResult.getValue());
 			}
+
 			return result;
 		}
 
@@ -678,7 +736,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @return binary key.
 		 */
 		byte[] getBytes() {
-			return key.getArray();
+			return getKey().getArray();
 		}
 
 		public ByteArrayWrapper getKey() {
@@ -690,23 +748,23 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		@Override
-		public boolean equals(@Nullable Object o) {
-			if (this == o)
+		public boolean equals(@Nullable Object obj) {
+
+			if (this == obj) {
 				return true;
-			if (o == null || getClass() != o.getClass())
+			}
+
+			if (!(obj instanceof PositionalKey that))
 				return false;
 
-			PositionalKey that = (PositionalKey) o;
-
-			if (position != that.position)
-				return false;
-			return ObjectUtils.nullSafeEquals(key, that.key);
+			return this.getPosition() == that.getPosition()
+				&& ObjectUtils.nullSafeEquals(this.getKey(), that.getKey());
 		}
 
 		@Override
 		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(key);
-			result = 31 * result + position;
+			int result = ObjectUtils.nullSafeHashCode(getKey());
+			result = 31 * result + ObjectUtils.nullSafeHashCode(getPosition());
 			return result;
 		}
 	}
@@ -753,6 +811,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		static PositionalKeys of(PositionalKey... keys) {
 
 			PositionalKeys result = PositionalKeys.empty();
+
 			result.append(keys);
 
 			return result;
@@ -769,12 +828,12 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @return index of the {@link PositionalKey}.
 		 */
 		int indexOf(PositionalKey key) {
-			return keys.indexOf(key);
+			return this.keys.indexOf(key);
 		}
 
 		@Override
 		public Iterator<PositionalKey> iterator() {
-			return keys.iterator();
+			return this.keys.iterator();
 		}
 	}
 }
