@@ -136,7 +136,8 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(KeyValueRepository.class), TypeReference.of(KeyValueRepositoryFactoryBean.class),
 						TypeReference.of(QueryCreatorType.class), TypeReference.of(KeyValuePartTreeQuery.class)),
 
-				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS));
+				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_METHODS,
+						MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		// PROXIES
 		hints.proxies().registerJdkProxy(TypeReference.of(RedisConnection.class));
@@ -164,12 +165,12 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 
 		String boundTargetClass = typeReference.getPackageName() + "." + typeReference.getSimpleName().replace("Bound", "");
 		if (ClassUtils.isPresent(boundTargetClass, classLoader)) {
-			hints.reflection().registerType(TypeReference.of(boundTargetClass), hint -> hint
-					.withMembers(MemberCategory.INVOKE_DECLARED_METHODS));
+			hints.reflection().registerType(TypeReference.of(boundTargetClass),
+					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_PUBLIC_METHODS));
 		}
 
-		hints.reflection().registerType(typeReference, hint -> hint
-				.withMembers(MemberCategory.INVOKE_DECLARED_METHODS));
+		hints.reflection().registerType(typeReference,
+				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		hints.proxies().registerJdkProxy(typeReference, //
 				TypeReference.of("org.springframework.aop.SpringProxy"), //
