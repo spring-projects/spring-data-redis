@@ -16,7 +16,6 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 
 import java.nio.charset.Charset;
@@ -33,8 +32,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
+import org.springframework.data.redis.test.condition.EnabledOnRedisDriver.DriverQualifier;
+import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -55,7 +56,7 @@ public class DefaultRedisCacheWriterTests {
 	private byte[] binaryCacheKey = cacheKey.getBytes(StandardCharsets.UTF_8);
 	private byte[] binaryCacheValue = "value".getBytes(StandardCharsets.UTF_8);
 
-	private RedisConnectionFactory connectionFactory;
+	private final @DriverQualifier RedisConnectionFactory connectionFactory;
 
 	public DefaultRedisCacheWriterTests(RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -147,9 +148,8 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void cacheHitRetrieveShouldIncrementStatistics() throws ExecutionException, InterruptedException {
-
-		assumeThat(connectionFactory).isInstanceOf(LettuceConnectionFactory.class);
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
@@ -163,9 +163,8 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void storeShouldIncrementStatistics() throws ExecutionException, InterruptedException {
-
-		assumeThat(connectionFactory).isInstanceOf(LettuceConnectionFactory.class);
 
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
@@ -176,9 +175,8 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void cacheMissRetrieveWithLoaderAsyncShouldIncrementStatistics() throws ExecutionException, InterruptedException {
-
-		assumeThat(connectionFactory).isInstanceOf(LettuceConnectionFactory.class);
 
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
