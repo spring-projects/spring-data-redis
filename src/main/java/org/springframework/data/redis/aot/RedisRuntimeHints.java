@@ -106,6 +106,7 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(ReactiveClusterScriptingCommands.class),
 						TypeReference.of(ReactiveClusterGeoCommands.class),
 						TypeReference.of(ReactiveClusterHyperLogLogCommands.class), TypeReference.of(ReactiveRedisOperations.class),
+						TypeReference.of(ReactiveRedisConnectionFactory.class),
 						TypeReference.of(ReactiveRedisTemplate.class), TypeReference.of(RedisOperations.class),
 						TypeReference.of(RedisTemplate.class), TypeReference.of(StringRedisTemplate.class),
 						TypeReference.of(KeyspaceConfiguration.class), TypeReference.of(MappingConfiguration.class),

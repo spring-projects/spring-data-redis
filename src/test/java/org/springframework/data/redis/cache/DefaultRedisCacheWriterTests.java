@@ -16,6 +16,7 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 
 import java.nio.charset.Charset;
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -31,10 +33,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
@@ -67,12 +67,6 @@ public class DefaultRedisCacheWriterTests {
 
 	@BeforeEach
 	void setUp() {
-
-		JedisConnectionFactory connectionFactory =
-				JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
-
-		this.connectionFactory = connectionFactory;
-
 		doWithConnection(RedisConnection::flushAll);
 	}
 
@@ -150,6 +144,49 @@ public class DefaultRedisCacheWriterTests {
 	@ParameterizedRedisTest // DATAREDIS-481
 	void getShouldReturnNullWhenKeyDoesNotExist() {
 		assertThat(nonLockingRedisCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey)).isNull();
+	}
+
+	@ParameterizedRedisTest // GH-2650
+	void cacheHitRetrieveShouldIncrementStatistics() throws ExecutionException, InterruptedException {
+
+		assumeThat(connectionFactory).isInstanceOf(LettuceConnectionFactory.class);
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		writer.retrieve(CACHE_NAME, binaryCacheKey).get();
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getGets()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getHits()).isOne();
+	}
+
+	@ParameterizedRedisTest // GH-2650
+	void storeShouldIncrementStatistics() throws ExecutionException, InterruptedException {
+
+		assumeThat(connectionFactory).isInstanceOf(LettuceConnectionFactory.class);
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		writer.store(CACHE_NAME, binaryCacheKey, binaryCacheValue, null).get();
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
+	}
+
+	@ParameterizedRedisTest // GH-2650
+	void cacheMissRetrieveWithLoaderAsyncShouldIncrementStatistics() throws ExecutionException, InterruptedException {
+
+		assumeThat(connectionFactory).isInstanceOf(LettuceConnectionFactory.class);
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		writer.retrieve(CACHE_NAME, binaryCacheKey).get();
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getGets()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getMisses()).isOne();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-481, DATAREDIS-1082
@@ -253,8 +290,8 @@ public class DefaultRedisCacheWriterTests {
 
 		((DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory)).lock(CACHE_NAME);
 
-		lockingRedisCacheWriter(connectionFactory).put(CACHE_NAME + "-no-the-other-cache", binaryCacheKey,
-				binaryCacheValue, Duration.ZERO);
+		lockingRedisCacheWriter(connectionFactory).put(CACHE_NAME + "-no-the-other-cache", binaryCacheKey, binaryCacheValue,
+				Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -341,8 +378,7 @@ public class DefaultRedisCacheWriterTests {
 
 		afterWrite.await();
 
-		assertThat(exceptionRef.get()).hasMessageContaining("Interrupted while waiting to unlock")
-				.hasCauseInstanceOf(InterruptedException.class);
+		assertThat(exceptionRef.get()).hasRootCauseInstanceOf(InterruptedException.class);
 	}
 
 	@ParameterizedRedisTest // GH-2300
