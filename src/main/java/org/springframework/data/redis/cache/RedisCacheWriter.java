@@ -88,8 +88,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
 
-		return lockingRedisCacheWriter(connectionFactory, Duration.ofMillis(50), TtlFunction.persistent(),
-				batchStrategy);
+		return lockingRedisCacheWriter(connectionFactory, Duration.ofMillis(50), TtlFunction.persistent(), batchStrategy);
 	}
 
 	/**
@@ -108,8 +107,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
-		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtlFunction,
-				CacheStatisticsCollector.none(), batchStrategy);
+		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtlFunction, CacheStatisticsCollector.none(),
+				batchStrategy);
 	}
 
 	/**
@@ -124,8 +123,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	byte[] get(String name, byte[] key);
 
 	/**
-	 * Get the binary value representation from Redis stored for the given key and set the given
-	 * {@link Duration TTL expiration} for the cache entry.
+	 * Get the binary value representation from Redis stored for the given key and set the given {@link Duration TTL
+	 * expiration} for the cache entry.
 	 *
 	 * @param name must not be {@literal null}.
 	 * @param key must not be {@literal null}.
@@ -138,18 +137,19 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	}
 
 	/**
-	 * Determines whether the asynchronous {@link #retrieve(String, byte[])}
-	 * and {@link #retrieve(String, byte[], Duration)} cache operations are supported by the implementation.
+	 * Determines whether the asynchronous {@link #retrieve(String, byte[])} and
+	 * {@link #retrieve(String, byte[], Duration)} cache operations are supported by the implementation.
 	 * <p>
-	 * The main factor for whether the {@literal retrieve} operation can be supported will primarily be determined by
-	 * the Redis driver in use at runtime.
+	 * The main factor for whether the {@literal retrieve} operation can be supported will primarily be determined by the
+	 * Redis driver in use at runtime.
 	 * <p>
-	 * Returns {@literal false} by default. This will have an effect of {@link RedisCache#retrieve(Object)}
-	 * and {@link RedisCache#retrieve(Object, Supplier)} throwing an {@link UnsupportedOperationException}.
+	 * Returns {@literal false} by default. This will have an effect of {@link RedisCache#retrieve(Object)} and
+	 * {@link RedisCache#retrieve(Object, Supplier)} throwing an {@link UnsupportedOperationException}.
 	 *
 	 * @return {@literal true} if asynchronous {@literal retrieve} operations are supported by the implementation.
+	 * @since 3.2
 	 */
-	default boolean isRetrieveSupported() {
+	default boolean supportsAsyncRetrieve() {
 		return false;
 	}
 
@@ -162,7 +162,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param key {@link byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
 	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
 	 * @see #retrieve(String, byte[], Duration)
-	 * @since 3.2.0
+	 * @since 3.2
 	 */
 	default CompletableFuture<byte[]> retrieve(String name, byte[] key) {
 		return retrieve(name, key, null);
@@ -178,7 +178,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param key {@link byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
 	 * @param ttl {@link Duration} specifying the {@literal expiration timeout} for the cache entry.
 	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
-	 * @since 3.2.0
+	 * @since 3.2
 	 */
 	CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl);
 
@@ -191,6 +191,19 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param ttl Optional expiration time. Can be {@literal null}.
 	 */
 	void put(String name, byte[] key, byte[] value, @Nullable Duration ttl);
+
+	/**
+	 * Store the given key/value pair asynchronously to Redis and set the expiration time if defined.
+	 * <p>
+	 * This operation is non-blocking.
+	 *
+	 * @param name The cache name must not be {@literal null}.
+	 * @param key The key for the cache entry. Must not be {@literal null}.
+	 * @param value The value stored for the key. Must not be {@literal null}.
+	 * @param ttl Optional expiration time. Can be {@literal null}.
+	 * @since 3.2
+	 */
+	CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl);
 
 	/**
 	 * Write the given value to Redis if the key does not already exist.
@@ -272,15 +285,15 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		/**
 		 * Compute a {@link Duration time-to-live (TTL)} using the cache {@code key} and {@code value}.
 		 * <p>
-		 * The {@link Duration time-to-live (TTL)} is computed on each write operation. Redis uses millisecond
-		 * granularity for timeouts. Any more granular values (e.g. micros or nanos) are not considered
-		 * and will be truncated due to rounding. Returning {@link Duration#ZERO}, or a value less than
-		 * {@code Duration.ofMillis(1)}, results in a persistent value that does not expire.
+		 * The {@link Duration time-to-live (TTL)} is computed on each write operation. Redis uses millisecond granularity
+		 * for timeouts. Any more granular values (e.g. micros or nanos) are not considered and will be truncated due to
+		 * rounding. Returning {@link Duration#ZERO}, or a value less than {@code Duration.ofMillis(1)}, results in a
+		 * persistent value that does not expire.
 		 *
 		 * @param key the cache key.
 		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
 		 * @return the computed {@link Duration time-to-live (TTL)}. Can be {@link Duration#ZERO} for persistent values
-		 * (i.e. cache entry does not expire).
+		 *         (i.e. cache entry does not expire).
 		 */
 		Duration getTimeToLive(Object key, @Nullable Object value);
 

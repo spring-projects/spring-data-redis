@@ -15,18 +15,16 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.awaitility.Awaitility.*;
+
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -45,7 +43,6 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -57,13 +54,9 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
-import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -353,8 +346,9 @@ public class RedisCacheTests {
 
 		cacheWithCustomPrefix.put("key-1", sample);
 
-		doWithConnection(connection -> assertThat(connection.stringCommands()
-				.get("_cache_key-1".getBytes(StandardCharsets.UTF_8))).isEqualTo(binarySample));
+		doWithConnection(
+				connection -> assertThat(connection.stringCommands().get("_cache_key-1".getBytes(StandardCharsets.UTF_8)))
+						.isEqualTo(binarySample));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-1041
@@ -366,8 +360,9 @@ public class RedisCacheTests {
 
 		cacheWithCustomPrefix.put("key-1", sample);
 
-		doWithConnection(connection -> assertThat(connection.stringCommands()
-				.get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8))).isEqualTo(binarySample));
+		doWithConnection(connection -> assertThat(
+				connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
+						.isEqualTo(binarySample));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-715
@@ -429,8 +424,8 @@ public class RedisCacheTests {
 				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate())));
 		cache.put(key, sample);
 
-		ValueWrapper target = cache.get(SimpleKeyGenerator
-				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate()))));
+		ValueWrapper target = cache.get(SimpleKeyGenerator.generateKey(
+				Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate()))));
 
 		assertThat(target.get()).isEqualTo(sample);
 	}
@@ -479,6 +474,11 @@ public class RedisCacheTests {
 			public CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl) {
 				byte[] value = get(name, key);
 				return CompletableFuture.completedFuture(value);
+			}
+
+			@Override
+			public CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+				return null;
 			}
 
 			@Override
@@ -579,21 +579,11 @@ public class RedisCacheTests {
 		assumeThat(this.connectionFactory instanceof JedisConnectionFactory).isTrue();
 
 		assertThatExceptionOfType(UnsupportedOperationException.class)
-			.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey))
-			.withMessageContaining(RedisCache.class.getName())
-			.withNoCause();
-	}
-
-	@ParameterizedRedisTest
-	void retrieveCacheValueWithLoaderUsingJedis() {
-
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.JEDIS) does not work!
-		assumeThat(this.connectionFactory instanceof JedisConnectionFactory).isTrue();
+				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey)).withMessageContaining("RedisCache");
 
 		assertThatExceptionOfType(UnsupportedOperationException.class)
-			.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey, () -> CompletableFuture.completedFuture("TEST")))
-			.withMessageContaining(RedisCache.class.getName())
-			.withNoCause();
+				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey, () -> CompletableFuture.completedFuture("TEST")))
+				.withMessageContaining("RedisCache");
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -631,19 +621,13 @@ public class RedisCacheTests {
 		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(Duration.ofMillis(5L)),
 				usingRedisCacheConfiguration());
 
-		RedisCacheWriter cacheWriter = cache.getCacheWriter();
-
-		assertThat(cacheWriter).isInstanceOf(DefaultRedisCacheWriter.class);
-
-		((DefaultRedisCacheWriter) cacheWriter).lock("cache");
+		DefaultRedisCacheWriter cacheWriter = (DefaultRedisCacheWriter) cache.getCacheWriter();
+		cacheWriter.lock("cache");
 
 		CompletableFuture<String> value = (CompletableFuture<String>) cache.retrieve(this.key);
-
-		assertThat(value).isNotNull();
-		assertThat(value.getNow(mockValue)).isEqualTo(mockValue);
 		assertThat(value).isNotDone();
 
-		((DefaultRedisCacheWriter) cacheWriter).unlock("cache");
+		cacheWriter.unlock("cache");
 
 		assertThat(value.get(15L, TimeUnit.MILLISECONDS)).isEqualTo(testValue);
 		assertThat(value).isDone();
@@ -656,14 +640,8 @@ public class RedisCacheTests {
 		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
 
 		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
-
 		AtomicBoolean loaded = new AtomicBoolean(false);
-
-		Date birthdate = Date.from(LocalDateTime.of(2023, Month.SEPTEMBER, 22, 17, 3)
-				.toInstant(ZoneOffset.UTC));
-
-		Person jon = new Person("Jon", birthdate);
-
+		Person jon = new Person("Jon", Date.from(Instant.now()));
 		CompletableFuture<Person> valueLoader = CompletableFuture.completedFuture(jon);
 
 		Supplier<CompletableFuture<Person>> valueLoaderSupplier = () -> {
@@ -673,11 +651,27 @@ public class RedisCacheTests {
 
 		CompletableFuture<Person> value = cache.retrieve(this.key, valueLoaderSupplier);
 
-		assertThat(value).isNotNull();
 		assertThat(loaded.get()).isFalse();
 		assertThat(value.get()).isEqualTo(jon);
 		assertThat(loaded.get()).isTrue();
 		assertThat(value).isDone();
+	}
+
+	@ParameterizedRedisTest // GH-2650
+	void retrieveStoresLoadedValue() throws Exception {
+
+		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.LETTUCE) does not work!
+		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
+
+		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
+		Person jon = new Person("Jon", Date.from(Instant.now()));
+		Supplier<CompletableFuture<Person>> valueLoaderSupplier = () -> CompletableFuture.completedFuture(jon);
+
+		cache.retrieve(this.key, valueLoaderSupplier).get();
+
+		doWithConnection(
+				connection -> assertThat(connection.keyCommands().exists("cache::key-1".getBytes(StandardCharsets.UTF_8)))
+						.isTrue());
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -732,8 +726,8 @@ public class RedisCacheTests {
 
 	private Function<RedisCacheConfiguration, RedisCacheConfiguration> withTtiExpiration() {
 
-		Function<RedisCacheConfiguration, RedisCacheConfiguration> entryTtlFunction =
-			cacheConfiguration -> cacheConfiguration.entryTtl(Duration.ofMillis(100));
+		Function<RedisCacheConfiguration, RedisCacheConfiguration> entryTtlFunction = cacheConfiguration -> cacheConfiguration
+				.entryTtl(Duration.ofMillis(100));
 
 		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}
@@ -752,7 +746,7 @@ public class RedisCacheTests {
 		private String firstname;
 		private Date birthdate;
 
-		public Person() { }
+		public Person() {}
 
 		public Person(String firstname, Date birthdate) {
 			this.firstname = firstname;
@@ -787,7 +781,7 @@ public class RedisCacheTests {
 			}
 
 			return Objects.equals(this.getFirstname(), that.getFirstname())
-				&& Objects.equals(this.getBirthdate(), that.getBirthdate());
+					&& Objects.equals(this.getBirthdate(), that.getBirthdate());
 		}
 
 		@Override
@@ -797,8 +791,7 @@ public class RedisCacheTests {
 
 		@Override
 		public String toString() {
-			return "RedisCacheTests.Person(firstname=" + this.getFirstname()
-				+ ", birthdate=" + this.getBirthdate() + ")";
+			return "RedisCacheTests.Person(firstname=" + this.getFirstname() + ", birthdate=" + this.getBirthdate() + ")";
 		}
 	}
 
@@ -844,7 +837,7 @@ public class RedisCacheTests {
 			}
 
 			return Objects.equals(this.getFirstname(), that.getFirstname())
-				&& Objects.equals(this.getBirthdate(), that.getBirthdate());
+					&& Objects.equals(this.getBirthdate(), that.getBirthdate());
 		}
 
 		@Override
@@ -854,8 +847,7 @@ public class RedisCacheTests {
 
 		@Override
 		public String toString() {
-			return "RedisCacheTests.ComplexKey(firstame=" + this.getFirstname()
-				+ ", birthdate=" + this.getBirthdate() + ")";
+			return "RedisCacheTests.ComplexKey(firstame=" + this.getFirstname() + ", birthdate=" + this.getBirthdate() + ")";
 		}
 	}
 }

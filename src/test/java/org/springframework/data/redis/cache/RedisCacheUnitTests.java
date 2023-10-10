@@ -15,29 +15,20 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
-
-import org.springframework.cache.support.NullValue;
-import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 /**
  * Unit tests for {@link RedisCache}.
  *
  * @author John Blum
+ * @author Mark Paluch
  */
 class RedisCacheUnitTests {
 
@@ -46,76 +37,21 @@ class RedisCacheUnitTests {
 
 		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
 
-		doReturn(CompletableFuture.completedFuture("TEST".getBytes()))
-				.when(mockCacheWriter).retrieve(anyString(), any(byte[].class));
+		when(mockCacheWriter.supportsAsyncRetrieve()).thenReturn(true);
+		when(mockCacheWriter.retrieve(anyString(), any(byte[].class)))
+				.thenReturn(CompletableFuture.completedFuture("TEST".getBytes()));
 
 		RedisCache cache = new RedisCache("TestCache", mockCacheWriter,
-				RedisCacheConfiguration.defaultCacheConfig());
+				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.byteArray()));
 
-		CompletableFuture<byte[]> value = cache.retrieveValue("TestKey");
+		CompletableFuture<byte[]> value = (CompletableFuture<byte[]>) cache.retrieve("TestKey");
 
 		assertThat(value).isNotNull();
 		assertThat(new String(value.get())).isEqualTo("TEST");
 
 		verify(mockCacheWriter, times(1)).retrieve(eq("TestCache"), isA(byte[].class));
+		verify(mockCacheWriter).supportsAsyncRetrieve();
 		verifyNoMoreInteractions(mockCacheWriter);
 	}
 
-	@Test // GH-2650
-	void nullSafeDeserializedStoreValueWithNullValueIsNullSafe() {
-
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
-		RedisCache cache = new RedisCache("TestCache", mockCacheWriter, cacheConfiguration);
-
-		assertThat(cache.nullSafeDeserializedStoreValue(null)).isNull();
-
-		verifyNoInteractions(mockCacheWriter);
-	}
-
-	@Test // GH-2650
-	void nullSafeDeserializedStoreValueWithBinaryNullValueAllowingNullValues() {
-
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
-		RedisCache cache = new RedisCache("TestCache", mockCacheWriter, cacheConfiguration);
-
-		assertThat(cacheConfiguration.getAllowCacheNullValues()).isTrue();
-		assertThat(cache.nullSafeDeserializedStoreValue(RedisCache.BINARY_NULL_VALUE)).isNull();
-
-		verifyNoInteractions(mockCacheWriter);
-	}
-
-	@Test // GH-2650
-	void nullSafeDeserializedStoreValueWithBinaryNullValueDisablingNullValues() {
-
-		RedisCacheConfiguration cacheConfiguration =
-				RedisCacheConfiguration.defaultCacheConfig().disableCachingNullValues();
-
-		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
-
-		RedisCache cache = new RedisCache("TestCache", mockCacheWriter, cacheConfiguration);
-
-		assertThat(cacheConfiguration.getAllowCacheNullValues()).isFalse();
-		assertThat(cache.nullSafeDeserializedStoreValue(RedisCache.BINARY_NULL_VALUE)).isEqualTo(NullValue.INSTANCE);
-
-		verifyNoInteractions(mockCacheWriter);
-	}
-
-	@Test // GH-2650
-	void nullSafeDeserializedStoreValueWithNonNullValue() {
-
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
-
-		byte[] serializedValue = ByteUtils.getBytes(cacheConfiguration.getValueSerializationPair()
-				.write("TestValue"));
-
-		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
-
-		RedisCache cache = new RedisCache("TestCache", mockCacheWriter, cacheConfiguration);
-
-		assertThat(cache.nullSafeDeserializedStoreValue(serializedValue)).isEqualTo("TestValue");
-
-		verifyNoInteractions(mockCacheWriter);
-	}
 }
