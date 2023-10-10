@@ -59,10 +59,15 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 
 		if (annotatedFields.isEmpty()) {
 			throw new IllegalStateException(
-					"@EnabledOnRedisDriver requires a field of type RedisConnectionFactory annotated with @DriverQualifier");
+					"@EnabledOnRedisDriver requires a field of type \"RedisConnectionFactory\" annotated with @DriverQualifier");
+		}
+
+		if (context.getTestInstance().isEmpty()) {
+			return ENABLED_BY_DEFAULT;
 		}
 
 		for (Field field : annotatedFields) {
+
 			Try<Object> fieldValue = ReflectionUtils.tryToReadFieldValue(field, context.getRequiredTestInstance());
 
 			RedisConnectionFactory value = (RedisConnectionFactory) fieldValue
@@ -76,7 +81,8 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 			}
 
 			if (!foundMatch) {
-				return disabled(String.format("Driver %s not supported; Supported driver(s): %s", value,
+				return disabled(String.format("Driver %s not supported; Supported driver(s): %s",
+						formatUnsupportedDriver(value),
 						Arrays.toString(annotation.value())));
 			}
 		}
@@ -85,4 +91,14 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 
 	}
 
+	private static String formatUnsupportedDriver(RedisConnectionFactory value) {
+
+		for (RedisDriver redisDriver : RedisDriver.values()) {
+			if (redisDriver.matches(value)) {
+				return redisDriver.toString();
+			}
+		}
+
+		return value.toString();
+	}
 }

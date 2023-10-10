@@ -16,7 +16,6 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
 import static org.awaitility.Awaitility.*;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -49,11 +48,12 @@ import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
+import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
+import org.springframework.data.redis.test.condition.EnabledOnRedisDriver.DriverQualifier;
+import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
@@ -80,7 +80,7 @@ public class RedisCacheTests {
 
 	private byte[] binaryNullValue = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
-	private RedisConnectionFactory connectionFactory;
+	private final @DriverQualifier RedisConnectionFactory connectionFactory;
 	private RedisSerializer serializer;
 	private RedisCache cache;
 
@@ -284,12 +284,8 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-1721
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE) // SCAN not supported via Jedis Cluster.
 	void clearWithScanShouldClearCache() {
-
-		// SCAN not supported via Jedis Cluster.
-		if (connectionFactory instanceof JedisConnectionFactory) {
-			assumeThat(((JedisConnectionFactory) connectionFactory).isRedisClusterAware()).isFalse();
-		}
 
 		RedisCache cache = new RedisCache("cache",
 				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(25)),
@@ -573,10 +569,8 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.JEDIS)
 	void retrieveCacheValueUsingJedis() {
-
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.JEDIS) does not work!
-		assumeThat(this.connectionFactory instanceof JedisConnectionFactory).isTrue();
 
 		assertThatExceptionOfType(UnsupportedOperationException.class)
 				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey)).withMessageContaining("RedisCache");
@@ -587,11 +581,9 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	@SuppressWarnings("unchecked")
 	void retrieveReturnsCachedValue() throws Exception {
-
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.LETTUCE) does not work!
-		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
 
 		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
 
@@ -605,13 +597,10 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	@SuppressWarnings("unchecked")
 	void retrieveReturnsCachedValueWhenLockIsReleased() throws Exception {
 
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.LETTUCE) does not work!
-		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
-
-		String mockValue = "MockValue";
 		String testValue = "TestValue";
 
 		byte[] binaryCacheValue = this.serializer.serialize(testValue);
@@ -634,10 +623,8 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsLoadedValue() throws Exception {
-
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.LETTUCE) does not work!
-		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
 
 		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
 		AtomicBoolean loaded = new AtomicBoolean(false);
@@ -658,10 +645,8 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveStoresLoadedValue() throws Exception {
-
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.LETTUCE) does not work!
-		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
 
 		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
 		Person jon = new Person("Jon", Date.from(Instant.now()));
@@ -675,10 +660,8 @@ public class RedisCacheTests {
 	}
 
 	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsNull() throws Exception {
-
-		// TODO: Is there a better way to do this? @EnableOnRedisDriver(RedisDriver.LETTUCE) does not work!
-		assumeThat(this.connectionFactory instanceof LettuceConnectionFactory).isTrue();
 
 		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binaryNullValue));
 
@@ -733,11 +716,8 @@ public class RedisCacheTests {
 	}
 
 	void doWithConnection(Consumer<RedisConnection> callback) {
-		RedisConnection connection = connectionFactory.getConnection();
-		try {
+		try (RedisConnection connection = connectionFactory.getConnection()) {
 			callback.accept(connection);
-		} finally {
-			connection.close();
 		}
 	}
 
