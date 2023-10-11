@@ -15,13 +15,7 @@
  */
 package org.springframework.data.redis.test.util;
 
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockingDetails;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,10 +33,9 @@ import org.mockito.invocation.MatchableInvocation;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.mockito.verification.VerificationMode;
-
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
+import org.springframework.util.function.ThrowingFunction;
 
 /**
  * Utilities for using {@literal Mockito} and creating {@link Object mock objects} in {@literal unit tests}.
@@ -64,7 +57,7 @@ public abstract class MockitoUtils {
 	 * @see java.util.concurrent.Future
 	 */
 	@SuppressWarnings("unchecked")
-	public static @NonNull <T> Future<T> mockFuture(@Nullable T result) {
+	public static <T> Future<T> mockFuture(@Nullable T result) {
 
 		try {
 
@@ -77,9 +70,8 @@ public abstract class MockitoUtils {
 			// The cancel(..) logic is not Thread-safe due to compound actions involving multiple variables.
 			// However, the cancel(..) logic does not necessarily need to be Thread-safe given the task execution
 			// of a Future is asynchronous and cancellation is driven by Thread interrupt from another Thread.
-			Answer<Boolean> cancelAnswer = invocation -> !done.get()
-				&& cancelled.compareAndSet(done.get(), true)
-				&& done.compareAndSet(done.get(), true);
+			Answer<Boolean> cancelAnswer = invocation -> !done.get() && cancelled.compareAndSet(done.get(), true)
+					&& done.compareAndSet(done.get(), true);
 
 			Answer<T> getAnswer = invocation -> {
 
@@ -104,32 +96,38 @@ public abstract class MockitoUtils {
 			doAnswer(getAnswer).when(mockFuture).get(anyLong(), isA(TimeUnit.class));
 
 			return mockFuture;
-		}
-		catch (Exception cause) {
+		} catch (Exception cause) {
 			String message = String.format("Failed to create a mock of Future having result [%s]", result);
 			throw new IllegalStateException(message, cause);
 		}
 	}
 
 	/**
-	 * Creates a mock {@link Future} returning the given {@link Object result}, customized with the given,
-	 * required {@link Function}.
+	 * Creates a mock {@link Future} returning the given {@link Object result}, customized with the given, required
+	 * {@link Function}.
 	 *
 	 * @param <T> {@link Class type} of {@link Object result} returned by the mock {@link Future}.
 	 * @param result {@link Object value} returned as the {@literal result} of the mock {@link Future}.
-	 * @param futureFunction {@link Function} used to customize the mock {@link Future} on creation;
-	 * must not be {@literal null}.
+	 * @param futureFunction {@link Function} used to customize the mock {@link Future} on creation; must not be
+	 *          {@literal null}.
 	 * @return a new mock {@link Future}.
-	 * @see java.util.concurrent.Future
-	 * @see java.util.function.Function
 	 * @see #mockFuture(Object)
 	 */
-	public static @NonNull <T> Future<T> mockFuture(@Nullable T result,
-			@NonNull ThrowableFunction<Future<T>, Future<T>> futureFunction) {
+	public static <T> Future<T> mockFuture(@Nullable T result, ThrowingFunction<Future<T>, Future<T>> futureFunction) {
 
 		Future<T> mockFuture = mockFuture(result);
 
 		return futureFunction.apply(mockFuture);
+	}
+
+	/**
+	 * Verifies a given method is called once across all given mocks.
+	 *
+	 * @param method {@link String name} of a {@link java.lang.reflect.Method} on the {@link Object mock object}.
+	 * @param mocks array of {@link Object mock objects} to verify.
+	 */
+	public static void verifyInvocationsAcross(String method, Object... mocks) {
+		verifyInvocationsAcross(method, times(1), mocks);
 	}
 
 	/**
@@ -141,19 +139,19 @@ public abstract class MockitoUtils {
 	 */
 	public static void verifyInvocationsAcross(String method, VerificationMode mode, Object... mocks) {
 
-		mode.verify(new VerificationDataImpl(getInvocations(method, mocks), new InvocationMatcher(null, Collections
-				.singletonList(org.mockito.internal.matchers.Any.ANY)) {
+		mode.verify(new VerificationDataImpl(getInvocations(method, mocks),
+				new InvocationMatcher(null, Collections.singletonList(org.mockito.internal.matchers.Any.ANY)) {
 
-			@Override
-			public boolean matches(Invocation actual) {
-				return true;
-			}
+					@Override
+					public boolean matches(Invocation actual) {
+						return true;
+					}
 
-			@Override
-			public String toString() {
-				return String.format("%s for method: %s", mode, method);
-			}
-		}));
+					@Override
+					public String toString() {
+						return String.format("%s for method: %s", mode, method);
+					}
+				}));
 	}
 
 	private static List<Invocation> getInvocations(String method, Object... mocks) {
@@ -196,29 +194,4 @@ public abstract class MockitoUtils {
 		}
 	}
 
-	@FunctionalInterface
-	public interface ThrowableFunction<T, R> extends Function<T, R> {
-
-		@Override
-		default R apply(T target) {
-
-			try {
-				return applyThrowingException(target);
-			}
-			catch (Throwable cause) {
-				String message = String.format("Failed to apply Function [%s] to target [%s]", this, target);
-				throw new IllegalStateException(message, cause);
-			}
-		}
-
-		R applyThrowingException(T target) throws Throwable;
-
-		@SuppressWarnings("unchecked")
-		default @NonNull <U> ThrowableFunction<T, U> andThen(
-				@Nullable ThrowableFunction<? super R, ? extends U> after) {
-
-			return after == null ? (ThrowableFunction<T, U>) this
-				: target -> after.apply(this.apply(target));
-		}
-	}
 }
