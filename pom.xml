@@ -354,7 +354,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
-						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<goals>
@@ -364,8 +363,8 @@
 						</executions>
 					</plugin>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>2.22.2</version>
 						<configuration>
 							<groups>RuntimeHintsTests</groups>
 							<argLine>-javaagent:${org.springframework:spring-core-test:jar}</argLine>
