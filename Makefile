@@ -167,7 +167,7 @@ cluster-init: cluster-start cluster-meet cluster-slots
 # Global
 ########
 clean:
-	rm -rf work/*.conf work/*.log dump.rdb
+	rm -rf work/*.conf work/*.pid work/*.log dump.rdb
 
 clobber:
 	rm -rf work
