@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -227,47 +226,38 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 	<T> MultiNodeResult<T> collectResults(Map<NodeExecution, Future<NodeResult<T>>> futures) {
 
-		NodeExceptionCollector exceptionCollector = new NodeExceptionCollector();
 		MultiNodeResult<T> result = new MultiNodeResult<>();
-		Object placeholder = new Object();
-		Map<Future<NodeResult<T>>, Object> safeguard = new IdentityHashMap<>();
+		NodeExceptionCollector exceptionCollector = new NodeExceptionCollector();
 
-		for (;;) {
+		OUT: while (!futures.isEmpty()) {
 
-			boolean timeout = false;
-			for (Map.Entry<NodeExecution, Future<NodeResult<T>>> entry : futures.entrySet()) {
+			Iterator<Map.Entry<NodeExecution, Future<NodeResult<T>>>> entryIterator = futures.entrySet().iterator();
 
+			while (entryIterator.hasNext()) {
+
+				Map.Entry<NodeExecution, Future<NodeResult<T>>> entry = entryIterator.next();
 				NodeExecution nodeExecution = entry.getKey();
 				Future<NodeResult<T>> futureNodeResult = entry.getValue();
 
 				try {
+					NodeResult<T> nodeResult = futureNodeResult.get(10L, TimeUnit.MICROSECONDS);
 
-					if (!safeguard.containsKey(futureNodeResult)) {
-
-						NodeResult<T> nodeResult = futureNodeResult.get(10L, TimeUnit.MICROSECONDS);
-
-						if (nodeExecution.isPositional()) {
-							result.add(nodeExecution.getPositionalKey(), nodeResult);
-						} else {
-							result.add(nodeResult);
-						}
-
-						safeguard.put(futureNodeResult, placeholder);
+					if (nodeExecution.isPositional()) {
+						result.add(nodeExecution.getPositionalKey(), nodeResult);
+					} else {
+						result.add(nodeResult);
 					}
+
+					entryIterator.remove();
 				} catch (ExecutionException exception) {
-					safeguard.put(futureNodeResult, placeholder);
+					entryIterator.remove();
 					exceptionCollector.addException(nodeExecution, exception.getCause());
 				} catch (TimeoutException ignore) {
-					timeout = true;
 				} catch (InterruptedException exception) {
 					Thread.currentThread().interrupt();
 					exceptionCollector.addException(nodeExecution, exception);
-					break;
+					break OUT;
 				}
-			}
-
-			if (!timeout) {
-				break;
 			}
 		}
 
@@ -300,7 +290,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		Map<NodeExecution, Future<NodeResult<T>>> futures = new LinkedHashMap<>();
 
-		for (Entry<RedisClusterNode, PositionalKeys> entry : nodeKeyMap.entrySet()) {
+		for (Map.Entry<RedisClusterNode, PositionalKeys> entry : nodeKeyMap.entrySet()) {
 
 			if (entry.getKey().isMaster()) {
 				for (PositionalKey key : entry.getValue()) {
