@@ -25,14 +25,17 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -61,23 +64,16 @@ public interface ReactiveZSetCommands {
 	class ZAddCommand extends KeyCommand {
 
 		private final List<Tuple> tuples;
-		private final boolean upsert;
-		private final boolean returnTotalChanged;
+		private final Set<Flag> flags;
 		private final boolean incr;
-		private final boolean gt;
-		private final boolean lt;
 
-		private ZAddCommand(@Nullable ByteBuffer key, List<Tuple> tuples, boolean upsert, boolean returnTotalChanged,
-				boolean incr, boolean gt, boolean lt) {
+		private ZAddCommand(@Nullable ByteBuffer key, List<Tuple> tuples, Set<Flag> flags, boolean incr) {
 
 			super(key);
 
 			this.tuples = tuples;
-			this.upsert = upsert;
-			this.returnTotalChanged = returnTotalChanged;
+			this.flags = flags;
 			this.incr = incr;
-			this.gt = gt;
-			this.lt = lt;
 		}
 
 		/**
@@ -103,7 +99,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(tuples, "Tuples must not be null");
 
-			return new ZAddCommand(null, new ArrayList<>(tuples), false, false, false, false, false);
+			return new ZAddCommand(null, new ArrayList<>(tuples), EnumSet.noneOf(Flag.class), false);
 		}
 
 		/**
@@ -116,7 +112,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new ZAddCommand(key, tuples, upsert, returnTotalChanged, incr, gt, lt);
+			return new ZAddCommand(key, tuples, flags, incr);
 		}
 
 		/**
@@ -126,7 +122,11 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal xx} applied.
 		 */
 		public ZAddCommand xx() {
-			return new ZAddCommand(getKey(), tuples, false, returnTotalChanged, incr, gt, lt);
+
+			EnumSet<Flag> flags = EnumSet.copyOf(this.flags);
+			flags.remove(Flag.NX);
+			flags.add(Flag.XX);
+			return new ZAddCommand(getKey(), tuples, flags, incr);
 		}
 
 		/**
@@ -136,7 +136,11 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal nx} applied.
 		 */
 		public ZAddCommand nx() {
-			return new ZAddCommand(getKey(), tuples, true, returnTotalChanged, incr, gt, lt);
+
+			EnumSet<Flag> flags = EnumSet.copyOf(this.flags);
+			flags.remove(Flag.XX);
+			flags.add(Flag.NX);
+			return new ZAddCommand(getKey(), tuples, flags, incr);
 		}
 
 		/**
@@ -146,17 +150,20 @@ public interface ReactiveZSetCommands {
 		 * @return a new {@link ZAddCommand} with {@literal ch} applied.
 		 */
 		public ZAddCommand ch() {
-			return new ZAddCommand(getKey(), tuples, upsert, true, incr, gt, lt);
+
+			EnumSet<Flag> flags = EnumSet.copyOf(this.flags);
+			flags.add(Flag.CH);
+			return new ZAddCommand(getKey(), tuples, flags, incr);
 		}
 
 		/**
 		 * Applies {@literal incr} mode (When this option is specified ZADD acts like ZINCRBY). Constructs a new command
-		 * instance with all previously configured properties.
+		 * instance with all previously configured properties. Note that the command result returns the score of the member.
 		 *
 		 * @return a new {@link ZAddCommand} with {@literal incr} applied.
 		 */
 		public ZAddCommand incr() {
-			return new ZAddCommand(getKey(), tuples, upsert, upsert, true, gt, lt);
+			return new ZAddCommand(getKey(), tuples, flags, true);
 		}
 
 		/**
@@ -166,7 +173,11 @@ public interface ReactiveZSetCommands {
 		 * @since 2.5
 		 */
 		public ZAddCommand gt() {
-			return new ZAddCommand(getKey(), tuples, upsert, upsert, incr, true, lt);
+
+			EnumSet<Flag> flags = EnumSet.copyOf(this.flags);
+			flags.remove(Flag.LT);
+			flags.add(Flag.GT);
+			return new ZAddCommand(getKey(), tuples, flags, incr);
 		}
 
 		/**
@@ -176,7 +187,11 @@ public interface ReactiveZSetCommands {
 		 * @since 2.5
 		 */
 		public ZAddCommand lt() {
-			return new ZAddCommand(getKey(), tuples, upsert, upsert, incr, gt, true);
+
+			EnumSet<Flag> flags = EnumSet.copyOf(this.flags);
+			flags.remove(Flag.GT);
+			flags.add(Flag.LT);
+			return new ZAddCommand(getKey(), tuples, flags, incr);
 		}
 
 		/**
@@ -187,10 +202,26 @@ public interface ReactiveZSetCommands {
 		}
 
 		/**
-		 * @return
+		 * @return {@code true} if the command does not contain NX or XX flags.
 		 */
 		public boolean isUpsert() {
-			return upsert;
+			return !flags.contains(Flag.NX) && !flags.contains(Flag.XX);
+		}
+
+		/**
+		 * @return {@code true} if the command contains the XX flag.
+		 * @since 3.0.11
+		 */
+		public boolean isIfExists() {
+			return flags.contains(Flag.XX);
+		}
+
+		/**
+		 * @return {@code true} if the command contains the NX flag.
+		 * @since 3.0.11
+		 */
+		public boolean isIfNotExists() {
+			return flags.contains(Flag.NX);
 		}
 
 		/**
@@ -205,7 +236,7 @@ public interface ReactiveZSetCommands {
 		 * @since 2.5
 		 */
 		public boolean isGt() {
-			return gt;
+			return flags.contains(Flag.GT);
 		}
 
 		/**
@@ -213,14 +244,14 @@ public interface ReactiveZSetCommands {
 		 * @since 2.5
 		 */
 		public boolean isLt() {
-			return lt;
+			return flags.contains(Flag.LT);
 		}
 
 		/**
 		 * @return
 		 */
 		public boolean isReturnTotalChanged() {
-			return returnTotalChanged;
+			return flags.contains(Flag.CH);
 		}
 	}
 
