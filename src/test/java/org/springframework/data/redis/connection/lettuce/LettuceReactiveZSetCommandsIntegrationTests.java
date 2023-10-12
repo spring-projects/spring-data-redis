@@ -19,14 +19,20 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.function.Function;
 
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.ReactiveZSetCommands.ZAddCommand;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -53,6 +59,149 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 	@ParameterizedRedisTest // DATAREDIS-525
 	void zAddShouldAddValuesWithScores() {
 		assertThat(connection.zSetCommands().zAdd(KEY_1_BBUFFER, 3.5D, VALUE_1_BBUFFER).block()).isEqualTo(1L);
+	}
+
+	@ParameterizedRedisTest // GH-2731
+	void zAddShouldConsiderAbsentPresentUpsertFlags() {
+
+		Tuple tuple = Tuple.of(VALUE_1_BYTES, 3.5D);
+
+		zAdd(KEY_1_BBUFFER, tuple, Function.identity()).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+
+		// NX
+		zAdd(KEY_1_BBUFFER, tuple, ZAddCommand::nx).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		zAdd(KEY_2_BBUFFER, tuple, ZAddCommand::nx).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+
+		// XX
+		zAdd(KEY_1_BBUFFER, Tuple.of(VALUE_1_BYTES, 3.0D), ZAddCommand::xx).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_1_BBUFFER).map(Number::doubleValue) //
+				.as(StepVerifier::create) //
+				.expectNext(3.0) //
+				.verifyComplete();
+
+		zAdd(KEY_3_BBUFFER, tuple, ZAddCommand::xx).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2731
+	void zAddShouldConsiderLessThan() {
+
+		Tuple tuple = Tuple.of(VALUE_1_BYTES, 3.5D);
+
+		zAdd(KEY_1_BBUFFER, tuple, Function.identity()).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, Tuple.of(VALUE_1_BYTES, 6D), ZAddCommand::lt).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_1_BBUFFER).map(Number::doubleValue) //
+				.as(StepVerifier::create) //
+				.expectNext(3.5) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, Tuple.of(VALUE_1_BYTES, 1D), ZAddCommand::lt).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_1_BBUFFER).map(Number::doubleValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1.0) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2731
+	void zAddShouldConsiderGreaterThan() {
+
+		Tuple tuple = Tuple.of(VALUE_1_BYTES, 3.5D);
+
+		zAdd(KEY_1_BBUFFER, tuple, Function.identity()).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, Tuple.of(VALUE_1_BYTES, 1D), ZAddCommand::gt).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_1_BBUFFER).map(Number::doubleValue) //
+				.as(StepVerifier::create) //
+				.expectNext(3.5) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, Tuple.of(VALUE_1_BYTES, 6D), ZAddCommand::gt).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		connection.zSetCommands().zScore(KEY_1_BBUFFER, VALUE_1_BBUFFER).map(Number::doubleValue) //
+				.as(StepVerifier::create) //
+				.expectNext(6.0) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2731
+	void zAddShouldConsiderIncrFlag() {
+
+		Tuple tuple = Tuple.of(VALUE_1_BYTES, 3.5D);
+
+		zAdd(KEY_1_BBUFFER, tuple, Function.identity()).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, tuple, ZAddCommand::incr).map(Number::intValue) //
+
+				.as(StepVerifier::create) //
+				.expectNext(7) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2731
+	void zAddShouldConsiderChFlag() {
+
+		Tuple tuple = Tuple.of(VALUE_1_BYTES, 3.5D);
+
+		zAdd(KEY_1_BBUFFER, tuple, Function.identity()).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, tuple, ZAddCommand::ch).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(0) //
+				.verifyComplete();
+
+		zAdd(KEY_1_BBUFFER, Tuple.of(VALUE_1_BYTES, 3.0D), ZAddCommand::ch).map(Number::intValue) //
+				.as(StepVerifier::create) //
+				.expectNext(1) //
+				.verifyComplete();
+	}
+
+	private Flux<Number> zAdd(ByteBuffer key, Tuple tuple, Function<ZAddCommand, ZAddCommand> commandCustomizer) {
+		return connection.zSetCommands().zAdd(Mono.just(commandCustomizer.apply(ZAddCommand.tuple(tuple).to(key))))
+				.map(NumericResponse::getOutput);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
