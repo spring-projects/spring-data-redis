@@ -21,7 +21,6 @@ import io.lettuce.core.ScoredValue;
 import io.lettuce.core.Value;
 import io.lettuce.core.ZAddArgs;
 import io.lettuce.core.ZStoreArgs;
-import org.springframework.data.redis.core.TimeoutUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -41,6 +39,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -84,36 +83,32 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			ZAddArgs args = null;
 
-			if (command.isIncr() || command.isUpsert() || command.isReturnTotalChanged()) {
+			if (command.isIncr()) {
 
-				if (command.isIncr()) {
-
-					if (command.getTuples().size() > 1) {
-						throw new IllegalArgumentException("ZADD INCR must not contain more than one tuple!");
-					}
-
-					Tuple tuple = command.getTuples().iterator().next();
-
-					return cmd.zaddincr(command.getKey(), tuple.getScore(), ByteBuffer.wrap(tuple.getValue()))
-							.map(value -> new NumericResponse<>(command, value));
+				if (command.getTuples().size() > 1) {
+					throw new IllegalArgumentException("ZADD INCR must not contain more than one tuple!");
 				}
 
-				if (command.isReturnTotalChanged()) {
-					args = ZAddArgs.Builder.ch();
-				}
+				Tuple tuple = command.getTuples().iterator().next();
 
-				if (command.isUpsert()) {
-					args = args == null ? ZAddArgs.Builder.nx() : args.nx();
-				} else {
-					args = args == null ? ZAddArgs.Builder.xx() : args.xx();
-				}
+				return cmd.zaddincr(command.getKey(), tuple.getScore(), ByteBuffer.wrap(tuple.getValue()))
+						.map(value -> new NumericResponse<>(command, value));
+			}
 
-				if (command.isGt()) {
-					args = args == null ? ZAddArgs.Builder.gt() : args.gt();
-				}
-				if (command.isLt()) {
-					args = args == null ? ZAddArgs.Builder.lt() : args.lt();
-				}
+			if (command.isReturnTotalChanged()) {
+				args = ZAddArgs.Builder.ch();
+			}
+
+			if (command.isIfNotExists()) {
+				args = args == null ? ZAddArgs.Builder.nx() : args.nx();
+			} else if (command.isIfExists()) {
+				args = args == null ? ZAddArgs.Builder.xx() : args.xx();
+			}
+
+			if (command.isGt()) {
+				args = args == null ? ZAddArgs.Builder.gt() : args.gt();
+			} else if (command.isLt()) {
+				args = args == null ? ZAddArgs.Builder.lt() : args.lt();
 			}
 
 			ScoredValue<ByteBuffer>[] values = (ScoredValue<ByteBuffer>[]) command.getTuples().stream()
@@ -161,7 +156,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMember(Publisher)
 	 */
@@ -177,7 +172,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		}));
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.ReactiveZSetCommands#zRandMemberWithScore(Publisher)
 	 */
@@ -189,8 +184,8 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return new CommandResponse<>(command, cmd.zrandmemberWithScores(command.getKey(), command.getCount())
-					.map(this::toTuple));
+			return new CommandResponse<>(command,
+					cmd.zrandmemberWithScores(command.getKey(), command.getCount()).map(this::toTuple));
 		}));
 	}
 
@@ -414,7 +409,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null!");
 
-			if(command.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			if (command.getTimeUnit() == TimeUnit.MILLISECONDS) {
 
 				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout(), command.getTimeUnit());
 
