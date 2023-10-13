@@ -49,11 +49,11 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
- * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON}
- * using dynamic typing.
+ * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON} using
+ * dynamic typing.
  * <p>
- * {@literal JSON} reading and writing can be customized by configuring a {@link JacksonObjectReader}
- * and {@link JacksonObjectWriter}.
+ * {@literal JSON} reading and writing can be customized by configuring a {@link JacksonObjectReader} and
+ * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -66,7 +66,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  */
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 
-
 	private final JacksonObjectReader reader;
 
 	private final JacksonObjectWriter writer;
@@ -78,22 +77,22 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	private final TypeResolver typeResolver;
 
 	/**
-	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for
-	 * default typing.
+	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for default
+	 * typing.
 	 */
 	public GenericJackson2JsonRedisSerializer() {
 		this((String) null);
 	}
 
 	/**
-	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for
-	 * default typing using the given {@link String name}.
+	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for default
+	 * typing using the given {@link String name}.
 	 * <p>
-	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS}
-	 * will be used.
+	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS} will be
+	 * used.
 	 *
-	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information;
-	 * can be {@literal null}.
+	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information; can be
+	 *          {@literal null}.
 	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
 	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
 	 */
@@ -102,15 +101,15 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for
-	 * default typing using the given {@link String name} along with the given, required {@link JacksonObjectReader}
-	 * and {@link JacksonObjectWriter} used to read/write {@link Object Objects} de/serialized as JSON.
+	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for default
+	 * typing using the given {@link String name} along with the given, required {@link JacksonObjectReader} and
+	 * {@link JacksonObjectWriter} used to read/write {@link Object Objects} de/serialized as JSON.
 	 * <p>
-	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS}
-	 * will be used.
+	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS} will be
+	 * used.
 	 *
-	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information;
-	 * can be {@literal null}.
+	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information; can be
+	 *          {@literal null}.
 	 * @param reader {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
 	 * @param writer {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
 	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
@@ -124,8 +123,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		registerNullValueSerializer(this.mapper, classPropertyTypeName);
 
-		StdTypeResolverBuilder typer = TypeResolverBuilder.forEverything(this.mapper)
-				.init(JsonTypeInfo.Id.CLASS, null)
+		StdTypeResolverBuilder typer = TypeResolverBuilder.forEverything(this.mapper).init(JsonTypeInfo.Id.CLASS, null)
 				.inclusion(JsonTypeInfo.As.PROPERTY);
 
 		if (StringUtils.hasText(classPropertyTypeName)) {
@@ -169,8 +167,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		this.reader = RedisAssertions.requireNonNull(reader, "Reader must not be null");
 		this.writer = RedisAssertions.requireNonNull(writer, "Writer must not be null");
 
-		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig()
-				.getDefaultTyper(null) != null);
+		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig().getDefaultTyper(null) != null);
 
 		this.typeResolver = new TypeResolver(Lazy.of(mapper::getTypeFactory),
 				newTypeHintPropertyNameSupplier(mapper, typeHintPropertyName, this.defaultTypingEnabled));
@@ -180,12 +177,13 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			Lazy<Boolean> defaultTypingEnabled) {
 
 		return typeHintPropertyName != null ? () -> typeHintPropertyName
-			: Lazy.of(() -> defaultTypingEnabled.get() ? null
-					: mapper.getDeserializationConfig().getDefaultTyper(null)
-							.buildTypeDeserializer(mapper.getDeserializationConfig(),
-									mapper.getTypeFactory().constructType(Object.class), Collections.emptyList())
-						.getPropertyName())
-					.or("@class");
+				: Lazy
+						.of(() -> defaultTypingEnabled.get() ? null
+								: mapper.getDeserializationConfig().getDefaultTyper(null)
+										.buildTypeDeserializer(mapper.getDeserializationConfig(),
+												mapper.getTypeFactory().constructType(Object.class), Collections.emptyList())
+										.getPropertyName())
+						.or("@class");
 	}
 
 	/**
@@ -205,8 +203,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * Gets the configured {@link ObjectMapper} used internally by this {@link GenericJackson2JsonRedisSerializer}
-	 * to de/serialize {@link Object objects} as {@literal JSON}.
+	 * Gets the configured {@link ObjectMapper} used internally by this {@link GenericJackson2JsonRedisSerializer} to
+	 * de/serialize {@link Object objects} as {@literal JSON}.
 	 *
 	 * @return the configured {@link ObjectMapper}.
 	 */
@@ -235,17 +233,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * Deserialized the array of bytes containing {@literal JSON} as an {@link Object} of the given,
-	 * required {@link Class type}.
+	 * Deserialized the array of bytes containing {@literal JSON} as an {@link Object} of the given, required {@link Class
+	 * type}.
 	 *
 	 * @param source array of bytes containing the {@literal JSON} to deserialize; can be {@literal null}.
-	 * @param type {@link Class type} of {@link Object} from which the {@literal JSON} will be deserialized;
-	 * must not be {@literal null}.
-	 * @return {@literal null} for an empty source, or an {@link Object} of the given {@link Class type}
-	 * deserialized from the array of bytes containing {@literal JSON}.
+	 * @param type {@link Class type} of {@link Object} from which the {@literal JSON} will be deserialized; must not be
+	 *          {@literal null}.
+	 * @return {@literal null} for an empty source, or an {@link Object} of the given {@link Class type} deserialized from
+	 *         the array of bytes containing {@literal JSON}.
 	 * @throws IllegalArgumentException if the given {@link Class type} is {@literal null}.
-	 * @throws SerializationException if the array of bytes cannot be deserialized as an instance of
-	 * the given {@link Class type}
+	 * @throws SerializationException if the array of bytes cannot be deserialized as an instance of the given
+	 *           {@link Class type}
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
@@ -267,20 +265,19 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * Builder method used to configure and customize the internal Jackson {@link ObjectMapper} created by
-	 * this {@link GenericJackson2JsonRedisSerializer} and used to de/serialize {@link Object objects}
-	 * as {@literal JSON}.
+	 * Builder method used to configure and customize the internal Jackson {@link ObjectMapper} created by this
+	 * {@link GenericJackson2JsonRedisSerializer} and used to de/serialize {@link Object objects} as {@literal JSON}.
 	 *
 	 * @param objectMapperConfigurer {@link Consumer} used to configure and customize the internal {@link ObjectMapper};
-	 * must not be {@literal null}.
+	 *          must not be {@literal null}.
 	 * @return this {@link GenericJackson2JsonRedisSerializer}.
-	 * @throws IllegalArgumentException if the {@link Consumer} used to configure and customize
-	 * the internal {@link ObjectMapper} is {@literal null}.
+	 * @throws IllegalArgumentException if the {@link Consumer} used to configure and customize the internal
+	 *           {@link ObjectMapper} is {@literal null}.
+	 * @since 3.1.5
 	 */
 	public GenericJackson2JsonRedisSerializer configure(Consumer<ObjectMapper> objectMapperConfigurer) {
 
-		Assert.notNull(objectMapperConfigurer,
-			"Consumer used to configure and customize ObjectMapper must not be null");
+		Assert.notNull(objectMapperConfigurer, "Consumer used to configure and customize ObjectMapper must not be null");
 
 		objectMapperConfigurer.accept(getObjectMapper());
 
@@ -339,8 +336,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	private static class NullValueSerializer extends StdSerializer<NullValue> {
 
-		@Serial
-		private static final long serialVersionUID = 1999052150548658808L;
+		@Serial private static final long serialVersionUID = 1999052150548658808L;
 
 		private final String classIdentifier;
 
