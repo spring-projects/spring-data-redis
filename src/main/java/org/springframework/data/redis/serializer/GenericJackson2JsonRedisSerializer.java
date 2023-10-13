@@ -255,15 +255,15 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * Builder method used to configure and customize the internal Jackson {@link ObjectMapper} created by
-	 * this {@link GenericJackson2JsonRedisSerializer} and used to de/serialize {@link Object objects}
-	 * as {@literal JSON}.
+	 * Builder method used to configure and customize the internal Jackson {@link ObjectMapper} created by this
+	 * {@link GenericJackson2JsonRedisSerializer} and used to de/serialize {@link Object objects} as {@literal JSON}.
 	 *
 	 * @param objectMapperConfigurer {@link Consumer} used to configure and customize the internal {@link ObjectMapper};
-	 * must not be {@literal null}.
+	 *          must not be {@literal null}.
 	 * @return this {@link GenericJackson2JsonRedisSerializer}.
-	 * @throws IllegalArgumentException if the {@link Consumer} used to configure and customize
-	 * the internal {@link ObjectMapper} is {@literal null}.
+	 * @throws IllegalArgumentException if the {@link Consumer} used to configure and customize the internal
+	 *           {@link ObjectMapper} is {@literal null}.
+	 * @since 3.1.5
 	 */
 	public GenericJackson2JsonRedisSerializer configure(Consumer<ObjectMapper> objectMapperConfigurer) {
 
