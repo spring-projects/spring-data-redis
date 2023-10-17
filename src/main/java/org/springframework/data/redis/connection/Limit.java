@@ -16,28 +16,68 @@
 package org.springframework.data.redis.connection;
 
 /**
+ * Value class representing a Redis Limit consisting of a maximum and an offset.
+ *
  * @author Christoph Strobl
  * @since 1.6
  */
 public class Limit {
 
-	private static final Limit UNLIMITED = new Unlimited();
+	private static final Limit UNLIMITED = new Unlimited(0, 0);
 
-	int offset;
-	int count;
+	private final int offset;
+	private final int count;
 
-	public static Limit limit() {
-		return new Limit();
-	}
-
-	public Limit offset(int offset) {
+	Limit(int offset, int count) {
 		this.offset = offset;
-		return this;
+		this.count = count;
 	}
 
+	/**
+	 * Create a new limit at {@code offset} zero.
+	 *
+	 * @return a new limit at {@code offset} zero.
+	 */
+	public static Limit limit() {
+		return new Limit(0, 0);
+	}
+
+	/**
+	 * Create a new limit at {@code offset} zero using the given {@code count}.
+	 *
+	 * @return a new limit at {@code offset} zero and the given {@code count}.
+	 * @since 3.2
+	 */
+	public static Limit limit(int count) {
+		return new Limit(0, count);
+	}
+
+	/**
+	 * @return new {@link Limit} indicating no limit.
+	 * @since 1.3
+	 */
+	public static Limit unlimited() {
+		return UNLIMITED;
+	}
+
+	/**
+	 * Create a new limit using the given {@code offset} retaining the configured count.
+	 *
+	 * @param offset the offset to use.
+	 * @return a new limit using the given {@code offset} retaining the configured count.
+	 */
+	public Limit offset(int offset) {
+		return new Limit(offset, this.count);
+	}
+
+	/**
+	 * Create a new limit using the given {@code count} retaining the configured offset.
+	 *
+	 * @param count the count to use.
+	 * @return a new limit using the given {@code offset} retaining the configured offset.
+	 */
 	public Limit count(int count) {
-		this.count = count;
-		return this;
+		return new Limit(this.offset, count);
 	}
 
 	public int getCount() {
@@ -48,23 +88,30 @@ public class Limit {
 		return offset;
 	}
 
+	/**
+	 * @return {@code true} if this instance represents unlimited; {@code false} otherwise.
+	 */
 	public boolean isUnlimited() {
 		return this.equals(UNLIMITED);
 	}
 
+	/**
+	 * @return {@code true} if this instance represents a limit; {@code false} otherwise.
+	 */
 	public boolean isLimited() {
 		return !isUnlimited();
 	}
 
-	/**
-	 * @return new {@link Limit} indicating no limit;
-	 * @since 1.3
-	 */
-	public static Limit unlimited() {
-		return UNLIMITED;
-	}
-
 	private static class Unlimited extends Limit {
+
+		private Unlimited(int offset, int count) {
+			super(offset, count);
+		}
+
+		@Override
+		public Limit offset(int offset) {
+			throw new UnsupportedOperationException("Cannot set offset for Unlimited Limit");
+		}
 
 		@Override
 		public int getCount() {

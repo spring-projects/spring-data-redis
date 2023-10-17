@@ -205,6 +205,9 @@ public interface RedisZSetCommands {
 	@Deprecated
 	class Limit extends org.springframework.data.redis.connection.Limit {
 
+		Limit() {
+			super(0, 0);
+		}
 	}
 
 	/**
@@ -523,7 +526,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
@@ -536,7 +539,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
@@ -549,7 +552,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
@@ -563,7 +566,7 @@ public interface RedisZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
@@ -580,7 +583,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
@@ -598,15 +601,15 @@ public interface RedisZSetCommands {
 	 * @param max
 	 * @param offset
 	 * @param count
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
 	default Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		return zRangeByScore(key, org.springframework.data.domain.Range.closed(min, max),
-				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
-						.count(Long.valueOf(count).intValue()));
+				org.springframework.data.redis.connection.Limit.limit(Long.valueOf(count).intValue())
+						.offset(Long.valueOf(offset).intValue()));
 	}
 
 	/**
@@ -618,15 +621,15 @@ public interface RedisZSetCommands {
 	 * @param max
 	 * @param offset
 	 * @param count
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
 	@Nullable
 	default Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		return zRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max),
-				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
-						.count(Long.valueOf(count).intValue()));
+				org.springframework.data.redis.connection.Limit.limit(Long.valueOf(count).intValue())
+						.offset(Long.valueOf(offset).intValue()));
 	}
 
 	/**
@@ -636,7 +639,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @param limit must not be {@literal null}.
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
@@ -651,7 +654,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
@@ -664,7 +667,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param start
 	 * @param end
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
@@ -677,7 +680,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
@@ -692,7 +695,7 @@ public interface RedisZSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
@@ -709,7 +712,7 @@ public interface RedisZSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
-	 * @return empty {@link Set} when key does not exists or no members in range. {@literal null} when used in pipeline /
+	 * @return empty {@link Set} when key does not exist or no members in range. {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
@@ -768,8 +771,8 @@ public interface RedisZSetCommands {
 	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 
 		return zRevRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max),
-				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
-						.count(Long.valueOf(count).intValue()));
+				org.springframework.data.redis.connection.Limit.limit(Long.valueOf(count).intValue())
+						.offset(Long.valueOf(offset).intValue()));
 	}
 
 	/**
