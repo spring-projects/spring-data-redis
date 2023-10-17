@@ -24,14 +24,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * {@link RedisCacheWriter} provides low-level access to Redis commands ({@code SET, SETNX, GET, EXPIRE,...}) used for
- * caching.
+ * {@link RedisCacheWriter} provides low-level access to Redis commands ({@code SET, SETNX, GET, EXPIRE,...})
+ * used for caching.
  * <p>
  * The {@link RedisCacheWriter} may be shared by multiple cache implementations and is responsible for reading/writing
  * binary data from/to Redis. The implementation honors potential cache lock flags that might be set.
  * <p>
- * The default {@link RedisCacheWriter} implementation can be customized with {@link BatchStrategy} to tune performance
- * behavior.
+ * The default {@link RedisCacheWriter} implementation can be customized with {@link BatchStrategy}
+ * to tune performance behavior.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -96,8 +96,9 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @param sleepTime sleep time between lock access attempts, must not be {@literal null}.
-	 * @param lockTtlFunction TTL function to compute the Lock TTL. The function is called with contextual keys and values
-	 *          (such as the cache name on cleanup or the actual key/value on put requests). Must not be {@literal null}.
+	 * @param lockTtlFunction TTL function to compute the Lock TTL. The function is called with contextual keys
+	 * and values (such as the cache name on cleanup or the actual key/value on put requests);
+	 * must not be {@literal null}.
 	 * @param batchStrategy must not be {@literal null}.
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
 	 * @since 3.2
@@ -123,8 +124,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	byte[] get(String name, byte[] key);
 
 	/**
-	 * Get the binary value representation from Redis stored for the given key and set the given {@link Duration TTL
-	 * expiration} for the cache entry.
+	 * Get the binary value representation from Redis stored for the given key and set
+	 * the given {@link Duration TTL expiration} for the cache entry.
 	 *
 	 * @param name must not be {@literal null}.
 	 * @param key must not be {@literal null}.
@@ -137,14 +138,14 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	}
 
 	/**
-	 * Determines whether the asynchronous {@link #retrieve(String, byte[])} and
-	 * {@link #retrieve(String, byte[], Duration)} cache operations are supported by the implementation.
+	 * Determines whether the asynchronous {@link #retrieve(String, byte[])}
+	 * and {@link #retrieve(String, byte[], Duration)} cache operations are supported by the implementation.
 	 * <p>
-	 * The main factor for whether the {@literal retrieve} operation can be supported will primarily be determined by the
-	 * Redis driver in use at runtime.
+	 * The main factor for whether the {@literal retrieve} operation can be supported will primarily be determined
+	 * by the Redis driver in use at runtime.
 	 * <p>
-	 * Returns {@literal false} by default. This will have an effect of {@link RedisCache#retrieve(Object)} and
-	 * {@link RedisCache#retrieve(Object, Supplier)} throwing an {@link UnsupportedOperationException}.
+	 * Returns {@literal false} by default. This will have an effect of {@link RedisCache#retrieve(Object)}
+	 * and {@link RedisCache#retrieve(Object, Supplier)} throwing an {@link UnsupportedOperationException}.
 	 *
 	 * @return {@literal true} if asynchronous {@literal retrieve} operations are supported by the implementation.
 	 * @since 3.2
@@ -154,7 +155,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	}
 
 	/**
-	 * Returns the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
+	 * Asynchronously retrieves the {@link CompletableFuture value} to which the {@link RedisCache}
+	 * maps the given {@link byte[] key}.
 	 * <p>
 	 * This operation is non-blocking.
 	 *
@@ -169,8 +171,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	}
 
 	/**
-	 * Returns the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}
-	 * setting the {@link Duration TTL expiration} for the cache entry.
+	 * Asynchronously retrieves the {@link CompletableFuture value} to which the {@link RedisCache} maps
+	 * the given {@link byte[] key} setting the {@link Duration TTL expiration} for the cache entry.
 	 * <p>
 	 * This operation is non-blocking.
 	 *
@@ -260,10 +262,10 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		Duration NO_EXPIRATION = Duration.ZERO;
 
 		/**
-		 * Creates a singleton {@link TtlFunction} using the given {@link Duration}.
+		 * Creates a {@literal Singleton} {@link TtlFunction} using the given {@link Duration}.
 		 *
-		 * @param duration the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry does not
-		 *          expire).
+		 * @param duration the time to live. Can be {@link Duration#ZERO} for persistent values (i.e. cache entry
+		 * does not expire).
 		 * @return a singleton {@link TtlFunction} using {@link Duration}.
 		 */
 		static TtlFunction just(Duration duration) {
