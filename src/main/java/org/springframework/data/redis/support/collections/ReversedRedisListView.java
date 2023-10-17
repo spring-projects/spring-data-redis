@@ -118,8 +118,8 @@ class ReversedRedisListView<E> implements RedisList<E> {
 	}
 
 	@Override
-	public void rename(String newKey) {
-		this.base.rename(newKey);
+	public void rename(String to) {
+		this.base.rename(to);
 	}
 
 	@Override

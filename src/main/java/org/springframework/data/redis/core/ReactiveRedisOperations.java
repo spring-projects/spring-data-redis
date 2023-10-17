@@ -93,13 +93,13 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Publishes the given message to the given channel.
 	 *
-	 * @param destination the channel to publish to, must not be {@literal null} nor empty.
+	 * @param channel the channel to publish to, must not be {@literal null} nor empty.
 	 * @param message message to publish. Must not be {@literal null}.
 	 * @return the number of clients that received the message
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
-	Mono<Long> convertAndSend(String destination, V message);
+	Mono<Long> convertAndSend(String channel, V message);
 
 	/**
 	 * Subscribe to the given Redis {@code channels} and emit {@link Message messages} received for those.
@@ -187,15 +187,15 @@ public interface ReactiveRedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 * Copy the data structure {@code from} the given key to {@code to} the new key.
 	 *
-	 * @param sourceKey must not be {@literal null}.
-	 * @param targetKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6
 	 */
-	Mono<Boolean> copy(K sourceKey, K targetKey, boolean replace);
+	Mono<Boolean> copy(K from, K to, boolean replace);
 
 	/**
 	 * Determine if given {@code key} exists.
@@ -262,23 +262,23 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<K> randomKey();
 
 	/**
-	 * Rename key {@code oldKey} to {@code newKey}.
+	 * Rename key {@code from} the given key {@code to} the new key.
 	 *
-	 * @param oldKey must not be {@literal null}.
-	 * @param newKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	Mono<Boolean> rename(K oldKey, K newKey);
+	Mono<Boolean> rename(K from, K to);
 
 	/**
-	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
+	 * Rename key {@code from} the given key {@code to} the new key if the {@code to} key does not exist.
 	 *
-	 * @param oldKey must not be {@literal null}.
-	 * @param newKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
-	Mono<Boolean> renameIfAbsent(K oldKey, K newKey);
+	Mono<Boolean> renameIfAbsent(K from, K to);
 
 	/**
 	 * Delete given {@code key}.

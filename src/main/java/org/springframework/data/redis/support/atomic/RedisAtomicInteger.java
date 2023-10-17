@@ -390,10 +390,10 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	@Override
-	public void rename(String newKey) {
+	public void rename(String to) {
 
-		generalOps.rename(key, newKey);
-		key = newKey;
+		generalOps.rename(key, to);
+		key = to;
 	}
 
 	@Override

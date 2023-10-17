@@ -124,7 +124,7 @@ public interface BoundKeyOperations<K> {
 	 * Renames the key. <br>
 	 * <b>Note:</b> The new name for empty collections will be propagated on add of first element.
 	 *
-	 * @param newKey new key. Must not be {@literal null}.
+	 * @param to new key, must not be {@literal null}.
 	 */
-	void rename(K newKey);
+	void rename(K to);
 }

@@ -122,13 +122,13 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	}
 
 	@Override
-	public void rename(final String newKey) {
+	public void rename(String to) {
 
 		if (!this.isEmpty()) {
-			CollectionUtils.rename(key, newKey, operations);
+			CollectionUtils.rename(key, to, operations);
 		}
 
-		key = newKey;
+		key = to;
 	}
 
 	protected void checkResult(@Nullable Object obj) {

@@ -308,8 +308,8 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public void rename(String newKey) {
-		hashOps.rename(newKey);
+	public void rename(String to) {
+		hashOps.rename(to);
 	}
 
 	@Override

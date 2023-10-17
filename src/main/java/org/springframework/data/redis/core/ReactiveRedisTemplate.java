@@ -268,13 +268,13 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	@Override
-	public Mono<Long> convertAndSend(String destination, V message) {
+	public Mono<Long> convertAndSend(String channel, V message) {
 
-		Assert.hasText(destination, "Destination channel must not be empty");
+		Assert.hasText(channel, "Destination channel must not be empty");
 		Assert.notNull(message, "Message must not be null");
 
 		return doCreateMono(connection -> connection.pubSubCommands().publish(
-				getSerializationContext().getStringSerializationPair().write(destination),
+				getSerializationContext().getStringSerializationPair().write(channel),
 				getSerializationContext().getValueSerializationPair().write(message)));
 	}
 
@@ -306,12 +306,12 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	// -------------------------------------------------------------------------
 
 	@Override
-	public Mono<Boolean> copy(K sourceKey, K targetKey, boolean replace) {
+	public Mono<Boolean> copy(K from, K to, boolean replace) {
 
-		Assert.notNull(sourceKey, "Source key must not be null");
-		Assert.notNull(targetKey, "Target key must not be null");
+		Assert.notNull(from, "From-key must not be null");
+		Assert.notNull(to, "To-key must not be null");
 
-		return doCreateMono(connection -> connection.keyCommands().copy(rawKey(sourceKey), rawKey(targetKey), replace));
+		return doCreateMono(connection -> connection.keyCommands().copy(rawKey(from), rawKey(to), replace));
 	}
 
 	@Override
@@ -355,21 +355,21 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	@Override
-	public Mono<Boolean> rename(K oldKey, K newKey) {
+	public Mono<Boolean> rename(K from, K to) {
 
-		Assert.notNull(oldKey, "Old key must not be null");
-		Assert.notNull(newKey, "New Key must not be null");
+		Assert.notNull(from, "From-key must not be null");
+		Assert.notNull(to, "To-key must not be null");
 
-		return doCreateMono(connection -> connection.keyCommands().rename(rawKey(oldKey), rawKey(newKey)));
+		return doCreateMono(connection -> connection.keyCommands().rename(rawKey(from), rawKey(to)));
 	}
 
 	@Override
-	public Mono<Boolean> renameIfAbsent(K oldKey, K newKey) {
+	public Mono<Boolean> renameIfAbsent(K from, K to) {
 
-		Assert.notNull(oldKey, "Old key must not be null");
-		Assert.notNull(newKey, "New Key must not be null");
+		Assert.notNull(from, "From-key must not be null");
+		Assert.notNull(to, "To-key must not be null");
 
-		return doCreateMono(connection -> connection.keyCommands().renameNX(rawKey(oldKey), rawKey(newKey)));
+		return doCreateMono(connection -> connection.keyCommands().renameNX(rawKey(from), rawKey(to)));
 	}
 
 	@Override

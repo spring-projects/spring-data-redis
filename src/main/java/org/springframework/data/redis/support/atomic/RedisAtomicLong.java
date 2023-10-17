@@ -387,10 +387,10 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	@Override
-	public void rename(String newKey) {
+	public void rename(String to) {
 
-		generalOps.rename(key, newKey);
-		key = newKey;
+		generalOps.rename(key, to);
+		key = to;
 	}
 
 	@Override

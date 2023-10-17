@@ -162,17 +162,17 @@ public interface RedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Copy given {@code sourceKey} to {@code targetKey}.
+	 * Copy given {@code from} to {@code to}.
 	 *
-	 * @param sourceKey must not be {@literal null}.
-	 * @param targetKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
 	 * @param replace whether the key was copied. {@literal null} when used in pipeline / transaction.
 	 * @return
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6
 	 */
 	@Nullable
-	Boolean copy(K sourceKey, K targetKey, boolean replace);
+	Boolean copy(K from, K to, boolean replace);
 
 	/**
 	 * Determine if given {@code key} exists.
@@ -282,24 +282,24 @@ public interface RedisOperations<K, V> {
 	K randomKey();
 
 	/**
-	 * Rename key {@code oldKey} to {@code newKey}.
+	 * Rename key {@code from} the given key {@code to} the new key.
 	 *
-	 * @param oldKey must not be {@literal null}.
-	 * @param newKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	void rename(K oldKey, K newKey);
+	void rename(K from, K to);
 
 	/**
-	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
+	 * Rename key {@code from} the given key {@code to} the new key if the {@code to} key does not exist.
 	 *
-	 * @param oldKey must not be {@literal null}.
-	 * @param newKey must not be {@literal null}.
+	 * @param from must not be {@literal null}.
+	 * @param to must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	@Nullable
-	Boolean renameIfAbsent(K oldKey, K newKey);
+	Boolean renameIfAbsent(K from, K to);
 
 	/**
 	 * Set time to live for given {@code key}.
@@ -591,13 +591,13 @@ public interface RedisOperations<K, V> {
 	/**
 	 * Publishes the given message to the given channel.
 	 *
-	 * @param destination the channel to publish to, must not be {@literal null}.
+	 * @param channel the channel to publish to, must not be {@literal null}.
 	 * @param message message to publish.
 	 * @return the number of clients that received the message. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	@Nullable
-	Long convertAndSend(String destination, Object message);
+	Long convertAndSend(String channel, Object message);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.
@@ -622,7 +622,7 @@ public interface RedisOperations<K, V> {
 	GeoOperations<K, V> opsForGeo();
 
 	/**
-	 * Returns geospatial specific operations interface bound to the given key.
+	 * Returns geospatial specific operations interface bound to the given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -640,12 +640,12 @@ public interface RedisOperations<K, V> {
 	<HK, HV> HashOperations<K, HK, HV> opsForHash();
 
 	/**
-	 * Returns the operations performed on hash values bound to the given key.
+	 * Returns the operations performed on hash values bound to the given {@code key}.
 	 *
 	 * @param <HK> hash key (or field) type
 	 * @param <HV> hash value type
 	 * @param key Redis key
-	 * @return hash operations bound to the given key.
+	 * @return hash operations bound to the given {@code key}.
 	 */
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
 
@@ -663,10 +663,10 @@ public interface RedisOperations<K, V> {
 	ListOperations<K, V> opsForList();
 
 	/**
-	 * Returns the operations performed on list values bound to the given key.
+	 * Returns the operations performed on list values bound to the given {@code key}.
 	 *
 	 * @param key Redis key
-	 * @return list operations bound to the given key
+	 * @return list operations bound to the given {@code key}
 	 */
 	BoundListOperations<K, V> boundListOps(K key);
 
@@ -678,10 +678,10 @@ public interface RedisOperations<K, V> {
 	SetOperations<K, V> opsForSet();
 
 	/**
-	 * Returns the operations performed on set values bound to the given key.
+	 * Returns the operations performed on set values bound to the given {@code key}.
 	 *
 	 * @param key Redis key
-	 * @return set operations bound to the given key
+	 * @return set operations bound to the given {@code key}
 	 */
 	BoundSetOperations<K, V> boundSetOps(K key);
 
@@ -703,7 +703,7 @@ public interface RedisOperations<K, V> {
 	<HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper);
 
 	/**
-	 * Returns the operations performed on Streams bound to the given key.
+	 * Returns the operations performed on Streams bound to the given {@code key}.
 	 *
 	 * @return stream operations.
 	 * @since 2.2
@@ -718,10 +718,10 @@ public interface RedisOperations<K, V> {
 	ValueOperations<K, V> opsForValue();
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given {@code key}.
 	 *
 	 * @param key Redis key
-	 * @return value operations bound to the given key
+	 * @return value operations bound to the given {@code key}
 	 */
 	BoundValueOperations<K, V> boundValueOps(K key);
 
@@ -733,10 +733,10 @@ public interface RedisOperations<K, V> {
 	ZSetOperations<K, V> opsForZSet();
 
 	/**
-	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given key.
+	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given {@code key}.
 	 *
 	 * @param key Redis key
-	 * @return zset operations bound to the given key.
+	 * @return zset operations bound to the given {@code key}.
 	 */
 	BoundZSetOperations<K, V> boundZSetOps(K key);
 

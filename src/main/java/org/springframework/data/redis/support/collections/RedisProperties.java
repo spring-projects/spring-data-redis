@@ -266,8 +266,8 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	public void rename(String newKey) {
-		hashOps.rename(newKey);
+	public void rename(String to) {
+		hashOps.rename(to);
 	}
 
 	@Override

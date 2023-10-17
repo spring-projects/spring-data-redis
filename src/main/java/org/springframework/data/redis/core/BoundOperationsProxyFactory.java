@@ -24,7 +24,6 @@ import java.util.function.Function;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor;
 import org.springframework.data.redis.connection.DataType;
@@ -227,11 +226,11 @@ class BoundOperationsProxyFactory {
 		}
 
 		@Override
-		public void rename(Object newKey) {
+		public void rename(Object to) {
 			if (ops.hasKey(key)) {
-				ops.rename(key, newKey);
+				ops.rename(key, to);
 			}
-			key = newKey;
+			key = to;
 		}
 
 		public DataType getType() {

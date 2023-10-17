@@ -555,10 +555,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// -------------------------------------------------------------------------
 
 	@Override
-	public Boolean copy(K source, K target, boolean replace) {
+	public Boolean copy(K from, K to, boolean replace) {
 
-		byte[] sourceKey = rawKey(source);
-		byte[] targetKey = rawKey(target);
+		Assert.notNull(from, "From-key must not be null");
+		Assert.notNull(to, "To-key must not be null");
+
+		byte[] sourceKey = rawKey(from);
+		byte[] targetKey = rawKey(to);
 
 		return doWithKeys(connection -> connection.copy(sourceKey, targetKey, replace));
 	}
@@ -657,27 +660,33 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public void rename(K oldKey, K newKey) {
+	public void rename(K from, K to) {
 
-		byte[] rawOldKey = rawKey(oldKey);
-		byte[] rawNewKey = rawKey(newKey);
+		Assert.notNull(from, "From-key must not be null");
+		Assert.notNull(to, "To-key must not be null");
+
+		byte[] rawFrom = rawKey(from);
+		byte[] rawTo = rawKey(to);
 
 		doWithKeys(connection -> {
-			connection.rename(rawOldKey, rawNewKey);
+			connection.rename(rawFrom, rawTo);
 			return null;
 		});
 	}
 
 	@Override
-	public Boolean renameIfAbsent(K oldKey, K newKey) {
+	public Boolean renameIfAbsent(K from, K to) {
 
-		byte[] rawOldKey = rawKey(oldKey);
-		byte[] rawNewKey = rawKey(newKey);
-		return doWithKeys(connection -> connection.renameNX(rawOldKey, rawNewKey));
+		Assert.notNull(from, "From-key must not be null");
+		Assert.notNull(to, "To-key must not be null");
+
+		byte[] rawFrom = rawKey(from);
+		byte[] rawTo = rawKey(to);
+		return doWithKeys(connection -> connection.renameNX(rawFrom, rawTo));
 	}
 
 	@Override
-	public Boolean expire(K key, final long timeout, final TimeUnit unit) {
+	public Boolean expire(K key, long timeout, TimeUnit unit) {
 
 		byte[] rawKey = rawKey(key);
 		long rawTimeout = TimeoutUtils.toMillis(timeout, unit);
@@ -693,7 +702,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public Boolean expireAt(K key, final Date date) {
+	public Boolean expireAt(K key, Date date) {
 
 		byte[] rawKey = rawKey(key);
 
@@ -735,7 +744,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public Boolean move(K key, final int dbIndex) {
+	public Boolean move(K key, int dbIndex) {
 
 		byte[] rawKey = rawKey(key);
 		return doWithKeys(connection -> connection.move(rawKey, dbIndex));
@@ -945,7 +954,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@Override
 	public Long convertAndSend(String channel, Object message) {
 
-		Assert.hasText(channel, "a non-empty channel is required");
+		Assert.hasText(channel, "Destination channel must not be empty");
 
 		byte[] rawChannel = rawString(channel);
 		byte[] rawMessage = rawValue(message);
@@ -1075,7 +1084,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	private byte[][] rawKeys(Collection<K> keys) {
-		final byte[][] rawKeys = new byte[keys.size()][];
+
+		byte[][] rawKeys = new byte[keys.size()][];
 
 		int i = 0;
 		for (K key : keys) {
