@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.awaitility.Awaitility.await;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
 
@@ -573,10 +575,16 @@ public class RedisCacheTests {
 	void retrieveCacheValueUsingJedis() {
 
 		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey)).withMessageContaining("RedisCache");
+				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey))
+				.withMessageContaining("RedisCache");
+	}
+
+	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.JEDIS)
+	void retrieveLoadedValueUsingJedis() {
 
 		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey, () -> CompletableFuture.completedFuture("TEST")))
+				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey, () -> usingCompletedFuture("TEST")))
 				.withMessageContaining("RedisCache");
 	}
 
@@ -611,9 +619,11 @@ public class RedisCacheTests {
 				usingRedisCacheConfiguration());
 
 		DefaultRedisCacheWriter cacheWriter = (DefaultRedisCacheWriter) cache.getCacheWriter();
+
 		cacheWriter.lock("cache");
 
 		CompletableFuture<String> value = (CompletableFuture<String>) cache.retrieve(this.key);
+
 		assertThat(value).isNotDone();
 
 		cacheWriter.unlock("cache");
@@ -626,10 +636,11 @@ public class RedisCacheTests {
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsLoadedValue() throws Exception {
 
-		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
 		AtomicBoolean loaded = new AtomicBoolean(false);
 		Person jon = new Person("Jon", Date.from(Instant.now()));
 		CompletableFuture<Person> valueLoader = CompletableFuture.completedFuture(jon);
+
+		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
 
 		Supplier<CompletableFuture<Person>> valueLoaderSupplier = () -> {
 			loaded.set(true);
@@ -648,15 +659,15 @@ public class RedisCacheTests {
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveStoresLoadedValue() throws Exception {
 
-		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
 		Person jon = new Person("Jon", Date.from(Instant.now()));
 		Supplier<CompletableFuture<Person>> valueLoaderSupplier = () -> CompletableFuture.completedFuture(jon);
 
+		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
+
 		cache.retrieve(this.key, valueLoaderSupplier).get();
 
-		doWithConnection(
-				connection -> assertThat(connection.keyCommands().exists("cache::key-1".getBytes(StandardCharsets.UTF_8)))
-						.isTrue());
+		doWithConnection(connection ->
+				assertThat(connection.keyCommands().exists("cache::key-1".getBytes(StandardCharsets.UTF_8))).isTrue());
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -672,6 +683,10 @@ public class RedisCacheTests {
 		assertThat(value).isNotNull();
 		assertThat(value.get()).isNull();
 		assertThat(value).isDone();
+	}
+
+	private <T> CompletableFuture<T> usingCompletedFuture(T value) {
+		return CompletableFuture.completedFuture(value);
 	}
 
 	private RedisCacheConfiguration usingRedisCacheConfiguration() {

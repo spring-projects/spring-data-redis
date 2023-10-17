@@ -15,9 +15,16 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -33,16 +40,18 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 class RedisCacheUnitTests {
 
 	@Test // GH-2650
+	@SuppressWarnings("unchecked")
 	void cacheRetrieveValueCallsCacheWriterRetrieveCorrectly() throws Exception {
 
 		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
 
-		when(mockCacheWriter.supportsAsyncRetrieve()).thenReturn(true);
-		when(mockCacheWriter.retrieve(anyString(), any(byte[].class)))
-				.thenReturn(CompletableFuture.completedFuture("TEST".getBytes()));
+		doReturn(true).when(mockCacheWriter).supportsAsyncRetrieve();
+		doReturn(usingCompletedFuture("TEST".getBytes())).when(mockCacheWriter).retrieve(anyString(), any(byte[].class));
 
-		RedisCache cache = new RedisCache("TestCache", mockCacheWriter,
-				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.byteArray()));
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+				.serializeValuesWith(SerializationPair.byteArray());
+
+		RedisCache cache = new RedisCache("TestCache", mockCacheWriter, cacheConfiguration);
 
 		CompletableFuture<byte[]> value = (CompletableFuture<byte[]>) cache.retrieve("TestKey");
 
@@ -54,4 +63,7 @@ class RedisCacheUnitTests {
 		verifyNoMoreInteractions(mockCacheWriter);
 	}
 
+	private <T> CompletableFuture<T> usingCompletedFuture(T value) {
+		return  CompletableFuture.completedFuture(value);
+	}
 }

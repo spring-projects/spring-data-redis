@@ -15,9 +15,15 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Duration;
 
@@ -26,8 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -41,30 +46,22 @@ import org.springframework.data.redis.core.types.Expiration;
 @ExtendWith(MockitoExtension.class)
 class DefaultRedisCacheWriterUnitTests {
 
-	@Mock private CacheStatisticsCollector mockCacheStatisticsCollector = mock(CacheStatisticsCollector.class);
+	@Mock
+	private CacheStatisticsCollector mockCacheStatisticsCollector = mock(CacheStatisticsCollector.class);
 
-	@Mock private RedisConnection mockConnection;
+	@Mock
+	private RedisConnection mockConnection;
 
-	@Mock(strictness = Mock.Strictness.LENIENT) private RedisConnectionFactory mockConnectionFactory;
-
-	@Mock private ReactiveRedisConnection mockReactiveConnection;
-
-	@Mock(strictness = Mock.Strictness.LENIENT) private TestReactiveRedisConnectionFactory mockReactiveConnectionFactory;
+	@Mock(strictness = Mock.Strictness.LENIENT)
+	private RedisConnectionFactory mockConnectionFactory;
 
 	@BeforeEach
 	void setup() {
 		doReturn(this.mockConnection).when(this.mockConnectionFactory).getConnection();
-		doReturn(this.mockConnection).when(this.mockReactiveConnectionFactory).getConnection();
-		doReturn(this.mockReactiveConnection).when(this.mockReactiveConnectionFactory).getReactiveConnection();
 	}
 
 	private RedisCacheWriter newRedisCacheWriter() {
 		return spy(new DefaultRedisCacheWriter(this.mockConnectionFactory, mock(BatchStrategy.class))
-				.withStatisticsCollector(this.mockCacheStatisticsCollector));
-	}
-
-	private RedisCacheWriter newReactiveRedisCacheWriter() {
-		return spy(new DefaultRedisCacheWriter(this.mockReactiveConnectionFactory, Duration.ZERO, mock(BatchStrategy.class))
 				.withStatisticsCollector(this.mockCacheStatisticsCollector));
 	}
 
@@ -86,9 +83,9 @@ class DefaultRedisCacheWriterUnitTests {
 
 		assertThat(cacheWriter.get("TestCache", key, ttl)).isEqualTo(value);
 
-		verify(this.mockConnection).stringCommands();
-		verify(mockStringCommands).getEx(eq(key), eq(expiration));
-		verify(this.mockConnection).close();
+		verify(this.mockConnection, times(1)).stringCommands();
+		verify(mockStringCommands, times(1)).getEx(eq(key), eq(expiration));
+		verify(this.mockConnection, times(1)).close();
 		verifyNoMoreInteractions(this.mockConnection, mockStringCommands);
 	}
 
@@ -107,12 +104,9 @@ class DefaultRedisCacheWriterUnitTests {
 
 		assertThat(cacheWriter.get("TestCache", key, null)).isEqualTo(value);
 
-		verify(this.mockConnection).stringCommands();
-		verify(mockStringCommands).get(eq(key));
-		verify(this.mockConnection).close();
+		verify(this.mockConnection, times(1)).stringCommands();
+		verify(mockStringCommands, times(1)).get(eq(key));
+		verify(this.mockConnection, times(1)).close();
 		verifyNoMoreInteractions(this.mockConnection, mockStringCommands);
 	}
-
-	interface TestReactiveRedisConnectionFactory extends ReactiveRedisConnectionFactory, RedisConnectionFactory {}
-
 }
