@@ -32,9 +32,9 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Configuration class used to set up a {@link RedisConnection} with {@link RedisConnectionFactory} for connecting
- * to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>. Useful when setting up a highly available Redis
- * environment.
+ * {@link RedisConfiguration Configuration} class used to set up a {@link RedisConnection}
+ * with {@link RedisConnectionFactory} for connecting to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>.
+ * Useful when setting up a highly available Redis environment.
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -104,20 +104,23 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.sentinels = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
-			this.setMaster(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY).toString());
+			String sentinelMaster = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY));
+			this.setMaster(sentinelMaster);
 		}
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)) {
-			appendSentinels(
-					commaDelimitedListToSet(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY).toString()));
+			String sentinelNodes = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY));
+			appendSentinels(commaDelimitedListToSet(sentinelNodes));
 		}
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY)) {
-			this.setSentinelPassword(propertySource.getProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY).toString());
+			String sentinelPassword = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY));
+			this.setSentinelPassword(sentinelPassword);
 		}
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY)) {
-			this.setSentinelUsername(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY).toString());
+			String sentinelUsername = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY));
+			this.setSentinelUsername(sentinelUsername);
 		}
 	}
 
@@ -128,7 +131,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void setSentinels(Iterable<RedisNode> sentinels) {
 
-		Assert.notNull(sentinels, "Cannot set sentinels to 'null'");
+		Assert.notNull(sentinels, "Cannot set sentinels to null");
 
 		this.sentinels.clear();
 
@@ -148,16 +151,19 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 */
 	public void addSentinel(RedisNode sentinel) {
 
-		Assert.notNull(sentinel, "Sentinel must not be 'null'");
+		Assert.notNull(sentinel, "Sentinel must not be null");
+
 		this.sentinels.add(sentinel);
 	}
 
 	public void setMaster(NamedNode master) {
 
-		Assert.notNull(master, "Sentinel master node must not be 'null'");
+		Assert.notNull(master, "Sentinel master node must not be null");
+
 		this.master = master;
 	}
 
+	@Nullable
 	public NamedNode getMaster() {
 		return master;
 	}
@@ -217,7 +223,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	@Override
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
+		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%d'; non-negative index required", index));
 
 		this.database = index;
 	}
@@ -270,44 +276,37 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	}
 
 	@Override
-	public boolean equals(@Nullable Object o) {
-		if (this == o) {
+	public boolean equals(@Nullable Object obj) {
+
+		if (this == obj) {
 			return true;
 		}
-		if (!(o instanceof RedisSentinelConfiguration)) {
+
+		if (!(obj instanceof RedisSentinelConfiguration that)) {
 			return false;
 		}
-		RedisSentinelConfiguration that = (RedisSentinelConfiguration) o;
-		if (database != that.database) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(master, that.master)) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(sentinels, that.sentinels)) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(dataNodeUsername, that.dataNodeUsername)) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(dataNodePassword, that.dataNodePassword)) {
-			return false;
-		}
-		if (!ObjectUtils.nullSafeEquals(sentinelUsername, that.sentinelUsername)) {
-			return false;
-		}
-		return ObjectUtils.nullSafeEquals(sentinelPassword, that.sentinelPassword);
+
+		return this.database == that.database
+				&& ObjectUtils.nullSafeEquals(this.master, that.master)
+				&& ObjectUtils.nullSafeEquals(this.sentinels, that.sentinels)
+				&& ObjectUtils.nullSafeEquals(this.dataNodeUsername, that.dataNodeUsername)
+				&& ObjectUtils.nullSafeEquals(this.dataNodePassword, that.dataNodePassword)
+				&& ObjectUtils.nullSafeEquals(this.sentinelUsername, that.sentinelUsername)
+				&& ObjectUtils.nullSafeEquals(this.sentinelPassword, that.sentinelPassword);
 	}
 
 	@Override
 	public int hashCode() {
+
 		int result = ObjectUtils.nullSafeHashCode(master);
+
 		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinels);
 		result = 31 * result + database;
 		result = 31 * result + ObjectUtils.nullSafeHashCode(dataNodeUsername);
 		result = 31 * result + ObjectUtils.nullSafeHashCode(dataNodePassword);
 		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelUsername);
 		result = 31 * result + ObjectUtils.nullSafeHashCode(sentinelPassword);
+
 		return result;
 	}
 
@@ -323,6 +322,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		Assert.noNullElements(sentinelHostAndPorts, "ClusterHostAndPorts must not contain null elements");
 
 		Map<String, Object> map = new HashMap<>();
+
 		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);
 		map.put(REDIS_SENTINEL_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(sentinelHostAndPorts));
 
