@@ -34,12 +34,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -168,22 +170,27 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		this.writer = RedisAssertions.requireNonNull(writer, "Writer must not be null");
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig().getDefaultTyper(null) != null);
-
 		this.typeResolver = new TypeResolver(Lazy.of(mapper::getTypeFactory),
-				newTypeHintPropertyNameSupplier(mapper, typeHintPropertyName, this.defaultTypingEnabled));
+				getHintName(mapper, typeHintPropertyName, this.defaultTypingEnabled));
 	}
 
-	private Supplier<String> newTypeHintPropertyNameSupplier(ObjectMapper mapper, @Nullable String typeHintPropertyName,
-			Lazy<Boolean> defaultTypingEnabled) {
+	private static Supplier<String> getHintName(ObjectMapper mapper, @Nullable String typeHintPropertyName,
+			Supplier<Boolean> defaultTypingEnabled) {
 
-		return typeHintPropertyName != null ? () -> typeHintPropertyName
-				: Lazy
-						.of(() -> defaultTypingEnabled.get() ? null
-								: mapper.getDeserializationConfig().getDefaultTyper(null)
-										.buildTypeDeserializer(mapper.getDeserializationConfig(),
-												mapper.getTypeFactory().constructType(Object.class), Collections.emptyList())
-										.getPropertyName())
-						.or("@class");
+		if (typeHintPropertyName != null) {
+			return () -> typeHintPropertyName;
+		}
+
+		return Lazy.of(() -> defaultTypingEnabled.get() ? null
+				: getTypeHint(mapper.getDeserializationConfig(), mapper.getTypeFactory())).or("@class");
+	}
+
+	private static String getTypeHint(DeserializationConfig config, TypeFactory typeFactory) {
+
+		TypeDeserializer type = config.getDefaultTyper(null).buildTypeDeserializer(config,
+				typeFactory.constructType(Object.class), Collections.emptyList());
+
+		return type.getPropertyName();
 	}
 
 	/**
