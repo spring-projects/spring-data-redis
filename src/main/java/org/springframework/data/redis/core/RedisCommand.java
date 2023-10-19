@@ -377,16 +377,17 @@ public enum RedisCommand {
 		if (requiresArguments()) {
 			if (requiresExactNumberOfArguments()) {
 				if (argumentCount != this.maxArgs) {
-					throw newIllegalArgumentException("%s command requires %d %s", name(), this.maxArgs, arguments(this.maxArgs));
+					throw new IllegalArgumentException(
+							"%s command requires %d %s".formatted(name(), this.maxArgs, arguments(this.maxArgs)));
 				}
 			}
 			if (argumentCount < this.minArgs) {
-				throw newIllegalArgumentException("%s command requires at least %d %s", name(), this.minArgs,
-						arguments(this.maxArgs));
+				throw new IllegalArgumentException(
+						"%s command requires at least %d %s".formatted(name(), this.minArgs, arguments(this.maxArgs)));
 			}
 			if (this.maxArgs > 0 && argumentCount > this.maxArgs) {
-				throw newIllegalArgumentException("%s command requires at most %s %s", name(), this.maxArgs,
-						arguments(this.maxArgs));
+				throw new IllegalArgumentException(
+						"%s command requires at most %s %s".formatted(name(), this.maxArgs, arguments(this.maxArgs)));
 			}
 		}
 	}
@@ -394,9 +395,4 @@ public enum RedisCommand {
 	private String arguments(int count) {
 		return count == 1 ? "argument" : "arguments";
 	}
-
-	private IllegalArgumentException newIllegalArgumentException(String message, Object... arguments) {
-		return new IllegalArgumentException(String.format(message, arguments));
-	}
-
 }

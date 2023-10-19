@@ -238,7 +238,7 @@ class IndexWriter {
 			connection.sAdd(createIndexKey(indexedData.getKeyspace(), key), indexKey);
 		} else {
 			throw new IllegalArgumentException(
-					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));
+					"Cannot write index data for unknown index type %s".formatted(indexedData.getClass()));
 		}
 	}
 
@@ -292,10 +292,9 @@ class IndexWriter {
 			return converter.getConversionService().convert(source, byte[].class);
 		}
 
-		throw new InvalidDataAccessApiUsageException(String.format(
-				"Cannot convert %s to binary representation for index key generation; "
-						+ "Are you missing a Converter; Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type",
-				source.getClass()));
+		throw new InvalidDataAccessApiUsageException(("Cannot convert %s to binary representation for index key generation;"
+				+ " Are you missing a Converter; Did you register a non PathBasedRedisIndexDefinition"
+				+ " that might apply to a complex type").formatted(source.getClass()));
 	}
 
 	/**

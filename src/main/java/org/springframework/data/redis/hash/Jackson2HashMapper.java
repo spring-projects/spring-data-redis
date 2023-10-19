@@ -412,8 +412,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 							resultMap.put(propertyPrefix, next.binaryValue());
 						}
 						catch (IOException ex) {
-							String message = String.format("Cannot read binary value of '%s'", propertyPrefix);
-							throw new IllegalStateException(message, ex);
+							throw new IllegalStateException("Cannot read binary value '%s'".formatted(propertyPrefix), ex);
 						}
 
 						break;

@@ -160,11 +160,12 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	public double get() {
 
 		Double value = operations.get(key);
+
 		if (value != null) {
 			return value;
 		}
 
-		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist", key));
+		throw new DataRetrievalFailureException("The key '%s' seems to no longer exist".formatted(key));
 	}
 
 	/**

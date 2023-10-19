@@ -241,17 +241,15 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 							return TimeUnit.SECONDS.convert(timeout.longValue(), ttl.unit());
 						}
 					} catch (IllegalAccessException ex) {
-						String message = String.format("Not allowed to access method '%s': %s",
-								timeoutMethod.getName(), ex.getMessage());
-						throw new IllegalStateException(message, ex);
+						throw new IllegalStateException(
+								"Not allowed to access method '%s': %s".formatted(timeoutMethod.getName(), ex.getMessage()), ex);
 					} catch (IllegalArgumentException ex) {
-						String message = String.format("Cannot invoke method '%s' without arguments: %s",
-								timeoutMethod.getName(), ex.getMessage());
-						throw new IllegalStateException(message, ex);
+						throw new IllegalStateException(
+								"Cannot invoke method '%s' without arguments: %s".formatted(timeoutMethod.getName(), ex.getMessage()),
+								ex);
 					} catch (InvocationTargetException ex) {
-						String message = String.format("Cannot access method '%s': %s",
-								timeoutMethod.getName(), ex.getMessage());
-						throw new IllegalStateException(message, ex);
+						throw new IllegalStateException(
+								"Cannot access method '%s': %s".formatted(timeoutMethod.getName(), ex.getMessage()), ex);
 					}
 				}
 			}

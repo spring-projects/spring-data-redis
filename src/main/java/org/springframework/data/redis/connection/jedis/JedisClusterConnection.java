@@ -761,7 +761,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				return new Jedis(connection);
 			}
 
-			throw new DataAccessResourceFailureException(String.format("Node %s is unknown to cluster", node));
+			throw new DataAccessResourceFailureException("Node %s is unknown to cluster".formatted(node));
 		}
 
 		private ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
@@ -779,8 +779,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			RedisClusterNode member = topologyProvider.getTopology().lookup(node);
 
 			if (!member.hasValidHost()) {
-				throw new DataAccessResourceFailureException(String
-						.format("Cannot obtain connection to node %ss as it is not associated with a hostname", node.getId()));
+				throw new DataAccessResourceFailureException(
+						"Cannot obtain connection to node %ss; " + "it is not associated with a hostname".formatted(node.getId()));
 			}
 
 			if (member != null && connectionHandler != null) {
@@ -872,7 +872,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			StringBuilder stringBuilder = new StringBuilder();
 
 			for (Entry<String, Exception> entry : errors.entrySet()) {
-				stringBuilder.append(String.format("\r\n\t- %s failed: %s", entry.getKey(), entry.getValue().getMessage()));
+				stringBuilder.append("\r\n\t- %s failed: %s".formatted(entry.getKey(), entry.getValue().getMessage()));
 			}
 
 			throw new ClusterStateFailureException(

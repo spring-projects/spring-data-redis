@@ -495,14 +495,14 @@ public abstract class RedisConnectionUtils {
 			if (isPotentiallyThreadBoundCommand(commandToExecute)) {
 
 				if (log.isDebugEnabled()) {
-					log.debug(String.format("Invoke '%s' on bound connection", method.getName()));
+					log.debug("Invoke '%s' on bound connection".formatted(method.getName()));
 				}
 
 				return invoke(method, obj, args);
 			}
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Invoke '%s' on unbound connection", method.getName()));
+				log.debug("Invoke '%s' on unbound connection".formatted(method.getName()));
 			}
 
 			RedisConnection connection = factory.getConnection();

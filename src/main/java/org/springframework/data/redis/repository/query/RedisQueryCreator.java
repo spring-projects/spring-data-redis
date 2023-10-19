@@ -61,10 +61,8 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			case TRUE -> sink.sismember(part.getProperty().toDotPath(), true);
 			case FALSE -> sink.sismember(part.getProperty().toDotPath(), false);
 			case WITHIN, NEAR -> sink.near(getNearPath(part, iterator));
-			default -> {
-				String message = String.format("%s is not supported for Redis query derivation", part.getType());
-				throw new IllegalArgumentException(message);
-			}
+			default ->
+				throw new IllegalArgumentException("%s is not supported for Redis query derivation".formatted(part.getType()));
 		}
 
 		return sink;
@@ -111,8 +109,8 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 		if (value instanceof Point point) {
 
 			if (!iterator.hasNext()) {
-				String message = "Expected to find distance value for geo query; Are you missing a parameter?";
-				throw new InvalidDataAccessApiUsageException(message);
+				throw new InvalidDataAccessApiUsageException(
+						"Expected to find distance value for geo query;" + " Are you missing a parameter?");
 			}
 
 			Distance distance;
@@ -124,17 +122,16 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 				distance = new Distance(num.doubleValue(), Metrics.KILOMETERS);
 			} else {
 
-				String message = String.format("Expected to find Distance or Numeric value for geo query but was %s",
-						ClassUtils.getDescriptiveType(distObject));
-				throw new InvalidDataAccessApiUsageException(message);
+				throw new InvalidDataAccessApiUsageException(
+						"Expected to find Distance or Numeric value for geo query but was %s"
+								.formatted(ClassUtils.getDescriptiveType(distObject)));
 			}
 
 			return new NearPath(path, point, distance);
 		}
 
-		String message = String.format("Expected to find a Circle or Point/Distance for geo query but was %s",
-				ClassUtils.getDescriptiveType(value.getClass()));
-		throw new InvalidDataAccessApiUsageException(message);
+		throw new InvalidDataAccessApiUsageException("Expected to find a Circle or Point/Distance for geo query but was %s"
+				.formatted(ClassUtils.getDescriptiveType(value.getClass())));
 	}
 
 	private static boolean containsExactlyOne(Collection<?> collection) {
