@@ -23,7 +23,6 @@ import java.util.function.Supplier;
 
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.KotlinDetector;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -34,12 +33,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -163,27 +164,55 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	private GenericJackson2JsonRedisSerializer(ObjectMapper mapper, JacksonObjectReader reader,
 			JacksonObjectWriter writer, @Nullable String typeHintPropertyName) {
 
-		this.mapper = RedisAssertions.requireNonNull(mapper, "ObjectMapper must not be null");
-		this.reader = RedisAssertions.requireNonNull(reader, "Reader must not be null");
-		this.writer = RedisAssertions.requireNonNull(writer, "Writer must not be null");
+		Assert.notNull(mapper, "ObjectMapper must not be null");
+		Assert.notNull(reader, "Reader must not be null");
+		Assert.notNull(writer, "Writer must not be null");
+
+		this.mapper = mapper;
+		this.reader = reader;
+		this.writer = writer;
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.getSerializationConfig().getDefaultTyper(null) != null);
 
-		this.typeResolver = new TypeResolver(Lazy.of(mapper::getTypeFactory),
-				newTypeHintPropertyNameSupplier(mapper, typeHintPropertyName, this.defaultTypingEnabled));
+		this.typeResolver = newTypeResolver(mapper, typeHintPropertyName, this.defaultTypingEnabled);
 	}
 
-	private Supplier<String> newTypeHintPropertyNameSupplier(ObjectMapper mapper, @Nullable String typeHintPropertyName,
+	private TypeResolver newTypeResolver(ObjectMapper mapper, @Nullable String typeHintPropertyName,
 			Lazy<Boolean> defaultTypingEnabled) {
 
-		return typeHintPropertyName != null ? () -> typeHintPropertyName
-				: Lazy
-						.of(() -> defaultTypingEnabled.get() ? null
-								: mapper.getDeserializationConfig().getDefaultTyper(null)
-										.buildTypeDeserializer(mapper.getDeserializationConfig(),
-												mapper.getTypeFactory().constructType(Object.class), Collections.emptyList())
-										.getPropertyName())
-						.or("@class");
+		Lazy<TypeFactory> lazyTypeFactory = Lazy.of(mapper::getTypeFactory);
+
+		Lazy<String> lazyTypeHintPropertyName = typeHintPropertyName != null ? Lazy.of(typeHintPropertyName)
+				: newLazyTypeHintPropertyName(mapper, defaultTypingEnabled);
+
+		return new TypeResolver(lazyTypeFactory, lazyTypeHintPropertyName);
+	}
+
+	private Lazy<String> newLazyTypeHintPropertyName(ObjectMapper mapper, Lazy<Boolean> defaultTypingEnabled) {
+
+		Lazy<String> configuredTypeDeserializationPropertyName = getConfiguredTypeDeserializationPropertyName(mapper);
+
+		Lazy<String> resolvedLazyTypeHintPropertyName = Lazy.of(() -> defaultTypingEnabled.get() ? null
+				: configuredTypeDeserializationPropertyName.get());
+
+		resolvedLazyTypeHintPropertyName = resolvedLazyTypeHintPropertyName.or("@class");
+
+		return resolvedLazyTypeHintPropertyName;
+	}
+
+	private Lazy<String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
+
+		return Lazy.of(() -> {
+
+			DeserializationConfig deserializationConfig = mapper.getDeserializationConfig();
+
+			JavaType objectType = mapper.getTypeFactory().constructType(Object.class);
+
+			TypeDeserializer typeDeserializer = deserializationConfig.getDefaultTyper(null)
+					.buildTypeDeserializer(deserializationConfig, objectType, Collections.emptyList());
+
+			return typeDeserializer.getPropertyName();
+		});
 	}
 
 	/**
@@ -336,7 +365,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	private static class NullValueSerializer extends StdSerializer<NullValue> {
 
-		@Serial private static final long serialVersionUID = 1999052150548658808L;
+		@Serial
+		private static final long serialVersionUID = 1999052150548658808L;
 
 		private final String classIdentifier;
 
