@@ -17,6 +17,7 @@ package org.springframework.data.redis.repository.query;
 
 import java.util.Iterator;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
@@ -57,10 +58,8 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			case TRUE -> sink.sismember(part.getProperty().toDotPath(), true);
 			case FALSE -> sink.sismember(part.getProperty().toDotPath(), false);
 			case WITHIN, NEAR -> sink.near(getNearPath(part, iterator));
-			default -> {
-				String message = String.format("%s is not supported for Redis query derivation", part.getType());
-				throw new IllegalArgumentException(message);
-			}
+			default -> throw new IllegalArgumentException("%s is not supported for Redis query derivation"
+					.formatted(part.getType()));
 		}
 
 		return sink;
@@ -112,28 +111,23 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			point = (Point) value;
 
 			if (!iterator.hasNext()) {
-				String message = "Expected to find distance value for geo query; Are you missing a parameter";
-				throw new InvalidDataAccessApiUsageException(message);
+				throw new InvalidDataAccessApiUsageException("Expected to find distance value for geo query;"
+						+ " Are you missing a parameter");
 			}
 
 			Object distObject = iterator.next();
+
 			if (distObject instanceof Distance) {
 				distance = (Distance) distObject;
 			} else if (distObject instanceof Number) {
 				distance = new Distance(((Number) distObject).doubleValue(), Metrics.KILOMETERS);
 			} else {
-
-				String message = String.format("Expected to find Distance or Numeric value for geo query but was %s",
-						distObject.getClass());
-
-				throw new InvalidDataAccessApiUsageException(message);
+				throw new InvalidDataAccessApiUsageException("Expected to find Distance or Numeric value for geo query;"
+						+ " but was %s".formatted(distObject.getClass()));
 			}
 		} else {
-
-			String message = String.format("Expected to find a Circle or Point/Distance for geo query but was %s.",
-					value.getClass());
-
-			throw new InvalidDataAccessApiUsageException(message);
+			throw new InvalidDataAccessApiUsageException("Expected to find a Circle or Point/Distance for geo query;"
+					+ " but was %s".formatted(value.getClass()));
 		}
 
 		return new NearPath(part.getProperty().toDotPath(), point, distance);

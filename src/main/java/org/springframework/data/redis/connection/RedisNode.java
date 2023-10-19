@@ -102,11 +102,11 @@ public class RedisNode implements NamedNode {
 		try {
 			port = Integer.parseInt(portString);
 		} catch (RuntimeException ignore) {
-			throw new IllegalArgumentException(String.format("Unparseable port number: %s", hostPortString));
+			throw new IllegalArgumentException("Unparseable port number: %s".formatted(hostPortString));
 		}
 
 		if (!isValidPort(port)) {
-			throw new IllegalArgumentException(String.format("Port number out of range: %s", hostPortString));
+			throw new IllegalArgumentException("Port number out of range: %s".formatted(hostPortString));
 		}
 
 		return new RedisNode(host, port);
@@ -122,15 +122,15 @@ public class RedisNode implements NamedNode {
 	private static String[] getHostAndPortFromBracketedHost(String hostPortString) {
 
 		if (hostPortString.charAt(0) != '[') {
-			throw new IllegalArgumentException(
-					String.format("Bracketed host-port string must start with a bracket: %s", hostPortString));
+			throw new IllegalArgumentException("Bracketed host-port string must start with a bracket: %s"
+					.formatted(hostPortString));
 		}
 
 		int colonIndex = hostPortString.indexOf(':');
 		int closeBracketIndex = hostPortString.lastIndexOf(']');
 
 		if (!(colonIndex > -1 && closeBracketIndex > colonIndex)) {
-			throw new IllegalArgumentException(String.format("Invalid bracketed host/port: %s", hostPortString));
+			throw new IllegalArgumentException("Invalid bracketed host/port: %s".formatted(hostPortString));
 		}
 
 		String host = hostPortString.substring(1, closeBracketIndex);
@@ -138,12 +138,12 @@ public class RedisNode implements NamedNode {
 			return new String[] { host, "" };
 		} else {
 			if (!(hostPortString.charAt(closeBracketIndex + 1) == ':')) {
-				throw new IllegalArgumentException(
-						String.format("Only a colon may follow a close bracket: %s", hostPortString));
+				throw new IllegalArgumentException("Only a colon may follow a close bracket: %s"
+						.formatted(hostPortString));
 			}
 			for (int i = closeBracketIndex + 2; i < hostPortString.length(); ++i) {
 				if (!Character.isDigit(hostPortString.charAt(i))) {
-					throw new IllegalArgumentException(String.format("Port must be numeric: %s", hostPortString));
+					throw new IllegalArgumentException("Port must be numeric: %s".formatted(hostPortString));
 				}
 			}
 			return new String[] { host, hostPortString.substring(closeBracketIndex + 2) };

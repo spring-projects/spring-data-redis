@@ -404,8 +404,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		long ttl = connection.pTtl("pexpireKey");
 
 		assertThat(millis - ttl < 20L)
-				.as(String.format("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s", millis,
-						ttl, millis - ttl))
+				.describedAs("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s",
+						millis, ttl, millis - ttl)
 				.isTrue();
 	}
 

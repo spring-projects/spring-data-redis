@@ -375,13 +375,12 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 			if (targetEx instanceof DataAccessException dataAccessException) {
 				throw dataAccessException;
 			} else {
-				String message = String.format("Listener method '%s' threw exception", methodName);
-				throw new RedisListenerExecutionFailedException(message, targetEx);
+				throw new RedisListenerExecutionFailedException("Listener method '%s' threw exception"
+						.formatted(methodName), targetEx);
 			}
 		} catch (Throwable ex) {
-			String message = String.format("Failed to invoke target method '%s' with arguments %s", methodName,
-					ObjectUtils.nullSafeToString(arguments));
-			throw new RedisListenerExecutionFailedException(message, ex);
+			throw new RedisListenerExecutionFailedException("Failed to invoke target method '%s' with arguments %s"
+					.formatted(methodName, ObjectUtils.nullSafeToString(arguments)), ex);
 		}
 	}
 

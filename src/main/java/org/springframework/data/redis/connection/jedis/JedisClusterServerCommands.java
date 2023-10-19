@@ -347,10 +347,11 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 	public void killClient(String host, int port) {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
-		String hostAndPort = String.format("%s:%s", host, port);
+		String hostAndPort = "%s:%d".formatted(host, port);
 
-		connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((JedisClusterCommandCallback<String>) client -> client.clientKill(hostAndPort));
+		JedisClusterCommandCallback<String> command = client -> client.clientKill(hostAndPort);
+
+		connection.getClusterCommandExecutor().executeCommandOnAllNodes(command);
 	}
 
 	@Override

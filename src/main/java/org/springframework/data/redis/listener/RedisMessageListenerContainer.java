@@ -663,14 +663,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				Collection<MessageListener> collection = resolveMessageListeners(this.channelMapping, serializedTopic);
 				collection.add(listener);
 				channels.add(serializedTopic.getArray());
-				logTrace(() -> String.format("Adding listener '%s' on channel '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Adding listener '%s' on channel '%s'".formatted(listener, topic.getTopic()));
 			} else if (topic instanceof PatternTopic) {
 				Collection<MessageListener> collection = resolveMessageListeners(this.patternMapping, serializedTopic);
 				collection.add(listener);
 				patterns.add(serializedTopic.getArray());
-				logTrace(() -> String.format("Adding listener '%s' for pattern '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Adding listener '%s' for pattern '%s'".formatted(listener, topic.getTopic()));
 			} else {
-				throw new IllegalArgumentException(String.format("Unknown topic type '%s'", topic.getClass()));
+				throw new IllegalArgumentException("Unknown topic type '%s'".formatted(topic.getClass()));
 			}
 		}
 		boolean wasListening = isListening();
@@ -754,12 +754,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			if (topic instanceof ChannelTopic) {
 				remove(listener, topic, holder, channelMapping, channelsToRemove);
-				logTrace(() -> String.format("Removing listener '%s' from channel '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Removing listener '%s' from channel '%s'".formatted(listener, topic.getTopic()));
 			}
 
 			else if (topic instanceof PatternTopic) {
 				remove(listener, topic, holder, patternMapping, patternsToRemove);
-				logTrace(() -> String.format("Removing listener '%s' from pattern '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Removing listener '%s' from pattern '%s'".formatted(listener, topic.getTopic()));
 			}
 		}
 
@@ -880,9 +880,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				long recoveryInterval = backOffExecution.nextBackOff();
 
 				if (recoveryInterval != BackOffExecution.STOP) {
-					String message = String.format("Connection failure occurred: %s; Restarting subscription task after %s ms",
-						cause, recoveryInterval);
-					logger.error(message, cause);
+					logger.error("Connection failure occurred: %s; Restarting subscription task after %s ms"
+							.formatted(cause, recoveryInterval), cause);
 				}
 
 				return recoveryInterval;

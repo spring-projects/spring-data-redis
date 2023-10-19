@@ -140,7 +140,7 @@ public class RedisPassword {
 
 	@Override
 	public String toString() {
-		return String.format("%s[%s]", getClass().getSimpleName(), isPresent() ? "*****" : "<none>");
+		return "%s[%s]".formatted(getClass().getSimpleName(), isPresent() ? "*****" : "<none>");
 	}
 
 	@Override

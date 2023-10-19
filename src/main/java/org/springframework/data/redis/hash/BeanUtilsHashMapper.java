@@ -71,7 +71,7 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 
 			return result;
 		} catch (Exception ex) {
-			throw new IllegalArgumentException(String.format("Cannot describe object %s", object), ex);
+			throw new IllegalArgumentException("Cannot describe object %s".formatted(object), ex);
 		}
 	}
 }

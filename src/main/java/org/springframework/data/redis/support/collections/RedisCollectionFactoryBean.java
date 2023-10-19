@@ -139,8 +139,8 @@ public class RedisCollectionFactoryBean implements SmartFactoryBean<RedisStore>,
 			}
 
 			if (keyType != null && DataType.NONE != keyType && this.type.dataType() != keyType) {
-				throw new IllegalArgumentException(
-						"Cannot create collection type '%s' for a key containing '%s'".formatted(this.type, keyType));
+				throw new IllegalArgumentException("Cannot create collection type '%s' for a key containing '%s'"
+						.formatted(this.type, keyType));
 			}
 
 			return createStore(this.type, key, template);

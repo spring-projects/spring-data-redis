@@ -68,7 +68,7 @@ public abstract class MockitoUtils {
 
 					@Override
 					public String toString() {
-						return String.format("%s for method: %s", mode, method);
+						return "%s for method: %s".formatted(mode, method);
 					}
 				}));
 	}

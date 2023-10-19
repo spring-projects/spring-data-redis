@@ -216,10 +216,8 @@ public class LettuceClusterConnection extends LettuceConnection
 			return (RedisClusterClient) redisClientProvider.getRedisClient();
 		}
 
-		String message = String.format("Connection provider %s does not implement RedisClientProvider",
-				connectionProvider.getClass().getName());
-
-		throw new IllegalStateException(message);
+		throw new IllegalStateException("Connection provider %s does not implement RedisClientProvider"
+				.formatted(connectionProvider.getClass().getName()));
 	}
 
 	@Override

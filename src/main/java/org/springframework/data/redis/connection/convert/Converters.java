@@ -410,7 +410,7 @@ public abstract class Converters {
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(String.format("parsing %s (%s) as %s", sourcePath, path, targetType));
+			LOGGER.debug("parsing %s (%s) as %s".formatted(sourcePath, path, targetType));
 		}
 
 		if (targetType == Object.class) {

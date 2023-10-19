@@ -223,7 +223,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	@Override
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%d'; non-negative index required", index));
+		Assert.isTrue(index >= 0, "Invalid DB index '%d'; non-negative index required".formatted(index));
 
 		this.database = index;
 	}

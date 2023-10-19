@@ -154,7 +154,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 
 		Assert.notNull(host, "Host must not be null or empty");
 
-		return connection.execute(c -> c.clientKill(String.format("%s:%s", host, port))).next();
+		return connection.execute(c -> c.clientKill("%s:%d".formatted(host, port))).next();
 	}
 
 	@Override

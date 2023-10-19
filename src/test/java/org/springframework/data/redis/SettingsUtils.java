@@ -18,6 +18,7 @@ package org.springframework.data.redis;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -114,9 +115,11 @@ public abstract class SettingsUtils {
 	 * @return a new {@link RedisSentinelConfiguration} initialized with test endpoint settings.
 	 */
 	public static RedisSentinelConfiguration sentinelConfiguration() {
-		return new RedisSentinelConfiguration(getSentinelMaster(),
-				new HashSet<>(Arrays.asList(String.format("%s:%d", getHost(), getSentinelPort()),
-						String.format("%s:%d", getHost(), getSentinelPort() + 1))));
+
+		List<String> sentinelHostPorts = List.of("%s:%d".formatted(getHost(), getSentinelPort()),
+				"%s:%d".formatted(getHost(), getSentinelPort() + 1));
+
+		return new RedisSentinelConfiguration(getSentinelMaster(), new HashSet<>(sentinelHostPorts));
 	}
 
 	/**
@@ -125,8 +128,7 @@ public abstract class SettingsUtils {
 	 * @return a new {@link RedisClusterConfiguration} initialized with test endpoint settings.
 	 */
 	public static RedisClusterConfiguration clusterConfiguration() {
-		return new RedisClusterConfiguration(
-				Collections.singletonList(String.format("%s:%d", getHost(), getClusterPort())));
+		return new RedisClusterConfiguration(List.of("%s:%d".formatted(getHost(), getClusterPort())));
 	}
 
 	/**

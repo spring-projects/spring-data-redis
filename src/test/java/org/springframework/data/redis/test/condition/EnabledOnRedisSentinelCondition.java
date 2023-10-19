@@ -52,12 +52,11 @@ class EnabledOnRedisSentinelCondition implements ExecutionCondition {
 
 		if (RedisDetector.canConnectToPort(annotation.value())) {
 
-			return enabled(String.format("Connection successful to Redis Sentinel at %s:%d", SettingsUtils.getHost(),
+			return enabled("Connection successful to Redis Sentinel at %s:%d".formatted(SettingsUtils.getHost(),
 					annotation.value()));
 		}
 
-		return disabled(
-				String.format("Cannot connect to Redis Sentinel at %s:%d", SettingsUtils.getHost(), annotation.value()));
-
+		return disabled("Cannot connect to Redis Sentinel at %s:%d".formatted(SettingsUtils.getHost(),
+				annotation.value()));
 	}
 }

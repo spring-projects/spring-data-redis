@@ -73,8 +73,8 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notEmpty(command.getValues(), "Values must not be null or empty");
 
 			if (!command.getUpsert() && command.getValues().size() > 1) {
-				throw new InvalidDataAccessApiUsageException(
-						String.format("%s PUSHX only allows one value", command.getDirection()));
+				throw new InvalidDataAccessApiUsageException("%s PUSHX only allows one value"
+						.formatted(command.getDirection()));
 			}
 
 			Mono<Long> pushResult;

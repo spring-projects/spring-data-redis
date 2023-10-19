@@ -539,9 +539,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			} else if (pUpdate.getValue() instanceof Entry) {
 				map.put(((Entry<?, ?>) pUpdate.getValue()).getKey(), ((Entry<?, ?>) pUpdate.getValue()).getValue());
 			} else {
-				throw new MappingException(
-						String.format("Cannot set update value for map property '%s' to '%s'; Please use a Map or Map.Entry",
-								pUpdate.getPropertyPath(), pUpdate.getValue()));
+				throw new MappingException(("Cannot set update value for map property '%s' to '%s';"
+						+ " Please use a Map or Map.Entry").formatted(pUpdate.getPropertyPath(), pUpdate.getValue()));
 			}
 
 			writeMap(entity.getKeySpace(), pUpdate.getPropertyPath(), targetProperty.getMapValueType(), map, sink);
@@ -601,8 +600,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			} else {
 
 				if (!ClassUtils.isAssignable(typeHint.getType(), value.getClass())) {
-					throw new MappingException(
-							String.format(INVALID_TYPE_ASSIGNMENT, value.getClass(), path, typeHint.getType()));
+					throw new MappingException(INVALID_TYPE_ASSIGNMENT
+							.formatted(value.getClass(), path, typeHint.getType()));
 				}
 				writeToBucket(path, value, sink, typeHint.getType());
 			}
@@ -750,8 +749,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			String currentPath = path + (path.equals("") ? "" : ".") + "[" + i + "]";
 
 			if (!ClassUtils.isAssignable(typeHint.getType(), value.getClass())) {
-				throw new MappingException(
-						String.format(INVALID_TYPE_ASSIGNMENT, value.getClass(), currentPath, typeHint.getType()));
+				throw new MappingException(INVALID_TYPE_ASSIGNMENT
+						.formatted(value.getClass(), currentPath, typeHint.getType()));
 			}
 
 			if (customConversions.hasCustomWriteTarget(value.getClass())) {
@@ -793,8 +792,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			} else if (targetType.filter(it -> ClassUtils.isAssignable(byte[].class, it)).isPresent()) {
 				sink.getBucket().put(path, toBytes(value));
 			} else {
-				throw new IllegalArgumentException(
-						String.format("Cannot convert value '%s' of type %s to bytes", value, value.getClass()));
+				throw new IllegalArgumentException("Cannot convert value '%s' of type %s to bytes"
+						.formatted(value, value.getClass()));
 			}
 		}
 	}
@@ -854,8 +853,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			String currentPath = path + ".[" + mapMapKey(entry.getKey()) + "]";
 
 			if (!ClassUtils.isAssignable(mapValueType, entry.getValue().getClass())) {
-				throw new MappingException(
-						String.format(INVALID_TYPE_ASSIGNMENT, entry.getValue().getClass(), currentPath, mapValueType));
+				throw new MappingException(INVALID_TYPE_ASSIGNMENT
+						.formatted(entry.getValue().getClass(), currentPath, mapValueType));
 			}
 
 			if (customConversions.hasCustomWriteTarget(entry.getValue().getClass())) {
@@ -945,8 +944,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		Matcher matcher = pattern.matcher(key);
 		if (!matcher.find()) {
-			throw new IllegalArgumentException(
-					String.format("Cannot extract map value for key '%s' in path '%s'.", key, path));
+			throw new IllegalArgumentException("Cannot extract map value for key '%s' in path '%s'"
+					.formatted(key, path));
 		}
 
 		Object mapKey = matcher.group(2);
@@ -1219,7 +1218,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		 */
 		public static KeyspaceIdentifier of(String key) {
 
-			Assert.isTrue(isValid(key), String.format("Invalid key %s", key));
+			Assert.isTrue(isValid(key), () -> "Invalid key %s".formatted(key));
 
 			boolean phantomKey = key.endsWith(PHANTOM_SUFFIX);
 			int keyspaceEndIndex = key.indexOf(DELIMITER);
@@ -1299,7 +1298,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		 */
 		public static BinaryKeyspaceIdentifier of(byte[] key) {
 
-			Assert.isTrue(isValid(key), String.format("Invalid key %s", new String(key)));
+			Assert.isTrue(isValid(key), () -> "Invalid key %s".formatted(new String(key)));
 
 			boolean phantomKey = ByteUtils.startsWith(key, PHANTOM_SUFFIX, key.length - PHANTOM_SUFFIX.length);
 
