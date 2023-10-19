@@ -497,8 +497,8 @@ public abstract class RedisConnectionUtils {
 
 			try {
 				return method.invoke(target, args);
-			} catch (InvocationTargetException e) {
-				throw e.getCause();
+			} catch (InvocationTargetException ex) {
+				throw ex.getCause();
 			}
 		}
 

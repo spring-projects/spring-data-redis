@@ -636,8 +636,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 				this.cursor = index + 1;
 				this.lastReturnedElementIndex = index;
 				return this.lastReturnedElement;
-			} catch (IndexOutOfBoundsException cause) {
-				throw new NoSuchElementException(cause);
+			} catch (IndexOutOfBoundsException ex) {
+				throw new NoSuchElementException(ex);
 			}
 		}
 
@@ -688,7 +688,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 				this.lastReturnedElementIndex = -1;
 				this.lastReturnedElement = null;
 				this.cursor = index + 1;
-			} catch (IndexOutOfBoundsException cause) {
+			} catch (IndexOutOfBoundsException ignore) {
 				throw new ConcurrentModificationException();
 			}
 		}
@@ -702,7 +702,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 				this.lastReturnedElementIndex = index;
 				this.cursor = index;
 				return this.lastReturnedElement;
-			} catch (IndexOutOfBoundsException cause) {
+			} catch (IndexOutOfBoundsException ignore) {
 				throw new NoSuchElementException();
 			}
 		}
@@ -716,7 +716,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 			try {
 				DefaultRedisList.this.set(this.lastReturnedElementIndex, element);
-			} catch (IndexOutOfBoundsException cause) {
+			} catch (IndexOutOfBoundsException ignore) {
 				throw new ConcurrentModificationException();
 			}
 		}

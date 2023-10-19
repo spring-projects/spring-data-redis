@@ -55,8 +55,8 @@ class ConnectionSplittingInterceptorUnitTests {
 		try {
 			WRITE_METHOD = ClassUtils.getMethod(RedisConnection.class, "expire", byte[].class, long.class);
 			READONLY_METHOD = ClassUtils.getMethod(RedisConnection.class, "keys", byte[].class);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
 		}
 	}
 

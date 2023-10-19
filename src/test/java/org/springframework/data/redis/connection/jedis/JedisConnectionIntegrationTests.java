@@ -68,17 +68,14 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	public void tearDown() {
 		try {
 			connection.flushAll();
-		} catch (Exception e) {
-			// Jedis leaves some incomplete data in OutputStream on NPE caused
-			// by null key/value tests
-			// Attempting to flush the DB or close the connection will result in
-			// error on sending QUIT to Redis
+		} catch (Exception ignore) {
+			// Jedis leaves some incomplete data in OutputStream on NPE caused by null key/value tests
+			// Attempting to flush the DB or close the connection will result in error on sending QUIT to Redis
 		}
 
 		try {
 			connection.close();
-		} catch (Exception e) {
-			// silently close connection
+		} catch (Exception ignore) {
 		}
 
 		connection = null;
@@ -231,16 +228,16 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				RedisConnection con = connectionFactory.getConnection();
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
 				}
 
 				con.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
 
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
 				}
 
 				/*
@@ -289,8 +286,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				RedisConnection con = connectionFactory.getConnection();
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
 				}
 
 				con.publish("channel1".getBytes(), expectedMessage.getBytes());
@@ -298,8 +295,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
 				}
 
 				con.close();
@@ -341,8 +338,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		try (RedisConnection conn = factory2.getConnection()) {
 			conn.get(null);
-		} catch (Exception e) {
-
+		} catch (Exception ignore) {
 		} finally {
 			// Make sure we don't end up with broken connection
 			factory2.getConnection().dbSize();

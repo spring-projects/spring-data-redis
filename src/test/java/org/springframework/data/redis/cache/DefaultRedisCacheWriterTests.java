@@ -362,8 +362,8 @@ public class DefaultRedisCacheWriterTests {
 
 			try {
 				writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
-			} catch (Exception cause) {
-				exceptionRef.set(cause);
+			} catch (Exception ex) {
+				exceptionRef.set(ex);
 			} finally {
 				afterWrite.countDown();
 			}

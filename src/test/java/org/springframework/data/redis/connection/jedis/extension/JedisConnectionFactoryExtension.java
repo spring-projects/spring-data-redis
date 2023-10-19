@@ -227,8 +227,8 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 			try {
 				mayClose = true;
 				destroy();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 		}
 	}

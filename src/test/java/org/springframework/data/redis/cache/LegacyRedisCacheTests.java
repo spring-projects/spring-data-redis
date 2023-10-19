@@ -207,7 +207,7 @@ public class LegacyRedisCacheTests {
 		Runnable putCache = () -> {
 			try {
 				cache.put(key1, value1);
-			} catch (IllegalMonitorStateException e) {
+			} catch (IllegalMonitorStateException ex) {
 				monitorStateException.set(true);
 			} finally {
 				latch.countDown();
@@ -304,8 +304,7 @@ public class LegacyRedisCacheTests {
 
 		try {
 			cache.put(key, null);
-		} catch (IllegalArgumentException e) {
-			// forget this one.
+		} catch (IllegalArgumentException expected) {
 		}
 
 		assertThat(cache.get(key).get()).isEqualTo(value);

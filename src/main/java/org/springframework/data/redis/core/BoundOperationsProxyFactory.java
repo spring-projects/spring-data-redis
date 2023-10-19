@@ -175,9 +175,9 @@ class BoundOperationsProxyFactory {
 
 			try {
 				return backingMethod.invoke(target, args);
-			} catch (ReflectiveOperationException e) {
-				ReflectionUtils.handleReflectionException(e);
-				throw new UnsupportedOperationException("Should not happen", e);
+			} catch (ReflectiveOperationException ex) {
+				ReflectionUtils.handleReflectionException(ex);
+				throw new UnsupportedOperationException("Should not happen", ex);
 			}
 		}
 	}

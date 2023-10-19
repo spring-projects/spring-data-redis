@@ -123,8 +123,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		for (ConnectionPool pool : nativeConnection.getClusterNodes().values()) {
 			try (Jedis jedis = new Jedis(pool.getResource())) {
 				jedis.flushAll();
-			} catch (Exception e) {
-				// ignore this one since we cannot remove data from replicas
+			} catch (Exception ignore) {
+				// ignore since we cannot remove data from replicas
 			}
 		}
 	}
@@ -2857,8 +2857,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		try {
 			clusterConnection.scriptingCommands().evalSha(luaScriptBin, ReturnType.VALUE, 1, keyAndArgs);
 			fail("expected InvalidDataAccessApiUsageException");
-		} catch (InvalidDataAccessApiUsageException e) {
-			assertThat(e.getMessage()).contains("NOSCRIPT");
+		} catch (InvalidDataAccessApiUsageException ex) {
+			assertThat(ex.getMessage()).contains("NOSCRIPT");
 		}
 	}
 

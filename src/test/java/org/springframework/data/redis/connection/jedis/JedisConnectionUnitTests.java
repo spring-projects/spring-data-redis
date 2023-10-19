@@ -65,8 +65,7 @@ class JedisConnectionUnitTests {
 
 			try {
 				connection.shutdown(null);
-			} catch (InvalidDataAccessApiUsageException e) {
-				// all good. Sometimes it throws an Exception.
+			} catch (InvalidDataAccessApiUsageException ignore) {
 			}
 
 			verify(jedisSpy).shutdown();

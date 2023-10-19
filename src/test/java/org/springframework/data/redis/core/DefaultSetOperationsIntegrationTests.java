@@ -103,7 +103,8 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		try {
 			setOps.randomMembers(keyFactory.instance(), -1);
 			fail("IllegalArgumentException should be thrown");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException expected) {
+		}
 	}
 
 	@ParameterizedRedisTest
@@ -112,7 +113,8 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		try {
 			setOps.distinctRandomMembers(keyFactory.instance(), -2);
 			fail("IllegalArgumentException should be thrown");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException expected) {
+		}
 	}
 
 	@SuppressWarnings("unchecked")

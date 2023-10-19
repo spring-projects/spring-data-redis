@@ -351,6 +351,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		List<Object> pipelinedResults = redisTemplate.executePipelined(new SessionCallback() {
 			public Object execute(RedisOperations operations) throws DataAccessException {
+
 				operations.multi();
 				operations.opsForList().leftPush(key1, value1);
 				operations.opsForList().rightPop(key1);
@@ -360,9 +361,12 @@ public class RedisTemplateIntegrationTests<K, V> {
 				try {
 					// Await EXEC completion as it's executed on a dedicated connection.
 					Thread.sleep(100);
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignore) {
+				}
+
 				operations.opsForValue().set(key1, value1);
 				operations.opsForValue().get(key1);
+
 				return null;
 			}
 		});
@@ -719,7 +723,8 @@ public class RedisTemplateIntegrationTests<K, V> {
 				th.start();
 				try {
 					th.join();
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignore) {
+				}
 
 				operations.multi();
 				operations.opsForValue().set(key1, value3);
@@ -751,7 +756,8 @@ public class RedisTemplateIntegrationTests<K, V> {
 				th.start();
 				try {
 					th.join();
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignore) {
+				}
 
 				operations.unwatch();
 				operations.multi();
@@ -788,7 +794,8 @@ public class RedisTemplateIntegrationTests<K, V> {
 				th.start();
 				try {
 					th.join();
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException ignore) {
+				}
 
 				operations.multi();
 				operations.opsForValue().set(key1, value3);

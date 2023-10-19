@@ -54,13 +54,14 @@ class EnabledOnRedisAvailableCondition implements ExecutionCondition {
 		EnabledOnRedisAvailable annotation = optional.get();
 
 		try (Socket socket = new Socket()) {
+
 			socket.connect(new InetSocketAddress(SettingsUtils.getHost(), annotation.value()), 100);
 
-			return enabled(
-					String.format("Connection successful to Redis at %s:%d", SettingsUtils.getHost(), annotation.value()));
-		} catch (IOException e) {
-			return disabled(
-					String.format("Cannot connect to Redis at %s:%d (%s)", SettingsUtils.getHost(), annotation.value(), e));
+			return enabled(String.format("Connection successful to Redis at %s:%d", SettingsUtils.getHost(),
+					annotation.value()));
+		} catch (IOException ex) {
+			return disabled(String.format("Cannot connect to Redis at %s:%d (%s)", SettingsUtils.getHost(),
+					annotation.value(), ex));
 		}
 	}
 

@@ -377,13 +377,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			while (doCheckLock(name, connection)) {
 				Thread.sleep(this.sleepTime.toMillis());
 			}
-		} catch (InterruptedException cause) {
+		} catch (InterruptedException ex) {
 
 			// Re-interrupt current Thread to allow other participants to react.
 			Thread.currentThread().interrupt();
 
-			throw new PessimisticLockingFailureException(String.format("Interrupted while waiting to unlock cache %s", name),
-					cause);
+			String message = String.format("Interrupted while waiting to unlock cache %s", name);
+
+			throw new PessimisticLockingFailureException(message, ex);
 		} finally {
 			this.statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}

@@ -78,9 +78,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 			// since we use more than one db we're required to flush them all
 			connection.flushAll();
-		} catch (Exception e) {
-			// Connection may be closed in certain cases, like after pub/sub
-			// tests
+		} catch (Exception ignore) {
+			// Connection may be closed in certain cases, like after pub/sub tests
 		}
 		connection.close();
 	}

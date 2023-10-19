@@ -81,8 +81,8 @@ public class ConnectionVerifier<T extends RedisConnectionFactory> {
 		if (factory instanceof InitializingBean initializingBean) {
 			try {
 				initializingBean.afterPropertiesSet();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			} catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
 		}
 		if (factory instanceof SmartLifecycle smartLifecycle) {
@@ -97,14 +97,14 @@ public class ConnectionVerifier<T extends RedisConnectionFactory> {
 		if (it instanceof DisposableBean bean) {
 			try {
 				bean.destroy();
-			} catch (Exception e) {
-				throw new DataAccessResourceFailureException("Cannot close resource", e);
+			} catch (Exception ex) {
+				throw new DataAccessResourceFailureException("Cannot close resource", ex);
 			}
 		} else if (it instanceof Closeable closeable) {
 			try {
 				closeable.close();
-			} catch (IOException e) {
-				throw new DataAccessResourceFailureException("Cannot close resource", e);
+			} catch (IOException ex) {
+				throw new DataAccessResourceFailureException("Cannot close resource", ex);
 			}
 		} else if (it instanceof SmartLifecycle smartLifecycle && smartLifecycle.isRunning()) {
 			smartLifecycle.stop();

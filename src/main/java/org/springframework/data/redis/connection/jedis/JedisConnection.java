@@ -193,9 +193,9 @@ public class JedisConnection extends AbstractRedisConnection {
 		if (nodeConfig.getDatabase() != jedis.getDB()) {
 			try {
 				select(nodeConfig.getDatabase());
-			} catch (DataAccessException cause) {
+			} catch (DataAccessException ex) {
 				close();
-				throw cause;
+				throw ex;
 			}
 		}
 	}
@@ -413,17 +413,17 @@ public class JedisConnection extends AbstractRedisConnection {
 				if (!result.isStatus()) {
 					results.add(result.conversionRequired() ? result.convert(data) : data);
 				}
-			} catch (JedisDataException e) {
-				DataAccessException dataAccessException = convertJedisAccessException(e);
+			} catch (JedisDataException ex) {
+				DataAccessException dataAccessException = convertJedisAccessException(ex);
 				if (cause == null) {
 					cause = dataAccessException;
 				}
 				results.add(dataAccessException);
-			} catch (DataAccessException e) {
+			} catch (DataAccessException ex) {
 				if (cause == null) {
-					cause = e;
+					cause = ex;
 				}
-				results.add(e);
+				results.add(ex);
 			}
 		}
 
@@ -488,8 +488,8 @@ public class JedisConnection extends AbstractRedisConnection {
 					? new TransactionResultConverter<>(txResults, JedisExceptionConverter.INSTANCE).convert(results)
 					: results;
 
-		} catch (Exception cause) {
-			throw convertJedisAccessException(cause);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		} finally {
 			txResults.clear();
 			transaction = null;
@@ -684,7 +684,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			verification = getJedis(node);
 			verification.connect();
 			return verification.ping().equalsIgnoreCase("pong");
-		} catch (Exception cause) {
+		} catch (Exception ignore) {
 			return false;
 		} finally {
 			if (verification != null) {
@@ -708,8 +708,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			return callback.apply(getJedis());
-		} catch (Exception cause) {
-			throw convertJedisAccessException(cause);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 
@@ -717,8 +717,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			callback.accept(getJedis());
-		} catch (Exception cause) {
-			throw convertJedisAccessException(cause);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 
@@ -727,9 +727,9 @@ public class JedisConnection extends AbstractRedisConnection {
 		try {
 			operation.run();
 		}
-		catch (Exception cause) {
+		catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(logMessage, cause);
+				LOGGER.debug(logMessage, ex);
 			}
 		}
 	}

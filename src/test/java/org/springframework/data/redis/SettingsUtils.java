@@ -49,7 +49,7 @@ public abstract class SettingsUtils {
 
 		try {
 			SETTINGS.load(SettingsUtils.class.getResourceAsStream("/org/springframework/data/redis/test.properties"));
-		} catch (Exception e) {
+		} catch (Exception ignore) {
 			throw new IllegalArgumentException("Cannot read settings");
 		}
 	}

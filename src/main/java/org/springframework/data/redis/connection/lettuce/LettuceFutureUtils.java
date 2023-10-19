@@ -66,14 +66,14 @@ class LettuceFutureUtils {
 
 		try {
 			return future.toCompletableFuture().join();
-		} catch (Exception e) {
+		} catch (Exception ex) {
 
-			Throwable exceptionToUse = e;
+			Throwable exceptionToUse = ex;
 
-			if (e instanceof CompletionException) {
-				exceptionToUse = LettuceExceptionConverter.INSTANCE.convert((Exception) e.getCause());
+			if (ex instanceof CompletionException) {
+				exceptionToUse = LettuceExceptionConverter.INSTANCE.convert((Exception) ex.getCause());
 				if (exceptionToUse == null) {
-					exceptionToUse = e.getCause();
+					exceptionToUse = ex.getCause();
 				}
 			}
 

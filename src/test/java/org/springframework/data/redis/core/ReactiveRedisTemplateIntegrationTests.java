@@ -95,14 +95,10 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	@EnabledOnCommand("COPY")
 	void copy() {
 
-		ReactiveRedisClusterConnection connection = null;
-		try {
-			connection = redisTemplate.getConnectionFactory().getReactiveClusterConnection();
-			assumeThat(connection == null).isTrue();
-		} catch (InvalidDataAccessApiUsageException e) {} finally {
-			if (connection != null) {
-				connection.close();
-			}
+		try (ReactiveRedisClusterConnection connection = redisTemplate.getConnectionFactory()
+				.getReactiveClusterConnection()){
+			assumeThat(connection).isNull();
+		} catch (InvalidDataAccessApiUsageException ignore) {
 		}
 
 		K key = keyFactory.instance();
@@ -397,23 +393,17 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	@ParameterizedRedisTest // DATAREDIS-602
 	void move() {
 
-		ReactiveRedisClusterConnection connection = null;
-		try {
-			connection = redisTemplate.getConnectionFactory().getReactiveClusterConnection();
-			assumeThat(connection == null).isTrue();
-		} catch (InvalidDataAccessApiUsageException e) {} finally {
-			if (connection != null) {
-				connection.close();
-			}
+		try (ReactiveRedisClusterConnection connection = redisTemplate.getConnectionFactory()
+				.getReactiveClusterConnection()) {
+			assumeThat(connection).isNull();
+		} catch (InvalidDataAccessApiUsageException ignore) {
 		}
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
 		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
-
 		redisTemplate.move(key, 5).as(StepVerifier::create).expectNext(true).verifyComplete();
-
 		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 

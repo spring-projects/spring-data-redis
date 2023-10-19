@@ -114,8 +114,8 @@ public abstract class AbstractRedisConnection implements RedisConnection {
 
 			try {
 				connection.close();
-			} catch (IOException e) {
-				LOGGER.info("Failed to close sentinel connection", e);
+			} catch (IOException ex) {
+				LOGGER.info("Failed to close sentinel connection", ex);
 			}
 		}
 	}
