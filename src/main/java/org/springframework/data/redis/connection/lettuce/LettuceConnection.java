@@ -366,8 +366,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			reset();
-		} catch (RuntimeException e) {
-			LOGGER.debug("Failed to reset connection during close", e);
+		} catch (RuntimeException ex) {
+			LOGGER.debug("Failed to reset connection during close", ex);
 		}
 	}
 
@@ -468,11 +468,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 						try {
 							results.add(result.conversionRequired() ? result.convert(result.get()) : result.get());
-						} catch (DataAccessException e) {
+						} catch (DataAccessException ex) {
 							if (problem == null) {
-								problem = e;
+								problem = ex;
 							}
-							results.add(e);
+							results.add(ex);
 						}
 					}
 				}
@@ -488,8 +488,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 
 			throw new RedisPipelineException(new QueryTimeoutException("Redis command timed out"));
-		} catch (Exception e) {
-			throw new RedisPipelineException(e);
+		} catch (Exception ex) {
+			throw new RedisPipelineException(ex);
 		}
 	}
 
@@ -573,7 +573,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		if (asyncSharedConn != null) {
 			throw new InvalidDataAccessApiUsageException("Selecting a new database not supported due to shared connection;"
-					+ " Use separate ConnectionFactorys to work with multiple databases");
+					+ " Use separate ConnectionFactory instances to work with multiple databases");
 		}
 
 		this.dbIndex = dbIndex;
@@ -930,7 +930,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			connection = getConnection(node);
 			return connection.sync().ping().equalsIgnoreCase("pong");
-		} catch (Exception e) {
+		} catch (Exception ignore) {
 			return false;
 		} finally {
 			if (connection != null) {
@@ -965,8 +965,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			return LettuceFutures.awaitOrCancel(cmd, timeout, TimeUnit.MILLISECONDS);
-		} catch (RuntimeException e) {
-			throw convertLettuceAccessException(e);
+		} catch (RuntimeException ex) {
+			throw convertLettuceAccessException(ex);
 		}
 	}
 
@@ -1031,8 +1031,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		if (!RedisCommand.UNKNOWN.equals(redisCommand) && redisCommand.requiresArguments()) {
 			try {
 				redisCommand.validateArgumentCount(args != null ? args.length : 0);
-			} catch (IllegalArgumentException e) {
-				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command", cmd), e);
+			} catch (IllegalArgumentException ex) {
+				String message = String.format("Validation failed for %s command", command);
+				throw new InvalidDataAccessApiUsageException(message, ex);
 			}
 		}
 	}
@@ -1041,7 +1042,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			return CommandType.valueOf(name);
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException ignore) {
 			return new CustomCommandType(name);
 		}
 	}

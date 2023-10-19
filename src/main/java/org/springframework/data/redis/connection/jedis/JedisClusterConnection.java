@@ -123,8 +123,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			Object custerCommandExecutor = executorDfa.getPropertyValue("executor");
 			DirectFieldAccessor dfa = new DirectFieldAccessor(custerCommandExecutor);
 			clusterCommandExecutor.setMaxRedirects((Integer) dfa.getPropertyValue("maxRedirects"));
-		} catch (Exception e) {
-			// ignore it and work with the executor default
+		} catch (Exception ignore) {
+			// ignore and work with the executor default
 		}
 	}
 
@@ -381,8 +381,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			JedisMessageListener jedisPubSub = new JedisMessageListener(listener);
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
 			cluster.subscribe(jedisPubSub, channels);
-		} catch (Exception cause) {
-			throw convertJedisAccessException(cause);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 
@@ -398,8 +398,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			JedisMessageListener jedisPubSub = new JedisMessageListener(listener);
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
 			cluster.psubscribe(jedisPubSub, patterns);
-		} catch (Exception cause) {
-			throw convertJedisAccessException(cause);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 
@@ -643,8 +643,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		if (!closed && disposeClusterCommandExecutorOnClose) {
 			try {
 				clusterCommandExecutor.destroy();
-			} catch (Exception cause) {
-				log.warn("Cannot properly close cluster command executor", cause);
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
 

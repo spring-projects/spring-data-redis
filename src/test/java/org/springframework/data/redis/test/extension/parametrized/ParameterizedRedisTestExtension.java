@@ -147,8 +147,8 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 	protected static Stream<? extends Arguments> arguments(ArgumentsProvider provider, ExtensionContext context) {
 		try {
 			return provider.provideArguments(context);
-		} catch (Exception e) {
-			throw ExceptionUtils.throwAsUncheckedException(e);
+		} catch (Exception ex) {
+			throw ExceptionUtils.throwAsUncheckedException(ex);
 		}
 	}
 

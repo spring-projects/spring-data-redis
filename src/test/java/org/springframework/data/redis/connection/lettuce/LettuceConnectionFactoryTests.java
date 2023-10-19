@@ -97,7 +97,7 @@ class LettuceConnectionFactoryTests {
 		try {
 			connection.get("test3");
 			fail("Expected exception using natively closed conn");
-		} catch (RedisSystemException e) {
+		} catch (RedisSystemException expected) {
 			// expected, shared conn is closed
 		}
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory.getConnection());
@@ -118,7 +118,7 @@ class LettuceConnectionFactoryTests {
 		try {
 			conn2.set("anotherkey", "anothervalue");
 			fail("Expected exception using natively closed conn");
-		} catch (RedisSystemException e) {
+		} catch (RedisSystemException expected) {
 			// expected, as we are re-using the natively closed conn
 		} finally {
 			conn2.close();
@@ -270,7 +270,8 @@ class LettuceConnectionFactoryTests {
 		try {
 			factory.getConnection();
 			fail("Expected connection failure exception");
-		} catch (RedisConnectionFailureException e) {}
+		} catch (RedisConnectionFailureException expected) {
+		}
 	}
 
 	@Test
@@ -463,9 +464,9 @@ class LettuceConnectionFactoryTests {
 		try {
 			connection.ping();
 			fail("Expected RedisException: Master is currently unknown");
-		} catch (RedisSystemException e) {
-			assertThat(e.getCause()).isInstanceOf(RedisException.class);
-			assertThat(e.getCause().getMessage()).contains("Master is currently unknown");
+		} catch (RedisSystemException ex) {
+			assertThat(ex.getCause()).isInstanceOf(RedisException.class);
+			assertThat(ex.getCause().getMessage()).contains("Master is currently unknown");
 		} finally {
 			connection.close();
 		}

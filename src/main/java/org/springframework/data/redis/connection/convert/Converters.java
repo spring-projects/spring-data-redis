@@ -109,8 +109,8 @@ public abstract class Converters {
 
 		try (StringReader stringReader = new StringReader(source)) {
 			info.load(stringReader);
-		} catch (Exception cause) {
-			throw new RedisSystemException("Cannot read Redis info", cause);
+		} catch (Exception ex) {
+			throw new RedisSystemException("Cannot read Redis info", ex);
 		}
 
 		return info;

@@ -101,7 +101,7 @@ public class RedisNode implements NamedNode {
 		int port = -1;
 		try {
 			port = Integer.parseInt(portString);
-		} catch (RuntimeException e) {
+		} catch (RuntimeException ignore) {
 			throw new IllegalArgumentException(String.format("Unparseable port number: %s", hostPortString));
 		}
 

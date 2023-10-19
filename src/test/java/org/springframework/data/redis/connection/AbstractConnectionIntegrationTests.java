@@ -158,9 +158,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			// since we use more than one db we're required to flush them all
 			connection.flushAll();
-		} catch (Exception e) {
-			// Connection may be closed in certain cases, like after pub/sub
-			// tests
+		} catch (Exception ignore) {
+			// Connection may be closed in certain cases, like after pub/sub tests
 		}
 		connection.close();
 		connection = null;
@@ -584,8 +583,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.decr((String) null);
 			fail("Decrement should fail with null key");
-		} catch (Exception ex) {
-			// expected
+		} catch (Exception expected) {
 		}
 	}
 
@@ -598,8 +596,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.append(key, null);
 			fail("Append should fail with null value");
-		} catch (DataAccessException ex) {
-			// expected
+		} catch (DataAccessException expected) {
 		}
 	}
 
@@ -611,8 +608,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.hExists(key, null);
 			fail("hExists should fail with null key");
-		} catch (DataAccessException ex) {
-			// expected
+		} catch (DataAccessException expected) {
 		}
 	}
 
@@ -626,8 +622,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.hSet(key, field, null);
 			fail("hSet should fail with null value");
-		} catch (DataAccessException ex) {
-			// expected
+		} catch (DataAccessException expected) {
 		}
 	}
 
@@ -665,7 +660,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException o_O) {}
+			} catch (InterruptedException ignore) {
+			}
 
 			// open a new connection
 			RedisConnection connection2 = connectionFactory.getConnection();
@@ -708,7 +704,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException o_O) {}
+			} catch (InterruptedException ignore) {
+			}
 
 			// open a new connection
 			RedisConnection connection2 = connectionFactory.getConnection();

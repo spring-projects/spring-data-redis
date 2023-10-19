@@ -57,8 +57,8 @@ class RedisConditions {
 			p.load(inputStream);
 
 			version = Version.parse(p.getProperty("redis_version"));
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
 		}
 	}
 

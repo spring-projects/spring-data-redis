@@ -60,7 +60,8 @@ abstract public class DigestUtils {
 		try {
 			return MessageDigest.getInstance(algorithm);
 		} catch (NoSuchAlgorithmException ex) {
-			throw new IllegalStateException("Could not find MessageDigest with algorithm \"" + algorithm + "\"", ex);
+			String message = String.format("Could not find MessageDigest with algorithm \"%s\"", algorithm);
+			throw new IllegalStateException(message, ex);
 		}
 	}
 }

@@ -469,8 +469,8 @@ public class RedisCacheTests {
 				prepare.countDown();
 				try {
 					prepareForReturn.await(1, TimeUnit.MINUTES);
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
 				}
 
 				return storage.get();

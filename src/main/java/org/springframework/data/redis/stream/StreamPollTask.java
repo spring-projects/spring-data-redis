@@ -127,17 +127,17 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				List<ByteRecord> raw = readRecords();
 				deserializeAndEmitRecords(raw);
 
-			} catch (InterruptedException e) {
+			} catch (InterruptedException ex) {
 
 				cancel();
 				Thread.currentThread().interrupt();
-			} catch (RuntimeException e) {
+			} catch (RuntimeException ex) {
 
-				if (cancelSubscriptionOnError.test(e)) {
+				if (cancelSubscriptionOnError.test(ex)) {
 					cancel();
 				}
 
-				errorHandler.handleError(e);
+				errorHandler.handleError(ex);
 			}
 		} while (pollState.isSubscriptionActive());
 	}
@@ -155,17 +155,17 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				pollState.updateReadOffset(raw.getId().getValue());
 				V record = convertRecord(raw);
 				listener.onMessage(record);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException ex) {
 
-				if (cancelSubscriptionOnError.test(e)) {
+				if (cancelSubscriptionOnError.test(ex)) {
 
 					cancel();
-					errorHandler.handleError(e);
+					errorHandler.handleError(ex);
 
 					return;
 				}
 
-				errorHandler.handleError(e);
+				errorHandler.handleError(ex);
 			}
 		}
 	}
@@ -174,8 +174,8 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 		try {
 			return deserializer.apply(record);
-		} catch (RuntimeException e) {
-			throw new ConversionFailedException(TypeDescriptor.forObject(record), targetType, record, e);
+		} catch (RuntimeException ex) {
+			throw new ConversionFailedException(TypeDescriptor.forObject(record), targetType, record, ex);
 		}
 	}
 

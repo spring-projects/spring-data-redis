@@ -100,8 +100,8 @@ public class ScanTests {
 						cursorMap.next();
 					}
 					cursorMap.close();
-				} catch (Exception e) {
-					exception.set(e);
+				} catch (Exception ex) {
+					exception.set(ex);
 				}
 			});
 		}

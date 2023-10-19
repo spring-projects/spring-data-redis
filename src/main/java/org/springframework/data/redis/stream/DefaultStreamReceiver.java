@@ -326,8 +326,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 					try {
 						return deserializer.apply(it);
-					} catch (RuntimeException e) {
-						throw new ConversionFailedException(TypeDescriptor.forObject(it), targetType, it, e);
+					} catch (RuntimeException ex) {
+						throw new ConversionFailedException(TypeDescriptor.forObject(it), targetType, it, ex);
 					}
 				}).onErrorResume(throwable -> Flux.from(resumeFunction.apply(throwable)).then().map(it -> (V) new Object())) //
 						.subscribe(getSubscriber());

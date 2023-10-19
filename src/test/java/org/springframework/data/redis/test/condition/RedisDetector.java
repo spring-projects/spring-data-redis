@@ -39,7 +39,7 @@ public class RedisDetector {
 			cluster.getConnectionFromSlot(1).close();
 
 			return true;
-		} catch (Exception e) {
+		} catch (Exception ignore) {
 			return false;
 		}
 	});
@@ -54,9 +54,8 @@ public class RedisDetector {
 			socket.connect(new InetSocketAddress(SettingsUtils.getHost(), port), 100);
 
 			return true;
-		} catch (IOException e) {
+		} catch (IOException ignore) {
 			return false;
 		}
 	}
-
 }

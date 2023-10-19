@@ -685,7 +685,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return doWithKeys(connection -> {
 			try {
 				return connection.pExpire(rawKey, rawTimeout);
-			} catch (Exception e) {
+			} catch (Exception ignore) {
 				// Driver may not support pExpire or we may be running on Redis 2.4
 				return connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit));
 			}
@@ -700,7 +700,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return doWithKeys(connection -> {
 			try {
 				return connection.pExpireAt(rawKey, date.getTime());
-			} catch (Exception e) {
+			} catch (Exception ignore) {
 				return connection.expireAt(rawKey, date.getTime() / 1000);
 			}
 		});
@@ -727,7 +727,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return doWithKeys(connection -> {
 			try {
 				return connection.pTtl(rawKey, timeUnit);
-			} catch (Exception e) {
+			} catch (Exception ignore) {
 				// Driver may not support pTtl or we may be running on Redis 2.4
 				return connection.ttl(rawKey, timeUnit);
 			}

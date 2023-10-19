@@ -375,17 +375,17 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		try {
 			futureToAwait.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
-		} catch (InterruptedException cause) {
+		} catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-		} catch (ExecutionException cause) {
+		} catch (ExecutionException ex) {
 
-			if (cause.getCause() instanceof DataAccessException) {
-				throw new RedisListenerExecutionFailedException(cause.getMessage(), cause.getCause());
+			if (ex.getCause() instanceof DataAccessException) {
+				throw new RedisListenerExecutionFailedException(ex.getMessage(), ex.getCause());
 			}
 
-			throw new CompletionException(cause.getCause());
-		} catch (TimeoutException cause) {
-			throw new IllegalStateException("Subscription registration timeout exceeded", cause);
+			throw new CompletionException(ex.getCause());
+		} catch (TimeoutException ex) {
+			throw new IllegalStateException("Subscription registration timeout exceeded", ex);
 		}
 	}
 
@@ -535,9 +535,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		try {
 			future.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
-		} catch (InterruptedException cause) {
+		} catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-		} catch (ExecutionException | TimeoutException ignore) {}
+		} catch (ExecutionException | TimeoutException ignore) {
+		}
 	}
 
 	@Override
@@ -696,13 +697,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 				try {
 					future.join();
-				} catch (CompletionException cause) {
+				} catch (CompletionException ex) {
 
-					if (cause.getCause() instanceof DataAccessException) {
-						throw new RedisListenerExecutionFailedException(cause.getMessage(), cause.getCause());
+					if (ex.getCause() instanceof DataAccessException) {
+						throw new RedisListenerExecutionFailedException(ex.getMessage(), ex.getCause());
 					}
 
-					throw cause;
+					throw ex;
 				}
 			}
 		}
@@ -935,8 +936,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 
 			return true;
-		} catch (InterruptedException interEx) {
-			logger.debug("Thread interrupted while sleeping the recovery interval");
+
+		} catch (InterruptedException ex) {
+			logDebug(() -> "Thread interrupted while sleeping the recovery interval");
 			Thread.currentThread().interrupt();
 			return false;
 		}
@@ -1195,8 +1197,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					} catch (Throwable t) {
 						handleSubscriptionException(initFuture, backOffExecution, t);
 					}
-				} catch (RuntimeException e) {
-					initFuture.completeExceptionally(e);
+				} catch (RuntimeException ex) {
+					initFuture.completeExceptionally(ex);
 				}
 
 				return initFuture;
@@ -1298,8 +1300,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 				try {
 					sub.close();
-				} catch (Exception e) {
-					logger.warn("Unable to unsubscribe from subscriptions", e);
+				} catch (Exception ex) {
+					logger.warn("Unable to unsubscribe from subscriptions", ex);
 				}
 			}
 		}
@@ -1318,8 +1320,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					logger.trace("Closing connection");
 					try {
 						connection.close();
-					} catch (Exception e) {
-						logger.warn("Error closing subscription connection", e);
+					} catch (Exception ex) {
+						logger.warn("Error closing subscription connection", ex);
 					}
 				}
 			}
@@ -1415,8 +1417,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						new SynchronizingMessageListener.SubscriptionSynchronization(patterns, Collections.emptySet(), () -> {
 							try {
 								subscribeChannel(channels.toArray(new byte[0][]));
-							} catch (Exception cause) {
-								handleSubscriptionException(subscriptionDone, backOffExecution, cause);
+							} catch (Exception ex) {
+								handleSubscriptionException(subscriptionDone, backOffExecution, ex);
 							}
 						}));
 			} else {

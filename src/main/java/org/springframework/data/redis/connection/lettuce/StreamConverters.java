@@ -140,7 +140,7 @@ class StreamConverters {
 
 			try {
 				return NumberUtils.parseNumber(tmp, Long.class);
-			} catch (NumberFormatException e) {
+			} catch (NumberFormatException ex) {
 				return tmp;
 			}
 		}

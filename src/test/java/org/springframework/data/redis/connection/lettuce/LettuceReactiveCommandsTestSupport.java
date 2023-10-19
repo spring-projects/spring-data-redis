@@ -166,8 +166,8 @@ public abstract class LettuceReactiveCommandsTestSupport {
 				if (nativeBinaryConnectionProvider instanceof DisposableBean) {
 					((DisposableBean) nativeBinaryConnectionProvider).destroy();
 				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			} catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
 		}
 	}

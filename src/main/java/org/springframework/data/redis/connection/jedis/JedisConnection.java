@@ -405,17 +405,17 @@ public class JedisConnection extends AbstractRedisConnection {
 				if (!result.isStatus()) {
 					results.add(result.conversionRequired() ? result.convert(data) : data);
 				}
-			} catch (JedisDataException e) {
-				DataAccessException dataAccessException = convertJedisAccessException(e);
+			} catch (JedisDataException ex) {
+				DataAccessException dataAccessException = convertJedisAccessException(ex);
 				if (cause == null) {
 					cause = dataAccessException;
 				}
 				results.add(dataAccessException);
-			} catch (DataAccessException e) {
+			} catch (DataAccessException ex) {
 				if (cause == null) {
-					cause = e;
+					cause = ex;
 				}
-				results.add(e);
+				results.add(ex);
 			}
 		}
 		if (cause != null) {
@@ -670,7 +670,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			verification = getJedis(node);
 			verification.connect();
 			return verification.ping().equalsIgnoreCase("pong");
-		} catch (Exception e) {
+		} catch (Exception ignore) {
 			return false;
 		} finally {
 			if (verification != null) {

@@ -1380,8 +1380,8 @@ public class LettuceConnectionFactory
 							((StatefulRedisClusterConnection) connection).sync().ping();
 						}
 						valid = true;
-					} catch (Exception e) {
-						log.debug("Validation failed", e);
+					} catch (Exception ex) {
+						log.debug("Validation failed", ex);
 					}
 				}
 
@@ -1531,8 +1531,8 @@ public class LettuceConnectionFactory
 
 			try {
 				return delegate.getConnection(connectionType);
-			} catch (RuntimeException e) {
-				throw translateException(e);
+			} catch (RuntimeException ex) {
+				throw translateException(ex);
 			}
 		}
 
@@ -1541,8 +1541,8 @@ public class LettuceConnectionFactory
 
 			try {
 				return ((TargetAware) delegate).getConnection(connectionType, redisURI);
-			} catch (RuntimeException e) {
-				throw translateException(e);
+			} catch (RuntimeException ex) {
+				throw translateException(ex);
 			}
 		}
 

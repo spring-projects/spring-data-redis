@@ -182,8 +182,8 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		try {
 			// we give redis some time to keep up
 			Thread.sleep(10);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
 		}
 
 		return connection.closePipeline();

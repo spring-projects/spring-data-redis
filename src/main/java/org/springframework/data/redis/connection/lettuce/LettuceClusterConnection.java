@@ -380,8 +380,8 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		try {
 			return getConnection().clusterCountKeysInSlot(slot);
-		} catch (Exception cause) {
-			throw this.exceptionConverter.translate(cause);
+		} catch (Exception ex) {
+			throw this.exceptionConverter.translate(ex);
 		}
 	}
 
@@ -451,8 +451,8 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		try {
 			return getConnection().clusterGetKeysInSlot(slot, count);
-		} catch (Exception cause) {
-			throw this.exceptionConverter.translate(cause);
+		} catch (Exception ex) {
+			throw this.exceptionConverter.translate(ex);
 		}
 	}
 

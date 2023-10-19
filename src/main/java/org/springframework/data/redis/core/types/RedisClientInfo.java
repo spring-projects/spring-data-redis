@@ -273,9 +273,9 @@ public class RedisClientInfo {
 			Properties properties = new Properties();
 			try {
 				properties.load(new StringReader(source.replace(' ', '\n')));
-			} catch (IOException e) {
-				throw new IllegalArgumentException(String.format("Properties could not be loaded from String '%s'", source),
-						e);
+			} catch (IOException ex) {
+				String message = String.format("Properties could not be loaded from String '%s'", source);
+				throw new IllegalArgumentException(message, ex);
 			}
 			return new RedisClientInfo(properties);
 		}

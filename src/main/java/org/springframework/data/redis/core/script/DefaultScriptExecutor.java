@@ -75,10 +75,11 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 		Object result;
 		try {
 			result = connection.evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
-		} catch (Exception e) {
+		} catch (Exception ex) {
 
-			if (!ScriptUtils.exceptionContainsNoScriptError(e)) {
-				throw e instanceof RuntimeException ? (RuntimeException) e : new RedisSystemException(e.getMessage(), e);
+			if (!ScriptUtils.exceptionContainsNoScriptError(ex)) {
+				throw ex instanceof RuntimeException runtimeException ? runtimeException
+						: new RedisSystemException(ex.getMessage(), ex);
 			}
 
 			result = connection.eval(scriptBytes(script), returnType, numKeys, keysAndArgs);

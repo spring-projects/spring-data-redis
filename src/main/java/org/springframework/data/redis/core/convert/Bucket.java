@@ -306,9 +306,9 @@ public class Bucket {
 
 		try {
 			return new String(raw, CHARSET);
-		} catch (Exception e) {
-			// Ignore this one
+		} catch (Exception ignore) {
 		}
+
 		return null;
 	}
 

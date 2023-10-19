@@ -81,8 +81,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 		try {
 			return serializer.convert(value);
-		} catch (Exception cause) {
-			throw new SerializationException("Cannot serialize", cause);
+		} catch (Exception ex) {
+			throw new SerializationException("Cannot serialize", ex);
 		}
 	}
 
