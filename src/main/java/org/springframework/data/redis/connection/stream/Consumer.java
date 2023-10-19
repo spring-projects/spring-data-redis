@@ -53,7 +53,7 @@ public class Consumer {
 
 	@Override
 	public String toString() {
-		return String.format("%s:%s", group, name);
+		return "%s:%s".formatted(group, name);
 	}
 
 	public String getGroup() {

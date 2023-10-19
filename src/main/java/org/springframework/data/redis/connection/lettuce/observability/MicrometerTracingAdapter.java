@@ -214,7 +214,7 @@ public class MicrometerTracingAdapter implements Tracing {
 			this.command = command;
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Starting Observation for Command %s", command));
+				log.debug("Starting Observation for Command %s".formatted(command));
 			}
 
 			if (command instanceof CompleteableCommand<?> completeableCommand) {
@@ -262,7 +262,7 @@ public class MicrometerTracingAdapter implements Tracing {
 		public Span error(Throwable throwable) {
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Attaching error to Observation for Command %s", command));
+				log.debug("Attaching error to Observation for Command %s".formatted(command));
 			}
 
 			observation.error(throwable);
@@ -280,7 +280,7 @@ public class MicrometerTracingAdapter implements Tracing {
 		public void finish() {
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Stopping Observation for Command %s", command));
+				log.debug("Stopping Observation for Command %s".formatted(command));
 			}
 
 			observation.stop();

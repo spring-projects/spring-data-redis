@@ -474,8 +474,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				"The number of weights (%d) must match the number of source sets (%d)".formatted(weights.size(), sets.length));
 
 		return connection.invoke().fromMany(Jedis::zinterWithScores, PipelineBinaryCommands::zinterWithScores,
 				toZParams(aggregate, weights), sets).toSet(JedisConverters::toTuple);
@@ -487,8 +487,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				"The number of weights %d must match the number of source sets %d".formatted(weights.size(), sets.length));
 
 		ZParams zparams = toZParams(aggregate, weights);
 
@@ -528,8 +528,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				"The number of weights %d must match the number of source sets %d".formatted(weights.size(), sets.length));
 
 		return connection.invoke().fromMany(Jedis::zunionWithScores, PipelineBinaryCommands::zunionWithScores,
 				toZParams(aggregate, weights), sets).toSet(JedisConverters::toTuple);
@@ -542,8 +542,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 		Assert.notNull(sets, "Source sets must not be null");
 		Assert.notNull(weights, "Weights must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				"The number of weights %d must match the number of source sets %d".formatted(weights.size(), sets.length));
 
 		ZParams zparams = toZParams(aggregate, weights);
 

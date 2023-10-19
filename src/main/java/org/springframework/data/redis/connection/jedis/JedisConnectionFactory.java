@@ -1003,7 +1003,7 @@ public class JedisConnectionFactory
 					return jedis;
 				}
 			} catch (Exception ex) {
-				log.warn(String.format("Ping failed for sentinel host: %s", node.getHost()), ex);
+				log.warn("Ping failed for sentinel host: %s".formatted(node.getHost()), ex);
 			} finally {
 				if (!success && jedis != null) {
 					jedis.close();
@@ -1040,8 +1040,8 @@ public class JedisConnectionFactory
 	private MutableJedisClientConfiguration getMutableConfiguration() {
 
 		Assert.state(clientConfiguration instanceof MutableJedisClientConfiguration,
-				() -> String.format("Client configuration must be instance of MutableJedisClientConfiguration but is %s",
-						ClassUtils.getShortName(clientConfiguration.getClass())));
+				() -> "Client configuration must be instance of MutableJedisClientConfiguration but is %s"
+						.formatted(ClassUtils.getShortName(clientConfiguration.getClass())));
 
 		return (MutableJedisClientConfiguration) clientConfiguration;
 	}
@@ -1056,10 +1056,10 @@ public class JedisConnectionFactory
 
 		switch (current) {
 			case CREATED, STOPPED -> throw new IllegalStateException(
-					String.format("JedisConnectionFactory has been %s. Use start() to initialize it", current));
+					"JedisConnectionFactory has been %s. Use start() to initialize it".formatted(current));
 			case DESTROYED ->
 				throw new IllegalStateException("JedisConnectionFactory was destroyed and cannot be used anymore");
-			default -> throw new IllegalStateException(String.format("JedisConnectionFactory is %s", current));
+			default -> throw new IllegalStateException("JedisConnectionFactory is %s".formatted(current));
 		}
 	}
 

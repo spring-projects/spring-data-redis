@@ -141,7 +141,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find master node serving slot %s for key '%s',", slot, Arrays.toString(key)));
+				"Could not find master node serving slot %s for key '%s',".formatted(slot, Arrays.toString(key)));
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find node at %s:%s; Is your cluster info up to date", host, port));
+				"Could not find node at %s:%d; Is your cluster info up to date".formatted(host, port));
 	}
 
 	/**
@@ -182,7 +182,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find node at %s; Is your cluster info up to date", nodeId));
+				"Could not find node at %s; Is your cluster info up to date".formatted(nodeId));
 	}
 
 	/**
@@ -210,7 +210,7 @@ public class ClusterTopology {
 		}
 
 		throw new ClusterStateFailureException(
-				String.format("Could not find node at %s; Have you provided either host and port or the nodeId", node));
+				("Could not find node at %s;" + " Have you provided either host and port or the nodeId").formatted(node));
 	}
 
 	/**

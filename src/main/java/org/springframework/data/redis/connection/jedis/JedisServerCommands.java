@@ -161,7 +161,7 @@ class JedisServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		connection.invokeStatus().just(it -> it.clientKill(String.format("%s:%s", host, port)));
+		connection.invokeStatus().just(it -> it.clientKill("%s:%s".formatted(host, port)));
 	}
 
 	@Override

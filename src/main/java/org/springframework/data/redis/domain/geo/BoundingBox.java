@@ -107,6 +107,6 @@ public class BoundingBox implements Shape {
 
 	@Override
 	public String toString() {
-		return String.format("Bounding box: [width=%s, height=%s]", width, height);
+		return "Bounding box: [width=%s, height=%s]".formatted(width, height);
 	}
 }

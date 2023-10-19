@@ -318,12 +318,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		Object cacheValue = preProcessCacheValue(value);
 
 		if (nullCacheValueIsNotAllowed(cacheValue)) {
-
-			String message = String.format("Cache '%s' does not allow 'null' values; Avoid storing null"
+			throw new IllegalArgumentException(("Cache '%s' does not allow 'null' values; Avoid storing null"
 					+ " via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null'"
-					+ " via RedisCacheConfiguration", getName());
-
-			throw new IllegalArgumentException(message);
+					+ " via RedisCacheConfiguration").formatted(getName()));
 		}
 
 		return cacheValue;
@@ -434,12 +431,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		String message = String.format(
-				"Cannot convert cache key %s to String; Please register a suitable Converter"
-						+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
-				source, key.getClass().getName());
-
-		throw new IllegalStateException(message);
+		throw new IllegalStateException(("Cannot convert cache key %s to String; Please register a suitable Converter"
+				+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'")
+				.formatted(source, key.getClass().getName()));
 	}
 
 	private CompletableFuture<ValueWrapper> retrieveValue(Object key) {
@@ -499,7 +493,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return "[" + stringJoiner + "]";
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert cache key [%s] to String", key));
+		throw new IllegalArgumentException("Cannot convert cache key [%s] to String".formatted(key));
 	}
 
 	private byte[] createAndConvertCacheKey(Object key) {

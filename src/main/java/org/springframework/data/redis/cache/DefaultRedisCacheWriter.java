@@ -391,9 +391,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			// Re-interrupt current Thread to allow other participants to react.
 			Thread.currentThread().interrupt();
 
-			String message = String.format("Interrupted while waiting to unlock cache %s", name);
-
-			throw new PessimisticLockingFailureException(message, ex);
+			throw new PessimisticLockingFailureException("Interrupted while waiting to unlock cache %s".formatted(name), ex);
 		} finally {
 			this.statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}

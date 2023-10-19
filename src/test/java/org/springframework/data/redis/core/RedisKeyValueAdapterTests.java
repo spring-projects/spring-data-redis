@@ -823,7 +823,7 @@ public class RedisKeyValueAdapterTests {
 		while (template.hasKey(key)) {
 
 			if (waitedMs > limitMs) {
-				throw new TimeoutException(String.format("Key '%s' after %d %s still present", key, timeout, timeUnit));
+				throw new TimeoutException("Key '%s' after %d %s still present".formatted(key, timeout, timeUnit));
 			}
 
 			Thread.sleep(sleepMs);

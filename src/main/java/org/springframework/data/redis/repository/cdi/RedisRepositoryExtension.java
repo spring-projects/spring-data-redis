@@ -80,7 +80,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			if (beanType instanceof Class<?> && RedisKeyValueTemplate.class.isAssignableFrom((Class<?>) beanType)) {
 				if (log.isDebugEnabled()) {
-					log.debug(String.format("Discovered %s with qualifiers %s.", RedisKeyValueTemplate.class.getName(),
+					log.debug("Discovered %s with qualifiers %s.".formatted(RedisKeyValueTemplate.class.getName(),
 							bean.getQualifiers()));
 				}
 
@@ -90,7 +90,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			if (beanType instanceof Class<?> && RedisKeyValueAdapter.class.isAssignableFrom((Class<?>) beanType)) {
 				if (log.isDebugEnabled()) {
-					log.debug(String.format("Discovered %s with qualifiers %s.", RedisKeyValueAdapter.class.getName(),
+					log.debug("Discovered %s with qualifiers %s.".formatted(RedisKeyValueAdapter.class.getName(),
 							bean.getQualifiers()));
 				}
 
@@ -100,7 +100,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			if (beanType instanceof Class<?> && RedisOperations.class.isAssignableFrom((Class<?>) beanType)) {
 				if (log.isDebugEnabled()) {
-					log.debug(String.format("Discovered %s with qualifiers %s.", RedisOperations.class.getName(),
+					log.debug(
+							"Discovered %s with qualifiers %s.".formatted(RedisOperations.class.getName(),
 							bean.getQualifiers()));
 				}
 
@@ -123,7 +124,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			CdiRepositoryBean<?> repositoryBean = createRepositoryBean(repositoryType, qualifiers, beanManager);
 
 			if (log.isInfoEnabled()) {
-				log.info(String.format("Registering bean for %s with qualifiers %s.", repositoryType.getName(), qualifiers));
+				log.info("Registering bean for %s with qualifiers %s.".formatted(repositoryType.getName(), qualifiers));
 			}
 
 			// Register the bean to the container.
@@ -148,7 +149,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			if (!redisKeyValueAdapters.containsKey(qualifiers)) {
 				if (log.isInfoEnabled()) {
-					log.info(String.format("Registering bean for %s with qualifiers %s.", RedisKeyValueAdapter.class.getName(),
+					log.info("Registering bean for %s with qualifiers %s.".formatted(RedisKeyValueAdapter.class.getName(),
 							qualifiers));
 				}
 				RedisKeyValueAdapterBean redisKeyValueAdapterBean = createRedisKeyValueAdapterBean(qualifiers, beanManager);
@@ -158,7 +159,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
 			if (!redisKeyValueTemplates.containsKey(qualifiers)) {
 				if (log.isInfoEnabled()) {
-					log.info(String.format("Registering bean for %s with qualifiers %s.", RedisKeyValueTemplate.class.getName(),
+					log.info("Registering bean for %s with qualifiers %s.".formatted(RedisKeyValueTemplate.class.getName(),
 							qualifiers));
 				}
 
@@ -186,8 +187,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 		Bean<KeyValueOperations> redisKeyValueTemplate = this.redisKeyValueTemplates.get(qualifiers);
 
 		if (redisKeyValueTemplate == null) {
-			throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s.",
-					RedisKeyValueTemplate.class.getName(), qualifiers));
+			throw new UnsatisfiedResolutionException("Unable to resolve a bean for '%s' with qualifiers %s"
+					.formatted(RedisKeyValueTemplate.class.getName(), qualifiers));
 		}
 
 		// Construct and return the repository bean.
@@ -208,8 +209,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 		Bean<RedisOperations<?, ?>> redisOperationsBean = this.redisOperations.get(qualifiers);
 
 		if (redisOperationsBean == null) {
-			throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s.",
-					RedisOperations.class.getName(), qualifiers));
+			throw new UnsatisfiedResolutionException("Unable to resolve a bean for '%s' with qualifiers %s."
+					.formatted(RedisOperations.class.getName(), qualifiers));
 		}
 
 		// Construct and return the repository bean.
@@ -230,8 +231,8 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 		Bean<RedisKeyValueAdapter> redisKeyValueAdapterBean = this.redisKeyValueAdapters.get(qualifiers);
 
 		if (redisKeyValueAdapterBean == null) {
-			throw new UnsatisfiedResolutionException(String.format("Unable to resolve a bean for '%s' with qualifiers %s.",
-					RedisKeyValueAdapter.class.getName(), qualifiers));
+			throw new UnsatisfiedResolutionException("Unable to resolve a bean for '%s' with qualifiers %s"
+					.formatted(RedisKeyValueAdapter.class.getName(), qualifiers));
 		}
 
 		// Construct and return the repository bean.
