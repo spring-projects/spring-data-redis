@@ -100,8 +100,8 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 			poolRef.put(connection, pool);
 			return connectionType.cast(connection);
-		} catch (Exception e) {
-			throw new PoolException("Could not get a resource from the pool", e);
+		} catch (Exception ex) {
+			throw new PoolException("Could not get a resource from the pool", ex);
 		}
 	}
 

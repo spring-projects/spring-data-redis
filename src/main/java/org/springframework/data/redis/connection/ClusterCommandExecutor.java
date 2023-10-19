@@ -131,10 +131,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		if (redirectCount > this.maxRedirects) {
 
-			throw new TooManyClusterRedirectionsException(String.format(
-					"Cannot follow Cluster Redirects over more than %s legs; "
-							+ "Consider increasing the number of redirects to follow; Current value is: %s.",
-					redirectCount, this.maxRedirects));
+			String message = String.format("Cannot follow Cluster Redirects over more than %s legs; "
+					+ "Consider increasing the number of redirects to follow; Current value is: %s.",
+							redirectCount, this.maxRedirects);
+
+			throw new TooManyClusterRedirectionsException(message);
 		}
 
 		RedisClusterNode nodeToUse = lookupNode(node);
@@ -145,15 +146,19 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		try {
 			return new NodeResult<>(node, commandCallback.doInCluster(client));
-		} catch (RuntimeException cause) {
+		} catch (RuntimeException ex) {
 
-			RuntimeException translatedException = convertToDataAccessException(cause);
+			RuntimeException translatedException = convertToDataAccessException(ex);
 
 			if (translatedException instanceof ClusterRedirectException clusterRedirectException) {
-				return executeCommandOnSingleNode(commandCallback, topologyProvider.getTopology().lookup(
-						clusterRedirectException.getTargetHost(), clusterRedirectException.getTargetPort()), redirectCount + 1);
+
+				String targetHost = clusterRedirectException.getTargetHost();
+				int targetPort = clusterRedirectException.getTargetPort();
+				RedisClusterNode clusterNode = topologyProvider.getTopology().lookup(targetHost, targetPort);
+
+				return executeCommandOnSingleNode(commandCallback, clusterNode, redirectCount + 1);
 			} else {
-				throw translatedException != null ? translatedException : cause;
+				throw translatedException != null ? translatedException : ex;
 			}
 		} finally {
 			this.resourceProvider.returnResourceForSpecificNode(nodeToUse, client);
@@ -172,8 +177,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		try {
 			return topologyProvider.getTopology().lookup(node);
-		} catch (ClusterStateFailureException cause) {
-			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), cause);
+		} catch (ClusterStateFailureException ex) {
+			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), ex);
 		}
 	}
 
@@ -209,8 +214,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 		for (RedisClusterNode node : nodes) {
 			try {
 				resolvedRedisClusterNodes.add(topology.lookup(node));
-			} catch (ClusterStateFailureException cause) {
-				throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), cause);
+			} catch (ClusterStateFailureException ex) {
+				throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), ex);
 			}
 		}
 
@@ -249,13 +254,13 @@ public class ClusterCommandExecutor implements DisposableBean {
 					}
 
 					entryIterator.remove();
-				} catch (ExecutionException exception) {
+				} catch (ExecutionException ex) {
 					entryIterator.remove();
-					exceptionCollector.addException(nodeExecution, exception.getCause());
+					exceptionCollector.addException(nodeExecution, ex.getCause());
 				} catch (TimeoutException ignore) {
-				} catch (InterruptedException exception) {
+				} catch (InterruptedException ex) {
 					Thread.currentThread().interrupt();
-					exceptionCollector.addException(nodeExecution, exception);
+					exceptionCollector.addException(nodeExecution, ex);
 					break OUT;
 				}
 			}
@@ -316,11 +321,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 		try {
 			return new NodeResult<>(node, commandCallback.doInCluster(client, key), key);
-		} catch (RuntimeException cause) {
+		} catch (RuntimeException ex) {
 
-			RuntimeException translatedException = convertToDataAccessException(cause);
+			RuntimeException translatedException = convertToDataAccessException(ex);
 
-			throw translatedException != null ? translatedException : cause;
+			throw translatedException != null ? translatedException : ex;
 		} finally {
 			this.resourceProvider.returnResourceForSpecificNode(node, client);
 		}

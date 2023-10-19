@@ -105,8 +105,8 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 		try {
 			return scriptSource.getScriptAsString();
-		} catch (IOException e) {
-			throw new ScriptingException("Error reading script text", e);
+		} catch (IOException ex) {
+			throw new ScriptingException("Error reading script text", ex);
 		}
 	}
 

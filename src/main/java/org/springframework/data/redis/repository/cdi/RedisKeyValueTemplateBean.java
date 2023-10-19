@@ -73,8 +73,8 @@ public class RedisKeyValueTemplateBean extends CdiBean<KeyValueOperations> {
 			try {
 				((DisposableBean) instance.getMappingContext()).destroy();
 				instance.destroy();
-			} catch (Exception e) {
-				throw new IllegalStateException(e);
+			} catch (Exception ex) {
+				throw new IllegalStateException(ex);
 			}
 		}
 

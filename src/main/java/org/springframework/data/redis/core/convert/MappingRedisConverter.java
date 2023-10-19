@@ -571,8 +571,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			PersistentPropertyPath<RedisPersistentProperty> persistentPropertyPath = mappingContext
 					.getPersistentPropertyPath(path, type);
 			return persistentPropertyPath.getLeafProperty();
-		} catch (Exception e) {
-			// that's just fine
+		} catch (Exception ignore) {
 		}
 
 		return null;

@@ -221,9 +221,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		try {
 			return writer.write(mapper, value);
-		} catch (IOException cause) {
-			String message = String.format("Could not write JSON: %s", cause.getMessage());
-			throw new SerializationException(message, cause);
+		} catch (IOException ex) {
+			String message = String.format("Could not write JSON: %s", ex.getMessage());
+			throw new SerializationException(message, ex);
 		}
 	}
 
@@ -258,9 +258,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		try {
 			return (T) reader.read(mapper, source, resolveType(source, type));
-		} catch (Exception cause) {
-			String message = String.format("Could not read JSON:%s ", cause.getMessage());
-			throw new SerializationException(message, cause);
+		} catch (Exception ex) {
+			String message = String.format("Could not read JSON:%s ", ex.getMessage());
+			throw new SerializationException(message, ex);
 		}
 	}
 

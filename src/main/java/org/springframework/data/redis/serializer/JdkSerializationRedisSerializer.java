@@ -90,8 +90,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 		try {
 			return serializer.convert(value);
-		} catch (Exception cause) {
-			throw new SerializationException("Cannot serialize", cause);
+		} catch (Exception ex) {
+			throw new SerializationException("Cannot serialize", ex);
 		}
 	}
 
@@ -104,8 +104,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 		try {
 			return deserializer.convert(bytes);
-		} catch (Exception cause) {
-			throw new SerializationException("Cannot deserialize", cause);
+		} catch (Exception ex) {
+			throw new SerializationException("Cannot deserialize", ex);
 		}
 	}
 }

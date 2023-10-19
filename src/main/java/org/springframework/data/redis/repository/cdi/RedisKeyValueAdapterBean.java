@@ -87,8 +87,8 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 		if (instance instanceof DisposableBean) {
 			try {
 				instance.destroy();
-			} catch (Exception e) {
-				throw new IllegalStateException(e);
+			} catch (Exception ex) {
+				throw new IllegalStateException(ex);
 			}
 		}
 

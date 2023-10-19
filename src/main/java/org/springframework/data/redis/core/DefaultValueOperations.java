@@ -271,7 +271,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 				boolean failed = false;
 				try {
 					connection.pSetEx(rawKey, timeout, rawValue);
-				} catch (UnsupportedOperationException e) {
+				} catch (UnsupportedOperationException ignore) {
 					// in case the connection does not support pSetEx return false to allow fallback to other operation.
 					failed = true;
 				}

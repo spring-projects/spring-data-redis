@@ -158,8 +158,8 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	public List<RedisServer> masters() {
 		try {
 			return LettuceConverters.toListOfRedisServer(getSentinelCommands().masters());
-		} catch (Exception e) {
-			throw EXCEPTION_TRANSLATION.translate(e);
+		} catch (Exception ex) {
+			throw EXCEPTION_TRANSLATION.translate(ex);
 		}
 	}
 
@@ -180,8 +180,8 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading replicas.");
 		try {
 			return LettuceConverters.toListOfRedisServer(getSentinelCommands().slaves(masterName));
-		} catch (Exception e) {
-			throw EXCEPTION_TRANSLATION.translate(e);
+		} catch (Exception ex) {
+			throw EXCEPTION_TRANSLATION.translate(ex);
 		}
 	}
 

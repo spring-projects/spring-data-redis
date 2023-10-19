@@ -703,8 +703,8 @@ public class JedisConnectionFactory
 				try {
 					clusterCommandExecutor.destroy();
 					this.clusterCommandExecutor = null;
-				} catch (Exception cause) {
-					throw new RuntimeException(cause);
+				} catch (Exception ex) {
+					throw new RuntimeException(ex);
 				}
 			}
 
@@ -715,8 +715,8 @@ public class JedisConnectionFactory
 				try {
 					this.cluster.close();
 					this.cluster = null;
-				} catch (Exception cause) {
-					log.warn("Cannot properly close Jedis cluster", cause);
+				} catch (Exception ex) {
+					log.warn("Cannot properly close Jedis cluster", ex);
 				}
 			}
 
@@ -869,8 +869,8 @@ public class JedisConnectionFactory
 			jedis.connect();
 
 			return jedis;
-		} catch (Exception cause) {
-			throw new RedisConnectionFailureException("Cannot get Jedis connection", cause);
+		} catch (Exception ex) {
+			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
 		}
 	}
 

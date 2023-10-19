@@ -177,9 +177,9 @@ public class PathIndexResolver implements IndexResolver {
 				if (typeHint.equals(TypeInformation.OBJECT) || typeHint.getClass().isInterface()) {
 					try {
 						typeHint = mappingContext.getRequiredPersistentEntity(propertyValue.getClass()).getTypeInformation();
-					} catch (Exception e) {
-						// ignore for cases where property value cannot be resolved as an entity, in that case the provided type
-						// hint has to be sufficient
+					} catch (Exception ignore) {
+						// ignore for cases where property value cannot be resolved as an entity, in that case
+						// the provided type hint has to be sufficient
 					}
 				}
 				return typeHint;

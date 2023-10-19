@@ -921,9 +921,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 					client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
 					client = null;
-				} catch (Exception cause) {
+				} catch (Exception ex) {
 					if (log.isWarnEnabled()) {
-						log.warn(ClassUtils.getShortName(client.getClass()) + " did not shut down gracefully.", cause);
+						log.warn(ClassUtils.getShortName(client.getClass()) + " did not shut down gracefully.", ex);
 					}
 				}
 			}
@@ -972,8 +972,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			try {
 				clusterCommandExecutor.destroy();
 				this.clusterCommandExecutor = null;
-			} catch (Exception cause) {
-				log.warn("Cannot properly close cluster command executor", cause);
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
 
@@ -985,9 +985,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		if (connectionProvider instanceof DisposableBean disposableBean) {
 			try {
 				disposableBean.destroy();
-			} catch (Exception cause) {
+			} catch (Exception ex) {
 				if (log.isWarnEnabled()) {
-					log.warn(connectionProvider + " did not shut down gracefully.", cause);
+					log.warn(connectionProvider + " did not shut down gracefully.", ex);
 				}
 			}
 		}
@@ -1577,8 +1577,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 						valid = true;
 
-					} catch (Exception cause) {
-						log.debug("Validation failed", cause);
+					} catch (Exception ex) {
+						log.debug("Validation failed", ex);
 					}
 				}
 
@@ -1732,8 +1732,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 			try {
 				return delegate.getConnection(connectionType);
-			} catch (RuntimeException cause) {
-				throw translateException(cause);
+			} catch (RuntimeException ex) {
+				throw translateException(ex);
 			}
 		}
 
@@ -1742,8 +1742,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 			try {
 				return ((TargetAware) delegate).getConnection(connectionType, redisURI);
-			} catch (RuntimeException cause) {
-				throw translateException(cause);
+			} catch (RuntimeException ex) {
+				throw translateException(ex);
 			}
 		}
 

@@ -102,8 +102,7 @@ public class RedisKeyValueAdapterTests {
 
 		try {
 			adapter.destroy();
-		} catch (Exception e) {
-			// ignore
+		} catch (Exception ignore) {
 		}
 	}
 

@@ -264,8 +264,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			return this.typingMapper.treeToValue(this.untypedMapper.valueToTree(hash), Object.class);
 
-		} catch (IOException cause) {
-			throw new MappingException(cause.getMessage(), cause);
+		} catch (IOException ex) {
+			throw new MappingException(ex.getMessage(), ex);
 		}
 	}
 
@@ -424,9 +424,9 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 						try {
 							resultMap.put(propertyPrefix, next.binaryValue());
 						}
-						catch (IOException cause) {
+						catch (IOException ex) {
 							String message = String.format("Cannot read binary value of '%s'", propertyPrefix);
-							throw new IllegalStateException(message, cause);
+							throw new IllegalStateException(message, ex);
 						}
 
 						break;
@@ -526,7 +526,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			try {
 				return ctxt.getConfig().getDateFormat().parse(value.toString());
-			} catch (ParseException cause) {
+			} catch (ParseException ignore) {
 				return new Date(NumberUtils.parseNumber(value.toString(), Long.class));
 			}
 		}

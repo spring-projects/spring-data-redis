@@ -252,10 +252,10 @@ class ClusterCommandExecutorUnitTests {
 
 		try {
 			executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
-		} catch (ClusterCommandExecutionFailureException cause) {
+		} catch (ClusterCommandExecutionFailureException ex) {
 
-			assertThat(cause.getSuppressed()).hasSize(1);
-			assertThat(cause.getSuppressed()[0]).isInstanceOf(DataAccessException.class);
+			assertThat(ex.getSuppressed()).hasSize(1);
+			assertThat(ex.getSuppressed()[0]).isInstanceOf(DataAccessException.class);
 		}
 
 		verify(connection1).theWheelWeavesAsTheWheelWills();

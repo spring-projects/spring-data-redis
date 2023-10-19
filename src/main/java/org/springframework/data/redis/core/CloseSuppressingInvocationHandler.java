@@ -58,8 +58,8 @@ class CloseSuppressingInvocationHandler implements InvocationHandler {
 
 		// Invoke method on target RedisConnection.
 		try {
-			Object retVal = method.invoke(this.target, args);
-			return retVal;
+			Object returnValue = method.invoke(this.target, args);
+			return returnValue;
 		} catch (InvocationTargetException ex) {
 			throw ex.getTargetException();
 		}

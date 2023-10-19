@@ -344,9 +344,11 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 	}
 
 	private ByteBuffer rawHashKey(HK key) {
+
 		try {
 			return serializationContext.getHashKeySerializationPair().write(key);
-		} catch (IllegalStateException ignore) {}
+		} catch (IllegalStateException ignore) {
+		}
 
 		return ByteBuffer.wrap(objectMapper.getConversionService().convert(key, byte[].class));
 	}
@@ -355,7 +357,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		try {
 			return serializationContext.getHashValueSerializationPair().write(value);
-		} catch (IllegalStateException ignore) {}
+		} catch (IllegalStateException ignore) {
+		}
 
 		return ByteBuffer.wrap(objectMapper.getConversionService().convert(value, byte[].class));
 	}

@@ -97,7 +97,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		try {
 			connection.exec();
 			fail("Expected exception resuming tx");
-		} catch (RedisSystemException e) {
+		} catch (RedisSystemException expected) {
 			// expected, can't resume tx after closing conn
 		}
 	}
@@ -115,7 +115,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			// can't do blocking ops after closing
 			connection.bLPop(1, "what".getBytes());
 			fail("Expected exception using a closed conn for dedicated ops");
-		} catch (RedisSystemException e) {}
+		} catch (RedisSystemException expected) {
+		}
 	}
 
 	@Test
@@ -134,8 +135,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		try {
 			connection.set("foo".getBytes(), "bar".getBytes());
 			fail("Exception should be thrown trying to use a closed connection");
-		} catch (RedisSystemException e) {}
-		finally {
+		} catch (RedisSystemException expected) {
+		} finally {
 
 		factory2.destroy();
 		}

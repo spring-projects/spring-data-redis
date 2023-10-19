@@ -88,13 +88,13 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		try {
 			processScanResult(doScan(cursorId, this.scanOptions));
-		} catch (RuntimeException e) {
+		} catch (RuntimeException ex) {
 			try {
 				close();
 			} catch (RuntimeException nested) {
-				e.addSuppressed(nested);
+				ex.addSuppressed(nested);
 			}
-			throw e;
+			throw ex;
 		}
 	}
 

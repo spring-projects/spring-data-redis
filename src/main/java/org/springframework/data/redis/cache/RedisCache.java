@@ -189,8 +189,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		try {
 			value = valueLoader.call();
-		} catch (Exception cause) {
-			throw new ValueRetrievalException(key, valueLoader, cause);
+		} catch (Exception ex) {
+			throw new ValueRetrievalException(key, valueLoader, ex);
 		}
 
 		put(key, value);
@@ -425,14 +425,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		if (conversionService.canConvert(source, TypeDescriptor.valueOf(String.class))) {
 			try {
 				return conversionService.convert(key, String.class);
-			} catch (ConversionFailedException cause) {
+			} catch (ConversionFailedException ex) {
 
 				// May fail if the given key is a collection
 				if (isCollectionLikeOrMap(source)) {
 					return convertCollectionLikeOrMapKey(key, source);
 				}
 
-				throw cause;
+				throw ex;
 			}
 		}
 
