@@ -25,8 +25,8 @@ import java.beans.PropertyEditorSupport;
 class ListOperationsEditor extends PropertyEditorSupport {
 
 	public void setValue(Object value) {
-		if (value instanceof RedisOperations) {
-			super.setValue(((RedisOperations) value).opsForList());
+		if (value instanceof RedisOperations<?, ?> redisOperations) {
+			super.setValue(redisOperations.opsForList());
 		} else {
 			throw new IllegalArgumentException("Editor supports only conversion of type " + RedisOperations.class);
 		}

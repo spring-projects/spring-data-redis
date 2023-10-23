@@ -134,8 +134,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 			if (returnType == ReturnType.MULTI) {
 				List resultList = (List) source;
 				for (Object obj : resultList) {
-					if (obj instanceof Exception) {
-						throw connection.convertLettuceAccessException((Exception) obj);
+					if (obj instanceof Exception ex) {
+						throw connection.convertLettuceAccessException(ex);
 					}
 				}
 			}

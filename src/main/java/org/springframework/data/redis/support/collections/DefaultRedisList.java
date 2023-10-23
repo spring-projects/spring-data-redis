@@ -158,8 +158,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@SuppressWarnings("unchecked")
 	private void potentiallyCap(RedisList<E> destination) {
-		if (destination instanceof DefaultRedisList) {
-			((DefaultRedisList<Object>) destination).cap();
+		if (destination instanceof DefaultRedisList<?> defaultRedisList) {
+			defaultRedisList.cap();
 		}
 	}
 
@@ -619,8 +619,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		 */
 		int lastReturnedElementIndex = -1;
 
-		@Nullable
-		E lastReturnedElement;
+		@Nullable E lastReturnedElement;
 
 		@Override
 		public boolean hasNext() {

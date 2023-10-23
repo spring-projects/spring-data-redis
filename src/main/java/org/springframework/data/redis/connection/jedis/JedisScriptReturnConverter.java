@@ -39,9 +39,9 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 
 	@SuppressWarnings("unchecked")
 	public Object convert(@Nullable Object result) {
-		if (result instanceof String) {
+		if (result instanceof String stringResult) {
 			// evalsha converts byte[] to String. Convert back for consistency
-			return SafeEncoder.encode((String) result);
+			return SafeEncoder.encode(stringResult);
 		}
 		if (returnType == ReturnType.STATUS) {
 			return JedisConverters.toString((byte[]) result);
@@ -57,10 +57,10 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 			List<Object> resultList = (List<Object>) result;
 			List<Object> convertedResults = new ArrayList<>();
 			for (Object res : resultList) {
-				if (res instanceof String) {
+				if (res instanceof String stringResult) {
 					// evalsha converts byte[] to String. Convert back for
 					// consistency
-					convertedResults.add(SafeEncoder.encode((String) res));
+					convertedResults.add(SafeEncoder.encode(stringResult));
 				} else {
 					convertedResults.add(res);
 				}

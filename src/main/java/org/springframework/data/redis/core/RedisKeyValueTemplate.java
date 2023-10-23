@@ -152,8 +152,8 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	@Override
 	public <T> T update(T objectToUpdate) {
 
-		if (objectToUpdate instanceof PartialUpdate) {
-			doPartialUpdate((PartialUpdate<?>) objectToUpdate);
+		if (objectToUpdate instanceof PartialUpdate<?> partialUpdate) {
+			doPartialUpdate(partialUpdate);
 
 			return objectToUpdate;
 		}

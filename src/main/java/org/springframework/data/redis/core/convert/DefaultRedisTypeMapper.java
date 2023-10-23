@@ -148,8 +148,8 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 
 			if (typeKey != null) {
 
-				if (alias instanceof byte[]) {
-					sink.put(typeKey, (byte[]) alias);
+				if (alias instanceof byte[] aliasBytes) {
+					sink.put(typeKey, aliasBytes);
 				} else {
 					sink.put(typeKey, conversionService.convert(alias, byte[].class));
 				}

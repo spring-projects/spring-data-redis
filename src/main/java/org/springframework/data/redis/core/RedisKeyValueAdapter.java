@@ -571,8 +571,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	public byte[] toBytes(Object source) {
 
-		if (source instanceof byte[]) {
-			return (byte[]) source;
+		if (source instanceof byte[] bytes) {
+			return bytes;
 		}
 
 		return converter.getConversionService().convert(source, byte[].class);

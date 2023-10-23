@@ -918,9 +918,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		try {
 
-			if (subscriptionExecutor instanceof ScheduledExecutorService) {
-				((ScheduledExecutorService) subscriptionExecutor).schedule(retryRunnable, recoveryInterval,
-						TimeUnit.MILLISECONDS);
+			if (subscriptionExecutor instanceof ScheduledExecutorService scheduledExecutorService) {
+				scheduledExecutorService.schedule(retryRunnable, recoveryInterval, TimeUnit.MILLISECONDS);
 			} else {
 				Thread.sleep(recoveryInterval);
 				retryRunnable.run();
@@ -957,8 +956,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			Executor executor = getRequiredTaskExecutor();
 
 			for (MessageListener messageListener : listeners) {
-				if (messageListener instanceof SubscriptionListener) {
-					executor.execute(() -> listenerConsumer.accept((SubscriptionListener) messageListener, source, count));
+				if (messageListener instanceof SubscriptionListener subscriptionListener) {
+					executor.execute(() -> listenerConsumer.accept(subscriptionListener, source, count));
 				}
 			}
 		}

@@ -16,17 +16,8 @@
 package org.springframework.data.redis.core.convert;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -609,8 +600,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return;
 		}
 
-		if (value instanceof byte[]) {
-			sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", (byte[]) value);
+		if (value instanceof byte[] valueBytes) {
+			sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", valueBytes);
 			return;
 		}
 
@@ -974,8 +965,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 */
 	public byte[] toBytes(Object source) {
 
-		if (source instanceof byte[]) {
-			return (byte[]) source;
+		if (source instanceof byte[] bytes) {
+			return bytes;
 		}
 
 		return conversionService.convert(source, byte[].class);

@@ -140,11 +140,11 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		@Override
 		public Object convert(Object source) {
 
-			if (!(source instanceof String)) {
+			if (!(source instanceof String string)) {
 				return source;
 			}
 
-			return ((String) source).toLowerCase();
+			return string.toLowerCase();
 		}
 	}
 

@@ -96,28 +96,27 @@ public class Person implements Serializable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Person))
+		if (!(obj instanceof Person that))
 			return false;
-		Person other = (Person) obj;
 		if (address == null) {
-			if (other.address != null)
+			if (that.address != null)
 				return false;
-		} else if (!address.equals(other.address))
+		} else if (!address.equals(that.address))
 			return false;
 		if (age == null) {
-			if (other.age != null)
+			if (that.age != null)
 				return false;
-		} else if (!age.equals(other.age))
+		} else if (!age.equals(that.age))
 			return false;
 		if (firstName == null) {
-			if (other.firstName != null)
+			if (that.firstName != null)
 				return false;
-		} else if (!firstName.equals(other.firstName))
+		} else if (!firstName.equals(that.firstName))
 			return false;
 		if (lastName == null) {
-			if (other.lastName != null)
+			if (that.lastName != null)
 				return false;
-		} else if (!lastName.equals(other.lastName))
+		} else if (!lastName.equals(that.lastName))
 			return false;
 		return true;
 	}

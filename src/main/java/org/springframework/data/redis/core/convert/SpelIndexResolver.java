@@ -47,10 +47,8 @@ public class SpelIndexResolver implements IndexResolver {
 	private final ConfigurableIndexDefinitionProvider settings;
 	private final SpelExpressionParser parser;
 	private final RedisMappingContext mappingContext;
-
-	private @Nullable BeanResolver beanResolver;
-
 	private final Map<SpelIndexDefinition, Expression> expressionCache;
+	private @Nullable BeanResolver beanResolver;
 
 	/**
 	 * Creates a new instance using a default {@link SpelExpressionParser}.
@@ -95,9 +93,9 @@ public class SpelIndexResolver implements IndexResolver {
 
 		for (IndexDefinition setting : settings.getIndexDefinitionsFor(keyspace)) {
 
-			if (setting instanceof SpelIndexDefinition) {
+			if (setting instanceof SpelIndexDefinition spelIndexDefinition) {
 
-				Expression expression = getAndCacheIfAbsent((SpelIndexDefinition) setting);
+				Expression expression = getAndCacheIfAbsent(spelIndexDefinition);
 
 				StandardEvaluationContext context = new StandardEvaluationContext();
 				context.setRootObject(value);

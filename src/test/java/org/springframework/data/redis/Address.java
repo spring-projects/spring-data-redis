@@ -91,18 +91,17 @@ public class Address implements Serializable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Address))
+		if (!(obj instanceof Address that))
 			return false;
-		Address other = (Address) obj;
 		if (number == null) {
-			if (other.number != null)
+			if (that.number != null)
 				return false;
-		} else if (!number.equals(other.number))
+		} else if (!number.equals(that.number))
 			return false;
 		if (street == null) {
-			if (other.street != null)
+			if (that.street != null)
 				return false;
-		} else if (!street.equals(other.street))
+		} else if (!street.equals(that.street))
 			return false;
 		return true;
 	}

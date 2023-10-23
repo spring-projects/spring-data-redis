@@ -421,17 +421,16 @@ public abstract class Converters {
 			if (source instanceof String) {
 				return source.toString();
 			}
-			if (source instanceof byte[]) {
-				return new String((byte[]) source);
+			if (source instanceof byte[] bytes) {
+				return new String(bytes);
 			}
-			if (source instanceof ByteBuffer) {
-				return new String(ByteUtils.getBytes((ByteBuffer) source));
+			if (source instanceof ByteBuffer byteBuffer) {
+				return new String(ByteUtils.getBytes(byteBuffer));
 			}
 		}
 
-		if (ClassUtils.isAssignable(List.class, targetType) && source instanceof List) {
+		if (ClassUtils.isAssignable(List.class, targetType) && source instanceof List<?> sourceCollection) {
 
-			List<Object> sourceCollection = (List<Object>) source;
 			List<Object> targetList = new ArrayList<>();
 
 			for (int i = 0; i < sourceCollection.size(); i++) {
@@ -441,9 +440,8 @@ public abstract class Converters {
 			return targetList;
 		}
 
-		if (ClassUtils.isAssignable(Map.class, targetType) && source instanceof List) {
+		if (ClassUtils.isAssignable(Map.class, targetType) && source instanceof List<?> sourceCollection) {
 
-			List<Object> sourceCollection = ((List<Object>) source);
 			Map<String, Object> targetMap = new LinkedHashMap<>();
 
 			for (int i = 0; i < sourceCollection.size(); i = i + 2) {

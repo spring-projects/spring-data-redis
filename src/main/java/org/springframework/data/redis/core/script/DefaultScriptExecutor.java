@@ -99,16 +99,16 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 		int i = 0;
 		if (keys != null) {
 			for (K key : keys) {
-				if (keySerializer() == null && key instanceof byte[]) {
-					keysAndArgs[i++] = (byte[]) key;
+				if (keySerializer() == null && key instanceof byte[] keyBytes) {
+					keysAndArgs[i++] = keyBytes;
 				} else {
 					keysAndArgs[i++] = keySerializer().serialize(key);
 				}
 			}
 		}
 		for (Object arg : args) {
-			if (argsSerializer == null && arg instanceof byte[]) {
-				keysAndArgs[i++] = (byte[]) arg;
+			if (argsSerializer == null && arg instanceof byte[] argBytes) {
+				keysAndArgs[i++] = argBytes;
 			} else {
 				keysAndArgs[i++] = argsSerializer.serialize(arg);
 			}
