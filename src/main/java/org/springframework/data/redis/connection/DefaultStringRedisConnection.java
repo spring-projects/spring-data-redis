@@ -23,7 +23,6 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -35,19 +34,10 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
-import org.springframework.data.redis.connection.stream.ByteRecord;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -3046,8 +3036,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 			return null;
 		}
 
-		if (!(converter instanceof ListConverter) && value instanceof List) {
-			return (T) new ListConverter<>(converter).convert((List) value);
+		if (!(converter instanceof ListConverter) && value instanceof List list) {
+			return (T) new ListConverter<>(converter).convert(list);
 		}
 
 		return value == null ? null

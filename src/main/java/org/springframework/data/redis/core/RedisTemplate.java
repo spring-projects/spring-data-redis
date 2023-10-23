@@ -1056,8 +1056,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@SuppressWarnings("unchecked")
 	private byte[] rawKey(Object key) {
 		Assert.notNull(key, "non null key required");
-		if (keySerializer == null && key instanceof byte[]) {
-			return (byte[]) key;
+		if (keySerializer == null && key instanceof byte[] bytes) {
+			return bytes;
 		}
 		return keySerializer.serialize(key);
 	}
@@ -1068,8 +1068,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private byte[] rawValue(Object value) {
-		if (valueSerializer == null && value instanceof byte[]) {
-			return (byte[]) value;
+		if (valueSerializer == null && value instanceof byte[] bytes) {
+			return bytes;
 		}
 		return valueSerializer.serialize(value);
 	}
@@ -1103,16 +1103,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		List<Object> values = new ArrayList<>();
 		for (Object rawValue : rawValues) {
 
-			if (rawValue instanceof byte[] && valueSerializer != null) {
-				values.add(valueSerializer.deserialize((byte[]) rawValue));
-			} else if (rawValue instanceof List) {
+			if (rawValue instanceof byte[] bytes && valueSerializer != null) {
+				values.add(valueSerializer.deserialize(bytes));
+			} else if (rawValue instanceof List list) {
 				// Lists are the only potential Collections of mixed values....
-				values.add(deserializeMixedResults((List) rawValue, valueSerializer, hashKeySerializer, hashValueSerializer));
-			} else if (rawValue instanceof Set && !(((Set) rawValue).isEmpty())) {
-				values.add(deserializeSet((Set) rawValue, valueSerializer));
-			} else if (rawValue instanceof Map && !(((Map) rawValue).isEmpty())
-					&& ((Map) rawValue).values().iterator().next() instanceof byte[]) {
-				values.add(SerializationUtils.deserialize((Map) rawValue, hashKeySerializer, hashValueSerializer));
+				values.add(deserializeMixedResults(list, valueSerializer, hashKeySerializer, hashValueSerializer));
+			} else if (rawValue instanceof Set set && !(set.isEmpty())) {
+				values.add(deserializeSet(set, valueSerializer));
+			} else if (rawValue instanceof Map map && !(map.isEmpty()) && map.values().iterator().next() instanceof byte[]) {
+				values.add(SerializationUtils.deserialize(map, hashKeySerializer, hashValueSerializer));
 			} else {
 				values.add(rawValue);
 			}

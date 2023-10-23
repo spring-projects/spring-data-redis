@@ -144,8 +144,8 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		if (o == this)
 			return true;
 
-		if (o instanceof RedisStore) {
-			return key.equals(((RedisStore) o).getKey());
+		if (o instanceof RedisStore redisStore) {
+			return key.equals(redisStore.getKey());
 		}
 
 		if (o instanceof AbstractRedisCollection) {

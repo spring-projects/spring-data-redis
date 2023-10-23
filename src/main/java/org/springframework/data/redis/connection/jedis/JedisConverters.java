@@ -453,16 +453,16 @@ abstract class JedisConverters extends Converters {
 		byte[] prefix = boundary.isInclusive() ? inclPrefix : exclPrefix;
 		byte[] value = null;
 		Object theValue = boundary.getValue().get();
-		if (theValue instanceof byte[]) {
-			value = (byte[]) theValue;
-		} else if (theValue instanceof Double) {
-			value = toBytes((Double) theValue);
-		} else if (theValue instanceof Long) {
-			value = toBytes((Long) theValue);
-		} else if (theValue instanceof Integer) {
-			value = toBytes((Integer) theValue);
-		} else if (theValue instanceof String) {
-			value = toBytes((String) theValue);
+		if (theValue instanceof byte[] bytes) {
+			value = bytes;
+		} else if (theValue instanceof Double doubleValue) {
+			value = toBytes(doubleValue);
+		} else if (theValue instanceof Long longValue) {
+			value = toBytes(longValue);
+		} else if (theValue instanceof Integer integer) {
+			value = toBytes(integer);
+		} else if (theValue instanceof String string) {
+			value = toBytes(string);
 		} else {
 			throw new IllegalArgumentException(String.format("Cannot convert %s to binary format", boundary.getValue()));
 		}

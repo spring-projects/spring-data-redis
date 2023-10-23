@@ -64,9 +64,8 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof DefaultTypedTuple))
+		if (!(obj instanceof DefaultTypedTuple<?> other))
 			return false;
-		DefaultTypedTuple<?> other = (DefaultTypedTuple<?>) obj;
 		if (score == null) {
 			if (other.score != null)
 				return false;
@@ -75,11 +74,11 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		if (value == null) {
 			if (other.value != null)
 				return false;
-		} else if (value instanceof byte[]) {
-			if (!(other.value instanceof byte[])) {
+		} else if (value instanceof byte[] bytes) {
+			if (!(other.value instanceof byte[] otherBytes)) {
 				return false;
 			}
-			return Arrays.equals((byte[]) value, (byte[]) other.value);
+			return Arrays.equals(bytes, otherBytes);
 		} else if (!value.equals(other.value))
 			return false;
 		return true;

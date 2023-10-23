@@ -45,15 +45,15 @@ class ScriptUtils {
 	@SuppressWarnings({ "unchecked" })
 	static <T> T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
 
-		if (result instanceof byte[]) {
-			return resultSerializer.deserialize((byte[]) result);
+		if (result instanceof byte[] resultBytes) {
+			return resultSerializer.deserialize(resultBytes);
 		}
 
-		if (result instanceof List) {
+		if (result instanceof List listResult) {
 
-			List<Object> results = new ArrayList<>(((List) result).size());
+			List<Object> results = new ArrayList<>(listResult.size());
 
-			for (Object obj : (List) result) {
+			for (Object obj : listResult) {
 				results.add(deserializeResult(resultSerializer, obj));
 			}
 
@@ -74,15 +74,15 @@ class ScriptUtils {
 	@SuppressWarnings({ "unchecked" })
 	static <T> T deserializeResult(RedisElementReader<T> reader, Object result) {
 
-		if (result instanceof ByteBuffer) {
-			return reader.read((ByteBuffer) result);
+		if (result instanceof ByteBuffer byteBuffer) {
+			return reader.read(byteBuffer);
 		}
 
-		if (result instanceof List) {
+		if (result instanceof List listResult) {
 
-			List<Object> results = new ArrayList<>(((List) result).size());
+			List<Object> results = new ArrayList<>(listResult.size());
 
-			for (Object obj : (List) result) {
+			for (Object obj : listResult) {
 				results.add(deserializeResult(reader, obj));
 			}
 

@@ -135,7 +135,7 @@ class StreamConverters {
 
 		if (value instanceof ByteBuffer || value instanceof byte[]) {
 
-			byte[] targetArray = value instanceof ByteBuffer ? ByteUtils.getBytes((ByteBuffer) value) : (byte[]) value;
+			byte[] targetArray = value instanceof ByteBuffer byteBuffer ? ByteUtils.getBytes(byteBuffer) : (byte[]) value;
 			String tmp = LettuceConverters.toString(targetArray);
 
 			try {
@@ -144,9 +144,9 @@ class StreamConverters {
 				return tmp;
 			}
 		}
-		if (value instanceof List) {
+		if (value instanceof List listValue) {
 			List<Object> targetList = new ArrayList<>();
-			for (Object it : (List) value) {
+			for (Object it : listValue) {
 				targetList.add(preConvertNativeValues(it));
 			}
 			return targetList;

@@ -46,14 +46,14 @@ public class LettuceExceptionConverter implements Converter<Exception, DataAcces
 
 		if (ex instanceof ExecutionException || ex instanceof RedisCommandExecutionException) {
 
-			if (ex.getCause() != ex && ex.getCause() instanceof Exception) {
-				return convert((Exception) ex.getCause());
+			if (ex.getCause() != ex && ex.getCause() instanceof Exception cause) {
+				return convert(cause);
 			}
 			return new RedisSystemException("Error in execution", ex);
 		}
 
-		if (ex instanceof DataAccessException) {
-			return (DataAccessException) ex;
+		if (ex instanceof DataAccessException dataAccessException) {
+			return dataAccessException;
 		}
 
 		if (ex instanceof RedisCommandInterruptedException) {

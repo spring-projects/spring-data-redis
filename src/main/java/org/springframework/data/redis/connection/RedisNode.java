@@ -274,11 +274,9 @@ public class RedisNode implements NamedNode {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null || !(obj instanceof RedisNode)) {
+		if (obj == null || !(obj instanceof RedisNode other)) {
 			return false;
 		}
-
-		RedisNode other = (RedisNode) obj;
 
 		if (!ObjectUtils.nullSafeEquals(this.host, other.host)) {
 			return false;

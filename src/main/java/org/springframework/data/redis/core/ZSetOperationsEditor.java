@@ -25,8 +25,8 @@ import java.beans.PropertyEditorSupport;
 class ZSetOperationsEditor extends PropertyEditorSupport {
 
 	public void setValue(Object value) {
-		if (value instanceof RedisOperations) {
-			super.setValue(((RedisOperations) value).opsForZSet());
+		if (value instanceof RedisOperations<?, ?> redisOperations) {
+			super.setValue(redisOperations.opsForZSet());
 		} else {
 			throw new IllegalArgumentException("Editor supports only conversion of type " + RedisOperations.class);
 		}

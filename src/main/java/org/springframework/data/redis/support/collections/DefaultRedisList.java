@@ -166,8 +166,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	private void potentiallyCap(RedisList<E> destination) {
-		if (destination instanceof DefaultRedisList) {
-			((DefaultRedisList<Object>) destination).cap();
+		if (destination instanceof DefaultRedisList<?> defaultRedisList) {
+			defaultRedisList.cap();
 		}
 	}
 
