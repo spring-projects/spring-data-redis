@@ -1027,10 +1027,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	private void validateCommand(ProtocolKeyword cmd, @Nullable byte[]... args) {
 
-		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(cmd.name());
-		if (!RedisCommand.UNKNOWN.equals(redisCommand) && redisCommand.requiresArguments()) {
+		RedisCommand command = RedisCommand.failsafeCommandLookup(cmd.name());
+
+		if (!RedisCommand.UNKNOWN.equals(command) && command.requiresArguments()) {
 			try {
-				redisCommand.validateArgumentCount(args != null ? args.length : 0);
+				command.validateArgumentCount(args != null ? args.length : 0);
 			} catch (IllegalArgumentException ex) {
 				String message = String.format("Validation failed for %s command", command);
 				throw new InvalidDataAccessApiUsageException(message, ex);
