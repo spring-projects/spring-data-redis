@@ -612,20 +612,17 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private void addListener(MessageListener listener, Collection<? extends Topic> topics) {
 
-		Assert.notNull(listener, "a valid listener is required");
-		Assert.notEmpty(topics, "at least one topic is required");
+		Assert.notNull(listener, "A valid listener is required");
+		Assert.notEmpty(topics, "At least one topic is required");
 
 		List<byte[]> channels = new ArrayList<>(topics.size());
 		List<byte[]> patterns = new ArrayList<>(topics.size());
 
 		boolean trace = logger.isTraceEnabled();
 
-		// add listener mapping
-		Set<Topic> set = listenerTopics.get(listener);
-		if (set == null) {
-			set = new CopyOnWriteArraySet<>();
-			listenerTopics.put(listener, set);
-		}
+		// safely lookup or add MessageListener to Topic mapping
+		Set<Topic> set = listenerTopics.computeIfAbsent(listener, key -> new CopyOnWriteArraySet<>());
+
 		set.addAll(topics);
 
 		for (Topic topic : topics) {
