@@ -58,9 +58,8 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 
 		for (Object result : execResults) {
 			FutureResult<T> futureResult = txResults.remove();
-			if (result instanceof Exception) {
+			if (result instanceof Exception source) {
 
-				Exception source = (Exception) result;
 				DataAccessException convertedException = exceptionConverter.convert(source);
 				throw convertedException != null ? convertedException
 						: new RedisSystemException("Error reading future result", source);

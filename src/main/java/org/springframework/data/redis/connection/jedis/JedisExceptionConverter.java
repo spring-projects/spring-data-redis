@@ -45,8 +45,8 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 
 	public DataAccessException convert(Exception ex) {
 
-		if (ex instanceof DataAccessException) {
-			return (DataAccessException) ex;
+		if (ex instanceof DataAccessException dataAccessException) {
+			return dataAccessException;
 		}
 
 		if (ex instanceof UnsupportedOperationException) {
@@ -57,10 +57,10 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 			return new TooManyClusterRedirectionsException(ex.getMessage(), ex);
 		}
 
-		if (ex instanceof JedisRedirectionException) {
+		if (ex instanceof JedisRedirectionException redirectionException) {
 
-			JedisRedirectionException re = (JedisRedirectionException) ex;
-			return new ClusterRedirectException(re.getSlot(), re.getTargetNode().getHost(), re.getTargetNode().getPort(), ex);
+			return new ClusterRedirectException(redirectionException.getSlot(),
+					redirectionException.getTargetNode().getHost(), redirectionException.getTargetNode().getPort(), ex);
 		}
 
 		if (ex instanceof JedisConnectionException) {

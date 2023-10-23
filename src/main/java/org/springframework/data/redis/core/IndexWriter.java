@@ -208,9 +208,9 @@ class IndexWriter {
 			return;
 		}
 
-		if (indexedData instanceof SimpleIndexedPropertyValue) {
+		if (indexedData instanceof SimpleIndexedPropertyValue simpleIndexedData) {
 
-			Object value = ((SimpleIndexedPropertyValue) indexedData).getValue();
+			Object value = simpleIndexedData.getValue();
 
 			if (value == null) {
 				return;
@@ -222,9 +222,7 @@ class IndexWriter {
 
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
-		} else if (indexedData instanceof GeoIndexedPropertyValue) {
-
-			GeoIndexedPropertyValue geoIndexedData = ((GeoIndexedPropertyValue) indexedData);
+		} else if (indexedData instanceof GeoIndexedPropertyValue geoIndexedData) {
 
 			Object value = geoIndexedData.getValue();
 			if (value == null) {
@@ -248,8 +246,8 @@ class IndexWriter {
 			return new byte[] {};
 		}
 
-		if (source instanceof byte[]) {
-			return (byte[]) source;
+		if (source instanceof byte[] bytes) {
+			return bytes;
 		}
 
 		if (converter.getConversionService().canConvert(source.getClass(), byte[].class)) {

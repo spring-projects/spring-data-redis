@@ -305,8 +305,8 @@ public abstract class RedisConnectionUtils {
 
 		RedisConnection connectionToUse = connection;
 
-		while (connectionToUse instanceof RedisConnectionProxy) {
-			connectionToUse = ((RedisConnectionProxy) connectionToUse).getTargetConnection();
+		while (connectionToUse instanceof RedisConnectionProxy redisConnectionProxy) {
+			connectionToUse = redisConnectionProxy.getTargetConnection();
 		}
 
 		return connectionToUse;

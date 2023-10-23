@@ -106,8 +106,8 @@ abstract class AbstractOperations<K, V> {
 
 		Assert.notNull(key, "non null key required");
 
-		if (keySerializer() == null && key instanceof byte[]) {
-			return (byte[]) key;
+		if (keySerializer() == null && key instanceof byte[] bytes) {
+			return bytes;
 		}
 
 		return keySerializer().serialize(key);
@@ -121,8 +121,8 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	byte[] rawValue(Object value) {
 
-		if (valueSerializer() == null && value instanceof byte[]) {
-			return (byte[]) value;
+		if (valueSerializer() == null && value instanceof byte[] bytes) {
+			return bytes;
 		}
 
 		return valueSerializer().serialize(value);
@@ -161,8 +161,8 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	<HK> byte[] rawHashKey(HK hashKey) {
 		Assert.notNull(hashKey, "non null hash key required");
-		if (hashKeySerializer() == null && hashKey instanceof byte[]) {
-			return (byte[]) hashKey;
+		if (hashKeySerializer() == null && hashKey instanceof byte[] bytes) {
+			return bytes;
 		}
 		return hashKeySerializer().serialize(hashKey);
 	}
@@ -180,8 +180,8 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	<HV> byte[] rawHashValue(HV value) {
 
-		if (hashValueSerializer() == null && value instanceof byte[]) {
-			return (byte[]) value;
+		if (hashValueSerializer() == null && value instanceof byte[] bytes) {
+			return bytes;
 		}
 		return hashValueSerializer().serialize(value);
 	}
@@ -268,8 +268,8 @@ abstract class AbstractOperations<K, V> {
 		Set<Tuple> rawTuples = new LinkedHashSet<>(values.size());
 		for (TypedTuple<V> value : values) {
 			byte[] rawValue;
-			if (valueSerializer() == null && value.getValue() instanceof byte[]) {
-				rawValue = (byte[]) value.getValue();
+			if (valueSerializer() == null && value.getValue() instanceof byte[] bytes) {
+				rawValue = bytes;
 			} else {
 				rawValue = valueSerializer().serialize(value.getValue());
 			}

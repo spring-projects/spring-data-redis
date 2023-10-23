@@ -25,8 +25,8 @@ import java.beans.PropertyEditorSupport;
 class HashOperationsEditor extends PropertyEditorSupport {
 
 	public void setValue(Object value) {
-		if (value instanceof RedisOperations) {
-			super.setValue(((RedisOperations) value).opsForHash());
+		if (value instanceof RedisOperations<?, ?> redisOperations) {
+			super.setValue(redisOperations.opsForHash());
 		} else {
 			throw new IllegalArgumentException("Editor supports only conversion of type " + RedisOperations.class);
 		}
