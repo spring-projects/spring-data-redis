@@ -93,9 +93,9 @@ public class SpelIndexResolver implements IndexResolver {
 
 		for (IndexDefinition setting : settings.getIndexDefinitionsFor(keyspace)) {
 
-			if (setting instanceof SpelIndexDefinition spelIndexDefinition) {
+			if (setting instanceof SpelIndexDefinition spel) {
 
-				Expression expression = getAndCacheIfAbsent(spelIndexDefinition);
+				Expression expression = getAndCacheIfAbsent(spel);
 
 				StandardEvaluationContext context = new StandardEvaluationContext();
 				context.setRootObject(value);

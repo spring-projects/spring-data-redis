@@ -160,18 +160,7 @@ abstract class JedisConverters extends Converters {
 		return args;
 	}
 
-	public static byte[] toBytes(Integer source) {
-		return String.valueOf(source).getBytes();
-	}
-
-	public static byte[] toBytes(Long source) {
-		return String.valueOf(source).getBytes();
-	}
-
-	/**
-	 * @since 1.6
-	 */
-	public static byte[] toBytes(Double source) {
+	public static byte[] toBytes(Number source) {
 		return toBytes(String.valueOf(source));
 	}
 
@@ -183,10 +172,6 @@ abstract class JedisConverters extends Converters {
 	@Nullable
 	public static String toString(@Nullable byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
-	}
-
-	public static Long toLong(byte[] source) {
-		return Long.valueOf(toString(source));
 	}
 
 	/**
@@ -451,16 +436,12 @@ abstract class JedisConverters extends Converters {
 			byte[] exclPrefix) {
 
 		byte[] prefix = boundary.isInclusive() ? inclPrefix : exclPrefix;
-		byte[] value = null;
+		byte[] value;
 		Object theValue = boundary.getValue().get();
 		if (theValue instanceof byte[] bytes) {
 			value = bytes;
-		} else if (theValue instanceof Double doubleValue) {
-			value = toBytes(doubleValue);
-		} else if (theValue instanceof Long longValue) {
-			value = toBytes(longValue);
-		} else if (theValue instanceof Integer integer) {
-			value = toBytes(integer);
+		} else if (theValue instanceof Number number) {
+			value = toBytes(number);
 		} else if (theValue instanceof String string) {
 			value = toBytes(string);
 		} else {

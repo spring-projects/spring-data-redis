@@ -208,9 +208,9 @@ class IndexWriter {
 			return;
 		}
 
-		if (indexedData instanceof SimpleIndexedPropertyValue simpleIndexedData) {
+		if (indexedData instanceof SimpleIndexedPropertyValue propertyValue) {
 
-			Object value = simpleIndexedData.getValue();
+			Object value = propertyValue.getValue();
 
 			if (value == null) {
 				return;
@@ -222,15 +222,15 @@ class IndexWriter {
 
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
-		} else if (indexedData instanceof GeoIndexedPropertyValue geoIndexedData) {
+		} else if (indexedData instanceof GeoIndexedPropertyValue propertyValue) {
 
-			Object value = geoIndexedData.getValue();
+			Object value = propertyValue.getValue();
 			if (value == null) {
 				return;
 			}
 
 			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName());
-			connection.geoAdd(indexKey, geoIndexedData.getPoint(), key);
+			connection.geoAdd(indexKey, propertyValue.getPoint(), key);
 
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
@@ -264,7 +264,7 @@ class IndexWriter {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	private static enum IndexWriteMode {
+	private enum IndexWriteMode {
 
 		CREATE, UPDATE, PARTIAL_UPDATE
 	}

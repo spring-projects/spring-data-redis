@@ -45,29 +45,25 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 
 	public DataAccessException convert(Exception ex) {
 
-		if (ex instanceof DataAccessException dataAccessException) {
-			return dataAccessException;
-		}
-
-		if (ex instanceof UnsupportedOperationException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		if (ex instanceof DataAccessException dae) {
+			return dae;
 		}
 
 		if (ex instanceof JedisClusterOperationException && "No more cluster attempts left".equals(ex.getMessage())) {
 			return new TooManyClusterRedirectionsException(ex.getMessage(), ex);
 		}
 
-		if (ex instanceof JedisRedirectionException redirectionException) {
+		if (ex instanceof JedisRedirectionException rex) {
 
-			return new ClusterRedirectException(redirectionException.getSlot(),
-					redirectionException.getTargetNode().getHost(), redirectionException.getTargetNode().getPort(), ex);
+			return new ClusterRedirectException(rex.getSlot(), rex.getTargetNode().getHost(), rex.getTargetNode().getPort(),
+					ex);
 		}
 
 		if (ex instanceof JedisConnectionException) {
 			return new RedisConnectionFailureException(ex.getMessage(), ex);
 		}
 
-		if (ex instanceof JedisException) {
+		if (ex instanceof JedisException || ex instanceof UnsupportedOperationException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 

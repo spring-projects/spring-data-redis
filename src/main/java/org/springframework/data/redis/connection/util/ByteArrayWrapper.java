@@ -41,8 +41,8 @@ public class ByteArrayWrapper implements Comparable<ByteArrayWrapper> {
 	}
 
 	public boolean equals(@Nullable Object obj) {
-		if (obj instanceof ByteArrayWrapper byteArrayWrapper) {
-			return Arrays.equals(array, byteArrayWrapper.array);
+		if (obj instanceof ByteArrayWrapper other) {
+			return Arrays.equals(array, other.array);
 		}
 
 		return false;

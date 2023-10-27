@@ -24,7 +24,6 @@ import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
 import redis.clients.jedis.resps.StreamEntry;
 import redis.clients.jedis.resps.StreamPendingEntry;
-import redis.clients.jedis.util.SafeEncoder;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -132,7 +131,7 @@ class StreamConverters {
 				continue;
 			}
 
-			String entryIdString = SafeEncoder.encode((byte[]) res.get(0));
+			String entryIdString = JedisConverters.toString((byte[]) res.get(0));
 			List<byte[]> hash = (List<byte[]>) res.get(1);
 
 			Iterator<byte[]> hashIterator = hash.iterator();
@@ -163,10 +162,10 @@ class StreamConverters {
 		List<Object> objectList = (List<Object>) source;
 		long total = BuilderFactory.LONG.build(objectList.get(0));
 		Range.Bound<String> lower = objectList.get(1) != null
-				? Range.Bound.inclusive(SafeEncoder.encode((byte[]) objectList.get(1)))
+				? Range.Bound.inclusive(JedisConverters.toString((byte[]) objectList.get(1)))
 				: Range.Bound.unbounded();
 		Range.Bound<String> upper = objectList.get(2) != null
-				? Range.Bound.inclusive(SafeEncoder.encode((byte[]) objectList.get(2)))
+				? Range.Bound.inclusive(JedisConverters.toString((byte[]) objectList.get(2)))
 				: Range.Bound.unbounded();
 		List<List<Object>> consumerObjList = (List<List<Object>>) objectList.get(3);
 		Map<String, Long> map;
@@ -174,8 +173,8 @@ class StreamConverters {
 		if (consumerObjList != null) {
 			map = new HashMap<>(consumerObjList.size());
 			for (List<Object> consumerObj : consumerObjList) {
-				map.put(SafeEncoder.encode((byte[]) consumerObj.get(0)),
-						Long.parseLong(SafeEncoder.encode((byte[]) consumerObj.get(1))));
+				map.put(JedisConverters.toString((byte[]) consumerObj.get(0)),
+						Long.parseLong(JedisConverters.toString((byte[]) consumerObj.get(1))));
 			}
 		} else {
 			map = Collections.emptyMap();
@@ -185,7 +184,7 @@ class StreamConverters {
 	}
 
 	/**
-	 * Convert the raw Jedis xpending result to {@link PendingMessages}.
+	 * Convert the raw Jedis {@code xpending} result to {@link PendingMessages}.
 	 *
 	 * @param groupName the group name
 	 * @param range the range of messages requested
