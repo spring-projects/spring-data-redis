@@ -21,9 +21,7 @@ import io.lettuce.core.XReadArgs;
 import io.lettuce.core.models.stream.PendingMessage;
 import io.lettuce.core.models.stream.PendingMessages;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
@@ -34,9 +32,6 @@ import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
-import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.util.NumberUtils;
 
 /**
  * Converters for Redis Stream-specific types.
@@ -76,10 +71,6 @@ class StreamConverters {
 		return (it) -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBytes(it.getBody());
 	}
 
-	static Converter<StreamMessage<byte[], byte[]>, RecordId> messageToIdConverter() {
-		return (it) -> RecordId.of(it.getId());
-	}
-
 	/**
 	 * Convert the raw Lettuce xpending result to {@link PendingMessages}.
 	 *
@@ -106,7 +97,7 @@ class StreamConverters {
 	}
 
 	/**
-	 * Convert the raw Lettuce xpending result to {@link PendingMessagesSummary}.
+	 * Convert the raw Lettuce {@code xpending} result to {@link PendingMessagesSummary}.
 	 *
 	 * @param groupName
 	 * @param source the raw lettuce response.
@@ -121,38 +112,6 @@ class StreamConverters {
 						source.getMessageIds().getUpper().getValue());
 
 		return new PendingMessagesSummary(groupName, source.getCount(), range, source.getConsumerMessageCount());
-	}
-
-	/**
-	 * We need to convert values into the correct target type since lettuce will give us {@link ByteBuffer} or arrays but
-	 * the parser requires us to have them as {@link String} or numeric values. Oh and {@literal null} values aren't real
-	 * good citizens as well, so we make them empty strings instead - see it works - somehow ;P
-	 *
-	 * @param value dont't get me started om this.
-	 * @return preconverted values that Lettuce parsers are able to understand \ö/.
-	 */
-	private static Object preConvertNativeValues(@Nullable Object value) {
-
-		if (value instanceof ByteBuffer || value instanceof byte[]) {
-
-			byte[] targetArray = value instanceof ByteBuffer byteBuffer ? ByteUtils.getBytes(byteBuffer) : (byte[]) value;
-			String tmp = LettuceConverters.toString(targetArray);
-
-			try {
-				return NumberUtils.parseNumber(tmp, Long.class);
-			} catch (NumberFormatException ex) {
-				return tmp;
-			}
-		}
-		if (value instanceof List listValue) {
-			List<Object> targetList = new ArrayList<>();
-			for (Object it : listValue) {
-				targetList.add(preConvertNativeValues(it));
-			}
-			return targetList;
-		}
-
-		return value != null ? value : "";
 	}
 
 	/**

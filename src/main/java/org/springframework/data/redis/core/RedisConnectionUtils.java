@@ -22,7 +22,6 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.RawTargetAccess;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.dao.DataAccessException;
@@ -305,8 +304,8 @@ public abstract class RedisConnectionUtils {
 
 		RedisConnection connectionToUse = connection;
 
-		while (connectionToUse instanceof RedisConnectionProxy redisConnectionProxy) {
-			connectionToUse = redisConnectionProxy.getTargetConnection();
+		while (connectionToUse instanceof RedisConnectionProxy proxy) {
+			connectionToUse = proxy.getTargetConnection();
 		}
 
 		return connectionToUse;

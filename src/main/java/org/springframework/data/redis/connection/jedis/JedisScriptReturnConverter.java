@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import redis.clients.jedis.util.SafeEncoder;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +39,7 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 	public Object convert(@Nullable Object result) {
 		if (result instanceof String stringResult) {
 			// evalsha converts byte[] to String. Convert back for consistency
-			return SafeEncoder.encode(stringResult);
+			return JedisConverters.toBytes(stringResult);
 		}
 		if (returnType == ReturnType.STATUS) {
 			return JedisConverters.toString((byte[]) result);
@@ -60,7 +58,7 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 				if (res instanceof String stringResult) {
 					// evalsha converts byte[] to String. Convert back for
 					// consistency
-					convertedResults.add(SafeEncoder.encode(stringResult));
+					convertedResults.add(JedisConverters.toBytes(stringResult));
 				} else {
 					convertedResults.add(res);
 				}
