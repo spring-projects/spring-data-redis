@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  */
 public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryConfigurationExtension {
 
+	private static final String MODULE_NAME = "Redis";
 	private static final String REDIS_CONVERTER_BEAN_NAME = "redisConverter";
 	private static final String REDIS_REFERENCE_RESOLVER_BEAN_NAME = "redisReferenceResolver";
 	private static final String REDIS_ADAPTER_BEAN_NAME = "redisKeyValueAdapter";
@@ -56,12 +57,12 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 	@Override
 	public String getModuleName() {
-		return "Redis";
+		return MODULE_NAME;
 	}
 
 	@Override
 	protected String getModulePrefix() {
-		return "redis";
+		return this.getModuleIdentifier();
 	}
 
 	@Override
