@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.springframework.data.redis.connection.jedis.StreamConverters.*;
 
-import org.springframework.util.StringUtils;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XClaimParams;
@@ -45,6 +44,7 @@ import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Dengliming
@@ -319,7 +319,7 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 
-			List<byte[]> xread = connection.getCluster().xread(xReadParams, toStreamOffsets(streams));
+			List<?> xread = connection.getCluster().xread(xReadParams, toStreamOffsets(streams));
 
 			if (xread == null) {
 				return Collections.emptyList();
@@ -343,7 +343,7 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 
-			List<byte[]> xread = connection.getCluster().xreadGroup(JedisConverters.toBytes(consumer.getGroup()),
+			List<?> xread = connection.getCluster().xreadGroup(JedisConverters.toBytes(consumer.getGroup()),
 					JedisConverters.toBytes(consumer.getName()), xReadParams, toStreamOffsets(streams));
 
 			if (xread == null) {
