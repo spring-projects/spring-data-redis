@@ -60,11 +60,6 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 	}
 
 	@Override
-	protected String getModulePrefix() {
-		return this.getModuleIdentifier();
-	}
-
-	@Override
 	protected String getDefaultKeyValueTemplateRef() {
 		return "redisKeyValueTemplate";
 	}
