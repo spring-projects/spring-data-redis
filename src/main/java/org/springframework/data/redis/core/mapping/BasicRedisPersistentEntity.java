@@ -25,6 +25,8 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import kotlin.reflect.jvm.internal.impl.util.Check;
+
 /**
  * {@link RedisPersistentEntity} implementation.
  *
@@ -89,16 +91,14 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 		boolean newIdPropertyIsExplicit = property.isAnnotationPresent(Id.class);
 
 		if (currentIdPropertyIsExplicit && newIdPropertyIsExplicit) {
-			throw new MappingException(String.format(
-					"Attempt to add explicit id property %s but already have an property %s registered "
-							+ "as explicit id; Check your mapping configuration",
-					property.getField(), currentIdProperty.getField()));
+			throw new MappingException(("Attempt to add explicit id property %s but already have a property %s"
+					+ " registered as explicit id; Check your mapping configuration")
+					.formatted(property.getField(), currentIdProperty.getField()));
 		}
 
 		if (!currentIdPropertyIsExplicit && !newIdPropertyIsExplicit) {
-			throw new MappingException(
-					String.format("Attempt to add id property %s but already have an property %s registered "
-							+ "as id; Check your mapping configuration", property.getField(), currentIdProperty.getField()));
+			throw new MappingException(("Attempt to add id property %s but already have a property %s registered as id;"
+					+ " Check your mapping configuration").formatted(property.getField(), currentIdProperty.getField()));
 		}
 
 		if (newIdPropertyIsExplicit) {

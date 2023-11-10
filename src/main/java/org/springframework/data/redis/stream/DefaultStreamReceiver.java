@@ -105,7 +105,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	public Flux<V> receive(StreamOffset<K> streamOffset) {
 
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("receive(%s)", streamOffset));
+			logger.debug("receive(%s)".formatted(streamOffset));
 		}
 
 		RedisSerializationContext.SerializationPair<K> keySerializer = template.getSerializationContext()
@@ -125,11 +125,10 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Flux<V> receiveAutoAck(Consumer consumer, StreamOffset<K> streamOffset) {
 
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("receiveAutoAck(%s, %s)", consumer, streamOffset));
+			logger.debug("receiveAutoAck(%s, %s)".formatted(consumer, streamOffset));
 		}
 
 		Function<ReadOffset, Flux<ByteBufferRecord>> readFunction = getConsumeReadFunction(streamOffset.getKey(), consumer,
@@ -146,11 +145,10 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Flux<V> receive(Consumer consumer, StreamOffset<K> streamOffset) {
 
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("receive(%s, %s)", consumer, streamOffset));
+			logger.debug("receive(%s, %s)".formatted(consumer, streamOffset));
 		}
 
 		Function<ReadOffset, Flux<ByteBufferRecord>> readFunction = getConsumeReadFunction(streamOffset.getKey(), consumer,
@@ -229,7 +227,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			sink.onRequest(toAdd -> {
 
 				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("[stream: %s] onRequest(%d)", key, toAdd));
+					logger.debug("[stream: %s] onRequest(%d)".formatted(key, toAdd));
 				}
 
 				if (pollState.isSubscriptionActive()) {
@@ -251,7 +249,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 					}
 				} else {
 					if (logger.isDebugEnabled()) {
-						logger.debug(String.format("[stream: %s] onRequest(%d): Dropping, subscription canceled", key, toAdd));
+						logger.debug("[stream: %s] onRequest(%d): Dropping, subscription canceled"
+								.formatted(key, toAdd));
 					}
 				}
 			});
@@ -263,26 +262,26 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		private void scheduleIfRequired() {
 
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("[stream: %s] scheduleIfRequired()", key));
+				logger.debug("[stream: %s] scheduleIfRequired()".formatted(key));
 			}
 			if (pollState.isScheduled()) {
 				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("[stream: %s] scheduleIfRequired(): Already scheduled", key));
+					logger.debug("[stream: %s] scheduleIfRequired(): Already scheduled".formatted(key));
 				}
 				return;
 			}
 
 			if (!pollState.isSubscriptionActive()) {
 				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("[stream: %s] scheduleIfRequired(): Subscription cancelled", key));
+					logger.debug("[stream: %s] scheduleIfRequired(): Subscription cancelled".formatted(key));
 				}
 				return;
 			}
 
 			if (pollState.getRequested() > 0 && !overflow.isEmpty()) {
 				if (logger.isDebugEnabled()) {
-					logger.info(String.format("[stream: %s] scheduleIfRequired(): Requested: %d Emit from buffer", key,
-							pollState.getRequested()));
+					logger.info("[stream: %s] scheduleIfRequired(): Requested: %d Emit from buffer"
+							.formatted(key, pollState.getRequested()));
 				}
 				emitBuffer();
 			}
@@ -290,8 +289,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			if (pollState.getRequested() == 0) {
 
 				if (logger.isDebugEnabled()) {
-					logger.debug(String
-							.format("[stream: %s] scheduleIfRequired(): Subscriber has no demand; Suspending subscription", key));
+					logger.debug("[stream: %s] scheduleIfRequired(): Subscriber has no demand; Suspending subscription"
+							.formatted(key));
 				}
 				return;
 			}
@@ -303,14 +302,14 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			if (pollState.activateSchedule()) {
 
 				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("[stream: %s] scheduleIfRequired(): Activating subscription", key));
+					logger.debug("[stream: %s] scheduleIfRequired(): Activating subscription".formatted(key));
 				}
 
 				ReadOffset readOffset = pollState.getCurrentReadOffset();
 
 				if (logger.isDebugEnabled()) {
-					logger.debug(
-							String.format("[stream: %s] scheduleIfRequired(): Activating subscription, offset %s", key, readOffset));
+					logger.debug("[stream: %s] scheduleIfRequired(): Activating subscription, offset %s"
+							.formatted(key, readOffset));
 				}
 
 				Flux<ByteBufferRecord> poll = readFunction.apply(readOffset)
@@ -319,7 +318,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 				poll.map(it -> {
 
 					if (logger.isDebugEnabled()) {
-						logger.debug(String.format("[stream: %s] onStreamMessage(%s)", key, it));
+						logger.debug("[stream: %s] onStreamMessage(%s)".formatted(key, it));
 					}
 
 					pollState.updateReadOffset(it.getId().getValue());
@@ -357,7 +356,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 				public void onComplete() {
 
 					if (logger.isDebugEnabled()) {
-						logger.debug(String.format("[stream: %s] onComplete()", key));
+						logger.debug("[stream: %s] onComplete()".formatted(key));
 					}
 
 					pollState.scheduleCompleted();
@@ -381,20 +380,23 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 				if (requested == Long.MAX_VALUE) {
 
 					if (logger.isDebugEnabled()) {
-						logger.debug(String.format("[stream: %s] onStreamMessage(%s): Emitting item, fast-path", key, message));
+						logger.debug("[stream: %s] onStreamMessage(%s): Emitting item, fast-path"
+								.formatted(key, message));
 					}
 					sink.next(message);
 				} else {
 
 					if (pollState.decrementRequested()) {
 						if (logger.isDebugEnabled()) {
-							logger.debug(String.format("[stream: %s] onStreamMessage(%s): Emitting item, slow-path", key, message));
+							logger.debug("[stream: %s] onStreamMessage(%s): Emitting item, slow-path"
+									.formatted(key, message));
 						}
 						sink.next(message);
 					} else {
 
 						if (logger.isDebugEnabled()) {
-							logger.debug(String.format("[stream: %s] onStreamMessage(%s): Buffering overflow", key, message));
+							logger.debug("[stream: %s] onStreamMessage(%s): Buffering overflow"
+									.formatted(key, message));
 						}
 						overflow.offer(message);
 					}
@@ -403,7 +405,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			} else {
 
 				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("[stream: %s] onStreamMessage(%s): Buffering overflow", key, message));
+					logger.debug("[stream: %s] onStreamMessage(%s): Buffering overflow".formatted(key, message));
 				}
 				overflow.offer(message);
 			}
@@ -412,7 +414,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		private void onStreamError(Throwable t) {
 
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("[stream: %s] onStreamError(%s)", key, t));
+				logger.debug("[stream: %s] onStreamError(%s)".formatted(key, t));
 			}
 
 			pollState.cancel();
@@ -435,14 +437,14 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 					if (message == null) {
 						if (logger.isDebugEnabled()) {
-							logger.debug(String.format("[stream: %s] emitBuffer(): emission missed", key));
+							logger.debug("[stream: %s] emitBuffer(): emission missed".formatted(key));
 						}
 						break;
 					}
 
 					if (logger.isDebugEnabled()) {
-						logger.debug(
-								String.format("[stream: %s] emitBuffer(%s): Emitting item from buffer, fast-path", key, message));
+						logger.debug("[stream: %s] emitBuffer(%s): Emitting item from buffer, fast-path"
+								.formatted(key, message));
 					}
 
 					sink.next(message);
@@ -454,15 +456,15 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 					if (message == null) {
 
 						if (logger.isDebugEnabled()) {
-							logger.debug(String.format("[stream: %s] emitBuffer(): emission missed", key));
+							logger.debug("[stream: %s] emitBuffer(): emission missed".formatted(key));
 						}
 						pollState.incrementRequested();
 						break;
 					}
 
 					if (logger.isDebugEnabled()) {
-						logger.debug(
-								String.format("[stream: %s] emitBuffer(%s): Emitting item from buffer, slow-path", key, message));
+						logger.debug("[stream: %s] emitBuffer(%s): Emitting item from buffer, slow-path"
+								.formatted(key, message));
 					}
 
 					sink.next(message);

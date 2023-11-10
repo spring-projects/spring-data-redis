@@ -74,7 +74,7 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	@Override
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
+		Assert.isTrue(index >= 0, () -> "Invalid DB index '%s'; non-negative index required".formatted(index));
 
 		this.database = index;
 	}

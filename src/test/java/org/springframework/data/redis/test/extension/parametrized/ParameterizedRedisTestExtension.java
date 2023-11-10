@@ -61,10 +61,11 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 		ParameterizedTestContext methodContext = new ParameterizedTestContext(testMethod);
 		ParameterizedTestContext constructorContext = new ParameterizedTestContext(declaredConstructor);
 
-		Preconditions.condition(methodContext.hasPotentiallyValidSignature(),
-				() -> String.format("@ParameterizedRedisTest method [%s] declares formal parameters in an invalid order: "
+		Preconditions.condition(methodContext.hasPotentiallyValidSignature(), () ->
+				("@ParameterizedRedisTest method [%s] declares formal parameters in an invalid order: "
 						+ "argument aggregators must be declared after any indexed arguments "
-						+ "and before any arguments resolved by another ParameterResolver.", testMethod.toGenericString()));
+						+ "and before any arguments resolved by another ParameterResolver.")
+						.formatted(testMethod.toGenericString()));
 
 		getStore(context).put(METHOD_CONTEXT_KEY, methodContext);
 		getStore(context).put(CONSTRUCTOR_CONTEXT_KEY, constructorContext);
@@ -115,10 +116,9 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 			return ReflectionUtils.newInstance(clazz);
 		} catch (Exception ex) {
 			if (ex instanceof NoSuchMethodException) {
-				String message = String.format("Failed to find a no-argument constructor for ArgumentsProvider [%s]; "
-						+ "Please ensure that a no-argument constructor exists and "
-						+ "that the class is either a top-level class or a static nested class", clazz.getName());
-				throw new JUnitException(message, ex);
+				throw new JUnitException(("Failed to find a no-argument constructor for ArgumentsProvider [%s];"
+						+ " Please ensure that a no-argument constructor exists and that the class is either"
+						+ " a top-level class or a static nested class").formatted(clazz.getName()), ex);
 			}
 			throw ex;
 		}
@@ -137,10 +137,11 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 			ParameterizedTestContext methodContext, String displayName, int argumentMaxLength) {
 
 		ParameterizedRedisTest parameterizedTest = findAnnotation(templateMethod, ParameterizedRedisTest.class).get();
-		String pattern = Preconditions.notBlank(parameterizedTest.name().trim(),
-				() -> String.format(
-						"Configuration error: @ParameterizedRedisTest on method [%s] must be declared with a non-empty name.",
-						templateMethod));
+
+		String pattern = Preconditions.notBlank(parameterizedTest.name().trim(), () ->
+				"Configuration error: @ParameterizedRedisTest on method [%s] must be declared with a non-empty name"
+						.formatted(templateMethod));
+
 		return new ParameterizedTestNameFormatter(pattern, displayName, methodContext, argumentMaxLength);
 	}
 

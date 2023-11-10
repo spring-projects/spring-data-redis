@@ -639,8 +639,8 @@ class ReversedRedisListView<E> implements RedisList<E> {
 		DescendingListIterator(int size, int position) {
 
 			if (position < 0 || position > size) {
-				String message = String.format("Position [%d] is out of bounds: [0, %d]", position, size);
-				throw new IndexOutOfBoundsException(message);
+				throw new IndexOutOfBoundsException(("Position [%d] is out of bounds;"
+						+ " position must be greater than equal to 0 and less than size %d").formatted(position, size));
 			}
 
 			this.it = base.listIterator(size - position);

@@ -120,9 +120,8 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 					});
 		}
 
-		String message = String.format("Connection type %s not supported", connectionType);
-
-		return LettuceFutureUtils.failed(new InvalidDataAccessApiUsageException(message));
+		return LettuceFutureUtils.failed(new InvalidDataAccessApiUsageException("Connection type %s not supported"
+				.formatted(connectionType)));
 	}
 
 	@Override

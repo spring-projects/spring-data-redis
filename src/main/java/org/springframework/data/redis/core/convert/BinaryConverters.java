@@ -289,7 +289,7 @@ final class BinaryConverters {
 			} catch (ParseException ignore) {
 			}
 
-			throw new IllegalArgumentException(String.format("Cannot parse date out of %s", Arrays.toString(source)));
+			throw new IllegalArgumentException("Cannot parse date out of %s".formatted(Arrays.toString(source)));
 		}
 	}
 

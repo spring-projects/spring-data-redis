@@ -118,7 +118,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	@Override
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
+		Assert.isTrue(index >= 0, "Invalid DB index '%d'; non-negative index required".formatted(index));
 
 		this.database = index;
 		this.nodes.forEach(it -> it.setDatabase(database));

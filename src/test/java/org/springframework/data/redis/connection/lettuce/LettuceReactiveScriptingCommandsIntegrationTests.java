@@ -111,7 +111,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 	@ParameterizedRedisTest // DATAREDIS-683
 	void evalShouldReturnStatus() {
 
-		ByteBuffer script = wrap(String.format("return redis.call('set','%s','ghk')", SAME_SLOT_KEY_1));
+		ByteBuffer script = wrap("return redis.call('set','%s','ghk')".formatted(SAME_SLOT_KEY_1));
 
 		connection.scriptingCommands().eval(script, ReturnType.STATUS, 1, SAME_SLOT_KEY_1_BBUFFER.duplicate())
 				.as(StepVerifier::create) //

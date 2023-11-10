@@ -1398,10 +1398,10 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		switch (current) {
 			case CREATED, STOPPED -> throw new IllegalStateException(
-					String.format("LettuceConnectionFactory has been %s. Use start() to initialize it", current));
+					"LettuceConnectionFactory has been %s. Use start() to initialize it".formatted(current));
 			case DESTROYED -> throw new IllegalStateException(
 					"LettuceConnectionFactory was destroyed and cannot be used anymore");
-			default -> throw new IllegalStateException(String.format("LettuceConnectionFactory is %s", current));
+			default -> throw new IllegalStateException("LettuceConnectionFactory is %s".formatted(current));
 		}
 	}
 
@@ -1456,8 +1456,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private MutableLettuceClientConfiguration getMutableConfiguration() {
 
 		Assert.state(clientConfiguration instanceof MutableLettuceClientConfiguration,
-				() -> String.format("Client configuration must be instance of MutableLettuceClientConfiguration but is %s",
-						ClassUtils.getShortName(clientConfiguration.getClass())));
+				() -> "Client configuration must be instance of MutableLettuceClientConfiguration but is %s"
+						.formatted(ClassUtils.getShortName(clientConfiguration.getClass())));
 
 		return (MutableLettuceClientConfiguration) clientConfiguration;
 	}

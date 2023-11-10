@@ -43,7 +43,7 @@ public class ClusterRedirectException extends DataRetrievalFailureException {
 	 */
 	public ClusterRedirectException(int slot, String targetHost, int targetPort, Throwable e) {
 
-		super(String.format("Redirect: slot %s to %s:%s.", slot, targetHost, targetPort), e);
+		super("Redirect: slot %s to %s:%s.".formatted(slot, targetHost, targetPort), e);
 
 		this.slot = slot;
 		this.host = targetHost;

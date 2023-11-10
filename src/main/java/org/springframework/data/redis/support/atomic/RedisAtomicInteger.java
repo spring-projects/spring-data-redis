@@ -158,11 +158,12 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	public int get() {
 
 		Integer value = operations.get(key);
+
 		if (value != null) {
 			return value;
 		}
 
-		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist", key));
+		throw new DataRetrievalFailureException("The key '%s' seems to no longer exist".formatted(key));
 	}
 
 	/**

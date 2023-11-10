@@ -173,7 +173,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		String client = String.format("%s:%s", host, port);
+		String client ="%s:%d".formatted(host, port);
 
 		connection.invoke().just(RedisServerAsyncCommands::clientKill, client);
 	}

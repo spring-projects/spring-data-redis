@@ -871,7 +871,7 @@ public abstract class LettuceConverters extends Converters {
 					toGeoArgsUnit(boxPredicate.getMetric()));
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoPredicate", predicate));
+		throw new IllegalArgumentException("Cannot convert %s to Lettuce GeoPredicate".formatted(predicate));
 	}
 
 	static <T> GeoSearch.GeoRef<T> toGeoRef(GeoReference<T> reference) {
@@ -887,7 +887,7 @@ public abstract class LettuceConverters extends Converters {
 			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoRef", reference));
+		throw new IllegalArgumentException("Cannot convert %s to Lettuce GeoRef".formatted(reference));
 	}
 
 	static FlushMode toFlushMode(@Nullable RedisServerCommands.FlushOption option) {
