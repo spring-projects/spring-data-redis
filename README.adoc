@@ -114,12 +114,24 @@ If you want to raise an issue, please follow the recommendations below:
 * If the issue does not already exist, https://github.com/spring-projects/spring-data-redis/issues/new[create a new issue].
 * Please provide as much information as possible with the issue report, we like to know the version of Spring Data that you are using, the JVM version, Stacktrace, etc.
 * If you need to paste code, or include a stack trace use https://guides.github.com/features/mastering-markdown/[Markdown] code fences +++```+++.
-* If possible try to create a test-case or project that replicates the issue. Attach a link to your code or a compressed file containing your code.
+* If possible try to create a test-case or project that replicates the issue.
+Attach a link to your code or a compressed file containing your code.
 
 == Building from Source
 
 You don’t need to build from source to use Spring Data (binaries in https://repo.spring.io[repo.spring.io]), but if you want to try out the latest and greatest, Spring Data can be easily built with the https://github.com/takari/maven-wrapper[maven wrapper].
-You also need JDK 17 or above.
+You also need JDK 17 or above and `make`.
+The local build environment is managed within a `Makefile` to download, build and spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.)
+
+[source,bash]
+----
+ $ make test
+----
+
+The preceding command runs a full build.
+You can use `make start`, `make stop`, and `make clean` commands to control the environment yourself.
+This is useful if you want to avoid constant server restarts.
+Once all Redis instances have been started, you can either run tests in your IDE or the full Maven build:
 
 [source,bash]
 ----
