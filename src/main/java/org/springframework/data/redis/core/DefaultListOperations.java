@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnection;
@@ -113,6 +114,12 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 	@Override
 	public Long leftPushAll(K key, V... values) {
+		if (values.length == 1) {
+			V val = values[0];
+			if (values[0] instanceof Collection) {
+				return leftPushAll(key, (Collection) val);
+			}
+		}
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
@@ -210,6 +217,12 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 	@Override
 	public Long rightPushAll(K key, V... values) {
+		if (values.length == 1) {
+			V val = values[0];
+			if (values[0] instanceof Collection) {
+				return rightPushAll(key, (Collection) val);
+			}
+		}
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
