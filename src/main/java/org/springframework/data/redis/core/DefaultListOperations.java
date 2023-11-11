@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author dengliming
+ * @author Koy Zhuang
  */
 class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
