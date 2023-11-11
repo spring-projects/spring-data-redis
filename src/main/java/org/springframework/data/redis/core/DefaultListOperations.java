@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnection;
