@@ -316,6 +316,37 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		await().atMost(Duration.ofMillis(500L)).until(() -> !redisTemplate.hasKey(key));
 	}
 
+	@ParameterizedRedisTest // GH-2084
+	void testSetWithKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1, Duration.ofMillis(5500));
+		valueOps.set(key, value2, true);
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6));
+		assertThat(expire).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@ParameterizedRedisTest // GH-2084
+	void testSetWithoutKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1, Duration.ofMillis(5500));
+		valueOps.set(key, value2, false);
+
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);
+	}
+
 	@ParameterizedRedisTest
 	void testAppend() {
 
@@ -481,6 +512,39 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 		assertThat(valueOps.get(key)).isEqualTo(value2);
+	}
+
+	@ParameterizedRedisTest  // GH-2084
+	void testSetIfPresentWithKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfPresent(key, value1, true)).isFalse();
+		valueOps.set(key, value1, Duration.ofMillis(5500));
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertThat(valueOps.setIfPresent(key, value2, true)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6));
+		assertThat(expire).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
+	}
+
+	@ParameterizedRedisTest // GH-2084
+	void testSetIfPresentWithoutKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		assertThat(valueOps.setIfPresent(key, value1, false)).isFalse();
+		valueOps.set(key, value1, Duration.ofMillis(5500));
+
+		assertThat(valueOps.setIfPresent(key, value2, false)).isTrue();
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);
 	}
 
 	@ParameterizedRedisTest
