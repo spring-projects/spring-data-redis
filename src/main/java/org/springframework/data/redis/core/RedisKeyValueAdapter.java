@@ -272,9 +272,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	public <T> T get(Object id, String keyspace, Class<T> type) {
 
 		String stringId = asString(id);
-		String stringKeyspace = asString(keyspace);
-
-		byte[] binId = createKey(stringKeyspace, stringId);
+		byte[] binId = createKey(keyspace, stringId);
 
 		RedisCallback<Map<byte[], byte[]>> command = connection -> connection.hGetAll(binId);
 
@@ -287,7 +285,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		RedisData data = new RedisData(raw);
 
 		data.setId(stringId);
-		data.setKeyspace(stringKeyspace);
+		data.setKeyspace(keyspace);
 
 		return readBackTimeToLiveIfSet(binId, converter.read(type, data));
 	}
@@ -307,13 +305,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		if (value != null) {
 
-			byte[] keyToDelete = createKey(asString(keyspace), asString(id));
+			byte[] keyToDelete = createKey(keyspace, asString(id));
 
 			redisOps.execute((RedisCallback<Void>) connection -> {
 
 				connection.del(keyToDelete);
 				connection.sRem(binKeyspace, binId);
-				new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
+				new IndexWriter(connection, converter).removeKeyFromIndexes(keyspace, binId);
 
 				if (RedisKeyValueAdapter.this.keepShadowCopy()) {
 
@@ -384,7 +382,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		redisOps.execute((RedisCallback<Void>) connection -> {
 
 			connection.del(toBytes(keyspace));
-			new IndexWriter(connection, converter).removeAllIndexes(asString(keyspace));
+			new IndexWriter(connection, converter).removeAllIndexes(keyspace);
 			return null;
 		});
 	}
