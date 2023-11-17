@@ -55,7 +55,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class PathIndexResolver implements IndexResolver {
 
-	private final Set<Class<?>> VALUE_TYPES = new HashSet<>(Arrays.<Class<?>> asList(Point.class, GeoLocation.class));
+	private static final Set<Class<?>> VALUE_TYPES = new HashSet<>(Arrays.asList(Point.class, GeoLocation.class));
 
 	private final ConfigurableIndexDefinitionProvider indexConfiguration;
 	private final RedisMappingContext mappingContext;
@@ -158,10 +158,7 @@ public class PathIndexResolver implements IndexResolver {
 									doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), persistentProperty, listValue));
 						}
 					}
-				}
-
-				else if (persistentProperty.isEntity()
-						|| persistentProperty.getTypeInformation().getActualType().equals(TypeInformation.OBJECT)) {
+				} else if (persistentProperty.isEntity() || persistentProperty.getTypeInformation().getActualType().equals(TypeInformation.OBJECT)) {
 
 					typeHint = updateTypeHintForActualValue(typeHint, propertyValue);
 					indexes.addAll(
