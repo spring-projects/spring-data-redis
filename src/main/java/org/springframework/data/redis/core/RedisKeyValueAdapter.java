@@ -271,7 +271,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	@Override
 	public <T> T get(Object id, String keyspace, Class<T> type) {
 
-		String stringId = asString(id);
+		String stringId = toString(id);
 		byte[] binId = createKey(keyspace, stringId);
 
 		RedisCallback<Map<byte[], byte[]>> command = connection -> connection.hGetAll(binId);
@@ -305,7 +305,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		if (value != null) {
 
-			byte[] keyToDelete = createKey(keyspace, asString(id));
+			byte[] keyToDelete = createKey(keyspace, toString(id));
 
 			redisOps.execute((RedisCallback<Void>) connection -> {
 
@@ -383,6 +383,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			connection.del(toBytes(keyspace));
 			new IndexWriter(connection, converter).removeAllIndexes(keyspace);
+
 			return null;
 		});
 	}
@@ -503,7 +504,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		for (byte[] field : existingFields) {
 
-			if (asString(field).startsWith(path + ".")) {
+			if (toString(field).startsWith(path + ".")) {
 
 				redisUpdateObject.addFieldToRemove(field);
 				value = connection.hGet(redisUpdateObject.targetKey, toBytes(field));
@@ -555,11 +556,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		// nothing to do
 	}
 
-	private String asString(Object value) {
-		return value instanceof String stringValue ? stringValue
-				: getConverter().getConversionService().convert(value, String.class);
-	}
-
+	/**
+	 * Creates a new {@link byte[] key} using the given {@link String keyspace} and {@link String id}.
+	 *
+	 * @param keyspace {@link String name} of the Redis {@literal keyspace}.
+	 * @param id {@link String} identifying the key.
+	 * @return a {@link byte[]} constructed from the {@link String keyspace} and {@link String id}.
+	 */
 	public byte[] createKey(String keyspace, String id) {
 		return toBytes(keyspace + ":" + id);
 	}
@@ -568,12 +571,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
 	 */
 	public byte[] toBytes(Object source) {
+		return source instanceof byte[] bytes ? bytes
+				: getConverter().getConversionService().convert(source, byte[].class);
+	}
 
-		if (source instanceof byte[] bytes) {
-			return bytes;
-		}
-
-		return converter.getConversionService().convert(source, byte[].class);
+	private String toString(Object value) {
+		return value instanceof String stringValue ? stringValue
+				: getConverter().getConversionService().convert(value, String.class);
 	}
 
 	/**
@@ -734,6 +738,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
 					this.converter);
+
 			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
 
 			if (this.eventPublisher != null) {
