@@ -83,7 +83,9 @@ public class PathIndexResolver implements IndexResolver {
 	}
 
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
-		return doResolveIndexesFor(mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace(), "",
+		String keyspace = mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace();
+		Assert.notNull(keyspace, "Keyspace for type " + typeInformation + " must not be null!");
+		return doResolveIndexesFor(keyspace, "",
 				typeInformation, null, value);
 	}
 
