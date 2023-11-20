@@ -90,7 +90,7 @@ public class PathIndexResolver implements IndexResolver {
 
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-			Object value) {
+			@Nullable Object value) {
 		return doResolveIndexesFor(keyspace, path, typeInformation, null, value);
 	}
 
