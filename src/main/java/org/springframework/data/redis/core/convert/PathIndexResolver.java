@@ -110,7 +110,7 @@ public class PathIndexResolver implements IndexResolver {
 			return resolveIndex(keyspace, path, entity.getPersistentProperty(propertyName), value);
 		}
 
-		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
+		final PersistentPropertyAccessor<?> accessor = entity.getPropertyAccessor(value);
 		final Set<IndexedData> indexes = new LinkedHashSet<>();
 
 		entity.doWithProperties((PropertyHandler<RedisPersistentProperty>) persistentProperty -> {
