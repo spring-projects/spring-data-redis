@@ -15,10 +15,8 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.*;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
 
@@ -575,8 +573,7 @@ public class RedisCacheTests {
 	void retrieveCacheValueUsingJedis() {
 
 		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey))
-				.withMessageContaining("RedisCache");
+				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey)).withMessageContaining("RedisCache");
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -590,23 +587,51 @@ public class RedisCacheTests {
 
 	@ParameterizedRedisTest // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
-	@SuppressWarnings("unchecked")
 	void retrieveReturnsCachedValue() throws Exception {
 
 		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
 
-		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
+		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(),
+				usingRedisCacheConfiguration().disableCachingNullValues());
 
-		CompletableFuture<Person> value = (CompletableFuture<Person>) cache.retrieve(this.key);
+		CompletableFuture<ValueWrapper> value = cache.retrieve(this.key);
 
 		assertThat(value).isNotNull();
-		assertThat(value.get()).isEqualTo(this.sample);
+		assertThat(value.get(5, TimeUnit.SECONDS)).isNotNull();
+		assertThat(value.get().get()).isEqualTo(this.sample);
 		assertThat(value).isDone();
 	}
 
 	@ParameterizedRedisTest // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
-	@SuppressWarnings("unchecked")
+	void retrieveReturnsCachedNullableValue() throws Exception {
+
+		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
+
+		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
+
+		CompletableFuture<ValueWrapper> value = cache.retrieve(this.key);
+
+		assertThat(value).isNotNull();
+		assertThat(value.get().get()).isEqualTo(this.sample);
+		assertThat(value).isDone();
+	}
+
+	@ParameterizedRedisTest // GH-2783
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void retrieveReturnsCachedNullValue() throws Exception {
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
+
+		CompletableFuture<ValueWrapper> value = (CompletableFuture<ValueWrapper>) cache.retrieve(this.key);
+		ValueWrapper wrapper = value.get(5, TimeUnit.SECONDS);
+
+		assertThat(wrapper).isNotNull();
+		assertThat(wrapper.get()).isNull();
+	}
+
+	@ParameterizedRedisTest // GH-2650
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsCachedValueWhenLockIsReleased() throws Exception {
 
 		String testValue = "TestValue";
@@ -622,13 +647,12 @@ public class RedisCacheTests {
 
 		cacheWriter.lock("cache");
 
-		CompletableFuture<String> value = (CompletableFuture<String>) cache.retrieve(this.key);
-
+		CompletableFuture<ValueWrapper> value = cache.retrieve(this.key);
 		assertThat(value).isNotDone();
 
 		cacheWriter.unlock("cache");
 
-		assertThat(value.get(15L, TimeUnit.MILLISECONDS)).isEqualTo(testValue);
+		assertThat(value.get(15L, TimeUnit.MILLISECONDS).get()).isEqualTo(testValue);
 		assertThat(value).isDone();
 	}
 
@@ -665,8 +689,9 @@ public class RedisCacheTests {
 
 		cache.retrieve(this.key, valueLoaderSupplier).get();
 
-		doWithConnection(connection ->
-				assertThat(connection.keyCommands().exists("cache::key-1".getBytes(StandardCharsets.UTF_8))).isTrue());
+		doWithConnection(
+				connection -> assertThat(connection.keyCommands().exists("cache::key-1".getBytes(StandardCharsets.UTF_8)))
+						.isTrue());
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -677,11 +702,18 @@ public class RedisCacheTests {
 
 		RedisCache cache = new RedisCache("cache", usingLockingRedisCacheWriter(), usingRedisCacheConfiguration());
 
-		CompletableFuture<?> value = cache.retrieve(this.key);
+		CompletableFuture<ValueWrapper> value = cache.retrieve(this.key);
 
 		assertThat(value).isNotNull();
-		assertThat(value.get()).isNull();
+		assertThat(value.get(5, TimeUnit.SECONDS).get()).isNull();
 		assertThat(value).isDone();
+
+		doWithConnection(connection -> connection.keyCommands().del(this.binaryCacheKey));
+
+		value = cache.retrieve(this.key);
+
+		assertThat(value).isNotNull();
+		assertThat(value.get(5, TimeUnit.SECONDS)).isNull();
 	}
 
 	private <T> CompletableFuture<T> usingCompletedFuture(T value) {
