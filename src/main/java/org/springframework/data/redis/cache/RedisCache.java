@@ -62,8 +62,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
-	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE =
-			"The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
+	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE = "The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
 
 	private final Lock lock = new ReentrantLock();
 
@@ -74,16 +73,16 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	private final String name;
 
 	/**
-	 * Create a new {@link RedisCache} with the given {@link String name} and {@link RedisCacheConfiguration},
-	 * using the {@link RedisCacheWriter} to execute Redis commands supporting the cache operations.
+	 * Create a new {@link RedisCache} with the given {@link String name} and {@link RedisCacheConfiguration}, using the
+	 * {@link RedisCacheWriter} to execute Redis commands supporting the cache operations.
 	 *
 	 * @param name {@link String name} for this {@link Cache}; must not be {@literal null}.
-	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
-	 * by executing the necessary Redis commands; must not be {@literal null}.
-	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation;
-	 * must not be {@literal null}.
+	 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing the
+	 *          necessary Redis commands; must not be {@literal null}.
+	 * @param cacheConfiguration {@link RedisCacheConfiguration} applied to this {@link RedisCache} on creation; must not
+	 *          be {@literal null}.
 	 * @throws IllegalArgumentException if either the given {@link RedisCacheWriter} or {@link RedisCacheConfiguration}
-	 * are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
+	 *           are {@literal null} or the given {@link String} name for this {@link RedisCache} is {@literal null}.
 	 */
 	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfiguration) {
 
@@ -117,11 +116,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Gets the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String}
-	 * when accessing entries in the cache.
+	 * Gets the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String} when
+	 * accessing entries in the cache.
 	 *
-	 * @return the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String}
-	 * when accessing entries in the cache.
+	 * @return the configured {@link ConversionService} used to convert {@link Object cache keys} to a {@link String} when
+	 *         accessing entries in the cache.
 	 * @see RedisCacheConfiguration#getConversionService()
 	 * @see #getCacheConfiguration()
 	 */
@@ -175,8 +174,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts}
-	 * the {@link Object loaded value} in the cache.
+	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts} the
+	 * {@link Object loaded value} in the cache.
 	 *
 	 * @param <T> {@link Class type} of the loaded {@link Object cache value}.
 	 * @param key {@link Object key} mapped to the loaded {@link Object cache value}.
@@ -439,8 +438,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		String message = String.format("Cannot convert cache key %s to String; Please register a suitable Converter"
-				+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
+		String message = String.format(
+				"Cannot convert cache key %s to String; Please register a suitable Converter"
+						+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
 				source, key.getClass().getName());
 
 		throw new IllegalStateException(message);
