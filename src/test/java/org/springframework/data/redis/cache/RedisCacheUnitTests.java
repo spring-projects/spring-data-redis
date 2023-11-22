@@ -15,20 +15,14 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 /**
@@ -40,7 +34,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 class RedisCacheUnitTests {
 
 	@Test // GH-2650
-	@SuppressWarnings("unchecked")
 	void cacheRetrieveValueCallsCacheWriterRetrieveCorrectly() throws Exception {
 
 		RedisCacheWriter mockCacheWriter = mock(RedisCacheWriter.class);
@@ -53,10 +46,10 @@ class RedisCacheUnitTests {
 
 		RedisCache cache = new RedisCache("TestCache", mockCacheWriter, cacheConfiguration);
 
-		CompletableFuture<byte[]> value = (CompletableFuture<byte[]>) cache.retrieve("TestKey");
+		CompletableFuture<ValueWrapper> value = cache.retrieve("TestKey");
 
 		assertThat(value).isNotNull();
-		assertThat(new String(value.get())).isEqualTo("TEST");
+		assertThat(new String((byte[]) value.get().get())).isEqualTo("TEST");
 
 		verify(mockCacheWriter, times(1)).retrieve(eq("TestCache"), isA(byte[].class));
 		verify(mockCacheWriter).supportsAsyncRetrieve();
@@ -64,6 +57,6 @@ class RedisCacheUnitTests {
 	}
 
 	private <T> CompletableFuture<T> usingCompletedFuture(T value) {
-		return  CompletableFuture.completedFuture(value);
+		return CompletableFuture.completedFuture(value);
 	}
 }

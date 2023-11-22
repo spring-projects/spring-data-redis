@@ -281,13 +281,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	public CompletableFuture<?> retrieve(Object key) {
+	public CompletableFuture<ValueWrapper> retrieve(Object key) {
 
 		if (!getCacheWriter().supportsAsyncRetrieve()) {
 			throw new UnsupportedOperationException(CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE);
 		}
 
-		return retrieveValue(key).thenApply(this::nullSafeDeserializedStoreValue);
+		return retrieveValue(key);
 	}
 
 	@Override
@@ -298,10 +298,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			throw new UnsupportedOperationException(CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE);
 		}
 
-		return retrieveValue(key).thenCompose(bytes -> {
+		return retrieveValue(key).thenCompose(wrapper -> {
 
-			if (bytes != null) {
-				return CompletableFuture.completedFuture((T) nullSafeDeserializedStoreValue(bytes));
+			if (wrapper != null) {
+				return CompletableFuture.completedFuture((T) wrapper.get());
 			}
 
 			return valueLoader.get().thenCompose(value -> {
@@ -313,8 +313,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 				Duration timeToLive = getTimeToLive(key, cacheValue);
 
-				return getCacheWriter().store(getName(), binaryKey, binaryValue, timeToLive)
-						.thenApply(v -> value);
+				return getCacheWriter().store(getName(), binaryKey, binaryValue, timeToLive).thenApply(v -> value);
 			});
 		});
 	}
@@ -447,8 +446,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		throw new IllegalStateException(message);
 	}
 
-	private CompletableFuture<byte[]> retrieveValue(Object key) {
-		return getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key));
+	private CompletableFuture<ValueWrapper> retrieveValue(Object key) {
+		return getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key)) //
+				.thenApply(binaryValue -> binaryValue != null ? deserializeCacheValue(binaryValue) : null) //
+				.thenApply(this::toValueWrapper);
 	}
 
 	@Nullable
