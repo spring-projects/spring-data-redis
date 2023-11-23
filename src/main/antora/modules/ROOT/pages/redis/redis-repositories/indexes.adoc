@@ -57,7 +57,7 @@ public class Person {
   // ... other properties omitted
 
   Map<String,String> attributes;      <1>
-  Map<String Person> relatives;       <2>
+  Map<String,Person> relatives;       <2>
   List<Address> addresses;            <3>
 }
 ----
