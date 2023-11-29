@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -78,16 +79,16 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	}
 
 	@Override
-	protected KeyValueQuery<RedisOperationChain> complete(final RedisOperationChain criteria, Sort sort) {
+	protected KeyValueQuery<RedisOperationChain> complete(@Nullable final RedisOperationChain criteria, Sort sort) {
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(criteria);
 
-		if (query.getCriteria() != null && !CollectionUtils.isEmpty(query.getCriteria().getSismember())
-				&& !CollectionUtils.isEmpty(query.getCriteria().getOrSismember()))
-			if (query.getCriteria().getSismember().size() == 1 && query.getCriteria().getOrSismember().size() == 1) {
+		if (criteria != null && !CollectionUtils.isEmpty(criteria.getSismember())
+				&& !CollectionUtils.isEmpty(criteria.getOrSismember()))
+			if (criteria.getSismember().size() == 1 && criteria.getOrSismember().size() == 1) {
 
-				query.getCriteria().getOrSismember().add(query.getCriteria().getSismember().iterator().next());
-				query.getCriteria().getSismember().clear();
+				criteria.getOrSismember().add(criteria.getSismember().iterator().next());
+				criteria.getSismember().clear();
 			}
 
 		if (sort.isSorted()) {
