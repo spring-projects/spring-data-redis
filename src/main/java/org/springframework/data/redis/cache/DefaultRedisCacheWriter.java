@@ -57,6 +57,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author André Prata
  * @author John Blum
+ * @author Mingyuan Wu
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -322,9 +323,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	private Boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue,
 			RedisConnection connection) {
 
-		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
+		var lockName = createCacheLockName(name);
+		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(lockName, contextualKey, contextualValue));
 
-		return connection.stringCommands().set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT);
+		return connection.stringCommands().set(createCacheLockKey(lockName), new byte[0], expiration, SetOption.SET_IF_ABSENT);
 	}
 
 	/**
@@ -338,7 +340,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	@Nullable
 	private Long doUnlock(String name, RedisConnection connection) {
-		return connection.keyCommands().del(createCacheLockKey(name));
+		var lockName = createCacheLockName(name);
+		return connection.keyCommands().del(createCacheLockKey(lockName));
 	}
 
 	private <T> T execute(String name, Function<RedisConnection, T> callback) {
@@ -391,11 +394,16 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	boolean doCheckLock(String name, RedisConnection connection) {
-		return ObjectUtils.nullSafeEquals(connection.keyCommands().exists(createCacheLockKey(name)), true);
+		var lockName = createCacheLockName(name);
+		return ObjectUtils.nullSafeEquals(connection.keyCommands().exists(createCacheLockKey(lockName)), true);
 	}
 
-	byte[] createCacheLockKey(String name) {
-		return (name + "~lock").getBytes(StandardCharsets.UTF_8);
+	String createCacheLockName(String name) {
+		return name + "~lock";
+	}
+
+	byte[] createCacheLockKey(String lockName) {
+		return lockName.getBytes(StandardCharsets.UTF_8);
 	}
 
 	private static boolean shouldExpireWithin(@Nullable Duration ttl) {
@@ -531,9 +539,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		private Mono<Object> doLock(String name, Object contextualKey, @Nullable Object contextualValue,
 				ReactiveRedisConnection connection) {
 
-			ByteBuffer key = ByteBuffer.wrap(createCacheLockKey(name));
+			var lockName = createCacheLockName(name);
+			ByteBuffer key = ByteBuffer.wrap(createCacheLockKey(lockName));
 			ByteBuffer value = ByteBuffer.wrap(new byte[0]);
-			Expiration expiration = Expiration.from(lockTtl.getTimeToLive(contextualKey, contextualValue));
+			Expiration expiration = Expiration.from(lockTtl.getTimeToLive(lockName ,contextualKey, contextualValue));
 
 			return connection.stringCommands().set(key, value, expiration, SetOption.SET_IF_ABSENT) //
 					// Ensure we emit an object, otherwise, the Mono.usingWhen operator doesn't run the inner resource function.
@@ -541,13 +550,15 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		private Mono<Void> doUnlock(String name, ReactiveRedisConnection connection) {
-			return connection.keyCommands().del(ByteBuffer.wrap(createCacheLockKey(name))).then();
+			var lockName = createCacheLockName(name);
+			return connection.keyCommands().del(ByteBuffer.wrap(createCacheLockKey(lockName))).then();
 		}
 
 		private Mono<Void> waitForLock(ReactiveRedisConnection connection, String cacheName) {
 
 			AtomicLong lockWaitTimeNs = new AtomicLong();
-			byte[] cacheLockKey = createCacheLockKey(cacheName);
+			var lockName = createCacheLockName(cacheName);
+			byte[] cacheLockKey = createCacheLockKey(lockName);
 
 			Flux<Long> wait = Flux.interval(Duration.ZERO, sleepTime);
 			Mono<Boolean> exists = connection.keyCommands().exists(ByteBuffer.wrap(cacheLockKey)).filter(it -> !it);

@@ -55,6 +55,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Piotr Mionskowski
  * @author Jos Roseboom
  * @author John Blum
+ * @author Mingyuan Wu
  * @since 2.0
  */
 @SuppressWarnings("unused")
@@ -215,7 +216,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	private Duration getTimeToLive(Object key, @Nullable Object value) {
-		return getCacheConfiguration().getTtlFunction().getTimeToLive(key, value);
+		return getCacheConfiguration().getTtlFunction().getTimeToLive(getName(), key, value);
 	}
 
 	@Override

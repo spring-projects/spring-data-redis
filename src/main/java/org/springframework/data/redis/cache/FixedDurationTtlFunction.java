@@ -26,6 +26,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  * @author John Blum
+ * @author Mingyuan Wu
  * @see java.time.Duration
  * @see org.springframework.data.redis.cache.RedisCacheWriter.TtlFunction
  * @since 3.2
@@ -33,7 +34,7 @@ import org.springframework.lang.Nullable;
 public record FixedDurationTtlFunction(Duration duration) implements TtlFunction {
 
 	@Override
-	public Duration getTimeToLive(Object key, @Nullable Object value) {
+	public Duration getTimeToLive(String cacheName, Object key, @Nullable Object value) {
 		return this.duration;
 	}
 }

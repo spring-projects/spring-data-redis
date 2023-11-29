@@ -254,6 +254,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * Function to compute the time to live from the cache {@code key} and {@code value}.
 	 *
 	 * @author Mark Paluch
+	 * @author Mingyuan Wu
 	 * @since 3.2
 	 */
 	@FunctionalInterface
@@ -292,12 +293,13 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		 * rounding. Returning {@link Duration#ZERO}, or a value less than {@code Duration.ofMillis(1)}, results in a
 		 * persistent value that does not expire.
 		 *
+		 * @param cacheName the cache name.
 		 * @param key the cache key.
 		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
 		 * @return the computed {@link Duration time-to-live (TTL)}. Can be {@link Duration#ZERO} for persistent values
 		 *         (i.e. cache entry does not expire).
 		 */
-		Duration getTimeToLive(Object key, @Nullable Object value);
+		Duration getTimeToLive(String cacheName, Object key, @Nullable Object value);
 
 	}
 }
