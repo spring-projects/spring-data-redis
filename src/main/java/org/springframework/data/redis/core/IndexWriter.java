@@ -25,6 +25,7 @@ import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RemoveIndexedData;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
+import org.springframework.data.redis.core.convert.SortingIndexedPropertyValue;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -39,6 +40,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Yan Ma
  * @since 1.7
  */
 class IndexWriter {
@@ -106,7 +108,7 @@ class IndexWriter {
 
 			if (indexValues.iterator().hasNext()) {
 				IndexedData data = indexValues.iterator().next();
-				if (data != null) {
+				if (data != null && data.getKeyspace() != null) {
 					removeKeyFromIndexes(data.getKeyspace(), binKey);
 				}
 			}
@@ -179,6 +181,8 @@ class IndexWriter {
 
 				if (indexedData instanceof GeoIndexedPropertyValue) {
 					connection.geoRemove(existingKey, key);
+				} else if(indexedData instanceof SortingIndexedPropertyValue){
+				    connection.zRem(existingKey, key);
 				} else {
 					connection.sRem(existingKey, key);
 				}
@@ -222,7 +226,19 @@ class IndexWriter {
 
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
-		} else if (indexedData instanceof GeoIndexedPropertyValue) {
+		} else if(indexedData instanceof SortingIndexedPropertyValue ) {
+            SortingIndexedPropertyValue sortingIndexedData = (SortingIndexedPropertyValue) indexedData;
+            String indexName = sortingIndexedData.getIndexName();
+            if(indexName == null) return;
+            Double score = sortingIndexedData.getScore();
+            if(score == null) return;
+            
+            byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexName);
+            connection.zAdd(indexKey , score, key);
+            
+            // keep track of indexes used for the object
+            connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+        } else if (indexedData instanceof GeoIndexedPropertyValue) {
 
 			GeoIndexedPropertyValue geoIndexedData = ((GeoIndexedPropertyValue) indexedData);
 

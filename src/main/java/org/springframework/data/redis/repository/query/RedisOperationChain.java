@@ -33,6 +33,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Yan Ma
  * @since 1.7
  */
 public class RedisOperationChain {
