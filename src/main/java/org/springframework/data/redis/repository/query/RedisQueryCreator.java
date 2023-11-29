@@ -100,24 +100,23 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 	private NearPath getNearPath(Part part, Iterator<Object> iterator) {
 
+		String path = part.getProperty().toDotPath();
 		Object value = iterator.next();
 
-		Point point;
-		Distance distance;
+		if (value instanceof Circle circle) {
+			return new NearPath(path, circle.getCenter(), circle.getRadius());
+		}
 
-		if (value instanceof Circle circleValue) {
-			point = circleValue.getCenter();
-			distance = circleValue.getRadius();
-		} else if (value instanceof Point pointValue) {
-
-			point = pointValue;
+		if (value instanceof Point point) {
 
 			if (!iterator.hasNext()) {
 				String message = "Expected to find distance value for geo query; Are you missing a parameter";
 				throw new InvalidDataAccessApiUsageException(message);
 			}
 
+			Distance distance;
 			Object distObject = iterator.next();
+
 			if (distObject instanceof Distance distanceValue) {
 				distance = distanceValue;
 			} else if (distObject instanceof Number numberValue) {
@@ -126,17 +125,14 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 				String message = String.format("Expected to find Distance or Numeric value for geo query but was %s",
 						distObject.getClass());
-
 				throw new InvalidDataAccessApiUsageException(message);
 			}
-		} else {
 
-			String message = String.format("Expected to find a Circle or Point/Distance for geo query but was %s.",
-					value.getClass());
-
-			throw new InvalidDataAccessApiUsageException(message);
+			return new NearPath(path, point, distance);
 		}
 
-		return new NearPath(part.getProperty().toDotPath(), point, distance);
+		String message = String.format("Expected to find a Circle or Point/Distance for geo query but was %s.",
+				value.getClass());
+		throw new InvalidDataAccessApiUsageException(message);
 	}
 }
