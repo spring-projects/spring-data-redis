@@ -105,12 +105,12 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 		Point point;
 		Distance distance;
 
-		if (value instanceof Circle) {
-			point = ((Circle) value).getCenter();
-			distance = ((Circle) value).getRadius();
-		} else if (value instanceof Point) {
+		if (value instanceof Circle circleValue) {
+			point = circleValue.getCenter();
+			distance = circleValue.getRadius();
+		} else if (value instanceof Point pointValue) {
 
-			point = (Point) value;
+			point = pointValue;
 
 			if (!iterator.hasNext()) {
 				String message = "Expected to find distance value for geo query; Are you missing a parameter";
@@ -118,10 +118,10 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			}
 
 			Object distObject = iterator.next();
-			if (distObject instanceof Distance) {
-				distance = (Distance) distObject;
-			} else if (distObject instanceof Number) {
-				distance = new Distance(((Number) distObject).doubleValue(), Metrics.KILOMETERS);
+			if (distObject instanceof Distance distanceValue) {
+				distance = distanceValue;
+			} else if (distObject instanceof Number numberValue) {
+				distance = new Distance(numberValue.doubleValue(), Metrics.KILOMETERS);
 			} else {
 
 				String message = String.format("Expected to find Distance or Numeric value for geo query but was %s",
