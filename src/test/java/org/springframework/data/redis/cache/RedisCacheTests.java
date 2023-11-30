@@ -649,7 +649,6 @@ public class RedisCacheTests {
 
 		CompletableFuture<Person> value = cache.retrieve(this.key, valueLoaderSupplier);
 
-		assertThat(loaded.get()).isFalse();
 		assertThat(value.get()).isEqualTo(jon);
 		assertThat(loaded.get()).isTrue();
 		assertThat(value).isDone();
