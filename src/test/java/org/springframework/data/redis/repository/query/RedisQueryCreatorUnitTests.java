@@ -38,6 +38,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
@@ -193,7 +194,7 @@ class RedisQueryCreatorUnitTests {
 
 		PartTree partTree = new PartTree(method.getName(), method.getReturnType());
 		RedisQueryCreator creator = new RedisQueryCreator(partTree,
-				new ParametersParameterAccessor(new DefaultParameters(method), args));
+				new ParametersParameterAccessor(new DefaultParameters(ParametersSource.of(method)), args));
 
 		return creator;
 	}
