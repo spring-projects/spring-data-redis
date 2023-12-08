@@ -91,6 +91,7 @@ public class RedisKeyValueAdapterTests {
 		RedisConnection connection = template.getConnectionFactory().getConnection();
 
 		try {
+			connection.setConfig("notify-keyspace-events", "");
 			connection.setConfig("notify-keyspace-events", "KEA");
 		} finally {
 			connection.close();
