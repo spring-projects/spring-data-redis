@@ -220,7 +220,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	public void setConfig(String param, String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
-		Assert.hasText(value, "Value must not be null or empty");
+		Assert.notNull(value, "Value must not be null");
 
 		executeCommandOnAllNodes(client -> client.configSet(param, value));
 	}

@@ -130,7 +130,7 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	public Mono<String> setConfig(String param, String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
-		Assert.hasText(value, "Value must not be null or empty");
+		Assert.notNull(value, "Value must not be null");
 
 		return connection.execute(c -> c.configSet(param, value)).next();
 	}

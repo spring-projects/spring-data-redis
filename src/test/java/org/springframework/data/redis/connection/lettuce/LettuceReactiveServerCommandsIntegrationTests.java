@@ -215,6 +215,23 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
+	@ParameterizedRedisTest // GH-2798
+	void setConfigShouldRespondCorrectly() {
+
+		if (!(connection instanceof LettuceReactiveRedisClusterConnection)) {
+
+			connection.serverCommands().setConfig("notify-keyspace-events", "") //
+					.as(StepVerifier::create) //
+					.expectNext("OK")
+					.verifyComplete();
+
+			connection.serverCommands().setConfig("notify-keyspace-events", "KEA") //
+					.as(StepVerifier::create) //
+					.expectNext("OK")
+					.verifyComplete();
+		}
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-659
 	void setConfigShouldApplyConfiguration() {
 
