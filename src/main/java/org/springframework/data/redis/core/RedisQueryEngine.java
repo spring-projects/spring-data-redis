@@ -48,6 +48,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Junghoon Ban
  * @since 1.7
  */
 class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationChain, Comparator<?>> {
@@ -89,7 +90,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
 						&& criteria.getNear() == null) {
-			return getAdapter().getAllOf(keyspace, type, offset, rows);
+			return getRequiredAdapter().getAllOf(keyspace, type, offset, rows);
 		}
 
 		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = connection -> {
@@ -118,7 +119,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 				}
 			}
 
-			byte[] keyspaceBin = getAdapter().getConverter().getConversionService().convert(keyspace + ":", byte[].class);
+			byte[] keyspaceBin = getRequiredAdapter().getConverter().getConversionService().convert(keyspace + ":",
+					byte[].class);
 
 			Map<byte[], Map<byte[], byte[]>> rawData = new LinkedHashMap<>();
 
@@ -139,7 +141,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			return rawData;
 		};
 
-		Map<byte[], Map<byte[], byte[]>> raw = this.getAdapter().execute(callback);
+		Map<byte[], Map<byte[], byte[]>> raw = this.getRequiredAdapter().execute(callback);
 
 		List<T> result = new ArrayList<>(raw.size());
 		for (Map.Entry<byte[], Map<byte[], byte[]>> entry : raw.entrySet()) {
@@ -149,10 +151,10 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			}
 
 			RedisData data = new RedisData(entry.getValue());
-			data.setId(getAdapter().getConverter().getConversionService().convert(entry.getKey(), String.class));
+			data.setId(getRequiredAdapter().getConverter().getConversionService().convert(entry.getKey(), String.class));
 			data.setKeyspace(keyspace);
 
-			T converted = this.getAdapter().getConverter().read(type, data);
+			T converted = this.getRequiredAdapter().getConverter().read(type, data);
 
 			result.add(converted);
 		}
@@ -169,10 +171,10 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	public long count(RedisOperationChain criteria, String keyspace) {
 
 		if (criteria == null || criteria.isEmpty()) {
-			return this.getAdapter().count(keyspace);
+			return this.getRequiredAdapter().count(keyspace);
 		}
 
-		return this.getAdapter().execute(connection -> {
+		return this.getRequiredAdapter().execute(connection -> {
 
 			long result = 0;
 
@@ -194,9 +196,9 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		int i = 0;
 		for (PathAndValue pathAndValue : source) {
 
-			byte[] convertedValue = getAdapter().getConverter().getConversionService().convert(pathAndValue.getFirstValue(),
-					byte[].class);
-			byte[] fullPath = getAdapter().getConverter().getConversionService()
+			byte[] convertedValue = getRequiredAdapter().getConverter().getConversionService()
+					.convert(pathAndValue.getFirstValue(), byte[].class);
+			byte[] fullPath = getRequiredAdapter().getConverter().getConversionService()
 					.convert(prefix + pathAndValue.getPath() + ":", byte[].class);
 
 			keys[i] = ByteUtils.concat(fullPath, convertedValue);
@@ -208,7 +210,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	private byte[] geoKey(String prefix, NearPath source) {
 
 		String path = GeoIndexedPropertyValue.geoIndexName(source.getPath());
-		return getAdapter().getConverter().getConversionService().convert(prefix + path, byte[].class);
+		return getRequiredAdapter().getConverter().getConversionService().convert(prefix + path, byte[].class);
 
 	}
 
