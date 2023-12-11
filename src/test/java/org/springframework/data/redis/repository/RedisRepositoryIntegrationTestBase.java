@@ -268,6 +268,25 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findBy(firstPage.nextPageable()).getContent()).hasSize(1);
 	}
 
+	@Test // GH-2799
+	void shouldReturnEntitiesWithoutDuplicates() {
+
+		Person eddard = new Person("eddard", "stark");
+		eddard.setAlive(true);
+
+		Person robb = new Person("robb", "stark");
+		robb.setAlive(false);
+
+		Person jon = new Person("jon", "snow");
+		jon.setAlive(true);
+
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
+
+		List<Person> result = repo.findByFirstnameAndLastnameOrAliveIsTrue("eddard", "stark");
+		assertThat(result).hasSize(2);
+		assertThat(result).contains(eddard, jon);
+	}
+
 	@Test // DATAREDIS-771
 	void shouldFindByBooleanIsTrue() {
 
@@ -536,6 +555,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
 
 		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
+
+		List<Person> findByFirstnameAndLastnameOrAliveIsTrue(String firstname, String lastname);
 
 		List<Person> findFirstBy();
 
