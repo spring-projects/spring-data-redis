@@ -1015,7 +1015,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
-		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
+		return io.lettuce.core.ScanCursor.of(Long.toUnsignedString(cursorId));
 	}
 
 	private void validateCommandIfRunningInTransactionMode(ProtocolKeyword cmd, byte[]... args) {

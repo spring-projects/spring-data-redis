@@ -1077,8 +1077,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<redis.clients.jedis.resps.Tuple> result = connection.getCluster().zscan(key,
-						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()),
+						JedisConverters.toBytes(Long.toUnsignedString(cursorId)), params);
+				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 		}.open();

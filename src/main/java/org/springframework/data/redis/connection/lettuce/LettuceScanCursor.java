@@ -77,7 +77,7 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 	}
 
 	private boolean isMatchingCursor(long cursorId) {
-		return state != null && state.getCursor().equals(Long.toString(cursorId));
+		return state != null && state.getCursor().equals(Long.toUnsignedString(cursorId));
 	}
 
 	/**
@@ -101,7 +101,7 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 
 		LettuceScanIteration(io.lettuce.core.ScanCursor cursor, Collection<T> items) {
 
-			super(Long.parseLong(cursor.getCursor()), items);
+			super(Long.parseUnsignedLong(cursor.getCursor()), items);
 			this.cursor = cursor;
 		}
 	}

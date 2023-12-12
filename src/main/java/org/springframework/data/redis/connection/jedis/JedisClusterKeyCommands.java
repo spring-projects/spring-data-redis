@@ -180,8 +180,8 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 						protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
 							ScanParams params = JedisConverters.toScanParams(options);
-							ScanResult<String> result = client.scan(Long.toString(cursorId), params);
-							return new ScanIteration<>(Long.valueOf(result.getCursor()),
+							ScanResult<String> result = client.scan(Long.toUnsignedString(cursorId), params);
+							return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()),
 									JedisConverters.stringListToByteList().convert(result.getResult()));
 						}
 					}.open();
