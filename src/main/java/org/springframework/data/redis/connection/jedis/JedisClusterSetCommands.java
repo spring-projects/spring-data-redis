@@ -394,12 +394,11 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return new ScanCursor<byte[]>(options) {
 
 			@Override
-			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
-				ScanResult<byte[]> result = connection.getCluster().sscan(key,
-						JedisConverters.toBytes(Long.toUnsignedString(cursorId)), params);
-				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()), result.getResult());
+				ScanResult<byte[]> result = connection.getCluster().sscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}

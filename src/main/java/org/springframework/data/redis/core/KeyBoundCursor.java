@@ -31,17 +31,36 @@ public abstract class KeyBoundCursor<T> extends ScanCursor<T> {
 	 *
 	 * @param cursorId
 	 * @param options Defaulted to {@link ScanOptions#NONE} if nulled.
+	 * @deprecated since 3.3.0 - Use {@link KeyBoundCursor#KeyBoundCursor(byte[], CursorId, ScanOptions)} instead.
 	 */
+	@Deprecated(since = "3.3.0")
 	public KeyBoundCursor(byte[] key, long cursorId, @Nullable ScanOptions options) {
 		super(cursorId, options != null ? options : ScanOptions.NONE);
 		this.key = key;
 	}
 
+	/**
+	 * Crates new {@link ScanCursor}
+	 *
+	 * @param cursorId
+	 * @param options Defaulted to {@link ScanOptions#NONE} if nulled.
+	 * @since 3.3.0
+	 */
+	public KeyBoundCursor(byte[] key, CursorId cursorId, @Nullable ScanOptions options) {
+		super(cursorId, options != null ? options : ScanOptions.NONE);
+		this.key = key;
+	}
+
+	@Override
 	protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
+		return doScan(CursorId.of(cursorId), options);
+	}
+
+	protected ScanIteration<T> doScan(CursorId cursorId, ScanOptions options) {
 		return doScan(this.key, cursorId, options);
 	}
 
-	protected abstract ScanIteration<T> doScan(byte[] key, long cursorId, ScanOptions options);
+	protected abstract ScanIteration<T> doScan(byte[] key, CursorId cursorId, ScanOptions options);
 
 	public byte[] getKey() {
 		return key;

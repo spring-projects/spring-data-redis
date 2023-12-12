@@ -236,9 +236,9 @@ class ScanCursorUnitTests {
 	@Test // GH-2414
 	void shouldCloseCursorOnScanFailure() {
 
-		KeyBoundCursor<String> cursor = new KeyBoundCursor<String>("foo".getBytes(), 0, null) {
+		KeyBoundCursor<String> cursor = new KeyBoundCursor<String>("foo".getBytes(), Cursor.CursorId.initial(), null) {
 			@Override
-			protected ScanIteration<String> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<String> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 				throw new IllegalStateException();
 			}
 		};
@@ -255,7 +255,8 @@ class ScanCursorUnitTests {
 	}
 
 	private ScanIteration<String> createIteration(long cursorId, String... values) {
-		return new ScanIteration<>(cursorId, values.length > 0 ? Arrays.asList(values) : Collections.<String> emptyList());
+		return new ScanIteration<>(Cursor.CursorId.of(cursorId),
+				values.length > 0 ? Arrays.asList(values) : Collections.<String> emptyList());
 	}
 
 	private static class CapturingCursorDummy extends ScanCursor<String> {
@@ -267,12 +268,12 @@ class ScanCursorUnitTests {
 		}
 
 		@Override
-		protected ScanIteration<String> doScan(long cursorId, ScanOptions options) {
+		protected ScanIteration<String> doScan(CursorId cursorId, ScanOptions options) {
 
 			ScanIteration<String> iteration = this.values.poll();
 
 			if (iteration == null) {
-				iteration = new ScanIteration<>(0, Collections.emptyList());
+				iteration = new ScanIteration<>(CursorId.initial(), Collections.emptyList());
 			}
 			return iteration;
 		}

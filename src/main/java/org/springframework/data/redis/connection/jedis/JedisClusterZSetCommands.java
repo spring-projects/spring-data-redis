@@ -1079,13 +1079,13 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		return new ScanCursor<Tuple>(options) {
 
 			@Override
-			protected ScanIteration<Tuple> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<Tuple> doScan(CursorId cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<redis.clients.jedis.resps.Tuple> result = connection.getCluster().zscan(key,
-						JedisConverters.toBytes(Long.toUnsignedString(cursorId)), params);
-				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()),
+						JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<>(CursorId.of(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 		}.open();

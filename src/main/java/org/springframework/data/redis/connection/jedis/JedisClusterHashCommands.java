@@ -275,14 +275,14 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		return new ScanCursor<Entry<byte[], byte[]>>(options) {
 
 			@Override
-			protected ScanIteration<Entry<byte[], byte[]>> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(CursorId cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<Entry<byte[], byte[]>> result = connection.getCluster().hscan(key,
-						JedisConverters.toBytes(Long.toUnsignedString(cursorId)),
+						JedisConverters.toBytes(cursorId),
 						params);
-				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()), result.getResult());
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}

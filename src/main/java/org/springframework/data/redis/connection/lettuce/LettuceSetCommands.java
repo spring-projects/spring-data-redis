@@ -27,6 +27,7 @@ import java.util.Set;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -201,24 +202,24 @@ class LettuceSetCommands implements RedisSetCommands {
 
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
-		return sScan(key, 0, options);
+		return sScan(key, CursorId.initial(), options);
 	}
 
 	/**
-	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
+	 * @since 1.4
 	 */
-	public Cursor<byte[]> sScan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<byte[]> sScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
@@ -232,7 +233,7 @@ class LettuceSetCommands implements RedisSetCommands {
 				String nextCursorId = valueScanCursor.getCursor();
 
 				List<byte[]> values = connection.failsafeReadScanValues(valueScanCursor.getValues(), null);
-				return new ScanIteration<>(Long.parseUnsignedLong(nextCursorId), values);
+				return new ScanIteration<>(CursorId.of(nextCursorId), values);
 			}
 
 			protected void doClose() {
