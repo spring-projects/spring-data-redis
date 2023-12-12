@@ -165,12 +165,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 				}
 
 				if (type != null) {
-					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params, type);
+					result = connection.getJedis().scan(Long.toUnsignedString(cursorId).getBytes(), params, type);
 				} else {
-					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params);
+					result = connection.getJedis().scan(Long.toUnsignedString(cursorId).getBytes(), params);
 				}
 
-				return new ScanIteration<>(Long.parseLong(result.getCursor()), result.getResult());
+				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()), result.getResult());
 			}
 
 			protected void doClose() {
