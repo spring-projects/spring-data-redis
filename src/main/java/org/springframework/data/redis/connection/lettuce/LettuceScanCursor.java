@@ -46,9 +46,9 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 	}
 
 	@Override
-	protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
+	protected ScanIteration<T> doScan(CursorId cursorId, ScanOptions options) {
 
-		if (state == null && cursorId == 0) {
+		if (state == null && cursorId.isInitial()) {
 			return scanAndProcessState(io.lettuce.core.ScanCursor.INITIAL, options);
 		}
 
@@ -64,7 +64,7 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 	}
 
 	@Override
-	protected boolean isFinished(long cursorId) {
+	protected boolean isFinished(CursorId cursorId) {
 		return state != null && isMatchingCursor(cursorId) ? state.isFinished() : super.isFinished(cursorId);
 	}
 
@@ -76,8 +76,8 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 		return iteration;
 	}
 
-	private boolean isMatchingCursor(long cursorId) {
-		return state != null && state.getCursor().equals(Long.toUnsignedString(cursorId));
+	private boolean isMatchingCursor(CursorId cursorId) {
+		return state != null && state.getCursor().equals(cursorId.getCursorId());
 	}
 
 	/**
@@ -101,7 +101,7 @@ abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 
 		LettuceScanIteration(io.lettuce.core.ScanCursor cursor, Collection<T> items) {
 
-			super(Long.parseUnsignedLong(cursor.getCursor()), items);
+			super(CursorId.of(cursor.getCursor()), items);
 			this.cursor = cursor;
 		}
 	}

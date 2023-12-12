@@ -69,6 +69,12 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 	}
 
 	@Override
+	public CursorId getId() {
+		return delegate.getId();
+	}
+
+	@Override
+	@Deprecated
 	public long getCursorId() {
 		return delegate.getCursorId();
 	}

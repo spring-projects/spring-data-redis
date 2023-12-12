@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -530,20 +531,20 @@ class LettuceZSetCommands implements RedisZSetCommands {
 
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
-		return zScan(key, 0L, options);
+		return zScan(key, CursorId.initial(), options);
 	}
 
 	/**
 	 * @since 1.4
 	 */
-	public Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<Tuple> zScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<Tuple> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'ZSCAN' cannot be called in pipeline / transaction mode");
@@ -559,7 +560,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 				List<ScoredValue<byte[]>> result = scoredValueScanCursor.getValues();
 
 				List<Tuple> values = connection.failsafeReadScanValues(result, LettuceConverters.scoredValuesToTupleList());
-				return new ScanIteration<>(Long.parseUnsignedLong(nextCursorId), values);
+				return new ScanIteration<>(CursorId.of(nextCursorId), values);
 			}
 
 			@Override

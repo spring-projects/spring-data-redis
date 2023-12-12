@@ -57,6 +57,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -70,6 +71,7 @@ import org.springframework.data.redis.connection.convert.TransactionResultConver
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceResultBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -1060,8 +1062,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
-		return io.lettuce.core.ScanCursor.of(Long.toUnsignedString(cursorId));
+	io.lettuce.core.ScanCursor getScanCursor(CursorId cursorId) {
+		return io.lettuce.core.ScanCursor.of(cursorId.getCursorId());
 	}
 
 	private void validateCommandIfRunningInTransactionMode(ProtocolKeyword cmd, byte[]... args) {
