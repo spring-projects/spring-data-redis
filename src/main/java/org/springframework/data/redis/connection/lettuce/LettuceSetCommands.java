@@ -232,7 +232,7 @@ class LettuceSetCommands implements RedisSetCommands {
 				String nextCursorId = valueScanCursor.getCursor();
 
 				List<byte[]> values = connection.failsafeReadScanValues(valueScanCursor.getValues(), null);
-				return new ScanIteration<>(Long.valueOf(nextCursorId), values);
+				return new ScanIteration<>(Long.parseUnsignedLong(nextCursorId), values);
 			}
 
 			protected void doClose() {

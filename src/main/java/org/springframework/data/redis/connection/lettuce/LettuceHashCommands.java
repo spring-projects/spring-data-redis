@@ -235,7 +235,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				String nextCursorId = mapScanCursor.getCursor();
 
 				Map<byte[], byte[]> values = mapScanCursor.getMap();
-				return new ScanIteration<>(Long.valueOf(nextCursorId), values.entrySet());
+				return new ScanIteration<>(Long.parseUnsignedLong(nextCursorId), values.entrySet());
 			}
 
 			@Override

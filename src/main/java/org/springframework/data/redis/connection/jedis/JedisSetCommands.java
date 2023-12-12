@@ -231,8 +231,9 @@ class JedisSetCommands implements RedisSetCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				ScanResult<byte[]> result = connection.getJedis().sscan(key, JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()), result.getResult());
+				ScanResult<byte[]> result = connection.getJedis().sscan(key,
+						JedisConverters.toBytes(Long.toUnsignedString(cursorId)), params);
+				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()), result.getResult());
 			}
 
 			protected void doClose() {
