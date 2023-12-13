@@ -293,11 +293,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@SuppressWarnings("unchecked")
 	public <T> CompletableFuture<T> retrieve(Object key, Supplier<CompletableFuture<T>> valueLoader) {
 
-		if (!getCacheWriter().supportsAsyncRetrieve()) {
-			throw new UnsupportedOperationException(CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE);
-		}
-
-		return retrieveValue(key).thenCompose(wrapper -> {
+		return retrieve(key).thenCompose(wrapper -> {
 
 			if (wrapper != null) {
 				return CompletableFuture.completedFuture((T) wrapper.get());
