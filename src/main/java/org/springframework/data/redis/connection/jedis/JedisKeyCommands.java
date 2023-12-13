@@ -165,9 +165,9 @@ class JedisKeyCommands implements RedisKeyCommands {
 				}
 
 				if (type != null) {
-					result = connection.getJedis().scan(Long.toUnsignedString(cursorId).getBytes(), params, type);
+					result = connection.getJedis().scan(JedisConverters.toBytes(Long.toUnsignedString(cursorId)), params, type);
 				} else {
-					result = connection.getJedis().scan(Long.toUnsignedString(cursorId).getBytes(), params);
+					result = connection.getJedis().scan(JedisConverters.toBytes(Long.toUnsignedString(cursorId)), params);
 				}
 
 				return new ScanIteration<>(Long.parseUnsignedLong(result.getCursor()), result.getResult());
