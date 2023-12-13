@@ -27,19 +27,22 @@ import redis.clients.jedis.resps.ScanResult;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
+import org.mockito.ArgumentCaptor;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 
 /**
@@ -179,6 +182,23 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, times(1)).quit();
 		}
 
+		@Test // GH-2796
+		void scanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+			doReturn(new ScanResult<>(cursorId, List.of("spring".getBytes()))).when(jedisSpy).scan(any(byte[].class),
+					any(ScanParams.class));
+
+			Cursor<byte[]> cursor = connection.scan(KeyScanOptions.NONE);
+			cursor.next(); // initial value
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			verify(jedisSpy, times(2)).scan(captor.capture(), any(ScanParams.class));
+			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
+		}
+
 		@Test // DATAREDIS-531
 		public void sScanShouldKeepTheConnectionOpen() {
 
@@ -200,6 +220,23 @@ class JedisConnectionUnitTests {
 			cursor.close();
 
 			verify(jedisSpy, times(1)).quit();
+		}
+
+		@Test // GH-2796
+		void sScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+			doReturn(new ScanResult<>(cursorId, List.of("spring".getBytes()))).when(jedisSpy).sscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			Cursor<byte[]> cursor = connection.setCommands().sScan("spring".getBytes(), ScanOptions.NONE);
+			cursor.next(); // initial value
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			verify(jedisSpy, times(2)).sscan(any(byte[].class), captor.capture(), any(ScanParams.class));
+			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
 		}
 
 		@Test // DATAREDIS-531
@@ -225,6 +262,23 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, times(1)).quit();
 		}
 
+		@Test // GH-2796
+		void zScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+			doReturn(new ScanResult<>(cursorId, List.of(new redis.clients.jedis.resps.Tuple("spring", 1D)))).when(jedisSpy).zscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			Cursor<Tuple> cursor = connection.zSetCommands().zScan("spring".getBytes(), ScanOptions.NONE);
+			cursor.next(); // initial value
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			verify(jedisSpy, times(2)).zscan(any(byte[].class), captor.capture(), any(ScanParams.class));
+			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
+		}
+
 		@Test // DATAREDIS-531
 		public void hScanShouldKeepTheConnectionOpen() {
 
@@ -246,6 +300,23 @@ class JedisConnectionUnitTests {
 			cursor.close();
 
 			verify(jedisSpy, times(1)).quit();
+		}
+
+		@Test // GH-2796
+		void hScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+			doReturn(new ScanResult<>(cursorId, List.of(Map.entry("spring".getBytes(), "data".getBytes())))).when(jedisSpy).hscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			Cursor<Entry<byte[], byte[]>> cursor = connection.hashCommands().hScan("spring".getBytes(), ScanOptions.NONE);
+			cursor.next(); // initial value
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			verify(jedisSpy, times(2)).hscan(any(byte[].class), captor.capture(), any(ScanParams.class));
+			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
 		}
 
 		@Test // DATAREDIS-714
@@ -369,6 +440,29 @@ class JedisConnectionUnitTests {
 					.isThrownBy(() -> super.hScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void scanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void sScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void zScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void hScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
 	}
 
 }
