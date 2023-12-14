@@ -90,7 +90,7 @@ class IndexWriterUnitTests {
 	@Test // DATAREDIS-425
 	void removeKeyFromExistingIndexesShouldCheckForExistingIndexesForPath() {
 
-		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
+		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndexedData());
 
 		verify(connectionMock).keys(eq(("persons:address.city:*").getBytes(CHARSET)));
 		verifyNoMoreInteractions(connectionMock);
@@ -105,7 +105,7 @@ class IndexWriterUnitTests {
 		when(connectionMock.keys(any(byte[].class)))
 				.thenReturn(new LinkedHashSet<>(Arrays.asList(indexKey1, indexKey2)));
 
-		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
+		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndexedData());
 
 		verify(connectionMock).sRem(indexKey1, KEY_BIN);
 		verify(connectionMock).sRem(indexKey2, KEY_BIN);
@@ -200,7 +200,7 @@ class IndexWriterUnitTests {
 		verify(connectionMock).geoRemove(indexKey1, KEY_BIN);
 	}
 
-	static class StubIndxedData implements IndexedData {
+	static class StubIndexedData implements IndexedData {
 
 		@Override
 		public String indexName() {
