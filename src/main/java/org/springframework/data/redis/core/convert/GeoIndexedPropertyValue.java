@@ -42,10 +42,6 @@ public record GeoIndexedPropertyValue(String keyspace, String indexName, Point p
 		return sb.toString();
 	}
 
-	protected boolean canEqual(Object other) {
-		return other instanceof GeoIndexedPropertyValue;
-	}
-
 	public String toString() {
 		return "GeoIndexedPropertyValue(keyspace=" + this.keyspace() + ", indexName=" + this.indexName() + ", value="
 				+ this.point() + ")";
