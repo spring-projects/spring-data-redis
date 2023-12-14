@@ -102,7 +102,7 @@ public class ExampleQueryMapper {
 		PersistentPropertyAccessor propertyAccessor = persistentEntity.getPropertyAccessor(probe);
 
 		Set<IndexedData> indexedData = getIndexedData(path, probe, persistentEntity);
-		Set<String> indexNames = indexedData.stream().map(IndexedData::indexName).distinct().collect(Collectors.toSet());
+		Set<String> indexNames = indexedData.stream().map(IndexedData::indexName).collect(Collectors.toSet());
 
 		persistentEntity.forEach(property -> {
 
