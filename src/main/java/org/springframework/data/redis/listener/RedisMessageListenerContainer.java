@@ -371,7 +371,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		State state = this.state.get();
 
 		CompletableFuture<Void> futureToAwait = state.isPrepareListening() ? containerListenFuture
-				: lazyListen(this.backOff.start());
+				: lazyListen(new InitialBackoffExecution(this.backOff.start()));
 
 		try {
 			futureToAwait.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
@@ -537,8 +537,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			future.get(getMaxSubscriptionRegistrationWaitingTime(), TimeUnit.MILLISECONDS);
 		} catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-		} catch (ExecutionException | TimeoutException ignore) {
-		}
+		} catch (ExecutionException | TimeoutException ignore) {}
 	}
 
 	@Override
@@ -890,8 +889,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			Runnable recoveryFunction = () -> {
 
-				CompletableFuture<Void> lazyListen = lazyListen(backOffExecution);
-				lazyListen.whenComplete(propagate(future));
+				CompletableFuture<Void> lazyListen = lazyListen(new RecoveryBackoffExecution(backOffExecution));
+				lazyListen.whenComplete(propagate(future)).thenRun(() -> {
+
+					if (backOffExecution instanceof RecoveryAfterSubscriptionBackoffExecution) {
+						logger.info("Subscription(s) recovered");
+					}
+				});
 			};
 
 			if (potentiallyRecover(loggingBackOffExecution, recoveryFunction)) {
@@ -984,7 +988,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private Subscriber getRequiredSubscriber() {
 
 		Assert.state(this.subscriber != null,
-				"Subscriber not created; Configure RedisConnectionFactory to create a Subscriber");
+				"Subscriber not created; Configure RedisConnectionFactory to create a Subscriber. Make sure that afterPropertiesSet() has been called");
 
 		return this.subscriber;
 	}
@@ -1012,6 +1016,54 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		if (this.logger.isTraceEnabled()) {
 			this.logger.trace(message.get());
+		}
+	}
+
+	BackOffExecution nextBackoffExecution(BackOffExecution backOffExecution, boolean subscribed) {
+
+		if (subscribed) {
+			return new RecoveryAfterSubscriptionBackoffExecution(backOff.start());
+		}
+
+		return backOffExecution;
+	}
+
+	/**
+	 * Marker for an initial backoff.
+	 *
+	 * @param delegate
+	 */
+	record InitialBackoffExecution(BackOffExecution delegate) implements BackOffExecution {
+
+		@Override
+		public long nextBackOff() {
+			return delegate.nextBackOff();
+		}
+	}
+
+	/**
+	 * Marker for a recovery after a subscription has been active previously.
+	 *
+	 * @param delegate
+	 */
+	record RecoveryAfterSubscriptionBackoffExecution(BackOffExecution delegate) implements BackOffExecution {
+
+		@Override
+		public long nextBackOff() {
+			return delegate.nextBackOff();
+		}
+	}
+
+	/**
+	 * Marker for a recovery execution.
+	 *
+	 * @param delegate
+	 */
+	record RecoveryBackoffExecution(BackOffExecution delegate) implements BackOffExecution {
+
+		@Override
+		public long nextBackOff() {
+			return delegate.nextBackOff();
 		}
 	}
 
@@ -1189,10 +1241,15 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					try {
 						eventuallyPerformSubscription(connection, backOffExecution, initFuture, patterns, channels);
 					} catch (Throwable t) {
-						handleSubscriptionException(initFuture, backOffExecution, t);
+						handleSubscriptionException(initFuture, nextBackoffExecution(backOffExecution, connection.isSubscribed()),
+								t);
 					}
 				} catch (RuntimeException ex) {
-					initFuture.completeExceptionally(ex);
+					if (backOffExecution instanceof InitialBackoffExecution) {
+						initFuture.completeExceptionally(ex);
+					} else {
+						handleSubscriptionException(initFuture, backOffExecution, ex);
+					}
 				}
 
 				return initFuture;
@@ -1205,8 +1262,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void eventuallyPerformSubscription(RedisConnection connection, BackOffExecution backOffExecution,
 				CompletableFuture<Void> subscriptionDone, Collection<byte[]> patterns, Collection<byte[]> channels) {
 
-			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
-					() -> subscriptionDone.complete(null)));
+			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels, () -> {
+				subscriptionDone.complete(null);
+			}));
 
 			doSubscribe(connection, patterns, channels);
 		}
@@ -1412,7 +1470,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 							try {
 								subscribeChannel(channels.toArray(new byte[0][]));
 							} catch (Exception ex) {
-								handleSubscriptionException(subscriptionDone, backOffExecution, ex);
+								handleSubscriptionException(subscriptionDone, nextBackoffExecution(backOffExecution, true), ex);
 							}
 						}));
 			} else {
@@ -1429,7 +1487,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					closeConnection();
 					unsubscribeFuture.complete(null);
 				} catch (Throwable cause) {
-					handleSubscriptionException(subscriptionDone, backOffExecution, cause);
+					handleSubscriptionException(subscriptionDone,
+							nextBackoffExecution(backOffExecution, connection.isSubscribed()), cause);
 				}
 			});
 		}
