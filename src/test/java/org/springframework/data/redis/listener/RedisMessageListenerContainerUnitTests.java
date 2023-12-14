@@ -19,10 +19,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -32,6 +37,7 @@ import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
+import org.springframework.util.backoff.FixedBackOff;
 
 /**
  * Unit tests for {@link RedisMessageListenerContainer}.
@@ -110,6 +116,7 @@ class RedisMessageListenerContainerUnitTests {
 	@Test // GH-2335
 	void containerStartShouldReportFailureOnRedisUnavailability() {
 
+
 		when(connectionFactoryMock.getConnection()).thenThrow(new RedisConnectionFailureException("Booh"));
 
 		doAnswer(it -> {
@@ -145,6 +152,70 @@ class RedisMessageListenerContainerUnitTests {
 
 		assertThat(container.isRunning()).isTrue();
 		assertThat(container.isListening()).isFalse();
+	}
+
+	@Test // GH-2335
+	void shouldRecoverFromConnectionFailure() throws Exception {
+
+		AtomicInteger requestCount = new AtomicInteger();
+		AtomicBoolean shouldThrowSubscriptionException = new AtomicBoolean();
+
+		container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(connectionFactoryMock);
+		container.setBeanName("container");
+		container.setTaskExecutor(new SyncTaskExecutor());
+		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
+		container.setMaxSubscriptionRegistrationWaitingTime(1000);
+		container.setRecoveryBackoff(new FixedBackOff(1, 5));
+		container.afterPropertiesSet();
+
+		doAnswer(it -> {
+
+			int req = requestCount.incrementAndGet();
+			if (req == 1 || req == 3) {
+				return connectionMock;
+			}
+
+			throw new RedisConnectionFailureException("Booh");
+		}).when(connectionFactoryMock).getConnection();
+
+		CountDownLatch exceptionWait = new CountDownLatch(1);
+		CountDownLatch armed = new CountDownLatch(1);
+		CountDownLatch recoveryArmed = new CountDownLatch(1);
+
+		doAnswer(it -> {
+
+			SubscriptionListener listener = it.getArgument(0);
+			when(connectionMock.isSubscribed()).thenReturn(true);
+
+			listener.onChannelSubscribed("a".getBytes(StandardCharsets.UTF_8), 1);
+
+			armed.countDown();
+			exceptionWait.await();
+
+			if (shouldThrowSubscriptionException.compareAndSet(true, false)) {
+				when(connectionMock.isSubscribed()).thenReturn(false);
+				throw new RedisConnectionFailureException("Disconnected");
+			}
+
+			recoveryArmed.countDown();
+
+			return null;
+		}).when(connectionMock).subscribe(any(), any());
+
+		container.start();
+		container.addMessageListener(new MessageListenerAdapter(handler), new ChannelTopic("a"));
+		armed.await();
+
+		// let an exception happen
+		shouldThrowSubscriptionException.set(true);
+		exceptionWait.countDown();
+
+		// wait for subscription recovery
+		recoveryArmed.await();
+
+		assertThat(recoveryArmed.getCount()).isZero();
+
 	}
 
 	@Test // GH-964
