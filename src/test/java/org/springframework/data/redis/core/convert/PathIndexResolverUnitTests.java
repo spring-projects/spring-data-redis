@@ -46,6 +46,7 @@ import org.springframework.data.util.TypeInformation;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Junghoon Ban
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -250,7 +251,7 @@ class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
-		assertThat(index.getIndexName()).isEqualTo("list.name");
+		assertThat(index.indexName()).isEqualTo("list.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -262,7 +263,7 @@ class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
-		assertThat(index.getIndexName()).isEqualTo("map.foo.name");
+		assertThat(index.indexName()).isEqualTo("map.foo.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -274,7 +275,7 @@ class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
-		assertThat(index.getIndexName()).isEqualTo("map.0.name");
+		assertThat(index.indexName()).isEqualTo("map.0.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -432,7 +433,7 @@ class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("location", new Point(1D, 2D));
 
-		assertThat(index.getIndexName()).isEqualTo("location");
+		assertThat(index.indexName()).isEqualTo("location");
 	}
 
 	@Test // DATAREDIS-533
@@ -444,7 +445,7 @@ class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("property.location", new Point(1D, 2D));
 
-		assertThat(index.getIndexName()).isEqualTo("property:location");
+		assertThat(index.indexName()).isEqualTo("property:location");
 	}
 
 	@Test // DATAREDIS-533

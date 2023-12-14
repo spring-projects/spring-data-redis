@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.Set;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
@@ -39,6 +40,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Junghoon Ban
  * @since 1.7
  */
 class IndexWriter {
@@ -107,7 +109,7 @@ class IndexWriter {
 			if (indexValues.iterator().hasNext()) {
 				IndexedData data = indexValues.iterator().next();
 				if (data != null) {
-					removeKeyFromIndexes(data.getKeyspace(), binKey);
+					removeKeyFromIndexes(data.keyspace(), binKey);
 				}
 			}
 		} else if (ObjectUtils.nullSafeEquals(IndexWriteMode.PARTIAL_UPDATE, writeMode)) {
@@ -162,7 +164,7 @@ class IndexWriter {
 	}
 
 	/**
-	 * Remove given key from all indexes matching {@link IndexedData#getIndexName()}:
+	 * Remove given key from all indexes matching {@link IndexedData#indexName()}:
 	 *
 	 * @param key
 	 * @param indexedData
@@ -171,8 +173,7 @@ class IndexWriter {
 
 		Assert.notNull(indexedData, "IndexedData must not be null");
 
-		Set<byte[]> existingKeys = connection
-				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
+		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.keyspace() + ":" + indexedData.indexName() + ":*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
@@ -194,7 +195,7 @@ class IndexWriter {
 	}
 
 	/**
-	 * Adds a given key to the index for {@link IndexedData#getIndexName()}.
+	 * Adds a given key to the index for {@link IndexedData#indexName()}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param indexedData must not be {@literal null}.
@@ -210,30 +211,31 @@ class IndexWriter {
 
 		if (indexedData instanceof SimpleIndexedPropertyValue propertyValue) {
 
-			Object value = propertyValue.getValue();
+			Object value = propertyValue.value();
 
 			if (value == null) {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":");
+			byte[] indexKey = toBytes(indexedData.keyspace() + ":" + indexedData.indexName() + ":");
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.keyspace() + ":"), key, toBytes(":idx")), indexKey);
 		} else if (indexedData instanceof GeoIndexedPropertyValue propertyValue) {
 
-			Object value = propertyValue.getValue();
-			if (value == null) {
+			Point point = propertyValue.point();
+
+			if (point == null) {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName());
-			connection.geoAdd(indexKey, propertyValue.getPoint(), key);
+			byte[] indexKey = toBytes(indexedData.keyspace() + ":" + indexedData.indexName());
+			connection.geoAdd(indexKey, point, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.keyspace() + ":"), key, toBytes(":idx")), indexKey);
 		} else {
 			throw new IllegalArgumentException(
 					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));

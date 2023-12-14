@@ -20,6 +20,7 @@ package org.springframework.data.redis.core.convert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Junghoon Ban
  */
 public class RemoveIndexedData implements IndexedData {
 
@@ -31,18 +32,18 @@ public class RemoveIndexedData implements IndexedData {
 	}
 
 	@Override
-	public String getIndexName() {
-		return delegate.getIndexName();
+	public String indexName() {
+		return delegate.indexName();
 	}
 
 	@Override
-	public String getKeyspace() {
-		return delegate.getKeyspace();
+	public String keyspace() {
+		return delegate.keyspace();
 	}
 
 	@Override
 	public String toString() {
-		return "RemoveIndexedData [indexName=" + getIndexName() + ", keyspace()=" + getKeyspace() + "]";
+		return "RemoveIndexedData [indexName=" + indexName() + ", keyspace()=" + keyspace() + "]";
 	}
 
 }

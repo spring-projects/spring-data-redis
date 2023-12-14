@@ -47,6 +47,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Junghoon Ban
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -202,12 +203,12 @@ class IndexWriterUnitTests {
 	static class StubIndxedData implements IndexedData {
 
 		@Override
-		public String getIndexName() {
+		public String indexName() {
 			return "address.city";
 		}
 
 		@Override
-		public String getKeyspace() {
+		public String keyspace() {
 			return KEYSPACE;
 		}
 	}

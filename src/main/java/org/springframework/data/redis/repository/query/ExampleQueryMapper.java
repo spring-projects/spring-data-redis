@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * Example matching is limited to case-sensitive and exact matches only.
  *
  * @author Mark Paluch
+ * @author Junghoon Ban
  * @since 2.1
  */
 public class ExampleQueryMapper {
@@ -101,7 +102,7 @@ public class ExampleQueryMapper {
 		PersistentPropertyAccessor propertyAccessor = persistentEntity.getPropertyAccessor(probe);
 
 		Set<IndexedData> indexedData = getIndexedData(path, probe, persistentEntity);
-		Set<String> indexNames = indexedData.stream().map(IndexedData::getIndexName).distinct().collect(Collectors.toSet());
+		Set<String> indexNames = indexedData.stream().map(IndexedData::indexName).distinct().collect(Collectors.toSet());
 
 		persistentEntity.forEach(property -> {
 

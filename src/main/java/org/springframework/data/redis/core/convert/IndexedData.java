@@ -20,6 +20,7 @@ package org.springframework.data.redis.core.convert;
  *
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Junghoon Ban
  * @since 1.7
  */
 public interface IndexedData {
@@ -29,13 +30,13 @@ public interface IndexedData {
 	 *
 	 * @return never {@literal null}.
 	 */
-	String getIndexName();
+	String indexName();
 
 	/**
 	 * Get the associated keyspace the index resides in.
 	 *
 	 * @return
 	 */
-	String getKeyspace();
+	String keyspace();
 
 }

@@ -16,40 +16,19 @@
 package org.springframework.data.redis.core.convert;
 
 import org.springframework.data.geo.Point;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexedData} implementation indicating storage of data within a Redis GEO structure.
  *
  * @author Christoph Strobl
+ * @author Junghoon Ban
  * @since 1.8
  */
-public class GeoIndexedPropertyValue implements IndexedData {
-
-	private final String keyspace;
-	private final String indexName;
-	private final Point value;
-
-	public GeoIndexedPropertyValue(String keyspace, String indexName, Point value) {
-
-		this.keyspace = keyspace;
-		this.indexName = indexName;
-		this.value = value;
-	}
+public record GeoIndexedPropertyValue(String keyspace, String indexName, Point point) implements IndexedData {
 
 	@Override
-	public String getIndexName() {
+	public String indexName() {
 		return GeoIndexedPropertyValue.geoIndexName(indexName);
-	}
-
-	@Override
-	public String getKeyspace() {
-		return keyspace;
-	}
-
-	public Point getPoint() {
-		return value;
 	}
 
 	public static String geoIndexName(String path) {
@@ -63,47 +42,12 @@ public class GeoIndexedPropertyValue implements IndexedData {
 		return sb.toString();
 	}
 
-	public Point getValue() {
-		return this.value;
-	}
-
-	@Override
-	public boolean equals(@Nullable Object o) {
-
-		if (this == o) {
-			return true;
-		}
-
-		if (!(o instanceof GeoIndexedPropertyValue)) {
-			return false;
-		}
-
-		GeoIndexedPropertyValue that = (GeoIndexedPropertyValue) o;
-		if (!ObjectUtils.nullSafeEquals(keyspace, that.keyspace)) {
-			return false;
-		}
-
-		if (!ObjectUtils.nullSafeEquals(indexName, that.indexName)) {
-			return false;
-		}
-
-		return ObjectUtils.nullSafeEquals(value, that.value);
-	}
-
-	@Override
-	public int hashCode() {
-		int result = ObjectUtils.nullSafeHashCode(keyspace);
-		result = 31 * result + ObjectUtils.nullSafeHashCode(indexName);
-		result = 31 * result + ObjectUtils.nullSafeHashCode(value);
-		return result;
-	}
-
 	protected boolean canEqual(Object other) {
 		return other instanceof GeoIndexedPropertyValue;
 	}
 
 	public String toString() {
-		return "GeoIndexedPropertyValue(keyspace=" + this.getKeyspace() + ", indexName=" + this.getIndexName() + ", value="
-				+ this.getValue() + ")";
+		return "GeoIndexedPropertyValue(keyspace=" + this.keyspace() + ", indexName=" + this.indexName() + ", value="
+				+ this.point() + ")";
 	}
 }
