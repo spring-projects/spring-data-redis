@@ -23,21 +23,23 @@ import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl
+ * @author Junghoon Ban
  * @since 1.8
  */
 class IndexedDataFactoryProvider {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Junghoon Ban
 	 * @since 1.8
 	 */
 	@Nullable
 	IndexedDataFactory getIndexedDataFactory(IndexDefinition definition) {
 
-		if (definition instanceof SimpleIndexDefinition) {
-			return new SimpleIndexedPropertyValueFactory((SimpleIndexDefinition) definition);
-		} else if (definition instanceof GeoIndexDefinition) {
-			return new GeoIndexedPropertyValueFactory(((GeoIndexDefinition) definition));
+		if (definition instanceof SimpleIndexDefinition simpleIndexDefinition) {
+			return new SimpleIndexedPropertyValueFactory(simpleIndexDefinition);
+		} else if (definition instanceof GeoIndexDefinition geoIndexDefinition) {
+			return new GeoIndexedPropertyValueFactory((geoIndexDefinition));
 		}
 		return null;
 	}
