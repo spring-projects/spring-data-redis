@@ -50,15 +50,10 @@ class IndexedDataFactoryProvider {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Junghoon Ban
 	 * @since 1.8
 	 */
-	static class SimpleIndexedPropertyValueFactory implements IndexedDataFactory {
-
-		final SimpleIndexDefinition indexDefinition;
-
-		SimpleIndexedPropertyValueFactory(SimpleIndexDefinition indexDefinition) {
-			this.indexDefinition = indexDefinition;
-		}
+	record SimpleIndexedPropertyValueFactory(SimpleIndexDefinition indexDefinition) implements IndexedDataFactory {
 
 		public SimpleIndexedPropertyValue createIndexedDataFor(Object value) {
 
@@ -69,15 +64,10 @@ class IndexedDataFactoryProvider {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Junghoon Ban
 	 * @since 1.8
 	 */
-	static class GeoIndexedPropertyValueFactory implements IndexedDataFactory {
-
-		final GeoIndexDefinition indexDefinition;
-
-		public GeoIndexedPropertyValueFactory(GeoIndexDefinition indexDefinition) {
-			this.indexDefinition = indexDefinition;
-		}
+	record GeoIndexedPropertyValueFactory(GeoIndexDefinition indexDefinition) implements IndexedDataFactory {
 
 		public GeoIndexedPropertyValue createIndexedDataFor(Object value) {
 
