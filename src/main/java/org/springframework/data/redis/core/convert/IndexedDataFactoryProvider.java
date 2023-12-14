@@ -44,7 +44,7 @@ class IndexedDataFactoryProvider {
 		return null;
 	}
 
-	static interface IndexedDataFactory {
+	interface IndexedDataFactory {
 		IndexedData createIndexedDataFor(Object value);
 	}
 
