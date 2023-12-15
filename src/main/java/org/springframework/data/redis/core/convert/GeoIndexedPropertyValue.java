@@ -41,9 +41,4 @@ public record GeoIndexedPropertyValue(String keyspace, String indexName, Point p
 		sb.setCharAt(index, ':');
 		return sb.toString();
 	}
-
-	public String toString() {
-		return "GeoIndexedPropertyValue(keyspace=" + this.keyspace() + ", indexName=" + this.indexName() + ", value="
-				+ this.point() + ")";
-	}
 }

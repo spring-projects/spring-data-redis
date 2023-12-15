@@ -25,9 +25,4 @@ package org.springframework.data.redis.core.convert;
  */
 public record SimpleIndexedPropertyValue(String keyspace, String indexName, Object value) implements IndexedData {
 
-	@Override
-	public String toString() {
-		return "SimpleIndexedPropertyValue{" + "keyspace='" + keyspace + '\'' + ", indexName='" + indexName + '\''
-				+ ", value=" + value + '}';
-	}
 }
