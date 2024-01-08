@@ -89,7 +89,7 @@ The following overview explains features that are supported by the individual Re
 
 | Datatype support
 | Key, String, List, Set, Sorted Set, Hash, Server, Stream, Scripting, Geo, HyperLogLog
-| Key, String, List, Set, Sorted Set, Hash, Server, Scripting, Geo, HyperLogLog
+| Key, String, List, Set, Sorted Set, Hash, Server, Stream, Scripting, Geo, HyperLogLog
 
 | Reactive (non-blocking) API
 | X
