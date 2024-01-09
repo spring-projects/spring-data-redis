@@ -32,7 +32,7 @@ con.xAdd(record);
 // append message through RedisTemplate
 RedisTemplate template = …
 StringRecord record = StreamRecords.string(…).withStreamKey("my-stream");
-template.streamOps().add(record);
+template.opsForStream().add(record);
 ----
 
 Stream records carry a `Map`, key-value tuples, as their payload. Appending a record to a stream returns the `RecordId` that can be used as further reference.
@@ -58,10 +58,10 @@ While stream consumption is typically associated with asynchronous processing, i
 // Read message through RedisTemplate
 RedisTemplate template = …
 
-List<MapRecord<K, HK, HV>> messages = template.streamOps().read(StreamReadOptions.empty().count(2),
+List<MapRecord<K, HK, HV>> messages = template.opsForStream().read(StreamReadOptions.empty().count(2),
 				StreamOffset.latest("my-stream"));
 
-List<MapRecord<K, HK, HV>> messages = template.streamOps().read(Consumer.from("my-group", "my-consumer"),
+List<MapRecord<K, HK, HV>> messages = template.opsForStream().read(Consumer.from("my-group", "my-consumer"),
 				StreamReadOptions.empty().count(2),
 				StreamOffset.create("my-stream", ReadOffset.lastConsumed()))
 ----
