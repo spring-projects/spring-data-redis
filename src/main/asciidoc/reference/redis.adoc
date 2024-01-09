@@ -148,7 +148,7 @@ Unfortunately, currently, not all connectors support all Redis features. When in
 
 | Datatype support
 | Key, String, List, Set, Sorted Set, Hash, Server, Stream, Scripting, Geo, HyperLogLog
-| Key, String, List, Set, Sorted Set, Hash, Server, Scripting, Geo, HyperLogLog
+| Key, String, List, Set, Sorted Set, Hash, Server, Stream, Scripting, Geo, HyperLogLog
 
 | <<redis:reactive,Reactive (non-blocking) API>>
 | X
