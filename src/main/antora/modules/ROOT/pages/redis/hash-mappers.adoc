@@ -31,7 +31,7 @@ public class Person {
 
 public class HashMapping {
 
-  @Autowired
+  @Resource(name = "redisTemplate")
   HashOperations<String, byte[], byte[]> hashOperations;
 
   HashMapper<Object, byte[], byte[]> mapper = new ObjectHashMapper();
