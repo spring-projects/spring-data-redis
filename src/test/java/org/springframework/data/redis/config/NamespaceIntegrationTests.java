@@ -17,10 +17,15 @@ package org.springframework.data.redis.config;
 
 import static org.assertj.core.api.Assertions.*;
 
+import jakarta.annotation.Resource;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
