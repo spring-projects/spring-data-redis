@@ -602,8 +602,12 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	/**
 	 * Sets the index of the database used by this connection factory. Default is 0.
 	 *
-	 * @param index database index
+	 * @param index database index.
+	 * @deprecated since 3.2, configure the database index using {@link RedisStandaloneConfiguration},
+	 *             {@link RedisSocketConfiguration}, {@link RedisSentinelConfiguration}, or
+	 *             {@link RedisStaticMasterReplicaConfiguration}.
 	 */
+	@Deprecated
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
