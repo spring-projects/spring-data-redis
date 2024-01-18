@@ -494,8 +494,8 @@ public class JedisConnectionFactory
 	 * Sets the index of the database used by this connection factory. Default is 0.
 	 *
 	 * @param index database index.
-	 * @deprecated since 2.0, configure the client name using {@link RedisSentinelConfiguration} or
-	 *             {@link RedisStandaloneConfiguration}.
+	 * @deprecated since 2.0, configure the database index using {@link RedisStandaloneConfiguration} or
+	 *             {@link RedisSentinelConfiguration}.
 	 */
 	@Deprecated
 	public void setDatabase(int index) {
@@ -1006,8 +1006,8 @@ public class JedisConnectionFactory
 		switch (current) {
 			case CREATED, STOPPED -> throw new IllegalStateException(
 					String.format("JedisConnectionFactory has been %s. Use start() to initialize it", current));
-			case DESTROYED -> throw new IllegalStateException(
-					"JedisConnectionFactory was destroyed and cannot be used anymore");
+			case DESTROYED ->
+				throw new IllegalStateException("JedisConnectionFactory was destroyed and cannot be used anymore");
 			default -> throw new IllegalStateException(String.format("JedisConnectionFactory is %s", current));
 		}
 	}
