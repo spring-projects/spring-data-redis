@@ -681,8 +681,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Sets the index of the database used by this connection factory. Default is 0.
 	 *
 	 * @param index database index.
-	 * @deprecated since 2.0, configure the client name using {@link RedisSentinelConfiguration} or
-	 *             {@link RedisStandaloneConfiguration}.
+	 * @deprecated since 2.0, configure the database index using {@link RedisStandaloneConfiguration} or
+	 *             {@link RedisSentinelConfiguration}.
 	 */
 	@Deprecated
 	public void setDatabase(int index) {
