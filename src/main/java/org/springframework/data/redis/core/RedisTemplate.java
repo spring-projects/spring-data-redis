@@ -129,8 +129,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		super.afterPropertiesSet();
 
-		boolean defaultUsed = false;
-
 		if (defaultSerializer == null) {
 
 			defaultSerializer = new JdkSerializationRedisSerializer(
@@ -141,24 +139,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			if (keySerializer == null) {
 				keySerializer = defaultSerializer;
-				defaultUsed = true;
 			}
 			if (valueSerializer == null) {
 				valueSerializer = defaultSerializer;
-				defaultUsed = true;
 			}
 			if (hashKeySerializer == null) {
 				hashKeySerializer = defaultSerializer;
-				defaultUsed = true;
 			}
 			if (hashValueSerializer == null) {
 				hashValueSerializer = defaultSerializer;
-				defaultUsed = true;
 			}
-		}
-
-		if (enableDefaultSerializer && defaultUsed) {
-			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
 		}
 
 		if (scriptExecutor == null) {
