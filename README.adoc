@@ -1,7 +1,7 @@
 image:https://spring.io/badges/spring-data-redis/ga.svg[Spring Data Redis,link=https://spring.io/projects/spring-data-redis/#quick-start]
 image:https://spring.io/badges/spring-data-redis/snapshot.svg[Spring Data Redis,link=https://spring.io/projects/spring-data-redis/#quick-start]
 
-= Spring Data Redis image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]] image:https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Gradle Enterprise", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data Redis"]
+= Spring Data Redis image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]] image:https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Develocity", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data Redis"]
 
 The primary goal of the https://spring.io/projects/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
