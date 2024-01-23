@@ -61,7 +61,7 @@ The following example shows how to set a static prefix:
 [source,java]
 ----
 // static key prefix
-RedisCacheConfiguration.defaultCacheConfig().prefixKeysWith("(͡° ᴥ ͡°)");
+RedisCacheConfiguration.defaultCacheConfig().prefixCacheNameWith("(͡° ᴥ ͡°)");
 
 The following example shows how to set a computed prefix:
 
