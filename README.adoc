@@ -11,9 +11,9 @@ This modules provides integration with the https://redis.io/[Redis] store.
 
 * Connection package as low-level abstraction across multiple Redis drivers (https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis]).
 * Exception translation to Spring’s portable Data Access exception hierarchy for Redis driver exceptions
-* https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:template[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
+* https://docs.spring.io/spring-data/redis/reference/redis/template.html[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
 * Pubsub support (such as a MessageListenerContainer for message-driven POJOs).
-* https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#cluster[Redis Cluster] support.
+* https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#cluster.enable[Redis Cluster] support.
 * Reactive API using the Lettuce driver.
 * JDK, String, JSON and Spring Object/XML mapping serializers.
 * JDK Collection implementations on top of Redis.
