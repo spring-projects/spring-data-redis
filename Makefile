@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=6.2.6
+REDIS_VERSION:=7.2.4
 SPRING_PROFILE?=ci
 SHELL=/bin/bash -euo pipefail
 
@@ -175,7 +175,7 @@ clobber:
 work/redis/bin/redis-cli work/redis/bin/redis-server:
 	@mkdir -p work/redis
 
-	curl -sSL https://github.com/antirez/redis/archive/$(REDIS_VERSION).tar.gz | tar xzf - -C work
+	curl -sSL https://github.com/redis/redis/archive/$(REDIS_VERSION).tar.gz | tar xzf - -C work
 	$(MAKE) -C work/redis-$(REDIS_VERSION) -j
 	$(MAKE) -C work/redis-$(REDIS_VERSION) PREFIX=$(shell pwd)/work/redis install
 	rm -rf work/redis-$(REDIS_VERSION)
@@ -196,14 +196,14 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 1
-	./mvnw clean test -U -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
+	./mvnw clean test -U -P$(SPRING_PROFILE) -Dredis.server.version=$(REDIS_VERSION) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
 
 all-tests:
 	$(MAKE) start
 	sleep 1
-	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
+	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) -Dredis.server.version=$(REDIS_VERSION) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
 

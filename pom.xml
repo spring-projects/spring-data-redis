@@ -297,6 +297,11 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<systemPropertyVariables>
+						<redis.server.version>${redis.server.version}</redis.server.version>
+						<lettuce>${lettuce}</lettuce>
+						<jedis>${jedis}</jedis>
+					</systemPropertyVariables>
 					<!-- Retain stack traces -->
 					<argLine>-XX:-OmitStackTraceInFastThrow</argLine>
 					<useSystemClassLoader>false</useSystemClassLoader>

@@ -195,7 +195,7 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 
 		connection.serverCommands().getConfig(NODE1, "*").as(StepVerifier::create) //
 				.consumeNextWith(properties -> {
-					assertThat(properties).containsEntry("databases", "16");
+					assertThat(properties).containsEntry("port", NODE1.getPort().toString());
 				}) //
 				.verifyComplete();
 	}
