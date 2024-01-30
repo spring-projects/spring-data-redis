@@ -201,8 +201,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 
 			connection.serverCommands().getConfig("*").as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
-						assertThat(properties).containsEntry("127.0.0.1:7379.databases", "16");
-
+						assertThat(properties).containsEntry("127.0.0.1:7379.port", "7379");
 					}) //
 					.verifyComplete();
 		} else {

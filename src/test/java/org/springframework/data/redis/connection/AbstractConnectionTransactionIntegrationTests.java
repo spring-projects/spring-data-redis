@@ -144,8 +144,8 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 	@Test // DATAREDIS-417
 	@Disabled
 	@Override
-	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
-		super.scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection();
+	public void scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection() {
+		super.scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection();
 	}
 
 	@Override
