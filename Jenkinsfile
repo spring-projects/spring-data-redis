@@ -41,25 +41,25 @@ pipeline {
 					}
 				}
 				stage('Publish JDK 17 + Redis 7.2 Docker Image') {
-                	when {
-                		anyOf {
-                			changeset "ci/openjdk17-redis-7.2/Dockerfile"
-                			changeset "Makefile"
-                			changeset "ci/pipeline.properties"
-                		}
-                	}
-                	agent { label 'data' }
-                	options { timeout(time: 20, unit: 'MINUTES') }
+					when {
+						anyOf {
+							changeset "ci/openjdk17-redis-7.2/Dockerfile"
+							changeset "Makefile"
+							changeset "ci/pipeline.properties"
+						}
+					}
+					agent { label 'data' }
+					options { timeout(time: 20, unit: 'MINUTES') }
 
-                	steps {
-                		script {
-                			def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
-                			docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-                				image.push()
-                			}
-                		}
-                	}
-                }
+					steps {
+						script {
+							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
+								image.push()
+							}
+						}
+					}
+				}
 				stage('Publish JDK 21 + Redis 6.2 Docker Image') {
 					when {
 						anyOf {
@@ -155,22 +155,22 @@ pipeline {
 					}
 				}
 				stage("test: Redis 7") {
-				    agent {
-                		label 'data'
-                	}
-                    options { timeout(time: 30, unit: 'MINUTES') }
-                    environment {
-                    	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-                    	DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
-                    	DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
-                    }
-                    steps {
-                    	script {
-                    		docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-                    			sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
-                    		}
-                    	}
-                    }
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+					   	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
+					}
+					steps {
+						script {
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+							}
+						}
+					}
 				}
 			}
 		}
