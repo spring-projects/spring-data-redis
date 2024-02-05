@@ -196,14 +196,14 @@ stop: redis-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 1
-	./mvnw clean test -U -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
+	./mvnw clean test -U -P$(SPRING_PROFILE) -Dredis.server.version=$(REDIS_VERSION) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
 
 all-tests:
 	$(MAKE) start
 	sleep 1
-	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
+	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) -Dredis.server.version=$(REDIS_VERSION) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
 

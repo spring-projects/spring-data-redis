@@ -2,6 +2,7 @@ ARG BASE
 FROM ${BASE}
 # Any ARG statements before FROM are cleared.
 ARG REDIS
+ENV REDIS_VERSION=${REDIS}
 
 # Copy Spring Data Redis's Makefile into the container
 COPY ./Makefile /
