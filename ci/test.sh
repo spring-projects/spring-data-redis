@@ -18,7 +18,7 @@ export JENKINS_USER=${JENKINS_USER_NAME}
 export GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY}
 
 # Execute maven test
-MAVEN_OPTS="-Duser.name=${JENKINS_USER} -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -Dredis.server.version=${REDIS_VERSION} -U -B
+MAVEN_OPTS="-Duser.name=${JENKINS_USER} -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -Dredis.server.version=${REDIS_VERSION:-unknown} -U -B
 
 # Capture resulting exit code from maven (pass/fail)
 RESULT=$?
