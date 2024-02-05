@@ -299,6 +299,8 @@
 				<configuration>
 					<systemPropertyVariables>
 						<redis.server.version>${redis.server.version}</redis.server.version>
+						<lettuce>${lettuce}</lettuce>
+						<jedis>${jedis}</jedis>
 					</systemPropertyVariables>
 					<!-- Retain stack traces -->
 					<argLine>-XX:-OmitStackTraceInFastThrow</argLine>
