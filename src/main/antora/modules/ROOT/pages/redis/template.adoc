@@ -140,7 +140,7 @@ class MyConfig {
   RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
 
     RedisTemplate<String, String> template = new RedisTemplate<>();
-    template.setConnectionFactory(redisConnectionFactory);
+    template.setConnectionFactory(connectionFactory);
     return template;
   }
 }
