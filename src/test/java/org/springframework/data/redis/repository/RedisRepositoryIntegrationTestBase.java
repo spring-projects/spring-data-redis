@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -99,6 +100,57 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findByFirstname("egwene")).contains(egwene);
 
 		assertThat(repo.findByLastname("al'thor")).contains(rand);
+	}
+
+	@Test // GH-2851
+	void shouldReturnSingleEntityByIdViaQueryMethod() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+
+		repo.saveAll(Arrays.asList(rand, egwene));
+
+		assertThat(repo.findEntityById(rand.getId())).isEqualTo(rand);
+		assertThat(repo.findEntityById(egwene.getId())).isEqualTo(egwene);
+	}
+
+	@Test // GH-2851
+	void shouldProjectSingleResult() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+
+		repo.saveAll(Arrays.asList(rand, egwene));
+
+		PersonProjection projectionById = repo.findProjectionById(rand.getId());
+		assertThat(projectionById).isNotNull();
+		assertThat(projectionById.getFirstname()).isEqualTo(rand.firstname);
+	}
+
+	@Test // GH-2851
+	void shouldProjectCollection() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+
+		repo.saveAll(Arrays.asList(rand, egwene));
+
+		List<PersonProjection> projectionById = repo.findProjectionBy();
+		assertThat(projectionById).hasSize(2) //
+				.extracting(PersonProjection::getFirstname) //
+				.contains(rand.getFirstname(), egwene.getFirstname());
 	}
 
 	@Test // DATAREDIS-425
@@ -570,8 +622,18 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Slice<Person> findByHometownLocationNear(Point point, Distance distance, Pageable pageable);
 
+		Person findEntityById(String id);
+
+		PersonProjection findProjectionById(String id);
+
+		List<PersonProjection> findProjectionBy();
+
 		@Override
 		<S extends Person> List<S> findAll(Example<S> example);
+	}
+
+	public interface PersonProjection {
+		String getFirstname();
 	}
 
 	public interface CityRepository extends CrudRepository<City, String> {
