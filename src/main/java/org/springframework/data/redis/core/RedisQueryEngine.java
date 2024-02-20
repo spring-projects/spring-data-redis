@@ -33,18 +33,20 @@ import org.springframework.data.keyvalue.core.QueryEngine;
 import org.springframework.data.keyvalue.core.SortAccessor;
 import org.springframework.data.keyvalue.core.SpelSortAccessor;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
+import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
+import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
+import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.redis.repository.query.RedisOperationChain.NearPath;
 import org.springframework.data.redis.repository.query.RedisOperationChain.PathAndValue;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.lang.NonNullApi;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
@@ -100,7 +102,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = connection -> {
 
-			List<byte[]> keys = findKeys(criteria, rows, keyspace, connection);
+			List<byte[]> keys = findKeys(criteria, rows, keyspace, type, connection);
 			byte[] keyspaceBin = getRequiredAdapter().getConverter().getConversionService().convert(keyspace + ":",
 					byte[].class);
 
@@ -143,17 +145,34 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		return result;
 	}
 
-	private List<byte[]> findKeys(RedisOperationChain criteria, int rows, String keyspace, RedisConnection connection) {
+	private List<byte[]> findKeys(RedisOperationChain criteria, int rows, String keyspace, Class<?> domainType,
+			RedisConnection connection) {
 
 		List<byte[]> allKeys = new ArrayList<>();
 
 		if (!criteria.getSismember().isEmpty()) {
-			allKeys.addAll(connection.sInter(keys(keyspace + ":", criteria.getSismember())));
+
+			Set<PathAndValue> sismember = criteria.getSismember();
+			if (sismember.size() == 1) {
+				KeySelector keySelector = KeySelector.of(getRequiredAdapter().getConverter(), sismember, domainType);
+				if (!keySelector.setValueLookup().isEmpty()) {
+					allKeys.addAll(connection.sInter(keys(keyspace + ":", keySelector.setValueLookup())));
+				}
+
+				allKeys.addAll(keySelector.keys());
+			} else {
+				allKeys.addAll(connection.sInter(keys(keyspace + ":", sismember)));
+			}
 		}
 
-		if (!criteria.getOrSismember().isEmpty()) {
+		KeySelector keySelector = KeySelector.of(getRequiredAdapter().getConverter(), criteria.getOrSismember(),
+				domainType);
+
+		if (!keySelector.setValueLookup().isEmpty()) {
 			allKeys.addAll(connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())));
 		}
+
+		allKeys.addAll(keySelector.keys());
 
 		if (criteria.getNear() != null) {
 
@@ -169,7 +188,6 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 				allKeys.add(y.getContent().getName());
 			}
 		}
-
 
 		Set<ByteArrayWrapper> unique = new LinkedHashSet<>(allKeys.size());
 		allKeys.forEach(key -> unique.add(new ByteArrayWrapper(key)));
@@ -242,6 +260,36 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		@Override
 		public RedisOperationChain resolve(KeyValueQuery<?> query) {
 			return (RedisOperationChain) query.getCriteria();
+		}
+	}
+
+	/**
+	 * Value object capturing the direct object keys and set of values that need to be looked up from the secondary
+	 * indexes.
+	 *
+	 * @param keys
+	 * @param setValueLookup
+	 */
+	record KeySelector(Collection<byte[]> keys, Set<PathAndValue> setValueLookup) {
+
+		static KeySelector of(RedisConverter converter, Set<PathAndValue> pathAndValues, Class<?> domainType) {
+
+			Set<byte[]> keys = new LinkedHashSet<>();
+			Set<PathAndValue> remainder = new LinkedHashSet<>();
+
+			for (PathAndValue pathAndValue : pathAndValues) {
+
+				PersistentPropertyPath<RedisPersistentProperty> path = converter.getMappingContext()
+						.getPersistentPropertyPath(pathAndValue.getPath(), domainType);
+				if (path.getLeafProperty().isIdProperty()) {
+					byte[] key = converter.getConversionService().convert(pathAndValue.getFirstValue(), byte[].class);
+					keys.add(key);
+				} else {
+					remainder.add(pathAndValue);
+				}
+			}
+
+			return new KeySelector(keys, remainder);
 		}
 	}
 }
