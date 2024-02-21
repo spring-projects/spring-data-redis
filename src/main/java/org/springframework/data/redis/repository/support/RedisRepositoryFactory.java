@@ -16,11 +16,11 @@
 package org.springframework.data.redis.repository.support;
 
 import org.springframework.data.keyvalue.core.KeyValueOperations;
-import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.repository.core.MappingRedisEntityInformation;
+import org.springframework.data.redis.repository.query.RedisPartTreeQuery;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -59,7 +59,7 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	 */
 	public RedisRepositoryFactory(KeyValueOperations keyValueOperations,
 			Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-		this(keyValueOperations, queryCreator, KeyValuePartTreeQuery.class);
+		this(keyValueOperations, queryCreator, RedisPartTreeQuery.class);
 	}
 
 	/**

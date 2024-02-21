@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.convert;
 
 import org.springframework.data.convert.EntityConverter;
+import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
@@ -40,4 +41,10 @@ public interface RedisConverter
 	 */
 	@Nullable
 	IndexResolver getIndexResolver();
+
+	/**
+	 * @return the configured {@link EntityInstantiators}.
+	 * @since 3.2.4
+	 */
+	EntityInstantiators getEntityInstantiators();
 }

@@ -16,8 +16,17 @@
 package org.springframework.data.redis.core.convert;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1044,6 +1053,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	@Override
 	public IndexResolver getIndexResolver() {
 		return this.indexResolver;
+	}
+
+	@Override
+	public EntityInstantiators getEntityInstantiators() {
+		return entityInstantiators;
 	}
 
 	@Override

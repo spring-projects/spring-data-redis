@@ -51,6 +51,7 @@ import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
+import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 
 /**
@@ -130,9 +131,13 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.saveAll(Arrays.asList(rand, egwene));
 
-		PersonProjection projectionById = repo.findProjectionById(rand.getId());
-		assertThat(projectionById).isNotNull();
-		assertThat(projectionById.getFirstname()).isEqualTo(rand.firstname);
+		PersonProjection projection = repo.findProjectionById(rand.getId(), PersonProjection.class);
+		assertThat(projection).isNotNull();
+		assertThat(projection.getFirstname()).isEqualTo(rand.firstname);
+
+		PersonDto dto = repo.findProjectionById(rand.getId(), PersonDto.class);
+		assertThat(dto).isNotNull();
+		assertThat(dto.firstname()).isEqualTo(rand.firstname);
 	}
 
 	@Test // GH-2851
@@ -147,9 +152,19 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		repo.saveAll(Arrays.asList(rand, egwene));
 
-		List<PersonProjection> projectionById = repo.findProjectionBy();
-		assertThat(projectionById).hasSize(2) //
+		List<PersonProjection> projection = repo.findProjectionBy();
+		assertThat(projection).hasSize(2) //
 				.extracting(PersonProjection::getFirstname) //
+				.contains(rand.getFirstname(), egwene.getFirstname());
+
+		projection = repo.findProjectionStreamBy().toList();
+		assertThat(projection).hasSize(2) //
+				.extracting(PersonProjection::getFirstname) //
+				.contains(rand.getFirstname(), egwene.getFirstname());
+
+		List<PersonDto> dtos = repo.findProjectionDtoBy();
+		assertThat(dtos).hasSize(2) //
+				.extracting(PersonDto::firstname) //
 				.contains(rand.getFirstname(), egwene.getFirstname());
 	}
 
@@ -624,9 +639,13 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Person findEntityById(String id);
 
-		PersonProjection findProjectionById(String id);
+		<T> T findProjectionById(String id, Class<T> projection);
+
+		Streamable<PersonProjection> findProjectionStreamBy();
 
 		List<PersonProjection> findProjectionBy();
+
+		List<PersonDto> findProjectionDtoBy();
 
 		@Override
 		<S extends Person> List<S> findAll(Example<S> example);
@@ -634,6 +653,9 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 	public interface PersonProjection {
 		String getFirstname();
+	}
+
+	record PersonDto(String firstname) {
 	}
 
 	public interface CityRepository extends CrudRepository<City, String> {
