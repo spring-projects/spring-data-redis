@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
+import org.springframework.data.redis.repository.query.RedisPartTreeQuery;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
@@ -52,7 +53,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 @Documented
 @Inherited
 @Import(RedisRepositoriesRegistrar.class)
-@QueryCreatorType(RedisQueryCreator.class)
+@QueryCreatorType(value = RedisQueryCreator.class, repositoryQueryType = RedisPartTreeQuery.class)
 public @interface EnableRedisRepositories {
 
 	/**
