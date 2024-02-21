@@ -46,6 +46,7 @@ import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProv
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.repository.query.RedisPartTreeQuery;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
 import org.springframework.lang.Nullable;
@@ -106,15 +107,15 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(ReactiveClusterScriptingCommands.class),
 						TypeReference.of(ReactiveClusterGeoCommands.class),
 						TypeReference.of(ReactiveClusterHyperLogLogCommands.class), TypeReference.of(ReactiveRedisOperations.class),
-						TypeReference.of(ReactiveRedisConnectionFactory.class),
-						TypeReference.of(ReactiveRedisTemplate.class), TypeReference.of(RedisOperations.class),
-						TypeReference.of(RedisTemplate.class), TypeReference.of(StringRedisTemplate.class),
-						TypeReference.of(KeyspaceConfiguration.class), TypeReference.of(MappingConfiguration.class),
-						TypeReference.of(MappingRedisConverter.class), TypeReference.of(RedisConverter.class),
-						TypeReference.of(RedisCustomConversions.class), TypeReference.of(ReferenceResolver.class),
-						TypeReference.of(ReferenceResolverImpl.class), TypeReference.of(IndexConfiguration.class),
-						TypeReference.of(ConfigurableIndexDefinitionProvider.class), TypeReference.of(RedisMappingContext.class),
-						TypeReference.of(RedisRepositoryFactoryBean.class), TypeReference.of(RedisQueryCreator.class),
+						TypeReference.of(ReactiveRedisConnectionFactory.class), TypeReference.of(ReactiveRedisTemplate.class),
+						TypeReference.of(RedisOperations.class), TypeReference.of(RedisTemplate.class),
+						TypeReference.of(StringRedisTemplate.class), TypeReference.of(KeyspaceConfiguration.class),
+						TypeReference.of(MappingConfiguration.class), TypeReference.of(MappingRedisConverter.class),
+						TypeReference.of(RedisConverter.class), TypeReference.of(RedisCustomConversions.class),
+						TypeReference.of(ReferenceResolver.class), TypeReference.of(ReferenceResolverImpl.class),
+						TypeReference.of(IndexConfiguration.class), TypeReference.of(ConfigurableIndexDefinitionProvider.class),
+						TypeReference.of(RedisMappingContext.class), TypeReference.of(RedisRepositoryFactoryBean.class),
+						TypeReference.of(RedisQueryCreator.class), TypeReference.of(RedisPartTreeQuery.class),
 						TypeReference.of(MessageListener.class), TypeReference.of(RedisMessageListenerContainer.class),
 
 						TypeReference
