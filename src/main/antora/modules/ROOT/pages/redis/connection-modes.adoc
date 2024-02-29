@@ -103,6 +103,9 @@ public RedisConnectionFactory jedisConnectionFactory() {
 * `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
 * `spring.redis.sentinel.username`: The username to apply when authenticating with Redis Sentinel (requires Redis 6)
 * `spring.redis.sentinel.password`: The password to apply when authenticating with Redis Sentinel
+* `spring.redis.sentinel.dataNode.username`: The username to apply when authenticating with Redis Data Node
+* `spring.redis.sentinel.dataNode.password`: The password to apply when authenticating with Redis Data Node
+* `spring.redis.sentinel.dataNode.database`: The database index to apply when authenticating with Redis Data Node
 ====
 
 Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockPropertySource;
@@ -32,6 +33,8 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Vikas Garg
+ * @author Samuel Klose
+ * @author Mustapha Zorgati
  */
 class RedisSentinelConfigurationUnitTests {
 
@@ -185,5 +188,57 @@ class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinelUsername()).isEqualTo("sentinel-admin");
 		assertThat(config.getSentinelPassword()).isEqualTo(RedisPassword.of("foo"));
 		assertThat(config.getSentinels()).hasSize(1).contains(new RedisNode("127.0.0.1", 123));
+	}
+
+	@Test // GH-2860
+	void readSentinelDataNodeUsernameFromConfigProperty() {
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.dataNode.username", "datanode-user");
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
+
+		assertThat(config.getDataNodeUsername()).isEqualTo("datanode-user");
+	}
+
+	@Test // GH-2860
+	void readSentinelDataNodePasswordFromConfigProperty() {
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.dataNode.password", "datanode-password");
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
+
+		assertThat(config.getDataNodePassword()).isEqualTo(RedisPassword.of("datanode-password"));
+	}
+
+	@Test // GH-2860
+	void readSentinelDataNodeDatabaseFromConfigProperty() {
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.dataNode.database", "5");
+
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration(propertySource);
+
+		assertThat(config.getDatabase()).isEqualTo(5);
+	}
+
+	@Test // GH-2860
+	void shouldThrowErrorWhen() {
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.dataNode.database", "thisIsNotAnInteger");
+
+		ThrowableAssert.ThrowingCallable call = () -> new RedisSentinelConfiguration(propertySource);
+
+		assertThatThrownBy(call).isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Invalid DB index '%s'; integer required", "thisIsNotAnInteger");
+	}
+
+	@Test // GH-2860
+	void shouldThrowErrorWhen2() {
+		MockPropertySource propertySource = new MockPropertySource();
+		propertySource.setProperty("spring.redis.sentinel.dataNode.database", "null");
+
+		ThrowableAssert.ThrowingCallable call = () -> new RedisSentinelConfiguration(propertySource);
+
+		assertThatThrownBy(call).isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Invalid DB index '%s'; integer required", "null");
 	}
 }
