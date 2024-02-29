@@ -41,6 +41,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Vikas Garg
  * @author John Blum
+ * @author Samuel Klose
+ * @author Mustapha Zorgati
  * @since 1.4
  */
 public class RedisSentinelConfiguration implements RedisConfiguration, SentinelConfiguration {
@@ -49,6 +51,9 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
 	private static final String REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.username";
 	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
+	private static final String REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.username";
+	private static final String REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.password";
+	private static final String REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.database";
 
 	private int database;
 
@@ -121,6 +126,30 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		if (propertySource.containsProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY)) {
 			String sentinelUsername = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY));
 			this.setSentinelUsername(sentinelUsername);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY)) {
+			String dataNodeUsername = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY));
+			this.setUsername(dataNodeUsername);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY)) {
+			String dataNodePassword = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY));
+			this.setPassword(dataNodePassword);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY)) {
+			String databaseSource = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY));
+			int database;
+			try {
+				database = Integer.parseInt(databaseSource);
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException(String.format("Invalid DB index '%s'; integer required", databaseSource));
+			}
+			this.setDatabase(database);
 		}
 	}
 
