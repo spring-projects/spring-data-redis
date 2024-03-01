@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.StringUtils.commaDelimitedListToSet;
+import static org.springframework.util.StringUtils.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,8 +32,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link RedisConfiguration Configuration} class used to set up a {@link RedisConnection}
- * with {@link RedisConnectionFactory} for connecting to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>.
+ * {@link RedisConfiguration Configuration} class used to set up a {@link RedisConnection} with
+ * {@link RedisConnectionFactory} for connecting to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>.
  * Useful when setting up a highly available Redis environment.
  *
  * @author Christoph Strobl
@@ -101,7 +101,10 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 *
 	 * @param propertySource must not be {@literal null}.
 	 * @since 1.5
+	 * @deprecated since 3.3, use {@link RedisSentinelConfiguration#of(PropertySource)} instead. This constructor will be
+	 *             made private in the next major release.
 	 */
+	@Deprecated(since = "3.3")
 	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
 
 		Assert.notNull(propertySource, "PropertySource must not be null");
@@ -151,6 +154,17 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 			}
 			this.setDatabase(database);
 		}
+	}
+
+	/**
+	 * Construct a new {@link RedisSentinelConfiguration} from the given {@link PropertySource}.
+	 *
+	 * @param propertySource must not be {@literal null}.
+	 * @return a new {@link RedisSentinelConfiguration} configured from the given {@link PropertySource}.
+	 * @since 3.3
+	 */
+	public static RedisSentinelConfiguration of(PropertySource<?> propertySource) {
+		return new RedisSentinelConfiguration(propertySource);
 	}
 
 	/**
@@ -315,8 +329,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 			return false;
 		}
 
-		return this.database == that.database
-				&& ObjectUtils.nullSafeEquals(this.master, that.master)
+		return this.database == that.database && ObjectUtils.nullSafeEquals(this.master, that.master)
 				&& ObjectUtils.nullSafeEquals(this.sentinels, that.sentinels)
 				&& ObjectUtils.nullSafeEquals(this.dataNodeUsername, that.dataNodeUsername)
 				&& ObjectUtils.nullSafeEquals(this.dataNodePassword, that.dataNodePassword)
