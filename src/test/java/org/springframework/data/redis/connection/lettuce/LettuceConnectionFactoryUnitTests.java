@@ -1260,6 +1260,22 @@ class LettuceConnectionFactoryUnitTests {
 				.extracting(RedisStandaloneConfiguration::getPort).isEqualTo(6789);
 	}
 
+	@Test // GH-2866
+	void earlyStartupDoesNotStartConnectionFactory() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.defaultConfiguration());
+		connectionFactory.setEarlyStartup(false);
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.isEarlyStartup()).isFalse();
+		assertThat(connectionFactory.isAutoStartup()).isTrue();
+		assertThat(connectionFactory.isRunning()).isFalse();
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isNull();
+	}
+
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {
 
 		private String hostName;
