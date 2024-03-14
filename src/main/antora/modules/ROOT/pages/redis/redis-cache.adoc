@@ -234,13 +234,13 @@ Of course, you can combine both global and per-cache configuration using:
 ----
 
 RedisCacheConfiguration predefined = RedisCacheConfiguration.defaultCacheConfig()
-                                         .entryTtl(MyCustomTtlFunction.INSTANCE));
+                                         .entryTtl(MyCustomTtlFunction.INSTANCE);
 
-Map<String, RedisCacheConfiguration> initialCaches = Collections.singletonMap("predefined",predefined);
+Map<String, RedisCacheConfiguration> initialCaches = Collections.singletonMap("predefined", predefined);
 
 RedisCacheManager cacheManager = RedisCacheManager.builder(redisConnectionFactory)
     .cacheDefaults(fiveMinuteTtlExpirationDefaults)
-    .withInitialCacheConfiguration()
+    .withInitialCacheConfigurations(initialCaches)
     .build();
 ----
 
