@@ -78,8 +78,9 @@ import org.springframework.util.ObjectUtils;
  * This connection factory implements {@link InitializingBean} and {@link SmartLifecycle} for flexible lifecycle
  * control. It must be {@link #afterPropertiesSet() initialized} and {@link #start() started} before you can obtain a
  * connection. {@link #afterPropertiesSet() Initialization} {@link SmartLifecycle#start() starts} this bean
- * {@link #isAutoStartup() by default}. You can {@link SmartLifecycle#stop()} and {@link SmartLifecycle#start() restart}
- * this connection factory if needed.
+ * {@link #isEarlyStartup() early} by default. You can {@link SmartLifecycle#stop()} and {@link SmartLifecycle#start()
+ * restart} this connection factory if needed. Disabling {@link #isEarlyStartup() early startup} leaves lifecycle
+ * management to the container refresh if {@link #isAutoStartup() auto-startup} is enabled.
  * <p>
  * Note that {@link JedisConnection} and its {@link JedisClusterConnection clustered variant} are not Thread-safe and
  * instances should not be shared across threads. Refer to the
@@ -103,9 +104,10 @@ public class JedisConnectionFactory
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
 
-	private boolean convertPipelineAndTxResults = true;
-
 	private int phase = 0; // in between min and max values
+	private boolean autoStartup = true;
+	private boolean earlyStartup = true;
+	private boolean convertPipelineAndTxResults = true;
 
 	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
@@ -571,6 +573,70 @@ public class JedisConnectionFactory
 		return RedisConfiguration.isClusterConfiguration(configuration) ? (RedisClusterConfiguration) configuration : null;
 	}
 
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	/**
+	 * Specify the lifecycle phase for pausing and resuming this executor. The default is {@code 0}.
+	 *
+	 * @since 3.2
+	 * @see SmartLifecycle#getPhase()
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
+	 * @since 3.3
+	 */
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	/**
+	 * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
+	 * the containing ApplicationContext gets refreshed.
+	 * <p>
+	 * This connection factory defaults to early auto-startup during {@link #afterPropertiesSet()} and can potentially
+	 * create Redis connections early on in the lifecycle. See {@link #setEarlyStartup(boolean)} for delaying connection
+	 * creation to the ApplicationContext refresh if auto-startup is enabled.
+	 *
+	 * @param autoStartup {@literal true} to automatically {@link #start()} the connection factory; {@literal false}
+	 *          otherwise.
+	 * @since 3.3
+	 * @see #setEarlyStartup(boolean)
+	 * @see #start()
+	 */
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	/**
+	 * @return whether to {@link #start()} the component during {@link #afterPropertiesSet()}.
+	 * @since 3.3
+	 */
+	public boolean isEarlyStartup() {
+		return this.earlyStartup;
+	}
+
+	/**
+	 * Configure if this InitializingBean's component Lifecycle should get started early by {@link #afterPropertiesSet()}
+	 * at the time that the bean is initialized. The component defaults to auto-startup.
+	 * <p>
+	 * This method is related to {@link #setAutoStartup(boolean) auto-startup} and can be used to delay Redis client
+	 * startup until the ApplicationContext refresh. Disabling early startup does not disable auto-startup.
+	 *
+	 * @param earlyStartup {@literal true} to early {@link #start()} the component; {@literal false} otherwise.
+	 * @since 3.3
+	 * @see #setAutoStartup(boolean)
+	 */
+	public void setEarlyStartup(boolean earlyStartup) {
+		this.earlyStartup = earlyStartup;
+	}
+
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If {@code false}, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
@@ -616,7 +682,7 @@ public class JedisConnectionFactory
 
 		this.clientConfig = createClientConfig(getDatabase(), getRedisUsername(), getRedisPassword());
 
-		if (isAutoStartup()) {
+		if (isEarlyStartup()) {
 			start();
 		}
 	}
@@ -722,21 +788,6 @@ public class JedisConnectionFactory
 
 			this.state.set(State.STOPPED);
 		}
-	}
-
-	@Override
-	public int getPhase() {
-		return this.phase;
-	}
-
-	/**
-	 * Specify the lifecycle phase for pausing and resuming this executor. The default is {@code 0}.
-	 *
-	 * @since 3.2
-	 * @see SmartLifecycle#getPhase()
-	 */
-	public void setPhase(int phase) {
-		this.phase = phase;
 	}
 
 	@Override
