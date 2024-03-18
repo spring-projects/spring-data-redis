@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.convert.Converters.ClusterNodes
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Sorokin Evgeniy
+ * @author Habip Kenan Uskudar
  */
 class ConvertersUnitTests {
 
@@ -71,6 +72,8 @@ class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV6_HOST_SQUARE_BRACKETS = "67adfe3df1058896e3cb49d2863e0f70e7e159fa [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@16380,redis-master master,nofailover - 0 1692108412315 1 connected 0-5460";
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST = "67adfe3df1058896e3cb49d2863e0f70e7e159fa 2a02:6b8:c67:9c:0:6d8b:33da:5a2c: master,nofailover - 0 1692108412315 1 connected 0-5460";
+
+	private static final String CLUSTER_NODE_ENTRY_WITH_EMPTY_HUMAN_READABLE_CLUSTER_NAME_IN_GCP_MEMORY_STORE = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379, master - 0 1708041426947 2 connected 5462-10922";
 
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
@@ -261,6 +264,22 @@ class ConvertersUnitTests {
 		assertThat(node.getFlags()).contains(Flag.MASTER);
 		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+	}
+
+	@Test // DATAREDIS-2862
+	void toSetOfRedisClusterNodesShouldConvertNodesWithEmptyHumanReadableClusterNameInGcpMemoryStoreCorrectly() {
+
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_ENTRY_WITH_EMPTY_HUMAN_READABLE_CLUSTER_NAME_IN_GCP_MEMORY_STORE);
+
+		assertThat(node.getId()).isEqualTo("3765733728631672640db35fd2f04743c03119c6");
+		assertThat(node.getHost()).isEqualTo("10.180.0.33");
+		assertThat(node.hasValidHost()).isTrue();
+		assertThat(node.getPort()).isEqualTo(11003);
+		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+		assertThat(node.getFlags()).contains(Flag.MASTER);
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().contains(5462)).isTrue();
+		assertThat(node.getSlotRange().contains(10922)).isTrue();
 	}
 
 	@Test // GH-2678
