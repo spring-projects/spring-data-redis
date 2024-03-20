@@ -96,7 +96,8 @@ public class RedisCacheTests {
 		doWithConnection(RedisConnection::flushAll);
 
 		cache = new RedisCache("cache", RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
-				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
+				RedisCacheConfiguration.defaultCacheConfig().serializeKeysWith(SerializationPair.fromSerializer(serializer))
+						.serializeValuesWith(SerializationPair.fromSerializer(serializer)));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-481
