@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.HostAndPortMapper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisCluster;
@@ -635,6 +636,7 @@ public class JedisConnectionFactory
 			builder.user(username);
 		}
 		password.toOptional().map(String::new).ifPresent(builder::password);
+		this.clientConfiguration.getHostAndPortMapper().ifPresent(builder::hostAndPortMapper);
 
 		if (isUseSsl()) {
 
@@ -1066,6 +1068,11 @@ public class JedisConnectionFactory
 		@Override
 		public Optional<HostnameVerifier> getHostnameVerifier() {
 			return Optional.ofNullable(hostnameVerifier);
+		}
+
+		@Override
+		public Optional<HostAndPortMapper> getHostAndPortMapper() {
+			return Optional.empty();
 		}
 
 		public void setHostnameVerifier(HostnameVerifier hostnameVerifier) {
