@@ -55,7 +55,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class PathIndexResolver implements IndexResolver {
 
-	private final Set<Class<?>> VALUE_TYPES = new HashSet<>(Arrays.<Class<?>> asList(Point.class, GeoLocation.class));
+	private static final Set<Class<?>> VALUE_TYPES = new HashSet<>(Arrays.asList(Point.class, GeoLocation.class));
 
 	private final ConfigurableIndexDefinitionProvider indexConfiguration;
 	private final RedisMappingContext mappingContext;
@@ -83,13 +83,14 @@ public class PathIndexResolver implements IndexResolver {
 	}
 
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
-		return doResolveIndexesFor(mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace(), "",
-				typeInformation, null, value);
+		String keyspace = mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace();
+		Assert.notNull(keyspace, "Keyspace for type " + typeInformation + " must not be null!");
+		return doResolveIndexesFor(keyspace, "", typeInformation, null, value);
 	}
 
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-			Object value) {
+			@Nullable Object value) {
 		return doResolveIndexesFor(keyspace, path, typeInformation, null, value);
 	}
 
@@ -109,85 +110,78 @@ public class PathIndexResolver implements IndexResolver {
 			return resolveIndex(keyspace, path, entity.getPersistentProperty(propertyName), value);
 		}
 
-		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
+		final PersistentPropertyAccessor<?> accessor = entity.getPropertyAccessor(value);
 		final Set<IndexedData> indexes = new LinkedHashSet<>();
 
-		entity.doWithProperties(new PropertyHandler<RedisPersistentProperty>() {
+		entity.doWithProperties((PropertyHandler<RedisPersistentProperty>) persistentProperty -> {
 
-			@Override
-			public void doWithPersistentProperty(RedisPersistentProperty persistentProperty) {
+			String currentPath = !path.isEmpty() ? path + "." + persistentProperty.getName() : persistentProperty.getName();
 
-				String currentPath = !path.isEmpty() ? path + "." + persistentProperty.getName() : persistentProperty.getName();
+			Object propertyValue = accessor.getProperty(persistentProperty);
 
-				Object propertyValue = accessor.getProperty(persistentProperty);
-
-				if (propertyValue == null) {
-					return;
-				}
-
-				TypeInformation<?> typeHint = persistentProperty.isMap()
-						? persistentProperty.getTypeInformation().getRequiredMapValueType()
-						: persistentProperty.getTypeInformation().getActualType();
-
-				if (persistentProperty.isMap()) {
-
-					for (Entry<?, ?> entry : ((Map<?, ?>) propertyValue).entrySet()) {
-
-						TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, entry.getValue());
-						indexes.addAll(doResolveIndexesFor(keyspace, currentPath + "." + entry.getKey(), typeToUse.getActualType(),
-								persistentProperty, entry.getValue()));
-					}
-
-				} else if (persistentProperty.isCollectionLike()) {
-
-					final Iterable<?> iterable;
-
-					if (Iterable.class.isAssignableFrom(propertyValue.getClass())) {
-						iterable = (Iterable<?>) propertyValue;
-					} else if (propertyValue.getClass().isArray()) {
-						iterable = CollectionUtils.arrayToList(propertyValue);
-					} else {
-						throw new RuntimeException("Don't know how to handle " + propertyValue.getClass() + " type of collection");
-					}
-
-					for (Object listValue : iterable) {
-
-						if (listValue != null) {
-							TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, listValue);
-							indexes.addAll(
-									doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), persistentProperty, listValue));
-						}
-					}
-				}
-
-				else if (persistentProperty.isEntity()
-						|| persistentProperty.getTypeInformation().getActualType().equals(TypeInformation.OBJECT)) {
-
-					typeHint = updateTypeHintForActualValue(typeHint, propertyValue);
-					indexes.addAll(
-							doResolveIndexesFor(keyspace, currentPath, typeHint.getActualType(), persistentProperty, propertyValue));
-				} else {
-					indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, propertyValue));
-				}
-
+			if (propertyValue == null) {
+				return;
 			}
 
-			private TypeInformation<?> updateTypeHintForActualValue(TypeInformation<?> typeHint, Object propertyValue) {
+			TypeInformation<?> typeHint = persistentProperty.isMap()
+					? persistentProperty.getTypeInformation().getRequiredMapValueType()
+					: persistentProperty.getTypeInformation().getActualType();
 
-				if (typeHint.equals(TypeInformation.OBJECT) || typeHint.getClass().isInterface()) {
-					try {
-						typeHint = mappingContext.getRequiredPersistentEntity(propertyValue.getClass()).getTypeInformation();
-					} catch (Exception ignore) {
-						// ignore for cases where property value cannot be resolved as an entity, in that case
-						// the provided type hint has to be sufficient
+			if (persistentProperty.isMap()) {
+
+				for (Entry<?, ?> entry : ((Map<?, ?>) propertyValue).entrySet()) {
+
+					TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, entry.getValue());
+					indexes.addAll(doResolveIndexesFor(keyspace, currentPath + "." + entry.getKey(), typeToUse.getActualType(),
+							persistentProperty, entry.getValue()));
+				}
+
+			} else if (persistentProperty.isCollectionLike()) {
+
+				final Iterable<?> iterable;
+
+				if (Iterable.class.isAssignableFrom(propertyValue.getClass())) {
+					iterable = (Iterable<?>) propertyValue;
+				} else if (propertyValue.getClass().isArray()) {
+					iterable = CollectionUtils.arrayToList(propertyValue);
+				} else {
+					throw new RuntimeException("Don't know how to handle " + propertyValue.getClass() + " type of collection");
+				}
+
+				for (Object listValue : iterable) {
+
+					if (listValue != null) {
+						TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, listValue);
+						indexes.addAll(
+								doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), persistentProperty, listValue));
 					}
 				}
-				return typeHint;
+			} else if (persistentProperty.isEntity()
+					|| persistentProperty.getTypeInformation().getActualType().equals(TypeInformation.OBJECT)) {
+
+				typeHint = updateTypeHintForActualValue(typeHint, propertyValue);
+				indexes.addAll(
+						doResolveIndexesFor(keyspace, currentPath, typeHint.getActualType(), persistentProperty, propertyValue));
+			} else {
+				indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, propertyValue));
 			}
 
 		});
 
 		return indexes;
+	}
+
+	private TypeInformation<?> updateTypeHintForActualValue(TypeInformation<?> typeHint, Object propertyValue) {
+
+		if (typeHint.equals(TypeInformation.OBJECT) || typeHint.getClass().isInterface()) {
+			try {
+				typeHint = mappingContext.getRequiredPersistentEntity(propertyValue.getClass()).getTypeInformation();
+			} catch (Exception ignore) {
+				// ignore for cases where property value cannot be resolved as an entity, in that case
+				// the provided type hint has to be sufficient
+			}
+		}
+		return typeHint;
 	}
 
 	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath,
