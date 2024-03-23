@@ -38,12 +38,14 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisDriver.Driver
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.lang.Nullable;
 
 /**
  * Integration tests for {@link DefaultRedisCacheWriter}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author ChanYoung Joung
  */
 @MethodSource("testParams")
 public class DefaultRedisCacheWriterTests {
@@ -417,6 +419,45 @@ public class DefaultRedisCacheWriterTests {
 
 		assertThat(stats).isNotNull();
 		assertThat(stats.getPuts()).isZero();
+	}
+
+	@ParameterizedRedisTest
+	void doLockShouldGetLock() throws InterruptedException {
+
+		int threadCount = 3;
+		CountDownLatch beforeWrite = new CountDownLatch(threadCount);
+		CountDownLatch afterWrite = new CountDownLatch(threadCount);
+
+		DefaultRedisCacheWriter cw = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(50),
+				BatchStrategies.keys()){
+			@Nullable
+			protected Boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue,
+									 RedisConnection connection) {
+				Boolean doLock = super.doLock(name, contextualKey, contextualValue, connection);
+				assertThat(doLock).isTrue();
+				return doLock;
+			}
+		};
+
+		cw.lock(CACHE_NAME);
+
+		for (int i = 0; i < threadCount; i++) {
+			Thread th = new Thread(() -> {
+				beforeWrite.countDown();
+				cw.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+				afterWrite.countDown();
+			});
+
+			th.start();
+		}
+
+		beforeWrite.await();
+
+		Thread.sleep(200);
+
+		cw.unlock(CACHE_NAME);
+		afterWrite.await();
+
 	}
 
 	private void doWithConnection(Consumer<RedisConnection> callback) {

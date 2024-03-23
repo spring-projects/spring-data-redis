@@ -57,6 +57,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author André Prata
  * @author John Blum
+ * @author ChanYoung Joung
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -319,12 +320,15 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Nullable
-	private Boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue,
-			RedisConnection connection) {
+	protected Boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue,
+							 RedisConnection connection) {
 
 		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
 
-		return connection.stringCommands().set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT);
+		while (!ObjectUtils.nullSafeEquals(connection.stringCommands().set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT),true)) {
+			checkAndPotentiallyWaitUntilUnlocked(name, connection);
+		}
+		return true;
 	}
 
 	/**
