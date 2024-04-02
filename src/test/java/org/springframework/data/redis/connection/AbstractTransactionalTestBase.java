@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.annotation.Rollback;
@@ -130,6 +131,18 @@ public abstract class AbstractTransactionalTestBase {
 		for (String key : KEYS) {
 			template.opsForValue().set(key, key + "-value");
 		}
+	}
+
+	@Rollback(false)
+	@Test // GH-2886
+	public void shouldReturnReadOnlyCommandResultInTransaction() {
+
+		RedisTemplate<String, String> template = new RedisTemplate<>();
+		template.setConnectionFactory(factory);
+		template.setEnableTransactionSupport(true);
+		template.afterPropertiesSet();
+
+		assertThat(template.hasKey("foo")).isFalse();
 	}
 
 	@Test // DATAREDIS-548

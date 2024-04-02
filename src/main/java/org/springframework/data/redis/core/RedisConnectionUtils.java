@@ -32,6 +32,8 @@ import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Helper class that provides static methods for obtaining {@link RedisConnection} from a
@@ -320,8 +322,8 @@ public abstract class RedisConnectionUtils {
 	 */
 	public static void unbindConnection(RedisConnectionFactory factory) {
 
-		RedisConnectionHolder connectionHolder =
-				(RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
+		RedisConnectionHolder connectionHolder = (RedisConnectionHolder) TransactionSynchronizationManager
+				.getResource(factory);
 
 		if (connectionHolder == null) {
 			return;
@@ -358,7 +360,8 @@ public abstract class RedisConnectionUtils {
 	 * @param connectionFactory Redis connection factory that the connection was created with
 	 * @return whether the connection is transactional or not
 	 */
-	public static boolean isConnectionTransactional(RedisConnection connection, RedisConnectionFactory connectionFactory) {
+	public static boolean isConnectionTransactional(RedisConnection connection,
+			RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "No RedisConnectionFactory specified");
 
@@ -448,9 +451,16 @@ public abstract class RedisConnectionUtils {
 	static class ConnectionSplittingInterceptor implements MethodInterceptor {
 
 		private final RedisConnectionFactory factory;
+		private final @Nullable String commandInterface;
 
 		public ConnectionSplittingInterceptor(RedisConnectionFactory factory) {
 			this.factory = factory;
+			this.commandInterface = null;
+		}
+
+		public ConnectionSplittingInterceptor(RedisConnectionFactory factory, String commandInterface) {
+			this.factory = factory;
+			this.commandInterface = commandInterface;
 		}
 
 		@Override
@@ -463,6 +473,22 @@ public abstract class RedisConnectionUtils {
 			if (method.getName().equals("getTargetConnection")) {
 				// Handle getTargetConnection method: return underlying RedisConnection.
 				return obj;
+			}
+
+			Class<?> returnType = method.getReturnType();
+			String returnTypeName = returnType.getSimpleName();
+
+			// bridge keyCommands etc. to defer target invocations
+			if (returnType.isInterface() && returnType.getPackageName().equals("org.springframework.data.redis.connection")
+					&& returnTypeName.startsWith("Redis") && returnTypeName.endsWith("Commands")) {
+
+				ProxyFactory proxyFactory = new ProxyFactory(ReflectionUtils.invokeMethod(method, obj));
+
+				proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory, method.getName()));
+				proxyFactory.addInterface(RedisConnectionProxy.class);
+				proxyFactory.addInterface(returnType);
+
+				return proxyFactory.getProxy();
 			}
 
 			RedisCommand commandToExecute = RedisCommand.failsafeCommandLookup(method.getName());
@@ -481,9 +507,15 @@ public abstract class RedisConnectionUtils {
 			}
 
 			RedisConnection connection = factory.getConnection();
-
+			Object target = connection;
 			try {
-				return invoke(method, connection, args);
+
+				if (StringUtils.hasText(commandInterface)) {
+					target = ReflectionUtils.invokeMethod(ReflectionUtils.findMethod(RedisConnection.class, commandInterface),
+							connection);
+				}
+
+				return invoke(method, target, args);
 			} finally {
 				// properly close the unbound connection after executing command
 				if (!connection.isClosed()) {
