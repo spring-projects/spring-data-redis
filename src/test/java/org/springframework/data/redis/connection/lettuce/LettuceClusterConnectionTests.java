@@ -1620,7 +1620,15 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		assertThat(clusterConnection.randomKey()).isNotNull();
+		for (int i = 0; i < 20; i++) {
+
+			byte[] k = clusterConnection.randomKey();
+			if (k == null) {
+				continue;
+			}
+
+			assertThat(k).isIn(KEY_1_BYTES, KEY_2_BYTES);
+		}
 	}
 
 	@Test // DATAREDIS-315
