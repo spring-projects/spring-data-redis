@@ -83,6 +83,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	private static final byte[] KEY_1_BYTES = LettuceConverters.toBytes(KEY_1);
 	private static final byte[] KEY_2_BYTES = LettuceConverters.toBytes(KEY_2);
 	private static final byte[] KEY_3_BYTES = LettuceConverters.toBytes(KEY_3);
+	private static final byte[] KEY_4_BYTES = LettuceConverters.toBytes(KEY_4);
 
 	private static final byte[] SAME_SLOT_KEY_1_BYTES = LettuceConverters.toBytes(SAME_SLOT_KEY_1);
 	private static final byte[] SAME_SLOT_KEY_2_BYTES = LettuceConverters.toBytes(SAME_SLOT_KEY_2);
@@ -91,6 +92,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	private static final byte[] VALUE_1_BYTES = LettuceConverters.toBytes(VALUE_1);
 	private static final byte[] VALUE_2_BYTES = LettuceConverters.toBytes(VALUE_2);
 	private static final byte[] VALUE_3_BYTES = LettuceConverters.toBytes(VALUE_3);
+	private static final byte[] VALUE_4_BYTES = LettuceConverters.toBytes(VALUE_4);
 
 	private static final GeoLocation<String> ARIGENTO = new GeoLocation<>("arigento", POINT_ARIGENTO);
 	private static final GeoLocation<String> CATANIA = new GeoLocation<>("catania", POINT_CATANIA);
@@ -179,7 +181,34 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		} finally {
 			factory.destroy();
 		}
+	}
 
+	@Test // GH-2888
+	void shouldPipelineAdvancedClusterApi() {
+
+		LettuceConnectionFactory factory = createConnectionFactory();
+
+		ConnectionVerifier.create(factory) //
+				.execute(connection -> {
+
+					connection.set(KEY_1_BYTES, VALUE_1_BYTES);
+					connection.set(KEY_2_BYTES, VALUE_2_BYTES);
+					connection.set(KEY_4_BYTES, VALUE_4_BYTES);
+
+					connection.openPipeline();
+					connection.keyCommands().randomKey();
+					connection.stringCommands().mGet(KEY_1_BYTES, KEY_2_BYTES);
+
+					List<Object> objects = connection.closePipeline();
+
+					assertThat(objects).hasSize(2);
+					assertThat(objects).element(0).isInstanceOf(byte[].class);
+					assertThat(objects).element(1).isInstanceOf(List.class);
+
+					List<Object> mget = (List<Object>) objects.get(1);
+					assertThat(mget).containsExactly(VALUE_1_BYTES, VALUE_2_BYTES);
+
+				}).verifyAndClose();
 	}
 
 	@Test // DATAREDIS-315
@@ -2821,13 +2850,13 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(1L);
+				.containsExactly(1L);
 		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(2L);
+				.containsExactly(2L);
 		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(3L);
+				.containsExactly(3L);
 		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L))).isNotNull();
 	}
@@ -2837,7 +2866,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 				create().incr(signed(5)).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
-						.containsExactly(1L, 0L);
+				.containsExactly(1L, 0L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2847,13 +2876,13 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				clusterConnection.stringCommands().bitField(LettuceConverters.toBytes(KEY_1),
 						create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L)
 								.set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L)))
-										.containsExactly(0L, 0L);
+				.containsExactly(0L, 0L);
 		assertThat(
 				clusterConnection.stringCommands()
 						.bitField(LettuceConverters.toBytes(KEY_1),
 								create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
-										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()))).containsExactly(100L,
-												-56L);
+										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength())))
+				.containsExactly(100L, -56L);
 	}
 
 	@Test // DATAREDIS-1103
@@ -2864,7 +2893,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(
 				clusterConnection.stringCommands().set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.keepTtl(), SetOption.upsert()))
-						.isTrue();
+				.isTrue();
 
 		assertThat(nativeConnection.ttl(KEY_1)).isCloseTo(expireSeconds, Offset.offset(5L));
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
