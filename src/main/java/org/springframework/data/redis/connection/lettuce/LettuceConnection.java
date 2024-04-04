@@ -49,7 +49,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -581,7 +583,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		pipeliningFlushState = null;
 		isPipelined = false;
 
-		List<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<>(ppline.size());
+		List<CompletableFuture<?>> futures = new ArrayList<>(ppline.size());
 
 		for (LettuceResult<?, ?> result : ppline) {
 			futures.add(result.getResultHolder());
@@ -598,10 +600,24 @@ public class LettuceConnection extends AbstractRedisConnection {
 			if (done) {
 				for (LettuceResult<?, ?> result : ppline) {
 
-					if (result.getResultHolder().getOutput().hasError()) {
+					CompletableFuture<?> resultHolder = result.getResultHolder();
+					if (resultHolder.isCompletedExceptionally()) {
 
-						Exception exception = new InvalidDataAccessApiUsageException(result.getResultHolder()
-								.getOutput().getError());
+						String message;
+						if (resultHolder instanceof io.lettuce.core.protocol.RedisCommand<?, ?, ?> rc) {
+							message = rc.getOutput().getError();
+						} else {
+							try {
+								resultHolder.get();
+								message = "";
+							} catch (InterruptedException ignore) {
+								message = "";
+							} catch (ExecutionException e) {
+								message = e.getCause().getMessage();
+							}
+						}
+
+						Exception exception = new InvalidDataAccessApiUsageException(message);
 
 						// remember only the first error
 						if (problem == null) {
