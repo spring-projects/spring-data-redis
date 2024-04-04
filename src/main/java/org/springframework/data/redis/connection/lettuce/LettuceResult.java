@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import io.lettuce.core.protocol.RedisCommand;
-
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
@@ -34,7 +33,7 @@ import org.springframework.lang.Nullable;
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
-class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
+class LettuceResult<T, R> extends FutureResult<CompletableFuture<T>> {
 
 	private final boolean convertPipelineAndTxResults;
 
@@ -51,7 +50,7 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 	LettuceResult(Future<T> resultHolder, Supplier<R> defaultReturnValue, boolean convertPipelineAndTxResults,
 			@Nullable Converter<T, R> converter) {
 
-		super((RedisCommand) resultHolder, converter, defaultReturnValue);
+		super((CompletableFuture<T>) resultHolder, converter, defaultReturnValue);
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
@@ -59,7 +58,7 @@ class LettuceResult<T, R> extends FutureResult<RedisCommand<?, T, ?>> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public T get() {
-		return (T) getResultHolder().getOutput().get();
+		return (T) getResultHolder().join();
 	}
 
 	@Override
