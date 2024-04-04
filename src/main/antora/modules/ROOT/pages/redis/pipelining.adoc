@@ -20,7 +20,9 @@ List<Object> results = stringRedisTemplate.executePipelined(
 });
 ----
 
-The preceding example runs a bulk right pop of items from a queue in a pipeline. The `results` `List` contains all of the popped items. `RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results before returning, so the returned items in the preceding example are Strings. There are additional `executePipelined` methods that let you pass a custom serializer for pipelined results.
+The preceding example runs a bulk right pop of items from a queue in a pipeline.
+The `results` `List` contains all the popped items. `RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results before returning, so the returned items in the preceding example are Strings.
+There are additional `executePipelined` methods that let you pass a custom serializer for pipelined results.
 
 Note that the value returned from the `RedisCallback` is required to be `null`, as this value is discarded in favor of returning the results of the pipelined commands.
 
@@ -35,3 +37,7 @@ factory.setPipeliningFlushPolicy(PipeliningFlushPolicy.buffered(3)); <1>
 ----
 <1> Buffer locally and flush after every 3rd command.
 ====
+
+NOTE: Pipelining is limited to Redis Standalone.
+Redis Cluster is currently only supported through the Lettuce driver except for the following commands when using cross-slot keys: `rename`, `renameNX`, `sort`, `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `info`, `sMove`, `sInter`, `sInterStore`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
+Same-slot keys are fully supported.

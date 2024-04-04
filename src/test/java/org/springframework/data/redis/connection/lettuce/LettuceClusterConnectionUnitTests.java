@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
@@ -46,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.ClusterTopologyProvider;
@@ -194,22 +194,6 @@ class LettuceClusterConnectionUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	void keysShouldBeRunOnAllClusterNodes() {
-
-		when(clusterConnection1Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
-		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
-		when(clusterConnection3Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
-
-		byte[] pattern = LettuceConverters.toBytes("*");
-
-		connection.keys(pattern);
-
-		verify(clusterConnection1Mock, times(1)).keys(pattern);
-		verify(clusterConnection2Mock, times(1)).keys(pattern);
-		verify(clusterConnection3Mock, times(1)).keys(pattern);
-	}
-
-	@Test // DATAREDIS-315
 	void keysShouldOnlyBeRunOnDedicatedNodeWhenPinned() {
 
 		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
@@ -221,38 +205,6 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, never()).keys(pattern);
 		verify(clusterConnection2Mock, times(1)).keys(pattern);
 		verify(clusterConnection3Mock, never()).keys(pattern);
-	}
-
-	@Test // DATAREDIS-315
-	void randomKeyShouldReturnAnyKeyFromRandomNode() {
-
-		when(clusterConnection1Mock.randomkey()).thenReturn(KEY_1_BYTES);
-		when(clusterConnection2Mock.randomkey()).thenReturn(KEY_2_BYTES);
-		when(clusterConnection3Mock.randomkey()).thenReturn(KEY_3_BYTES);
-
-		assertThat(connection.randomKey()).isIn(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
-		verifyInvocationsAcross("randomkey", times(1), clusterConnection1Mock, clusterConnection2Mock,
-				clusterConnection3Mock);
-	}
-
-	@Test // DATAREDIS-315
-	void randomKeyShouldReturnKeyWhenAvailableOnAnyNode() {
-
-		when(clusterConnection3Mock.randomkey()).thenReturn(KEY_3_BYTES);
-
-		for (int i = 0; i < 100; i++) {
-			assertThat(connection.randomKey()).isEqualTo(KEY_3_BYTES);
-		}
-	}
-
-	@Test // DATAREDIS-315
-	void randomKeyShouldReturnNullWhenNoKeysPresentOnAllNodes() {
-
-		when(clusterConnection1Mock.randomkey()).thenReturn(null);
-		when(clusterConnection2Mock.randomkey()).thenReturn(null);
-		when(clusterConnection3Mock.randomkey()).thenReturn(null);
-
-		assertThat(connection.randomKey()).isNull();
 	}
 
 	@Test // DATAREDIS-315

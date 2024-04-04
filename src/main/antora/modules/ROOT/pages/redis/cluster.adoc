@@ -129,3 +129,6 @@ clusterOps.shutdown(NODE_7379);                                              <1>
 
 <1> Shut down node at 7379 and cross fingers there is a replica in place that can take over.
 ====
+
+NOTE: Redis Cluster pipelining is currently only supported throug the Lettuce driver except for the following commands when using cross-slot keys: `rename`, `renameNX`, `sort`, `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `info`, `sMove`, `sInter`, `sInterStore`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
+Same-slot keys are fully supported.
