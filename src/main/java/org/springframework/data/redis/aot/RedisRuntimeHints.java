@@ -35,6 +35,7 @@ import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFa
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.RedisConnectionUtils.RedisConnectionProxy;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -157,6 +158,20 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 		boundOperationsProxy(BoundStreamOperations.class, classLoader, hints);
 		boundOperationsProxy(BoundValueOperations.class, classLoader, hints);
 		boundOperationsProxy(BoundZSetOperations.class, classLoader, hints);
+
+		// Connection Splitting
+		registerRedisConnectionProxy(TypeReference.of(RedisCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisGeoCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisHashCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisHyperLogLogCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisKeyCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisListCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisSetCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisScriptingCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisServerCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisStreamCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisStringCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisZSetCommands.class), hints);
 	}
 
 	static void boundOperationsProxy(Class<?> type, ClassLoader classLoader, RuntimeHints hints) {
@@ -175,6 +190,15 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		hints.proxies().registerJdkProxy(typeReference, //
+				TypeReference.of("org.springframework.aop.SpringProxy"), //
+				TypeReference.of("org.springframework.aop.framework.Advised"), //
+				TypeReference.of("org.springframework.core.DecoratingProxy"));
+	}
+
+	static void registerRedisConnectionProxy(TypeReference typeReference, RuntimeHints hints) {
+
+		hints.proxies().registerJdkProxy(TypeReference.of(RedisConnectionProxy.class), //
+				typeReference, //
 				TypeReference.of("org.springframework.aop.SpringProxy"), //
 				TypeReference.of("org.springframework.aop.framework.Advised"), //
 				TypeReference.of("org.springframework.core.DecoratingProxy"));
