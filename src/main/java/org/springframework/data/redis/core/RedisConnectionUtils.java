@@ -33,7 +33,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Helper class that provides static methods for obtaining {@link RedisConnection} from a
@@ -451,16 +450,16 @@ public abstract class RedisConnectionUtils {
 	static class ConnectionSplittingInterceptor implements MethodInterceptor {
 
 		private final RedisConnectionFactory factory;
-		private final @Nullable String commandInterface;
+		private final @Nullable Method commandInterfaceMethod;
 
 		public ConnectionSplittingInterceptor(RedisConnectionFactory factory) {
 			this.factory = factory;
-			this.commandInterface = null;
+			this.commandInterfaceMethod = null;
 		}
 
-		public ConnectionSplittingInterceptor(RedisConnectionFactory factory, String commandInterface) {
+		private ConnectionSplittingInterceptor(RedisConnectionFactory factory, Method commandInterfaceMethod) {
 			this.factory = factory;
-			this.commandInterface = commandInterface;
+			this.commandInterfaceMethod = commandInterfaceMethod;
 		}
 
 		@Override
@@ -484,7 +483,7 @@ public abstract class RedisConnectionUtils {
 
 				ProxyFactory proxyFactory = new ProxyFactory(ReflectionUtils.invokeMethod(method, obj));
 
-				proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory, method.getName()));
+				proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory, method));
 				proxyFactory.addInterface(RedisConnectionProxy.class);
 				proxyFactory.addInterface(returnType);
 
@@ -510,8 +509,8 @@ public abstract class RedisConnectionUtils {
 			Object target = connection;
 			try {
 
-				if (StringUtils.hasText(commandInterface)) {
-					target = ReflectionUtils.invokeMethod(ReflectionUtils.findMethod(RedisConnection.class, commandInterface),
+				if (commandInterfaceMethod != null) {
+					target = ReflectionUtils.invokeMethod(commandInterfaceMethod,
 							connection);
 				}
 
