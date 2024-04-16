@@ -147,6 +147,25 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand")).contains("1");
 	}
 
+	@Test // GH-2882
+	void indexDataShouldBeCleardIfPropertyValueIsSetToNull() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.keys("persons*")).contains("persons:firstname:rand");
+		assertThat(template.opsForSet().members("persons:firstname:rand")).contains("1");
+
+		rand.id = "1";
+		rand.firstname = null;
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.keys("persons*")).doesNotContain("persons:firstname:rand");
+		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
+	}
+
 	@Test // DATAREDIS-744
 	void putWritesSimpleIndexDataWithColonCorrectly() {
 
