@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +55,7 @@ import org.springframework.data.repository.query.FluentQuery;
  * @author Christoph Strobl
  * @author John Blum
  */
-public class QueryByExampleRedisExecutorIntegrationTests {
+class QueryByExampleRedisExecutorIntegrationTests {
 
 	private static JedisConnectionFactory connectionFactory;
 	private RedisMappingContext mappingContext = new RedisMappingContext();
@@ -129,7 +127,7 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 		assertThat(result).isEmpty();
 	}
 
-	@Test // DATAREDIS-605
+	@Test // DATAREDIS-605, GH-2880
 	void shouldFindAllByExample() {
 
 		QueryByExampleRedisExecutor<Person> executor = new QueryByExampleRedisExecutor<>(getEntityInformation(Person.class),
@@ -138,7 +136,7 @@ public class QueryByExampleRedisExecutorIntegrationTests {
 		Person person = new Person();
 		person.setHometown(walt.getHometown());
 
-		Iterable<Person> result = executor.findAll(Example.of(person));
+		List<Person> result = executor.findAll(Example.of(person));
 		assertThat(result).contains(walt, gus, hank);
 	}
 

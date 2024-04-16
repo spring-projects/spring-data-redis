@@ -81,7 +81,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Collection<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
+	public <T> List<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
 			String keyspace, Class<T> type) {
 		List<T> result = doFind(criteria, offset, rows, keyspace, type);
 
@@ -199,7 +199,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	}
 
 	@Override
-	public Collection<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
+	public List<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
 			String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}

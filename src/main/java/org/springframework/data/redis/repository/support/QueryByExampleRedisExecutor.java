@@ -44,6 +44,7 @@ import org.springframework.data.redis.repository.query.ExampleQueryMapper;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.repository.query.ListQueryByExampleExecutor;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Streamable;
@@ -62,7 +63,7 @@ import org.springframework.util.Assert;
  */
 @SuppressWarnings("unchecked")
 public class QueryByExampleRedisExecutor<T>
-		implements QueryByExampleExecutor<T>, BeanFactoryAware, BeanClassLoaderAware {
+		implements ListQueryByExampleExecutor<T>, BeanFactoryAware, BeanClassLoaderAware {
 
 	private final EntityInformation<T, ?> entityInformation;
 	private final RedisKeyValueTemplate keyValueTemplate;
@@ -147,15 +148,17 @@ public class QueryByExampleRedisExecutor<T>
 	}
 
 	@Override
-	public <S extends T> Iterable<S> findAll(Example<S> example) {
+	public <S extends T> List<S> findAll(Example<S> example) {
 
 		RedisOperationChain operationChain = createQuery(example);
 
-		return (Iterable<S>) keyValueTemplate.find(new KeyValueQuery<>(operationChain), entityInformation.getJavaType());
+		Iterable<T> result = keyValueTemplate.find(new KeyValueQuery<>(operationChain), entityInformation.getJavaType());
+
+		return (List<S>) (result instanceof List<?> list ? list : Streamable.of(result).toList());
 	}
 
 	@Override
-	public <S extends T> Iterable<S> findAll(Example<S> example, Sort sort) {
+	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
 		throw new UnsupportedOperationException("Ordering is not supported");
 	}
 

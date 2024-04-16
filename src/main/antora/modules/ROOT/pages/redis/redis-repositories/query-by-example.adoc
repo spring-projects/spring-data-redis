@@ -9,7 +9,7 @@ The following example uses Query by Example against a repository:
 ====
 [source, java]
 ----
-interface PersonRepository extends QueryByExampleExecutor<Person> {
+interface PersonRepository extends ListQueryByExampleExecutor<Person> {
 }
 
 class PersonService {
