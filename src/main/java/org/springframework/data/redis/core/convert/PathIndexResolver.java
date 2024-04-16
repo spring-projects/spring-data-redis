@@ -122,6 +122,7 @@ public class PathIndexResolver implements IndexResolver {
 				Object propertyValue = accessor.getProperty(persistentProperty);
 
 				if (propertyValue == null) {
+					indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, null));
 					return;
 				}
 
@@ -212,7 +213,18 @@ public class PathIndexResolver implements IndexResolver {
 
 				IndexedData indexedData = null;
 				if (transformedValue == null) {
-					indexedData = new RemoveIndexedData(indexedData);
+
+					indexedData = new RemoveIndexedData(new IndexedData() {
+						@Override
+						public String getIndexName() {
+							return indexDefinition.getIndexName();
+						}
+
+						@Override
+						public String getKeyspace() {
+							return indexDefinition.getKeyspace();
+						}
+					});
 				} else {
 					indexedData = indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value);
 				}
@@ -220,13 +232,13 @@ public class PathIndexResolver implements IndexResolver {
 			}
 		}
 
-		else if (property != null && property.isAnnotationPresent(Indexed.class)) {
+		else if (property != null && value != null && property.isAnnotationPresent(Indexed.class)) {
 
 			SimpleIndexDefinition indexDefinition = new SimpleIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);
 
 			data.add(indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value));
-		} else if (property != null && property.isAnnotationPresent(GeoIndexed.class)) {
+		} else if (property != null &&  value != null && property.isAnnotationPresent(GeoIndexed.class)) {
 
 			GeoIndexDefinition indexDefinition = new GeoIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);
