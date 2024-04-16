@@ -6,8 +6,9 @@ See the https://redis.io/topics/cluster-tutorial[Cluster Tutorial] for more info
 
 NOTE: When using xref:repositories.adoc[Redis Repositories] with Redis Cluster, make yourself familiar with how to xref:redis/redis-repositories/cluster.adoc[run Redis Repositories on a Cluster].
 
-CAUTION: Relying on keyspace events when using Redis Cluster is discouraged due to https://github.com/spring-projects/spring-data-redis/issues/1111[only being subscribed to events from one random redis node in the cluster].
-Using redis without multiple shards avoids this problem.
+CAUTION: Do not rely on keyspace events when using Redis Cluster as keyspace events are not replicated across shards.
+Pub/Sub https://github.com/spring-projects/spring-data-redis/issues/1111[subscribes to a random cluster node] which only receives keyspace events from a single shard.
+Use single-node Redis to avoid keyspace event loss.
 
 [[cluster.working.with.cluster]]
 == Working With Redis Cluster Connection
