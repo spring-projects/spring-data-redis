@@ -24,7 +24,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * {@link IndexDefinition} allow to set up a blueprint for creating secondary index structures in Redis. Setting up
  * conditions allows to define {@link Condition} that have to be passed in order to add a value to the index. This
- * allows to fine grained tune the index structure. {@link IndexValueTransformer} gets applied to the raw value for
+ * allows to fine-grained tune the index structure. {@link IndexValueTransformer} gets applied to the raw value for
  * creating the actual index entry.
  *
  * @author Christoph Strobl

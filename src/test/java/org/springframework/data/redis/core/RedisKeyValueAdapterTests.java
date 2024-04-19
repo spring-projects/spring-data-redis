@@ -148,7 +148,7 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	@Test // GH-2882
-	void indexDataShouldBeCleardIfPropertyValueIsSetToNull() {
+	void indexDataShouldBeClearedIfPropertyValueIsSetToNull() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
