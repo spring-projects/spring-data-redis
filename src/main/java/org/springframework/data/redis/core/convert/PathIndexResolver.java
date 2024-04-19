@@ -210,24 +210,14 @@ public class PathIndexResolver implements IndexResolver {
 				}
 
 				Object transformedValue = indexDefinition.valueTransformer().convert(value);
+				IndexedData indexedData;
 
-				IndexedData indexedData = null;
 				if (transformedValue == null) {
-
-					indexedData = new RemoveIndexedData(new IndexedData() {
-						@Override
-						public String getIndexName() {
-							return indexDefinition.getIndexName();
-						}
-
-						@Override
-						public String getKeyspace() {
-							return indexDefinition.getKeyspace();
-						}
-					});
+					indexedData = new RemoveIndexedData(indexDefinition);
 				} else {
 					indexedData = indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value);
 				}
+
 				data.add(indexedData);
 			}
 		}
