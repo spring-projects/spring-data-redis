@@ -22,8 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -37,6 +35,7 @@ import org.springframework.lang.Nullable;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Jiahe Cai
+ * @author Ehsan Alemzadeh
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
@@ -250,35 +249,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
 
-		execute(new RedisCallback<Object>() {
-
-			@Override
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-
-				potentiallyUsePsetEx(connection);
-				return null;
-			}
-
-			public void potentiallyUsePsetEx(RedisConnection connection) {
-
-				if (!TimeUnit.MILLISECONDS.equals(unit) || !failsafeInvokePsetEx(connection)) {
-					connection.setEx(rawKey, TimeoutUtils.toSeconds(timeout, unit), rawValue);
-				}
-			}
-
-			private boolean failsafeInvokePsetEx(RedisConnection connection) {
-
-				boolean failed = false;
-				try {
-					connection.pSetEx(rawKey, timeout, rawValue);
-				} catch (UnsupportedOperationException ignore) {
-					// in case the connection does not support pSetEx return false to allow fallback to other operation.
-					failed = true;
-				}
-				return !failed;
-			}
-
-		});
+		execute(connection -> connection.set(rawKey, rawValue, Expiration.from(timeout, unit), SetOption.upsert()));
 	}
 
 	@Override
@@ -286,7 +257,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		return execute(connection -> connection.setNX(rawKey, rawValue));
+		return execute(connection -> connection.set(rawKey, rawValue, Expiration.persistent(), SetOption.ifAbsent()));
 	}
 
 	@Override
