@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -131,7 +132,7 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		return scan(0, options != null ? options : ScanOptions.NONE);
+		return scan(CursorId.initial(), options != null ? options : ScanOptions.NONE);
 	}
 
 	/**
@@ -140,12 +141,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 	 * @param options
 	 * @return
 	 */
-	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
+	public Cursor<byte[]> scan(CursorId cursorId, ScanOptions options) {
 
 		return new ScanCursor<byte[]>(cursorId, options) {
 
 			@Override
-			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
@@ -165,12 +166,12 @@ class JedisKeyCommands implements RedisKeyCommands {
 				}
 
 				if (type != null) {
-					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params, type);
+					result = connection.getJedis().scan(JedisConverters.toBytes(cursorId), params, type);
 				} else {
-					result = connection.getJedis().scan(Long.toString(cursorId).getBytes(), params);
+					result = connection.getJedis().scan(JedisConverters.toBytes(cursorId), params);
 				}
 
-				return new ScanIteration<>(Long.parseLong(result.getCursor()), result.getResult());
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 
 			protected void doClose() {

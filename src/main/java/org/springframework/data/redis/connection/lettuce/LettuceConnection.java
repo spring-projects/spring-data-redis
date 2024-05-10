@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2023 the original author or authors.
+ * Copyright 2011-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -57,6 +59,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -70,6 +73,7 @@ import org.springframework.data.redis.connection.convert.TransactionResultConver
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceResultBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -100,8 +104,8 @@ import org.springframework.util.ObjectUtils;
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
-			new FallbackExceptionTranslationStrategy(LettuceExceptionConverter.INSTANCE);
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
+			LettuceExceptionConverter.INSTANCE);
 
 	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 
@@ -187,8 +191,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	/**
 	 * Creates a new {@link LettuceConnection}.
 	 *
-	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s.
-	 * Should not be used for transactions or blocking operations.
+	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
+	 *          used for transactions or blocking operations.
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when making pub/sub connections.
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
@@ -207,8 +211,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	/**
 	 * Creates a new {@link LettuceConnection}.
 	 *
-	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s.
-	 * Should not be used for transactions or blocking operations.
+	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
+	 *          used for transactions or blocking operations.
 	 * @param connectionProvider connection provider to obtain and release native connections.
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
@@ -223,8 +227,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	/**
 	 * Creates a new {@link LettuceConnection}.
 	 *
-	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s.
-	 * Should not be used for transactions or blocking operations.
+	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
+	 *          used for transactions or blocking operations.
 	 * @param connectionProvider connection provider to obtain and release native connections.
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
@@ -451,24 +455,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	<T, R> LettuceResult<T, R> newLettuceResult(Future<T> resultHolder, Converter<T, R> converter) {
 
-		return LettuceResultBuilder.<T, R>forResponse(resultHolder)
-				.mappedWith(converter)
-				.convertPipelineAndTxResults(this.convertPipelineAndTxResults)
-				.build();
+		return LettuceResultBuilder.<T, R> forResponse(resultHolder).mappedWith(converter)
+				.convertPipelineAndTxResults(this.convertPipelineAndTxResults).build();
 	}
 
 	<T, R> LettuceResult<T, R> newLettuceResult(Future<T> resultHolder, Converter<T, R> converter,
 			Supplier<R> defaultValue) {
 
-		return LettuceResultBuilder.<T, R>forResponse(resultHolder)
-				.mappedWith(converter)
-				.convertPipelineAndTxResults(this.convertPipelineAndTxResults)
-				.defaultNullTo(defaultValue)
-				.build();
+		return LettuceResultBuilder.<T, R> forResponse(resultHolder).mappedWith(converter)
+				.convertPipelineAndTxResults(this.convertPipelineAndTxResults).defaultNullTo(defaultValue).build();
 	}
 
 	<T, R> LettuceResult<T, R> newLettuceStatusResult(Future<T> resultHolder) {
-		return LettuceResultBuilder.<T, R>forResponse(resultHolder).buildStatusResult();
+		return LettuceResultBuilder.<T, R> forResponse(resultHolder).buildStatusResult();
 	}
 
 	void pipeline(LettuceResult<?, ?> result) {
@@ -581,7 +580,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		pipeliningFlushState = null;
 		isPipelined = false;
 
-		List<io.lettuce.core.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<>(ppline.size());
+		List<CompletableFuture<?>> futures = new ArrayList<>(ppline.size());
 
 		for (LettuceResult<?, ?> result : ppline) {
 			futures.add(result.getResultHolder());
@@ -598,10 +597,24 @@ public class LettuceConnection extends AbstractRedisConnection {
 			if (done) {
 				for (LettuceResult<?, ?> result : ppline) {
 
-					if (result.getResultHolder().getOutput().hasError()) {
+					CompletableFuture<?> resultHolder = result.getResultHolder();
+					if (resultHolder.isCompletedExceptionally()) {
 
-						Exception exception = new InvalidDataAccessApiUsageException(result.getResultHolder()
-								.getOutput().getError());
+						String message;
+						if (resultHolder instanceof io.lettuce.core.protocol.RedisCommand<?, ?, ?> rc) {
+							message = rc.getOutput().getError();
+						} else {
+							try {
+								resultHolder.get();
+								message = "";
+							} catch (InterruptedException ignore) {
+								message = "";
+							} catch (ExecutionException e) {
+								message = e.getCause().getMessage();
+							}
+						}
+
+						Exception exception = new InvalidDataAccessApiUsageException(message);
 
 						// remember only the first error
 						if (problem == null) {
@@ -682,8 +695,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				LettuceTransactionResultConverter resultConverter = new LettuceTransactionResultConverter(
 						new LinkedList<>(txResults), exceptionConverter);
 
-				pipeline(newLettuceResult(exec, source ->
-						resultConverter.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
+				pipeline(newLettuceResult(exec,
+						source -> resultConverter.convert(LettuceConverters.transactionResultUnwrapper().convert(source))));
 
 				return null;
 			}
@@ -835,8 +848,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			return (T) (converter != null ? converter.convert(source) : source);
-		} catch (IndexOutOfBoundsException ignore) {
- 		}
+		} catch (IndexOutOfBoundsException ignore) {}
 
 		return null;
 	}
@@ -1060,8 +1072,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	io.lettuce.core.ScanCursor getScanCursor(long cursorId) {
-		return io.lettuce.core.ScanCursor.of(Long.toString(cursorId));
+	io.lettuce.core.ScanCursor getScanCursor(CursorId cursorId) {
+		return io.lettuce.core.ScanCursor.of(cursorId.getCursorId());
 	}
 
 	private void validateCommandIfRunningInTransactionMode(ProtocolKeyword cmd, byte[]... args) {

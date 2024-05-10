@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -149,8 +150,7 @@ class JedisHashCommands implements RedisHashCommands {
 
 					List<Entry<byte[], byte[]>> convertedMapEntryList = new ArrayList<>(mapEntryList.size());
 
-					mapEntryList.forEach(entry ->
-							convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
+					mapEntryList.forEach(entry -> convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
 
 					return convertedMapEntryList;
 
@@ -219,24 +219,17 @@ class JedisHashCommands implements RedisHashCommands {
 
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		return hScan(key, 0, options);
+		return hScan(key, CursorId.initial(), options);
 	}
 
-	/**
-	 * @since 1.4
-	 * @param key
-	 * @param cursorId
-	 * @param options
-	 * @return
-	 */
-	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
@@ -244,9 +237,9 @@ class JedisHashCommands implements RedisHashCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key, JedisConverters.toBytes(cursorId),
-						params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()), result.getResult());
+				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key,
+						JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 
 			@Override

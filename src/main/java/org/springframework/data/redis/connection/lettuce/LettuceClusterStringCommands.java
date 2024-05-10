@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import java.util.Map;
-
-import org.springframework.data.redis.connection.ClusterSlotHashUtil;
-import org.springframework.util.Assert;
-
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -31,21 +26,4 @@ class LettuceClusterStringCommands extends LettuceStringCommands {
 		super(connection);
 	}
 
-	@Override
-	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
-
-		Assert.notNull(tuples, "Tuples must not be null");
-
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(tuples.keySet().toArray(new byte[tuples.keySet().size()][]))) {
-			return super.mSetNX(tuples);
-		}
-
-		boolean result = true;
-		for (Map.Entry<byte[], byte[]> entry : tuples.entrySet()) {
-			if (!setNX(entry.getKey(), entry.getValue()) && result) {
-				result = false;
-			}
-		}
-		return result;
-	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -335,6 +336,21 @@ class JedisConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		assertThat(connectionFactory.isRunning()).isTrue();
+	}
+
+	@Test // GH-2866
+	void earlyStartupDoesNotStartConnectionFactory() {
+
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(new JedisPoolConfig());
+
+		connectionFactory.setEarlyStartup(false);
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.isEarlyStartup()).isFalse();
+		assertThat(connectionFactory.isAutoStartup()).isTrue();
+		assertThat(connectionFactory.isRunning()).isFalse();
+
+		assertThat(ReflectionTestUtils.getField(connectionFactory, "pool")).isNull();
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,

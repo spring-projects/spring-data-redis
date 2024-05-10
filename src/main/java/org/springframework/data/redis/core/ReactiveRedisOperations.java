@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,10 +103,16 @@ public interface ReactiveRedisOperations<K, V> {
 
 	/**
 	 * Subscribe to the given Redis {@code channels} and emit {@link Message messages} received for those.
+	 * <p>
+	 * Note that this method allocates a new
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} and uses a dedicated
+	 * connection, similar to other methods on this interface. Invoking this method multiple times is an indication that
+	 * you should use {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} directly.
 	 *
 	 * @param channels must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
 	 * @since 2.1
+	 * @see org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer
 	 */
 	default Flux<? extends Message<String, V>> listenToChannel(String... channels) {
 
@@ -118,10 +124,16 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels matching the given {@code pattern} and emit {@link Message messages} received for
 	 * those.
+	 * <p>
+	 * Note that this method allocates a new
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} and uses a dedicated
+	 * connection, similar to other methods on this interface. Invoking this method multiple times is an indication that
+	 * you should use {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} directly.
 	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
 	 * @since 2.1
+	 * @see org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer
 	 */
 	default Flux<? extends Message<String, V>> listenToPattern(String... patterns) {
 
@@ -132,16 +144,27 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels for the given {@link Topic topics} and emit {@link Message messages} received for
 	 * those.
+	 * <p>
+	 * Note that this method allocates a new
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} and uses a dedicated
+	 * connection, similar to other methods on this interface. Invoking this method multiple times is an indication that
+	 * you should use {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} directly.
 	 *
 	 * @param topics must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
 	 * @since 2.1
+	 * @see org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer
 	 */
 	Flux<? extends Message<String, V>> listenTo(Topic... topics);
 
 	/**
 	 * Subscribe to the given Redis {@code channels} and emit {@link Message messages} received for those. The
 	 * {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 * <p>
+	 * Note that this method allocates a new
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} and uses a dedicated
+	 * connection, similar to other methods on this interface. Invoking this method multiple times is an indication that
+	 * you should use {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} directly.
 	 *
 	 * @param channels must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -158,6 +181,11 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels matching the given {@code pattern} and emit {@link Message messages} received for
 	 * those. The {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 * <p>
+	 * Note that this method allocates a new
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} and uses a dedicated
+	 * connection, similar to other methods on this interface. Invoking this method multiple times is an indication that
+	 * you should use {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} directly.
 	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.
@@ -173,6 +201,11 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * Subscribe to the Redis channels for the given {@link Topic topics} and emit {@link Message messages} received for
 	 * those. The {@link Mono} completes once the {@link Topic topic} subscriptions are registered.
+	 * <p>
+	 * Note that this method allocates a new
+	 * {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} and uses a dedicated
+	 * connection, similar to other methods on this interface. Invoking this method multiple times is an indication that
+	 * you should use {@link org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer} directly.
 	 *
 	 * @param topics must not be {@literal null}.
 	 * @return a hot sequence of {@link Message messages}.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,33 +40,45 @@ import org.springframework.util.CollectionUtils;
 public abstract class ScanCursor<T> implements Cursor<T> {
 
 	private CursorState state;
-	private long cursorId;
+	private CursorId id;
 	private Iterator<T> delegate;
 	private final ScanOptions scanOptions;
 	private long position;
 
 	/**
-	 * Crates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
+	 * Crates new {@link ScanCursor} with an initial cursor and {@link ScanOptions#NONE}
 	 */
 	public ScanCursor() {
 		this(ScanOptions.NONE);
 	}
 
 	/**
-	 * Crates new {@link ScanCursor} with {@code id=0}.
+	 * Crates new {@link ScanCursor} with an initial cursor.
 	 *
 	 * @param options the scan options to apply.
 	 */
 	public ScanCursor(ScanOptions options) {
-		this(0, options);
+		this(CursorId.initial(), options);
 	}
 
 	/**
 	 * Crates new {@link ScanCursor} with {@link ScanOptions#NONE}
 	 *
 	 * @param cursorId the cursor Id.
+	 * @deprecated since 3.3.0 - Use {@link ScanCursor#ScanCursor(CursorId)} instead.
 	 */
+	@Deprecated(since = "3.3.0")
 	public ScanCursor(long cursorId) {
+		this(cursorId, ScanOptions.NONE);
+	}
+
+	/**
+	 * Crates new {@link ScanCursor} with {@link ScanOptions#NONE}
+	 *
+	 * @param cursorId the cursor Id.
+	 * @since 3.3.0
+	 */
+	public ScanCursor(CursorId cursorId) {
 		this(cursorId, ScanOptions.NONE);
 	}
 
@@ -75,16 +87,29 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 *
 	 * @param cursorId the cursor Id.
 	 * @param options Defaulted to {@link ScanOptions#NONE} if {@code null}.
+	 * @deprecated since 3.3.0 - Use {@link ScanCursor#ScanCursor(CursorId, ScanOptions)} instead.
 	 */
+	@Deprecated(since = "3.3.0")
 	public ScanCursor(long cursorId, @Nullable ScanOptions options) {
+		this(CursorId.of(cursorId), options);
+	}
+
+	/**
+	 * Crates new {@link ScanCursor}
+	 *
+	 * @param cursorId the cursor Id.
+	 * @param options Defaulted to {@link ScanOptions#NONE} if {@code null}.
+	 * @since 3.3.0
+	 */
+	public ScanCursor(CursorId cursorId, @Nullable ScanOptions options) {
 
 		this.scanOptions = options != null ? options : ScanOptions.NONE;
-		this.cursorId = cursorId;
+		this.id = cursorId;
 		this.state = CursorState.READY;
 		this.delegate = Collections.emptyIterator();
 	}
 
-	private void scan(long cursorId) {
+	private void scan(CursorId cursorId) {
 
 		try {
 			processScanResult(doScan(cursorId, this.scanOptions));
@@ -105,8 +130,25 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * @param cursorId
 	 * @param options
 	 * @return
+	 * @deprecated since 3.3.0, cursorId, can exceed {@link Long#MAX_VALUE}.
 	 */
-	protected abstract ScanIteration<T> doScan(long cursorId, ScanOptions options);
+	@Deprecated(since = "3.3.0")
+	protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
+		return doScan(CursorId.of(cursorId), scanOptions);
+	}
+
+	/**
+	 * Performs the actual scan command using the native client implementation. The given {@literal options} are never
+	 * {@code null}.
+	 *
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 * @since 3.3.0
+	 */
+	protected ScanIteration<T> doScan(CursorId cursorId, ScanOptions options) {
+		return doScan(Long.parseLong(cursorId.getCursorId()), scanOptions);
+	}
 
 	/**
 	 * Initialize the {@link Cursor} prior to usage.
@@ -118,7 +160,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		}
 
 		state = CursorState.OPEN;
-		doOpen(cursorId);
+		doOpen(getId());
 
 		return this;
 	}
@@ -127,16 +169,27 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * Customization hook when calling {@link #open()}.
 	 *
 	 * @param cursorId
+	 * @deprecated since 3.3.0, use {@link #doOpen(CursorId)} instead.
 	 */
+	@Deprecated(since = "3.3.0", forRemoval = true)
 	protected void doOpen(long cursorId) {
+		doOpen(CursorId.of(cursorId));
+	}
+
+	/**
+	 * Customization hook when calling {@link #open()}.
+	 *
+	 * @param cursorId
+	 */
+	protected void doOpen(CursorId cursorId) {
 		scan(cursorId);
 	}
 
 	private void processScanResult(ScanIteration<T> result) {
 
-		cursorId = result.getCursorId();
+		id = result.getId();
 
-		if (isFinished(cursorId)) {
+		if (isFinished(id)) {
 			state = CursorState.FINISHED;
 		}
 
@@ -154,8 +207,20 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * @return {@literal true} if the cursor is considered finished, {@literal false} otherwise.s
 	 * @since 2.1
 	 */
+	@Deprecated(since = "3.3.0", forRemoval = true)
 	protected boolean isFinished(long cursorId) {
 		return cursorId == 0;
+	}
+
+	/**
+	 * Check whether {@code cursorId} is finished.
+	 *
+	 * @param cursorId the cursor Id
+	 * @return {@literal true} if the cursor is considered finished, {@literal false} otherwise.s
+	 * @since 3.3.0
+	 */
+	protected boolean isFinished(CursorId cursorId) {
+		return CursorId.isInitial(cursorId.getCursorId());
 	}
 
 	private void resetDelegate() {
@@ -163,8 +228,13 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	@Override
+	public CursorId getId() {
+		return id;
+	}
+
+	@Override
 	public long getCursorId() {
-		return cursorId;
+		return Long.parseUnsignedLong(getId().getCursorId());
 	}
 
 	@Override
@@ -173,14 +243,14 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		assertCursorIsOpen();
 
 		while (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
-			scan(cursorId);
+			scan(getId());
 		}
 
 		if (delegate.hasNext()) {
 			return true;
 		}
 
-		return cursorId > 0;
+		return !isFinished(id);
 	}
 
 	private void assertCursorIsOpen() {
@@ -196,7 +266,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		assertCursorIsOpen();
 
 		if (!hasNext()) {
-			throw new NoSuchElementException("No more elements available for cursor " + cursorId);
+			throw new NoSuchElementException("No more elements available for cursor " + id);
 		}
 
 		T next = moveNext(delegate);

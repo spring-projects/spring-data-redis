@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 *
 	 * @param channelTopics the channels to subscribe.
 	 * @return the message stream.
-	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
+	 * @throws InvalidDataAccessApiUsageException if {@code channelTopics} is empty.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
 	 */
 	public Flux<Message<String, String>> receive(ChannelTopic... channelTopics) {
@@ -168,7 +168,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 *
 	 * @param channelTopics the channels to subscribe.
 	 * @return the message stream.
-	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
+	 * @throws InvalidDataAccessApiUsageException if {@code channelTopics} is empty.
 	 * @since 2.6
 	 */
 	public Mono<Flux<Message<String, String>>> receiveLater(ChannelTopic... channelTopics) {

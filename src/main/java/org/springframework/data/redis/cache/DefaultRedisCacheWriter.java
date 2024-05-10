@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
@@ -57,6 +58,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author André Prata
  * @author John Blum
+ * @author ChanYoung Joung
  * @since 2.0
  */
 class DefaultRedisCacheWriter implements RedisCacheWriter {
@@ -218,8 +220,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		return execute(name, connection -> {
 
+			boolean wasLocked = false;
 			if (isLockingCacheWriter()) {
 				doLock(name, key, value, connection);
+				wasLocked = true;
 			}
 
 			try {
@@ -241,7 +245,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				return connection.stringCommands().get(key);
 
 			} finally {
-				if (isLockingCacheWriter()) {
+				if (isLockingCacheWriter() && wasLocked) {
 					doUnlock(name, connection);
 				}
 			}
@@ -318,13 +322,18 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		execute(name, connection -> doLock(name, name, null, connection));
 	}
 
-	@Nullable
-	private Boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue,
-			RedisConnection connection) {
+	boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
 
+		RedisStringCommands commands = connection.stringCommands();
 		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
+		byte[] cacheLockKey = createCacheLockKey(name);
 
-		return connection.stringCommands().set(createCacheLockKey(name), new byte[0], expiration, SetOption.SET_IF_ABSENT);
+		while (!ObjectUtils.nullSafeEquals(commands.set(cacheLockKey, new byte[0], expiration, SetOption.SET_IF_ABSENT),
+				true)) {
+			checkAndPotentiallyWaitUntilUnlocked(name, connection);
+		}
+
+		return true;
 	}
 
 	/**
@@ -337,7 +346,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Nullable
-	private Long doUnlock(String name, RedisConnection connection) {
+	Long doUnlock(String name, RedisConnection connection) {
 		return connection.keyCommands().del(createCacheLockKey(name));
 	}
 
@@ -485,8 +494,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				Mono<?> cacheLockCheck = isLockingCacheWriter() ? waitForLock(connection, name) : Mono.empty();
 				ReactiveStringCommands stringCommands = connection.stringCommands();
 
-				Mono<ByteBuffer> get = shouldExpireWithin(ttl)
-						? stringCommands.getEx(wrappedKey, Expiration.from(ttl))
+				Mono<ByteBuffer> get = shouldExpireWithin(ttl) ? stringCommands.getEx(wrappedKey, Expiration.from(ttl))
 						: stringCommands.get(wrappedKey);
 
 				return cacheLockCheck.then(get).map(ByteUtils::getBytes).toFuture();
@@ -498,8 +506,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			return doWithConnection(connection -> {
 
-				Mono<?> mono = isLockingCacheWriter()
-						? doStoreWithLocking(name, key, value, ttl, connection)
+				Mono<?> mono = isLockingCacheWriter() ? doStoreWithLocking(name, key, value, ttl, connection)
 						: doStore(key, value, ttl, connection);
 
 				return mono.then().toFuture();
@@ -526,7 +533,6 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				return connection.stringCommands().set(wrappedKey, wrappedValue);
 			}
 		}
-
 
 		private Mono<Object> doLock(String name, Object contextualKey, @Nullable Object contextualValue,
 				ReactiveRedisConnection connection) {

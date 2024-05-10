@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.util.StringUtils.commaDelimitedListToSet;
+import static org.springframework.util.StringUtils.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,8 +32,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link RedisConfiguration Configuration} class used to set up a {@link RedisConnection}
- * with {@link RedisConnectionFactory} for connecting to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>.
+ * {@link RedisConfiguration Configuration} class used to set up a {@link RedisConnection} with
+ * {@link RedisConnectionFactory} for connecting to <a href="https://redis.io/topics/sentinel">Redis Sentinel(s)</a>.
  * Useful when setting up a highly available Redis environment.
  *
  * @author Christoph Strobl
@@ -41,6 +41,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Vikas Garg
  * @author John Blum
+ * @author Samuel Klose
+ * @author Mustapha Zorgati
  * @since 1.4
  */
 public class RedisSentinelConfiguration implements RedisConfiguration, SentinelConfiguration {
@@ -49,6 +51,9 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
 	private static final String REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.username";
 	private static final String REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
+	private static final String REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.username";
+	private static final String REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.password";
+	private static final String REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.database";
 
 	private int database;
 
@@ -96,7 +101,10 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 *
 	 * @param propertySource must not be {@literal null}.
 	 * @since 1.5
+	 * @deprecated since 3.3, use {@link RedisSentinelConfiguration#of(PropertySource)} instead. This constructor will be
+	 *             made private in the next major release.
 	 */
+	@Deprecated(since = "3.3")
 	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
 
 		Assert.notNull(propertySource, "PropertySource must not be null");
@@ -122,6 +130,41 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 			String sentinelUsername = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY));
 			this.setSentinelUsername(sentinelUsername);
 		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY)) {
+			String dataNodeUsername = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY));
+			this.setUsername(dataNodeUsername);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY)) {
+			String dataNodePassword = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY));
+			this.setPassword(dataNodePassword);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY)) {
+			String databaseSource = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY));
+			int database;
+			try {
+				database = Integer.parseInt(databaseSource);
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException(String.format("Invalid DB index '%s'; integer required", databaseSource));
+			}
+			this.setDatabase(database);
+		}
+	}
+
+	/**
+	 * Construct a new {@link RedisSentinelConfiguration} from the given {@link PropertySource}.
+	 *
+	 * @param propertySource must not be {@literal null}.
+	 * @return a new {@link RedisSentinelConfiguration} configured from the given {@link PropertySource}.
+	 * @since 3.3
+	 */
+	public static RedisSentinelConfiguration of(PropertySource<?> propertySource) {
+		return new RedisSentinelConfiguration(propertySource);
 	}
 
 	/**
@@ -286,8 +329,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 			return false;
 		}
 
-		return this.database == that.database
-				&& ObjectUtils.nullSafeEquals(this.master, that.master)
+		return this.database == that.database && ObjectUtils.nullSafeEquals(this.master, that.master)
 				&& ObjectUtils.nullSafeEquals(this.sentinels, that.sentinels)
 				&& ObjectUtils.nullSafeEquals(this.dataNodeUsername, that.dataNodeUsername)
 				&& ObjectUtils.nullSafeEquals(this.dataNodePassword, that.dataNodePassword)

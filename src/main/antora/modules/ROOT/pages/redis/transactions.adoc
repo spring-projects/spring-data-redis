@@ -25,6 +25,28 @@ System.out.println("Number of items added to set: " + txResults.get(0));
 `RedisTemplate` uses its value, hash key, and hash value serializers to deserialize all results of `exec` before returning.
 There is an additional `exec` method that lets you pass a custom serializer for transaction results.
 
+It is worth mentioning that in case between `multi()` and `exec()` an exception happens (e.g. a timeout exception in case Redis does not respond within the timeout) then the connection may get stuck in a transactional state.
+To prevent such a situation need have to discard the transactional state to clear the connection:
+
+[source,java]
+----
+List<Object> txResults = redisOperations.execute(new SessionCallback<List<Object>>() {
+  public List<Object> execute(RedisOperations operations) throws DataAccessException {
+    boolean transactionStateIsActive = true;
+	try {
+      operations.multi();
+      operations.opsForSet().add("key", "value1");
+
+      // This will contain the results of all operations in the transaction
+      return operations.exec();
+    } catch (RuntimeException e) {
+	    operations.discard();
+		throw e;
+    }
+  }
+});
+----
+
 [[tx.spring]]
 == `@Transactional` Support
 

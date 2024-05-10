@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -394,11 +394,11 @@ class JedisClusterSetCommands implements RedisSetCommands {
 		return new ScanCursor<byte[]>(options) {
 
 			@Override
-			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 				ScanResult<byte[]> result = connection.getCluster().sscan(key, JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.parseLong(result.getCursor()), result.getResult());
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}

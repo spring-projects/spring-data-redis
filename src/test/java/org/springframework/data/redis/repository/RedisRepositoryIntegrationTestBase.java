@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -50,6 +51,7 @@ import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
+import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 
 /**
@@ -99,6 +101,71 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findByFirstname("egwene")).contains(egwene);
 
 		assertThat(repo.findByLastname("al'thor")).contains(rand);
+	}
+
+	@Test // GH-2851
+	void shouldReturnSingleEntityByIdViaQueryMethod() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+
+		repo.saveAll(Arrays.asList(rand, egwene));
+
+		assertThat(repo.findEntityById(rand.getId())).isEqualTo(rand);
+		assertThat(repo.findEntityById(egwene.getId())).isEqualTo(egwene);
+	}
+
+	@Test // GH-2851
+	void shouldProjectSingleResult() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+
+		repo.saveAll(Arrays.asList(rand, egwene));
+
+		PersonProjection projection = repo.findProjectionById(rand.getId(), PersonProjection.class);
+		assertThat(projection).isNotNull();
+		assertThat(projection.getFirstname()).isEqualTo(rand.firstname);
+
+		PersonDto dto = repo.findProjectionById(rand.getId(), PersonDto.class);
+		assertThat(dto).isNotNull();
+		assertThat(dto.firstname()).isEqualTo(rand.firstname);
+	}
+
+	@Test // GH-2851
+	void shouldProjectCollection() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al'thor";
+
+		Person egwene = new Person();
+		egwene.firstname = "egwene";
+
+		repo.saveAll(Arrays.asList(rand, egwene));
+
+		List<PersonProjection> projection = repo.findProjectionBy();
+		assertThat(projection).hasSize(2) //
+				.extracting(PersonProjection::getFirstname) //
+				.contains(rand.getFirstname(), egwene.getFirstname());
+
+		projection = repo.findProjectionStreamBy().toList();
+		assertThat(projection).hasSize(2) //
+				.extracting(PersonProjection::getFirstname) //
+				.contains(rand.getFirstname(), egwene.getFirstname());
+
+		List<PersonDto> dtos = repo.findProjectionDtoBy();
+		assertThat(dtos).hasSize(2) //
+				.extracting(PersonDto::firstname) //
+				.contains(rand.getFirstname(), egwene.getFirstname());
 	}
 
 	@Test // DATAREDIS-425
@@ -266,6 +333,25 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(firstPage.getContent()).hasSize(2);
 		assertThat(firstPage.getTotalElements()).isEqualTo(3L);
 		assertThat(repo.findBy(firstPage.nextPageable()).getContent()).hasSize(1);
+	}
+
+	@Test // GH-2799
+	void shouldReturnEntitiesWithoutDuplicates() {
+
+		Person eddard = new Person("eddard", "stark");
+		eddard.setAlive(true);
+
+		Person robb = new Person("robb", "stark");
+		robb.setAlive(false);
+
+		Person jon = new Person("jon", "snow");
+		jon.setAlive(true);
+
+		repo.saveAll(Arrays.asList(eddard, robb, jon));
+
+		List<Person> result = repo.findByFirstnameAndLastnameOrAliveIsTrue("eddard", "stark");
+		assertThat(result).hasSize(2);
+		assertThat(result).contains(eddard, jon);
 	}
 
 	@Test // DATAREDIS-771
@@ -537,6 +623,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
 
+		List<Person> findByFirstnameAndLastnameOrAliveIsTrue(String firstname, String lastname);
+
 		List<Person> findFirstBy();
 
 		List<Person> findTop2By();
@@ -549,8 +637,25 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		Slice<Person> findByHometownLocationNear(Point point, Distance distance, Pageable pageable);
 
+		Person findEntityById(String id);
+
+		<T> T findProjectionById(String id, Class<T> projection);
+
+		Streamable<PersonProjection> findProjectionStreamBy();
+
+		List<PersonProjection> findProjectionBy();
+
+		List<PersonDto> findProjectionDtoBy();
+
 		@Override
 		<S extends Person> List<S> findAll(Example<S> example);
+	}
+
+	public interface PersonProjection {
+		String getFirstname();
+	}
+
+	record PersonDto(String firstname) {
 	}
 
 	public interface CityRepository extends CrudRepository<City, String> {

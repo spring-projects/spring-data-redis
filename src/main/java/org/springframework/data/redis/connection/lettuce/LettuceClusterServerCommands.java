@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.api.sync.RedisServerCommands;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +33,6 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.lettuce.LettuceClusterConnection.LettuceClusterCommandCallback;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Paluch
@@ -72,34 +70,8 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public Long dbSize() {
-
-		Collection<Long> dbSizes = executeCommandOnAllNodes(RedisServerCommands::dbsize).resultsAsList();
-
-		if (CollectionUtils.isEmpty(dbSizes)) {
-			return 0L;
-		}
-
-		Long size = 0L;
-		for (Long value : dbSizes) {
-			size += value;
-		}
-		return size;
-	}
-
-	@Override
 	public Long dbSize(RedisClusterNode node) {
 		return executeCommandOnSingleNode(RedisServerCommands::dbsize, node).getValue();
-	}
-
-	@Override
-	public void flushDb() {
-		executeCommandOnAllNodes(RedisServerCommands::flushdb);
-	}
-
-	@Override
-	public void flushDb(FlushOption option) {
-		executeCommandOnAllNodes(it -> it.flushdb(LettuceConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -110,16 +82,6 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public void flushDb(RedisClusterNode node, FlushOption option) {
 		executeCommandOnSingleNode(it -> it.flushdb(LettuceConverters.toFlushMode(option)), node);
-	}
-
-	@Override
-	public void flushAll() {
-		executeCommandOnAllNodes(RedisServerCommands::flushall);
-	}
-
-	@Override
-	public void flushAll(FlushOption option) {
-		executeCommandOnAllNodes(it -> it.flushall(LettuceConverters.toFlushMode(option)));
 	}
 
 	@Override
@@ -220,7 +182,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	public void setConfig(String param, String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
-		Assert.hasText(value, "Value must not be null or empty");
+		Assert.notNull(value, "Value must not be null");
 
 		executeCommandOnAllNodes(client -> client.configSet(param, value));
 	}

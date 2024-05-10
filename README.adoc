@@ -1,7 +1,7 @@
 image:https://spring.io/badges/spring-data-redis/ga.svg[Spring Data Redis,link=https://spring.io/projects/spring-data-redis/#quick-start]
 image:https://spring.io/badges/spring-data-redis/snapshot.svg[Spring Data Redis,link=https://spring.io/projects/spring-data-redis/#quick-start]
 
-= Spring Data Redis image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]] image:https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Gradle Enterprise", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data Redis"]
+= Spring Data Redis image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]] image:https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Develocity", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data Redis"]
 
 The primary goal of the https://spring.io/projects/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
@@ -11,9 +11,9 @@ This modules provides integration with the https://redis.io/[Redis] store.
 
 * Connection package as low-level abstraction across multiple Redis drivers (https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis]).
 * Exception translation to Spring’s portable Data Access exception hierarchy for Redis driver exceptions
-* https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:template[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
+* https://docs.spring.io/spring-data/redis/reference/redis/template.html[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
 * Pubsub support (such as a MessageListenerContainer for message-driven POJOs).
-* https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#cluster[Redis Cluster] support.
+* https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#cluster.enable[Redis Cluster] support.
 * Reactive API using the Lettuce driver.
 * JDK, String, JSON and Spring Object/XML mapping serializers.
 * JDK Collection implementations on top of Redis.
@@ -97,7 +97,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 Having trouble with Spring Data? We’d love to help!
 
 * Check the
-https://docs.spring.io/spring-data/redis/docs/reference/[reference documentation], and https://docs.spring.io/spring-data/redis/docs/current/api/[Javadocs].
+https://docs.spring.io/spring-data/redis/reference/[reference documentation], and https://docs.spring.io/spring-data/redis/docs/current/api/[Javadocs].
 * Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
 If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
 * If you are upgrading, check out the https://github.com/spring-projects/spring-data-commons/wiki#release-notes[Release notes] for "`new and noteworthy`" features.

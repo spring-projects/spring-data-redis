@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2023 the original author or authors.
+ * Copyright 2011-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.CODEC;
-import static org.springframework.data.redis.connection.lettuce.LettuceConnection.PipeliningFlushPolicy;
+import static org.springframework.data.redis.connection.lettuce.LettuceConnection.*;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
@@ -50,6 +49,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -59,23 +59,10 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.ClusterTopologyProvider;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisSocketConfiguration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration;
 import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
@@ -85,7 +72,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link RedisConnectionFactory Connection factory} creating <a href="https://lettuce.io/">Lettuce</a>-based connections.
+ * {@link RedisConnectionFactory Connection factory} creating <a href="https://lettuce.io/">Lettuce</a>-based
+ * connections.
  * <p>
  * This factory creates a new {@link LettuceConnection} on each call to {@link #getConnection()}. While multiple
  * {@link LettuceConnection}s share a single thread-safe native connection by default, {@link LettuceConnection} and its
@@ -112,8 +100,9 @@ import org.springframework.util.StringUtils;
  * This connection factory implements {@link InitializingBean} and {@link SmartLifecycle} for flexible lifecycle
  * control. It must be {@link #afterPropertiesSet() initialized} and {@link #start() started} before you can obtain a
  * connection. {@link #afterPropertiesSet() Initialization} {@link SmartLifecycle#start() starts} this bean
- * {@link #isAutoStartup() by default}. You can {@link SmartLifecycle#stop()} and {@link SmartLifecycle#start() restart}
- * this connection factory if needed.
+ * {@link #isEarlyStartup() early} by default. You can {@link SmartLifecycle#stop()} and {@link SmartLifecycle#start()
+ * restart} this connection factory if needed. Disabling {@link #isEarlyStartup() early startup} leaves lifecycle
+ * management to the container refresh if {@link #isAutoStartup() auto-startup} is enabled.
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -133,13 +122,14 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
 
+	private int phase = 0; // in between min and max values
+	private boolean autoStartup = true;
+	private boolean earlyStartup = true;
 	private boolean convertPipelineAndTxResults = true;
 	private boolean eagerInitialization = false;
+
 	private boolean shareNativeConnection = true;
 	private boolean validateConnection = false;
-
-	private int phase = 0; // in between min and max values
-
 	private @Nullable AbstractRedisClient client;
 
 	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
@@ -568,12 +558,13 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	/**
 	 * Indicates {@link #setShareNativeConnection(boolean) shared connections} should be eagerly initialized. Eager
-	 * initialization requires a running Redis instance during application startup to allow early validation of connection
-	 * factory configuration. Eager initialization also prevents blocking connect while using reactive API and is
-	 * recommended for reactive API usage.
+	 * initialization requires a running Redis instance during {@link #start() startup} to allow early validation of
+	 * connection factory configuration. Eager initialization also prevents blocking connect while using reactive API and
+	 * is recommended for reactive API usage.
 	 *
-	 * @return {@link true} if the shared connection is initialized upon {@link #afterPropertiesSet()}.
+	 * @return {@link true} if the shared connection is initialized upon {@link #start()}.
 	 * @since 2.2
+	 * @see #start()
 	 */
 	public boolean getEagerInitialization() {
 		return this.eagerInitialization;
@@ -602,8 +593,12 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	/**
 	 * Sets the index of the database used by this connection factory. Default is 0.
 	 *
-	 * @param index database index
+	 * @param index database index.
+	 * @deprecated since 3.2, configure the database index using {@link RedisStandaloneConfiguration},
+	 *             {@link RedisSocketConfiguration}, {@link RedisSentinelConfiguration}, or
+	 *             {@link RedisStaticMasterReplicaConfiguration}.
 	 */
+	@Deprecated
 	public void setDatabase(int index) {
 
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
@@ -672,7 +667,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	public AbstractRedisClient getRequiredNativeClient() {
 
 		return RedisAssertions.requireState(getNativeClient(),
-			"Client not yet initialized; Did you forget to call initialize the bean");
+				"Client not yet initialized; Did you forget to call initialize the bean");
 	}
 
 	@Nullable
@@ -801,6 +796,70 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@Nullable
 	public RedisClusterConfiguration getClusterConfiguration() {
 		return isClusterAware() ? (RedisClusterConfiguration) this.configuration : null;
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	/**
+	 * Specify the lifecycle phase for pausing and resuming this executor. The default is {@code 0}.
+	 *
+	 * @since 3.2
+	 * @see SmartLifecycle#getPhase()
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
+	 * @since 3.3
+	 */
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	/**
+	 * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
+	 * the containing ApplicationContext gets refreshed.
+	 * <p>
+	 * This connection factory defaults to early auto-startup during {@link #afterPropertiesSet()} and can potentially
+	 * create Redis connections early on in the lifecycle. See {@link #setEarlyStartup(boolean)} for delaying connection
+	 * creation to the ApplicationContext refresh if auto-startup is enabled.
+	 *
+	 * @param autoStartup {@literal true} to automatically {@link #start()} the connection factory; {@literal false}
+	 *          otherwise.
+	 * @since 3.3
+	 * @see #setEarlyStartup(boolean)
+	 * @see #start()
+	 */
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	/**
+	 * @return whether to {@link #start()} the component during {@link #afterPropertiesSet()}.
+	 * @since 3.3
+	 */
+	public boolean isEarlyStartup() {
+		return this.earlyStartup;
+	}
+
+	/**
+	 * Configure if this InitializingBean's component Lifecycle should get started early by {@link #afterPropertiesSet()}
+	 * at the time that the bean is initialized. The component defaults to auto-startup.
+	 * <p>
+	 * This method is related to {@link #setAutoStartup(boolean) auto-startup} and can be used to delay Redis client
+	 * startup until the ApplicationContext refresh. Disabling early startup does not disable auto-startup.
+	 *
+	 * @param earlyStartup {@literal true} to early {@link #start()} the component; {@literal false} otherwise.
+	 * @since 3.3
+	 * @see #setAutoStartup(boolean)
+	 */
+	public void setEarlyStartup(boolean earlyStartup) {
+		this.earlyStartup = earlyStartup;
 	}
 
 	/**
@@ -933,21 +992,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
-	public int getPhase() {
-		return this.phase;
-	}
-
-	/**
-	 * Specify the lifecycle phase for pausing and resuming this executor. The default is {@code 0}.
-	 *
-	 * @since 3.2
-	 * @see SmartLifecycle#getPhase()
-	 */
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	@Override
 	public boolean isRunning() {
 		return State.STARTED.equals(this.state.get());
 	}
@@ -955,7 +999,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@Override
 	public void afterPropertiesSet() {
 
-		if (isAutoStartup()) {
+		if (isEarlyStartup()) {
 			start();
 		}
 	}
@@ -1002,8 +1046,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			return getClusterConnection();
 		}
 
-		LettuceConnection connection =
-				doCreateLettuceConnection(getSharedConnection(), this.connectionProvider, getTimeout(), getDatabase());
+		LettuceConnection connection = doCreateLettuceConnection(getSharedConnection(), this.connectionProvider,
+				getTimeout(), getDatabase());
 
 		connection.setConvertPipelineAndTxResults(this.convertPipelineAndTxResults);
 
@@ -1141,7 +1185,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		doInLock(() -> {
 
 			Optionals.toStream(Optional.ofNullable(this.connection), Optional.ofNullable(this.reactiveConnection))
-				.forEach(SharedConnection::resetConnection);
+					.forEach(SharedConnection::resetConnection);
 
 			this.connection = null;
 			this.reactiveConnection = null;
@@ -1251,7 +1295,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		return isStaticMasterReplicaAware() ? createStaticMasterReplicaConnectionProvider((RedisClient) client, codec)
 				: isClusterAware() ? createClusterConnectionProvider((RedisClusterClient) client, codec)
-				: createStandaloneConnectionProvider((RedisClient) client, codec);
+						: createStandaloneConnectionProvider((RedisClient) client, codec);
 	}
 
 	@SuppressWarnings("all")
@@ -1278,8 +1322,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		return isStaticMasterReplicaAware() ? createStaticMasterReplicaClient()
 				: isRedisSentinelAware() ? createSentinelClient()
-				: isClusterAware() ? createClusterClient()
-				: createBasicClient();
+						: isClusterAware() ? createClusterClient() : createBasicClient();
 	}
 
 	private RedisClient createStaticMasterReplicaClient() {
@@ -1345,8 +1388,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		ClusterConfiguration clusterConfiguration = (ClusterConfiguration) this.configuration;
 
 		clusterConfiguration.getClusterNodes().stream()
-				.map(node -> createRedisURIAndApplySettings(node.getHost(), node.getPort()))
-				.forEach(initialUris::add);
+				.map(node -> createRedisURIAndApplySettings(node.getHost(), node.getPort())).forEach(initialUris::add);
 
 		RedisClusterClient clusterClient = this.clientConfiguration.getClientResources()
 				.map(clientResources -> RedisClusterClient.create(clientResources, initialUris))
@@ -1399,8 +1441,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		switch (current) {
 			case CREATED, STOPPED -> throw new IllegalStateException(
 					String.format("LettuceConnectionFactory has been %s. Use start() to initialize it", current));
-			case DESTROYED -> throw new IllegalStateException(
-					"LettuceConnectionFactory was destroyed and cannot be used anymore");
+			case DESTROYED ->
+				throw new IllegalStateException("LettuceConnectionFactory was destroyed and cannot be used anymore");
 			default -> throw new IllegalStateException(String.format("LettuceConnectionFactory is %s", current));
 		}
 	}
@@ -1431,9 +1473,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private RedisURI createRedisSocketURIAndApplySettings(String socketPath) {
 
 		return applyAuthentication(RedisURI.Builder.socket(socketPath))
-				.withTimeout(this.clientConfiguration.getCommandTimeout())
-				.withDatabase(getDatabase())
-				.build();
+				.withTimeout(this.clientConfiguration.getCommandTimeout()).withDatabase(getDatabase()).build();
 	}
 
 	private RedisURI.Builder applyAuthentication(RedisURI.Builder builder) {
@@ -1467,7 +1507,10 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	private void doInLock(Runnable runnable) {
-		doInLock(() -> { runnable.run(); return null; });
+		doInLock(() -> {
+			runnable.run();
+			return null;
+		});
 	}
 
 	private <T> T doInLock(Supplier<T> supplier) {
@@ -1476,8 +1519,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		try {
 			return supplier.get();
-		}
-		finally {
+		} finally {
 			this.lock.unlock();
 		}
 	}
@@ -1539,12 +1581,12 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		}
 
 		/**
-		 * Null-safe operation to evaluate whether the given {@link StatefulConnection connetion}
-		 * is {@link StatefulConnection#isOpen() open}.
+		 * Null-safe operation to evaluate whether the given {@link StatefulConnection connetion} is
+		 * {@link StatefulConnection#isOpen() open}.
 		 *
 		 * @param connection {@link StatefulConnection} to evaluate.
-		 * @return a boolean value indicating whether the given {@link StatefulConnection} is not {@literal null}
-		 * and is {@link StatefulConnection#isOpen() open}.
+		 * @return a boolean value indicating whether the given {@link StatefulConnection} is not {@literal null} and is
+		 *         {@link StatefulConnection#isOpen() open}.
 		 * @see io.lettuce.core.api.StatefulConnection#isOpen()
 		 */
 		private boolean isOpen(@Nullable StatefulConnection<?, ?> connection) {
@@ -1554,8 +1596,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		/**
 		 * Validate the {@link StatefulConnection connection}.
 		 * <p>
-		 * {@link StatefulConnection Connections} are considered valid if they can send/receive ping packets.
-		 * Invalid {@link StatefulConnection connections} will be closed and the connection state will be reset.
+		 * {@link StatefulConnection Connections} are considered valid if they can send/receive ping packets. Invalid
+		 * {@link StatefulConnection connections} will be closed and the connection state will be reset.
 		 */
 		void validateConnection() {
 

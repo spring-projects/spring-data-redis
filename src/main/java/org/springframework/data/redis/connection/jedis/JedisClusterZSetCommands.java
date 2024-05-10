@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1079,13 +1079,13 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		return new ScanCursor<Tuple>(options) {
 
 			@Override
-			protected ScanIteration<Tuple> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<Tuple> doScan(CursorId cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<redis.clients.jedis.resps.Tuple> result = connection.getCluster().zscan(key,
 						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()),
+				return new ScanIteration<>(CursorId.of(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 		}.open();

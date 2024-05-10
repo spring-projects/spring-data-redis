@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,16 +51,14 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 	private RedisPassword password = RedisPassword.none();
 
-	private final Set<RedisNode> clusterNodes;
+	private final Set<RedisNode> clusterNodes = new LinkedHashSet<>();
 
 	private @Nullable String username = null;
 
 	/**
 	 * Creates a new, default {@link RedisClusterConfiguration}.
 	 */
-	public RedisClusterConfiguration() {
-		this(new MapPropertySource("RedisClusterConfiguration", Collections.emptyMap()));
-	}
+	public RedisClusterConfiguration() {}
 
 	/**
 	 * Creates a new {@link RedisClusterConfiguration} for given {@link String hostPort} combinations.
@@ -75,27 +73,30 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 * @param clusterNodes must not be {@literal null}.
 	 */
 	public RedisClusterConfiguration(Collection<String> clusterNodes) {
-		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1)));
+		initialize(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1)));
 	}
 
 	/**
 	 * Creates a new {@link RedisClusterConfiguration} looking up configuration values from the given
 	 * {@link PropertySource}.
 	 *
-	 * <pre>
-	 * <code>
+	 * <pre class="code">
 	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
 	 * spring.redis.cluster.max-redirects=3
-	 * </code>
 	 * </pre>
 	 *
 	 * @param propertySource must not be {@literal null}.
+	 * @deprecated since 3.3, use {@link RedisSentinelConfiguration#of(PropertySource)} instead. This constructor will be
+	 *             made private in the next major release.
 	 */
+	@Deprecated(since = "3.3")
 	public RedisClusterConfiguration(PropertySource<?> propertySource) {
+		initialize(propertySource);
+	}
+
+	private void initialize(PropertySource<?> propertySource) {
 
 		Assert.notNull(propertySource, "PropertySource must not be null");
-
-		this.clusterNodes = new LinkedHashSet<>();
 
 		if (propertySource.containsProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)) {
 
@@ -107,6 +108,23 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 			Object clusterMaxRedirects = propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY);
 			this.maxRedirects = NumberUtils.parseNumber(String.valueOf(clusterMaxRedirects), Integer.class);
 		}
+	}
+
+	/**
+	 * Creates a new {@link RedisClusterConfiguration} looking up configuration values from the given
+	 * {@link PropertySource}.
+	 *
+	 * <pre class="code">
+	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
+	 * spring.redis.cluster.max-redirects=3
+	 * </pre>
+	 *
+	 * @param propertySource must not be {@literal null}.
+	 * @return a new {@link RedisClusterConfiguration} configured from the given {@link PropertySource}.
+	 * @since 3.3
+	 */
+	public static RedisClusterConfiguration of(PropertySource<?> propertySource) {
+		return new RedisClusterConfiguration(propertySource);
 	}
 
 	private void appendClusterNodes(Set<String> hostAndPorts) {

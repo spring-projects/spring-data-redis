@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,11 +177,11 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 					return new ScanCursor<byte[]>(0, options) {
 
 						@Override
-						protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+						protected ScanIteration<byte[]> doScan(CursorId cursorId, ScanOptions options) {
 
 							ScanParams params = JedisConverters.toScanParams(options);
-							ScanResult<String> result = client.scan(Long.toString(cursorId), params);
-							return new ScanIteration<>(Long.valueOf(result.getCursor()),
+							ScanResult<String> result = client.scan(cursorId.getCursorId(), params);
+							return new ScanIteration<>(CursorId.of(result.getCursor()),
 									JedisConverters.stringListToByteList().convert(result.getResult()));
 						}
 					}.open();

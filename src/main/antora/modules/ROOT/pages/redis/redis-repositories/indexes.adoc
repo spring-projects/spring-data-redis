@@ -56,8 +56,8 @@ public class Person {
 
   // ... other properties omitted
 
-  Map<String,String> attributes;      <1>
-  Map<String Person> relatives;       <2>
+  Map<String, String> attributes;     <1>
+  Map<String, Person> relatives;      <2>
   List<Address> addresses;            <3>
 }
 ----
@@ -157,7 +157,7 @@ rand.setAddress(new Address(new Point(13.361389D, 38.115556D)));
 
 repository.save(rand);                                                        <3>
 
-repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200)); <4>
+repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS)); <4>
 ----
 
 <1> Query method declaration on a nested property, using `Point` and `Distance`.

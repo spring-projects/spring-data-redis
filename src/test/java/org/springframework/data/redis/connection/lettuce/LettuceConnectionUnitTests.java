@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,13 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisFuture;
-import io.lettuce.core.XAddArgs;
-import io.lettuce.core.XClaimArgs;
+import io.lettuce.core.*;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.output.ScanOutput;
 import io.lettuce.core.output.StatusOutput;
 import io.lettuce.core.protocol.AsyncCommand;
 import io.lettuce.core.protocol.Command;
@@ -34,8 +32,12 @@ import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -48,6 +50,9 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -247,6 +252,146 @@ public class LettuceConnectionUnitTests {
 			assertThat(args.getValue()).extracting("nomkstream").isEqualTo(true);
 		}
 
+		@Test // GH-2796
+		void scanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			KeyScanCursor<byte[]> sc = new KeyScanCursor<>() {
+				@Override
+				public List<byte[]> getKeys() {
+					return List.of("spring".getBytes());
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], KeyScanCursor<byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("SCAN"),
+					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], KeyScanCursor<byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.scan(any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+
+			Cursor<byte[]> cursor = connection.scan(KeyScanOptions.NONE);
+			cursor.next(); //initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).scan(captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-2796
+		void sScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ValueScanCursor<byte[]> sc = new ValueScanCursor<>() {
+				@Override
+				public List<byte[]> getValues() {
+					return List.of("spring".getBytes());
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], ValueScanCursor<byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("SSCAN"),
+					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], ValueScanCursor<byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.sscan(any(byte[].class), any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+
+			Cursor<byte[]> cursor = connection.setCommands().sScan("key".getBytes(), KeyScanOptions.NONE);
+			cursor.next(); //initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).sscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-2796
+		void zScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ScoredValueScanCursor<byte[]> sc = new ScoredValueScanCursor<>() {
+				@Override
+				public List<ScoredValue<byte[]>> getValues() {
+					return List.of(ScoredValue.just(10D, "spring".getBytes()));
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], ScoredValueScanCursor<byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("ZSCAN"),
+					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], ScoredValueScanCursor<byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.zscan(any(byte[].class), any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+
+			Cursor<Tuple> cursor = connection.zSetCommands().zScan("key".getBytes(), KeyScanOptions.NONE);
+			cursor.next(); //initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).zscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-2796
+		void hScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			MapScanCursor<byte[], byte[]> sc = new MapScanCursor<>() {
+				@Override
+				public Map<byte[], byte[]> getMap() {
+					return Map.of("spring".getBytes(), "data".getBytes());
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], MapScanCursor<byte[], byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("HSCAN"),
+					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], MapScanCursor<byte[], byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.hscan(any(byte[].class), any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+
+			Cursor<Entry<byte[], byte[]>> cursor = connection.hashCommands().hScan("key".getBytes(), KeyScanOptions.NONE);
+			cursor.next(); //initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).hscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
 	}
 
 	public static class LettucePipelineConnectionUnitTests extends BasicUnitTests {
@@ -303,6 +448,30 @@ public class LettuceConnectionUnitTests {
 
 			connection.getClientName();
 			verify(asyncCommandsMock).clientGetname();
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void scanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void sScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void zScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void hScanShouldOperateUponUnsigned64BitCursorId() {
+
 		}
 	}
 }

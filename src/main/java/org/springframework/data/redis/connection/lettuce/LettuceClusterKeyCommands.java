@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,8 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.ScanArgs;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
@@ -48,47 +45,6 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 		super(connection);
 		this.connection = connection;
-	}
-
-	@Override
-	public byte[] randomKey() {
-
-		List<RedisClusterNode> nodes = connection.clusterGetNodes();
-		Set<RedisClusterNode> inspectedNodes = new HashSet<>(nodes.size());
-
-		do {
-
-			RedisClusterNode node = nodes.get(ThreadLocalRandom.current().nextInt(nodes.size()));
-
-			while (inspectedNodes.contains(node)) {
-				node = nodes.get(ThreadLocalRandom.current().nextInt(nodes.size()));
-			}
-			inspectedNodes.add(node);
-			byte[] key = randomKey(node);
-
-			if (key != null && key.length > 0) {
-				return key;
-			}
-		} while (nodes.size() != inspectedNodes.size());
-
-		return null;
-	}
-
-	@Override
-	public Set<byte[]> keys(byte[] pattern) {
-
-		Assert.notNull(pattern, "Pattern must not be null");
-
-		Collection<List<byte[]>> keysPerNode = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes((LettuceClusterCommandCallback<List<byte[]>>) connection -> connection.keys(pattern))
-				.resultsAsList();
-
-		Set<byte[]> keys = new HashSet<>();
-
-		for (List<byte[]> keySet : keysPerNode) {
-			keys.addAll(keySet);
-		}
-		return keys;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2023 the original author or authors.
+ * Copyright 2011-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,8 +129,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		super.afterPropertiesSet();
 
-		boolean defaultUsed = false;
-
 		if (defaultSerializer == null) {
 
 			defaultSerializer = new JdkSerializationRedisSerializer(
@@ -141,24 +139,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			if (keySerializer == null) {
 				keySerializer = defaultSerializer;
-				defaultUsed = true;
 			}
 			if (valueSerializer == null) {
 				valueSerializer = defaultSerializer;
-				defaultUsed = true;
 			}
 			if (hashKeySerializer == null) {
 				hashKeySerializer = defaultSerializer;
-				defaultUsed = true;
 			}
 			if (hashValueSerializer == null) {
 				hashValueSerializer = defaultSerializer;
-				defaultUsed = true;
 			}
-		}
-
-		if (enableDefaultSerializer && defaultUsed) {
-			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
 		}
 
 		if (scriptExecutor == null) {

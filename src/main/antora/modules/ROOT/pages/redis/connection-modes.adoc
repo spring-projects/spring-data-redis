@@ -96,13 +96,16 @@ public RedisConnectionFactory jedisConnectionFactory() {
 
 [TIP]
 ====
-`RedisSentinelConfiguration` can also be defined with a `PropertySource`, which lets you set the following properties:
+`RedisSentinelConfiguration` can also be defined through `RedisSentinelConfiguration.of(PropertySource)`, which lets you pick up the following properties:
 
 .Configuration Properties
 * `spring.redis.sentinel.master`: name of the master node.
 * `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
 * `spring.redis.sentinel.username`: The username to apply when authenticating with Redis Sentinel (requires Redis 6)
 * `spring.redis.sentinel.password`: The password to apply when authenticating with Redis Sentinel
+* `spring.redis.sentinel.dataNode.username`: The username to apply when authenticating with Redis Data Node
+* `spring.redis.sentinel.dataNode.password`: The password to apply when authenticating with Redis Data Node
+* `spring.redis.sentinel.dataNode.database`: The database index to apply when authenticating with Redis Data Node
 ====
 
 Sometimes, direct interaction with one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
@@ -161,7 +164,7 @@ public class AppConfig {
 
 [TIP]
 ====
-`RedisClusterConfiguration` can also be defined through `PropertySource` and has the following properties:
+`RedisClusterConfiguration` can also be defined through `RedisClusterConfiguration.of(PropertySource)`, which lets you pick up the following properties:
 
 .Configuration Properties
 - `spring.redis.cluster.nodes`: Comma-delimited list of host:port pairs.

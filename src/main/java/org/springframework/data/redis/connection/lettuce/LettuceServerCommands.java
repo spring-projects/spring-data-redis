@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	public void setConfig(String param, String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
-		Assert.hasText(value, "Value must not be null or empty");
+		Assert.notNull(value, "Value must not be null");
 
 		connection.invokeStatus().just(RedisServerAsyncCommands::configSet, param, value);
 	}

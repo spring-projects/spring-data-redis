@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,13 +275,14 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		return new ScanCursor<Entry<byte[], byte[]>>(options) {
 
 			@Override
-			protected ScanIteration<Entry<byte[], byte[]>> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(CursorId cursorId, ScanOptions options) {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				ScanResult<Entry<byte[], byte[]>> result = connection.getCluster().hscan(key, JedisConverters.toBytes(cursorId),
+				ScanResult<Entry<byte[], byte[]>> result = connection.getCluster().hscan(key,
+						JedisConverters.toBytes(cursorId),
 						params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()), result.getResult());
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}

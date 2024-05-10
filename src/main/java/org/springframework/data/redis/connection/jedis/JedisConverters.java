@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -173,6 +174,17 @@ abstract class JedisConverters extends Converters {
 
 	public static byte[] toBytes(Number source) {
 		return toBytes(String.valueOf(source));
+	}
+
+	/**
+	 * Convert the given {@link org.springframework.data.redis.core.Cursor.CursorId} into its binary representation.
+	 *
+	 * @param source must not be {@literal null}.
+	 * @return the binary representation.
+	 * @since 3.3
+	 */
+	static byte[] toBytes(Cursor.CursorId source) {
+		return toBytes(source.getCursorId());
 	}
 
 	@Nullable

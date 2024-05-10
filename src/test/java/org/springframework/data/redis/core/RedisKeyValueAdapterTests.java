@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ public class RedisKeyValueAdapterTests {
 		RedisConnection connection = template.getConnectionFactory().getConnection();
 
 		try {
+			connection.setConfig("notify-keyspace-events", "");
 			connection.setConfig("notify-keyspace-events", "KEA");
 		} finally {
 			connection.close();
@@ -144,6 +145,25 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(template.keys("persons*")).contains("persons:firstname:rand");
 		assertThat(template.opsForSet().members("persons:firstname:rand")).contains("1");
+	}
+
+	@Test // GH-2882
+	void indexDataShouldBeClearedIfPropertyValueIsSetToNull() {
+
+		Person rand = new Person();
+		rand.firstname = "rand";
+
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.keys("persons*")).contains("persons:firstname:rand");
+		assertThat(template.opsForSet().members("persons:firstname:rand")).contains("1");
+
+		rand.id = "1";
+		rand.firstname = null;
+		adapter.put("1", rand, "persons");
+
+		assertThat(template.keys("persons*")).doesNotContain("persons:firstname:rand");
+		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
 	}
 
 	@Test // DATAREDIS-744

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -561,24 +562,25 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
-		return zScan(key, 0L, options);
+		return zScan(key, CursorId.initial(), options);
 	}
 
+
 	/**
-	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
+	 * @since 3.2.1
 	 */
-	public Cursor<Tuple> zScan(byte[] key, Long cursorId, ScanOptions options) {
+	public Cursor<Tuple> zScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<Tuple> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'ZSCAN' cannot be called in pipeline / transaction mode");
@@ -588,7 +590,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 
 				ScanResult<redis.clients.jedis.resps.Tuple> result = connection.getJedis().zscan(key,
 						JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()),
+				return new ScanIteration<>(CursorId.of(result.getCursor()),
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 

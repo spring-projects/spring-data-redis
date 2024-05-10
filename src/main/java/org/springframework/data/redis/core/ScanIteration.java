@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.core;
+
+import static org.springframework.data.redis.core.Cursor.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,14 +34,26 @@ import org.springframework.lang.Nullable;
  */
 public class ScanIteration<T> implements Iterable<T> {
 
-	private final long cursorId;
+	private final CursorId cursorId;
 	private final Collection<T> items;
 
 	/**
 	 * @param cursorId
 	 * @param items
+	 * @deprecated since 3.3.0, use {@link ScanIteration#ScanIteration(CursorId, Collection)} instead as {@code cursorId}
+	 *             can exceed {@link Long#MAX_VALUE}.
 	 */
+	@Deprecated(since = "3.3.0")
 	public ScanIteration(long cursorId, @Nullable Collection<T> items) {
+		this(CursorId.of(cursorId), items);
+	}
+
+	/**
+	 * @param cursorId
+	 * @param items
+	 * @since 3.3.0
+	 */
+	public ScanIteration(CursorId cursorId, @Nullable Collection<T> items) {
 
 		this.cursorId = cursorId;
 		this.items = (items != null ? new ArrayList<>(items) : Collections.emptyList());
@@ -49,8 +63,20 @@ public class ScanIteration<T> implements Iterable<T> {
 	 * The cursor id to be used for subsequent requests.
 	 *
 	 * @return
+	 * @deprecated since 3.3.0, use {@link #getId()} instead as the cursorId can exceed {@link Long#MAX_VALUE}.
 	 */
+	@Deprecated(since="3.3.3")
 	public long getCursorId() {
+		return Long.parseLong(getId().getCursorId());
+	}
+
+	/**
+	 * The cursor id to be used for subsequent requests.
+	 *
+	 * @return
+	 * @since 3.3.0
+	 */
+	public CursorId getId() {
 		return cursorId;
 	}
 

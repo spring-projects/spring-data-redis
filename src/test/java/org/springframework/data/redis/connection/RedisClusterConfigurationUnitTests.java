@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,8 +83,7 @@ class RedisClusterConfigurationUnitTests {
 
 	@Test // DATAREDIS-315
 	void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new RedisClusterConfiguration(Collections.singleton(null)));
+		assertThatIllegalArgumentException().isThrownBy(() -> new RedisClusterConfiguration(Collections.singleton(null)));
 	}
 
 	@Test // DATAREDIS-315
@@ -97,13 +96,13 @@ class RedisClusterConfigurationUnitTests {
 
 	@Test // DATAREDIS-315
 	void shouldThrowExceptionGivenNullPropertySource() {
-		assertThatIllegalArgumentException().isThrownBy(() -> new RedisClusterConfiguration((PropertySource<?>) null));
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisClusterConfiguration.of((PropertySource<?>) null));
 	}
 
 	@Test // DATAREDIS-315
 	void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
 
-		RedisClusterConfiguration config = new RedisClusterConfiguration(new MockPropertySource());
+		RedisClusterConfiguration config = RedisClusterConfiguration.of(new MockPropertySource());
 
 		assertThat(config.getMaxRedirects()).isNull();
 		assertThat(config.getClusterNodes().size()).isEqualTo(0);
@@ -116,7 +115,7 @@ class RedisClusterConfigurationUnitTests {
 		propertySource.setProperty("spring.redis.cluster.nodes", HOST_AND_PORT_1);
 		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
 
-		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
+		RedisClusterConfiguration config = RedisClusterConfiguration.of(propertySource);
 
 		assertThat(config.getMaxRedirects()).isEqualTo(5);
 		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123));
@@ -130,7 +129,7 @@ class RedisClusterConfigurationUnitTests {
 				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
 
-		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
+		RedisClusterConfiguration config = RedisClusterConfiguration.of(propertySource);
 
 		assertThat(config.getMaxRedirects()).isEqualTo(5);
 		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
@@ -138,7 +137,7 @@ class RedisClusterConfigurationUnitTests {
 	}
 
 	@Test // GH-2360
-	public void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMultipleIPv6AddressesAndPorts() {
+	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMultipleIPv6AddressesAndPorts() {
 
 		MockPropertySource propertySource = new MockPropertySource();
 
@@ -146,7 +145,7 @@ class RedisClusterConfigurationUnitTests {
 				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_4, HOST_AND_PORT_5)));
 		propertySource.setProperty("spring.redis.cluster.max-redirects", 2);
 
-		RedisClusterConfiguration configuration = new RedisClusterConfiguration(propertySource);
+		RedisClusterConfiguration configuration = RedisClusterConfiguration.of(propertySource);
 
 		assertThat(configuration.getMaxRedirects()).isEqualTo(2);
 		assertThat(configuration.getClusterNodes()).contains(new RedisNode("fe80::a00:27ff:fe4b:ee48", 6379),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 the original author or authors.
+ * Copyright 2020-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
@@ -199,6 +200,45 @@ class RedisConnectionUtilsUnitTests {
 
 		verifyNoMoreInteractions(factoryMock);
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
+	}
+
+	@Test // GH-2886
+	void connectionProxyShouldInvokeReadOnlyMethods() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		byte[] anyBytes = new byte[] { 1, 2, 3 };
+		when(connectionMock2.exists(anyBytes)).thenReturn(true);
+
+		template.executeWithoutResult(status -> {
+
+			RedisConnection connection = RedisConnectionUtils.getConnection(factoryMock, true);
+
+			assertThat(connection.exists(anyBytes)).isEqualTo(true);
+		});
+	}
+
+	@Test // GH-2886
+	void connectionProxyShouldConsiderCommandInterfaces() {
+
+		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
+
+		byte[] anyBytes = new byte[] { 1, 2, 3 };
+
+		RedisKeyCommands commandsMock = mock(RedisKeyCommands.class);
+
+		when(connectionMock1.keyCommands()).thenReturn(commandsMock);
+		when(connectionMock2.keyCommands()).thenReturn(commandsMock);
+		when(commandsMock.exists(anyBytes)).thenReturn(true);
+		when(commandsMock.del(anyBytes)).thenReturn(42L);
+
+		template.executeWithoutResult(status -> {
+
+			RedisConnection connection = RedisConnectionUtils.getConnection(factoryMock, true);
+
+			assertThat(connection.keyCommands().exists(anyBytes)).isEqualTo(true);
+			assertThat(connection.keyCommands().del(anyBytes)).isEqualTo(42L);
+		});
 	}
 
 	static class DummyTransactionManager extends AbstractPlatformTransactionManager {

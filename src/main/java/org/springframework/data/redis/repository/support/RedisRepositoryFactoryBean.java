@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.repository.support;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean;
+import org.springframework.data.redis.repository.query.RedisPartTreeQuery;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -44,6 +45,7 @@ public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 */
 	public RedisRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
+		setQueryType(RedisPartTreeQuery.class);
 	}
 
 	@Override

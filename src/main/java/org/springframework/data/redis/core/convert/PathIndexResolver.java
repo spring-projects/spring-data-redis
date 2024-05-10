@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,7 @@ public class PathIndexResolver implements IndexResolver {
 				Object propertyValue = accessor.getProperty(persistentProperty);
 
 				if (propertyValue == null) {
+					indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, null));
 					return;
 				}
 
@@ -209,24 +210,25 @@ public class PathIndexResolver implements IndexResolver {
 				}
 
 				Object transformedValue = indexDefinition.valueTransformer().convert(value);
+				IndexedData indexedData;
 
-				IndexedData indexedData = null;
 				if (transformedValue == null) {
-					indexedData = new RemoveIndexedData(indexedData);
+					indexedData = new RemoveIndexedData(indexDefinition);
 				} else {
 					indexedData = indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value);
 				}
+
 				data.add(indexedData);
 			}
 		}
 
-		else if (property != null && property.isAnnotationPresent(Indexed.class)) {
+		else if (property != null && value != null && property.isAnnotationPresent(Indexed.class)) {
 
 			SimpleIndexDefinition indexDefinition = new SimpleIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);
 
 			data.add(indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value));
-		} else if (property != null && property.isAnnotationPresent(GeoIndexed.class)) {
+		} else if (property != null &&  value != null && property.isAnnotationPresent(GeoIndexed.class)) {
 
 			GeoIndexDefinition indexDefinition = new GeoIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);

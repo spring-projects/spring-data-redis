@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -436,8 +436,20 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		} else if (element.isContainerNode()) {
 			doFlatten(propertyPrefix, element.fields(), resultMap);
 		} else {
-			resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element)
-					.getPropertyValue("_value"));
+
+			switch (element.getNodeType()) {
+				case STRING -> resultMap.put(propertyPrefix, element.textValue());
+				case NUMBER -> resultMap.put(propertyPrefix, element.numberValue());
+				case BOOLEAN -> resultMap.put(propertyPrefix, element.booleanValue());
+				case BINARY -> {
+					try {
+						resultMap.put(propertyPrefix, element.binaryValue());
+					} catch (IOException e) {
+						throw new IllegalStateException(e);
+					}
+				}
+				default -> resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element).getPropertyValue("_value"));
+			}
 		}
 	}
 

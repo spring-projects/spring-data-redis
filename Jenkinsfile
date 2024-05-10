@@ -40,6 +40,26 @@ pipeline {
 						}
 					}
 				}
+				stage('Publish JDK 17 + Redis 7.2 Docker Image') {
+					when {
+						anyOf {
+							changeset "ci/openjdk17-redis-7.2/Dockerfile"
+							changeset "Makefile"
+							changeset "ci/pipeline.properties"
+						}
+					}
+					agent { label 'data' }
+					options { timeout(time: 20, unit: 'MINUTES') }
+
+					steps {
+						script {
+							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
+								image.push()
+							}
+						}
+					}
+				}
 				stage('Publish JDK 21 + Redis 6.2 Docker Image') {
 					when {
 						anyOf {
@@ -83,7 +103,7 @@ pipeline {
 			steps {
 				script {
 					docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-						sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
+						sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 					}
 				}
 			}
@@ -111,7 +131,7 @@ pipeline {
 					steps {
 						script {
 							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-								sh 'PROFILE=runtimehints LONG_TESTS=false ci/test.sh'
+								sh "PROFILE=runtimehints LONG_TESTS=false JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 							}
 						}
 					}
@@ -129,7 +149,25 @@ pipeline {
 					steps {
 						script {
 							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-								sh 'PROFILE=none LONG_TESTS=true ci/test.sh'
+								sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+							}
+						}
+					}
+				}
+				stage("test: Redis 7") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+					   	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
+					}
+					steps {
+						script {
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 							}
 						}
 					}
@@ -159,18 +197,18 @@ pipeline {
 			steps {
 				script {
 					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-						sh 'MAVEN_OPTS="-Duser.name=spring-builds+jenkins -Duser.home=/tmp/jenkins-home" ' +
-								'DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} ' +
-								'DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} ' +
-								'GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} ' +
-								'./mvnw -s settings.xml -Pci,artifactory ' +
-								'-Dartifactory.server=https://repo.spring.io ' +
+						sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
+								"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
+								"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
+								"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
+								"./mvnw -s settings.xml -Pci,artifactory " +
+								"-Dartifactory.server=${p['artifactory.url']} " +
 								"-Dartifactory.username=${ARTIFACTORY_USR} " +
 								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-								"-Dartifactory.staging-repository=libs-snapshot-local " +
+								"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
 								"-Dartifactory.build-name=spring-data-redis " +
-								"-Dartifactory.build-number=${BUILD_NUMBER} " +
-								'-Dmaven.test.skip=true clean deploy -U -B'
+								"-Dartifactory.build-number=spring-data-redis-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
+								"-Dmaven.test.skip=true clean deploy -U -B"
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
@@ -193,7 +194,7 @@ class RedisQueryCreatorUnitTests {
 
 		PartTree partTree = new PartTree(method.getName(), method.getReturnType());
 		RedisQueryCreator creator = new RedisQueryCreator(partTree,
-				new ParametersParameterAccessor(new DefaultParameters(method), args));
+				new ParametersParameterAccessor(new DefaultParameters(ParametersSource.of(method)), args));
 
 		return creator;
 	}

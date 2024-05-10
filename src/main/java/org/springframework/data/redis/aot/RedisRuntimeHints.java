@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFa
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.RedisConnectionUtils.RedisConnectionProxy;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -46,6 +47,7 @@ import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProv
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.repository.query.RedisPartTreeQuery;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
 import org.springframework.lang.Nullable;
@@ -106,15 +108,15 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(ReactiveClusterScriptingCommands.class),
 						TypeReference.of(ReactiveClusterGeoCommands.class),
 						TypeReference.of(ReactiveClusterHyperLogLogCommands.class), TypeReference.of(ReactiveRedisOperations.class),
-						TypeReference.of(ReactiveRedisConnectionFactory.class),
-						TypeReference.of(ReactiveRedisTemplate.class), TypeReference.of(RedisOperations.class),
-						TypeReference.of(RedisTemplate.class), TypeReference.of(StringRedisTemplate.class),
-						TypeReference.of(KeyspaceConfiguration.class), TypeReference.of(MappingConfiguration.class),
-						TypeReference.of(MappingRedisConverter.class), TypeReference.of(RedisConverter.class),
-						TypeReference.of(RedisCustomConversions.class), TypeReference.of(ReferenceResolver.class),
-						TypeReference.of(ReferenceResolverImpl.class), TypeReference.of(IndexConfiguration.class),
-						TypeReference.of(ConfigurableIndexDefinitionProvider.class), TypeReference.of(RedisMappingContext.class),
-						TypeReference.of(RedisRepositoryFactoryBean.class), TypeReference.of(RedisQueryCreator.class),
+						TypeReference.of(ReactiveRedisConnectionFactory.class), TypeReference.of(ReactiveRedisTemplate.class),
+						TypeReference.of(RedisOperations.class), TypeReference.of(RedisTemplate.class),
+						TypeReference.of(StringRedisTemplate.class), TypeReference.of(KeyspaceConfiguration.class),
+						TypeReference.of(MappingConfiguration.class), TypeReference.of(MappingRedisConverter.class),
+						TypeReference.of(RedisConverter.class), TypeReference.of(RedisCustomConversions.class),
+						TypeReference.of(ReferenceResolver.class), TypeReference.of(ReferenceResolverImpl.class),
+						TypeReference.of(IndexConfiguration.class), TypeReference.of(ConfigurableIndexDefinitionProvider.class),
+						TypeReference.of(RedisMappingContext.class), TypeReference.of(RedisRepositoryFactoryBean.class),
+						TypeReference.of(RedisQueryCreator.class), TypeReference.of(RedisPartTreeQuery.class),
 						TypeReference.of(MessageListener.class), TypeReference.of(RedisMessageListenerContainer.class),
 
 						TypeReference
@@ -156,6 +158,20 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 		boundOperationsProxy(BoundStreamOperations.class, classLoader, hints);
 		boundOperationsProxy(BoundValueOperations.class, classLoader, hints);
 		boundOperationsProxy(BoundZSetOperations.class, classLoader, hints);
+
+		// Connection Splitting
+		registerRedisConnectionProxy(TypeReference.of(RedisCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisGeoCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisHashCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisHyperLogLogCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisKeyCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisListCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisSetCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisScriptingCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisServerCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisStreamCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisStringCommands.class), hints);
+		registerRedisConnectionProxy(TypeReference.of(RedisZSetCommands.class), hints);
 	}
 
 	static void boundOperationsProxy(Class<?> type, ClassLoader classLoader, RuntimeHints hints) {
@@ -174,6 +190,15 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		hints.proxies().registerJdkProxy(typeReference, //
+				TypeReference.of("org.springframework.aop.SpringProxy"), //
+				TypeReference.of("org.springframework.aop.framework.Advised"), //
+				TypeReference.of("org.springframework.core.DecoratingProxy"));
+	}
+
+	static void registerRedisConnectionProxy(TypeReference typeReference, RuntimeHints hints) {
+
+		hints.proxies().registerJdkProxy(TypeReference.of(RedisConnectionProxy.class), //
+				typeReference, //
 				TypeReference.of("org.springframework.aop.SpringProxy"), //
 				TypeReference.of("org.springframework.aop.framework.Advised"), //
 				TypeReference.of("org.springframework.core.DecoratingProxy"));

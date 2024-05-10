@@ -77,7 +77,7 @@ addresses.[work].city = "...
 CAUTION: Due to the flat representation structure, Map keys need to be simple types, such as ``String`` or ``Number``.
 
 Mapping behavior can be customized by registering the corresponding `Converter` in `RedisCustomConversions`.
-Those converters can take care of converting from and to a single `byte[]` as well as `Map<String,byte[]>`.
+Those converters can take care of converting from and to a single `byte[]` as well as `Map<String, byte[]>`.
 The first one is suitable for (for example) converting a complex type to (for example) a binary JSON representation that still uses the default mappings hash structure.
 The second option offers full control over the resulting hash.
 
@@ -140,15 +140,15 @@ address = { city : "emond's field", country : "andor" }
 
 The following example shows two examples of `Map` converters:
 
-.Sample Map<String,byte[]> Converters
+.Sample Map<String, byte[]> Converters
 ====
 [source,java]
 ----
 @WritingConverter
-public class AddressToMapConverter implements Converter<Address, Map<String,byte[]>> {
+public class AddressToMapConverter implements Converter<Address, Map<String, byte[]>> {
 
   @Override
-  public Map<String,byte[]> convert(Address source) {
+  public Map<String, byte[]> convert(Address source) {
     return singletonMap("ciudad", source.getCity().getBytes());
   }
 }
@@ -157,7 +157,7 @@ public class AddressToMapConverter implements Converter<Address, Map<String,byte
 public class MapToAddressConverter implements Converter<Map<String, byte[]>, Address> {
 
   @Override
-  public Address convert(Map<String,byte[]> source) {
+  public Address convert(Map<String, byte[]> source) {
     return new Address(new String(source.get("ciudad")));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2023 the original author or authors.
+ * Copyright 2011-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadi
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,6 +36,7 @@ import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import org.assertj.core.data.Offset;
 import org.junit.AssumptionViolatedException;
@@ -2661,10 +2663,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // DATAREDIS-417
-	@DisabledOnOs(value = MAC, architectures = "aarch64")
-	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
+	public void scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection() {
 
-		connection.execute("DEBUG", "POPULATE".getBytes(), "100".getBytes());
+		byteConnection.openPipeline();
+		IntStream.range(0, 100).forEach(it -> byteConnection.stringCommands().set("key:%s".formatted(it).getBytes(StandardCharsets.UTF_8), "data".getBytes(StandardCharsets.UTF_8)));
+		byteConnection.closePipeline();
 
 		Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions().match("key*9").count(10).build());
 

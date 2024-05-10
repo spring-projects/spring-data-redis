@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Set;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -206,24 +207,24 @@ class JedisSetCommands implements RedisSetCommands {
 
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
-		return sScan(key, 0, options);
+		return sScan(key, CursorId.initial(), options);
 	}
 
 	/**
-	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
+	 * @since 3.2.1
 	 */
-	public Cursor<byte[]> sScan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<byte[]> sScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
@@ -232,7 +233,7 @@ class JedisSetCommands implements RedisSetCommands {
 				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<byte[]> result = connection.getJedis().sscan(key, JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<>(Long.valueOf(result.getCursor()), result.getResult());
+				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 
 			protected void doClose() {

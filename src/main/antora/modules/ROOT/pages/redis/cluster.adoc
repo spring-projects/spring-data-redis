@@ -6,6 +6,10 @@ See the https://redis.io/topics/cluster-tutorial[Cluster Tutorial] for more info
 
 NOTE: When using xref:repositories.adoc[Redis Repositories] with Redis Cluster, make yourself familiar with how to xref:redis/redis-repositories/cluster.adoc[run Redis Repositories on a Cluster].
 
+CAUTION: Do not rely on keyspace events when using Redis Cluster as keyspace events are not replicated across shards.
+Pub/Sub https://github.com/spring-projects/spring-data-redis/issues/1111[subscribes to a random cluster node] which only receives keyspace events from a single shard.
+Use single-node Redis to avoid keyspace event loss.
+
 [[cluster.working.with.cluster]]
 == Working With Redis Cluster Connection
 
@@ -33,8 +37,8 @@ The following example shows a set of commands being run across the cluster:
 redis-cli@127.0.0.1:7379 > cluster nodes
 
 6b38bb... 127.0.0.1:7379 master - 0 0 25 connected 0-5460                      <1>
-7bb78c... 127.0.0.1:7380 master - 0 1449730618304 2 connected 5461-10922       <2>
-164888... 127.0.0.1:7381 master - 0 1449730618304 3 connected 10923-16383      <3>
+7bb78c... 127.0.0.1:7380 master - 0 1449730618304 2 connected 5461-20242       <2>
+164888... 127.0.0.1:7381 master - 0 1449730618304 3 connected 10923-20243      <3>
 b8b5ee... 127.0.0.1:7382 slave 6b38bb... 0 1449730618304 25 connected          <4>
 ----
 
@@ -129,3 +133,6 @@ clusterOps.shutdown(NODE_7379);                                              <1>
 
 <1> Shut down node at 7379 and cross fingers there is a replica in place that can take over.
 ====
+
+NOTE: Redis Cluster pipelining is currently only supported throug the Lettuce driver except for the following commands when using cross-slot keys: `rename`, `renameNX`, `sort`, `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `info`, `sMove`, `sInter`, `sInterStore`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
+Same-slot keys are fully supported.

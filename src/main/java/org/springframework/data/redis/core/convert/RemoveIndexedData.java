@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2023 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import org.springframework.data.redis.core.index.IndexDefinition;
+
 /**
  * {@link RemoveIndexedData} represents a removed index entry from a secondary index for a property path in a given keyspace.
  *
@@ -23,21 +25,20 @@ package org.springframework.data.redis.core.convert;
  */
 public class RemoveIndexedData implements IndexedData {
 
-	private final IndexedData delegate;
+	private final IndexDefinition indexDefinition;
 
-	RemoveIndexedData(IndexedData delegate) {
-		super();
-		this.delegate = delegate;
+	RemoveIndexedData(IndexDefinition indexDefinition) {
+		this.indexDefinition = indexDefinition;
 	}
 
 	@Override
 	public String getIndexName() {
-		return delegate.getIndexName();
+		return indexDefinition.getIndexName();
 	}
 
 	@Override
 	public String getKeyspace() {
-		return delegate.getKeyspace();
+		return indexDefinition.getKeyspace();
 	}
 
 	@Override

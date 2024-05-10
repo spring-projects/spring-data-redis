@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,19 @@ import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -38,12 +43,14 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisDriver.Driver
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.lang.Nullable;
 
 /**
  * Integration tests for {@link DefaultRedisCacheWriter}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author ChanYoung Joung
  */
 @MethodSource("testParams")
 public class DefaultRedisCacheWriterTests {
@@ -417,6 +424,75 @@ public class DefaultRedisCacheWriterTests {
 
 		assertThat(stats).isNotNull();
 		assertThat(stats.getPuts()).isZero();
+	}
+
+	@ParameterizedRedisTest // GH-1686
+	void doLockShouldGetLock() throws InterruptedException {
+
+		int threadCount = 3;
+		CountDownLatch beforeWrite = new CountDownLatch(threadCount);
+		CountDownLatch afterWrite = new CountDownLatch(threadCount);
+		AtomicLong concurrency = new AtomicLong();
+
+		DefaultRedisCacheWriter cw = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(10),
+				BatchStrategies.keys()) {
+
+			boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
+
+				boolean doLock = super.doLock(name, contextualKey, contextualValue, connection);
+
+				// any concurrent access (aka not waiting until the lock is acquired) will result in a concurrency greater 1
+				assertThat(concurrency.incrementAndGet()).isOne();
+				return doLock;
+			}
+
+			@Nullable
+			@Override
+			Long doUnlock(String name, RedisConnection connection) {
+				try {
+					return super.doUnlock(name, connection);
+				} finally {
+					concurrency.decrementAndGet();
+				}
+			}
+		};
+
+		cw.lock(CACHE_NAME);
+
+		// introduce concurrency
+		List<CompletableFuture<?>> completions = new ArrayList<>();
+		for (int i = 0; i < threadCount; i++) {
+
+			CompletableFuture<?> completion = new CompletableFuture<>();
+			completions.add(completion);
+
+			Thread th = new Thread(() -> {
+				beforeWrite.countDown();
+				try {
+					cw.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+					completion.complete(null);
+				} catch (Throwable e) {
+					completion.completeExceptionally(e);
+				}
+				afterWrite.countDown();
+			});
+
+			th.start();
+		}
+
+		assertThat(beforeWrite.await(5, TimeUnit.SECONDS)).isTrue();
+		Thread.sleep(100);
+
+		cw.unlock(CACHE_NAME);
+		assertThat(afterWrite.await(5, TimeUnit.SECONDS)).isTrue();
+
+		for (CompletableFuture<?> completion : completions) {
+			assertThat(completion).isCompleted().isCompletedWithValue(null);
+		}
+
+		doWithConnection(conn -> {
+			assertThat(conn.exists("default-redis-cache-writer-tests~lock".getBytes())).isFalse();
+		});
 	}
 
 	private void doWithConnection(Consumer<RedisConnection> callback) {

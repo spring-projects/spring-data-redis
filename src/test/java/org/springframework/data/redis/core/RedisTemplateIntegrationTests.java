@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -361,8 +361,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 				try {
 					// Await EXEC completion as it's executed on a dedicated connection.
 					Thread.sleep(100);
-				} catch (InterruptedException ignore) {
-				}
+				} catch (InterruptedException ignore) {}
 
 				operations.opsForValue().set(key1, value1);
 				operations.opsForValue().get(key1);
@@ -673,7 +672,16 @@ public class RedisTemplateIntegrationTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
-		assertThat(redisTemplate.randomKey()).isEqualTo(key1);
+
+		for (int i = 0; i < 20; i++) {
+
+			K k = redisTemplate.randomKey();
+			if (k == null) {
+				continue;
+			}
+
+			assertThat(k).isEqualTo(key1);
+		}
 	}
 
 	@ParameterizedRedisTest
@@ -723,8 +731,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 				th.start();
 				try {
 					th.join();
-				} catch (InterruptedException ignore) {
-				}
+				} catch (InterruptedException ignore) {}
 
 				operations.multi();
 				operations.opsForValue().set(key1, value3);
@@ -756,8 +763,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 				th.start();
 				try {
 					th.join();
-				} catch (InterruptedException ignore) {
-				}
+				} catch (InterruptedException ignore) {}
 
 				operations.unwatch();
 				operations.multi();
@@ -794,8 +800,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 				th.start();
 				try {
 					th.join();
-				} catch (InterruptedException ignore) {
-				}
+				} catch (InterruptedException ignore) {}
 
 				operations.multi();
 				operations.opsForValue().set(key1, value3);

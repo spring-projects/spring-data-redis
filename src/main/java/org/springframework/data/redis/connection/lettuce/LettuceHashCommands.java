@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -204,24 +205,25 @@ class LettuceHashCommands implements RedisHashCommands {
 
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		return hScan(key, 0, options);
+		return hScan(key, CursorId.initial(), options);
 	}
 
+
 	/**
-	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
+	 * @since 1.4
 	 */
-	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
@@ -235,7 +237,7 @@ class LettuceHashCommands implements RedisHashCommands {
 				String nextCursorId = mapScanCursor.getCursor();
 
 				Map<byte[], byte[]> values = mapScanCursor.getMap();
-				return new ScanIteration<>(Long.valueOf(nextCursorId), values.entrySet());
+				return new ScanIteration<>(CursorId.of(nextCursorId), values.entrySet());
 			}
 
 			@Override

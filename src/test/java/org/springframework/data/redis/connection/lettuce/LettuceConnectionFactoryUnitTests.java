@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 the original author or authors.
+ * Copyright 2015-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1258,6 +1258,22 @@ class LettuceConnectionFactoryUnitTests {
 
 		assertThat(redisConfiguration).asInstanceOf(InstanceOfAssertFactories.type(RedisStandaloneConfiguration.class))
 				.extracting(RedisStandaloneConfiguration::getPort).isEqualTo(6789);
+	}
+
+	@Test // GH-2866
+	void earlyStartupDoesNotStartConnectionFactory() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(),
+				LettuceTestClientConfiguration.defaultConfiguration());
+		connectionFactory.setEarlyStartup(false);
+		connectionFactory.afterPropertiesSet();
+
+		assertThat(connectionFactory.isEarlyStartup()).isFalse();
+		assertThat(connectionFactory.isAutoStartup()).isTrue();
+		assertThat(connectionFactory.isRunning()).isFalse();
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client).isNull();
 	}
 
 	static class CustomRedisConfiguration implements RedisConfiguration, WithHostAndPort {

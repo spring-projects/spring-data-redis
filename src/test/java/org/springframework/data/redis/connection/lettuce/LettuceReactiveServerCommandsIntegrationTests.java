@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,8 +201,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 
 			connection.serverCommands().getConfig("*").as(StepVerifier::create) //
 					.consumeNextWith(properties -> {
-						assertThat(properties).containsEntry("127.0.0.1:7379.databases", "16");
-
+						assertThat(properties).containsEntry("127.0.0.1:7379.port", "7379");
 					}) //
 					.verifyComplete();
 		} else {
@@ -211,6 +210,23 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 					.consumeNextWith(properties -> {
 						assertThat(properties).containsEntry("databases", "16");
 					}) //
+					.verifyComplete();
+		}
+	}
+
+	@ParameterizedRedisTest // GH-2798
+	void setConfigShouldRespondCorrectly() {
+
+		if (!(connection instanceof LettuceReactiveRedisClusterConnection)) {
+
+			connection.serverCommands().setConfig("notify-keyspace-events", "") //
+					.as(StepVerifier::create) //
+					.expectNext("OK")
+					.verifyComplete();
+
+			connection.serverCommands().setConfig("notify-keyspace-events", "KEA") //
+					.as(StepVerifier::create) //
+					.expectNext("OK")
 					.verifyComplete();
 		}
 	}
