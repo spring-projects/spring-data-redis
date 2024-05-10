@@ -720,7 +720,7 @@ public abstract class LettuceConverters extends Converters {
 					args = args.overflow(type);
 				}
 
-				args = args.incrBy(bitFieldType, (int) subCommand.getOffset().getValue(), ((BitFieldIncrBy) subCommand).getValue());
+				args = args.incrBy(bitFieldType, offset, ((BitFieldIncrBy) subCommand).getValue());
 			}
 		}
 
