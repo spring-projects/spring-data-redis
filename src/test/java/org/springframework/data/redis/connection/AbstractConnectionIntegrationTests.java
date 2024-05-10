@@ -43,6 +43,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
@@ -108,6 +110,7 @@ import org.springframework.data.util.Streamable;
  * @author Andrey Shlykov
  * @author Hendrik Duerkop
  * @author Shyngys Sapraliyev
+ * @author Roman Osadchuk
  */
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -3573,6 +3576,23 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) results.get(2)).containsExactly(3L);
 		assertThat(results.get(3)).isNotNull();
 	}
+
+    @ParameterizedTest // DATAREDIS-2903
+    @ValueSource(booleans = {false, true})
+    void bitFieldIncrByAndThenGetShouldWorkCorrectly(boolean isMultipliedByTypeLengthOffset) {
+        var offset = isMultipliedByTypeLengthOffset
+            ? BitFieldSubCommands.Offset.offset(300L).multipliedByTypeLength()
+            : BitFieldSubCommands.Offset.offset(400L);
+
+        actual.add(connection.bitfield(KEY_1, create().incr(INT_8).valueAt(offset).by(1L)));
+        actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset)));
+
+        List<Object> results = getResults();
+
+        assertThat(results).hasSize(2)
+            // should return same results after INCRBY and GET operations for bitfield with same offset
+            .containsExactly(List.of(1L), List.of(1L));
+    }
 
 	@Test // DATAREDIS-562
 	void bitfieldShouldAllowMultipleSubcommands() {
