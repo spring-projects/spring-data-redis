@@ -3580,7 +3580,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(3)).isNotNull();
 	}
 
-    @ParameterizedTest
+    @ParameterizedTest // DATAREDIS-2903
     @ValueSource(booleans = {false, true})
     void bitFieldIncrByAndThenGetShouldWorkCorrectly(boolean isMultipliedByTypeLengthOffset) {
         var offset = isMultipliedByTypeLengthOffset
