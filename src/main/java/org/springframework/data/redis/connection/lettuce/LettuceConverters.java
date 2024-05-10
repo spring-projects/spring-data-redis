@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Chris Bono
  * @author Vikas Garg
  * @author John Blum
+ * @author Roman Osadchuk
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -720,7 +721,7 @@ public abstract class LettuceConverters extends Converters {
 					args = args.overflow(type);
 				}
 
-				args = args.incrBy(bitFieldType, (int) subCommand.getOffset().getValue(), ((BitFieldIncrBy) subCommand).getValue());
+				args = args.incrBy(bitFieldType, offset, ((BitFieldIncrBy) subCommand).getValue());
 			}
 		}
 
