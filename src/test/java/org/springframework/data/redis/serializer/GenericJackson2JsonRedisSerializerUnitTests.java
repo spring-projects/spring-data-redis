@@ -40,6 +40,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -420,7 +424,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test // GH-2601
-	public void internalObjectMapperCustomization() {
+	void internalObjectMapperCustomization() {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
@@ -432,18 +436,61 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		assertThat(serializer.configure(configurer)).isSameAs(serializer);
 
-		verify(mockObjectMapper, times(1)).registerModule(eq(mockModule));
+		verify(mockObjectMapper, times(1)).registerModule(mockModule);
 		verifyNoMoreInteractions(mockObjectMapper);
 		verifyNoInteractions(mockModule);
 	}
 
 	@Test // GH-2601
-	public void configureWithNullConsumerThrowsIllegalArgumentException() {
+	void configureWithNullConsumerThrowsIllegalArgumentException() {
 
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> new GenericJackson2JsonRedisSerializer().configure(null))
 			.withMessage("Consumer used to configure and customize ObjectMapper must not be null")
 			.withNoCause();
+	}
+
+	@Test
+	void defaultSerializeAndDeserializeNullValueWithBuilderClass() {
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder(
+				new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY),
+				JacksonObjectReader.create(), JacksonObjectWriter.create())
+				.classPropertyTypeName(null)
+				.registerNullValueSerializer(null)
+				.build();
+
+		serializeAndDeserializeNullValue(serializer);
+	}
+
+	@Test
+	void customSerializeAndDeserializeNullValueWithBuilderClass() {
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder(
+				new ObjectMapper(), JacksonObjectReader.create(), JacksonObjectWriter.create())
+				.classPropertyTypeName(null)
+				.registerNullValueSerializer(new StdSerializer<>(NullValue.class) {
+					@Override
+					public void serialize(NullValue nullValue,
+					                      JsonGenerator jsonGenerator,
+					                      SerializerProvider serializerProvider) throws IOException {
+						jsonGenerator.writeNull();
+					}
+
+					@Override
+					public void serializeWithType(NullValue value, JsonGenerator jsonGenerator, SerializerProvider serializers,
+					                              TypeSerializer typeSerializer) throws IOException {
+
+						serialize(value, jsonGenerator, serializers);
+					}
+				})
+				.build();
+
+		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
+
+		byte[] serializedValue = serializer.serialize(nv);
+		assertThat(serializedValue).isNotNull();
+
+		Object deserializedValue = serializer.deserialize(serializedValue);
+		assertThat(deserializedValue).isNull();
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {
