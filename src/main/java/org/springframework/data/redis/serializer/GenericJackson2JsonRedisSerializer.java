@@ -120,9 +120,39 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName, JacksonObjectReader reader,
 			JacksonObjectWriter writer) {
 
+		this(classPropertyTypeName, reader, writer, null);
+	}
+
+	/**
+	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for default
+	 * typing using the given {@link String name} along with the given, required {@link JacksonObjectReader} and
+	 * {@link JacksonObjectWriter} used to read/write {@link Object Objects} de/serialized as JSON,
+	 * optionally customized {@link NullValueSerializer}.
+	 * <p>
+	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS} will be
+	 * used.
+	 * <p>
+	 * In case {@link StdSerializer} is {@literal null}, then a default {@link NullValueSerializer} will be registered.
+	 *
+	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information; can be
+	 *          {@literal null}.
+	 * @param reader {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
+	 * @param nullValueSerializer {@link StdSerializer} to serialize {@link NullValue} instances.
+	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
+	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
+	 * @since 3.3
+	 */
+	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName, JacksonObjectReader reader,
+			JacksonObjectWriter writer, @Nullable StdSerializer<NullValue> nullValueSerializer) {
+
 		this(new ObjectMapper(), reader, writer, classPropertyTypeName);
 
-		registerNullValueSerializer(this.mapper, classPropertyTypeName);
+		if (nullValueSerializer == null) {
+			registerNullValueSerializer(this.mapper, classPropertyTypeName);
+		} else {
+			registerCustomNullValueSerializer(nullValueSerializer);
+		}
 
 		StdTypeResolverBuilder typer = TypeResolverBuilder.forEverything(this.mapper).init(JsonTypeInfo.Id.CLASS, null)
 				.inclusion(JsonTypeInfo.As.PROPERTY);
@@ -229,6 +259,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		// Simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here
 		// since we need the type hint embedded for deserialization using the default typing feature.
 		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
+	}
+
+	private void registerCustomNullValueSerializer(StdSerializer<NullValue> nullValueSerializer) {
+		this.mapper.registerModule(new SimpleModule().addSerializer(nullValueSerializer));
 	}
 
 	/**
