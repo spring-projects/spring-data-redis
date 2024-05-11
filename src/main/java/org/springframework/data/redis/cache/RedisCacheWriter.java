@@ -47,7 +47,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
 	 */
 	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-		return nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.keys());
+		return nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(10));
 	}
 
 	/**
@@ -74,7 +74,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
 	 */
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory) {
-		return lockingRedisCacheWriter(connectionFactory, BatchStrategies.keys());
+		return lockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(10));
 	}
 
 	/**

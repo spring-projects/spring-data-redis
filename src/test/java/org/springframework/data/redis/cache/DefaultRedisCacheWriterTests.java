@@ -18,7 +18,6 @@ package org.springframework.data.redis.cache;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -268,7 +267,7 @@ public class DefaultRedisCacheWriterTests {
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
 
-		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(Charset.forName("UTF-8")));
+		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
