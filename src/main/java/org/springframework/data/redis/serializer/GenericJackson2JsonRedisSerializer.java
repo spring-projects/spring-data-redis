@@ -135,6 +135,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
+	 * Factory method returning a {@literal Builder} used to construct and configure a {@link GenericJackson2JsonRedisSerializer}.
+	 *
+	 * @return new {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+	 * @since 3.3
+	 */
+	public static GenericJackson2JsonRedisSerializerBuilder builder(ObjectMapper objectMapper, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
+		return new GenericJackson2JsonRedisSerializerBuilder(objectMapper, reader, writer);
+	}
+
+	/**
 	 * Setting a custom-configured {@link ObjectMapper} is one way to take further control of the JSON serialization
 	 * process. For example, an extended {@link SerializerFactory} can be configured that provides custom serializers for
 	 * specific types.
@@ -393,6 +404,69 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 				TypeSerializer typeSerializer) throws IOException {
 
 			serialize(value, jsonGenerator, serializers);
+		}
+	}
+
+	/**
+	 * {@literal Builder} for creating a {@link GenericJackson2JsonRedisSerializer}.
+	 *
+	 * @author Anne Lee
+	 * @since 3.3
+	 */
+	public static class GenericJackson2JsonRedisSerializerBuilder {
+		@Nullable
+		private String classPropertyTypeName;
+		private JacksonObjectReader reader;
+		private JacksonObjectWriter writer;
+		private ObjectMapper mapper;
+		@Nullable
+		private StdSerializer<NullValue> nullValueSerializer;
+
+		private GenericJackson2JsonRedisSerializerBuilder(
+				ObjectMapper objectMapper,
+				JacksonObjectReader reader,
+				JacksonObjectWriter writer
+		) {
+			this.mapper = objectMapper;
+			this.reader = reader;
+			this.writer = writer;
+		}
+
+		/**
+		 * Configure a classPropertyName.
+		 *
+		 * @param classPropertyTypeName can be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 * @since 3.3
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder classPropertyTypeName(@Nullable String classPropertyTypeName) {
+			this.classPropertyTypeName = classPropertyTypeName;
+			return this;
+		}
+
+		/**
+		 * Register a nullValueSerializer.
+		 *
+		 * @param nullValueSerializer the {@link StdSerializer} to use for {@link NullValue} serialization. Can be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder registerNullValueSerializer(@Nullable StdSerializer<NullValue> nullValueSerializer) {
+			this.nullValueSerializer = nullValueSerializer;
+			return this;
+		}
+
+		/**
+		 * Create new instance of {@link GenericJackson2JsonRedisSerializer} with configuration options applied.
+		 *
+		 * @return new instance of {@link GenericJackson2JsonRedisSerializer}.
+		 */
+		public GenericJackson2JsonRedisSerializer build() {
+			Assert.notNull(this.mapper, "ObjectMapper must not be null");
+			Assert.notNull(this.reader, "Reader must not be null");
+			Assert.notNull(this.writer, "Writer must not be null");
+
+			this.mapper.registerModule(new SimpleModule().addSerializer(this.nullValueSerializer != null ? this.nullValueSerializer : new NullValueSerializer(this.classPropertyTypeName)));
+			return new GenericJackson2JsonRedisSerializer(this.mapper, this.reader, this.writer, this.classPropertyTypeName);
 		}
 	}
 
