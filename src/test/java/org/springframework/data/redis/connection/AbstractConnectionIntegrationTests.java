@@ -132,7 +132,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected List<Object> actual = new ArrayList<>();
 
-	@Autowired @EnabledOnRedisDriver.DriverQualifier protected RedisConnectionFactory connectionFactory;
+	@Autowired
+	@EnabledOnRedisDriver.DriverQualifier protected RedisConnectionFactory connectionFactory;
 
 	protected RedisConnection byteConnection;
 
@@ -588,8 +589,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.decr((String) null);
 			fail("Decrement should fail with null key");
-		} catch (Exception expected) {
-		}
+		} catch (Exception expected) {}
 	}
 
 	@Test
@@ -601,8 +601,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.append(key, null);
 			fail("Append should fail with null value");
-		} catch (DataAccessException expected) {
-		}
+		} catch (DataAccessException expected) {}
 	}
 
 	@Test
@@ -613,8 +612,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.hExists(key, null);
 			fail("hExists should fail with null key");
-		} catch (DataAccessException expected) {
-		}
+		} catch (DataAccessException expected) {}
 	}
 
 	@Test
@@ -627,8 +625,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.hSet(key, field, null);
 			fail("hSet should fail with null value");
-		} catch (DataAccessException expected) {
-		}
+		} catch (DataAccessException expected) {}
 	}
 
 	@Test
@@ -665,8 +662,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException ignore) {
-			}
+			} catch (InterruptedException ignore) {}
 
 			// open a new connection
 			RedisConnection connection2 = connectionFactory.getConnection();
@@ -709,8 +705,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException ignore) {
-			}
+			} catch (InterruptedException ignore) {}
 
 			// open a new connection
 			RedisConnection connection2 = connectionFactory.getConnection();
@@ -2641,8 +2636,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	void scanWithType() {
 
 		assumeThat(isPipelinedOrQueueingConnection(connection))
-				.describedAs("SCAN is only available in non-pipeline | non-queueing mode")
-				.isFalse();
+				.describedAs("SCAN is only available in non-pipeline | non-queueing mode").isFalse();
 
 		connection.set("key", "data");
 		connection.lPush("list", "foo");
@@ -2669,7 +2663,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection() {
 
 		byteConnection.openPipeline();
-		IntStream.range(0, 100).forEach(it -> byteConnection.stringCommands().set("key:%s".formatted(it).getBytes(StandardCharsets.UTF_8), "data".getBytes(StandardCharsets.UTF_8)));
+		IntStream.range(0, 100).forEach(it -> byteConnection.stringCommands()
+				.set("key:%s".formatted(it).getBytes(StandardCharsets.UTF_8), "data".getBytes(StandardCharsets.UTF_8)));
 		byteConnection.closePipeline();
 
 		Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions().match("key*9").count(10).build());
@@ -3364,8 +3359,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
 		actual.add(
-				connection.geoSearch(key, GeoReference.fromMember(PALERMO),
-						GeoShape.byRadius(new Distance(200, KILOMETERS)),
+				connection.geoSearch(key, GeoReference.fromMember(PALERMO), GeoShape.byRadius(new Distance(200, KILOMETERS)),
 						newGeoSearchArgs().limit(2).includeDistance().includeCoordinates()));
 
 		List<Object> results = getResults();
@@ -3383,8 +3377,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
 		actual.add(connection.geoSearchStore("georesults", key, GeoReference.fromMember(PALERMO),
-				GeoShape.byRadius(new Distance(200, KILOMETERS)),
-				newGeoSearchStoreArgs().limit(2).storeDistance()));
+				GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoSearchStoreArgs().limit(2).storeDistance()));
 		actual.add(connection.zScore("georesults", PALERMO.getName()));
 		actual.add(connection.zScore("georesults", ARIGENTO.getName()));
 
@@ -3402,8 +3395,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
 		actual.add(connection.geoSearchStore("georesults", key, GeoReference.fromCoordinate(PALERMO),
-				GeoShape.byRadius(new Distance(200, KILOMETERS)),
-				newGeoSearchStoreArgs().limit(2).storeDistance()));
+				GeoShape.byRadius(new Distance(200, KILOMETERS)), newGeoSearchStoreArgs().limit(2).storeDistance()));
 		actual.add(connection.zScore("georesults", PALERMO.getName()));
 		actual.add(connection.zScore("georesults", ARIGENTO.getName()));
 
@@ -3580,22 +3572,21 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(3)).isNotNull();
 	}
 
-    @ParameterizedTest // DATAREDIS-2903
-    @ValueSource(booleans = {false, true})
-    void bitFieldIncrByAndThenGetShouldWorkCorrectly(boolean isMultipliedByTypeLengthOffset) {
-        var offset = isMultipliedByTypeLengthOffset
-            ? BitFieldSubCommands.Offset.offset(300L).multipliedByTypeLength()
-            : BitFieldSubCommands.Offset.offset(400L);
+	@ParameterizedTest // GH-2903
+	@ValueSource(booleans = { false, true })
+	void bitFieldIncrByAndThenGetShouldWorkCorrectly(boolean isMultipliedByTypeLengthOffset) {
 
-        actual.add(connection.bitfield(KEY_1, create().incr(INT_8).valueAt(offset).by(1L)));
-        actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset)));
+		var offset = isMultipliedByTypeLengthOffset ? BitFieldSubCommands.Offset.offset(300L).multipliedByTypeLength()
+				: BitFieldSubCommands.Offset.offset(400L);
 
-        List<Object> results = getResults();
+		actual.add(connection.bitfield(KEY_1, create().incr(INT_8).valueAt(offset).by(1L)));
+		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(offset)));
 
-        assertThat(results).hasSize(2)
-            // should return same results after INCRBY and GET operations for bitfield with same offset
-            .containsExactly(List.of(1L), List.of(1L));
-    }
+		List<Object> results = getResults();
+
+		// should return same results after INCRBY and GET operations for bitfield with same offset
+		assertThat(results).containsExactly(List.of(1L), List.of(1L));
+	}
 
 	@Test // DATAREDIS-562
 	void bitfieldShouldAllowMultipleSubcommands() {
@@ -3884,8 +3875,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer",
-				org.springframework.data.domain.Range.unbounded(), 10L));
+		actual.add(
+				connection.xPending(KEY_1, "my-group", "my-consumer", org.springframework.data.domain.Range.unbounded(), 10L));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
@@ -4106,7 +4097,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.size()).isZero();
 	}
 
-	@Test //GH-2345
+	@Test // GH-2345
 	public void zRangeStoreByScoreStoresKeys() {
 		String dstKey = KEY_2;
 		String srcKey = KEY_1;
@@ -4144,7 +4135,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((LinkedHashSet<Object>) result.get(5)).containsSequence(VALUE_3, VALUE_4);
 	}
 
-	@Test //GH-2345
+	@Test // GH-2345
 	public void zRangeStoreByLexStoresKeys() {
 		String dstKey = KEY_2;
 		String srcKey = KEY_1;

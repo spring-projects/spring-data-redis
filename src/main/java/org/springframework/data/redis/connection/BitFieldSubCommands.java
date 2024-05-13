@@ -648,13 +648,13 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @return
 		 * @since 2.5.2
 		 */
-		public static BitFieldSet create(BitFieldType type,Offset offset,long value){
+		public static BitFieldSet create(BitFieldType type, Offset offset, long value) {
 
 			Assert.notNull(type, "BitFieldType must not be null");
 			Assert.notNull(offset, "Offset must not be null");
 
 			BitFieldSet instance = new BitFieldSet();
-			instance.type =  type;
+			instance.type = type;
 			instance.offset = offset;
 			instance.value = value;
 
@@ -728,13 +728,13 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @since 2.5.2
 		 * @return
 		 */
-		public static BitFieldGet create(BitFieldType type,Offset offset){
+		public static BitFieldGet create(BitFieldType type, Offset offset) {
 
 			Assert.notNull(type, "BitFieldType must not be null");
 			Assert.notNull(offset, "Offset must not be null");
 
 			BitFieldGet instance = new BitFieldGet();
-			instance.type =  type;
+			instance.type = type;
 			instance.offset = offset;
 
 			return instance;
@@ -767,7 +767,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @return
 		 * @since 2.5.2
 		 */
-		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value){
+		public static BitFieldIncrBy create(BitFieldType type, Offset offset, long value) {
 			return create(type, offset, value, null);
 		}
 
@@ -787,7 +787,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			Assert.notNull(offset, "Offset must not be null");
 
 			BitFieldIncrBy instance = new BitFieldIncrBy();
-			instance.type =  type;
+			instance.type = type;
 			instance.offset = offset;
 			instance.value = value;
 			instance.overflow = overflow;
