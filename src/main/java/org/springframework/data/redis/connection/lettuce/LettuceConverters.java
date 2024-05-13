@@ -79,6 +79,7 @@ import org.springframework.util.StringUtils;
  * @author Chris Bono
  * @author Vikas Garg
  * @author John Blum
+ * @author Roman Osadchuk
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
