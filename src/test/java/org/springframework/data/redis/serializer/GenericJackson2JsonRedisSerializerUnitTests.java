@@ -436,7 +436,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		assertThat(serializer.configure(configurer)).isSameAs(serializer);
 
-		verify(mockObjectMapper, times(1)).registerModule(eq(mockModule));
+		verify(mockObjectMapper, times(1)).registerModule(mockModule);
 		verifyNoMoreInteractions(mockObjectMapper);
 		verifyNoInteractions(mockModule);
 	}
@@ -451,30 +451,38 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	}
 
 	@Test
-	void customSerializeAndDeserializeNullValue() {
+	void defaultSerializeAndDeserializeNullValueWithBuilderClass() {
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder(
+				new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY),
+				JacksonObjectReader.create(), JacksonObjectWriter.create())
+				.classPropertyTypeName(null)
+				.registerNullValueSerializer(null)
+				.build();
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(
-				null,
-				(mapper, source, type) -> {
-					if (type.getRawClass() == User.class) {
-						return mapper.readerWithView(Views.Basic.class).forType(type).readValue(source);
+		serializeAndDeserializeNullValue(serializer);
+	}
+
+	@Test
+	void customSerializeAndDeserializeNullValueWithBuilderClass() {
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder(
+				new ObjectMapper(), JacksonObjectReader.create(), JacksonObjectWriter.create())
+				.classPropertyTypeName(null)
+				.registerNullValueSerializer(new StdSerializer<>(NullValue.class) {
+					@Override
+					public void serialize(NullValue nullValue,
+					                      JsonGenerator jsonGenerator,
+					                      SerializerProvider serializerProvider) throws IOException {
+						jsonGenerator.writeNull();
 					}
-					return mapper.readValue(source, type);
-				}, JacksonObjectWriter.create(), new StdSerializer<>(NullValue.class) {
-			@Override
-			public void serialize(NullValue nullValue,
-								  JsonGenerator jsonGenerator,
-								  SerializerProvider serializerProvider) throws IOException {
-				jsonGenerator.writeNull();
-			}
 
-			@Override
-			public void serializeWithType(NullValue value, JsonGenerator jsonGenerator, SerializerProvider serializers,
-			                              TypeSerializer typeSerializer) throws IOException {
+					@Override
+					public void serializeWithType(NullValue value, JsonGenerator jsonGenerator, SerializerProvider serializers,
+					                              TypeSerializer typeSerializer) throws IOException {
 
-				serialize(value, jsonGenerator, serializers);
-			}
-		});
+						serialize(value, jsonGenerator, serializers);
+					}
+				})
+				.build();
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
 

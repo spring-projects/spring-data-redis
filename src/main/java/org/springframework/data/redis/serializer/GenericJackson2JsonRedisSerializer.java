@@ -120,39 +120,9 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName, JacksonObjectReader reader,
 			JacksonObjectWriter writer) {
 
-		this(classPropertyTypeName, reader, writer, null);
-	}
-
-	/**
-	 * Creates {@link GenericJackson2JsonRedisSerializer} initialized with an {@link ObjectMapper} configured for default
-	 * typing using the given {@link String name} along with the given, required {@link JacksonObjectReader} and
-	 * {@link JacksonObjectWriter} used to read/write {@link Object Objects} de/serialized as JSON,
-	 * optionally customized {@link NullValueSerializer}.
-	 * <p>
-	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS} will be
-	 * used.
-	 * <p>
-	 * In case {@link StdSerializer} is {@literal null}, then a default {@link NullValueSerializer} will be registered.
-	 *
-	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information; can be
-	 *          {@literal null}.
-	 * @param reader {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
-	 * @param writer {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
-	 * @param nullValueSerializer {@link StdSerializer} to serialize {@link NullValue} instances.
-	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
-	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
-	 * @since 3.3
-	 */
-	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName, JacksonObjectReader reader,
-			JacksonObjectWriter writer, @Nullable StdSerializer<NullValue> nullValueSerializer) {
-
 		this(new ObjectMapper(), reader, writer, classPropertyTypeName);
 
-		if (nullValueSerializer == null) {
-			registerNullValueSerializer(this.mapper, classPropertyTypeName);
-		} else {
-			registerCustomNullValueSerializer(nullValueSerializer);
-		}
+		registerNullValueSerializer(this.mapper, classPropertyTypeName);
 
 		StdTypeResolverBuilder typer = TypeResolverBuilder.forEverything(this.mapper).init(JsonTypeInfo.Id.CLASS, null)
 				.inclusion(JsonTypeInfo.As.PROPERTY);
@@ -162,6 +132,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		this.mapper.setDefaultTyping(typer);
+	}
+
+	/**
+	 * Factory method returning a {@literal Builder} used to construct and configure a {@link GenericJackson2JsonRedisSerializer}.
+	 *
+	 * @return new {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+	 * @since 3.3
+	 */
+	public static GenericJackson2JsonRedisSerializerBuilder builder(ObjectMapper objectMapper, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
+		return new GenericJackson2JsonRedisSerializerBuilder(objectMapper, reader, writer);
 	}
 
 	/**
@@ -259,10 +240,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		// Simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here
 		// since we need the type hint embedded for deserialization using the default typing feature.
 		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
-	}
-
-	private void registerCustomNullValueSerializer(StdSerializer<NullValue> nullValueSerializer) {
-		this.mapper.registerModule(new SimpleModule().addSerializer(nullValueSerializer));
 	}
 
 	/**
@@ -427,6 +404,69 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 				TypeSerializer typeSerializer) throws IOException {
 
 			serialize(value, jsonGenerator, serializers);
+		}
+	}
+
+	/**
+	 * {@literal Builder} for creating a {@link GenericJackson2JsonRedisSerializer}.
+	 *
+	 * @author Anne Lee
+	 * @since 3.3
+	 */
+	public static class GenericJackson2JsonRedisSerializerBuilder {
+		@Nullable
+		private String classPropertyTypeName;
+		private JacksonObjectReader reader;
+		private JacksonObjectWriter writer;
+		private ObjectMapper mapper;
+		@Nullable
+		private StdSerializer<NullValue> nullValueSerializer;
+
+		private GenericJackson2JsonRedisSerializerBuilder(
+				ObjectMapper objectMapper,
+				JacksonObjectReader reader,
+				JacksonObjectWriter writer
+		) {
+			this.mapper = objectMapper;
+			this.reader = reader;
+			this.writer = writer;
+		}
+
+		/**
+		 * Configure a classPropertyName.
+		 *
+		 * @param classPropertyTypeName can be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 * @since 3.3
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder classPropertyTypeName(@Nullable String classPropertyTypeName) {
+			this.classPropertyTypeName = classPropertyTypeName;
+			return this;
+		}
+
+		/**
+		 * Register a nullValueSerializer.
+		 *
+		 * @param nullValueSerializer the {@link StdSerializer} to use for {@link NullValue} serialization. Can be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder registerNullValueSerializer(@Nullable StdSerializer<NullValue> nullValueSerializer) {
+			this.nullValueSerializer = nullValueSerializer;
+			return this;
+		}
+
+		/**
+		 * Create new instance of {@link GenericJackson2JsonRedisSerializer} with configuration options applied.
+		 *
+		 * @return new instance of {@link GenericJackson2JsonRedisSerializer}.
+		 */
+		public GenericJackson2JsonRedisSerializer build() {
+			Assert.notNull(this.mapper, "ObjectMapper must not be null");
+			Assert.notNull(this.reader, "Reader must not be null");
+			Assert.notNull(this.writer, "Writer must not be null");
+
+			this.mapper.registerModule(new SimpleModule().addSerializer(this.nullValueSerializer != null ? this.nullValueSerializer : new NullValueSerializer(this.classPropertyTypeName)));
+			return new GenericJackson2JsonRedisSerializer(this.mapper, this.reader, this.writer, this.classPropertyTypeName);
 		}
 	}
 
