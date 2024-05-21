@@ -15,20 +15,10 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.getField;
-import static org.springframework.util.ObjectUtils.nullSafeEquals;
-import static org.springframework.util.ObjectUtils.nullSafeHashCode;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
+import static org.springframework.util.ObjectUtils.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,10 +30,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -55,13 +41,17 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
@@ -78,9 +68,14 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	private static final SimpleObject SIMPLE_OBJECT = new SimpleObject(1L);
 	private static final ComplexObject COMPLEX_OBJECT = new ComplexObject("steelheart", SIMPLE_OBJECT);
 
-	@Test // DATAREDIS-392
+	@Test // DATAREDIS-392, GH-2878
 	void shouldUseDefaultTyping() {
 		assertThat(extractTypeResolver(new GenericJackson2JsonRedisSerializer())).isNotNull();
+		assertThat(extractTypeResolver(GenericJackson2JsonRedisSerializer.builder().build())).isNotNull();
+		assertThat(extractTypeResolver(GenericJackson2JsonRedisSerializer.builder().defaultTyping(false).build())).isNull();
+		assertThat(
+				extractTypeResolver(GenericJackson2JsonRedisSerializer.builder().objectMapper(new ObjectMapper()).build()))
+				.isNull();
 	}
 
 	@Test // DATAREDIS-392
@@ -102,12 +97,13 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // DATAREDIS-392
 	void shouldUseDefaultTypingWhenClassPropertyNameIsProvided() {
 
-		TypeResolverBuilder<?> typeResolver = extractTypeResolver(new GenericJackson2JsonRedisSerializer("firefight"));
+		TypeResolverBuilder<?> typeResolver = extractTypeResolver(
+				GenericJackson2JsonRedisSerializer.builder().typeHintPropertyName("firefight").build());
 		assertThat((String) getField(typeResolver, "_typeProperty")).isEqualTo("firefight");
 	}
 
 	@Test // DATAREDIS-392
-	void serializeShouldReturnEmptyByteArrayWhenSouceIsNull() {
+	void serializeShouldReturnEmptyByteArrayWhenSourceIsNull() {
 		assertThat(new GenericJackson2JsonRedisSerializer().serialize(null)).isEqualTo(SerializationUtils.EMPTY_ARRAY);
 	}
 
@@ -231,10 +227,10 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		user.id = 42;
 		user.name = "Walter White";
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer((String) null,
-				JacksonObjectReader.create(), (mapper, source) -> {
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.writer((mapper, source) -> {
 					return mapper.writerWithView(Views.Basic.class).writeValueAsBytes(source);
-				});
+		}).build();
 
 		byte[] result = serializer.serialize(user);
 
@@ -244,10 +240,10 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-2322
 	void considersWriterForCustomObjectMapper() {
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(new ObjectMapper(),
-				JacksonObjectReader.create(), (mapper, source) -> {
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.objectMapper(new ObjectMapper()).writer((mapper, source) -> {
 					return mapper.writerWithView(Views.Basic.class).writeValueAsBytes(source);
-				});
+				}).build();
 
 		User user = new User();
 		user.email = "walter@heisenberg.com";
@@ -267,13 +263,14 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		user.id = 42;
 		user.name = "Walter White";
 
-		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer((String) null,
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.reader(
 				(mapper, source, type) -> {
 					if (type.getRawClass() == User.class) {
 						return mapper.readerWithView(Views.Basic.class).forType(type).readValue(source);
 					}
 					return mapper.readValue(source, type);
-				}, JacksonObjectWriter.create());
+				}).build();
 
 		byte[] serializedValue = serializer.serialize(user);
 
@@ -436,7 +433,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		assertThat(serializer.configure(configurer)).isSameAs(serializer);
 
-		verify(mockObjectMapper, times(1)).registerModule(mockModule);
+		verify(mockObjectMapper).registerModule(mockModule);
 		verifyNoMoreInteractions(mockObjectMapper);
 		verifyNoInteractions(mockModule);
 	}
@@ -452,36 +449,33 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 	@Test
 	void defaultSerializeAndDeserializeNullValueWithBuilderClass() {
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder(
-				new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY),
-				JacksonObjectReader.create(), JacksonObjectWriter.create())
-				.classPropertyTypeName(null)
-				.registerNullValueSerializer(null)
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.objectMapper(new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY))
 				.build();
 
 		serializeAndDeserializeNullValue(serializer);
 	}
 
-	@Test
-	void customSerializeAndDeserializeNullValueWithBuilderClass() {
-		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder(
-				new ObjectMapper(), JacksonObjectReader.create(), JacksonObjectWriter.create())
-				.classPropertyTypeName(null)
-				.registerNullValueSerializer(new StdSerializer<>(NullValue.class) {
-					@Override
-					public void serialize(NullValue nullValue,
-					                      JsonGenerator jsonGenerator,
-					                      SerializerProvider serializerProvider) throws IOException {
-						jsonGenerator.writeNull();
-					}
+	@Test // GH-2878
+	void customNullValueSerializer() {
 
-					@Override
-					public void serializeWithType(NullValue value, JsonGenerator jsonGenerator, SerializerProvider serializers,
-					                              TypeSerializer typeSerializer) throws IOException {
+		StdSerializer<NullValue> nullValueSerializer = new StdSerializer<>(NullValue.class) {
+			@Override
+			public void serialize(NullValue nullValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+					throws IOException {
+				jsonGenerator.writeNull();
+			}
 
-						serialize(value, jsonGenerator, serializers);
-					}
-				})
+			@Override
+			public void serializeWithType(NullValue value, JsonGenerator jsonGenerator, SerializerProvider serializers,
+					TypeSerializer typeSerializer) throws IOException {
+
+				serialize(value, jsonGenerator, serializers);
+			}
+		};
+
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.nullValueSerializer(nullValueSerializer)
 				.build();
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
@@ -504,6 +498,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		assertThat(deserializedValue).isInstanceOf(NullValue.class);
 	}
 
+	@Nullable
 	private TypeResolverBuilder<?> extractTypeResolver(GenericJackson2JsonRedisSerializer serializer) {
 
 		ObjectMapper mapper = (ObjectMapper) getField(serializer, "mapper");
