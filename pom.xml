@@ -312,17 +312,6 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
 
-			<plugin>
-				<groupId>org.asciidoctor</groupId>
-				<artifactId>asciidoctor-maven-plugin</artifactId>
-				<configuration>
-					<attributes>
-						<lettuce>${lettuce}</lettuce>
-						<jedis>${jedis}</jedis>
-					</attributes>
-				</configuration>
-			</plugin>
-
 		</plugins>
 	</build>
 
