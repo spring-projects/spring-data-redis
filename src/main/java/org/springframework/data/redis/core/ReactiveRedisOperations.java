@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -401,6 +402,15 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
 	Mono<Duration> getExpire(K key);
+
+	/**
+	 * Get the number of given {@code keys} that exists.
+	 *
+	 * @param keys must not be {@literal null} or {@literal empty}.
+	 * @return the number of existing keys in redis. 0 if there are no existing keys.
+	 * @see <a href="https://redis.io/docs/commands/exists/">Redis Documentation: EXISTS</a>
+	 */
+	Mono<Long> countExistingKeys(Collection<K> keys);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Lua scripts

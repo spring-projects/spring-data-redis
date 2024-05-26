@@ -175,6 +175,14 @@ public interface ReactiveKeyCommands {
 
 		return exists(Mono.just(new KeyCommand(key))).next().map(BooleanResponse::getOutput);
 	}
+	/**
+	 * Determine the number of given {@literal keys} that exist.
+	 *
+	 * @param keys must not be {@literal null} or {@literal empty}.
+	 * @return {@link Mono} emitting {@literal the number of existing keys}.
+	 * @see <a href="https://redis.io/docs/commands/exists/">Redis Documentation: EXISTS</a>
+	 */
+	Mono<Long> exists(List<ByteBuffer> keys);
 
 	/**
 	 * Determine if given {@literal key} exists.

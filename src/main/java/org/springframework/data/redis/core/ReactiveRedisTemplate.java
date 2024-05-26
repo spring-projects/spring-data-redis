@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -489,6 +490,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return doCreateMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
 	}
 
+	@Override
+	public Mono<Long> countExistingKeys(Collection<K> keys) {
+		Assert.notNull(keys, "Keys must not be null");
+
+		ByteBuffer[] rawKeys = rawKeys(keys);
+		return doCreateMono(connection -> connection.keyCommands().exists(Arrays.asList(rawKeys)));
+	}
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Lua scripts
 	// -------------------------------------------------------------------------
@@ -670,6 +679,17 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 
 	private ByteBuffer rawKey(K key) {
 		return getSerializationContext().getKeySerializationPair().getWriter().write(key);
+	}
+
+	private ByteBuffer[] rawKeys(Collection<K> keys) {
+		final ByteBuffer[] rawKeys = new ByteBuffer[keys.size()];
+
+		int i = 0;
+		for (K key : keys) {
+			rawKeys[i++] = rawKey(key);
+		}
+
+		return rawKeys;
 	}
 
 	@Nullable
