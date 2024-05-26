@@ -175,6 +175,20 @@ public interface ReactiveKeyCommands {
 
 		return exists(Mono.just(new KeyCommand(key))).next().map(BooleanResponse::getOutput);
 	}
+	/**
+	 * Determine if given all {@literal keys} exist.
+	 *
+	 * @param keys must not be {@literal null} or {@literal empty}.
+	 * @return {@link Mono} emitting {@literal true} if all keys exist.
+	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 */
+	default Mono<Boolean> exists(List<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.notEmpty(keys, "Keys must not be empty");
+
+		return exists(Flux.fromIterable(keys).map(KeyCommand::new)).all(BooleanResponse::getOutput);
+	}
 
 	/**
 	 * Determine if given {@literal key} exists.
