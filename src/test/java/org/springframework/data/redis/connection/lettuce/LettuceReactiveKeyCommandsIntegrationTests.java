@@ -70,6 +70,22 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 		connection.keyCommands().exists(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
+	@ParameterizedRedisTest
+	void existsKeyReturnsKeyCount() {
+		nativeCommands.set(KEY_1, "1000");
+		nativeCommands.set(KEY_2, "2000");
+		nativeCommands.set(KEY_3, "3000");
+
+		connection.keyCommands().exists(List.of(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)).as(StepVerifier::create)
+				.expectNext(3L).verifyComplete();
+	}
+
+	@ParameterizedRedisTest
+	void existsKeyReturnsZeroWhenKeyDoesNotExist() {
+		connection.keyCommands().exists(List.of(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)).as(StepVerifier::create)
+				.expectNext(0L).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-525
 	void typeShouldReturnTypeCorrectly() {
 
@@ -168,7 +184,7 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 		connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).as(StepVerifier::create).expectNext(true)
 				.verifyComplete();
 		assertThat(nativeCommands.exists(KEY_2)).isEqualTo(1L);
-		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -187,7 +203,7 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.verifyComplete();
 
 		assertThat(nativeCommands.exists(KEY_2)).isEqualTo(1L);
-		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -428,7 +444,7 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.expectNext(true) //
 				.expectComplete() //
 				.verify();
-		assertThat(nativeCommands.exists(KEY_1)).isEqualTo(0L);
+		assertThat(nativeCommands.exists(KEY_1)).isZero();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-694

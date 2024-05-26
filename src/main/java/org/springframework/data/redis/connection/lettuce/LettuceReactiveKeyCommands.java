@@ -344,6 +344,14 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 		return connection.execute(cmd -> cmd.objectRefcount(key)).next();
 	}
 
+	@Override
+	public Mono<Long> exists(List<ByteBuffer> keys) {
+		Assert.notNull(keys, "Key list must not be null");
+		Assert.notEmpty(keys, "Key list must not be empty");
+
+		return connection.execute(cmd -> cmd.exists(keys.toArray(ByteBuffer[]::new))).next();
+	}
+
 	private static ExpireArgs getExpireArgs(ExpirationOptions options) {
 
 		return new ExpireArgs() {
