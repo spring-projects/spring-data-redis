@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=7.2.4
+REDIS_VERSION:=7.2.5
+PROJECT?=redis
+GH_ORG?=redis
 SPRING_PROFILE?=ci
 SHELL=/bin/bash -euo pipefail
 
 #######
 # Redis
 #######
-.PRECIOUS: work/redis-%.conf
+.PRECIOUS: work/$(PROJECT)-%.conf
 
-work/redis-%.conf:
+work/$(PROJECT)-%.conf:
 	@mkdir -p $(@D)
 
 	echo port $* >> $@
@@ -29,15 +31,15 @@ work/redis-%.conf:
 	echo protected-mode no >> $@
 	echo bind 0.0.0.0 >> $@
 	echo notify-keyspace-events Ex >> $@
-	echo pidfile $(shell pwd)/work/redis-$*.pid >> $@
-	echo logfile $(shell pwd)/work/redis-$*.log >> $@
-	echo unixsocket $(shell pwd)/work/redis-$*.sock >> $@
+	echo pidfile $(shell pwd)/work/$(PROJECT)-$*.pid >> $@
+	echo logfile $(shell pwd)/work/$(PROJECT)-$*.log >> $@
+	echo unixsocket $(shell pwd)/work/$(PROJECT)-$*.sock >> $@
 	echo unixsocketperm 755 >> $@
 	echo save \"\" >> $@
 	echo slaveof 127.0.0.1 6379 >> $@
 
 # Handled separately because it's a node with authentication. User: spring, password: data. Default password: foobared
-work/redis-6382.conf:
+work/$(PROJECT)-6382.conf:
 	@mkdir -p $(@D)
 
 	echo port 6382 >> $@
@@ -45,9 +47,9 @@ work/redis-6382.conf:
 	echo protected-mode no >> $@
 	echo bind 0.0.0.0 >> $@
 	echo notify-keyspace-events Ex >> $@
-	echo pidfile $(shell pwd)/work/redis-6382.pid >> $@
-	echo logfile $(shell pwd)/work/redis-6382.log >> $@
-	echo unixsocket $(shell pwd)/work/redis-6382.sock >> $@
+	echo pidfile $(shell pwd)/work/$(PROJECT)-6382.pid >> $@
+	echo logfile $(shell pwd)/work/$(PROJECT)-6382.log >> $@
+	echo unixsocket $(shell pwd)/work/$(PROJECT)-6382.sock >> $@
 	echo unixsocketperm 755 >> $@
 	echo "requirepass foobared" >> $@
 	echo "user default on #1b58ee375b42e41f0e48ef2ff27d10a5b1f6924a9acdcdba7cae868e7adce6bf ~* +@all" >> $@
@@ -55,7 +57,7 @@ work/redis-6382.conf:
 	echo save \"\" >> $@
 
 # Handled separately because it's the master and all others are slaves
-work/redis-6379.conf:
+work/$(PROJECT)-6379.conf:
 	@mkdir -p $(@D)
 
 	echo port 6379 >> $@
@@ -63,18 +65,18 @@ work/redis-6379.conf:
 	echo protected-mode no >> $@
 	echo bind 0.0.0.0 >> $@
 	echo notify-keyspace-events Ex >> $@
-	echo pidfile $(shell pwd)/work/redis-6379.pid >> $@
-	echo logfile $(shell pwd)/work/redis-6379.log >> $@
-	echo unixsocket $(shell pwd)/work/redis-6379.sock >> $@
+	echo pidfile $(shell pwd)/work/$(PROJECT)-6379.pid >> $@
+	echo logfile $(shell pwd)/work/$(PROJECT)-6379.log >> $@
+	echo unixsocket $(shell pwd)/work/$(PROJECT)-6379.sock >> $@
 	echo unixsocketperm 755 >> $@
 	echo save \"\" >> $@
 
-work/redis-%.pid: work/redis-%.conf work/redis/bin/redis-server
-	work/redis/bin/redis-server $<
+work/$(PROJECT)-%.pid: work/$(PROJECT)-%.conf work/$(PROJECT)/bin/$(PROJECT)-server
+	work/$(PROJECT)/bin/$(PROJECT)-server $<
 
-redis-start: work/redis-6379.pid work/redis-6380.pid work/redis-6381.pid work/redis-6382.pid
+server-start: work/$(PROJECT)-6379.pid work/$(PROJECT)-6380.pid work/$(PROJECT)-6381.pid work/$(PROJECT)-6382.pid
 
-redis-stop: stop-6379 stop-6380 stop-6381 stop-6382
+server-stop: stop-6379 stop-6380 stop-6381 stop-6382
 
 ##########
 # Sentinel
@@ -110,8 +112,8 @@ work/sentinel-26382.conf:
 	echo sentinel monitor mymaster 127.0.0.1 6382 2 >> $@
 	echo sentinel auth-pass mymaster foobared >> $@
 
-work/sentinel-%.pid: work/sentinel-%.conf work/redis-6379.pid work/redis/bin/redis-server
-	work/redis/bin/redis-server $< --sentinel
+work/sentinel-%.pid: work/sentinel-%.conf work/$(PROJECT)-6379.pid work/$(PROJECT)/bin/$(PROJECT)-server
+	work/$(PROJECT)/bin/$(PROJECT)-server $< --sentinel
 
 sentinel-start: work/sentinel-26379.pid work/sentinel-26380.pid work/sentinel-26381.pid work/sentinel-26382.pid
 
@@ -136,20 +138,20 @@ work/cluster-%.conf:
 	echo logfile $(shell pwd)/work/cluster-$*.log >> $@
 	echo save \"\" >> $@
 
-work/cluster-%.pid: work/cluster-%.conf work/redis/bin/redis-server
-	work/redis/bin/redis-server $< &
+work/cluster-%.pid: work/cluster-%.conf work/$(PROJECT)/bin/$(PROJECT)-server
+	work/$(PROJECT)/bin/$(PROJECT)-server $< &
 
 cluster-start: work/cluster-7379.pid work/cluster-7380.pid work/cluster-7381.pid work/cluster-7382.pid
 	sleep 1
 
 work/meet-%:
-	-work/redis/bin/redis-cli -p $* cluster meet 127.0.0.1 7379
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p $* cluster meet 127.0.0.1 7379
 
 # Handled separately because this node is a replica
 work/meet-7382:
-	-work/redis/bin/redis-cli -p 7382 cluster meet 127.0.0.1 7379
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p 7382 cluster meet 127.0.0.1 7379
 	sleep 2
-	-work/redis/bin/redis-cli -p 7382 cluster replicate $(shell work/redis/bin/redis-cli -p 7379 cluster myid)
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p 7382 cluster replicate $(shell work/$(PROJECT)/bin/$(PROJECT)-cli -p 7379 cluster myid)
 
 cluster-meet: work/meet-7380 work/meet-7381 work/meet-7382
 	sleep 1
@@ -157,9 +159,9 @@ cluster-meet: work/meet-7380 work/meet-7381 work/meet-7382
 cluster-stop: stop-7379 stop-7380 stop-7381 stop-7382
 
 cluster-slots:
-	-work/redis/bin/redis-cli -p 7379 cluster addslots $(shell seq 0 5460)
-	-work/redis/bin/redis-cli -p 7380 cluster addslots $(shell seq 5461 10922)
-	-work/redis/bin/redis-cli -p 7381 cluster addslots $(shell seq 10923 16383)
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p 7379 cluster addslots $(shell seq 0 5460)
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p 7380 cluster addslots $(shell seq 5461 10922)
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p 7381 cluster addslots $(shell seq 10923 16383)
 
 cluster-init: cluster-start cluster-meet cluster-slots
 
@@ -172,26 +174,26 @@ clean:
 clobber:
 	rm -rf work
 
-work/redis/bin/redis-cli work/redis/bin/redis-server:
-	@mkdir -p work/redis
+work/$(PROJECT)/bin/$(PROJECT)-cli work/$(PROJECT)/bin/$(PROJECT)-server:
+	@mkdir -p work/$(PROJECT)
 
-	curl -sSL https://github.com/redis/redis/archive/$(REDIS_VERSION).tar.gz | tar xzf - -C work
-	$(MAKE) -C work/redis-$(REDIS_VERSION) -j
-	$(MAKE) -C work/redis-$(REDIS_VERSION) PREFIX=$(shell pwd)/work/redis install
-	rm -rf work/redis-$(REDIS_VERSION)
+	curl -sSL https://github.com/$(GH_ORG)/$(PROJECT)/archive/refs/tags/$(REDIS_VERSION).tar.gz | tar xzf - -C work
+	$(MAKE) -C work/$(PROJECT)-$(REDIS_VERSION) -j
+	$(MAKE) -C work/$(PROJECT)-$(REDIS_VERSION) PREFIX=$(shell pwd)/work/$(PROJECT) install
+	rm -rf work/$(PROJECT)-$(REDIS_VERSION)
 
-start: redis-start sentinel-start cluster-init
+start: server-start sentinel-start cluster-init
 
-stop-%: work/redis/bin/redis-cli
-	-work/redis/bin/redis-cli -p $* shutdown
+stop-%: work/$(PROJECT)/bin/$(PROJECT)-cli
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -p $* shutdown
 
-stop-6382: work/redis/bin/redis-cli
-	-work/redis/bin/redis-cli -a foobared -p 6382 shutdown
+stop-6382: work/$(PROJECT)/bin/$(PROJECT)-cli
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -a foobared -p 6382 shutdown
 
-stop-26382: work/redis/bin/redis-cli
-	-work/redis/bin/redis-cli -a foobared -p 26382 shutdown
+stop-26382: work/$(PROJECT)/bin/$(PROJECT)-cli
+	-work/$(PROJECT)/bin/$(PROJECT)-cli -a foobared -p 26382 shutdown
 
-stop: redis-stop sentinel-stop cluster-stop
+stop: server-stop sentinel-stop cluster-stop
 
 test:
 	$(MAKE) start
