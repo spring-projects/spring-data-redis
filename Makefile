@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=7.2.5
+VERSION:=7.2.5
 PROJECT?=redis
 GH_ORG?=redis
 SPRING_PROFILE?=ci
@@ -177,10 +177,10 @@ clobber:
 work/$(PROJECT)/bin/$(PROJECT)-cli work/$(PROJECT)/bin/$(PROJECT)-server:
 	@mkdir -p work/$(PROJECT)
 
-	curl -sSL https://github.com/$(GH_ORG)/$(PROJECT)/archive/refs/tags/$(REDIS_VERSION).tar.gz | tar xzf - -C work
-	$(MAKE) -C work/$(PROJECT)-$(REDIS_VERSION) -j
-	$(MAKE) -C work/$(PROJECT)-$(REDIS_VERSION) PREFIX=$(shell pwd)/work/$(PROJECT) install
-	rm -rf work/$(PROJECT)-$(REDIS_VERSION)
+	curl -sSL https://github.com/$(GH_ORG)/$(PROJECT)/archive/refs/tags/$(VERSION).tar.gz | tar xzf - -C work
+	$(MAKE) -C work/$(PROJECT)-$(VERSION) -j
+	$(MAKE) -C work/$(PROJECT)-$(VERSION) PREFIX=$(shell pwd)/work/$(PROJECT) install
+	rm -rf work/$(PROJECT)-$(VERSION)
 
 start: server-start sentinel-start cluster-init
 
@@ -198,14 +198,14 @@ stop: server-stop sentinel-stop cluster-stop
 test:
 	$(MAKE) start
 	sleep 1
-	./mvnw clean test -U -P$(SPRING_PROFILE) -Dredis.server.version=$(REDIS_VERSION) || (echo "maven failed $$?"; exit 1)
+	./mvnw clean test -U -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
 
 all-tests:
 	$(MAKE) start
 	sleep 1
-	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) -Dredis.server.version=$(REDIS_VERSION) || (echo "maven failed $$?"; exit 1)
+	./mvnw clean test -U -DrunLongTests=true -P$(SPRING_PROFILE) || (echo "maven failed $$?"; exit 1)
 	$(MAKE) stop
 	$(MAKE) clean
 

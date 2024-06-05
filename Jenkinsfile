@@ -33,7 +33,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
@@ -53,7 +53,27 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg REDIS=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
+							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
+								image.push()
+							}
+						}
+					}
+				}
+				stage('Publish JDK 17 + Valkey 7.2 Docker Image') {
+					when {
+						anyOf {
+							changeset "ci/openjdk17-valkey-7.2/Dockerfile"
+							changeset "Makefile"
+							changeset "ci/pipeline.properties"
+						}
+					}
+					agent { label 'data' }
+					options { timeout(time: 20, unit: 'MINUTES') }
+
+					steps {
+						script {
+							def image = docker.build("springci/spring-data-with-valkey-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
@@ -73,7 +93,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.next.tag']}", "--build-arg BASE=${p['docker.java.next.image']} --build-arg REDIS=${p['docker.redis.6.version']} -f ci/openjdk21-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.next.tag']}", "--build-arg BASE=${p['docker.java.next.image']} --build-arg VERSION=${p['docker.redis.6.version']} -f ci/openjdk21-redis-6.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
@@ -167,6 +187,25 @@ pipeline {
 					steps {
 						script {
 							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+							}
+						}
+					}
+				}
+
+				stage("test: Valkey 7") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES') }
+					environment {
+					   	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
+					}
+					steps {
+						script {
+							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-valkey-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
 								sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 							}
 						}
