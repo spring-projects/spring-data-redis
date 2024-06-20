@@ -82,8 +82,10 @@ pipeline {
 			}
 			steps {
 				script {
-					docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-						sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+							sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+						}
 					}
 				}
 			}
@@ -110,8 +112,10 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-								sh "PROFILE=runtimehints LONG_TESTS=false JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+									sh "PROFILE=runtimehints LONG_TESTS=false JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+								}
 							}
 						}
 					}
@@ -128,8 +132,10 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
-								sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+								}
 							}
 						}
 					}
@@ -158,19 +164,21 @@ pipeline {
 
 			steps {
 				script {
-					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-						sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
-								"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
-								"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
-								"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
-								"./mvnw -s settings.xml -Pci,artifactory " +
-								"-Dartifactory.server=${p['artifactory.url']} " +
-								"-Dartifactory.username=${ARTIFACTORY_USR} " +
-								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-								"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
-								"-Dartifactory.build-name=spring-data-redis " +
-								"-Dartifactory.build-number=spring-data-redis-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
-								"-Dmaven.test.skip=true clean deploy -U -B"
+					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+							sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
+									"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
+									"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
+									"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
+									"./mvnw -s settings.xml -Pci,artifactory " +
+									"-Dartifactory.server=${p['artifactory.url']} " +
+									"-Dartifactory.username=${ARTIFACTORY_USR} " +
+									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
+									"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
+									"-Dartifactory.build-name=spring-data-redis " +
+									"-Dartifactory.build-number=spring-data-redis-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
+									"-Dmaven.test.skip=true clean deploy -U -B"
+						}
 					}
 				}
 			}
