@@ -63,6 +63,7 @@ import org.springframework.util.StringUtils;
  * @author daihuabin
  * @author John Blum
  * @author Sorokin Evgeniy
+ * @author Habip Kenan Uskudar
  */
 public abstract class Converters {
 
@@ -569,8 +570,9 @@ public abstract class Converters {
 
 		@Override
 		public RedisClusterNode convert(String source) {
-
-			String[] args = source.split(" ");
+			String filteredSource = source.replace(", ", " ");
+				
+			String[] args = filteredSource.split(" ");
 
 			Matcher matcher = clusterEndpointPattern.matcher(args[HOST_PORT_INDEX]);
 
