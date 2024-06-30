@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
@@ -50,6 +51,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Yanming Zhou
+ * @author Zhian Chen
  * @since 2.0
  * @see org.springframework.data.redis.connection.RedisStandaloneConfiguration
  * @see org.springframework.data.redis.connection.RedisSentinelConfiguration
@@ -66,6 +68,11 @@ public interface LettuceClientConfiguration {
 	 * @return {@literal true} to verify peers when using {@link #isUseSsl() SSL}.
 	 */
 	boolean isVerifyPeer();
+
+	/**
+	 * @return the {@link io.lettuce.core.SslVerifyMode}.
+	 */
+	SslVerifyMode getVerifyMode();
 
 	/**
 	 * @return {@literal true} to use Start TLS ({@code true} if the first write request shouldn't be encrypted).
@@ -166,7 +173,7 @@ public interface LettuceClientConfiguration {
 	class LettuceClientConfigurationBuilder {
 
 		boolean useSsl;
-		boolean verifyPeer = true;
+		SslVerifyMode verifyMode = SslVerifyMode.FULL;
 		boolean startTls;
 		@Nullable ClientResources clientResources;
 		ClientOptions clientOptions = ClientOptions.builder().timeoutOptions(TimeoutOptions.enabled()).build();
@@ -189,7 +196,7 @@ public interface LettuceClientConfiguration {
 		public LettuceClientConfigurationBuilder apply(RedisURI redisUri) {
 
 			this.useSsl = redisUri.isSsl();
-			this.verifyPeer = redisUri.isVerifyPeer();
+			this.verifyMode = redisUri.getVerifyMode();
 			this.startTls = redisUri.isStartTls();
 
 			if (!redisUri.getTimeout().equals(RedisURI.DEFAULT_TIMEOUT_DURATION)) {
@@ -347,7 +354,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfiguration build() {
 
-			return new DefaultLettuceClientConfiguration(useSsl, verifyPeer, startTls, clientResources, clientOptions,
+			return new DefaultLettuceClientConfiguration(useSsl, verifyMode, startTls, clientResources, clientOptions,
 					clientName, readFrom, redisCredentialsProviderFactory, timeout, shutdownTimeout, shutdownQuietPeriod);
 		}
 	}
@@ -372,7 +379,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
 
-			delegate.verifyPeer = false;
+			delegate.verifyMode = SslVerifyMode.NONE;
 			return this;
 		}
 
