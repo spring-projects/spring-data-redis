@@ -24,6 +24,7 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.RedisCredentialsProvider;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
@@ -63,6 +64,7 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
+import org.springframework.data.redis.connection.lettuce.LettuceConnection.PipeliningFlushPolicy;
 import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
@@ -115,6 +117,7 @@ import org.springframework.util.StringUtils;
  * @author Andrea Como
  * @author Chris Bono
  * @author John Blum
+ * @author Zhian Chen
  */
 public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
 		InitializingBean, DisposableBean, SmartLifecycle {
@@ -488,6 +491,19 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@Deprecated
 	public void setVerifyPeer(boolean verifyPeer) {
 		getMutableConfiguration().setVerifyPeer(verifyPeer);
+	}
+
+	/**
+	 * Returns the mode to verify peers when using SSL.
+	 * <p>
+	 * FULL will enable a full certificate verification.
+	 * CA means Lettuces only verify the certificate and skip verifying th hostname matches. NONE will disable
+	 * verification and {@link #isVerifyPeer() isVerifyPeer} will return false with this mode.
+	 *
+	 * @return the verify mode of {@link io.lettuce.core.SslVerifyMode}.
+	 */
+	public SslVerifyMode getVerifyMode() {
+		return getMutableConfiguration().getVerifyMode();
 	}
 
 	/**
@@ -1360,7 +1376,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			this.clientConfiguration.getClientName().ifPresent(it::setClientName);
 
 			it.setSsl(this.clientConfiguration.isUseSsl());
-			it.setVerifyPeer(this.clientConfiguration.isVerifyPeer());
+			it.setVerifyPeer(this.clientConfiguration.getVerifyMode());
 			it.setStartTls(this.clientConfiguration.isStartTls());
 			it.setTimeout(this.clientConfiguration.getCommandTimeout());
 		});
@@ -1659,7 +1675,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	static class MutableLettuceClientConfiguration implements LettuceClientConfiguration {
 
 		private boolean useSsl;
-		private boolean verifyPeer = true;
+		private SslVerifyMode verifyMode = SslVerifyMode.FULL;
 		private boolean startTls;
 
 		private @Nullable ClientResources clientResources;
@@ -1680,11 +1696,20 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		@Override
 		public boolean isVerifyPeer() {
-			return verifyPeer;
+			return verifyMode != SslVerifyMode.NONE;
+		}
+
+		@Override
+		public SslVerifyMode getVerifyMode() {
+			return verifyMode;
 		}
 
 		void setVerifyPeer(boolean verifyPeer) {
-			this.verifyPeer = verifyPeer;
+			this.verifyMode = verifyPeer? SslVerifyMode.FULL: SslVerifyMode.NONE;
+		}
+
+		void setVerifyPeer(SslVerifyMode verifyMode) {
+			this.verifyMode = verifyMode;
 		}
 
 		@Override

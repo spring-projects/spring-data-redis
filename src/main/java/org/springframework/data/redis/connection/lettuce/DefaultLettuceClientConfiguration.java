@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -30,12 +31,13 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Yanming Zhou
+ * @author Zhian Chen
  * @since 2.0
  */
 class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 
 	private final boolean useSsl;
-	private final boolean verifyPeer;
+	private final SslVerifyMode verifyMode;
 	private final boolean startTls;
 	private final Optional<ClientResources> clientResources;
 	private final Optional<ClientOptions> clientOptions;
@@ -52,7 +54,7 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 			Duration timeout, Duration shutdownTimeout, @Nullable Duration shutdownQuietPeriod) {
 
 		this.useSsl = useSsl;
-		this.verifyPeer = verifyPeer;
+		this.verifyMode = verifyPeer ? SslVerifyMode.FULL : SslVerifyMode.NONE;
 		this.startTls = startTls;
 		this.clientResources = Optional.ofNullable(clientResources);
 		this.clientOptions = Optional.ofNullable(clientOptions);
@@ -71,7 +73,12 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 
 	@Override
 	public boolean isVerifyPeer() {
-		return verifyPeer;
+		return verifyMode != SslVerifyMode.NONE;
+	}
+
+	@Override
+	public SslVerifyMode getVerifyMode() {
+		return verifyMode;
 	}
 
 	@Override
