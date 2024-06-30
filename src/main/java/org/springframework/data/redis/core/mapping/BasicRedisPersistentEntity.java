@@ -58,7 +58,7 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	}
 
 	@Override
-	public boolean hasExplictTimeToLiveProperty() {
+	public boolean hasExplicitTimeToLiveProperty() {
 		return getExplicitTimeToLiveProperty() != null;
 	}
 
