@@ -354,7 +354,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfiguration build() {
 
-			return new DefaultLettuceClientConfiguration(useSsl, verifyMode, startTls, clientResources, clientOptions,
+			return new DefaultLettuceClientConfiguration(useSsl, verifyMode != SslVerifyMode.NONE, startTls, clientResources, clientOptions,
 					clientName, readFrom, redisCredentialsProviderFactory, timeout, shutdownTimeout, shutdownQuietPeriod);
 		}
 	}
