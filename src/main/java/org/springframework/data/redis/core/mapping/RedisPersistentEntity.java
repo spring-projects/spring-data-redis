@@ -41,7 +41,7 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 	 * @return {@literal true} when a property is annotated with {@link org.springframework.data.redis.core.TimeToLive}.
 	 * @since 1.8
 	 */
-	boolean hasExplictTimeToLiveProperty();
+	boolean hasExplicitTimeToLiveProperty();
 
 	/**
 	 * Get the {@link PersistentProperty} that is annotated with {@link org.springframework.data.redis.core.TimeToLive}.
