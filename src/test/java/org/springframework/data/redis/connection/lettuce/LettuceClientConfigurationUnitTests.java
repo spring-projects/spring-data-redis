@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
@@ -34,6 +35,7 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Yanming Zhou
+ * @author Zhian Chen
  */
 class LettuceClientConfigurationUnitTests {
 
@@ -45,6 +47,7 @@ class LettuceClientConfigurationUnitTests {
 
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientOptions()).hasValueSatisfying(actual -> {
 
@@ -78,6 +81,7 @@ class LettuceClientConfigurationUnitTests {
 
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(configuration.isStartTls()).isTrue();
 		assertThat(configuration.getClientOptions()).contains(clientOptions);
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);
@@ -115,6 +119,7 @@ class LettuceClientConfigurationUnitTests {
 
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isTrue();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientName()).contains("bar");
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(10));

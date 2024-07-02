@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -30,6 +31,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Yanming Zhou
+ * @author Zhian Chen
  * @since 2.0
  */
 class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientConfiguration {
@@ -52,6 +54,11 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 	@Override
 	public boolean isVerifyPeer() {
 		return clientConfiguration.isVerifyPeer();
+	}
+
+	@Override
+	public SslVerifyMode getVerifyMode() {
+		return clientConfiguration.getVerifyMode();
 	}
 
 	@Override
