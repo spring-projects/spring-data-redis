@@ -58,11 +58,6 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	}
 
 	@Override
-	public boolean hasExplicitTimeToLiveProperty() {
-		return getExplicitTimeToLiveProperty() != null;
-	}
-
-	@Override
 	@Nullable
 	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
 		return this.getPersistentProperty(TimeToLive.class);
