@@ -26,6 +26,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -54,6 +55,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Marcin Zielinski
  * @author John Blum
+ * @author jinkshower
  * @since 2.2
  */
 class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> implements StreamOperations<K, HK, HV> {
@@ -134,6 +136,21 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		ByteRecord binaryRecord = input.serialize(keySerializer(), hashKeySerializer(), hashValueSerializer());
 
 		return execute(connection -> connection.xAdd(binaryRecord));
+	}
+
+	@Nullable
+	@Override
+	@SuppressWarnings("unchecked")
+	public RecordId add(Record<K , ?> record, XAddOptions options) {
+
+		Assert.notNull(record, "Record must not be null");
+		Assert.notNull(options, "XAddOptions must not be null");
+
+		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
+
+		ByteRecord binaryRecord = input.serialize(keySerializer(), hashKeySerializer(), hashValueSerializer());
+
+		return execute(connection -> connection.streamCommands().xAdd(binaryRecord, options));
 	}
 
 	@Override
