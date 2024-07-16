@@ -133,7 +133,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("harbor-repo.vmware.com/dockerhub-proxy-cache/springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image("springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
 									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
