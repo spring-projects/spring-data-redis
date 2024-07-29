@@ -25,8 +25,6 @@ import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import org.springframework.cache.Cache;
@@ -63,8 +61,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
 	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE = "The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
-
-	private final Lock lock = new ReentrantLock();
 
 	private final RedisCacheConfiguration cacheConfiguration;
 
@@ -154,28 +150,18 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@SuppressWarnings("unchecked")
 	public <T> T get(Object key, Callable<T> valueLoader) {
 
-		ValueWrapper result = get(key);
+		byte[] binaryKey = createAndConvertCacheKey(key);
+		byte[] binaryValue = getCacheWriter().get(getName(), binaryKey,
+				() -> serializeCacheValue(toStoreValue(loadCacheValue(key, valueLoader))), getTimeToLive(key),
+				getCacheConfiguration().isTimeToIdleEnabled());
 
-		return result != null ? (T) result.get() : getSynchronized(key, valueLoader);
-	}
+		ValueWrapper result = toValueWrapper(deserializeCacheValue(binaryValue));
 
-	@Nullable
-	@SuppressWarnings("unchecked")
-	private <T> T getSynchronized(Object key, Callable<T> valueLoader) {
-
-		lock.lock();
-
-		try {
-			ValueWrapper result = get(key);
-			return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
-		} finally {
-			lock.unlock();
-		}
+		return result != null ? (T) result.get() : null;
 	}
 
 	/**
-	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts} the
-	 * {@link Object loaded value} in the cache.
+	 * Loads the {@link Object} using the given {@link Callable valueLoader}.
 	 *
 	 * @param <T> {@link Class type} of the loaded {@link Object cache value}.
 	 * @param key {@link Object key} mapped to the loaded {@link Object cache value}.
@@ -184,17 +170,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected <T> T loadCacheValue(Object key, Callable<T> valueLoader) {
 
-		T value;
-
 		try {
-			value = valueLoader.call();
+			return valueLoader.call();
 		} catch (Exception ex) {
 			throw new ValueRetrievalException(key, valueLoader, ex);
 		}
-
-		put(key, value);
-
-		return value;
 	}
 
 	@Override
