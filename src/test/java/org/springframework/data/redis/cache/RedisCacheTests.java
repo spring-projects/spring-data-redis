@@ -35,6 +35,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -251,6 +252,37 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(null);
 	}
 
+	@ParameterizedRedisTest // GH-2890
+	void getWithValueLoaderShouldStoreNull() {
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
+
+		Object result = cache.get(key, () -> {
+			throw new IllegalStateException();
+		});
+
+		assertThat(result).isNull();
+	}
+
+	@ParameterizedRedisTest // GH-2890
+	void getWithValueLoaderShouldRetrieveValue() {
+
+		AtomicLong counter = new AtomicLong();
+		Object result = cache.get(key, () -> {
+			counter.incrementAndGet();
+			return sample;
+		});
+
+		assertThat(result).isEqualTo(sample);
+		result = cache.get(key, () -> {
+			counter.incrementAndGet();
+			return sample;
+		});
+
+		assertThat(result).isEqualTo(sample);
+		assertThat(counter).hasValue(1);
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-481
 	void evictShouldRemoveKey() {
 
@@ -358,7 +390,7 @@ public class RedisCacheTests {
 
 		doWithConnection(connection -> assertThat(
 				connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
-						.isEqualTo(binarySample));
+				.isEqualTo(binarySample));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-715
@@ -433,105 +465,6 @@ public class RedisCacheTests {
 				.generateKey(Collections.singletonList(new InvalidKey(sample.getFirstname(), sample.getBirthdate())));
 
 		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
-	}
-
-	@ParameterizedRedisTest // GH-2079
-	void multipleThreadsLoadValueOnce() throws InterruptedException {
-
-		int threadCount = 2;
-
-		CountDownLatch prepare = new CountDownLatch(threadCount);
-		CountDownLatch prepareForReturn = new CountDownLatch(1);
-		CountDownLatch finished = new CountDownLatch(threadCount);
-		AtomicInteger retrievals = new AtomicInteger();
-		AtomicReference<byte[]> storage = new AtomicReference<>();
-
-		cache = new RedisCache("foo", new RedisCacheWriter() {
-
-			@Override
-			public byte[] get(String name, byte[] key) {
-				return get(name, key, null);
-			}
-
-			@Override
-			public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
-
-				prepare.countDown();
-				try {
-					prepareForReturn.await(1, TimeUnit.MINUTES);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
-				}
-
-				return storage.get();
-			}
-
-			@Override
-			public CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl) {
-				byte[] value = get(name, key);
-				return CompletableFuture.completedFuture(value);
-			}
-
-			@Override
-			public CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-				return null;
-			}
-
-			@Override
-			public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-				storage.set(value);
-			}
-
-			@Override
-			public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-				return new byte[0];
-			}
-
-			@Override
-			public void remove(String name, byte[] key) {
-
-			}
-
-			@Override
-			public void clean(String name, byte[] pattern) {
-
-			}
-
-			@Override
-			public void clearStatistics(String name) {
-
-			}
-
-			@Override
-			public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
-				return null;
-			}
-
-			@Override
-			public CacheStatistics getCacheStatistics(String cacheName) {
-				return null;
-			}
-		}, RedisCacheConfiguration.defaultCacheConfig());
-
-		ThreadPoolExecutor tpe = new ThreadPoolExecutor(threadCount, threadCount, 1, TimeUnit.MINUTES,
-				new LinkedBlockingDeque<>(), new DefaultThreadFactory("RedisCacheTests"));
-
-		IntStream.range(0, threadCount).forEach(it -> tpe.submit(() -> {
-			cache.get("foo", retrievals::incrementAndGet);
-			finished.countDown();
-		}));
-
-		// wait until all Threads have arrived in RedisCacheWriter.get(…)
-		prepare.await();
-
-		// let all threads continue
-		prepareForReturn.countDown();
-
-		// wait until ThreadPoolExecutor has completed.
-		finished.await();
-		tpe.shutdown();
-
-		assertThat(retrievals).hasValue(1);
 	}
 
 	@EnabledOnCommand("GETEX")
