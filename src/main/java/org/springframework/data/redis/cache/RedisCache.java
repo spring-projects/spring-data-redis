@@ -423,7 +423,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	private CompletableFuture<ValueWrapper> retrieveValue(Object key) {
-		return getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key)) //
+
+		CompletableFuture<byte[]> retrieve = getCacheConfiguration().isTimeToIdleEnabled()
+				? getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key), getTimeToLive(key))
+				: getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key));
+
+		return retrieve //
 				.thenApply(binaryValue -> binaryValue != null ? deserializeCacheValue(binaryValue) : null) //
 				.thenApply(this::toValueWrapper);
 	}

@@ -213,10 +213,10 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	/**
 	 * Write the given key/value pair to Redis and set the expiration time if defined.
 	 *
-	 * @param name The cache name must not be {@literal null}.
-	 * @param key The key for the cache entry. Must not be {@literal null}.
-	 * @param value The value stored for the key. Must not be {@literal null}.
-	 * @param ttl Optional expiration time. Can be {@literal null}.
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @param value value stored for the key. Must not be {@literal null}.
+	 * @param ttl optional expiration time. Can be {@literal null}.
 	 */
 	void put(String name, byte[] key, byte[] value, @Nullable Duration ttl);
 
@@ -225,10 +225,10 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * <p>
 	 * This operation is non-blocking.
 	 *
-	 * @param name The cache name must not be {@literal null}.
-	 * @param key The key for the cache entry. Must not be {@literal null}.
-	 * @param value The value stored for the key. Must not be {@literal null}.
-	 * @param ttl Optional expiration time. Can be {@literal null}.
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @param value value stored for the key. Must not be {@literal null}.
+	 * @param ttl optional expiration time. Can be {@literal null}.
 	 * @since 3.2
 	 */
 	CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl);
@@ -236,10 +236,10 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	/**
 	 * Write the given value to Redis if the key does not already exist.
 	 *
-	 * @param name The cache name must not be {@literal null}.
-	 * @param key The key for the cache entry. Must not be {@literal null}.
-	 * @param value The value stored for the key. Must not be {@literal null}.
-	 * @param ttl Optional expiration time. Can be {@literal null}.
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @param value value stored for the key. Must not be {@literal null}.
+	 * @param ttl optional expiration time. Can be {@literal null}.
 	 * @return {@literal null} if the value has been written, the value stored for the key if it already exists.
 	 */
 	@Nullable
@@ -248,16 +248,16 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	/**
 	 * Remove the given key from Redis.
 	 *
-	 * @param name The cache name must not be {@literal null}.
-	 * @param key The key for the cache entry. Must not be {@literal null}.
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
 	 */
 	void remove(String name, byte[] key);
 
 	/**
 	 * Remove all keys following the given pattern.
 	 *
-	 * @param name The cache name must not be {@literal null}.
-	 * @param pattern The pattern for the keys to remove. Must not be {@literal null}.
+	 * @param name cache name must not be {@literal null}.
+	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
 	 */
 	void clean(String name, byte[] pattern);
 

@@ -16,9 +16,6 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -29,20 +26,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -478,11 +471,10 @@ public class RedisCacheTests {
 
 		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
 
-		for (int count = 0; count < 5; count++) {
+		doWithConnection(connection -> {
 
-			await().atMost(Duration.ofMillis(100));
-			assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
-		}
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isGreaterThan(1);
+		});
 	}
 
 	@EnabledOnCommand("GETEX")
@@ -496,9 +488,9 @@ public class RedisCacheTests {
 
 		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
 
-		await().atMost(Duration.ofMillis(200));
-
-		assertThat(cache.get(this.cacheKey, Person.class)).isNull();
+		doWithConnection(connection -> {
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isGreaterThan(1);
+		});
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -533,6 +525,30 @@ public class RedisCacheTests {
 		assertThat(value.get(5, TimeUnit.SECONDS)).isNotNull();
 		assertThat(value.get().get()).isEqualTo(this.sample);
 		assertThat(value).isDone();
+
+		doWithConnection(connection -> {
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isEqualTo(-1);
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2890
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void retrieveAppliesTimeToIdle() throws ExecutionException, InterruptedException {
+
+		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
+
+		RedisCache cache = new RedisCache("cache", usingRedisCacheWriter(),
+				usingRedisCacheConfiguration(withTtiExpiration()));
+
+		CompletableFuture<ValueWrapper> value = cache.retrieve(this.key);
+
+		assertThat(value).isNotNull();
+		assertThat(value.get().get()).isEqualTo(this.sample);
+		assertThat(value).isDone();
+
+		doWithConnection(connection -> {
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isGreaterThan(1);
+		});
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -689,7 +705,7 @@ public class RedisCacheTests {
 	private Function<RedisCacheConfiguration, RedisCacheConfiguration> withTtiExpiration() {
 
 		Function<RedisCacheConfiguration, RedisCacheConfiguration> entryTtlFunction = cacheConfiguration -> cacheConfiguration
-				.entryTtl(Duration.ofMillis(100));
+				.entryTtl(Duration.ofSeconds(10));
 
 		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}
