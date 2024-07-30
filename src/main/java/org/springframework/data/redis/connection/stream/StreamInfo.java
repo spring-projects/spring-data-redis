@@ -219,6 +219,8 @@ public class StreamInfo {
 	 * {@literal Redis Stream}.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
+	 * @author Krzysztof Kocel
 	 */
 	public static class XInfoGroups implements Streamable<XInfoGroup> {
 
@@ -379,7 +381,7 @@ public class StreamInfo {
 		 */
 		@Nullable
 		public Long lag() {
-			return get("entries-read", Long.class);
+			return get("lag", Long.class);
 		}
 	}
 
