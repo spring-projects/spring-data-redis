@@ -1,12 +1,12 @@
 [[redis:template]]
 = Working with Objects through `RedisTemplate`
 
-Most users are likely to use `RedisTemplate` and its corresponding package, `org.springframework.data.redis.core` or its reactive variant `ReactiveRedisTemplate`.
+Most users are likely to use javadoc:org.springframework.data.redis.core.RedisTemplate[] and its corresponding package, `org.springframework.data.redis.core` or its reactive variant javadoc:org.springframework.data.redis.core.ReactiveRedisTemplate[].
 The template is, in fact, the central class of the Redis module, due to its rich feature set.
 The template offers a high-level abstraction for Redis interactions.
 While `[Reactive]RedisConnection` offers low-level methods that accept and return binary values (`byte` arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.
 
-The `RedisTemplate` class implements the `RedisOperations` interface and its reactive variant `ReactiveRedisTemplate` implements `ReactiveRedisOperations`.
+The javadoc:org.springframework.data.redis.core.RedisTemplate[] class implements the javadoc:org.springframework.data.redis.core.RedisOperations[]  interface and its reactive variant javadoc:org.springframework.data.redis.core.ReactiveRedisTemplate[] implements javadoc:org.springframework.data.redis.core.ReactiveRedisOperations[].
 
 NOTE: The preferred way to reference operations on a `[Reactive]RedisTemplate` instance is through the
 `[Reactive]RedisOperations` interface.
@@ -27,48 +27,48 @@ Imperative::
 
 2+^|_Key Type Operations_
 
-|`GeoOperations`
+|javadoc:org.springframework.data.redis.core.GeoOperations[]
 |Redis geospatial operations, such as `GEOADD`, `GEORADIUS`,...
 
-|`HashOperations`
+|javadoc:org.springframework.data.redis.core.HashOperations[]
 |Redis hash operations
 
-|`HyperLogLogOperations`
+|javadoc:org.springframework.data.redis.core.HyperLogLogOperations[]
 |Redis HyperLogLog operations, such as `PFADD`, `PFCOUNT`,...
 
-|`ListOperations`
+|javadoc:org.springframework.data.redis.core.ListOperations[]
 |Redis list operations
 
-|`SetOperations`
+|javadoc:org.springframework.data.redis.core.SetOperations[]
 |Redis set operations
 
-|`ValueOperations`
+|javadoc:org.springframework.data.redis.core.ValueOperations[]
 |Redis string (or value) operations
 
-|`ZSetOperations`
+|javadoc:org.springframework.data.redis.core.ZSetOperations[]
 |Redis zset (or sorted set) operations
 
 2+^|_Key Bound Operations_
 
-|`BoundGeoOperations`
+|javadoc:org.springframework.data.redis.core.BoundGeoOperations[]
 |Redis key bound geospatial operations
 
-|`BoundHashOperations`
+|javadoc:org.springframework.data.redis.core.BoundHashOperations[]
 |Redis hash key bound operations
 
-|`BoundKeyOperations`
+|javadoc:org.springframework.data.redis.core.BoundKeyOperations[]
 |Redis key bound operations
 
-|`BoundListOperations`
+|javadoc:org.springframework.data.redis.core.BoundListOperations[]
 |Redis list key bound operations
 
-|`BoundSetOperations`
+|javadoc:org.springframework.data.redis.core.BoundSetOperations[]
 |Redis set key bound operations
 
-|`BoundValueOperations`
+|javadoc:org.springframework.data.redis.core.BoundValueOperations[]
 |Redis string (or value) key bound operations
 
-|`BoundZSetOperations`
+|javadoc:org.springframework.data.redis.core.BoundZSetOperations[]
 |Redis zset (or sorted set) key bound operations
 
 |====
@@ -82,25 +82,25 @@ Reactive::
 
 2+^|_Key Type Operations_
 
-|`ReactiveGeoOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveGeoOperations[]
 |Redis geospatial operations such as `GEOADD`, `GEORADIUS`, and others)
 
-|`ReactiveHashOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveHashOperations[]
 |Redis hash operations
 
-|`ReactiveHyperLogLogOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveHyperLogLogOperations[]
 |Redis HyperLogLog operations such as (`PFADD`, `PFCOUNT`, and others)
 
-|`ReactiveListOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveListOperations[]
 |Redis list operations
 
-|`ReactiveSetOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveSetOperations[]
 |Redis set operations
 
-|`ReactiveValueOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveValueOperations[]
 |Redis string (or value) operations
 
-|`ReactiveZSetOperations`
+|javadoc:org.springframework.data.redis.core.ReactiveZSetOperations[]
 |Redis zset (or sorted set) operations
 |====
 ======
@@ -355,24 +355,24 @@ In Spring Data, the conversion between the user (custom) types and raw data (and
 
 This package contains two types of serializers that, as the name implies, take care of the serialization process:
 
-* Two-way serializers based on ``RedisSerializer``.
+* Two-way serializers based on javadoc:org.springframework.data.redis.serializer.RedisSerializer[].
 * Element readers and writers that use `RedisElementReader` and ``RedisElementWriter``.
 
 The main difference between these variants is that `RedisSerializer` primarily serializes to `byte[]` while readers and writers use `ByteBuffer`.
 
 Multiple implementations are available (including two that have been already mentioned in this documentation):
 
-* `JdkSerializationRedisSerializer`, which is used by default for `RedisCache` and `RedisTemplate`.
+* javadoc:org.springframework.data.redis.serializer.JdkSerializationRedisSerializer[], which is used by default for javadoc:org.springframework.data.redis.cache.RedisCache[] and javadoc:org.springframework.data.redis.core.RedisTemplate[].
 * the `StringRedisSerializer`.
 
-However, one can use `OxmSerializer` for Object/XML mapping through Spring {spring-framework-docs}/data-access.html#oxm[OXM] support or `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
+However, one can use `OxmSerializer` for Object/XML mapping through Spring {spring-framework-docs}/data-access.html#oxm[OXM] support or javadoc:org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer[] or javadoc:org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer[] for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
 
 Do note that the storage format is not limited only to values.
 It can be used for keys, values, or hashes without any restrictions.
 
 [WARNING]
 ====
-By default, `RedisCache` and `RedisTemplate` are configured to use Java native serialization.
+By default, javadoc:org.springframework.data.redis.cache.RedisCache[] and javadoc:org.springframework.data.redis.core.RedisTemplate[] are configured to use Java native serialization.
 Java native serialization is known for allowing the running of remote code caused by payloads that exploit vulnerable libraries and classes injecting unverified bytecode.
 Manipulated input could lead to unwanted code being run in the application during the deserialization step.
 As a consequence, do not use serialization in untrusted environments.
