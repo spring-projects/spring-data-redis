@@ -13,7 +13,6 @@ The following table shows the details of data on a cluster (based on previous ex
 |people:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|15171|127.0.0.1:7381
 |people:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|7373|127.0.0.1:7380
 |people:firstname:rand|index|1700|127.0.0.1:7379
-|
 |===============
 
 ====
@@ -29,7 +28,6 @@ The following table shows what happens when you do (note the change in the slot 
 |\{people}:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|2399|127.0.0.1:7379
 |\{people}:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|2399|127.0.0.1:7379
 |\{people}:firstname:rand|index|2399|127.0.0.1:7379
-|
 |===============
 ====
 
