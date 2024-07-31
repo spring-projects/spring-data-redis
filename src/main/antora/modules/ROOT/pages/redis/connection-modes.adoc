@@ -9,7 +9,7 @@ Each mode of operation requires specific configuration that is explained in the 
 
 The easiest way to get started is by using Redis Standalone with a single Redis server,
 
-Configure `LettuceClientConfiguration` or `JedisConnectionFactory`, as shown in the following example:
+Configure javadoc:org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory[] or javadoc:org.springframework.data.redis.connection.jedis.JedisConnectionFactory[], as shown in the following example:
 
 [source,java]
 ----
@@ -60,12 +60,12 @@ class WriteToMasterReadFromReplicaConfiguration {
 }
 ----
 
-TIP: For environments reporting non-public addresses through the `INFO` command (for example, when using AWS), use `RedisStaticMasterReplicaConfiguration` instead of `RedisStandaloneConfiguration`. Please note that `RedisStaticMasterReplicaConfiguration` does not support Pub/Sub because of missing Pub/Sub message propagation across individual servers.
+TIP: For environments reporting non-public addresses through the `INFO` command (for example, when using AWS), use javadoc:org.springframework.data.redis.connection.RedisStaticMasterReplicaConfiguration[] instead of javadoc:org.springframework.data.redis.connection.RedisStandaloneConfiguration[]. Please note that `RedisStaticMasterReplicaConfiguration` does not support Pub/Sub because of missing Pub/Sub message propagation across individual servers.
 
 [[redis:sentinel]]
 == Redis Sentinel
 
-For dealing with high-availability Redis, Spring Data Redis has support for https://redis.io/topics/sentinel[Redis Sentinel], using `RedisSentinelConfiguration`, as shown in the following example:
+For dealing with high-availability Redis, Spring Data Redis has support for https://redis.io/topics/sentinel[Redis Sentinel], using javadoc:org.springframework.data.redis.connection.RedisSentinelConfiguration[], as shown in the following example:
 
 [source,java]
 ----
@@ -110,8 +110,8 @@ Sometimes, direct interaction with one of the Sentinels is required. Using `Redi
 [[cluster.enable]]
 == Redis Cluster
 
-xref:redis/cluster.adoc[Cluster support] is based on the same building blocks as non-clustered communication. `RedisClusterConnection`, an extension to `RedisConnection`, handles the communication with the Redis Cluster and translates errors into the Spring DAO exception hierarchy.
-`RedisClusterConnection` instances are created with the `RedisConnectionFactory`, which has to be set up with the associated `RedisClusterConfiguration`, as shown in the following example:
+xref:redis/cluster.adoc[Cluster support] is based on the same building blocks as non-clustered communication. javadoc:org.springframework.data.redis.connection.RedisClusterConnection[], an extension to `RedisConnection`, handles the communication with the Redis Cluster and translates errors into the Spring DAO exception hierarchy.
+`RedisClusterConnection` instances are created with the `RedisConnectionFactory`, which has to be set up with the associated javadoc:org.springframework.data.redis.connection.RedisClusterConfiguration[], as shown in the following example:
 
 .Sample RedisConnectionFactory Configuration for Redis Cluster
 ====

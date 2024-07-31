@@ -37,5 +37,5 @@ include::example$examples/ReactiveRedisApplication.java[tags=file]
 
 Even in this simple example, there are a few notable things to point out:
 
-* You can create an instance of `RedisTemplate` (or `ReactiveRedisTemplate` for reactive usage) with a `RedisConnectionFactory`. Connection factories are an abstraction on top of the supported drivers.
+* You can create an instance of javadoc:org.springframework.data.redis.core.RedisTemplate[] (or javadoc:org.springframework.data.redis.core.ReactiveRedisTemplate[]for reactive usage) with a javadoc:org.springframework.data.redis.connection.RedisConnectionFactory[]. Connection factories are an abstraction on top of the supported drivers.
 * There's no single way to use Redis as it comes with support for a wide range of data structures such as plain keys ("strings"), lists, sets, sorted sets, streams, hashes and so on.
