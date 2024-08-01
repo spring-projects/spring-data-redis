@@ -77,7 +77,6 @@ pipeline {
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 			}
 			steps {
@@ -107,7 +106,6 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 					}
 					steps {
@@ -127,7 +125,6 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 					}
 					steps {

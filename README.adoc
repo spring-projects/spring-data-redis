@@ -2,7 +2,7 @@
 
 The primary goal of the https://spring.io/projects/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-This modules provides integration with the https://redis.io/[Redis] store.
+This module provides integration with the https://redis.io/[Redis] store.
 
 == Features
 
