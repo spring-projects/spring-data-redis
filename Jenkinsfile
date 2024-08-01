@@ -158,7 +158,6 @@ pipeline {
 
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 			}
 
@@ -167,9 +166,6 @@ pipeline {
 					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
 						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
-									"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
-									"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
-									"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
 									"./mvnw -s settings.xml -Pci,artifactory " +
 									"-Dartifactory.server=${p['artifactory.url']} " +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
