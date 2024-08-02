@@ -99,6 +99,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Muchnik
  * @author John Blum
+ * @author Lucian Torje
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -735,8 +736,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private void initKeyExpirationListener() {
 
 		if (this.expirationListener.get() == null) {
-
-			KeyExpirationEventMessageListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
+			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
 					this.converter, this.shadowCopy);
 
 			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
