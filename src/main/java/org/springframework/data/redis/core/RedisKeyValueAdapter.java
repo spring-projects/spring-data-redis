@@ -736,8 +736,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		if (this.expirationListener.get() == null) {
 
-			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
-					this.converter);
+			KeyExpirationEventMessageListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
+					this.converter, this.shadowCopy);
 
 			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
 
@@ -763,16 +763,17 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		private final RedisOperations<?, ?> ops;
 		private final RedisConverter converter;
-
+		private final ShadowCopy shadowCopy;
 		/**
 		 * Creates new {@link MappingExpirationListener}.
 		 */
 		MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
-				RedisConverter converter) {
+				RedisConverter converter, ShadowCopy shadowCopy) {
 
 			super(listenerContainer);
 			this.ops = ops;
 			this.converter = converter;
+			this.shadowCopy = shadowCopy;
 		}
 
 		@Override
@@ -783,22 +784,25 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			}
 
 			byte[] key = message.getBody();
+			Object value = null;
 
-			byte[] phantomKey = ByteUtils.concat(key,
-					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
+			if (shadowCopy != ShadowCopy.OFF) {
+				byte[] phantomKey = ByteUtils.concat(key,
+						converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
 
-			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
+				Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
 
-				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
+					Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
 
-				if (!CollectionUtils.isEmpty(phantomValue)) {
-					connection.del(phantomKey);
-				}
+					if (!CollectionUtils.isEmpty(phantomValue)) {
+						connection.del(phantomKey);
+					}
 
-				return phantomValue;
-			});
+					return phantomValue;
+				});
 
-			Object value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
+				value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
+			}
 
 			byte[] channelAsBytes = message.getChannel();
 
