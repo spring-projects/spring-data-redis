@@ -572,8 +572,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
 	 */
 	public byte[] toBytes(Object source) {
-		return source instanceof byte[] bytes ? bytes
-				: getConverter().getConversionService().convert(source, byte[].class);
+		return source instanceof byte[] bytes ? bytes : getConverter().getConversionService().convert(source, byte[].class);
 	}
 
 	private String toString(Object value) {
@@ -764,6 +763,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		private final RedisOperations<?, ?> ops;
 		private final RedisConverter converter;
 		private final ShadowCopy shadowCopy;
+
 		/**
 		 * Creates new {@link MappingExpirationListener}.
 		 */
@@ -784,26 +784,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			}
 
 			byte[] key = message.getBody();
-			Object value = null;
-
-			if (shadowCopy != ShadowCopy.OFF) {
-				byte[] phantomKey = ByteUtils.concat(key,
-						converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
-
-				Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
-
-					Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
-
-					if (!CollectionUtils.isEmpty(phantomValue)) {
-						connection.del(phantomKey);
-					}
-
-					return phantomValue;
-				});
-
-				value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
-			}
-
+			Object value = readShadowCopyIfEnabled(key);
 			byte[] channelAsBytes = message.getChannel();
 
 			String channel = !ObjectUtils.isEmpty(channelAsBytes)
@@ -824,6 +805,35 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		private boolean isKeyExpirationMessage(Message message) {
 			return BinaryKeyspaceIdentifier.isValid(message.getBody());
+		}
+
+		@Nullable
+		private Object readShadowCopyIfEnabled(byte[] key) {
+
+			if (shadowCopy == ShadowCopy.OFF) {
+				return null;
+			}
+			return readShadowCopy(key);
+		}
+
+		@Nullable
+		private Object readShadowCopy(byte[] key) {
+
+			byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
+
+			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
+
+				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
+
+				if (!CollectionUtils.isEmpty(phantomValue)) {
+					connection.del(phantomKey);
+				}
+
+				return phantomValue;
+			});
+
+			return CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
 		}
 	}
 
