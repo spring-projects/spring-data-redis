@@ -82,19 +82,17 @@ public class RedisKeyValueAdapterTests {
 		adapter = new RedisKeyValueAdapter(template, mappingContext);
 		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
 		adapter.afterPropertiesSet();
+		adapter.start();
 
 		template.execute((RedisCallback<Void>) connection -> {
 			connection.flushDb();
 			return null;
 		});
 
-		RedisConnection connection = template.getConnectionFactory().getConnection();
-
-		try {
+		try (RedisConnection connection = template.getConnectionFactory()
+				.getConnection()) {
 			connection.setConfig("notify-keyspace-events", "");
 			connection.setConfig("notify-keyspace-events", "KEA");
-		} finally {
-			connection.close();
 		}
 	}
 
