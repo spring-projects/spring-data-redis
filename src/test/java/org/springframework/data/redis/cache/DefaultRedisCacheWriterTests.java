@@ -242,6 +242,22 @@ public class DefaultRedisCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
 	}
 
+	@ParameterizedRedisTest // GH-2890
+	void getWithValueLoaderShouldStoreCacheValue() {
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		writer.get(CACHE_NAME, binaryCacheKey, () -> binaryCacheValue, Duration.ofSeconds(5), true);
+
+		doWithConnection(connection -> {
+			assertThat(connection.ttl(binaryCacheKey)).isGreaterThan(3).isLessThan(6);
+		});
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getMisses()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-481, DATAREDIS-1082
 	void removeShouldDeleteEntry() {
 

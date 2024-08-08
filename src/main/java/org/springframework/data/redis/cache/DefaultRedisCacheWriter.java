@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -137,9 +138,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		byte[] result = shouldExpireWithin(ttl)
-				? execute(name, connection -> connection.stringCommands().getEx(key, Expiration.from(ttl)))
-				: execute(name, connection -> connection.stringCommands().get(key));
+		return execute(name, connection -> doGet(connection, name, key, ttl));
+	}
+
+	@Nullable
+	private byte[] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
+
+		byte[] result = shouldExpireWithin(ttl) ? connection.stringCommands().getEx(key, Expiration.from(ttl))
+				: connection.stringCommands().get(key);
 
 		statistics.incGets(name);
 
@@ -150,6 +156,50 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		return result;
+	}
+
+	@Override
+	public byte[] get(String name, byte[] key, Supplier<byte[]> valueLoader, @Nullable Duration ttl,
+			boolean timeToIdleEnabled) {
+
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
+
+		boolean withTtl = shouldExpireWithin(ttl);
+
+		// double-checked locking optimization
+		if (isLockingCacheWriter()) {
+			byte[] bytes = get(name, key, timeToIdleEnabled && withTtl ? ttl : null);
+			if (bytes != null) {
+				return bytes;
+			}
+		}
+
+		return execute(name, connection -> {
+
+			boolean wasLocked = false;
+			if (isLockingCacheWriter()) {
+				doLock(name, key, null, connection);
+				wasLocked = true;
+			}
+
+			try {
+
+				byte[] result = doGet(connection, name, key, timeToIdleEnabled && withTtl ? ttl : null);
+
+				if (result != null) {
+					return result;
+				}
+
+				byte[] value = valueLoader.get();
+				doPut(connection, name, key, value, ttl);
+				return value;
+			} finally {
+				if (isLockingCacheWriter() && wasLocked) {
+					doUnlock(name, connection);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -186,16 +236,20 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(value, "Value must not be null");
 
 		execute(name, connection -> {
-
-			if (shouldExpireWithin(ttl)) {
-				connection.stringCommands().set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS),
-						SetOption.upsert());
-			} else {
-				connection.stringCommands().set(key, value);
-			}
-
+			doPut(connection, name, key, value, ttl);
 			return "OK";
 		});
+
+	}
+
+	private void doPut(RedisConnection connection, String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+
+		if (shouldExpireWithin(ttl)) {
+			connection.stringCommands().set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS),
+					SetOption.upsert());
+		} else {
+			connection.stringCommands().set(key, value);
+		}
 
 		statistics.incPuts(name);
 	}
