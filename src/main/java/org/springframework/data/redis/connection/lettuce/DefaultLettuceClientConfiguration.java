@@ -48,13 +48,13 @@ class DefaultLettuceClientConfiguration implements LettuceClientConfiguration {
 	private final Duration shutdownTimeout;
 	private final Duration shutdownQuietPeriod;
 
-	DefaultLettuceClientConfiguration(boolean useSsl, boolean verifyPeer, boolean startTls,
+	DefaultLettuceClientConfiguration(boolean useSsl, SslVerifyMode verifyMode, boolean startTls,
 			@Nullable ClientResources clientResources, @Nullable ClientOptions clientOptions, @Nullable String clientName,
 			@Nullable ReadFrom readFrom, @Nullable RedisCredentialsProviderFactory redisCredentialsProviderFactory,
 			Duration timeout, Duration shutdownTimeout, @Nullable Duration shutdownQuietPeriod) {
 
 		this.useSsl = useSsl;
-		this.verifyMode = verifyPeer ? SslVerifyMode.FULL : SslVerifyMode.NONE;
+		this.verifyMode = verifyMode;
 		this.startTls = startTls;
 		this.clientResources = Optional.ofNullable(clientResources);
 		this.clientOptions = Optional.ofNullable(clientOptions);

@@ -378,7 +378,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isVerifyPeer()).isTrue();
 		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(connectionFactory.isVerifyPeer()).isTrue();
-		assertThat(connectionFactory.getVerifyMode().equals(SslVerifyMode.FULL));
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
 	@Test // DATAREDIS-476
@@ -399,7 +399,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isVerifyPeer()).isTrue();
 		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(connectionFactory.isVerifyPeer()).isTrue();
-		assertThat(connectionFactory.getVerifyMode().equals(SslVerifyMode.FULL));
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
 	@Test // DATAREDIS-480
@@ -419,7 +419,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isVerifyPeer()).isFalse();
 		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(connectionFactory.isVerifyPeer()).isFalse();
-		assertThat(connectionFactory.getVerifyMode().equals(SslVerifyMode.NONE));
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 	}
 
 	@Test // DATAREDIS-480
@@ -460,7 +460,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isVerifyPeer()).isTrue();
 		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(connectionFactory.isVerifyPeer()).isTrue();
-		assertThat(connectionFactory.getVerifyMode().equals(SslVerifyMode.FULL));
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
 	@Test // DATAREDIS-990
@@ -480,7 +480,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		assertThat(redisUri.isVerifyPeer()).isFalse();
 		assertThat(connectionFactory.isVerifyPeer()).isFalse();
-		assertThat(connectionFactory.getVerifyMode().equals(SslVerifyMode.NONE));
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 	}
 
 	@Test // DATAREDIS-990
@@ -757,7 +757,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		assertThat(connectionFactory.isUseSsl()).isTrue();
 		assertThat(connectionFactory.isVerifyPeer()).isFalse();
-		assertThat(connectionFactory.getVerifyMode().equals(SslVerifyMode.NONE));
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(connectionFactory.isStartTls()).isTrue();
 		assertThat(connectionFactory.getClientResources()).isEqualTo(sharedClientResources);
 		assertThat(connectionFactory.getTimeout()).isEqualTo(Duration.ofMinutes(5).toMillis());

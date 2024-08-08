@@ -66,11 +66,14 @@ public interface LettuceClientConfiguration {
 
 	/**
 	 * @return {@literal true} to verify peers when using {@link #isUseSsl() SSL}.
+	 * @deprecated since 3.4, use {@link #getVerifyMode()} for how peer verification is configured.
 	 */
+	@Deprecated(since = "3.4")
 	boolean isVerifyPeer();
 
 	/**
 	 * @return the {@link io.lettuce.core.SslVerifyMode}.
+	 * @since 3.4
 	 */
 	SslVerifyMode getVerifyMode();
 
@@ -354,7 +357,7 @@ public interface LettuceClientConfiguration {
 		 */
 		public LettuceClientConfiguration build() {
 
-			return new DefaultLettuceClientConfiguration(useSsl, verifyMode != SslVerifyMode.NONE, startTls, clientResources, clientOptions,
+			return new DefaultLettuceClientConfiguration(useSsl, verifyMode, startTls, clientResources, clientOptions,
 					clientName, readFrom, redisCredentialsProviderFactory, timeout, shutdownTimeout, shutdownQuietPeriod);
 		}
 	}
@@ -364,7 +367,7 @@ public interface LettuceClientConfiguration {
 	 */
 	class LettuceSslClientConfigurationBuilder {
 
-		private LettuceClientConfigurationBuilder delegate;
+		private final LettuceClientConfigurationBuilder delegate;
 
 		LettuceSslClientConfigurationBuilder(LettuceClientConfigurationBuilder delegate) {
 
@@ -373,14 +376,26 @@ public interface LettuceClientConfiguration {
 		}
 
 		/**
+		 * Configure peer verification.
+		 *
+		 * @return {@literal this} builder.
+		 * @since 3.4
+		 */
+		public LettuceSslClientConfigurationBuilder verifyPeer(SslVerifyMode verifyMode) {
+
+			Assert.notNull(verifyMode, "SslVerifyMode must not be null");
+
+			delegate.verifyMode = verifyMode;
+			return this;
+		}
+
+		/**
 		 * Disable peer verification.
 		 *
 		 * @return {@literal this} builder.
 		 */
 		public LettuceSslClientConfigurationBuilder disablePeerVerification() {
-
-			delegate.verifyMode = SslVerifyMode.NONE;
-			return this;
+			return verifyPeer(SslVerifyMode.NONE);
 		}
 
 		/**

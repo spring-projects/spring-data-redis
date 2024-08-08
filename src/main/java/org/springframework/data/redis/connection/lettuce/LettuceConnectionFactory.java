@@ -64,7 +64,6 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection.PipeliningFlushPolicy;
 import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
@@ -476,7 +475,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * Returns whether to verify certificate validity/hostname check when SSL is used.
 	 *
 	 * @return whether to verify peers when using SSL.
+	 * @deprecated since 3.4, use {@link LettuceClientConfiguration#getVerifyMode()} instead.
 	 */
+	@Deprecated(since = "3.4")
 	public boolean isVerifyPeer() {
 		return clientConfiguration.isVerifyPeer();
 	}
@@ -491,19 +492,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	@Deprecated
 	public void setVerifyPeer(boolean verifyPeer) {
 		getMutableConfiguration().setVerifyPeer(verifyPeer);
-	}
-
-	/**
-	 * Returns the mode to verify peers when using SSL.
-	 * <p>
-	 * FULL will enable a full certificate verification.
-	 * CA means Lettuces only verify the certificate and skip verifying th hostname matches. NONE will disable
-	 * verification and {@link #isVerifyPeer() isVerifyPeer} will return false with this mode.
-	 *
-	 * @return the verify mode of {@link io.lettuce.core.SslVerifyMode}.
-	 */
-	public SslVerifyMode getVerifyMode() {
-		return getMutableConfiguration().getVerifyMode();
 	}
 
 	/**
@@ -1479,7 +1467,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		builder.withDatabase(getDatabase());
 		builder.withSsl(clientConfiguration.isUseSsl());
-		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
+		builder.withVerifyPeer(clientConfiguration.getVerifyMode());
 		builder.withStartTls(clientConfiguration.isStartTls());
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
@@ -1705,11 +1693,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		}
 
 		void setVerifyPeer(boolean verifyPeer) {
-			this.verifyMode = verifyPeer? SslVerifyMode.FULL: SslVerifyMode.NONE;
-		}
-
-		void setVerifyPeer(SslVerifyMode verifyMode) {
-			this.verifyMode = verifyMode;
+			this.verifyMode = verifyPeer ? SslVerifyMode.FULL : SslVerifyMode.NONE;
 		}
 
 		@Override

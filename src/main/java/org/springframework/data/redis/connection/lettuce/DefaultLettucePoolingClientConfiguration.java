@@ -52,6 +52,7 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 	}
 
 	@Override
+	@Deprecated
 	public boolean isVerifyPeer() {
 		return clientConfiguration.isVerifyPeer();
 	}
