@@ -39,11 +39,10 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  */
 class LettuceClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667, DATAREDIS-918
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667, DATAREDIS-918, GH-2945
 	void shouldCreateEmptyConfiguration() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
-
 
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
@@ -58,7 +57,7 @@ class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getClientName()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
-		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMillis(100));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
@@ -92,13 +91,13 @@ class LettuceClientConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-881
-	void shutdownQuietPeriodShouldDefaultToTimeout() {
+	void shutdownQuietPeriodShouldDefaultInitialValue() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
 				.shutdownTimeout(Duration.ofSeconds(42)).build();
 
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(42));
-		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofSeconds(42));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
 	@Test // DATAREDIS-576

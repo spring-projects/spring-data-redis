@@ -40,7 +40,7 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  */
 class LettucePoolingClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-667, DATAREDIS-918
+	@Test // DATAREDIS-667, DATAREDIS-918, GH-2945
 	void shouldCreateEmptyConfiguration() {
 
 		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
@@ -58,7 +58,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getClientResources()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
-		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMillis(100));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
 	@Test // DATAREDIS-667

@@ -185,7 +185,7 @@ public interface LettuceClientConfiguration {
 		@Nullable RedisCredentialsProviderFactory redisCredentialsProviderFactory;
 		Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
 		Duration shutdownTimeout = Duration.ofMillis(100);
-		@Nullable Duration shutdownQuietPeriod;
+		Duration shutdownQuietPeriod = Duration.ZERO;
 
 		LettuceClientConfigurationBuilder() {}
 
