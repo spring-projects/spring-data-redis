@@ -33,6 +33,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -60,6 +61,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Marcin Zielinski
  * @author John Blum
+ * @author jinkshower
  * @since 2.2
  */
 class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperations<K, HK, HV> {
@@ -144,6 +146,18 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
 
 		return createMono(streamCommands -> streamCommands.xAdd(serializeRecord(input)));
+	}
+
+	@Override
+	public Mono<RecordId> add(Record<K, ?> record, XAddOptions xAddOptions) {
+
+		Assert.notNull(record.getStream(), "Key must not be null");
+		Assert.notNull(record.getValue(), "Body must not be null");
+		Assert.notNull(xAddOptions, "XAddOptions must not be null");
+
+		MapRecord<K, HK, HV> input = StreamObjectMapper.toMapRecord(this, record);
+
+		return createMono(streamCommands -> streamCommands.xAdd(serializeRecord(input), xAddOptions));
 	}
 
 	@Override

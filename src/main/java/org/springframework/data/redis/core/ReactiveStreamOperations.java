@@ -26,6 +26,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -54,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Dengliming
  * @author Marcin Zielinski
  * @author John Blum
+ * @author jinkshower
  * @since 2.2
  */
 public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -93,6 +95,63 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	default Mono<Long> acknowledge(String group, Record<K, ?> record) {
 		return acknowledge(record.getRequiredStream(), group, record.getId());
 	}
+
+	/**
+	 * Append one or more records to the stream {@code key} with the specified options.
+	 *
+	 * @param key the stream key.
+	 * @param bodyPublisher record body {@link Publisher}.
+	 * @param xAddOptions parameters for the {@literal XADD} call.
+	 * @return the record Ids.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.3
+	 */
+	default Flux<RecordId> add (K key, Publisher<? extends Map<? extends HK, ? extends HV>> bodyPublisher,
+		XAddOptions xAddOptions) {
+		return Flux.from(bodyPublisher).flatMap(it -> add(key, it, xAddOptions));
+	}
+
+	/**
+	 * Append a record to the stream {@code key} with the specified options.
+	 *
+	 * @param key the stream key.
+	 * @param content record content as Map.
+	 * @param xAddOptions parameters for the {@literal XADD} call.
+	 * @return the {@link Mono} emitting the {@link RecordId}.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.3
+	 */
+	default Mono<RecordId> add(K key, Map<? extends HK, ? extends HV> content, XAddOptions xAddOptions) {
+		return add(StreamRecords.newRecord().in(key).ofMap(content), xAddOptions);
+	}
+
+	/**
+	 * Append a record, backed by a {@link Map} holding the field/value pairs, to the stream with the specified options.
+	 *
+	 * @param record the record to append.
+	 * @param xAddOptions parameters for the {@literal XADD} call.
+	 * @return the {@link Mono} emitting the {@link RecordId}.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.3
+	 */
+	@SuppressWarnings("unchecked")
+	default Mono<RecordId> add(MapRecord<K, ? extends HK, ? extends HV> record, XAddOptions xAddOptions) {
+		return add((Record) record, xAddOptions);
+	}
+
+	/**
+	 * Append the record, backed by the given value, to the stream with the specified options.
+	 * The value will be hashed and serialized.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param xAddOptions parameters for the {@literal XADD} call. Must not be {@literal null}.
+	 * @return the {@link Mono} emitting the {@link RecordId}.
+	 * @see MapRecord
+	 * @see ObjectRecord
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.3
+	 */
+	Mono<RecordId> add(Record<K, ?> record, XAddOptions xAddOptions);
 
 	/**
 	 * Append one or more records to the stream {@code key}.
