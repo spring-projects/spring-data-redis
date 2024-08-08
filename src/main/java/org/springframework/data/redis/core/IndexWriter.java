@@ -39,6 +39,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Junghoon Ban
  * @since 1.7
  */
 class IndexWriter {
@@ -127,7 +128,7 @@ class IndexWriter {
 		Assert.notNull(key, "Key must not be null");
 
 		byte[] binKey = toBytes(key);
-		byte[] indexHelperKey = ByteUtils.concatAll(toBytes(keyspace + ":"), binKey, toBytes(":idx"));
+		byte[] indexHelperKey = createIndexHelperKey(keyspace, binKey);
 
 		for (byte[] indexKey : connection.sMembers(indexHelperKey)) {
 
@@ -171,8 +172,7 @@ class IndexWriter {
 
 		Assert.notNull(indexedData, "IndexedData must not be null");
 
-		Set<byte[]> existingKeys = connection
-				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
+		Set<byte[]> existingKeys = connection.keys(createIndexKey(indexedData, "*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
@@ -216,12 +216,11 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":");
-			indexKey = ByteUtils.concat(indexKey, toBytes(value));
+			byte[] indexKey = createIndexKey(indexedData, value);
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(createIndexHelperKey(indexedData.getKeyspace(), key), indexKey);
 		} else if (indexedData instanceof GeoIndexedPropertyValue propertyValue) {
 
 			Object value = propertyValue.getValue();
@@ -229,11 +228,11 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName());
+			byte[] indexKey = createIndexKey(indexedData);
 			connection.geoAdd(indexKey, propertyValue.getPoint(), key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(createIndexHelperKey(indexedData.getKeyspace(), key), indexKey);
 		} else {
 			throw new IllegalArgumentException(
 					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));
@@ -258,6 +257,38 @@ class IndexWriter {
 				"Cannot convert %s to binary representation for index key generation; "
 						+ "Are you missing a Converter; Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type",
 				source.getClass()));
+	}
+
+	/**
+	 * Creates the index key for the given {@link IndexedData}.
+	 * 
+	 * @param indexedData must not be {@literal null}.
+	 * @return index key.
+	 */
+	private byte[] createIndexKey(IndexedData indexedData) {
+		return toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName());
+	}
+
+	/**
+	 * Creates the index key for the given {@link IndexedData} and {@code value}.
+	 * 
+	 * @param indexedData must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return index key.
+	 */
+	private byte[] createIndexKey(IndexedData indexedData, Object value) {
+		return ByteUtils.concatAll(createIndexKey(indexedData), toBytes(":"), toBytes(value));
+	}
+
+	/**
+	 * Creates the index helper key for the given {@code keyspace} and {@code key}.
+	 * 
+	 * @param keyspace must not be {@literal null}.
+	 * @param key must not be {@literal null}.
+	 * @return index helper key.
+	 */
+	private byte[] createIndexHelperKey(String keyspace, byte[] key) {
+		return ByteUtils.concatAll(toBytes(keyspace + ":"), key, toBytes(":idx"));
 	}
 
 	/**
