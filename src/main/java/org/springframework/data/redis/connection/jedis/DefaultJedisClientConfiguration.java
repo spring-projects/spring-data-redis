@@ -24,6 +24,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.lang.Nullable;
+import redis.clients.jedis.HostAndPortMapper;
 
 /**
  * Default implementation of {@literal JedisClientConfiguration}.
@@ -38,6 +39,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Optional<SSLSocketFactory> sslSocketFactory;
 	private final Optional<SSLParameters> sslParameters;
 	private final Optional<HostnameVerifier> hostnameVerifier;
+	private final Optional<HostAndPortMapper> hostAndPortMapper;
 	private final boolean usePooling;
 	private final Optional<GenericObjectPoolConfig> poolConfig;
 	private final Optional<String> clientName;
@@ -53,6 +55,7 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
 		this.sslParameters = Optional.ofNullable(sslParameters);
 		this.hostnameVerifier = Optional.ofNullable(hostnameVerifier);
+		this.hostAndPortMapper = Optional.empty();
 		this.usePooling = usePooling;
 		this.poolConfig = Optional.ofNullable(poolConfig);
 		this.clientName = Optional.ofNullable(clientName);
@@ -60,25 +63,65 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.connectTimeout = connectTimeout;
 	}
 
+	DefaultJedisClientConfiguration(boolean useSsl, @Nullable SSLSocketFactory sslSocketFactory,
+			@Nullable SSLParameters sslParameters, @Nullable HostnameVerifier hostnameVerifier,
+			@Nullable HostAndPortMapper hostAndPortMapper, boolean usePooling,
+			@Nullable GenericObjectPoolConfig poolConfig, @Nullable String clientName, Duration readTimeout,
+			Duration connectTimeout) {
+
+		this.useSsl = useSsl;
+		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
+		this.sslParameters = Optional.ofNullable(sslParameters);
+		this.hostnameVerifier = Optional.ofNullable(hostnameVerifier);
+		this.hostAndPortMapper = Optional.ofNullable(hostAndPortMapper);
+		this.usePooling = usePooling;
+		this.poolConfig = Optional.ofNullable(poolConfig);
+		this.clientName = Optional.ofNullable(clientName);
+		this.readTimeout = readTimeout;
+		this.connectTimeout = connectTimeout;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#useSsl()
+	 */
 	@Override
 	public boolean isUseSsl() {
 		return useSsl;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslSocketFactory()
+	 */
 	@Override
 	public Optional<SSLSocketFactory> getSslSocketFactory() {
 		return sslSocketFactory;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getSslParameters()
+	 */
 	@Override
 	public Optional<SSLParameters> getSslParameters() {
 		return sslParameters;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration#getHostnameVerifier()
+	 */
 	@Override
 	public Optional<HostnameVerifier> getHostnameVerifier() {
 		return hostnameVerifier;
 	}
+
+	@Override
+	public Optional<HostAndPortMapper> getHostAndPortMapper() {
+		return hostAndPortMapper;
+	}
+
 
 	@Override
 	public boolean isUsePooling() {
