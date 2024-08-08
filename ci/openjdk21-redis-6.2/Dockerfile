@@ -7,6 +7,7 @@ ENV VERSION=${VERSION}
 # Copy Spring Data Redis's Makefile into the container
 COPY ./Makefile /
 
+
 RUN set -eux; \
 #	sed -i -e 's/http/https/g' /etc/apt/sources.list ; \
 	apt-get update ; \
