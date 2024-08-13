@@ -368,7 +368,7 @@ public interface ListOperations<K, V> {
 	Long remove(K key, long count, Object value);
 
 	/**
-	 * Get element at {@code index} form list at {@code key}.
+	 * Get element at {@code index} from list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param index
