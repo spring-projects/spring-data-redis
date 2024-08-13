@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author Lee Jaeheon
  */
 public interface ListOperations<K, V> {
 
@@ -557,6 +558,36 @@ public interface ListOperations<K, V> {
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
 		return rightPopAndLeftPush(sourceKey, destinationKey, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Returns the first element from list at {@code key}.
+	 *
+	 * @implSpec
+	 * The implementation in this interface returns the result of calling {@code index(key, 0)}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 */
+	@Nullable
+	default V getFirst(K key) {
+		return index(key, 0);
+	}
+
+	/**
+	 * Returns the last element from list at {@code key}.
+	 *
+	 * @implSpec
+	 * If the result of calling {@code size(key)} is not null, The implementation in this interface returns the
+	 * result of calling {@code index(key, size - 1)}. Otherwise, it returns null.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 */
+	@Nullable
+	default V getLast(K key) {
+		Long size = size(key);
+		return size != null ? index(key, size - 1) : null;
 	}
 
 	RedisOperations<K, V> getOperations();

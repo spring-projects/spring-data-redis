@@ -40,6 +40,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Lee Jaeheon
  * @param <K> Key test
  * @param <V> Value test
  */
@@ -375,5 +376,33 @@ public class DefaultListOperationsIntegrationIntegrationTests<K, V> {
 		assertThat(listOps.rightPush(key, v1)).isEqualTo(Long.valueOf(3));
 		assertThat(listOps.rightPush(key, v3)).isEqualTo(Long.valueOf(4));
 		assertThat(listOps.lastIndexOf(key, v1)).isEqualTo(2);
+	}
+
+	@ParameterizedRedisTest // GH-2937
+	void getFirst() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOps.rightPush(key, v1);
+		listOps.rightPush(key, v2);
+		listOps.rightPush(key, v3);
+		assertThat(listOps.getFirst(key)).isEqualTo(v1);
+	}
+
+	@ParameterizedRedisTest // GH-2937
+	void getLast() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOps.rightPush(key, v1);
+		listOps.rightPush(key, v2);
+		listOps.rightPush(key, v3);
+		assertThat(listOps.getLast(key)).isEqualTo(v3);
 	}
 }
