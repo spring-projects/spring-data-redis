@@ -395,9 +395,9 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		RedisConnection connection = connectionFactory.getConnection();
 
-		if (connection instanceof LettuceConnection) {
+		if (connection instanceof LettuceConnection lettuceConnection) {
 
-			String value = ((List) ((LettuceConnection) connectionFactory.getConnection()).execute("XPENDING",
+			String value = ((List) lettuceConnection.execute("XPENDING",
 					new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
 							.toString();
 			return NumberUtils.parseNumber(value, Integer.class);
