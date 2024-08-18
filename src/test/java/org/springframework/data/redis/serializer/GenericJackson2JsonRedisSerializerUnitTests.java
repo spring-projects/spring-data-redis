@@ -614,10 +614,9 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 			if (obj == null) {
 				return false;
 			}
-			if (!(obj instanceof SimpleObject)) {
+			if (!(obj instanceof SimpleObject other)) {
 				return false;
 			}
-			SimpleObject other = (SimpleObject) obj;
 			return nullSafeEquals(this.longValue, other.longValue);
 		}
 	}
