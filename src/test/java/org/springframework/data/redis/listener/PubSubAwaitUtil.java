@@ -87,8 +87,8 @@ class PubSubAwaitUtil {
 
 	private static long numPat(RedisConnection connection) {
 
-		if (connection instanceof LettuceConnection) {
-			return ((Number) ((LettuceConnection) connection).execute("PUBSUB", new IntegerOutput<>(ByteArrayCodec.INSTANCE),
+		if (connection instanceof LettuceConnection lettuceConnection) {
+			return ((Number) lettuceConnection.execute("PUBSUB", new IntegerOutput<>(ByteArrayCodec.INSTANCE),
 					"NUMPAT".getBytes())).longValue();
 		}
 
@@ -98,8 +98,8 @@ class PubSubAwaitUtil {
 	private static long numSub(RedisConnection connection, String channel) {
 
 		List<?> pubsub;
-		if (connection instanceof LettuceConnection) {
-			pubsub = (List<?>) ((LettuceConnection) connection).execute("PUBSUB", new ArrayOutput<>(ByteArrayCodec.INSTANCE),
+		if (connection instanceof LettuceConnection lettuceConnection) {
+			pubsub = (List<?>) lettuceConnection.execute("PUBSUB", new ArrayOutput<>(ByteArrayCodec.INSTANCE),
 					"NUMSUB".getBytes(), channel.getBytes());
 		} else {
 			pubsub = (List<?>) connection.execute("PUBSUB", "NUMSUB".getBytes(), channel.getBytes());

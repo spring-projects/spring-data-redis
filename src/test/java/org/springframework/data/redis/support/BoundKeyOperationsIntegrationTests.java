@@ -119,14 +119,14 @@ public class BoundKeyOperationsIntegrationTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void populateBoundKey() {
-		if (keyOps instanceof Collection) {
-			((Collection) keyOps).add("dummy");
-		} else if (keyOps instanceof Map) {
-			((Map) keyOps).put("dummy", "dummy");
-		} else if (keyOps instanceof RedisAtomicInteger) {
-			((RedisAtomicInteger) keyOps).set(42);
-		} else if (keyOps instanceof RedisAtomicLong) {
-			((RedisAtomicLong) keyOps).set(42L);
+		if (keyOps instanceof Collection collection) {
+			collection.add("dummy");
+		} else if (keyOps instanceof Map map) {
+			map.put("dummy", "dummy");
+		} else if (keyOps instanceof RedisAtomicInteger redisAtomicInteger) {
+			redisAtomicInteger.set(42);
+		} else if (keyOps instanceof RedisAtomicLong redisAtomicLong) {
+			redisAtomicLong.set(42L);
 		}
 	}
 }

@@ -155,16 +155,16 @@ public abstract class LettuceReactiveCommandsTestSupport {
 		public void close() throws IOException {
 
 			try {
-				if (connectionProvider instanceof DisposableBean) {
-					((DisposableBean) connectionProvider).destroy();
+				if (connectionProvider instanceof DisposableBean disposableBean) {
+					disposableBean.destroy();
 				}
 
-				if (nativeConnectionProvider instanceof DisposableBean) {
-					((DisposableBean) nativeConnectionProvider).destroy();
+				if (nativeConnectionProvider instanceof DisposableBean disposableBean) {
+					disposableBean.destroy();
 				}
 
-				if (nativeBinaryConnectionProvider instanceof DisposableBean) {
-					((DisposableBean) nativeBinaryConnectionProvider).destroy();
+				if (nativeBinaryConnectionProvider instanceof DisposableBean disposableBean) {
+					disposableBean.destroy();
 				}
 			} catch (Exception ex) {
 				throw new RuntimeException(ex);
@@ -198,21 +198,21 @@ public abstract class LettuceReactiveCommandsTestSupport {
 		if (nativeCommands != null) {
 			flushAll();
 
-			if (nativeCommands instanceof RedisCommands) {
-				nativeConnectionProvider.release(((RedisCommands) nativeCommands).getStatefulConnection());
+			if (nativeCommands instanceof RedisCommands redisCommands) {
+				nativeConnectionProvider.release((redisCommands).getStatefulConnection());
 			}
 
-			if (nativeCommands instanceof RedisAdvancedClusterCommands) {
-				nativeConnectionProvider.release(((RedisAdvancedClusterCommands) nativeCommands).getStatefulConnection());
+			if (nativeCommands instanceof RedisAdvancedClusterCommands redisAdvancedClusterCommands) {
+				nativeConnectionProvider.release((redisAdvancedClusterCommands).getStatefulConnection());
 			}
 
-			if (nativeBinaryCommands instanceof RedisCommands) {
-				nativeBinaryConnectionProvider.release(((RedisCommands) nativeBinaryCommands).getStatefulConnection());
+			if (nativeBinaryCommands instanceof RedisCommands redisCommands) {
+				nativeBinaryConnectionProvider.release((redisCommands).getStatefulConnection());
 			}
 
-			if (nativeBinaryCommands instanceof RedisAdvancedClusterCommands) {
+			if (nativeBinaryCommands instanceof RedisAdvancedClusterCommands redisAdvancedClusterCommands) {
 				nativeBinaryConnectionProvider
-						.release(((RedisAdvancedClusterCommands) nativeBinaryCommands).getStatefulConnection());
+						.release((redisAdvancedClusterCommands).getStatefulConnection());
 			}
 		}
 
