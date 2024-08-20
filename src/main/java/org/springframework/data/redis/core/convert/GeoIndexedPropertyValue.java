@@ -74,11 +74,10 @@ public class GeoIndexedPropertyValue implements IndexedData {
 			return true;
 		}
 
-		if (!(o instanceof GeoIndexedPropertyValue)) {
+		if (!(o instanceof GeoIndexedPropertyValue that)) {
 			return false;
 		}
 
-		GeoIndexedPropertyValue that = (GeoIndexedPropertyValue) o;
 		if (!ObjectUtils.nullSafeEquals(keyspace, that.keyspace)) {
 			return false;
 		}

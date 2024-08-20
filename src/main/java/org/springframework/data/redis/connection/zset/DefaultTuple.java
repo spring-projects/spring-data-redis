@@ -58,9 +58,8 @@ public class DefaultTuple implements Tuple {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof DefaultTuple))
+		if (!(obj instanceof DefaultTuple other))
 			return false;
-		DefaultTuple other = (DefaultTuple) obj;
 		if (score == null) {
 			if (other.score != null)
 				return false;

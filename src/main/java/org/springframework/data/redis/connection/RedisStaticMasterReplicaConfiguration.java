@@ -159,10 +159,9 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof RedisStaticMasterReplicaConfiguration)) {
+		if (!(o instanceof RedisStaticMasterReplicaConfiguration that)) {
 			return false;
 		}
-		RedisStaticMasterReplicaConfiguration that = (RedisStaticMasterReplicaConfiguration) o;
 		if (database != that.database) {
 			return false;
 		}

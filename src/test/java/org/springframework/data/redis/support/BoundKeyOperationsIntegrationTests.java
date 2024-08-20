@@ -123,10 +123,10 @@ public class BoundKeyOperationsIntegrationTests {
 			collection.add("dummy");
 		} else if (keyOps instanceof Map map) {
 			map.put("dummy", "dummy");
-		} else if (keyOps instanceof RedisAtomicInteger redisAtomicInteger) {
-			redisAtomicInteger.set(42);
-		} else if (keyOps instanceof RedisAtomicLong redisAtomicLong) {
-			redisAtomicLong.set(42L);
+		} else if (keyOps instanceof RedisAtomicInteger atomic) {
+			atomic.set(42);
+		} else if (keyOps instanceof RedisAtomicLong atomic) {
+			atomic.set(42L);
 		}
 	}
 }

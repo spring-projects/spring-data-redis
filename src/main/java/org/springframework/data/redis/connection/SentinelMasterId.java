@@ -51,10 +51,9 @@ class SentinelMasterId implements NamedNode {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof SentinelMasterId)) {
+		if (!(o instanceof SentinelMasterId that)) {
 			return false;
 		}
-		SentinelMasterId that = (SentinelMasterId) o;
 		return ObjectUtils.nullSafeEquals(name, that.name);
 	}
 

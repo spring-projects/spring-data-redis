@@ -863,9 +863,8 @@ public abstract class LettuceConverters extends Converters {
 			return GeoSearch.byRadius(radius.getValue(), toGeoArgsUnit(radius.getMetric()));
 		}
 
-		if (predicate instanceof BoxShape) {
+		if (predicate instanceof BoxShape boxPredicate) {
 
-			BoxShape boxPredicate = (BoxShape) predicate;
 			BoundingBox boundingBox = boxPredicate.getBoundingBox();
 
 			return GeoSearch.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
@@ -881,9 +880,7 @@ public abstract class LettuceConverters extends Converters {
 			return GeoSearch.fromMember(((GeoMemberReference<T>) reference).getMember());
 		}
 
-		if (reference instanceof GeoReference.GeoCoordinateReference) {
-
-			GeoCoordinateReference<?> coordinates = (GeoCoordinateReference<?>) reference;
+		if (reference instanceof GeoCoordinateReference<?> coordinates) {
 
 			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
 		}

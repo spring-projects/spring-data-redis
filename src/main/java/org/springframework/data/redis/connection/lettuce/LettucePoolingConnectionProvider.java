@@ -165,9 +165,8 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 	private void discardIfNecessary(StatefulConnection<?, ?> connection) {
 
-		if (connection instanceof StatefulRedisConnection) {
+		if (connection instanceof StatefulRedisConnection<?, ?> redisConnection) {
 
-			StatefulRedisConnection<?, ?> redisConnection = (StatefulRedisConnection<?, ?>) connection;
 			if (redisConnection.isMulti()) {
 				redisConnection.async().discard();
 			}
