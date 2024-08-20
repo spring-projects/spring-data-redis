@@ -151,10 +151,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof BitFieldSubCommands)) {
+		if (!(o instanceof BitFieldSubCommands that)) {
 			return false;
 		}
-		BitFieldSubCommands that = (BitFieldSubCommands) o;
 		return ObjectUtils.nullSafeEquals(subCommands, that.subCommands);
 	}
 
@@ -437,10 +436,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof Offset)) {
+			if (!(o instanceof Offset that)) {
 				return false;
 			}
-			Offset that = (Offset) o;
 			if (offset != that.offset) {
 				return false;
 			}
@@ -549,10 +547,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof BitFieldType)) {
+			if (!(o instanceof BitFieldType that)) {
 				return false;
 			}
-			BitFieldType that = (BitFieldType) o;
 			if (signed != that.signed) {
 				return false;
 			}
@@ -597,10 +594,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof AbstractBitFieldSubCommand)) {
+			if (!(o instanceof AbstractBitFieldSubCommand that)) {
 				return false;
 			}
-			AbstractBitFieldSubCommand that = (AbstractBitFieldSubCommand) o;
 			if (!ObjectUtils.nullSafeEquals(getClass(), that.getClass())) {
 				return false;
 			}
@@ -680,13 +676,12 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof BitFieldSet)) {
+			if (!(o instanceof BitFieldSet that)) {
 				return false;
 			}
 			if (!super.equals(o)) {
 				return false;
 			}
-			BitFieldSet that = (BitFieldSet) o;
 			if (value != that.value) {
 				return false;
 			}
@@ -832,10 +827,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof BitFieldIncrBy)) {
+			if (!(o instanceof BitFieldIncrBy that)) {
 				return false;
 			}
-			BitFieldIncrBy that = (BitFieldIncrBy) o;
 			if (value != that.value) {
 				return false;
 			}

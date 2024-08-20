@@ -18,7 +18,6 @@ package org.springframework.data.redis.domain.geo;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Shape;
-import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -94,10 +93,9 @@ public class BoundingBox implements Shape {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof BoundingBox)) {
+		if (!(o instanceof BoundingBox that)) {
 			return false;
 		}
-		BoundingBox that = (BoundingBox) o;
 		if (!ObjectUtils.nullSafeEquals(width, that.width)) {
 			return false;
 		}

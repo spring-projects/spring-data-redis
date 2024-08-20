@@ -16,7 +16,6 @@
 package org.springframework.data.redis.domain.geo;
 
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
@@ -49,11 +48,9 @@ public class GeoLocation<T> {
 			return true;
 		}
 
-		if (!(o instanceof GeoLocation)) {
+		if (!(o instanceof GeoLocation<?> that)) {
 			return false;
 		}
-
-		GeoLocation<?> that = (GeoLocation<?>) o;
 
 		if (!ObjectUtils.nullSafeEquals(name, that.name)) {
 			return false;

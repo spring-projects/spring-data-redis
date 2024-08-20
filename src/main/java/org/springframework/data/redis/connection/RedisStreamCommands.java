@@ -246,10 +246,9 @@ public interface RedisStreamCommands {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof XAddOptions)) {
+			if (!(o instanceof XAddOptions that)) {
 				return false;
 			}
-			XAddOptions that = (XAddOptions) o;
 			if (nomkstream != that.nomkstream) {
 				return false;
 			}

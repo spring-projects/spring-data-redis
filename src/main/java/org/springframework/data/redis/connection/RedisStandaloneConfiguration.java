@@ -137,10 +137,9 @@ public class RedisStandaloneConfiguration
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof RedisStandaloneConfiguration)) {
+		if (!(o instanceof RedisStandaloneConfiguration that)) {
 			return false;
 		}
-		RedisStandaloneConfiguration that = (RedisStandaloneConfiguration) o;
 		if (port != that.port) {
 			return false;
 		}
