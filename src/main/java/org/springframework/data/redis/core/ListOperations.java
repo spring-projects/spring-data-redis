@@ -369,6 +369,30 @@ public interface ListOperations<K, V> {
 	Long remove(K key, long count, Object value);
 
 	/**
+	 * Returns the first element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	default V getFirst(K key) {
+		return index(key, 0);
+	}
+
+	/**
+	 * Returns the last element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	default V getLast(K key) {
+		return index(key, -1);
+	}
+
+	/**
 	 * Get element at {@code index} form list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -526,7 +550,8 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey);
 
 	/**
-	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.<br>
+	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its
+	 * value.<br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.
@@ -540,7 +565,8 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);
 
 	/**
-	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.<br>
+	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its
+	 * value.<br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.
@@ -558,36 +584,6 @@ public interface ListOperations<K, V> {
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
 		return rightPopAndLeftPush(sourceKey, destinationKey, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
-	}
-
-	/**
-	 * Returns the first element from list at {@code key}.
-	 *
-	 * @implSpec
-	 * The implementation in this interface returns the result of calling {@code index(key, 0)}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 */
-	@Nullable
-	default V getFirst(K key) {
-		return index(key, 0);
-	}
-
-	/**
-	 * Returns the last element from list at {@code key}.
-	 *
-	 * @implSpec
-	 * If the result of calling {@code size(key)} is not null, The implementation in this interface returns the
-	 * result of calling {@code index(key, size - 1)}. Otherwise, it returns null.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 */
-	@Nullable
-	default V getLast(K key) {
-		Long size = size(key);
-		return size != null ? index(key, size - 1) : null;
 	}
 
 	RedisOperations<K, V> getOperations();

@@ -26,6 +26,7 @@ import java.util.Collection;
 
 import org.springframework.data.redis.core.ListOperations.MoveFrom;
 import org.springframework.data.redis.core.ListOperations.MoveTo;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -275,6 +276,30 @@ public interface ReactiveListOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	Mono<Long> remove(K key, long count, Object value);
+
+	/**
+	 * Returns the first element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 3.4
+	 */
+	@Nullable
+	default Mono<V> getFirst(K key) {
+		return index(key, 0);
+	}
+
+	/**
+	 * Returns the last element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 3.4
+	 */
+	@Nullable
+	default Mono<V> getLast(K key) {
+		return index(key, -1);
+	}
 
 	/**
 	 * Get element at {@code index} form list at {@code key}.

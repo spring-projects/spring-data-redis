@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+
+import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -32,8 +34,6 @@ import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
-
-import reactor.test.StepVerifier;
 
 /**
  * Integration tests for {@link DefaultReactiveListOperations}.
@@ -417,6 +417,32 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.index(key, 1).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2937
+	void getFirst() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOperations.rightPushAll(key, v1, v2, v3).as(StepVerifier::create).expectNext(3L).verifyComplete();
+
+		listOperations.getFirst(key).as(StepVerifier::create).expectNext(v1).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2937
+	void getLast() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOperations.rightPushAll(key, v1, v2, v3).as(StepVerifier::create).expectNext(3L).verifyComplete();
+
+		listOperations.getLast(key).as(StepVerifier::create).expectNext(v3).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void indexOf() {
@@ -469,16 +495,9 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 
-		listOperations.leftPushAll(key, value1, value2, value3)
-				.as(StepVerifier::create)
-				.expectNext(3L)
-				.verifyComplete();
+		listOperations.leftPushAll(key, value1, value2, value3).as(StepVerifier::create).expectNext(3L).verifyComplete();
 
-		listOperations.leftPop(key, 2)
-				.as(StepVerifier::create)
-				.expectNext(value3)
-				.expectNext(value2)
-				.verifyComplete();
+		listOperations.leftPop(key, 2).as(StepVerifier::create).expectNext(value3).expectNext(value2).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
@@ -505,16 +524,9 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 
-		listOperations.rightPushAll(key, value3, value2, value1)
-			.as(StepVerifier::create)
-			.expectNext(3L)
-			.verifyComplete();
+		listOperations.rightPushAll(key, value3, value2, value1).as(StepVerifier::create).expectNext(3L).verifyComplete();
 
-		listOperations.rightPop(key, 2)
-			.as(StepVerifier::create)
-			.expectNext(value1)
-			.expectNext(value2)
-			.verifyComplete();
+		listOperations.rightPop(key, 2).as(StepVerifier::create).expectNext(value1).expectNext(value2).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

@@ -213,6 +213,24 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	Long remove(long count, Object value);
 
 	/**
+	 * Returns the first element from the list at the bound {@code key}.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	V getFirst();
+
+	/**
+	 * Returns the last element from the list at the bound {@code key}.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	V getLast();
+
+	/**
 	 * Get element at {@code index} form list at the bound key.
 	 *
 	 * @param index

@@ -349,7 +349,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	@Nullable
 	public E peek() {
-		return listOps.index(0);
+		return listOps.getFirst();
 	}
 
 	@Override
@@ -426,7 +426,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	@Nullable
 	public E peekLast() {
-		return listOps.index(-1);
+		return listOps.getLast();
 	}
 
 	@Override
