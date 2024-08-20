@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.support.atomic;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +47,7 @@ import org.springframework.util.Assert;
  */
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private volatile String key;

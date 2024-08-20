@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis;
 
+import java.io.Serial;
+
 import org.springframework.dao.DataRetrievalFailureException;
 
 /**
@@ -27,6 +29,7 @@ import org.springframework.dao.DataRetrievalFailureException;
  */
 public class ClusterRedirectException extends DataRetrievalFailureException {
 
+	@Serial
 	private static final long serialVersionUID = -857075813794333965L;
 
 	private final int slot;

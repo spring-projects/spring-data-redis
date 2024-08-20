@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.domain.geo;
 
+import java.io.Serial;
+
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Shape;
@@ -30,6 +32,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class BoundingBox implements Shape {
 
+	@Serial
 	private static final long serialVersionUID = 5215611530535947924L;
 
 	private final Distance width;
