@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import org.springframework.dao.UncategorizedDataAccessException;
  */
 public class ClusterCommandExecutionFailureException extends UncategorizedDataAccessException {
 
-	private static final long serialVersionUID = 5727044227040368955L;
+	@Serial private static final long serialVersionUID = 5727044227040368955L;
 
 	/**
 	 * Creates new {@link ClusterCommandExecutionFailureException}.
