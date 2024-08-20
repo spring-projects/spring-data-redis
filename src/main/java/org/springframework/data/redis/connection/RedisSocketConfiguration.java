@@ -108,10 +108,9 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof RedisSocketConfiguration)) {
+		if (!(o instanceof RedisSocketConfiguration that)) {
 			return false;
 		}
-		RedisSocketConfiguration that = (RedisSocketConfiguration) o;
 		if (database != that.database) {
 			return false;
 		}

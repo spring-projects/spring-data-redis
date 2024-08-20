@@ -151,11 +151,10 @@ public class Weights {
 			return true;
 		}
 
-		if (!(o instanceof Weights)) {
+		if (!(o instanceof Weights that)) {
 			return false;
 		}
 
-		Weights that = (Weights) o;
 		return ObjectUtils.nullSafeEquals(this.weights, that.weights);
 	}
 
