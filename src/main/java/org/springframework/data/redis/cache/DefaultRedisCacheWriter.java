@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -177,10 +178,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		return execute(name, connection -> {
 
-			boolean wasLocked = false;
 			if (isLockingCacheWriter()) {
 				doLock(name, key, null, connection);
-				wasLocked = true;
 			}
 
 			try {
@@ -195,7 +194,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				doPut(connection, name, key, value, ttl);
 				return value;
 			} finally {
-				if (isLockingCacheWriter() && wasLocked) {
+				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
@@ -274,10 +273,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		return execute(name, connection -> {
 
-			boolean wasLocked = false;
 			if (isLockingCacheWriter()) {
 				doLock(name, key, value, connection);
-				wasLocked = true;
 			}
 
 			try {
@@ -299,7 +296,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				return connection.stringCommands().get(key);
 
 			} finally {
-				if (isLockingCacheWriter() && wasLocked) {
+				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
@@ -324,12 +321,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		execute(name, connection -> {
 
-			boolean wasLocked = false;
-
 			try {
 				if (isLockingCacheWriter()) {
 					doLock(name, name, pattern, connection);
-					wasLocked = true;
 				}
 
 				long deleteCount = batchStrategy.cleanCache(connection, name, pattern);
@@ -342,7 +336,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				statistics.incDeletesBy(name, (int) deleteCount);
 
 			} finally {
-				if (wasLocked && isLockingCacheWriter()) {
+				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
@@ -373,10 +367,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param name the name of the cache to lock.
 	 */
 	void lock(String name) {
-		execute(name, connection -> doLock(name, name, null, connection));
+		executeWithoutResult(name, connection -> doLock(name, name, null, connection));
 	}
 
-	boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
+	void doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
 
 		RedisStringCommands commands = connection.stringCommands();
 		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
@@ -386,8 +380,6 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				true)) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 		}
-
-		return true;
 	}
 
 	/**
@@ -409,6 +401,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		try (RedisConnection connection = this.connectionFactory.getConnection()) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 			return callback.apply(connection);
+		}
+	}
+
+	private void executeWithoutResult(String name, Consumer<RedisConnection> callback) {
+
+		try (RedisConnection connection = this.connectionFactory.getConnection()) {
+			checkAndPotentiallyWaitUntilUnlocked(name, connection);
+			callback.accept(connection);
 		}
 	}
 

@@ -453,13 +453,12 @@ public class DefaultRedisCacheWriterTests {
 		DefaultRedisCacheWriter cw = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(10),
 				BatchStrategies.keys()) {
 
-			boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
+			void doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
 
-				boolean doLock = super.doLock(name, contextualKey, contextualValue, connection);
+				super.doLock(name, contextualKey, contextualValue, connection);
 
 				// any concurrent access (aka not waiting until the lock is acquired) will result in a concurrency greater 1
 				assertThat(concurrency.incrementAndGet()).isOne();
-				return doLock;
 			}
 
 			@Nullable
