@@ -20,12 +20,14 @@ import static org.mockito.Mockito.*;
 
 import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.args.SaveMode;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,7 @@ class JedisConnectionUnitTests {
 	public class BasicUnitTests extends AbstractConnectionUnitTestBase<Connection> {
 
 		protected JedisConnection connection;
-		private Jedis jedisSpy;
+		protected Jedis jedisSpy;
 
 		@BeforeEach
 		public void setUp() {
@@ -338,14 +340,48 @@ class JedisConnectionUnitTests {
 
 			verify(jedisSpy).select(eq(0));
 		}
+
+		@Test // GH-2975
+		void brPopShouldUseIntForSeconds() {
+
+			connection.listCommands().bRPop(Duration.ofSeconds(1), new byte[]{});
+			verify(jedisSpy).brpop(eq(1), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void brPopShouldUseDoubleForSplitSeconds() {
+
+			connection.listCommands().bRPop(Duration.ofMillis(1500), new byte[]{});
+			verify(jedisSpy).brpop(eq(1.5D), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void blPopShouldUseIntForSeconds() {
+
+			connection.listCommands().bLPop(Duration.ofSeconds(1), new byte[]{});
+			verify(jedisSpy).blpop(eq(1), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void blPopShouldUseDoubleForSplitSeconds() {
+
+			connection.listCommands().bLPop(Duration.ofMillis(1500), new byte[]{});
+			verify(jedisSpy).blpop(eq(1.5D), any(byte[].class));
+		}
 	}
 
 	@Nested
 	public class JedisConnectionPipelineUnitTests extends BasicUnitTests {
 
+		private Pipeline pipeline;
+
 		@BeforeEach
 		public void setUp() {
+
 			super.setUp();
+
+			pipeline = mock(Pipeline.class);
+			when(jedisSpy.pipelined()).thenReturn(pipeline);
 			connection.openPipeline();
 		}
 
@@ -462,6 +498,34 @@ class JedisConnectionUnitTests {
 		@Disabled("scan not supported in pipeline")
 		void hScanShouldOperateUponUnsigned64BitCursorId() {
 
+		}
+
+		@Test // GH-2975
+		void brPopShouldUseIntForSeconds() {
+
+			connection.listCommands().bRPop(Duration.ofSeconds(1), new byte[]{});
+			verify(pipeline).brpop(eq(1), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void brPopShouldUseDoubleForSplitSeconds() {
+
+			connection.listCommands().bRPop(Duration.ofMillis(1500), new byte[]{});
+			verify(pipeline).brpop(eq(1.5D), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void blPopShouldUseIntForSeconds() {
+
+			connection.listCommands().bLPop(Duration.ofSeconds(1), new byte[]{});
+			verify(pipeline).blpop(eq(1), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void blPopShouldUseDoubleForSplitSeconds() {
+
+			connection.listCommands().bLPop(Duration.ofMillis(1500), new byte[]{});
+			verify(pipeline).blpop(eq(1.5D), any(byte[].class));
 		}
 	}
 

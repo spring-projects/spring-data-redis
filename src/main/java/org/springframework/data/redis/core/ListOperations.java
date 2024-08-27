@@ -481,7 +481,7 @@ public interface ListOperations<K, V> {
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
-		return leftPop(key, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+		return leftPop(key, TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -535,7 +535,7 @@ public interface ListOperations<K, V> {
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
 
-		return rightPop(key, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
+		return rightPop(key, TimeoutUtils.toMillis(timeout.toMillis(), TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
 	}
 
 	/**

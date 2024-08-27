@@ -543,12 +543,18 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.leftPop(key, Duration.ZERO).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
-	void leftPopWithMillisecondTimeoutShouldFail() {
+	@ParameterizedRedisTest // DATAREDIS-602, GH-2975
+	void leftPopWithMillisecondTimeoutShouldBeFine() {
+
+		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
 
 		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
 
-		assertThatIllegalArgumentException().isThrownBy(() -> listOperations.leftPop(key, Duration.ofMillis(1001)));
+		listOperations.leftPushAll(key, value1, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		listOperations.leftPop(key, Duration.ofMillis(750)).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

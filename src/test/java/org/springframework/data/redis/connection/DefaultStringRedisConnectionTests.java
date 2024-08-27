@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,28 +148,28 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testBlPopBytes() {
-		doReturn(bytesList).when(nativeConnection).bLPop(1, fooBytes);
+		doReturn(bytesList).when(nativeConnection).bLPop(Duration.ofSeconds(1), fooBytes);
 		actual.add(connection.bLPop(1, fooBytes));
 		verifyResults(Collections.singletonList(bytesList));
 	}
 
 	@Test
 	public void testBlPop() {
-		doReturn(bytesList).when(nativeConnection).bLPop(1, fooBytes);
+		doReturn(bytesList).when(nativeConnection).bLPop(Duration.ofSeconds(1), fooBytes);
 		actual.add(connection.bLPop(1, foo));
 		verifyResults(Collections.singletonList(stringList));
 	}
 
 	@Test
 	public void testBrPopBytes() {
-		doReturn(bytesList).when(nativeConnection).bRPop(1, fooBytes);
+		doReturn(bytesList).when(nativeConnection).bRPop(Duration.ofSeconds(1), fooBytes);
 		actual.add(connection.bRPop(1, fooBytes));
 		verifyResults(Collections.singletonList(bytesList));
 	}
 
 	@Test
 	public void testBrPop() {
-		doReturn(bytesList).when(nativeConnection).bRPop(1, fooBytes);
+		doReturn(bytesList).when(nativeConnection).bRPop(Duration.ofSeconds(1), fooBytes);
 		actual.add(connection.bRPop(1, foo));
 		verifyResults(Collections.singletonList(stringList));
 	}

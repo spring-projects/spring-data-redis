@@ -35,7 +35,7 @@ public abstract class TimeoutUtils {
 	 * @since 2.1
 	 */
 	public static boolean hasMillis(Duration duration) {
-		return duration.toMillis() % 1000 != 0;
+		return duration.toNanosPart() != 0;
 	}
 
 	/**
@@ -64,6 +64,17 @@ public abstract class TimeoutUtils {
 	 */
 	public static long toSeconds(long timeout, TimeUnit unit) {
 		return roundUpIfNecessary(timeout, unit.toSeconds(timeout));
+	}
+
+	/**
+	 * Converts the given timeout to seconds with a fraction of seconds.
+	 *
+	 * @param duration The timeout to convert
+	 * @return The converted timeout
+	 * @since 3.4
+	 */
+	public static double toDoubleSeconds(Duration duration) {
+		return toDoubleSeconds(duration.toMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	/**

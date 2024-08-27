@@ -19,11 +19,13 @@ import io.lettuce.core.KeyValue;
 import io.lettuce.core.LPosArgs;
 import io.lettuce.core.api.async.RedisListAsyncCommands;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -213,23 +215,38 @@ class LettuceListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+	public List<byte[]> bLPop(Duration timeout, byte[]... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
+		if(TimeoutUtils.hasMillis(timeout)) {
+
+			double splitSecondTimeout = TimeoutUtils.toDoubleSeconds(timeout);
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+				.from(RedisListAsyncCommands::blpop, splitSecondTimeout, keys).get(LettuceListCommands::toBytesList);
+		}
+
 		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisListAsyncCommands::blpop, timeout, keys).get(LettuceListCommands::toBytesList);
+				.from(RedisListAsyncCommands::blpop, timeout.toSeconds(), keys).get(LettuceListCommands::toBytesList);
 	}
 
 	@Override
-	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+	public List<byte[]> bRPop(Duration timeout, byte[]... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
+		if(TimeoutUtils.hasMillis(timeout)) {
+
+			double splitSecondTimeout = TimeoutUtils.toDoubleSeconds(timeout);
+
+			return connection.invoke(connection.getAsyncDedicatedConnection())
+				.from(RedisListAsyncCommands::brpop, splitSecondTimeout, keys).get(LettuceListCommands::toBytesList);
+		}
+
 		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisListAsyncCommands::brpop, timeout, keys).get(LettuceListCommands::toBytesList);
+				.from(RedisListAsyncCommands::brpop, timeout.toSeconds(), keys).get(LettuceListCommands::toBytesList);
 	}
 
 	@Override

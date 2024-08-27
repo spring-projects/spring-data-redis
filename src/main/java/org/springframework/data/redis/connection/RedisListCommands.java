@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.lang.Nullable;
@@ -312,7 +313,23 @@ public interface RedisListCommands {
 	 * @see #lPop(byte[])
 	 */
 	@Nullable
-	List<byte[]> bLPop(int timeout, byte[]... keys);
+	default List<byte[]> bLPop(int timeout, byte[]... keys) {
+		return bLPop(Duration.ofSeconds(timeout), keys);
+	}
+
+	/**
+	 * Removes and returns first element from lists stored at {@code keys}. <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout (split) seconds to block.
+	 * @param keys must not be {@literal null}.
+	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
+	 *         in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see #lPop(byte[])
+	 * @since 3.4
+	 */
+	List<byte[]> bLPop(Duration timeout, byte[]... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys}. <br>
@@ -326,7 +343,24 @@ public interface RedisListCommands {
 	 * @see #rPop(byte[])
 	 */
 	@Nullable
-	List<byte[]> bRPop(int timeout, byte[]... keys);
+	default List<byte[]> bRPop(int timeout, byte[]... keys) {
+		return bRPop(Duration.ofSeconds(timeout), keys);
+	}
+
+	/**
+	 * Removes and returns last element from lists stored at {@code keys}. <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout (split) seconds to block.
+	 * @param keys must not be {@literal null}.
+	 * @return empty {@link List} when no element could be popped and the timeout was reached. {@literal null} when used
+	 *         in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see #rPop(byte[])
+	 * @since 3.4
+	 */
+	@Nullable
+	List<byte[]> bRPop(Duration timeout, byte[]... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.

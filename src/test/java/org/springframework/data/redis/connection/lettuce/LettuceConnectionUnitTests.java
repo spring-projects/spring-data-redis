@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -61,6 +62,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class LettuceConnectionUnitTests {
 
+	@Nested
 	@SuppressWarnings("rawtypes")
 	public static class BasicUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
 
@@ -392,8 +394,37 @@ public class LettuceConnectionUnitTests {
 			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
 		}
 
+		@Test // GH-2975
+		void brPopShouldUseLongForSeconds() {
+
+			connection.listCommands().bRPop(Duration.ofSeconds(1), new byte[]{});
+			verify(asyncCommandsMock).brpop(eq(1L), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void brPopShouldUseDoubleForSplitSeconds() {
+
+			connection.listCommands().bRPop(Duration.ofMillis(1500), new byte[]{});
+			verify(asyncCommandsMock).brpop(eq(1.5D), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void blPopShouldUseLongForSeconds() {
+
+			connection.listCommands().bLPop(Duration.ofSeconds(1), new byte[]{});
+			verify(asyncCommandsMock).blpop(eq(1L), any(byte[].class));
+		}
+
+		@Test // GH-2975
+		void blPopShouldUseDoubleForSplitSeconds() {
+
+			connection.listCommands().bLPop(Duration.ofMillis(1500), new byte[]{});
+			verify(asyncCommandsMock).blpop(eq(1.5D), any(byte[].class));
+		}
+
 	}
 
+	@Nested
 	public static class LettucePipelineConnectionUnitTests extends BasicUnitTests {
 
 		@Override

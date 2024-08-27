@@ -248,7 +248,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 
 		T t1 = getT();
 		list.add(t1);
-		assertThat(list.poll(1, TimeUnit.MILLISECONDS)).isEqualTo(t1);
+		assertThat(list.poll(1, TimeUnit.SECONDS)).isEqualTo(t1);
 	}
 
 	@ParameterizedRedisTest
@@ -600,7 +600,7 @@ public abstract class AbstractRedisListIntegrationTests<T> extends AbstractRedis
 		list.add(t1);
 		list.add(t2);
 
-		T last = list.pollLast(1, TimeUnit.MILLISECONDS);
+		T last = list.pollLast(1, TimeUnit.SECONDS);
 
 		assertThat(last).isEqualTo(t2);
 		assertThat(list).hasSize(1).contains(t1);

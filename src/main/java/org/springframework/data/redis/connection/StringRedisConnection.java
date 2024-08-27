@@ -966,7 +966,22 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 * @see RedisListCommands#bLPop(int, byte[]...)
 	 */
-	List<String> bLPop(int timeout, String... keys);
+	default List<String> bLPop(int timeout, String... keys) {
+		return bLPop(Duration.ofSeconds(timeout), keys);
+	}
+
+	/**
+	 * Removes and returns first element from lists stored at {@code keys} (see: {@link #lPop(byte[])}). <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see RedisListCommands#bLPop(int, byte[]...)
+	 * @since 3.4
+	 */
+	List<String> bLPop(Duration timeout, String... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys} (see: {@link #rPop(byte[])}). <br>
@@ -978,7 +993,22 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see RedisListCommands#bRPop(int, byte[]...)
 	 */
-	List<String> bRPop(int timeout, String... keys);
+	default List<String> bRPop(int timeout, String... keys) {
+		return bRPop(Duration.ofSeconds(timeout), keys);
+	}
+
+	/**
+	 * Removes and returns last element from lists stored at {@code keys} (see: {@link #rPop(byte[])}). <br>
+	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 *
+	 * @param timeout
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
+	 * @see RedisListCommands#bRPop(int, byte[]...)
+	 * @since 3.4
+	 */
+	List<String> bRPop(Duration timeout, String... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.

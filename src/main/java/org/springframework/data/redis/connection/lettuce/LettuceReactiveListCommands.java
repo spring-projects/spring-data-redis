@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.KeyValue;
 import io.lettuce.core.LMoveArgs;
 import io.lettuce.core.LPosArgs;
 import reactor.core.publisher.Flux;
@@ -23,6 +24,7 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
@@ -295,14 +297,30 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null");
 			Assert.notNull(command.getDirection(), "Direction must not be null");
 
-			long timeout = command.getTimeout().get(ChronoUnit.SECONDS);
+			Mono<KeyValue<ByteBuffer, ByteBuffer>> result;
 
-			Mono<PopResult> mappedMono = (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
-					? cmd.brpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new))
-					: cmd.blpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new)))
-							.map(kv -> Arrays.asList(kv.getKey(), kv.getValue())).map(PopResult::new);
+			if(TimeoutUtils.hasMillis(command.getTimeout())) {
 
-			return mappedMono.map(value -> new PopResponse(command, value));
+				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout());
+
+				result = (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
+					? cmd.brpop(timeout, command.getKeys().toArray(ByteBuffer[]::new))
+					: cmd.blpop(timeout, command.getKeys().toArray(ByteBuffer[]::new)));
+			}
+			else {
+				long timeout = command.getTimeout().get(ChronoUnit.SECONDS);
+
+				result = (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
+					? cmd.brpop(timeout, command.getKeys().toArray(ByteBuffer[]::new))
+					: cmd.blpop(timeout, command.getKeys().toArray(ByteBuffer[]::new)));
+			}
+
+;
+			return result.map(
+				value -> {
+					return new PopResponse(command, new PopResult(List.of(value.getKey(), value.getValue())));
+			});
+
 		}));
 	}
 
@@ -328,9 +346,17 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			Assert.notNull(command.getDestination(), "Destination key must not be null");
 			Assert.notNull(command.getTimeout(), "Timeout must not be null");
 
-			return cmd.brpoplpush(command.getTimeout().get(ChronoUnit.SECONDS), command.getKey(), command.getDestination())
+			if(TimeoutUtils.hasMillis(command.getTimeout())) {
+
+				double timeout = TimeoutUtils.toDoubleSeconds(command.getTimeout());
+				return cmd.brpoplpush(timeout, command.getKey(), command.getDestination())
 
 					.map(value -> new ByteBufferResponse<>(command, value));
+			}
+
+			return cmd.brpoplpush(command.getTimeout().get(ChronoUnit.SECONDS), command.getKey(), command.getDestination())
+				.map(value -> new ByteBufferResponse<>(command, value));
+
 		}));
 	}
 

@@ -253,12 +253,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+	public List<byte[]> bLPop(Duration timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bLPop(timeout, keys), Converters.identityConverter());
 	}
 
 	@Override
-	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+	public List<byte[]> bRPop(Duration timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bRPop(timeout, keys), Converters.identityConverter());
 	}
 
@@ -1431,12 +1431,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<String> bLPop(int timeout, String... keys) {
+	public List<String> bLPop(Duration timeout, String... keys) {
 		return convertAndReturn(delegate.bLPop(timeout, serializeMulti(keys)), byteListToStringList);
 	}
 
 	@Override
-	public List<String> bRPop(int timeout, String... keys) {
+	public List<String> bRPop(Duration timeout, String... keys) {
 		return convertAndReturn(delegate.bRPop(timeout, serializeMulti(keys)), byteListToStringList);
 	}
 

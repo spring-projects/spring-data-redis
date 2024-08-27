@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -92,12 +93,11 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public V leftPop(K key, long timeout, TimeUnit unit) {
 
-		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 		return execute(new ValueDeserializingRedisCallback(key) {
 
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				List<byte[]> lPop = connection.bLPop(tm, rawKey);
+				List<byte[]> lPop = connection.bLPop(Duration.of(timeout, unit.toChronoUnit()), rawKey);
 				return (CollectionUtils.isEmpty(lPop) ? null : lPop.get(1));
 			}
 		});
@@ -188,13 +188,11 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	@Override
 	public V rightPop(K key, long timeout, TimeUnit unit) {
 
-		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
-
 		return execute(new ValueDeserializingRedisCallback(key) {
 
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				List<byte[]> bRPop = connection.bRPop(tm, rawKey);
+				List<byte[]> bRPop = connection.bRPop(Duration.of(timeout, unit.toChronoUnit()), rawKey);
 				return (CollectionUtils.isEmpty(bRPop) ? null : bRPop.get(1));
 			}
 		});
