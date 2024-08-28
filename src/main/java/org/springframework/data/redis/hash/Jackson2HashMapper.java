@@ -177,7 +177,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 							return false;
 						}
 
-						if (flatten && type.isTypeOrSubTypeOf(Number.class)) {
+						if (flatten && (type.isTypeOrSubTypeOf(Number.class) || type.isEnumType())) {
 							return false;
 						}
 
