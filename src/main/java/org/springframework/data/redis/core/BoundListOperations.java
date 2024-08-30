@@ -213,7 +213,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	Long remove(long count, Object value);
 
 	/**
-	 * Get element at {@code index} form list at the bound key.
+	 * Get element at {@code index} from list at the bound key.
 	 *
 	 * @param index
 	 * @return {@literal null} when used in pipeline / transaction.

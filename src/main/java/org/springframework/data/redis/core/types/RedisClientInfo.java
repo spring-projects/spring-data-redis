@@ -269,7 +269,7 @@ public class RedisClientInfo {
 
 		public static RedisClientInfo fromString(String source) {
 
-			Assert.notNull(source, "Cannot read client properties form 'null'");
+			Assert.notNull(source, "Cannot read client properties from 'null'");
 			Properties properties = new Properties();
 			try {
 				properties.load(new StringReader(source.replace(' ', '\n')));
