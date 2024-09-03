@@ -97,21 +97,6 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	}
 
 	/**
-	 * Append one or more records to the stream {@code key} with the specified options.
-	 *
-	 * @param key the stream key.
-	 * @param bodyPublisher record body {@link Publisher}.
-	 * @param xAddOptions parameters for the {@literal XADD} call.
-	 * @return the record Ids.
-	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
-	 */
-	default Flux<RecordId> add (K key, Publisher<? extends Map<? extends HK, ? extends HV>> bodyPublisher,
-		XAddOptions xAddOptions) {
-		return Flux.from(bodyPublisher).flatMap(it -> add(key, it, xAddOptions));
-	}
-
-	/**
 	 * Append a record to the stream {@code key} with the specified options.
 	 *
 	 * @param key the stream key.
@@ -119,7 +104,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param xAddOptions parameters for the {@literal XADD} call.
 	 * @return the {@link Mono} emitting the {@link RecordId}.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	default Mono<RecordId> add(K key, Map<? extends HK, ? extends HV> content, XAddOptions xAddOptions) {
 		return add(StreamRecords.newRecord().in(key).ofMap(content), xAddOptions);
@@ -132,7 +117,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param xAddOptions parameters for the {@literal XADD} call.
 	 * @return the {@link Mono} emitting the {@link RecordId}.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	@SuppressWarnings("unchecked")
 	default Mono<RecordId> add(MapRecord<K, ? extends HK, ? extends HV> record, XAddOptions xAddOptions) {
@@ -149,7 +134,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see MapRecord
 	 * @see ObjectRecord
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	Mono<RecordId> add(Record<K, ?> record, XAddOptions xAddOptions);
 

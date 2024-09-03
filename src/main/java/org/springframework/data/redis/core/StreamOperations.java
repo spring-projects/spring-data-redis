@@ -105,7 +105,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param xAddOptions additional parameters for the {@literal XADD} call.
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
@@ -120,7 +120,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param xAddOptions additional parameters for the {@literal XADD} call.
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
@@ -138,7 +138,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see MapRecord
 	 * @see ObjectRecord
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable

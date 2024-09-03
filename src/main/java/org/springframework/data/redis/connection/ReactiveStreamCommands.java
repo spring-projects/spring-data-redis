@@ -403,7 +403,7 @@ public interface ReactiveStreamCommands {
 	 * @param xAddOptions parameters for the {@literal XADD} call. Must not be {@literal null}.
 	 * @return {@link Mono} the {@link RecordId id}.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
-	 * @since 3.3
+	 * @since 3.4
 	 */
 	default Mono<RecordId> xAdd(ByteBufferRecord record, XAddOptions xAddOptions) {
 
