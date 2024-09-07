@@ -214,7 +214,7 @@ public interface RedisStreamCommands {
 		 * @return {@literal true} if {@literal MAXLEN} is set.
 		 */
 		public boolean hasMaxlen() {
-			return maxlen != null && maxlen > 0;
+			return maxlen != null;
 		}
 
 		/**
@@ -788,19 +788,28 @@ public interface RedisStreamCommands {
 		/**
 		 * Create new {@link XPendingOptions} with an unbounded {@link Range} ({@literal - +}).
 		 *
-		 * @param count the max number of messages to return. Must not be {@literal null}.
+		 * @param count the max number of messages to return. Must not be negative.
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public static XPendingOptions unbounded(Long count) {
+
+			Assert.isTrue(count > -1, "Count must not be negative");
+
 			return new XPendingOptions(null, Range.unbounded(), count);
 		}
 
 		/**
 		 * Create new {@link XPendingOptions} with given {@link Range} and limit.
 		 *
+		 * @param range must not be {@literal null}.
+		 * @param count the max number of messages to return. Must not be negative.
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public static XPendingOptions range(Range<?> range, Long count) {
+
+			Assert.notNull(range, "Range must not be null");
+			Assert.isTrue(count > -1, "Count must not be negative");
+
 			return new XPendingOptions(null, range, count);
 		}
 
@@ -848,7 +857,7 @@ public interface RedisStreamCommands {
 		 * @return {@literal true} count is set.
 		 */
 		public boolean isLimited() {
-			return count != null && count > -1;
+			return count != null;
 		}
 	}
 
