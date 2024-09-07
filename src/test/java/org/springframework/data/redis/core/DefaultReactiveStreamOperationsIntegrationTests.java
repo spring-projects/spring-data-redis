@@ -289,6 +289,21 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 			.verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2982
+	void addNegativeMaxlenShouldThrowException() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(-1).approximateTrimming(false);
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value), options).as(StepVerifier::create)
+				.expectError(IllegalArgumentException.class).verify();
+
+		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).expectNextCount(0L).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // GH-2915
 	void addMinIdShouldEvictLowerIdMessages() {
 
@@ -526,6 +541,21 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 			assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
 		}).verifyComplete();
 
+	}
+
+	@ParameterizedRedisTest // GH-2982
+	void pendingNegativeCountShouldThrowException() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").block();
+
+		streamOperations.pending(key, "my-group", Range.unbounded(), -1L).as(StepVerifier::create)
+				.expectError(IllegalArgumentException.class).verify();
 	}
 
 	@ParameterizedRedisTest // GH-2465

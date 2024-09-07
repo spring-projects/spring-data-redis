@@ -337,7 +337,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.3
 		 */
 		public boolean hasMaxlen() {
-			return maxlen != null && maxlen > 0;
+			return maxlen != null;
 		}
 
 		/**
@@ -685,7 +685,7 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(groupName, "GroupName must not be null");
 
-		return xPendingSummary(Mono.just(new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null))).next()
+		return xPendingSummary(Mono.just(PendingRecordsCommand.pending(key, groupName))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -726,7 +726,7 @@ public interface ReactiveStreamCommands {
 	 */
 	@Nullable
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, Range.unbounded(), null))).next()
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -743,7 +743,7 @@ public interface ReactiveStreamCommands {
 	 * @since 2.3
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, null, range, count))).next()
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -779,8 +779,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
 			Long count) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, range, count))).next()
-				.map(CommandResponse::getOutput);
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count)))
+				.next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -832,9 +832,15 @@ public interface ReactiveStreamCommands {
 		/**
 		 * Create new {@link PendingRecordsCommand} with given {@link Range} and limit.
 		 *
+		 * @param range must not be {@literal null}.
+		 * @param count the max number of messages to return. Must not be negative.
 		 * @return new instance of {@link XPendingOptions}.
 		 */
-		public PendingRecordsCommand range(Range<String> range, Long count) {
+		public PendingRecordsCommand range(Range<?> range, Long count) {
+
+			Assert.notNull(range, "Range must not be null");
+			Assert.isTrue(count > -1, "Count must not be negative");
+
 			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
 		}
 
@@ -886,7 +892,7 @@ public interface ReactiveStreamCommands {
 		 * @return {@literal true} count is set.
 		 */
 		public boolean isLimited() {
-			return count != null && count > -1;
+			return count != null;
 		}
 	}
 

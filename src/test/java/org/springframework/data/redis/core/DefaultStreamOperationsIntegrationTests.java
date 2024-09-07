@@ -206,6 +206,19 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(message.getValue()).isEqualTo(newValue);
 	}
 
+	@ParameterizedRedisTest // GH-2982
+	void addNegativeMaxlenShouldThrowException() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(-1).approximateTrimming(false);
+
+		assertThatThrownBy(() -> streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options));
+
+		assertThat(streamOps.range(key, Range.unbounded())).isEmpty();
+	}
+
 	@ParameterizedRedisTest // GH-2915
 	void addMinIdShouldEvictLowerIdMessages() {
 
@@ -563,6 +576,19 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
 		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+	}
+
+	@ParameterizedRedisTest // GH-2982
+	void pendingNegativeCountShouldThrowException() {
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
+		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
+
+		assertThatThrownBy(() -> streamOps.pending(key, "my-group", Range.unbounded(), -1L))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@ParameterizedRedisTest // GH-2465
