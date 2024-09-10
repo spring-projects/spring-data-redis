@@ -35,7 +35,16 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
@@ -65,7 +74,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	private final StreamOperations<K, HK, HV> streamOps;
 
 	public DefaultStreamOperationsIntegrationTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
-                                                   ObjectFactory<?> objectFactory) {
+			ObjectFactory<?> objectFactory) {
 
 		this.redisTemplate = redisTemplate;
 		this.connectionFactory = redisTemplate.getRequiredConnectionFactory();
@@ -81,7 +90,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		params.addAll(AbstractOperationsTestParams
 				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		if(RedisDetector.isClusterAvailable()) {
+		if (RedisDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
 		}
@@ -89,7 +98,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		params.addAll(AbstractOperationsTestParams
 				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		if(RedisDetector.isClusterAvailable()) {
+		if (RedisDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
 		}
@@ -305,7 +314,8 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 
-		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(), StreamOffset.create(key, ReadOffset.from("0-0")));
+		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(),
+				StreamOffset.create(key, ReadOffset.from("0-0")));
 
 		assertThat(messages).hasSize(2);
 
@@ -384,8 +394,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		streamOps.read(Consumer.from("my-group", "my-consumer"),
-				StreamOffset.create(key, ReadOffset.lastConsumed()));
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
 		PendingMessagesSummary pending = streamOps.pending(key, "my-group");
 
@@ -403,8 +412,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		streamOps.read(Consumer.from("my-group", "my-consumer"),
-				StreamOffset.create(key, ReadOffset.lastConsumed()));
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
 		PendingMessages pending = streamOps.pending(key, "my-group", Range.unbounded(), 10L);
 
