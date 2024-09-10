@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Paluch
+ * @author Ivan Kripakov
  * @since 2.0
  */
 class JedisScriptingCommands implements RedisScriptingCommands {
@@ -76,11 +77,11 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
 		Assert.notNull(script, "Script must not be null");
-		assertDirectMode();
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
-		return (T) connection.invoke().from(it -> it.eval(script, numKeys, keysAndArgs)).getOrElse(converter,
-				() -> converter.convert(null));
+		return (T) connection.invoke()
+				.from(it -> it.eval(script, numKeys, keysAndArgs), t -> t.eval(script, numKeys, keysAndArgs))
+				.getOrElse(converter, () -> converter.convert(null));
 	}
 
 	@Override
@@ -93,11 +94,12 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 
 		Assert.notNull(scriptSha, "Script digest must not be null");
-		assertDirectMode();
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
-		return (T) connection.invoke().from(it -> it.evalsha(scriptSha, numKeys, keysAndArgs)).getOrElse(converter,
-				() -> converter.convert(null));
+		return (T) connection.invoke()
+				.from(it -> it.evalsha(scriptSha, numKeys, keysAndArgs), t -> t.evalsha(scriptSha, numKeys, keysAndArgs))
+				.getOrElse(converter, () -> converter.convert(null)
+		);
 	}
 
 	private void assertDirectMode() {
