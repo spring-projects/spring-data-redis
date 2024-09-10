@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -76,7 +75,9 @@ public class RedisClusterNode extends RedisNode {
 
 		this(SlotRange.empty());
 
-		this.id = RedisAssertions.requireNonNull(id, "Id must not be null");
+		Assert.notNull(id, "Id must not be null");
+
+		this.id = id;
 	}
 
 	/**
@@ -86,8 +87,10 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	public RedisClusterNode(SlotRange slotRange) {
 
+		Assert.notNull(slotRange, "SlotRange must not be null");
+
 		this.flags = Collections.emptySet();
-		this.slotRange = RedisAssertions.requireNonNull(slotRange,"SlotRange must not be null");
+		this.slotRange = slotRange;
 	}
 
 	/**
@@ -101,8 +104,10 @@ public class RedisClusterNode extends RedisNode {
 
 		super(host, port);
 
+		Assert.notNull(slotRange, "SlotRange must not be null");
+
 		this.flags = Collections.emptySet();
-		this.slotRange = RedisAssertions.requireNonNull(slotRange,"SlotRange must not be null");
+		this.slotRange = slotRange;
 	}
 
 	/**

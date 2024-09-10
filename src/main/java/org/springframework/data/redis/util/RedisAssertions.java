@@ -25,7 +25,9 @@ import org.springframework.util.Assert;
  *
  * @author John Blum
  * @since 3.1.0
+ * @deprecated since 3.3, will be removed in a future revision in favor of Spring's {@link Assert} utility.
  */
+@Deprecated(since = "3.3", forRemoval = true)
 public abstract class RedisAssertions {
 
 	/**

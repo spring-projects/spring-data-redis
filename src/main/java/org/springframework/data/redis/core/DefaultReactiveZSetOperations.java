@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
@@ -38,7 +39,6 @@ import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -745,8 +745,13 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	private V readRequiredValue(ByteBuffer buffer) {
 
-		return RedisAssertions.requireNonNull(readValue(buffer),
-				() -> new InvalidDataAccessApiUsageException("Deserialized sorted set value is null"));
+		V value = readValue(buffer);
+
+		if (value == null) {
+			throw new InvalidDataAccessApiUsageException("Deserialized sorted set value is null");
+		}
+
+		return value;
 	}
 
 	private TypedTuple<V> readTypedTuple(Tuple raw) {

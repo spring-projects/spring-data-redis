@@ -64,7 +64,6 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -670,8 +669,11 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	public AbstractRedisClient getRequiredNativeClient() {
 
-		return RedisAssertions.requireState(getNativeClient(),
-				"Client not yet initialized; Did you forget to call initialize the bean");
+		AbstractRedisClient client = getNativeClient();
+
+		Assert.state(client != null, "Client not yet initialized; Did you forget to call initialize the bean");
+
+		return client;
 	}
 
 	@Nullable

@@ -37,7 +37,6 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -82,8 +81,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfiguration) {
 
-		super(RedisAssertions.requireNonNull(cacheConfiguration, "CacheConfiguration must not be null")
-				.getAllowCacheNullValues());
+		super(cacheConfiguration.getAllowCacheNullValues());
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(cacheWriter, "CacheWriter must not be null");
