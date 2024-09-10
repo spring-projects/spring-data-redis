@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -81,8 +82,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> List<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
-			String keyspace, Class<T> type) {
+	public <T> List<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows, String keyspace,
+			Class<T> type) {
 		List<T> result = doFind(criteria, offset, rows, keyspace, type);
 
 		if (sort != null) {
@@ -199,8 +200,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	}
 
 	@Override
-	public List<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
-			String keyspace) {
+	public List<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows, String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
@@ -229,14 +229,13 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	private byte[][] keys(String prefix, Collection<PathAndValue> source) {
 
+		ConversionService conversionService = getRequiredAdapter().getConverter().getConversionService();
 		byte[][] keys = new byte[source.size()][];
 		int i = 0;
 		for (PathAndValue pathAndValue : source) {
 
-			byte[] convertedValue = getRequiredAdapter().getConverter().getConversionService()
-					.convert(pathAndValue.getFirstValue(), byte[].class);
-			byte[] fullPath = getRequiredAdapter().getConverter().getConversionService()
-					.convert(prefix + pathAndValue.getPath() + ":", byte[].class);
+			byte[] convertedValue = conversionService.convert(pathAndValue.getFirstValue(), byte[].class);
+			byte[] fullPath = conversionService.convert(prefix + pathAndValue.getPath() + ":", byte[].class);
 
 			keys[i] = ByteUtils.concat(fullPath, convertedValue);
 			i++;
