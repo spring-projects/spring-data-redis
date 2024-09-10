@@ -80,12 +80,6 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	/**
-	 * @param redisTemplate
-	 * @param keyFactory
-	 * @param valueFactory
-	 * @param label parameterized test label, no further use besides that.
-	 */
 	public DefaultReactiveStreamOperationsIntegrationTests(Fixture<K, HV> fixture) {
 
 		this.serializer = fixture.getSerializer();
@@ -359,7 +353,6 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 			assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 			assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
 		}).verifyComplete();
-
 	}
 
 	@ParameterizedRedisTest // GH-2465
@@ -384,6 +377,5 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 					assertThat(claimed.getValue()).isEqualTo(content);
 					assertThat(claimed.getId()).isEqualTo(messageId);
 				}).verifyComplete();
-
 	}
 }
