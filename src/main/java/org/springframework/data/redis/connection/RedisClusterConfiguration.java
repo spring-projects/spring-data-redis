@@ -25,7 +25,6 @@ import java.util.Set;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
@@ -161,7 +160,10 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 * @param node must not be {@literal null}.
 	 */
 	public void addClusterNode(RedisNode node) {
-		this.clusterNodes.add(RedisAssertions.requireNonNull(node, "ClusterNode must not be null"));
+
+		Assert.notNull(node, "ClusterNode must not be null");
+
+		this.clusterNodes.add(node);
 	}
 
 	/**
@@ -211,7 +213,10 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 
 	@Override
 	public void setPassword(RedisPassword password) {
-		this.password = RedisAssertions.requireNonNull(password, "RedisPassword must not be null");
+
+		Assert.notNull(password, "RedisPassword must not be null");
+
+		this.password = password;
 	}
 
 	@Override
