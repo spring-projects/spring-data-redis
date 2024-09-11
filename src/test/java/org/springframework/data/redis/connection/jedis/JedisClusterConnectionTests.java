@@ -43,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
@@ -53,6 +54,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.ClusterConnectionTests;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
+import org.springframework.data.redis.connection.ClusterTopology;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.Limit;
@@ -75,6 +77,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.JedisExtension;
 import org.springframework.data.redis.test.util.HexStringUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Christoph Strobl
@@ -2949,5 +2952,21 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				null);
 
 		assertThat(result).isEmpty();
+	}
+
+	@Test // GH-2986
+	void shouldUseCachedTopology() {
+
+		JedisClusterConnection.JedisClusterTopologyProvider provider = (JedisClusterConnection.JedisClusterTopologyProvider) clusterConnection
+				.getTopologyProvider();
+		ReflectionTestUtils.setField(provider, "cached", null);
+
+		ClusterTopology topology = provider.getTopology();
+		assertThat(topology).isInstanceOf(JedisClusterConnection.JedisClusterTopology.class);
+
+		assertThat(provider.shouldUseCachedValue(null)).isFalse();
+		assertThat(provider.shouldUseCachedValue(new JedisClusterConnection.JedisClusterTopology(Set.of(), 0))).isFalse();
+		assertThat(provider.shouldUseCachedValue(
+				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100))).isTrue();
 	}
 }
