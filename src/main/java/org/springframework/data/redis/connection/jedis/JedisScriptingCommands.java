@@ -16,10 +16,10 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.commands.ScriptingKeyPipelineBinaryCommands;
 
 import java.util.List;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.util.Assert;
@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  */
 class JedisScriptingCommands implements RedisScriptingCommands {
 
+	private static final byte[] SAMPLE_KEY = new byte[0];
 	private final JedisConnection connection;
 
 	JedisScriptingCommands(JedisConnection connection) {
@@ -39,27 +40,21 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 	@Override
 	public void scriptFlush() {
-
-		assertDirectMode();
-
-		connection.invoke().just(Jedis::scriptFlush);
+		connection.invoke().just(Jedis::scriptFlush, it -> it.scriptFlush(SAMPLE_KEY));
 	}
 
 	@Override
 	public void scriptKill() {
-
-		assertDirectMode();
-
-		connection.invoke().just(Jedis::scriptKill);
+		connection.invoke().just(Jedis::scriptKill, it -> it.scriptKill(SAMPLE_KEY));
 	}
 
 	@Override
 	public String scriptLoad(byte[] script) {
 
 		Assert.notNull(script, "Script must not be null");
-		assertDirectMode();
 
-		return connection.invoke().from(it -> it.scriptLoad(script)).get(JedisConverters::toString);
+		return connection.invoke().from(it -> it.scriptLoad(script), it -> it.scriptLoad(script, SAMPLE_KEY))
+				.get(JedisConverters::toString);
 	}
 
 	@Override
@@ -67,9 +62,13 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 		Assert.notNull(scriptSha1, "Script digests must not be null");
 		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements");
-		assertDirectMode();
 
-		return connection.invoke().just(it -> it.scriptExists(scriptSha1));
+		byte[][] sha1 = new byte[scriptSha1.length][];
+		for (int i = 0; i < scriptSha1.length; i++) {
+			sha1[i] = JedisConverters.toBytes(scriptSha1[i]);
+		}
+
+		return connection.invoke().just(it -> it.scriptExists(scriptSha1), it -> it.scriptExists(SAMPLE_KEY, sha1));
 	}
 
 	@Override
@@ -80,7 +79,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
 		return (T) connection.invoke()
-				.from(it -> it.eval(script, numKeys, keysAndArgs), t -> t.eval(script, numKeys, keysAndArgs))
+				.from(Jedis::eval, ScriptingKeyPipelineBinaryCommands::eval, script, numKeys, keysAndArgs)
 				.getOrElse(converter, () -> converter.convert(null));
 	}
 
@@ -97,15 +96,9 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
 		return (T) connection.invoke()
-				.from(it -> it.evalsha(scriptSha, numKeys, keysAndArgs), t -> t.evalsha(scriptSha, numKeys, keysAndArgs))
+				.from(Jedis::evalsha, ScriptingKeyPipelineBinaryCommands::evalsha, scriptSha, numKeys, keysAndArgs)
 				.getOrElse(converter, () -> converter.convert(null)
 		);
-	}
-
-	private void assertDirectMode() {
-		if (connection.isQueueing() || connection.isPipelined()) {
-			throw new InvalidDataAccessApiUsageException("Scripting commands not supported in pipelining/transaction mode");
-		}
 	}
 
 }

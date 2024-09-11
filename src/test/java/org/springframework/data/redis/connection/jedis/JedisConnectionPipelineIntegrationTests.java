@@ -76,20 +76,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	}
 
 	// Unsupported Ops
-	@Test
-	public void testScriptExists() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testScriptExists);
-	}
-
-	@Test
-	public void testScriptKill() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.scriptKill());
-	}
-
-	@Test
-	@Disabled
-	public void testScriptFlush() {}
-
 	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::clientSetNameWorksCorrectly);

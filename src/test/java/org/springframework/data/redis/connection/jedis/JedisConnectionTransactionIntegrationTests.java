@@ -97,18 +97,6 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	// Unsupported Ops
 	@Test
 	@Disabled
-	public void testScriptExists() {}
-
-	@Test
-	@Disabled
-	public void testScriptKill() {}
-
-	@Test
-	@Disabled
-	public void testScriptFlush() {}
-
-	@Test
-	@Disabled
 	public void testInfoBySection() {}
 
 	@Test
