@@ -805,13 +805,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 */
 	public static class JedisClusterTopologyProvider implements ClusterTopologyProvider {
 
-		private long time = 0;
+		private final JedisCluster cluster;
 
 		private final long cacheTimeMs;
 
-		private @Nullable ClusterTopology cached;
-
-		private final JedisCluster cluster;
+		private volatile @Nullable JedisClusterTopology cached;
 
 		/**
 		 * Create new {@link JedisClusterTopologyProvider}. Uses a default cache timeout of 100 milliseconds.
@@ -842,12 +840,12 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		@Override
 		public ClusterTopology getTopology() {
 
-			if (cached != null && shouldUseCachedValue()) {
-				return cached;
+			JedisClusterTopology topology = cached;
+			if (shouldUseCachedValue(topology)) {
+				return topology;
 			}
 
 			Map<String, Exception> errors = new LinkedHashMap<>();
-
 			List<Entry<String, ConnectionPool>> list = new ArrayList<>(cluster.getClusterNodes().entrySet());
 
 			Collections.shuffle(list);
@@ -856,13 +854,10 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 				try (Connection connection = entry.getValue().getResource()) {
 
-					time = System.currentTimeMillis();
 
 					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(new Jedis(connection).clusterNodes());
-
-					cached = new ClusterTopology(nodes);
-
-					return cached;
+					topology = cached = new JedisClusterTopology(nodes, System.currentTimeMillis());
+					return topology;
 
 				} catch (Exception ex) {
 					errors.put(entry.getKey(), ex);
@@ -887,9 +882,38 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		 *         topology.
 		 * @see #JedisClusterTopologyProvider(JedisCluster, Duration)
 		 * @since 2.2
+		 * @deprecated since 3.3.4, use {@link #shouldUseCachedValue(JedisClusterTopology)} instead.
 		 */
+		@Deprecated(since = "3.3.4")
 		protected boolean shouldUseCachedValue() {
-			return time + cacheTimeMs > System.currentTimeMillis();
+			return false;
+		}
+
+		/**
+		 * Returns whether {@link #getTopology()} should return the cached {@link JedisClusterTopology}. Uses a time-based
+		 * caching.
+		 *
+		 * @return {@literal true} to use the cached {@link ClusterTopology}; {@literal false} to fetch a new cluster
+		 *         topology.
+		 * @see #JedisClusterTopologyProvider(JedisCluster, Duration)
+		 * @since 3.3.4
+		 */
+		protected boolean shouldUseCachedValue(@Nullable JedisClusterTopology topology) {
+			return topology != null && topology.getTime() + cacheTimeMs > System.currentTimeMillis();
+		}
+	}
+
+	protected static class JedisClusterTopology extends ClusterTopology {
+
+		private final long time;
+
+		public JedisClusterTopology(Set<RedisClusterNode> nodes, long time) {
+			super(nodes);
+			this.time = time;
+		}
+
+		public long getTime() {
+			return time;
 		}
 	}
 
