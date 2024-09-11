@@ -854,9 +854,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 				try (Connection connection = entry.getValue().getResource()) {
 
-
 					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(new Jedis(connection).clusterNodes());
-					topology = cached = new JedisClusterTopology(nodes, System.currentTimeMillis());
+					topology = cached = new JedisClusterTopology(nodes, System.currentTimeMillis(), cacheTimeMs);
 					return topology;
 
 				} catch (Exception ex) {
@@ -884,9 +883,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		 * @since 2.2
 		 * @deprecated since 3.3.4, use {@link #shouldUseCachedValue(JedisClusterTopology)} instead.
 		 */
-		@Deprecated(since = "3.3.4")
+		@Deprecated(since = "3.3.4", forRemoval = true)
 		protected boolean shouldUseCachedValue() {
-			return false;
+			return shouldUseCachedValue(cached);
 		}
 
 		/**
@@ -899,21 +898,37 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		 * @since 3.3.4
 		 */
 		protected boolean shouldUseCachedValue(@Nullable JedisClusterTopology topology) {
-			return topology != null && topology.getTime() + cacheTimeMs > System.currentTimeMillis();
+			return topology != null && topology.getMaxTime() > System.currentTimeMillis();
 		}
 	}
 
 	protected static class JedisClusterTopology extends ClusterTopology {
 
 		private final long time;
+		private final long timeoutMs;
 
-		public JedisClusterTopology(Set<RedisClusterNode> nodes, long time) {
+		JedisClusterTopology(Set<RedisClusterNode> nodes, long creationTimeMs, long timeoutMs) {
 			super(nodes);
-			this.time = time;
+			this.time = creationTimeMs;
+			this.timeoutMs = timeoutMs;
 		}
 
+		/**
+		 * Get the time in ms when the {@link ClusterTopology} was captured.
+		 *
+		 * @return ClusterTopology time.
+		 */
 		public long getTime() {
 			return time;
+		}
+
+		/**
+		 * Get the maximum time in ms the {@link ClusterTopology} should be used before a refresh is required.
+		 *
+		 * @return ClusterTopology maximum age.
+		 */
+		long getMaxTime() {
+			return time + timeoutMs;
 		}
 	}
 

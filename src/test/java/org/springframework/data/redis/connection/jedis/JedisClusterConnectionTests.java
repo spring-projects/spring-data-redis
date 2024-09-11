@@ -2965,8 +2965,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(topology).isInstanceOf(JedisClusterConnection.JedisClusterTopology.class);
 
 		assertThat(provider.shouldUseCachedValue(null)).isFalse();
-		assertThat(provider.shouldUseCachedValue(new JedisClusterConnection.JedisClusterTopology(Set.of(), 0))).isFalse();
+		assertThat(provider.shouldUseCachedValue(new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() - 101, 100))).isFalse();
 		assertThat(provider.shouldUseCachedValue(
-				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100))).isTrue();
+				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100, 100))).isTrue();
 	}
 }
