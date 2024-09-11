@@ -512,7 +512,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		if (this.asyncDedicatedConnection != null) {
 			try {
 				if (customizedDatabaseIndex()) {
-					potentiallySelectDatabase(this.defaultDbIndex);
+					potentiallySelectDatabase(this.asyncDedicatedConnection, this.defaultDbIndex);
 				}
 				this.connectionProvider.release(this.asyncDedicatedConnection);
 				this.asyncDedicatedConnection = null;
@@ -965,7 +965,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		StatefulConnection<byte[], byte[]> connection = getConnectionProvider().getConnection(StatefulConnection.class);
 
 		if (customizedDatabaseIndex()) {
-			potentiallySelectDatabase(this.dbIndex);
+			potentiallySelectDatabase(connection, this.dbIndex);
 		}
 
 		return connection;
@@ -1062,9 +1062,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return defaultDbIndex != dbIndex;
 	}
 
-	private void potentiallySelectDatabase(int dbIndex) {
+	private static void potentiallySelectDatabase(StatefulConnection<byte[], byte[]> connection, int dbIndex) {
 
-		if (asyncDedicatedConnection instanceof StatefulRedisConnection<byte[], byte[]> statefulConnection) {
+		if (connection instanceof StatefulRedisConnection<byte[], byte[]> statefulConnection) {
 			statefulConnection.sync().select(dbIndex);
 		}
 	}

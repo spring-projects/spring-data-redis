@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import io.lettuce.core.*;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
@@ -68,6 +69,7 @@ public class LettuceConnectionUnitTests {
 		private RedisClient clientMock;
 		StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
 		RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
+		RedisCommands<byte[], byte[]> commandsMock;
 
 		@SuppressWarnings({ "unchecked" })
 		@BeforeEach
@@ -89,8 +91,10 @@ public class LettuceConnectionUnitTests {
 				}
 				return null;
 			});
+			commandsMock = Mockito.mock(RedisCommands.class);
 
 			when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
+			when(statefulConnectionMock.sync()).thenReturn(commandsMock);
 			connection = new LettuceConnection(0, clientMock);
 		}
 
@@ -155,7 +159,7 @@ public class LettuceConnectionUnitTests {
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test // DATAREDIS-431
+		@Test // DATAREDIS-431, GH-2984
 		void dbIndexShouldBeSetWhenObtainingConnection() {
 
 			connection = new LettuceConnection(null, 0, clientMock, 0);
@@ -163,6 +167,7 @@ public class LettuceConnectionUnitTests {
 			connection.getNativeConnection();
 
 			verify(asyncCommandsMock).dispatch(eq(CommandType.SELECT), any(), any());
+			verify(commandsMock).select(1);
 		}
 
 		@Test // DATAREDIS-603
