@@ -326,6 +326,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		return this;
 	}
 
+	public void setCustomMapperForTypeResolver(ObjectMapper mapper) {
+            this.typeResolver.setCustomObjectMapper(mapper);
+        }
+
 	protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
 
 		if (!type.equals(Object.class) || !defaultTypingEnabled.get()) {
@@ -341,7 +345,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	static class TypeResolver {
 
 		// need a separate instance to bypass class hint checks
-		private final ObjectMapper mapper = new ObjectMapper();
+		private ObjectMapper mapper = new ObjectMapper();
 
 		private final Supplier<TypeFactory> typeFactory;
 		private final Supplier<String> hintName;
@@ -367,6 +371,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			return constructType(type);
 		}
+
+		public void setCustomObjectMapper(ObjectMapper mapper) {
+		        this.mapper = mapper;
+                }
 	}
 
 	/**
