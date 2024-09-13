@@ -25,6 +25,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.lettuce.core.KeyScanCursor;
@@ -188,7 +189,7 @@ class LettuceConnectionUnitTests {
 			connection.getNativeConnection();
 
 			verify(asyncCommandsMock).dispatch(eq(CommandType.SELECT), any(), any());
-			verify(commandsMock).select(1);
+			verifyNoInteractions(commandsMock);
 		}
 
 		@Test // DATAREDIS-603
