@@ -14,12 +14,12 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.2.10-SNAPSHOT</version>
+		<version>3.2.10</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.2.10-SNAPSHOT</springdata.keyvalue>
-		<springdata.commons>3.2.10-SNAPSHOT</springdata.commons>
+		<springdata.keyvalue>3.2.10</springdata.keyvalue>
+		<springdata.commons>3.2.10</springdata.commons>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.20</xstream>
@@ -371,19 +371,7 @@
 	</profiles>
 
 	<repositories>
-		<repository>
-			<id>spring-snapshot</id>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>spring-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
+		
+		
 	</repositories>
 </project>
