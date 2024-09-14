@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author John Blum
+ * @author Mohammad Javad Imani
  * @since 2.6
  */
 public abstract class BatchStrategies {
@@ -79,11 +80,11 @@ public abstract class BatchStrategies {
 		@Override
 		public long cleanCache(RedisConnection connection, String name, byte[] pattern) {
 
-			byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
+			byte[][] keys = Optional.ofNullable(connection.keyCommands().keys(pattern)).orElse(Collections.emptySet())
 					.toArray(new byte[0][]);
 
 			if (keys.length > 0) {
-				connection.del(keys);
+				connection.keyCommands().del(keys);
 			}
 
 			return keys.length;
@@ -104,7 +105,7 @@ public abstract class BatchStrategies {
 		@Override
 		public long cleanCache(RedisConnection connection, String name, byte[] pattern) {
 
-			Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions().count(batchSize).match(pattern).build());
+			Cursor<byte[]> cursor = connection.keyCommands().scan(ScanOptions.scanOptions().count(batchSize).match(pattern).build());
 
 			long count = 0;
 
@@ -116,8 +117,8 @@ public abstract class BatchStrategies {
 
 				count += keys.size();
 
-				if (keys.size() > 0) {
-					connection.del(keys.toArray(new byte[0][]));
+				if (!keys.isEmpty()) {
+					connection.keyCommands().del(keys.toArray(new byte[0][]));
 				}
 			}
 
