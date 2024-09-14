@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Jinbeom Kim
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
@@ -216,16 +217,14 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public void add(int index, E element) {
 
 		if (index == 0) {
-			listOps.leftPush(element);
-			cap();
+			addFirst(element);
 			return;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			listOps.rightPush(element);
-			cap();
+			addLast(element);
 			return;
 		}
 
@@ -241,24 +240,15 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		// insert collection in reverse
 		if (index == 0) {
-
-			Collection<? extends E> reverseCollection = CollectionUtils.reverse(collection);
-
-			for (E element : reverseCollection) {
-				listOps.leftPush(element);
-				cap();
-			}
-
+			CollectionUtils.reverse(collection)
+					.forEach(this::addFirst);
 			return true;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			for (E element : collection) {
-				listOps.rightPush(element);
-				cap();
-			}
+			collection.forEach(this::addLast);
 			return true;
 		}
 
@@ -341,9 +331,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean offer(E element) {
-		listOps.rightPush(element);
-		cap();
-		return true;
+		return add(element);
 	}
 
 	@Override
