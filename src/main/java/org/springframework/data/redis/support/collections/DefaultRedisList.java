@@ -239,22 +239,15 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		// insert collection in reverse
 		if (index == 0) {
-
-			Collection<? extends E> reverseCollection = CollectionUtils.reverse(collection);
-
-			for (E element : reverseCollection) {
-				addFirst(element);
-			}
-
+			CollectionUtils.reverse(collection)
+					.forEach(this::addFirst);
 			return true;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			for (E element : collection) {
-				addLast(element);
-			}
+			collection.forEach(this::addLast);
 			return true;
 		}
 
