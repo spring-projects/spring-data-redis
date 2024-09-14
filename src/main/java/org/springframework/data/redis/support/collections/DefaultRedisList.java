@@ -216,16 +216,14 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public void add(int index, E element) {
 
 		if (index == 0) {
-			listOps.leftPush(element);
-			cap();
+			addFirst(element);
 			return;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			listOps.rightPush(element);
-			cap();
+			addLast(element);
 			return;
 		}
 
@@ -245,8 +243,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 			Collection<? extends E> reverseCollection = CollectionUtils.reverse(collection);
 
 			for (E element : reverseCollection) {
-				listOps.leftPush(element);
-				cap();
+				addFirst(element);
 			}
 
 			return true;
@@ -256,8 +253,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		if (index == size()) {
 			for (E element : collection) {
-				listOps.rightPush(element);
-				cap();
+				addLast(element);
 			}
 			return true;
 		}
@@ -341,9 +337,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean offer(E element) {
-		listOps.rightPush(element);
-		cap();
-		return true;
+		return add(element);
 	}
 
 	@Override
