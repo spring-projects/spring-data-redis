@@ -231,6 +231,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
+	@Nullable
 	Long indexOf(V value);
 
 	/**
@@ -242,6 +243,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
+	@Nullable
 	Long lastIndexOf(V value);
 
 	/**

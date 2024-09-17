@@ -131,13 +131,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		key = newKey;
 	}
 
-	protected void checkResult(@Nullable Object obj) {
-
-		if (obj == null) {
-			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
-		}
-	}
-
 	@Override
 	public boolean equals(@Nullable Object o) {
 
@@ -175,4 +168,10 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return sb.toString();
 	}
 
+	protected void checkResult(@Nullable Object obj) {
+
+		if (obj == null) {
+			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
+		}
+	}
 }
