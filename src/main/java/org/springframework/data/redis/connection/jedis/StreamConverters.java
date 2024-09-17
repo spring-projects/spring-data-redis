@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.params.XAddParams;
+import redis.clients.jedis.params.XAutoClaimParams;
 import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
@@ -258,6 +259,17 @@ class StreamConverters {
 
 		if (options.getUnixTime() != null) {
 			params.time(options.getUnixTime().toEpochMilli());
+		}
+
+		return params;
+	}
+
+	public static XAutoClaimParams toXautoClaimParams(Integer count) {
+
+		XAutoClaimParams params = XAutoClaimParams.xAutoClaimParams();
+
+		if (count != null) {
+			params.count(count);
 		}
 
 		return params;

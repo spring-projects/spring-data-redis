@@ -522,6 +522,71 @@ public interface RedisStreamCommands {
 	}
 
 	/**
+	 * Transfer ownership of pending stream entries that match the specified criteria. Returns just an array of IDs
+	 * of messages successfully claimed, without returning the actual message. The retry counter is not incremented.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param start must not be {@literal null}.
+	 * @return list of {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start);
+
+	/**
+	 * Transfer ownership of pending stream entries that match the specified criteria. Returns just an array of IDs
+	 * of messages successfully claimed, without returning the actual message. The retry counter is not incremented.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param start must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return list of {@link RecordId ids} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count);
+
+
+	/**
+	 * Transfer ownership of pending stream entries that match the specified criteria.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param start must not be {@literal null}.
+	 * @return list of {@link ByteRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 */
+	@Nullable
+	ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start);
+
+	/**
+	 * Transfer ownership of pending stream entries that match the specified criteria.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group the name of the {@literal consumer group}.
+	 * @param newOwner the name of the new {@literal consumer}.
+	 * @param minIdleTime must not be {@literal null}.
+	 * @param start must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return list of {@link ByteRecord} that changed user.
+	 * @see <a href="https://redis.io/commands/xautoclaim">Redis Documentation: XAUTOCLAIM</a>
+	 * @since 2.3
+	 */
+	@Nullable
+	ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count);
+
+
+	/**
 	 * Removes the records with the given id's from the stream. Returns the number of items deleted, that may be different
 	 * from the number of id's passed in case certain id's do not exist.
 	 *
