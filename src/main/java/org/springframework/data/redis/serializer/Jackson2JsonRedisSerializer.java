@@ -166,7 +166,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 			return null;
 		}
 		try {
-			return (T) this.reader.read(this.mapper, bytes, javaType);
+			return (T) this.reader.read(this.mapper, this.mapper.createParser(bytes), javaType);
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}

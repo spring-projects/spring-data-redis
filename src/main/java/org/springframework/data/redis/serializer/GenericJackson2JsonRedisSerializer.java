@@ -51,6 +51,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -306,10 +307,19 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		try {
-			return (T) reader.read(mapper, source, resolveType(source, type));
+
+			TypeTuple typeTuple = resolveType(source, type);
+			try (JsonParser parser = createParser(source, typeTuple)) {
+				return (T) reader.read(mapper, parser, typeTuple.type());
+			}
+
 		} catch (Exception ex) {
-			throw new SerializationException("Could not read JSON:%s ".formatted(ex.getMessage()), ex);
+			throw new SerializationException("Could not read JSON: %s ".formatted(ex.getMessage()), ex);
 		}
+	}
+
+	private JsonParser createParser(byte[] source, TypeTuple typeTuple) throws IOException {
+		return typeTuple.node() == null ? mapper.createParser(source) : new TreeTraversingParser(typeTuple.node(), mapper);
 	}
 
 	/**
@@ -332,13 +342,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		return this;
 	}
 
-	protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
+	protected TypeTuple resolveType(byte[] source, Class<?> type) throws IOException {
 
 		if (!type.equals(Object.class) || !defaultTypingEnabled.get()) {
-			return typeResolver.constructType(type);
+			return new TypeTuple(typeResolver.constructType(type), null);
 		}
 
 		return typeResolver.resolveType(source, type);
+	}
+
+	protected record TypeTuple(JavaType type, @Nullable JsonNode node) {
+
 	}
 
 	/**
@@ -361,16 +375,16 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			return typeFactory.get().constructType(type);
 		}
 
-		protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
+		protected TypeTuple resolveType(byte[] source, Class<?> type) throws IOException {
 
 			JsonNode root = readTree(source);
 			JsonNode jsonNode = root.get(hintName.get());
 
 			if (jsonNode instanceof TextNode && jsonNode.asText() != null) {
-				return typeFactory.get().constructFromCanonical(jsonNode.asText());
+				return new TypeTuple(typeFactory.get().constructFromCanonical(jsonNode.asText()), root);
 			}
 
-			return constructType(type);
+			return new TypeTuple(constructType(type), root);
 		}
 
 		/**

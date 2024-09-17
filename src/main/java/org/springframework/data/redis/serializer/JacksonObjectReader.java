@@ -18,6 +18,7 @@ package org.springframework.data.redis.serializer;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -43,7 +44,20 @@ public interface JacksonObjectReader {
 	 * @return the deserialized Java object.
 	 * @throws IOException if an I/O error or JSON deserialization error occurs.
 	 */
-	Object read(ObjectMapper mapper, byte[] source, JavaType type) throws IOException;
+	default Object read(ObjectMapper mapper, byte[] source, JavaType type) throws IOException {
+		return read(mapper, mapper.createParser(source), type);
+	}
+
+	/**
+	 * Read an object graph from the given root JSON into a Java object considering the {@link JavaType}.
+	 *
+	 * @param mapper the object mapper to use.
+	 * @param parser the JSON parser to use.
+	 * @param type the Java target type
+	 * @return the deserialized Java object.
+	 * @throws IOException if an I/O error or JSON deserialization error occurs.
+	 */
+	Object read(ObjectMapper mapper, JsonParser parser, JavaType type) throws IOException;
 
 	/**
 	 * Create a default {@link JacksonObjectReader} delegating to {@link ObjectMapper#readValue(InputStream, JavaType)}.
@@ -51,7 +65,7 @@ public interface JacksonObjectReader {
 	 * @return the default {@link JacksonObjectReader}.
 	 */
 	static JacksonObjectReader create() {
-		return (mapper, source, type) -> mapper.readValue(source, 0, source.length, type);
+		return ObjectMapper::readValue;
 	}
 
 }
