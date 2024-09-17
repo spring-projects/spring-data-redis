@@ -116,6 +116,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			ObjectHashMapper.getSharedInstance());
 	private final ZSetOperations<K, V> zSetOps = new DefaultZSetOperations<>(this);
 	private final GeoOperations<K, V> geoOps = new DefaultGeoOperations<>(this);
+	private final HashOperations<K, ?, ?> hashOps = new DefaultHashOperations<>(this);
 	private final HyperLogLogOperations<K, V> hllOps = new DefaultHyperLogLogOperations<>(this);
 	private final ClusterOperations<K, V> clusterOps = new DefaultClusterOperations<>(this);
 
@@ -977,7 +978,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
-		return new DefaultHashOperations<>(this);
+		return (HashOperations) hashOps;
 	}
 
 	@Override
