@@ -66,10 +66,11 @@ import org.springframework.util.CollectionUtils;
  * Redis store. By default, it uses Java serialization for its objects (through {@link JdkSerializationRedisSerializer}
  * ). For String intensive operations consider the dedicated {@link StringRedisTemplate}.
  * <p>
- * The central method is execute, supporting Redis access code implementing the {@link RedisCallback} interface. It
- * provides {@link RedisConnection} handling such that neither the {@link RedisCallback} implementation nor the calling
- * code needs to explicitly care about retrieving/closing Redis connections, or handling Connection lifecycle
- * exceptions. For typical single step actions, there are various convenience methods.
+ * The central method is {@link #execute(RedisCallback)}, supporting Redis access code implementing the
+ * {@link RedisCallback} interface. It provides {@link RedisConnection} handling such that neither the
+ * {@link RedisCallback} implementation nor the calling code needs to explicitly care about retrieving/closing Redis
+ * connections, or handling Connection lifecycle exceptions. For typical single step actions, there are various
+ * convenience methods.
  * <p>
  * Once configured, this class is thread-safe.
  * <p>
@@ -121,7 +122,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private final ClusterOperations<K, V> clusterOps = new DefaultClusterOperations<>(this);
 
 	/**
-	 * Constructs a new <code>RedisTemplate</code> instance.
+	 * Constructs a new {@code RedisTemplate} instance.
 	 */
 	public RedisTemplate() {}
 
@@ -160,46 +161,59 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Returns whether to expose the native Redis connection to RedisCallback code, or rather a connection proxy (the
-	 * default).
+	 * Returns whether the underlying RedisConnection should be directly exposed to the RedisCallback code, or rather a
+	 * connection proxy (default behavior).
 	 *
-	 * @return whether to expose the native Redis connection or not
+	 * @return {@literal true} to expose the native Redis connection or {@literal false} to provide a proxied connection
+	 *         to RedisCallback code.
 	 */
 	public boolean isExposeConnection() {
 		return exposeConnection;
 	}
 
 	/**
-	 * Sets whether to expose the Redis connection to {@link RedisCallback} code. Default is "false": a proxy will be
-	 * returned, suppressing {@code quit} and {@code disconnect} calls.
+	 * Sets whether the underlying RedisConnection should be directly exposed to the RedisCallback code. By default, the
+	 * connection is not exposed, and a proxy is used instead. This proxy suppresses potentially disruptive operations,
+	 * such as {@code quit} and {@code disconnect} commands, ensuring that the connection remains stable during the
+	 * callback execution. Defaults to proxy use.
 	 *
-	 * @param exposeConnection
+	 * @param exposeConnection {@literal true} to expose the actual Redis connection to RedisCallback code, allowing full
+	 *          access to Redis commands, including quit and disconnect. {@literal false} to proxy connections that
+	 *          suppress the quit and disconnect commands, protecting the connection from being inadvertently closed
+	 *          during callback execution.
 	 */
 	public void setExposeConnection(boolean exposeConnection) {
 		this.exposeConnection = exposeConnection;
 	}
 
 	/**
-	 * @return Whether or not the default serializer should be used. If not, any serializers not explicitly set will
-	 *         remain null and values will not be serialized or deserialized.
+	 * Returns whether the default serializer should be used or not.
+	 *
+	 * @return {@literal true} if the default serializer should be used; {@literal false} otherwise.
 	 */
 	public boolean isEnableDefaultSerializer() {
 		return enableDefaultSerializer;
 	}
 
 	/**
-	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not, any serializers not
-	 *          explicitly set will remain null and values will not be serialized or deserialized.
+	 * Configure whether the default serializer should be used or not. If the default serializer is enabled, the template
+	 * will use it to serialize and deserialize values. However, if the default serializer is disabled , any serializers
+	 * that have not been explicitly set will remain {@literal null}, and their corresponding values will neither be
+	 * serialized nor deserialized. Defaults to {@literal true}.
+	 *
+	 * @param enableDefaultSerializer {@literal true} if the default serializer should be used; {@literal false}
+	 *          otherwise.
 	 */
 	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
 		this.enableDefaultSerializer = enableDefaultSerializer;
 	}
 
 	/**
-	 * If set to {@code true} {@link RedisTemplate} will participate in ongoing transactions using
-	 * {@literal MULTI...EXEC|DISCARD} to keep track of operations.
+	 * Sets whether this template participates in ongoing transactions using {@literal MULTI...EXEC|DISCARD} to keep track
+	 * of operations.
 	 *
-	 * @param enableTransactionSupport whether to participate in ongoing transactions.
+	 * @param enableTransactionSupport {@literal true}to participate in ongoing transactions; {@literal false} to not
+	 *          track transactions.
 	 * @since 1.3
 	 * @see RedisConnectionUtils#getConnection(RedisConnectionFactory, boolean)
 	 * @see TransactionSynchronizationManager#isActualTransactionActive()
@@ -209,7 +223,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
+	 * Sets the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
 	 * {@link RedisSerializer} is explicitly set as the default one.
 	 *
 	 * @param classLoader can be {@literal null}.
@@ -224,7 +238,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Returns the default serializer used by this template.
 	 *
-	 * @return template default serializer
+	 * @return template default serializer.
 	 */
 	@Nullable
 	public RedisSerializer<?> getDefaultSerializer() {
@@ -236,7 +250,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * {@link #setStringSerializer(RedisSerializer)}) are initialized to this value unless explicitly set. Defaults to
 	 * {@link JdkSerializationRedisSerializer}.
 	 *
-	 * @param serializer default serializer to use
+	 * @param serializer default serializer to use.
 	 */
 	public void setDefaultSerializer(RedisSerializer<?> serializer) {
 		this.defaultSerializer = serializer;
@@ -967,16 +981,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public BoundGeoOperations<K, V> boundGeoOps(K key) {
 		return boundOperations.createProxy(BoundGeoOperations.class, key, DataType.ZSET, this, RedisOperations::opsForGeo);
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
 		return boundOperations.createProxy(BoundHashOperations.class, key, DataType.HASH, this, it -> it.opsForHash());
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
 		return (HashOperations) hashOps;
 	}
@@ -992,12 +1009,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public BoundListOperations<K, V> boundListOps(K key) {
 		return boundOperations.createProxy(BoundListOperations.class, key, DataType.LIST, this,
 				RedisOperations::opsForList);
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public BoundSetOperations<K, V> boundSetOps(K key) {
 		return boundOperations.createProxy(BoundSetOperations.class, key, DataType.SET, this, RedisOperations::opsForSet);
 	}
@@ -1008,6 +1027,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <HK, HV> StreamOperations<K, HK, HV> opsForStream() {
 		return (StreamOperations<K, HK, HV>) streamOps;
 	}
@@ -1018,11 +1038,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <HK, HV> BoundStreamOperations<K, HK, HV> boundStreamOps(K key) {
 		return boundOperations.createProxy(BoundStreamOperations.class, key, DataType.STREAM, this, it -> opsForStream());
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public BoundValueOperations<K, V> boundValueOps(K key) {
 		return boundOperations.createProxy(BoundValueOperations.class, key, DataType.STRING, this,
 				RedisOperations::opsForValue);
@@ -1034,6 +1056,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public BoundZSetOperations<K, V> boundZSetOps(K key) {
 		return boundOperations.createProxy(BoundZSetOperations.class, key, DataType.ZSET, this,
 				RedisOperations::opsForZSet);
