@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection.convert;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Iterator;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -71,6 +71,10 @@ class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV6_HOST_SQUARE_BRACKETS = "67adfe3df1058896e3cb49d2863e0f70e7e159fa [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@16380,redis-master master,nofailover - 0 1692108412315 1 connected 0-5460";
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST = "67adfe3df1058896e3cb49d2863e0f70e7e159fa 2a02:6b8:c67:9c:0:6d8b:33da:5a2c: master,nofailover - 0 1692108412315 1 connected 0-5460";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_EMPTY_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379, master - 0 1708041426947 2 connected 0-5460";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379,hostname1 master - 0 1708041426947 2 connected 0-5460";
 
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
@@ -248,6 +252,39 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
 	}
 
+	@Test // https://github.com/spring-projects/spring-data-redis/issues/2862
+	void toClusterNodeWithIPv4EmptyHostname() {
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV4_EMPTY_HOSTNAME);
+
+		SoftAssertions.assertSoftly(softAssertions -> {
+			softAssertions.assertThat(node.getId()).isEqualTo("3765733728631672640db35fd2f04743c03119c6");
+			softAssertions.assertThat(node.getHost()).isEqualTo("10.180.0.33");
+			softAssertions.assertThat(node.hasValidHost()).isTrue();
+			softAssertions.assertThat(node.getPort()).isEqualTo(11003);
+			softAssertions.assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+			softAssertions.assertThat(node.getFlags()).contains(Flag.MASTER);
+			softAssertions.assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+			softAssertions.assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+		});
+	}
+
+	@Test // https://github.com/spring-projects/spring-data-redis/issues/2862
+	void toClusterNodeWithIPv4Hostname() {
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME);
+
+		SoftAssertions.assertSoftly(softAssertions -> {
+			softAssertions.assertThat(node.getId()).isEqualTo("3765733728631672640db35fd2f04743c03119c6");
+			softAssertions.assertThat(node.getHost()).isEqualTo("10.180.0.33");
+			softAssertions.assertThat(node.getName()).isEqualTo("hostname1");
+			softAssertions.assertThat(node.hasValidHost()).isTrue();
+			softAssertions.assertThat(node.getPort()).isEqualTo(11003);
+			softAssertions.assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+			softAssertions.assertThat(node.getFlags()).contains(Flag.MASTER);
+			softAssertions.assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+			softAssertions.assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+		});
+	}
+
 	@Test // GH-2678
 	void toClusterNodeWithIPv6HostnameSquareBrackets() {
 
@@ -273,12 +310,11 @@ class ConvertersUnitTests {
 	@MethodSource("clusterNodesEndpoints")
 	void shouldAcceptHostPatterns(String endpoint, String expectedAddress, String expectedPort, String expectedHostname) {
 
-		Matcher matcher = ClusterNodesConverter.clusterEndpointPattern.matcher(endpoint);
-		assertThat(matcher.matches()).isTrue();
+		ClusterNodesConverter.AddressPortHostname addressPortHostname = ClusterNodesConverter.AddressPortHostname.of(new String[] { "id", endpoint });
 
-		assertThat(matcher.group(1)).isEqualTo(expectedAddress);
-		assertThat(matcher.group(2)).isEqualTo(expectedPort);
-		assertThat(matcher.group(3)).isEqualTo(expectedHostname);
+		assertThat(addressPortHostname.addressPart()).isEqualTo(expectedAddress);
+		assertThat(addressPortHostname.portPart()).isEqualTo(expectedPort);
+		assertThat(addressPortHostname.hostnamePart()).isEqualTo(expectedHostname);
 	}
 
 	static Stream<Arguments> clusterNodesEndpoints() {

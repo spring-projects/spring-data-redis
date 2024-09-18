@@ -20,11 +20,10 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -45,6 +44,7 @@ import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -545,10 +545,15 @@ public abstract class Converters {
 		 * <li>{@code %s:%i} (Redis 3)</li>
 		 * <li>{@code %s:%i@%i} (Redis 4, with bus port)</li>
 		 * <li>{@code %s:%i@%i,%s} (Redis 7, with announced hostname)</li>
+		 *
+		 * The output of the {@code CLUSTER NODES } command is just a space-separated CSV string, where each
+		 * line represents a node in the cluster. The following is an example of output on Redis 7.2.0.
+		 * You can check the latest <a href="https://redis.io/docs/latest/commands/cluster-nodes/">here</a>.
+		 *
+		 * {@code <id> <ip:port@cport[,hostname]> <flags> <master> <ping-sent> <pong-recv> <config-epoch> <link-state> <slot> <slot> ... <slot>}
+		 *
 		 * </ul>
 		 */
-		static final Pattern clusterEndpointPattern = Pattern
-				.compile("\\[?([0-9a-zA-Z\\-_\\.:]*)\\]?:([0-9]+)(?:@[0-9]+(?:,([^,].*))?)?");
 		private static final Map<String, Flag> flagLookupMap;
 
 		static {
@@ -567,18 +572,75 @@ public abstract class Converters {
 		static final int LINK_STATE_INDEX = 7;
 		static final int SLOTS_INDEX = 8;
 
+		record AddressPortHostname(String addressPart, String portPart, @Nullable String hostnamePart) {
+
+			static AddressPortHostname of(String[] args) {
+				Assert.isTrue(args.length >= HOST_PORT_INDEX + 1, "ClusterNode information does not define host and port");
+				// <ip:port@cport[,hostname]>
+				String hostPort = args[HOST_PORT_INDEX];
+				int lastColon = hostPort.lastIndexOf(":");
+				Assert.isTrue(lastColon != -1, "ClusterNode information does not define host and port");
+				String addressPart = getAddressPart(hostPort, lastColon);
+				// Everything to the right of port
+				int indexOfColon = hostPort.indexOf(",");
+				boolean hasColon = indexOfColon != -1;
+				String hostnamePart = getHostnamePart(hasColon, hostPort, indexOfColon);
+				String portPart = getPortPart(hostPort, lastColon, hasColon, indexOfColon);
+				return new AddressPortHostname(addressPart, portPart, hostnamePart);
+			}
+
+			@NonNull private static String getAddressPart(String hostPort, int lastColon) {
+				// Everything to the left of port
+				// 127.0.0.1:6380
+				// 127.0.0.1:6380@6381
+				// :6380
+				// :6380@6381
+				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380
+				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@6381
+				// 127.0.0.1:6380,hostname1
+				// 127.0.0.1:6380@6381,hostname1
+				// :6380,hostname1
+				// :6380@6381,hostname1
+				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380,hostname1
+				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@6381,hostname1
+				String addressPart = hostPort.substring(0, lastColon);
+				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380
+				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@6381
+				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380,hostname1
+				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@6381,hostname1
+				if (addressPart.startsWith("[") && addressPart.endsWith("]")) {
+					addressPart = addressPart.substring(1, addressPart.length() - 1);
+				}
+				return addressPart;
+			}
+
+			@Nullable
+			private static String getHostnamePart(boolean hasColon, String hostPort, int indexOfColon) {
+				// Everything to the right starting from comma
+				String hostnamePart = hasColon ? hostPort.substring(indexOfColon + 1) : null;
+				return StringUtils.hasText(hostnamePart) ? hostnamePart : null;
+			}
+
+			@NonNull private static String getPortPart(String hostPort, int lastColon, boolean hasColon, int indexOfColon) {
+				String portPart = hostPort.substring(lastColon + 1);
+				if (portPart.contains("@")) {
+					portPart = portPart.substring(0, portPart.indexOf("@"));
+				} else if (hasColon) {
+					portPart = portPart.substring(0, indexOfColon);
+				}
+				return portPart;
+			}
+		}
+
 		@Override
 		public RedisClusterNode convert(String source) {
 
 			String[] args = source.split(" ");
 
-			Matcher matcher = clusterEndpointPattern.matcher(args[HOST_PORT_INDEX]);
-
-			Assert.isTrue(matcher.matches(), "ClusterNode information does not define host and port");
-
-			String addressPart = matcher.group(1);
-			String portPart = matcher.group(2);
-			String hostnamePart = matcher.group(3);
+			AddressPortHostname addressPortHostname = AddressPortHostname.of(args);
+			String addressPart = addressPortHostname.addressPart;
+			String portPart = addressPortHostname.portPart;
+			String hostnamePart = addressPortHostname.hostnamePart;
 
 			SlotRange range = parseSlotRange(args);
 			Set<Flag> flags = parseFlags(args);
