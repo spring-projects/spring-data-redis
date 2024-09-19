@@ -44,7 +44,6 @@ import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -63,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author daihuabin
  * @author John Blum
  * @author Sorokin Evgeniy
+ * @author Marcin Grzejszczak
  */
 public abstract class Converters {
 
@@ -572,63 +572,62 @@ public abstract class Converters {
 		static final int LINK_STATE_INDEX = 7;
 		static final int SLOTS_INDEX = 8;
 
-		record AddressPortHostname(String addressPart, String portPart, @Nullable String hostnamePart) {
+		/**
+		 * Value object capturing Redis' representation of a cluster node network coordinate.
+		 *
+		 * @author Marcin Grzejszczak
+		 * @author Mark Paluch
+		 */
+		record AddressPortHostname(String address, String port, @Nullable String hostname) {
 
-			static AddressPortHostname of(String[] args) {
-				Assert.isTrue(args.length >= HOST_PORT_INDEX + 1, "ClusterNode information does not define host and port");
-				// <ip:port@cport[,hostname]>
-				String hostPort = args[HOST_PORT_INDEX];
-				int lastColon = hostPort.lastIndexOf(":");
-				Assert.isTrue(lastColon != -1, "ClusterNode information does not define host and port");
-				String addressPart = getAddressPart(hostPort, lastColon);
-				// Everything to the right of port
-				int indexOfColon = hostPort.indexOf(",");
-				boolean hasColon = indexOfColon != -1;
-				String hostnamePart = getHostnamePart(hasColon, hostPort, indexOfColon);
-				String portPart = getPortPart(hostPort, lastColon, hasColon, indexOfColon);
+			/**
+			 * Parses Redis {@code CLUSTER NODES} host and port segment into {@link AddressPortHostname}.
+			 */
+			static AddressPortHostname parse(String hostAndPortPart) {
+
+				String[] segments = hostAndPortPart.split(",");
+				int portSeparator = segments[0].lastIndexOf(":");
+				Assert.isTrue(portSeparator != -1, "ClusterNode information does not define host and port");
+
+				String addressPart = getAddressPart(segments[0].substring(0, portSeparator));
+				String portPart = getPortPart(segments[0].substring(portSeparator + 1));
+				String hostnamePart = segments.length > 1 ? segments[1] : null;
+
 				return new AddressPortHostname(addressPart, portPart, hostnamePart);
 			}
 
-			@NonNull private static String getAddressPart(String hostPort, int lastColon) {
-				// Everything to the left of port
-				// 127.0.0.1:6380
-				// 127.0.0.1:6380@6381
-				// :6380
-				// :6380@6381
-				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380
-				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@6381
-				// 127.0.0.1:6380,hostname1
-				// 127.0.0.1:6380@6381,hostname1
-				// :6380,hostname1
-				// :6380@6381,hostname1
-				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380,hostname1
-				// 2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@6381,hostname1
-				String addressPart = hostPort.substring(0, lastColon);
-				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380
-				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@6381
-				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380,hostname1
-				// [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@6381,hostname1
-				if (addressPart.startsWith("[") && addressPart.endsWith("]")) {
-					addressPart = addressPart.substring(1, addressPart.length() - 1);
-				}
-				return addressPart;
+			private static String getAddressPart(String address) {
+				return address.startsWith("[") && address.endsWith("]") ? address.substring(1, address.length() - 1) : address;
 			}
 
-			@Nullable
-			private static String getHostnamePart(boolean hasColon, String hostPort, int indexOfColon) {
-				// Everything to the right starting from comma
-				String hostnamePart = hasColon ? hostPort.substring(indexOfColon + 1) : null;
-				return StringUtils.hasText(hostnamePart) ? hostnamePart : null;
+			private static String getPortPart(String segment) {
+
+				if (segment.contains("@")) {
+					return segment.substring(0, segment.indexOf('@'));
+				}
+
+				if (segment.contains(":")) {
+					return segment.substring(0, segment.indexOf(':'));
+				}
+
+				return segment;
 			}
 
-			@NonNull private static String getPortPart(String hostPort, int lastColon, boolean hasColon, int indexOfColon) {
-				String portPart = hostPort.substring(lastColon + 1);
-				if (portPart.contains("@")) {
-					portPart = portPart.substring(0, portPart.indexOf("@"));
-				} else if (hasColon) {
-					portPart = portPart.substring(0, indexOfColon);
+			public int portAsInt() {
+				return Integer.parseInt(port());
+			}
+
+			public boolean hasHostname() {
+				return StringUtils.hasText(hostname());
+			}
+
+			public String getRequiredHostname() {
+
+				if (StringUtils.hasText(hostname())) {
+					return hostname();
 				}
-				return portPart;
+
+				throw new IllegalStateException("Hostname not available");
 			}
 		}
 
@@ -637,24 +636,24 @@ public abstract class Converters {
 
 			String[] args = source.split(" ");
 
-			AddressPortHostname addressPortHostname = AddressPortHostname.of(args);
-			String addressPart = addressPortHostname.addressPart;
-			String portPart = addressPortHostname.portPart;
-			String hostnamePart = addressPortHostname.hostnamePart;
+			Assert.isTrue(args.length >= MASTER_ID_INDEX + 1,
+					() -> "Invalid ClusterNode information, insufficient segments: %s".formatted(source));
+
+			AddressPortHostname endpoint = AddressPortHostname.parse(args[HOST_PORT_INDEX]);
 
 			SlotRange range = parseSlotRange(args);
-			Set<Flag> flags = parseFlags(args);
+			Set<Flag> flags = parseFlags(args[FLAGS_INDEX]);
 
 			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-					.listeningAt(addressPart, Integer.parseInt(portPart)) //
+					.listeningAt(endpoint.address(), endpoint.portAsInt()) //
 					.withId(args[ID_INDEX]) //
 					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA) //
 					.serving(range) //
 					.withFlags(flags) //
 					.linkState(parseLinkState(args));
 
-			if (hostnamePart != null) {
-				nodeBuilder.withName(hostnamePart);
+			if (endpoint.hasHostname()) {
+				nodeBuilder.withName(endpoint.getRequiredHostname());
 			}
 
 			if (!args[MASTER_ID_INDEX].isEmpty() && !args[MASTER_ID_INDEX].startsWith("-")) {
@@ -664,14 +663,12 @@ public abstract class Converters {
 			return nodeBuilder.build();
 		}
 
-		private Set<Flag> parseFlags(String[] args) {
-
-			String raw = args[FLAGS_INDEX];
+		private Set<Flag> parseFlags(String source) {
 
 			Set<Flag> flags = new LinkedHashSet<>(8, 1);
 
-			if (StringUtils.hasText(raw)) {
-				for (String flag : raw.split(",")) {
+			if (StringUtils.hasText(source)) {
+				for (String flag : source.split(",")) {
 					flags.add(flagLookupMap.get(flag));
 				}
 			}
