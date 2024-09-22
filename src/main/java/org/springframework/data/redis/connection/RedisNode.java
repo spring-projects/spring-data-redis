@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
  */
 public class RedisNode implements NamedNode {
 
+	private static final int DEFAULT_PORT = 6379;
+
 	@Nullable String id;
 	@Nullable String name;
 	@Nullable String host;
@@ -94,7 +96,17 @@ public class RedisNode implements NamedNode {
 				portString = hostPortString.substring(colonPos + 1);
 			} else {
 				// 0 or 2+ colons. Bare hostname or IPv6 literal.
-				host = hostPortString;
+				int lastColonIndex = hostPortString.lastIndexOf(':');
+
+				// IPv6 literal
+				if (lastColonIndex > hostPortString.indexOf(']')) {
+					host = hostPortString.substring(0, lastColonIndex);
+					portString = hostPortString.substring(lastColonIndex + 1);
+				} else {
+					// bare hostname
+					host = hostPortString;
+					portString = Integer.toString(DEFAULT_PORT);
+				}
 			}
 		}
 
