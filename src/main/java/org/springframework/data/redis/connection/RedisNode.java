@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author LeeHyungGeol
  * @since 1.4
  */
 public class RedisNode implements NamedNode {
