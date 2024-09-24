@@ -908,8 +908,9 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				() -> "The number of weights %d must match the number of source sets %d".formatted(weights.size(),
+						sets.length));
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
@@ -951,8 +952,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				"The number of weights %d must match the number of source sets %d".formatted(weights.size(), sets.length));
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
@@ -1008,8 +1009,9 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		Assert.notNull(sets, "Sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				() -> "The number of weights %d must match the number of source sets %d".formatted(weights.size(),
+						sets.length));
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
@@ -1052,8 +1054,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
-		Assert.isTrue(weights.size() == sets.length, () -> String
-				.format("The number of weights (%d) must match the number of source sets (%d)", weights.size(), sets.length));
+		Assert.isTrue(weights.size() == sets.length,
+				"The number of weights %d must match the number of source sets %d".formatted(weights.size(), sets.length));
 
 		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 

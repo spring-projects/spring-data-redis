@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis;
 
+import java.io.Serial;
+
 import org.springframework.dao.DataAccessResourceFailureException;
 
 /**
@@ -28,6 +30,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
  */
 public class ClusterStateFailureException extends DataAccessResourceFailureException {
 
+	@Serial
 	private static final long serialVersionUID = 333399051713240852L;
 
 	/**

@@ -18,18 +18,18 @@ package org.springframework.data.redis.connection.convert;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Iterator;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.convert.Converters.ClusterNodesConverter;
+import org.springframework.data.redis.connection.convert.Converters.ClusterNodesConverter.AddressPortHostname;
 
 /**
  * Unit tests for {@link Converters}.
@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.convert.Converters.ClusterNodes
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Sorokin Evgeniy
+ * @author Marcin Grzejszczak
  */
 class ConvertersUnitTests {
 
@@ -71,6 +72,10 @@ class ConvertersUnitTests {
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV6_HOST_SQUARE_BRACKETS = "67adfe3df1058896e3cb49d2863e0f70e7e159fa [2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@16380,redis-master master,nofailover - 0 1692108412315 1 connected 0-5460";
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_INVALID_IPV6_HOST = "67adfe3df1058896e3cb49d2863e0f70e7e159fa 2a02:6b8:c67:9c:0:6d8b:33da:5a2c: master,nofailover - 0 1692108412315 1 connected 0-5460";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_EMPTY_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379, master - 0 1708041426947 2 connected 0-5460";
+
+	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379,hostname1 master - 0 1708041426947 2 connected 0-5460";
 
 	@Test // DATAREDIS-315
 	void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
@@ -248,6 +253,37 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
 	}
 
+	@Test // GH-2862
+	void toClusterNodeWithIPv4EmptyHostname() {
+
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV4_EMPTY_HOSTNAME);
+
+		assertThat(node.getId()).isEqualTo("3765733728631672640db35fd2f04743c03119c6");
+		assertThat(node.getHost()).isEqualTo("10.180.0.33");
+		assertThat(node.hasValidHost()).isTrue();
+		assertThat(node.getPort()).isEqualTo(11003);
+		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+		assertThat(node.getFlags()).contains(Flag.MASTER);
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+	}
+
+	@Test // GH-2862
+	void toClusterNodeWithIPv4Hostname() {
+
+		RedisClusterNode node = Converters.toClusterNode(CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME);
+
+		assertThat(node.getId()).isEqualTo("3765733728631672640db35fd2f04743c03119c6");
+		assertThat(node.getHost()).isEqualTo("10.180.0.33");
+		assertThat(node.getName()).isEqualTo("hostname1");
+		assertThat(node.hasValidHost()).isTrue();
+		assertThat(node.getPort()).isEqualTo(11003);
+		assertThat(node.getType()).isEqualTo(NodeType.MASTER);
+		assertThat(node.getFlags()).contains(Flag.MASTER);
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(5461);
+	}
+
 	@Test // GH-2678
 	void toClusterNodeWithIPv6HostnameSquareBrackets() {
 
@@ -271,35 +307,64 @@ class ConvertersUnitTests {
 
 	@ParameterizedTest // GH-2678
 	@MethodSource("clusterNodesEndpoints")
-	void shouldAcceptHostPatterns(String endpoint, String expectedAddress, String expectedPort, String expectedHostname) {
+	void shouldAcceptHostPatterns(String endpoint, AddressPortHostname expected) {
 
-		Matcher matcher = ClusterNodesConverter.clusterEndpointPattern.matcher(endpoint);
-		assertThat(matcher.matches()).isTrue();
+		AddressPortHostname addressPortHostname = AddressPortHostname.parse(endpoint);
 
-		assertThat(matcher.group(1)).isEqualTo(expectedAddress);
-		assertThat(matcher.group(2)).isEqualTo(expectedPort);
-		assertThat(matcher.group(3)).isEqualTo(expectedHostname);
+		assertThat(addressPortHostname).isEqualTo(expected);
 	}
 
 	static Stream<Arguments> clusterNodesEndpoints() {
 
-		return Stream.of(
+		Stream<Arguments> regular = Stream.of(
 				// IPv4 with Host, Redis 3
-				Arguments.of("1.2.4.4:7379", "1.2.4.4", "7379", null),
+				Arguments.of("1.2.4.4:7379", new AddressPortHostname("1.2.4.4", "7379", null)),
 				// IPv6 with Host, Redis 3
-				Arguments.of("6b8:c67:9c:0:6d8b:33da:5a2c:6380", "6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null),
+				Arguments.of("6b8:c67:9c:0:6d8b:33da:5a2c:6380",
+						new AddressPortHostname("6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null)),
 				// Assuming IPv6 in brackets with Host, Redis 3
-				Arguments.of("[6b8:c67:9c:0:6d8b:33da:5a2c]:6380", "6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null),
+				Arguments.of("[6b8:c67:9c:0:6d8b:33da:5a2c]:6380",
+						new AddressPortHostname("6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null)),
 
 				// IPv4 with Host and Bus Port, Redis 4
-				Arguments.of("127.0.0.1:7382@17382", "127.0.0.1", "7382", null),
+				Arguments.of("127.0.0.1:7382@17382", new AddressPortHostname("127.0.0.1", "7382", null)),
 				// IPv6 with Host and Bus Port, Redis 4
-				Arguments.of("6b8:c67:9c:0:6d8b:33da:5a2c:6380", "6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null),
+				Arguments.of("6b8:c67:9c:0:6d8b:33da:5a2c:6380",
+						new AddressPortHostname("6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null)),
 
 				// Hostname with Port and Bus Port, Redis 7
-				Arguments.of("my.host-name.com:7379@17379", "my.host-name.com", "7379", null),
+				Arguments.of("my.host-name.com:7379@17379", new AddressPortHostname("my.host-name.com", "7379", null)),
 
 				// With hostname, Redis 7
-				Arguments.of("1.2.4.4:7379@17379,my.host-name.com", "1.2.4.4", "7379", "my.host-name.com"));
+				Arguments.of("1.2.4.4:7379@17379,my.host-name.com",
+						new AddressPortHostname("1.2.4.4", "7379", "my.host-name.com")));
+
+		Stream<Arguments> weird = Stream.of(
+				// Port-only
+				Arguments.of(":6380", new AddressPortHostname("", "6380", null)),
+
+				// Port-only with bus-port
+				Arguments.of(":6380@6381", new AddressPortHostname("", "6380", null)),
+				// IP with trailing comma
+				Arguments.of("127.0.0.1:6380,", new AddressPortHostname("127.0.0.1", "6380", null)),
+				// IPv6 with bus-port
+				Arguments.of("2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@6381",
+						new AddressPortHostname("2a02:6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null)),
+				// IPv6 with bus-port and hostname
+				Arguments.of("2a02:6b8:c67:9c:0:6d8b:33da:5a2c:6380@6381,hostname1",
+						new AddressPortHostname("2a02:6b8:c67:9c:0:6d8b:33da:5a2c", "6380", "hostname1")),
+				// Port-only with hostname
+				Arguments.of(":6380,hostname1", new AddressPortHostname("", "6380", "hostname1")),
+
+				// Port-only with bus-port
+				Arguments.of(":6380@6381,hostname1", new AddressPortHostname("", "6380", "hostname1")),
+				// IPv6 in brackets with bus-port
+				Arguments.of("[2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@6381",
+						new AddressPortHostname("2a02:6b8:c67:9c:0:6d8b:33da:5a2c", "6380", null)),
+				// IPv6 in brackets with bus-port and hostname
+				Arguments.of("[2a02:6b8:c67:9c:0:6d8b:33da:5a2c]:6380@6381,hostname1",
+						new AddressPortHostname("2a02:6b8:c67:9c:0:6d8b:33da:5a2c", "6380", "hostname1")));
+
+		return Stream.concat(regular, weird);
 	}
 }

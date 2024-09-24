@@ -70,8 +70,7 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 				return type;
 			}
 
-			if (type instanceof ParameterizedType) {
-				ParameterizedType parameterizedType = (ParameterizedType) type;
+			if (type instanceof ParameterizedType parameterizedType) {
 				if (parameterizedType.getRawType() instanceof Class<?>
 						&& RedisOperations.class.isAssignableFrom((Class<?>) parameterizedType.getRawType())) {
 					return type;

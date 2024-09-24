@@ -54,8 +54,8 @@ public class Jackson2HashMapperIntegrationTests {
 	public Jackson2HashMapperIntegrationTests(RedisConnectionFactory factory) throws Exception {
 
 		this.factory = factory;
-		if (factory instanceof InitializingBean) {
-			((InitializingBean) factory).afterPropertiesSet();
+		if (factory instanceof InitializingBean initializingBean) {
+			initializingBean.afterPropertiesSet();
 		}
 	}
 

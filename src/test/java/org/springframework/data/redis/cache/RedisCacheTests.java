@@ -16,9 +16,6 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
-
-import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -29,19 +26,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -251,6 +245,37 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(null);
 	}
 
+	@ParameterizedRedisTest // GH-2890
+	void getWithValueLoaderShouldStoreNull() {
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
+
+		Object result = cache.get(key, () -> {
+			throw new IllegalStateException();
+		});
+
+		assertThat(result).isNull();
+	}
+
+	@ParameterizedRedisTest // GH-2890
+	void getWithValueLoaderShouldRetrieveValue() {
+
+		AtomicLong counter = new AtomicLong();
+		Object result = cache.get(key, () -> {
+			counter.incrementAndGet();
+			return sample;
+		});
+
+		assertThat(result).isEqualTo(sample);
+		result = cache.get(key, () -> {
+			counter.incrementAndGet();
+			return sample;
+		});
+
+		assertThat(result).isEqualTo(sample);
+		assertThat(counter).hasValue(1);
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-481
 	void evictShouldRemoveKey() {
 
@@ -358,7 +383,7 @@ public class RedisCacheTests {
 
 		doWithConnection(connection -> assertThat(
 				connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
-						.isEqualTo(binarySample));
+				.isEqualTo(binarySample));
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-715
@@ -435,105 +460,6 @@ public class RedisCacheTests {
 		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
 	}
 
-	@ParameterizedRedisTest // GH-2079
-	void multipleThreadsLoadValueOnce() throws InterruptedException {
-
-		int threadCount = 2;
-
-		CountDownLatch prepare = new CountDownLatch(threadCount);
-		CountDownLatch prepareForReturn = new CountDownLatch(1);
-		CountDownLatch finished = new CountDownLatch(threadCount);
-		AtomicInteger retrievals = new AtomicInteger();
-		AtomicReference<byte[]> storage = new AtomicReference<>();
-
-		cache = new RedisCache("foo", new RedisCacheWriter() {
-
-			@Override
-			public byte[] get(String name, byte[] key) {
-				return get(name, key, null);
-			}
-
-			@Override
-			public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
-
-				prepare.countDown();
-				try {
-					prepareForReturn.await(1, TimeUnit.MINUTES);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
-				}
-
-				return storage.get();
-			}
-
-			@Override
-			public CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl) {
-				byte[] value = get(name, key);
-				return CompletableFuture.completedFuture(value);
-			}
-
-			@Override
-			public CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-				return null;
-			}
-
-			@Override
-			public void put(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-				storage.set(value);
-			}
-
-			@Override
-			public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
-				return new byte[0];
-			}
-
-			@Override
-			public void remove(String name, byte[] key) {
-
-			}
-
-			@Override
-			public void clean(String name, byte[] pattern) {
-
-			}
-
-			@Override
-			public void clearStatistics(String name) {
-
-			}
-
-			@Override
-			public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
-				return null;
-			}
-
-			@Override
-			public CacheStatistics getCacheStatistics(String cacheName) {
-				return null;
-			}
-		}, RedisCacheConfiguration.defaultCacheConfig());
-
-		ThreadPoolExecutor tpe = new ThreadPoolExecutor(threadCount, threadCount, 1, TimeUnit.MINUTES,
-				new LinkedBlockingDeque<>(), new DefaultThreadFactory("RedisCacheTests"));
-
-		IntStream.range(0, threadCount).forEach(it -> tpe.submit(() -> {
-			cache.get("foo", retrievals::incrementAndGet);
-			finished.countDown();
-		}));
-
-		// wait until all Threads have arrived in RedisCacheWriter.get(…)
-		prepare.await();
-
-		// let all threads continue
-		prepareForReturn.countDown();
-
-		// wait until ThreadPoolExecutor has completed.
-		finished.await();
-		tpe.shutdown();
-
-		assertThat(retrievals).hasValue(1);
-	}
-
 	@EnabledOnCommand("GETEX")
 	@ParameterizedRedisTest // GH-2351
 	void cacheGetWithTimeToIdleExpirationWhenEntryNotExpiredShouldReturnValue() {
@@ -545,11 +471,10 @@ public class RedisCacheTests {
 
 		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
 
-		for (int count = 0; count < 5; count++) {
+		doWithConnection(connection -> {
 
-			await().atMost(Duration.ofMillis(100));
-			assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
-		}
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isGreaterThan(1);
+		});
 	}
 
 	@EnabledOnCommand("GETEX")
@@ -563,9 +488,9 @@ public class RedisCacheTests {
 
 		assertThat(unwrap(cache.get(this.key))).isEqualTo(this.sample);
 
-		await().atMost(Duration.ofMillis(200));
-
-		assertThat(cache.get(this.cacheKey, Person.class)).isNull();
+		doWithConnection(connection -> {
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isGreaterThan(1);
+		});
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -600,6 +525,30 @@ public class RedisCacheTests {
 		assertThat(value.get(5, TimeUnit.SECONDS)).isNotNull();
 		assertThat(value.get().get()).isEqualTo(this.sample);
 		assertThat(value).isDone();
+
+		doWithConnection(connection -> {
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isEqualTo(-1);
+		});
+	}
+
+	@ParameterizedRedisTest // GH-2890
+	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
+	void retrieveAppliesTimeToIdle() throws ExecutionException, InterruptedException {
+
+		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
+
+		RedisCache cache = new RedisCache("cache", usingRedisCacheWriter(),
+				usingRedisCacheConfiguration(withTtiExpiration()));
+
+		CompletableFuture<ValueWrapper> value = cache.retrieve(this.key);
+
+		assertThat(value).isNotNull();
+		assertThat(value.get().get()).isEqualTo(this.sample);
+		assertThat(value).isDone();
+
+		doWithConnection(connection -> {
+			assertThat(connection.keyCommands().ttl(this.binaryCacheKey)).isGreaterThan(1);
+		});
 	}
 
 	@ParameterizedRedisTest // GH-2650
@@ -756,7 +705,7 @@ public class RedisCacheTests {
 	private Function<RedisCacheConfiguration, RedisCacheConfiguration> withTtiExpiration() {
 
 		Function<RedisCacheConfiguration, RedisCacheConfiguration> entryTtlFunction = cacheConfiguration -> cacheConfiguration
-				.entryTtl(Duration.ofMillis(100));
+				.entryTtl(Duration.ofSeconds(10));
 
 		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}

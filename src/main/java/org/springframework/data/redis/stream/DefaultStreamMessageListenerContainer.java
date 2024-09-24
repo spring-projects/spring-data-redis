@@ -224,9 +224,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		byte[] rawKey = ((RedisSerializer<K>) template.getKeySerializer())
 				.serialize(streamRequest.getStreamOffset().getKey());
 
-		if (streamRequest instanceof StreamMessageListenerContainer.ConsumerStreamReadRequest) {
-
-			ConsumerStreamReadRequest<K> consumerStreamRequest = (ConsumerStreamReadRequest<K>) streamRequest;
+		if (streamRequest instanceof ConsumerStreamReadRequest<K> consumerStreamRequest) {
 
 			StreamReadOptions readOptions = consumerStreamRequest.isAutoAcknowledge() ? this.readOptions.autoAcknowledge()
 					: this.readOptions;

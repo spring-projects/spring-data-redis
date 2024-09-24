@@ -25,6 +25,7 @@ import java.util.Map;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -53,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Dengliming
  * @author Marcin Zielinski
  * @author John Blum
+ * @author jinkshower
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -94,6 +96,53 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	default Long acknowledge(String group, Record<K, ?> record) {
 		return acknowledge(record.getRequiredStream(), group, record.getId());
 	}
+
+	/**
+	 * Append a record to the stream {@code key} with the specified options.
+	 *
+	 * @param key the stream key.
+	 * @param content record content as Map.
+	 * @param xAddOptions additional parameters for the {@literal XADD} call.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.4
+	 */
+	@SuppressWarnings("unchecked")
+	@Nullable
+	default RecordId add(K key, Map<? extends HK, ? extends HV> content, XAddOptions xAddOptions) {
+		return add(StreamRecords.newRecord().in(key).ofMap(content), xAddOptions);
+	}
+
+	/**
+	 * Append a record, backed by a {@link Map} holding the field/value pairs, to the stream with the specified options.
+	 *
+	 * @param record the record to append.
+	 * @param xAddOptions additional parameters for the {@literal XADD} call.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.4
+	 */
+	@SuppressWarnings("unchecked")
+	@Nullable
+	default RecordId add(MapRecord<K, ? extends HK, ? extends HV> record, XAddOptions xAddOptions) {
+		return add((Record) record, xAddOptions);
+	}
+
+	/**
+	 * Append the record, backed by the given value, to the stream with the specified options.
+	 * The value will be hashed and serialized.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param xAddOptions parameters for the {@literal XADD} call. Must not be {@literal null}.
+	 * @return the record Id. {@literal null} when used in pipeline / transaction.
+	 * @see MapRecord
+	 * @see ObjectRecord
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.4
+	 */
+	@SuppressWarnings("unchecked")
+	@Nullable
+	RecordId add(Record<K, ?> record, XAddOptions xAddOptions);
 
 	/**
 	 * Append a record to the stream {@code key}.

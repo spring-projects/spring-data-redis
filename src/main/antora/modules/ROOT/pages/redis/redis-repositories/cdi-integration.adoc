@@ -6,7 +6,7 @@ Spring offers sophisticated for creating bean instances.
 Spring Data Redis ships with a custom CDI extension that lets you use the repository abstraction in CDI environments.
 The extension is part of the JAR, so, to activate it, drop the Spring Data Redis JAR into your classpath.
 
-You can then set up the infrastructure by implementing a CDI Producer for the `RedisConnectionFactory` and `RedisOperations`, as shown in the following example:
+You can then set up the infrastructure by implementing a CDI Producer for the javadoc:org.springframework.data.redis.connection.RedisConnectionFactory[] and javadoc:org.springframework.data.redis.core.RedisOperations[], as shown in the following example:
 
 [source,java]
 ----
@@ -62,7 +62,7 @@ class RepositoryClient {
 }
 ----
 
-A Redis Repository requires `RedisKeyValueAdapter` and `RedisKeyValueTemplate` instances.
+A Redis Repository requires javadoc:org.springframework.data.redis.core.RedisKeyValueAdapter[] and javadoc:org.springframework.data.redis.core.RedisKeyValueTemplate[] instances.
 These beans are created and managed by the Spring Data CDI extension if no provided beans are found.
-You can, however, supply your own beans to configure the specific properties of `RedisKeyValueAdapter` and `RedisKeyValueTemplate`.
+You can, however, supply your own beans to configure the specific properties of javadoc:org.springframework.data.redis.core.RedisKeyValueAdapter[] and javadoc:org.springframework.data.redis.core.RedisKeyValueTemplate[].
 

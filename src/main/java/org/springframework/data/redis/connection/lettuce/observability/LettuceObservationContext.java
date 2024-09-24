@@ -28,7 +28,10 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  * @since 3.0
+ * @deprecated since 3.4 for removal with the next major revision. Use Lettuce's Micrometer integration through
+ *             {@link io.lettuce.core.tracing.MicrometerTracing}.
  */
+@Deprecated(since = "3.4", forRemoval = true)
 public class LettuceObservationContext extends SenderContext<Object> {
 
 	private volatile @Nullable RedisCommand<?, ?, ?> command;

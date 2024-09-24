@@ -20,8 +20,8 @@ import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Java Serialization {@link RedisSerializer}.
@@ -77,8 +77,11 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer,
 			Converter<byte[], Object> deserializer) {
 
-		this.serializer = RedisAssertions.requireNonNull(serializer, "Serializer must not be null");
-		this.deserializer = RedisAssertions.requireNonNull(deserializer, "Deserializer must not be null");
+		Assert.notNull(serializer, "Serializer must not be null");
+		Assert.notNull(deserializer, "Deserializer must not be null");
+
+		this.serializer = serializer;
+		this.deserializer = deserializer;
 	}
 
 	@Override

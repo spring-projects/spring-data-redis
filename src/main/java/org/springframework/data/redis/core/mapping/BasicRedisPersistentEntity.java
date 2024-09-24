@@ -58,11 +58,6 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	}
 
 	@Override
-	public boolean hasExplictTimeToLiveProperty() {
-		return getExplicitTimeToLiveProperty() != null;
-	}
-
-	@Override
 	@Nullable
 	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
 		return this.getPersistentProperty(TimeToLive.class);
@@ -89,16 +84,14 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 		boolean newIdPropertyIsExplicit = property.isAnnotationPresent(Id.class);
 
 		if (currentIdPropertyIsExplicit && newIdPropertyIsExplicit) {
-			throw new MappingException(String.format(
-					"Attempt to add explicit id property %s but already have an property %s registered "
-							+ "as explicit id; Check your mapping configuration",
-					property.getField(), currentIdProperty.getField()));
+			throw new MappingException(("Attempt to add explicit id property %s but already have a property %s"
+					+ " registered as explicit id; Check your mapping configuration")
+					.formatted(property.getField(), currentIdProperty.getField()));
 		}
 
 		if (!currentIdPropertyIsExplicit && !newIdPropertyIsExplicit) {
-			throw new MappingException(
-					String.format("Attempt to add id property %s but already have an property %s registered "
-							+ "as id; Check your mapping configuration", property.getField(), currentIdProperty.getField()));
+			throw new MappingException(("Attempt to add id property %s but already have a property %s registered as id;"
+					+ " Check your mapping configuration").formatted(property.getField(), currentIdProperty.getField()));
 		}
 
 		if (newIdPropertyIsExplicit) {

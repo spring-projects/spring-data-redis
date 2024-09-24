@@ -149,8 +149,7 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	public void destroy(T instance, CreationalContext<T> creationalContext) {
 
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("Destroying bean instance %s for repository type '%s'.", instance.toString(),
-					beanClass.getName()));
+			log.debug("Destroying bean instance %s for repository type '%s'".formatted(instance, beanClass.getName()));
 		}
 
 		creationalContext.release();
@@ -206,7 +205,7 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 
 	@Override
 	public String toString() {
-		return String.format("CdiBean: type='%s', qualifiers=%s", beanClass.getName(), qualifiers.toString());
+		return "CdiBean: type='%s', qualifiers=%s".formatted(beanClass.getName(), qualifiers.toString());
 	}
 
 }

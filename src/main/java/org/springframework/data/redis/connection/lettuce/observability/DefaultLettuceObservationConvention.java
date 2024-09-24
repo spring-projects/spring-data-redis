@@ -15,22 +15,25 @@
  */
 package org.springframework.data.redis.connection.lettuce.observability;
 
+import io.lettuce.core.protocol.RedisCommand;
+import io.lettuce.core.tracing.Tracing.Endpoint;
+import io.micrometer.common.KeyValues;
+
 import java.net.InetSocketAddress;
 import java.util.Locale;
 
 import org.springframework.data.redis.connection.lettuce.observability.RedisObservation.HighCardinalityCommandKeyNames;
 import org.springframework.data.redis.connection.lettuce.observability.RedisObservation.LowCardinalityCommandKeyNames;
 
-import io.lettuce.core.protocol.RedisCommand;
-import io.lettuce.core.tracing.Tracing.Endpoint;
-import io.micrometer.common.KeyValues;
-
 /**
  * Default {@link LettuceObservationConvention} implementation.
  *
  * @author Mark Paluch
  * @since 3.0
+ * @deprecated since 3.4 for removal with the next major revision. Use Lettuce's Micrometer integration through
+ *             {@link io.lettuce.core.tracing.MicrometerTracing}.
  */
+@Deprecated(since = "3.4", forRemoval = true)
 record DefaultLettuceObservationConvention(
 		boolean includeCommandArgsInSpanTags) implements LettuceObservationConvention {
 
@@ -43,7 +46,7 @@ record DefaultLettuceObservationConvention(
 
 		if (ep instanceof SocketAddressEndpoint endpoint) {
 
-			if (endpoint.socketAddress()instanceof InetSocketAddress inet) {
+			if (endpoint.socketAddress() instanceof InetSocketAddress inet) {
 				keyValues = keyValues
 						.and(KeyValues.of(LowCardinalityCommandKeyNames.NET_SOCK_PEER_ADDR.withValue(inet.getHostString()),
 								LowCardinalityCommandKeyNames.NET_SOCK_PEER_PORT.withValue("" + inet.getPort()),

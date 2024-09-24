@@ -364,7 +364,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 					Assert.isTrue(sourceKeys.length == 1, "BITOP NOT does not allow more than 1 source key.");
 					yield reactiveCommands.bitopNot(destinationKey, sourceKeys[0]);
 				}
-				default -> throw new IllegalArgumentException(String.format("Unknown BITOP '%s'", command.getBitOp()));
+				default -> throw new IllegalArgumentException("Unknown BITOP '%s'".formatted(command.getBitOp()));
 			};
 
 			return result.map(value -> new NumericResponse<>(command, value));

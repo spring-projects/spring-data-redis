@@ -50,10 +50,8 @@ class Person {
 	public boolean equals(@Nullable Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof Person))
+		if (!(o instanceof Person person))
 			return false;
-
-		Person person = (Person) o;
 
 		if (id != null ? !id.equals(person.id) : person.id != null)
 			return false;

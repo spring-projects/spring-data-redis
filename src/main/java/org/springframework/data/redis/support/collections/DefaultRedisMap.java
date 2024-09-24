@@ -187,7 +187,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public String toString() {
-
 		return "RedisStore for key:" + getKey();
 	}
 
@@ -317,15 +316,15 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return hashOps.getType();
 	}
 
+	@Override
+	public Cursor<java.util.Map.Entry<K, V>> scan() {
+		return scan(ScanOptions.NONE);
+	}
+
 	private void checkResult(@Nullable Object obj) {
 		if (obj == null) {
 			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
 		}
-	}
-
-	@Override
-	public Cursor<java.util.Map.Entry<K, V>> scan() {
-		return scan(ScanOptions.NONE);
 	}
 
 	/**

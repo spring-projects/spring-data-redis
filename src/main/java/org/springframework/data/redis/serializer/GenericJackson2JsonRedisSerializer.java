@@ -60,6 +60,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Mark Paluch
  * @author Mao Shuai
  * @author John Blum
+ * @author Anne Lee
  * @see org.springframework.data.redis.serializer.JacksonObjectReader
  * @see org.springframework.data.redis.serializer.JacksonObjectWriter
  * @see com.fasterxml.jackson.databind.ObjectMapper
@@ -92,13 +93,13 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS} will be
 	 * used.
 	 *
-	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information; can be
+	 * @param typeHintPropertyName {@link String name} of the JSON property holding type information; can be
 	 *          {@literal null}.
 	 * @see ObjectMapper#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
 	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
 	 */
-	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName) {
-		this(classPropertyTypeName, JacksonObjectReader.create(), JacksonObjectWriter.create());
+	public GenericJackson2JsonRedisSerializer(@Nullable String typeHintPropertyName) {
+		this(typeHintPropertyName, JacksonObjectReader.create(), JacksonObjectWriter.create());
 	}
 
 	/**
@@ -109,7 +110,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * In case {@link String name} is {@literal empty} or {@literal null}, then {@link JsonTypeInfo.Id#CLASS} will be
 	 * used.
 	 *
-	 * @param classPropertyTypeName {@link String name} of the JSON property holding type information; can be
+	 * @param typeHintPropertyName {@link String name} of the JSON property holding type information; can be
 	 *          {@literal null}.
 	 * @param reader {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
 	 * @param writer {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
@@ -117,21 +118,14 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @see ObjectMapper#activateDefaultTyping(PolymorphicTypeValidator, DefaultTyping, As)
 	 * @since 3.0
 	 */
-	public GenericJackson2JsonRedisSerializer(@Nullable String classPropertyTypeName, JacksonObjectReader reader,
+	public GenericJackson2JsonRedisSerializer(@Nullable String typeHintPropertyName, JacksonObjectReader reader,
 			JacksonObjectWriter writer) {
 
-		this(new ObjectMapper(), reader, writer, classPropertyTypeName);
+		this(new ObjectMapper(), reader, writer, typeHintPropertyName);
 
-		registerNullValueSerializer(this.mapper, classPropertyTypeName);
+		registerNullValueSerializer(this.mapper, typeHintPropertyName);
 
-		StdTypeResolverBuilder typer = TypeResolverBuilder.forEverything(this.mapper).init(JsonTypeInfo.Id.CLASS, null)
-				.inclusion(JsonTypeInfo.As.PROPERTY);
-
-		if (StringUtils.hasText(classPropertyTypeName)) {
-			typer = typer.typeProperty(classPropertyTypeName);
-		}
-
-		this.mapper.setDefaultTyping(typer);
+		this.mapper.setDefaultTyping(createDefaultTypeResolverBuilder(getObjectMapper(), typeHintPropertyName));
 	}
 
 	/**
@@ -177,7 +171,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		this.typeResolver = newTypeResolver(mapper, typeHintPropertyName, this.defaultTypingEnabled);
 	}
 
-	private TypeResolver newTypeResolver(ObjectMapper mapper, @Nullable String typeHintPropertyName,
+	private static TypeResolver newTypeResolver(ObjectMapper mapper, @Nullable String typeHintPropertyName,
 			Lazy<Boolean> defaultTypingEnabled) {
 
 		Lazy<TypeFactory> lazyTypeFactory = Lazy.of(mapper::getTypeFactory);
@@ -188,19 +182,17 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		return new TypeResolver(lazyTypeFactory, lazyTypeHintPropertyName);
 	}
 
-	private Lazy<String> newLazyTypeHintPropertyName(ObjectMapper mapper, Lazy<Boolean> defaultTypingEnabled) {
+	private static Lazy<String> newLazyTypeHintPropertyName(ObjectMapper mapper, Lazy<Boolean> defaultTypingEnabled) {
 
 		Lazy<String> configuredTypeDeserializationPropertyName = getConfiguredTypeDeserializationPropertyName(mapper);
 
-		Lazy<String> resolvedLazyTypeHintPropertyName = Lazy.of(() -> defaultTypingEnabled.get() ? null
-				: configuredTypeDeserializationPropertyName.get());
+		Lazy<String> resolvedLazyTypeHintPropertyName = Lazy
+				.of(() -> defaultTypingEnabled.get() ? null : configuredTypeDeserializationPropertyName.get());
 
-		resolvedLazyTypeHintPropertyName = resolvedLazyTypeHintPropertyName.or("@class");
-
-		return resolvedLazyTypeHintPropertyName;
+		return resolvedLazyTypeHintPropertyName.or("@class");
 	}
 
-	private Lazy<String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
+	private static Lazy<String> getConfiguredTypeDeserializationPropertyName(ObjectMapper mapper) {
 
 		return Lazy.of(() -> {
 
@@ -215,20 +207,43 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		});
 	}
 
+	private static StdTypeResolverBuilder createDefaultTypeResolverBuilder(ObjectMapper objectMapper,
+			@Nullable String typeHintPropertyName) {
+
+		StdTypeResolverBuilder typer = TypeResolverBuilder.forEverything(objectMapper).init(JsonTypeInfo.Id.CLASS, null)
+				.inclusion(As.PROPERTY);
+
+		if (StringUtils.hasText(typeHintPropertyName)) {
+			typer = typer.typeProperty(typeHintPropertyName);
+		}
+		return typer;
+	}
+
+	/**
+	 * Factory method returning a {@literal Builder} used to construct and configure a
+	 * {@link GenericJackson2JsonRedisSerializer}.
+	 *
+	 * @return new {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+	 * @since 3.3.1
+	 */
+	public static GenericJackson2JsonRedisSerializerBuilder builder() {
+		return new GenericJackson2JsonRedisSerializerBuilder();
+	}
+
 	/**
 	 * Register {@link NullValueSerializer} in the given {@link ObjectMapper} with an optional
-	 * {@code classPropertyTypeName}. This method should be called by code that customizes
+	 * {@code typeHintPropertyName}. This method should be called by code that customizes
 	 * {@link GenericJackson2JsonRedisSerializer} by providing an external {@link ObjectMapper}.
 	 *
 	 * @param objectMapper the object mapper to customize.
-	 * @param classPropertyTypeName name of the type property. Defaults to {@code @class} if {@literal null}/empty.
+	 * @param typeHintPropertyName name of the type property. Defaults to {@code @class} if {@literal null}/empty.
 	 * @since 2.2
 	 */
-	public static void registerNullValueSerializer(ObjectMapper objectMapper, @Nullable String classPropertyTypeName) {
+	public static void registerNullValueSerializer(ObjectMapper objectMapper, @Nullable String typeHintPropertyName) {
 
 		// Simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here
 		// since we need the type hint embedded for deserialization using the default typing feature.
-		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
+		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(typeHintPropertyName)));
 	}
 
 	/**
@@ -251,8 +266,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		try {
 			return writer.write(mapper, value);
 		} catch (IOException ex) {
-			String message = String.format("Could not write JSON: %s", ex.getMessage());
-			throw new SerializationException(message, ex);
+			throw new SerializationException("Could not write JSON: %s".formatted(ex.getMessage()), ex);
 		}
 	}
 
@@ -288,8 +302,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		try {
 			return (T) reader.read(mapper, source, resolveType(source, type));
 		} catch (Exception ex) {
-			String message = String.format("Could not read JSON:%s ", ex.getMessage());
-			throw new SerializationException(message, ex);
+			throw new SerializationException("Could not read JSON:%s ".formatted(ex.getMessage()), ex);
 		}
 	}
 
@@ -365,8 +378,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	private static class NullValueSerializer extends StdSerializer<NullValue> {
 
-		@Serial
-		private static final long serialVersionUID = 1999052150548658808L;
+		@Serial private static final long serialVersionUID = 1999052150548658808L;
 
 		private final String classIdentifier;
 
@@ -393,6 +405,159 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 				TypeSerializer typeSerializer) throws IOException {
 
 			serialize(value, jsonGenerator, serializers);
+		}
+	}
+
+	/**
+	 * Builder for configuring and creating a {@link GenericJackson2JsonRedisSerializer}.
+	 *
+	 * @author Anne Lee
+	 * @author Mark Paluch
+	 * @since 3.3.1
+	 */
+	public static class GenericJackson2JsonRedisSerializerBuilder {
+
+		private @Nullable String typeHintPropertyName;
+
+		private JacksonObjectReader reader = JacksonObjectReader.create();
+
+		private JacksonObjectWriter writer = JacksonObjectWriter.create();
+
+		private @Nullable ObjectMapper objectMapper;
+
+		private @Nullable Boolean defaultTyping;
+
+		private boolean registerNullValueSerializer = true;
+
+		private @Nullable StdSerializer<NullValue> nullValueSerializer;
+
+		private GenericJackson2JsonRedisSerializerBuilder() {}
+
+		/**
+		 * Enable or disable default typing. Enabling default typing will override
+		 * {@link ObjectMapper#setDefaultTyping(com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder)} for a given
+		 * {@link ObjectMapper}. Default typing is enabled by default if no {@link ObjectMapper} is provided.
+		 *
+		 * @param defaultTyping whether to enable/disable default typing. Enabled by default if the {@link ObjectMapper} is
+		 *          not provided.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder defaultTyping(boolean defaultTyping) {
+			this.defaultTyping = defaultTyping;
+			return this;
+		}
+
+		/**
+		 * Configure a property name to that represents the type hint.
+		 *
+		 * @param typeHintPropertyName {@link String name} of the JSON property holding type information.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder typeHintPropertyName(String typeHintPropertyName) {
+
+			Assert.hasText(typeHintPropertyName, "Type hint property name must bot be null or empty");
+
+			this.typeHintPropertyName = typeHintPropertyName;
+			return this;
+		}
+
+		/**
+		 * Configure a provided {@link ObjectMapper}. Note that the provided {@link ObjectMapper} can be reconfigured with a
+		 * {@link #nullValueSerializer} or default typing depending on the builder configuration.
+		 *
+		 * @param objectMapper must not be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder objectMapper(ObjectMapper objectMapper) {
+
+			Assert.notNull(objectMapper, "ObjectMapper must not be null");
+
+			this.objectMapper = objectMapper;
+			return this;
+		}
+
+		/**
+		 * Configure {@link JacksonObjectReader}.
+		 *
+		 * @param reader must not be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder reader(JacksonObjectReader reader) {
+
+			Assert.notNull(reader, "JacksonObjectReader must not be null");
+
+			this.reader = reader;
+			return this;
+		}
+
+		/**
+		 * Configure {@link JacksonObjectWriter}.
+		 *
+		 * @param writer must not be {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder writer(JacksonObjectWriter writer) {
+
+			Assert.notNull(writer, "JacksonObjectWriter must not be null");
+
+			this.writer = writer;
+			return this;
+		}
+
+		/**
+		 * Register a {@link StdSerializer serializer} for {@link NullValue}.
+		 *
+		 * @param nullValueSerializer the {@link StdSerializer} to use for {@link NullValue} serialization, must not be
+		 *          {@literal null}.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder nullValueSerializer(StdSerializer<NullValue> nullValueSerializer) {
+
+			Assert.notNull(nullValueSerializer, "Null value serializer must not be null");
+
+			this.nullValueSerializer = nullValueSerializer;
+			return this;
+		}
+
+		/**
+		 * Configure whether to register a {@link StdSerializer serializer} for {@link NullValue} serialization. The default
+		 * serializer considers {@link #typeHintPropertyName(String)}.
+		 *
+		 * @param registerNullValueSerializer {@code true} to register the default serializer; {@code false} otherwise.
+		 * @return this {@link GenericJackson2JsonRedisSerializer.GenericJackson2JsonRedisSerializerBuilder}.
+		 */
+		public GenericJackson2JsonRedisSerializerBuilder registerNullValueSerializer(boolean registerNullValueSerializer) {
+			this.registerNullValueSerializer = registerNullValueSerializer;
+			return this;
+		}
+
+		/**
+		 * Creates a new instance of {@link GenericJackson2JsonRedisSerializer} with configuration options applied. Creates
+		 * also a new {@link ObjectMapper} if none was provided.
+		 *
+		 * @return a new instance of {@link GenericJackson2JsonRedisSerializer}.
+		 */
+		public GenericJackson2JsonRedisSerializer build() {
+
+			ObjectMapper objectMapper = this.objectMapper;
+			boolean providedObjectMapper = objectMapper != null;
+
+			if (objectMapper == null) {
+				objectMapper = new ObjectMapper();
+			}
+
+			if (registerNullValueSerializer) {
+				objectMapper.registerModule(new SimpleModule("GenericJackson2JsonRedisSerializerBuilder")
+						.addSerializer(this.nullValueSerializer != null ? this.nullValueSerializer
+								: new NullValueSerializer(this.typeHintPropertyName)));
+			}
+
+			if ((!providedObjectMapper && (defaultTyping == null || defaultTyping))
+					|| (defaultTyping != null && defaultTyping)) {
+				objectMapper.setDefaultTyping(createDefaultTypeResolverBuilder(objectMapper, typeHintPropertyName));
+			}
+
+			return new GenericJackson2JsonRedisSerializer(objectMapper, this.reader, this.writer, this.typeHintPropertyName);
 		}
 	}
 

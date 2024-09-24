@@ -29,8 +29,8 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 1.7
  */
-public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener implements
-		ApplicationEventPublisherAware {
+public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener
+		implements ApplicationEventPublisherAware {
 
 	private static final Topic KEYEVENT_EXPIRED_TOPIC = new PatternTopic("__keyevent@*__:expired");
 
@@ -43,6 +43,11 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 	 */
 	public KeyExpirationEventMessageListener(RedisMessageListenerContainer listenerContainer) {
 		super(listenerContainer);
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.publisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -67,8 +72,4 @@ public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListe
 		}
 	}
 
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.publisher = applicationEventPublisher;
-	}
 }

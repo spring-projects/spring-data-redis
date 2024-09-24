@@ -40,10 +40,9 @@ public class MappingRedisEntityInformation<T, ID> extends PersistentEntityInform
 		super(entity);
 
 		if (!entity.hasIdProperty()) {
-
 			throw new MappingException(
-					String.format("Entity %s requires to have an explicit id field; Did you forget to provide one using @Id",
-							entity.getName()));
+					("Entity %s requires to have an explicit id field;" + " Did you forget to provide one using @Id")
+							.formatted(entity.getName()));
 		}
 	}
 }

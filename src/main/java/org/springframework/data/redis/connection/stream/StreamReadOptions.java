@@ -96,7 +96,7 @@ public class StreamReadOptions {
 	 */
 	public StreamReadOptions count(long count) {
 
-		Assert.isTrue(count > 0, "Count must be greater or equal to zero");
+		Assert.isTrue(count > 0, "Count must be greater than zero");
 
 		return new StreamReadOptions(block, count, noack);
 	}

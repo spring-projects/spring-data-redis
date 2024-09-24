@@ -133,10 +133,9 @@ public interface GeoReference<T> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof GeoReference.GeoMemberReference)) {
+			if (!(o instanceof GeoMemberReference<?> that)) {
 				return false;
 			}
-			GeoMemberReference<?> that = (GeoMemberReference<?>) o;
 			return ObjectUtils.nullSafeEquals(member, that.member);
 		}
 
@@ -178,10 +177,9 @@ public interface GeoReference<T> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof GeoReference.GeoCoordinateReference)) {
+			if (!(o instanceof GeoCoordinateReference<?> that)) {
 				return false;
 			}
-			GeoCoordinateReference<?> that = (GeoCoordinateReference<?>) o;
 			if (longitude != that.longitude) {
 				return false;
 			}

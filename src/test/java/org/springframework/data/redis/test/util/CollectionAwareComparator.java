@@ -34,10 +34,7 @@ public enum CollectionAwareComparator implements Comparator<Object> {
 	@Override
 	public int compare(Object o1, Object o2) {
 
-		if (o1 instanceof Collection && o2 instanceof Collection) {
-
-			Collection<?> c1 = (Collection<?>) o1;
-			Collection<?> c2 = (Collection<?>) o2;
+		if (o1 instanceof Collection<?> c1 && o2 instanceof Collection<?> c2) {
 
 			if (c1.size() != c2.size()) {
 				return 1;

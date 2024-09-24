@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>3.3.0-SNAPSHOT</version>
+	<version>3.4.0-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 	<description>Spring Data module for Redis</description>
@@ -14,18 +14,18 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.3.0-SNAPSHOT</version>
+		<version>3.4.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.3.0-SNAPSHOT</springdata.keyvalue>
-		<springdata.commons>3.3.0-SNAPSHOT</springdata.commons>
+		<springdata.keyvalue>3.4.0-SNAPSHOT</springdata.keyvalue>
+		<springdata.commons>3.4.0-SNAPSHOT</springdata.commons>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.20</xstream>
 		<pool>2.11.1</pool>
-		<lettuce>6.3.2.RELEASE</lettuce>
-		<jedis>5.0.2</jedis>
+		<lettuce>6.4.0.RELEASE</lettuce>
+		<jedis>5.1.5</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.107.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
@@ -317,17 +317,6 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
 
-			<plugin>
-				<groupId>org.asciidoctor</groupId>
-				<artifactId>asciidoctor-maven-plugin</artifactId>
-				<configuration>
-					<attributes>
-						<lettuce>${lettuce}</lettuce>
-						<jedis>${jedis}</jedis>
-					</attributes>
-				</configuration>
-			</plugin>
-
 		</plugins>
 	</build>
 
@@ -378,7 +367,7 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.spring.maven.antora</groupId>
+						<groupId>org.antora</groupId>
 						<artifactId>antora-maven-plugin</artifactId>
 					</plugin>
 				</plugins>

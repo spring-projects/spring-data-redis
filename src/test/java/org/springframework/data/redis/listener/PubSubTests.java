@@ -170,10 +170,10 @@ public class PubSubTests<T> {
 
 	private static boolean isClusterAware(RedisConnectionFactory connectionFactory) {
 
-		if (connectionFactory instanceof LettuceConnectionFactory) {
-			return ((LettuceConnectionFactory) connectionFactory).isClusterAware();
-		} else if (connectionFactory instanceof JedisConnectionFactory) {
-			return ((JedisConnectionFactory) connectionFactory).isRedisClusterAware();
+		if (connectionFactory instanceof LettuceConnectionFactory lettuce) {
+			return lettuce.isClusterAware();
+		} else if (connectionFactory instanceof JedisConnectionFactory jedis) {
+			return jedis.isRedisClusterAware();
 		}
 		return false;
 	}

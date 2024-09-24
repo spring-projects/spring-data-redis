@@ -150,7 +150,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 			try {
 				database = Integer.parseInt(databaseSource);
 			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException(String.format("Invalid DB index '%s'; integer required", databaseSource));
+				throw new IllegalArgumentException("Invalid DB index '%s'; integer required".formatted(databaseSource));
 			}
 			this.setDatabase(database);
 		}
@@ -266,7 +266,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	@Override
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%d'; non-negative index required", index));
+		Assert.isTrue(index >= 0, "Invalid DB index '%d'; non-negative index required".formatted(index));
 
 		this.database = index;
 	}

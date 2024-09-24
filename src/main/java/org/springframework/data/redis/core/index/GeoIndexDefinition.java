@@ -66,8 +66,8 @@ public class GeoIndexDefinition extends RedisIndexDefinition implements PathBase
 			}
 
 			throw new IllegalArgumentException(
-					String.format("Cannot convert %s to %s; GeoIndexed property needs to be of type Point or GeoLocation",
-							source.getClass(), Point.class));
+					("Cannot convert %s to %s; GeoIndexed property needs to be of type Point" + " or GeoLocation")
+							.formatted(source.getClass(), Point.class));
 		}
 	}
 }

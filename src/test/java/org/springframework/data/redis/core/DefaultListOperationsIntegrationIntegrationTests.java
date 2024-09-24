@@ -40,6 +40,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Lee Jaeheon
  * @param <K> Key test
  * @param <V> Value test
  */
@@ -55,8 +56,7 @@ public class DefaultListOperationsIntegrationIntegrationTests<K, V> {
 	private final ListOperations<K, V> listOps;
 
 	public DefaultListOperationsIntegrationIntegrationTests(RedisTemplate<K, V> redisTemplate,
-			ObjectFactory<K> keyFactory,
-			ObjectFactory<V> valueFactory) {
+			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory) {
 
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -346,6 +346,34 @@ public class DefaultListOperationsIntegrationIntegrationTests<K, V> {
 		assertThat(listOps.range(target, 0, -1)).containsExactly(v4, v1);
 	}
 
+	@ParameterizedRedisTest // GH-2937
+	void getFirst() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOps.rightPush(key, v1);
+		listOps.rightPush(key, v2);
+		listOps.rightPush(key, v3);
+		assertThat(listOps.getFirst(key)).isEqualTo(v1);
+	}
+
+	@ParameterizedRedisTest // GH-2937
+	void getLast() {
+
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		listOps.rightPush(key, v1);
+		listOps.rightPush(key, v2);
+		listOps.rightPush(key, v3);
+		assertThat(listOps.getLast(key)).isEqualTo(v3);
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void indexOf() {
@@ -376,4 +404,5 @@ public class DefaultListOperationsIntegrationIntegrationTests<K, V> {
 		assertThat(listOps.rightPush(key, v3)).isEqualTo(Long.valueOf(4));
 		assertThat(listOps.lastIndexOf(key, v1)).isEqualTo(2);
 	}
+
 }

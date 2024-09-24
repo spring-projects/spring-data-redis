@@ -215,7 +215,7 @@ class DefaultRedisTypeMapperUnitTests {
 			assertThat(bucket.keySet()).isEmpty();
 		} else {
 
-			byte[] expected = value instanceof Class ? ((Class) value).getName().getBytes() : value.toString().getBytes();
+			byte[] expected = value instanceof Class javaClass ? javaClass.getName().getBytes() : value.toString().getBytes();
 
 			assertThat(bucket.asMap()).containsKey(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY);
 			assertThat(bucket.get(DefaultRedisTypeMapper.DEFAULT_TYPE_KEY)).isEqualTo(expected);

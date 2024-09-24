@@ -22,6 +22,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -40,7 +42,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 	private final RedisMessageListenerContainer listenerContainer;
 
-	private String keyspaceNotificationsConfigParameter = "EA";
+	private @Nullable String keyspaceNotificationsConfigParameter = "EA";
 
 	/**
 	 * Creates new {@link KeyspaceEventMessageListener}.
@@ -51,6 +53,26 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 		Assert.notNull(listenerContainer, "RedisMessageListenerContainer to run in must not be null");
 		this.listenerContainer = listenerContainer;
+	}
+
+	/**
+	 * Set the configuration string to use for {@literal notify-keyspace-events}.
+	 *
+	 * @param keyspaceNotificationsConfigParameter can be {@literal null}.
+	 * @since 1.8
+	 */
+	public void setKeyspaceNotificationsConfigParameter(@Nullable String keyspaceNotificationsConfigParameter) {
+		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		init();
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		listenerContainer.removeMessageListener(this);
 	}
 
 	@Override
@@ -76,20 +98,18 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	 */
 	public void init() {
 
-		if (StringUtils.hasText(keyspaceNotificationsConfigParameter)) {
+		RedisConnectionFactory connectionFactory = listenerContainer.getConnectionFactory();
 
-			RedisConnection connection = listenerContainer.getConnectionFactory().getConnection();
+		if (StringUtils.hasText(keyspaceNotificationsConfigParameter) && connectionFactory != null) {
 
-			try {
+			try (RedisConnection connection = connectionFactory.getConnection()) {
 
-				Properties config = connection.getConfig("notify-keyspace-events");
+				RedisServerCommands commands = connection.serverCommands();
+				Properties config = commands.getConfig("notify-keyspace-events");
 
 				if (!StringUtils.hasText(config.getProperty("notify-keyspace-events"))) {
-					connection.setConfig("notify-keyspace-events", keyspaceNotificationsConfigParameter);
+					commands.setConfig("notify-keyspace-events", keyspaceNotificationsConfigParameter);
 				}
-
-			} finally {
-				connection.close();
 			}
 		}
 
@@ -105,23 +125,4 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 		listenerContainer.addMessageListener(this, TOPIC_ALL_KEYEVENTS);
 	}
 
-	@Override
-	public void destroy() throws Exception {
-		listenerContainer.removeMessageListener(this);
-	}
-
-	/**
-	 * Set the configuration string to use for {@literal notify-keyspace-events}.
-	 *
-	 * @param keyspaceNotificationsConfigParameter can be {@literal null}.
-	 * @since 1.8
-	 */
-	public void setKeyspaceNotificationsConfigParameter(String keyspaceNotificationsConfigParameter) {
-		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		init();
-	}
 }

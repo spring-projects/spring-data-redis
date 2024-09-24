@@ -26,7 +26,6 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -173,7 +172,7 @@ class LettuceServerCommands implements RedisServerCommands {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
-		String client = String.format("%s:%s", host, port);
+		String client = "%s:%d".formatted(host, port);
 
 		connection.invoke().just(RedisServerAsyncCommands::clientKill, client);
 	}

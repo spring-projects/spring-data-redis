@@ -105,10 +105,9 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof RedisIndexDefinition)) {
+		if (!(obj instanceof RedisIndexDefinition that)) {
 			return false;
 		}
-		RedisIndexDefinition that = (RedisIndexDefinition) obj;
 
 		if (!ObjectUtils.nullSafeEquals(this.keyspace, that.keyspace)) {
 			return false;

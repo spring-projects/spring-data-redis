@@ -15,10 +15,11 @@
  */
 package org.springframework.data.redis.domain.geo;
 
+import java.io.Serial;
+
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Shape;
-import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -31,6 +32,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class BoundingBox implements Shape {
 
+	@Serial
 	private static final long serialVersionUID = 5215611530535947924L;
 
 	private final Distance width;
@@ -94,10 +96,9 @@ public class BoundingBox implements Shape {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof BoundingBox)) {
+		if (!(o instanceof BoundingBox that)) {
 			return false;
 		}
-		BoundingBox that = (BoundingBox) o;
 		if (!ObjectUtils.nullSafeEquals(width, that.width)) {
 			return false;
 		}
@@ -106,6 +107,6 @@ public class BoundingBox implements Shape {
 
 	@Override
 	public String toString() {
-		return String.format("Bounding box: [width=%s, height=%s]", width, height);
+		return "Bounding box: [width=%s, height=%s]".formatted(width, height);
 	}
 }

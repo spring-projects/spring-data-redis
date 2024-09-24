@@ -48,11 +48,11 @@ class EnabledOnRedisClusterCondition implements ExecutionCondition {
 		}
 
 		if (RedisDetector.isClusterAvailable()) {
-			return enabled(String.format("Connection successful to Redis Cluster at %s:%d", SettingsUtils.getHost(),
+			return enabled("Connection successful to Redis Cluster at %s:%d".formatted(SettingsUtils.getHost(),
 					SettingsUtils.getClusterPort()));
 		}
 
-		return disabled(String.format("Cannot connect to Redis Cluster at %s:%d", SettingsUtils.getHost(),
+		return disabled("Cannot connect to Redis Cluster at %s:%d".formatted(SettingsUtils.getHost(),
 				SettingsUtils.getClusterPort()));
 	}
 

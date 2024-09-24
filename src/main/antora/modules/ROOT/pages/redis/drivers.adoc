@@ -154,7 +154,7 @@ public LettuceConnectionFactory lettuceConnectionFactory() {
 }
 ----
 
-For more detailed client configuration tweaks, see https://docs.spring.io/spring-data/redis/docs/current/api/org/springframework/data/redis/connection/lettuce/LettuceClientConfiguration.html[`LettuceClientConfiguration`].
+For more detailed client configuration tweaks, see javadoc:org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration[].
 
 Lettuce integrates with Netty's https://netty.io/wiki/native-transports.html[native transports], letting you use Unix domain sockets to communicate with Redis.
 Make sure to include the appropriate native transport dependencies that match your runtime environment.

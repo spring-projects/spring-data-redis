@@ -15,12 +15,33 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import io.lettuce.core.*;
+import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.MapScanCursor;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ScoredValueScanCursor;
+import io.lettuce.core.ValueScanCursor;
+import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
@@ -41,6 +62,7 @@ import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -59,40 +81,44 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public class LettuceConnectionUnitTests {
+class LettuceConnectionUnitTests {
 
-	@SuppressWarnings("rawtypes")
-	public static class BasicUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
+	protected LettuceConnection connection;
+	private RedisClient clientMock;
+	StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
+	RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
+	RedisCommands<byte[], byte[]> commandsMock;
 
-		protected LettuceConnection connection;
-		private RedisClient clientMock;
-		StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
-		RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
+	@BeforeEach
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void setUp() throws InvocationTargetException, IllegalAccessException {
 
-		@SuppressWarnings({ "unchecked" })
-		@BeforeEach
-		public void setUp() throws InvocationTargetException, IllegalAccessException {
+		clientMock = mock(RedisClient.class);
+		statefulConnectionMock = mock(StatefulRedisConnection.class);
+		when(clientMock.connect((RedisCodec) any())).thenReturn(statefulConnectionMock);
 
-			clientMock = mock(RedisClient.class);
-			statefulConnectionMock = mock(StatefulRedisConnection.class);
-			when(clientMock.connect((RedisCodec) any())).thenReturn(statefulConnectionMock);
+		asyncCommandsMock = Mockito.mock(RedisAsyncCommands.class, invocation -> {
 
-			asyncCommandsMock = Mockito.mock(RedisAsyncCommands.class, invocation -> {
+			if (invocation.getMethod().getReturnType().equals(RedisFuture.class)) {
 
-				if (invocation.getMethod().getReturnType().equals(RedisFuture.class)) {
+				Command<?, ?, ?> cmd = new Command<>(CommandType.PING, new StatusOutput<>(StringCodec.UTF8));
+				AsyncCommand<?, ?, ?> async = new AsyncCommand<>(cmd);
+				async.complete();
 
-					Command<?, ?, ?> cmd = new Command<>(CommandType.PING, new StatusOutput<>(StringCodec.UTF8));
-					AsyncCommand<?, ?, ?> async = new AsyncCommand<>(cmd);
-					async.complete();
+				return async;
+			}
+			return null;
+		});
+		commandsMock = Mockito.mock(RedisCommands.class);
 
-					return async;
-				}
-				return null;
-			});
+		when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
+		when(statefulConnectionMock.sync()).thenReturn(commandsMock);
+		connection = new LettuceConnection(0, clientMock);
+	}
 
-			when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
-			connection = new LettuceConnection(0, clientMock);
-		}
+	@Nested
+	@SuppressWarnings({ "rawtypes", "deprecation" })
+	class BasicUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
 
 		@Test // DATAREDIS-184
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
@@ -155,7 +181,7 @@ public class LettuceConnectionUnitTests {
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test // DATAREDIS-431
+		@Test // DATAREDIS-431, GH-2984
 		void dbIndexShouldBeSetWhenObtainingConnection() {
 
 			connection = new LettuceConnection(null, 0, clientMock, 0);
@@ -163,6 +189,7 @@ public class LettuceConnectionUnitTests {
 			connection.getNativeConnection();
 
 			verify(asyncCommandsMock).dispatch(eq(CommandType.SELECT), any(), any());
+			verifyNoInteractions(commandsMock);
 		}
 
 		@Test // DATAREDIS-603
@@ -173,8 +200,7 @@ public class LettuceConnectionUnitTests {
 			when(asyncCommandsMock.set(any(), any())).thenThrow(exception);
 			connection = new LettuceConnection(null, 0, clientMock, 1);
 
-			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes()))
-					.hasRootCause(exception);
+			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes())).hasRootCause(exception);
 		}
 
 		@Test // DATAREDIS-603
@@ -265,8 +291,8 @@ public class LettuceConnectionUnitTests {
 			sc.setCursor(cursorId);
 			sc.setFinished(false);
 
-			Command<byte[], byte[], KeyScanCursor<byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("SCAN"),
-					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+			Command<byte[], byte[], KeyScanCursor<byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("SCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
 						@Override
 						protected void setOutput(ByteBuffer bytes) {
 
@@ -275,10 +301,10 @@ public class LettuceConnectionUnitTests {
 			AsyncCommand<byte[], byte[], KeyScanCursor<byte[]>> future = new AsyncCommand<>(command);
 			future.complete();
 
-			when(asyncCommandsMock.scan(any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+			when(asyncCommandsMock.scan(any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future, future);
 
 			Cursor<byte[]> cursor = connection.scan(KeyScanOptions.NONE);
-			cursor.next(); //initial
+			cursor.next(); // initial
 			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
 
 			cursor.next(); // fetch next
@@ -300,8 +326,8 @@ public class LettuceConnectionUnitTests {
 			sc.setCursor(cursorId);
 			sc.setFinished(false);
 
-			Command<byte[], byte[], ValueScanCursor<byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("SSCAN"),
-					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+			Command<byte[], byte[], ValueScanCursor<byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("SSCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
 						@Override
 						protected void setOutput(ByteBuffer bytes) {
 
@@ -310,10 +336,11 @@ public class LettuceConnectionUnitTests {
 			AsyncCommand<byte[], byte[], ValueScanCursor<byte[]>> future = new AsyncCommand<>(command);
 			future.complete();
 
-			when(asyncCommandsMock.sscan(any(byte[].class), any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+			when(asyncCommandsMock.sscan(any(byte[].class), any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future,
+					future);
 
 			Cursor<byte[]> cursor = connection.setCommands().sScan("key".getBytes(), KeyScanOptions.NONE);
-			cursor.next(); //initial
+			cursor.next(); // initial
 			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
 
 			cursor.next(); // fetch next
@@ -335,8 +362,8 @@ public class LettuceConnectionUnitTests {
 			sc.setCursor(cursorId);
 			sc.setFinished(false);
 
-			Command<byte[], byte[], ScoredValueScanCursor<byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("ZSCAN"),
-					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+			Command<byte[], byte[], ScoredValueScanCursor<byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("ZSCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
 						@Override
 						protected void setOutput(ByteBuffer bytes) {
 
@@ -345,10 +372,11 @@ public class LettuceConnectionUnitTests {
 			AsyncCommand<byte[], byte[], ScoredValueScanCursor<byte[]>> future = new AsyncCommand<>(command);
 			future.complete();
 
-			when(asyncCommandsMock.zscan(any(byte[].class), any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+			when(asyncCommandsMock.zscan(any(byte[].class), any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future,
+					future);
 
 			Cursor<Tuple> cursor = connection.zSetCommands().zScan("key".getBytes(), KeyScanOptions.NONE);
-			cursor.next(); //initial
+			cursor.next(); // initial
 			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
 
 			cursor.next(); // fetch next
@@ -370,8 +398,8 @@ public class LettuceConnectionUnitTests {
 			sc.setCursor(cursorId);
 			sc.setFinished(false);
 
-			Command<byte[], byte[], MapScanCursor<byte[], byte[]>> command = new Command<>(new LettuceConnection.CustomCommandType("HSCAN"),
-					new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+			Command<byte[], byte[], MapScanCursor<byte[], byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("HSCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
 						@Override
 						protected void setOutput(ByteBuffer bytes) {
 
@@ -380,10 +408,11 @@ public class LettuceConnectionUnitTests {
 			AsyncCommand<byte[], byte[], MapScanCursor<byte[], byte[]>> future = new AsyncCommand<>(command);
 			future.complete();
 
-			when(asyncCommandsMock.hscan(any(byte[].class), any(ScanCursor.class),any(ScanArgs.class))).thenReturn(future, future);
+			when(asyncCommandsMock.hscan(any(byte[].class), any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future,
+					future);
 
 			Cursor<Entry<byte[], byte[]>> cursor = connection.hashCommands().hScan("key".getBytes(), KeyScanOptions.NONE);
-			cursor.next(); //initial
+			cursor.next(); // initial
 			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
 
 			cursor.next(); // fetch next
@@ -394,13 +423,12 @@ public class LettuceConnectionUnitTests {
 
 	}
 
-	public static class LettucePipelineConnectionUnitTests extends BasicUnitTests {
+	@Nested
+	class LettucePipelineConnectionUnitTests extends BasicUnitTests {
 
-		@Override
 		@BeforeEach
 		public void setUp() throws InvocationTargetException, IllegalAccessException {
-			super.setUp();
-			this.connection.openPipeline();
+			connection.openPipeline();
 		}
 
 		@Test // DATAREDIS-528

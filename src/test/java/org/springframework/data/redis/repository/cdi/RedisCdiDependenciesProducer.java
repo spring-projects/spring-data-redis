@@ -63,8 +63,8 @@ public class RedisCdiDependenciesProducer {
 
 	public void closeRedisOperations(@Disposes RedisOperations<byte[], byte[]> redisOperations) throws Exception {
 
-		if (redisOperations instanceof DisposableBean) {
-			((DisposableBean) redisOperations).destroy();
+		if (redisOperations instanceof DisposableBean disposableBean) {
+			disposableBean.destroy();
 		}
 	}
 

@@ -130,12 +130,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		if (redirectCount > this.maxRedirects) {
-
-			String message = String.format("Cannot follow Cluster Redirects over more than %s legs; "
-					+ "Consider increasing the number of redirects to follow; Current value is: %s.",
-							redirectCount, this.maxRedirects);
-
-			throw new TooManyClusterRedirectionsException(message);
+			throw new TooManyClusterRedirectionsException(("Cannot follow Cluster Redirects over more than %s legs;"
+					+ " Consider increasing the number of redirects to follow; Current value is: %s")
+					.formatted(redirectCount, this.maxRedirects));
 		}
 
 		RedisClusterNode nodeToUse = lookupNode(node);
@@ -178,7 +175,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		try {
 			return topologyProvider.getTopology().lookup(node);
 		} catch (ClusterStateFailureException ex) {
-			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), ex);
+			throw new IllegalArgumentException("Node %s is unknown to cluster".formatted(node), ex);
 		}
 	}
 
@@ -215,7 +212,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 			try {
 				resolvedRedisClusterNodes.add(topology.lookup(node));
 			} catch (ClusterStateFailureException ex) {
-				throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), ex);
+				throw new IllegalArgumentException("Node %s is unknown to cluster".formatted(node), ex);
 			}
 		}
 

@@ -135,8 +135,8 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 */
 	public Collection<ReactiveSubscription> getActiveSubscriptions() {
 
-		return subscriptions.entrySet().stream().filter(entry -> entry.getValue().hasRegistration())
-				.map(Map.Entry::getKey).collect(Collectors.toList());
+		return subscriptions.entrySet().stream().filter(entry -> entry.getValue().hasRegistration()).map(Map.Entry::getKey)
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -295,8 +295,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		}
 
 		return doReceive(channelSerializer, messageSerializer,
-				getRequiredConnection().pubSubCommands().createSubscription(subscriptionListener), patterns,
-				channels);
+				getRequiredConnection().pubSubCommands().createSubscription(subscriptionListener), patterns, channels);
 	}
 
 	private <C, B> Flux<Message<C, B>> doReceive(SerializationPair<C> channelSerializer,
@@ -361,7 +360,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 			return doReceiveLater(channelSerializer, messageSerializer,
 					getRequiredConnection().pubSubCommands().createSubscription(readyListener), patterns, channels)
-							.delayUntil(it -> readyListener.getTrigger());
+					.delayUntil(it -> readyListener.getTrigger());
 		});
 	}
 
@@ -441,7 +440,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	private <C, B> Message<C, B> readMessage(RedisElementReader<C> channelSerializer,
 			RedisElementReader<B> messageSerializer, Message<ByteBuffer, ByteBuffer> message) {
 
-		if (message instanceof PatternMessage) {
+		if (message instanceof PatternMessage<?, ?, ?>) {
 
 			PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer> patternMessage = (PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer>) message;
 

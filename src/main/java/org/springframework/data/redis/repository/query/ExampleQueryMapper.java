@@ -139,8 +139,8 @@ public class ExampleQueryMapper {
 
 		if (!SUPPORTED_MATCHERS.contains(stringMatcher)) {
 			throw new InvalidDataAccessApiUsageException(
-					String.format("Redis Query-by-Example does not support string matcher %s; Supported matchers are: %s.",
-							stringMatcher, SUPPORTED_MATCHERS));
+					("Redis Query-by-Example does not support string matcher %s;" + " Supported matchers are: %s.")
+							.formatted(stringMatcher, SUPPORTED_MATCHERS));
 		}
 
 		if (exampleSpecAccessor.hasPropertySpecifier(path)) {

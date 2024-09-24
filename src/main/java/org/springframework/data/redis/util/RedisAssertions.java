@@ -25,7 +25,9 @@ import org.springframework.util.Assert;
  *
  * @author John Blum
  * @since 3.1.0
+ * @deprecated since 3.3, will be removed in a future revision in favor of Spring's {@link Assert} utility.
  */
+@Deprecated(since = "3.3", forRemoval = true)
 public abstract class RedisAssertions {
 
 	/**
@@ -40,7 +42,7 @@ public abstract class RedisAssertions {
 	 * @see #requireNonNull(Object, Supplier)
 	 */
 	public static <T> T requireNonNull(@Nullable T target, String message, Object... arguments) {
-		return requireNonNull(target, () -> String.format(message, arguments));
+		return requireNonNull(target, () -> message.formatted(arguments));
 	}
 
 	/**
@@ -88,7 +90,7 @@ public abstract class RedisAssertions {
 	 * @see #requireNonNull(Object, Supplier)
 	 */
 	public static <T> T requireState(@Nullable T target, String message, Object... arguments) {
-		return requireState(target, () -> String.format(message, arguments));
+		return requireState(target, () -> message.formatted(arguments));
 	}
 
 	/**

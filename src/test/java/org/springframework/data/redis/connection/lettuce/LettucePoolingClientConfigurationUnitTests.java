@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
@@ -35,10 +36,11 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Longlong Zhao
+ * @author Zhian Chen
  */
 class LettucePoolingClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-667, DATAREDIS-918
+	@Test // DATAREDIS-667, DATAREDIS-918, GH-2945
 	void shouldCreateEmptyConfiguration() {
 
 		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
@@ -46,6 +48,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getPoolConfig()).isNotNull();
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientOptions()).hasValueSatisfying(actual -> {
 
@@ -55,7 +58,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getClientResources()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
-		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMillis(100));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
 	@Test // DATAREDIS-667
@@ -80,6 +83,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getPoolConfig()).isEqualTo(poolConfig);
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(configuration.isStartTls()).isTrue();
 		assertThat(configuration.getClientOptions()).contains(clientOptions);
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);

@@ -96,9 +96,8 @@ class StreamConverters {
 
 			if (v instanceof StreamEntryID) {
 				sources.add(v.toString());
-			} else if (v instanceof StreamEntry) {
+			} else if (v instanceof StreamEntry streamEntry) {
 				List<Object> entries = new ArrayList<>(2);
-				StreamEntry streamEntry = (StreamEntry) v;
 				entries.add(streamEntry.getID().toString());
 				entries.add(streamEntry.getFields());
 				sources.add(entries);

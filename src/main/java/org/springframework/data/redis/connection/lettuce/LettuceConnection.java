@@ -328,7 +328,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object execute(String command, @Nullable CommandOutput commandOutputTypeHint, byte[]... args) {
 
-		Assert.hasText(command, () -> String.format("A valid command [%s] needs to be specified", command));
+		Assert.hasText(command, () -> "A valid command [%s] needs to be specified".formatted(command));
 
 		ProtocolKeyword commandType = getCommandType(command.trim().toUpperCase());
 
@@ -512,7 +512,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		if (this.asyncDedicatedConnection != null) {
 			try {
 				if (customizedDatabaseIndex()) {
-					potentiallySelectDatabase(this.defaultDbIndex);
+					potentiallySelectDatabase(this.asyncDedicatedConnection, this.defaultDbIndex);
 				}
 				this.connectionProvider.release(this.asyncDedicatedConnection);
 				this.asyncDedicatedConnection = null;
@@ -937,9 +937,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return statefulClusterConnection.sync();
 		}
 
-		String message = String.format("%s is not a supported connection type", connection.getClass().getName());
-
-		throw new IllegalStateException(message);
+		throw new IllegalStateException("%s is not a supported connection type".formatted(connection.getClass().getName()));
 	}
 
 	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
@@ -953,25 +951,17 @@ public class LettuceConnection extends AbstractRedisConnection {
 		if (connection instanceof StatefulRedisConnection<byte[], byte[]> statefulConnection) {
 			return statefulConnection.async();
 		}
+
 		if (asyncDedicatedConnection instanceof StatefulRedisClusterConnection<byte[], byte[]> statefulClusterConnection) {
 			return statefulClusterConnection.async();
 		}
 
-		String message = String.format("%s is not a supported connection type", connection.getClass().getName());
-
-		throw new IllegalStateException(message);
+		throw new IllegalStateException("%s is not a supported connection type".formatted(connection.getClass().getName()));
 	}
 
 	@SuppressWarnings("unchecked")
 	protected StatefulConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
-
-		StatefulConnection<byte[], byte[]> connection = getConnectionProvider().getConnection(StatefulConnection.class);
-
-		if (customizedDatabaseIndex()) {
-			potentiallySelectDatabase(this.dbIndex);
-		}
-
-		return connection;
+		return getConnectionProvider().getConnection(StatefulConnection.class);
 	}
 
 	@Override
@@ -1065,9 +1055,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return defaultDbIndex != dbIndex;
 	}
 
-	private void potentiallySelectDatabase(int dbIndex) {
+	private static void potentiallySelectDatabase(StatefulConnection<byte[], byte[]> connection, int dbIndex) {
 
-		if (asyncDedicatedConnection instanceof StatefulRedisConnection<byte[], byte[]> statefulConnection) {
+		if (connection instanceof StatefulRedisConnection<byte[], byte[]> statefulConnection) {
 			statefulConnection.sync().select(dbIndex);
 		}
 	}
@@ -1091,8 +1081,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			try {
 				redisCommand.validateArgumentCount(args != null ? args.length : 0);
 			} catch (IllegalArgumentException ex) {
-				String message = String.format("Validation failed for %s command", command);
-				throw new InvalidDataAccessApiUsageException(message, ex);
+				throw new InvalidDataAccessApiUsageException("Validation failed for %s command".formatted(command), ex);
 			}
 		}
 	}

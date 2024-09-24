@@ -73,8 +73,8 @@ Due to its blocking nature, low-level polling is not attractive, as it requires 
 
 Spring Data ships with two implementations tailored to the used programming model:
 
-* `StreamMessageListenerContainer` acts as message listener container for imperative programming models. It is used to consume records from a Redis Stream and drive the `StreamListener` instances that are injected into it.
-* `StreamReceiver` provides a reactive variant of a message listener. It is used to consume messages from a Redis Stream as potentially infinite stream and emit stream messages through a `Flux`.
+* javadoc:org.springframework.data.redis.stream.StreamMessageListenerContainer[] acts as message listener container for imperative programming models. It is used to consume records from a Redis Stream and drive the javadoc:org.springframework.data.redis.stream.StreamListener[] instances that are injected into it.
+* javadoc:org.springframework.data.redis.stream.StreamReceiver[] provides a reactive variant of a message listener. It is used to consume messages from a Redis Stream as potentially infinite stream and emit stream messages through a `Flux`.
 
 `StreamMessageListenerContainer` and `StreamReceiver` are responsible for all threading of message reception and dispatch into the listener for processing. A message listener container/receiver is the intermediary between an MDP and a messaging provider and takes care of registering to receive messages, resource acquisition and release, exception conversion, and the like. This lets you as an application developer write the (possibly complex) business logic associated with receiving a message (and reacting to it) and delegates boilerplate Redis infrastructure concerns to the framework.
 
@@ -84,7 +84,7 @@ Both containers allow runtime configuration changes so that you can add or remov
 [[imperative-streammessagelistenercontainer]]
 ==== Imperative `StreamMessageListenerContainer`
 
-In a fashion similar to a Message-Driven Bean (MDB) in the EJB world, the Stream-Driven POJO (SDP) acts as a receiver for Stream messages. The one restriction on an SDP is that it must implement the `org.springframework.data.redis.stream.StreamListener` interface. Please also be aware that in the case where your POJO receives messages on multiple threads, it is important to ensure that your implementation is thread-safe.
+In a fashion similar to a Message-Driven Bean (MDB) in the EJB world, the Stream-Driven POJO (SDP) acts as a receiver for Stream messages. The one restriction on an SDP is that it must implement the javadoc:org.springframework.data.redis.stream.StreamListener[] interface. Please also be aware that in the case where your POJO receives messages on multiple threads, it is important to ensure that your implementation is thread-safe.
 
 [source,java]
 ----

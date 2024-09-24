@@ -74,7 +74,7 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 
 			if (!command.getUpsert() && command.getValues().size() > 1) {
 				throw new InvalidDataAccessApiUsageException(
-						String.format("%s PUSHX only allows one value", command.getDirection()));
+						"%s PUSHX only allows one value".formatted(command.getDirection()));
 			}
 
 			Mono<Long> pushResult;

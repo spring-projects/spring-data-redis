@@ -4,11 +4,11 @@
 Package `org.springframework.data.redis.support` offers various reusable components that rely on Redis as a backing store.
 Currently, the package contains various JDK-based interface implementations on top of Redis, such as https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html[Collections].
 
-NOTE: `RedisList` is forward-compatible with Java 21 `SequencedCollection`.
+NOTE: javadoc:org.springframework.data.redis.support.collections.RedisList[] is forward-compatible with Java 21 `SequencedCollection`.
 
 The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API leakage.
-In particular, the `RedisSet` and `RedisZSet` interfaces offer easy access to the set operations supported by Redis, such as `intersection` and `union`. `RedisList` implements the `List`, `Queue`, and `Deque` contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a FIFO (First-In-First-Out), LIFO (Last-In-First-Out) or capped collection with minimal configuration.
-The following example shows the configuration for a bean that uses a `RedisList`:
+In particular, the javadoc:org.springframework.data.redis.support.collections.RedisSet[] and javadoc:org.springframework.data.redis.support.collections.RedisZSet[] interfaces offer easy access to the set operations supported by Redis, such as `intersection` and `union`. javadoc:org.springframework.data.redis.support.collections.RedisList[] implements the `List`, `Queue`, and `Deque` contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a FIFO (First-In-First-Out), LIFO (Last-In-First-Out) or capped collection with minimal configuration.
+The following example shows the configuration for a bean that uses a javadoc:org.springframework.data.redis.support.collections.RedisList[]:
 
 [tabs]
 ======

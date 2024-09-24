@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.resource.ClientResources;
 
@@ -34,17 +35,18 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Yanming Zhou
+ * @author Zhian Chen
  */
 class LettuceClientConfigurationUnitTests {
 
-	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667, DATAREDIS-918
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667, DATAREDIS-918, GH-2945
 	void shouldCreateEmptyConfiguration() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
 
-
 		assertThat(configuration.isUseSsl()).isFalse();
 		assertThat(configuration.isVerifyPeer()).isTrue();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientOptions()).hasValueSatisfying(actual -> {
 
@@ -55,7 +57,7 @@ class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getClientName()).isEmpty();
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(60));
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofMillis(100));
-		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMillis(100));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
 	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
@@ -78,6 +80,7 @@ class LettuceClientConfigurationUnitTests {
 
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isFalse();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(configuration.isStartTls()).isTrue();
 		assertThat(configuration.getClientOptions()).contains(clientOptions);
 		assertThat(configuration.getClientResources()).contains(sharedClientResources);
@@ -88,13 +91,13 @@ class LettuceClientConfigurationUnitTests {
 	}
 
 	@Test // DATAREDIS-881
-	void shutdownQuietPeriodShouldDefaultToTimeout() {
+	void shutdownQuietPeriodShouldDefaultInitialValue() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
 				.shutdownTimeout(Duration.ofSeconds(42)).build();
 
 		assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(42));
-		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofSeconds(42));
+		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
 	@Test // DATAREDIS-576
@@ -115,6 +118,7 @@ class LettuceClientConfigurationUnitTests {
 
 		assertThat(configuration.isUseSsl()).isTrue();
 		assertThat(configuration.isVerifyPeer()).isTrue();
+		assertThat(configuration.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(configuration.isStartTls()).isFalse();
 		assertThat(configuration.getClientName()).contains("bar");
 		assertThat(configuration.getCommandTimeout()).isEqualTo(Duration.ofSeconds(10));

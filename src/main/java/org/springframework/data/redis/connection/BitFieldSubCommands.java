@@ -151,10 +151,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof BitFieldSubCommands)) {
+		if (!(o instanceof BitFieldSubCommands that)) {
 			return false;
 		}
-		BitFieldSubCommands that = (BitFieldSubCommands) o;
 		return ObjectUtils.nullSafeEquals(subCommands, that.subCommands);
 	}
 
@@ -437,10 +436,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof Offset)) {
+			if (!(o instanceof Offset that)) {
 				return false;
 			}
-			Offset that = (Offset) o;
 			if (offset != that.offset) {
 				return false;
 			}
@@ -549,10 +547,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof BitFieldType)) {
+			if (!(o instanceof BitFieldType that)) {
 				return false;
 			}
-			BitFieldType that = (BitFieldType) o;
 			if (signed != that.signed) {
 				return false;
 			}
@@ -597,10 +594,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof AbstractBitFieldSubCommand)) {
+			if (!(o instanceof AbstractBitFieldSubCommand that)) {
 				return false;
 			}
-			AbstractBitFieldSubCommand that = (AbstractBitFieldSubCommand) o;
 			if (!ObjectUtils.nullSafeEquals(getClass(), that.getClass())) {
 				return false;
 			}
@@ -648,13 +644,13 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @return
 		 * @since 2.5.2
 		 */
-		public static BitFieldSet create(BitFieldType type,Offset offset,long value){
+		public static BitFieldSet create(BitFieldType type, Offset offset, long value) {
 
 			Assert.notNull(type, "BitFieldType must not be null");
 			Assert.notNull(offset, "Offset must not be null");
 
 			BitFieldSet instance = new BitFieldSet();
-			instance.type =  type;
+			instance.type = type;
 			instance.offset = offset;
 			instance.value = value;
 
@@ -680,13 +676,12 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof BitFieldSet)) {
+			if (!(o instanceof BitFieldSet that)) {
 				return false;
 			}
 			if (!super.equals(o)) {
 				return false;
 			}
-			BitFieldSet that = (BitFieldSet) o;
 			if (value != that.value) {
 				return false;
 			}
@@ -728,13 +723,13 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @since 2.5.2
 		 * @return
 		 */
-		public static BitFieldGet create(BitFieldType type,Offset offset){
+		public static BitFieldGet create(BitFieldType type, Offset offset) {
 
 			Assert.notNull(type, "BitFieldType must not be null");
 			Assert.notNull(offset, "Offset must not be null");
 
 			BitFieldGet instance = new BitFieldGet();
-			instance.type =  type;
+			instance.type = type;
 			instance.offset = offset;
 
 			return instance;
@@ -767,7 +762,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 * @return
 		 * @since 2.5.2
 		 */
-		public static BitFieldIncrBy create(BitFieldType type,Offset offset,long value){
+		public static BitFieldIncrBy create(BitFieldType type, Offset offset, long value) {
 			return create(type, offset, value, null);
 		}
 
@@ -787,7 +782,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			Assert.notNull(offset, "Offset must not be null");
 
 			BitFieldIncrBy instance = new BitFieldIncrBy();
-			instance.type =  type;
+			instance.type = type;
 			instance.offset = offset;
 			instance.value = value;
 			instance.overflow = overflow;
@@ -832,10 +827,9 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof BitFieldIncrBy)) {
+			if (!(o instanceof BitFieldIncrBy that)) {
 				return false;
 			}
-			BitFieldIncrBy that = (BitFieldIncrBy) o;
 			if (value != that.value) {
 				return false;
 			}

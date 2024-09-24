@@ -242,6 +242,22 @@ public class DefaultRedisCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
 	}
 
+	@ParameterizedRedisTest // GH-2890
+	void getWithValueLoaderShouldStoreCacheValue() {
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		writer.get(CACHE_NAME, binaryCacheKey, () -> binaryCacheValue, Duration.ofSeconds(5), true);
+
+		doWithConnection(connection -> {
+			assertThat(connection.ttl(binaryCacheKey)).isGreaterThan(3).isLessThan(6);
+		});
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getMisses()).isOne();
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-481, DATAREDIS-1082
 	void removeShouldDeleteEntry() {
 
@@ -437,13 +453,12 @@ public class DefaultRedisCacheWriterTests {
 		DefaultRedisCacheWriter cw = new DefaultRedisCacheWriter(connectionFactory, Duration.ofMillis(10),
 				BatchStrategies.keys()) {
 
-			boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
+			void doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
 
-				boolean doLock = super.doLock(name, contextualKey, contextualValue, connection);
+				super.doLock(name, contextualKey, contextualValue, connection);
 
 				// any concurrent access (aka not waiting until the lock is acquired) will result in a concurrency greater 1
 				assertThat(concurrency.incrementAndGet()).isOne();
-				return doLock;
 			}
 
 			@Nullable

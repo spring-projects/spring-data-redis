@@ -185,6 +185,7 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @deprecated since 3.0, use {@link #difference(Object)} instead to follow a consistent method naming scheme.
 	 */
 	@Nullable
+	@Deprecated(since = "3.0")
 	default Set<V> diff(K key) {
 		return difference(key);
 	}
@@ -209,6 +210,7 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @deprecated since 3.0, use {@link #difference(Collection)} instead to follow a consistent method naming scheme.
 	 */
 	@Nullable
+	@Deprecated(since = "3.0")
 	default Set<V> diff(Collection<K> keys) {
 		return difference(keys);
 	}

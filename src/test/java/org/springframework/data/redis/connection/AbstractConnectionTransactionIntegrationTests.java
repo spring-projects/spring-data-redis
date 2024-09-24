@@ -134,13 +134,6 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 				.isThrownBy(() -> connection.watch("foo".getBytes()));
 	}
 
-	@Test
-	public void testScriptKill() {
-		// Impossible to call script kill in a tx because you can't issue the
-		// exec command while Redis is running a script
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.scriptKill());
-	}
-
 	@Test // DATAREDIS-417
 	@Disabled
 	@Override

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis;
 
+import java.io.Serial;
+
 import org.springframework.dao.DataRetrievalFailureException;
 
 /**
@@ -25,6 +27,7 @@ import org.springframework.dao.DataRetrievalFailureException;
  */
 public class TooManyClusterRedirectionsException extends DataRetrievalFailureException {
 
+	@Serial
 	private static final long serialVersionUID = -2818933672669154328L;
 
 	/**

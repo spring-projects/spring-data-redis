@@ -33,15 +33,19 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexWriter} takes care of writing <a href="https://redis.io/topics/indexes">secondary index</a> structures to
- * Redis. Depending on the type of {@link IndexedData} it uses eg. Sets with specific names to add actually referenced
- * keys to. While doing so {@link IndexWriter} also keeps track of all indexes associated with the root types key, which
+ * Redis. Depending on the type of {@link IndexedData}, it uses Sets with specific names to add actually referenced keys
+ * to. While doing so {@link IndexWriter} also keeps track of all indexes associated with the root types key, which
  * allows to remove the root key from all indexes in case of deletion.
  *
  * @author Christoph Strobl
  * @author Rob Winch
+ * @author Mark Paluch
  * @since 1.7
  */
 class IndexWriter {
+
+	private static final byte[] SEPARATOR = ":".getBytes();
+	private static final byte[] IDX = "idx".getBytes();
 
 	private final RedisConnection connection;
 	private final RedisConverter converter;
@@ -49,7 +53,6 @@ class IndexWriter {
 	/**
 	 * Creates new {@link IndexWriter}.
 	 *
-	 * @param keyspace The key space to write index values to. Must not be {@literal null}.
 	 * @param connection must not be {@literal null}.
 	 * @param converter must not be {@literal null}.
 	 */
@@ -127,7 +130,7 @@ class IndexWriter {
 		Assert.notNull(key, "Key must not be null");
 
 		byte[] binKey = toBytes(key);
-		byte[] indexHelperKey = ByteUtils.concatAll(toBytes(keyspace + ":"), binKey, toBytes(":idx"));
+		byte[] indexHelperKey = createIndexKey(keyspace, binKey);
 
 		for (byte[] indexKey : connection.sMembers(indexHelperKey)) {
 
@@ -147,10 +150,10 @@ class IndexWriter {
 	 */
 	public void removeAllIndexes(String keyspace) {
 
-		Set<byte[]> potentialIndex = connection.keys(toBytes(keyspace + ":*"));
+		Set<byte[]> potentialIndex = connection.keys(createIndexKey(keyspace, "*"));
 
 		if (!potentialIndex.isEmpty()) {
-			connection.del(potentialIndex.toArray(new byte[potentialIndex.size()][]));
+			connection.del(potentialIndex.toArray(new byte[0][]));
 		}
 	}
 
@@ -162,7 +165,7 @@ class IndexWriter {
 	}
 
 	/**
-	 * Remove given key from all indexes matching {@link IndexedData#getIndexName()}:
+	 * Remove given key from all indexes matching {@link IndexedData#getIndexName()}.
 	 *
 	 * @param key
 	 * @param indexedData
@@ -171,8 +174,7 @@ class IndexWriter {
 
 		Assert.notNull(indexedData, "IndexedData must not be null");
 
-		Set<byte[]> existingKeys = connection
-				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
+		Set<byte[]> existingKeys = connection.keys(createIndexKey(indexedData.getKeyPrefix(), "*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
@@ -216,12 +218,12 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":");
+			byte[] indexKey = toBytes(indexedData.getKeyPrefix(), SEPARATOR);
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(createIndexKey(indexedData.getKeyspace(), key), indexKey);
 		} else if (indexedData instanceof GeoIndexedPropertyValue propertyValue) {
 
 			Object value = propertyValue.getValue();
@@ -229,15 +231,51 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName());
+			byte[] indexKey = toBytes(indexedData.getKeyPrefix());
 			connection.geoAdd(indexKey, propertyValue.getPoint(), key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(createIndexKey(indexedData.getKeyspace(), key), indexKey);
 		} else {
 			throw new IllegalArgumentException(
-					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));
+					"Cannot write index data for unknown index type %s".formatted(indexedData.getClass()));
 		}
+	}
+
+	private byte[] createIndexKey(String keyspace, byte[] key) {
+		return createIndexKey(keyspace, key, IDX);
+	}
+
+	private byte[] createIndexKey(Object... items) {
+
+		Object[] elements = new Object[items.length + (items.length - 1)];
+
+		int j = 0;
+		for (int i = 0; i < items.length; i++) {
+
+			elements[j++] = items[i];
+			if (items.length - 1 > i) {
+				elements[j++] = SEPARATOR;
+			}
+		}
+
+		return toBytes(elements);
+	}
+
+	private byte[] toBytes(Object... values) {
+
+		byte[][] arrays = new byte[values.length][];
+
+		for (int i = 0; i < values.length; i++) {
+
+			if (values[i] instanceof byte[] bb) {
+				arrays[i] = bb;
+			} else {
+				arrays[i] = toBytes(values[i]);
+			}
+		}
+
+		return ByteUtils.concatAll(arrays);
 	}
 
 	private byte[] toBytes(@Nullable Object source) {
@@ -254,10 +292,9 @@ class IndexWriter {
 			return converter.getConversionService().convert(source, byte[].class);
 		}
 
-		throw new InvalidDataAccessApiUsageException(String.format(
-				"Cannot convert %s to binary representation for index key generation; "
-						+ "Are you missing a Converter; Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type",
-				source.getClass()));
+		throw new InvalidDataAccessApiUsageException(("Cannot convert %s to binary representation for index key generation;"
+				+ " Are you missing a Converter; Did you register a non PathBasedRedisIndexDefinition"
+				+ " that might apply to a complex type").formatted(source.getClass()));
 	}
 
 	/**

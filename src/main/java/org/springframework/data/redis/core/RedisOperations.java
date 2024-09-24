@@ -650,7 +650,7 @@ public interface RedisOperations<K, V> {
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 * @since 1.5
 	 */
 	HyperLogLogOperations<K, V> opsForHyperLogLog();

@@ -2,7 +2,7 @@
 = Redis Cache
 
 Spring Data Redis provides an implementation of Spring Framework's {spring-framework-docs}/integration.html#cache[Cache Abstraction] in the `org.springframework.data.redis.cache` package.
-To use Redis as a backing implementation, add `RedisCacheManager` to your configuration, as follows:
+To use Redis as a backing implementation, add javadoc:org.springframework.data.redis.cache.RedisCacheManager[] to your configuration, as follows:
 
 [source,java]
 ----
@@ -12,7 +12,7 @@ public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) 
 }
 ----
 
-`RedisCacheManager` behavior can be configured with `RedisCacheManagerBuilder`, letting you set the default `RedisCacheConfiguration`, transaction behavior, and predefined caches.
+`RedisCacheManager` behavior can be configured with javadoc:org.springframework.data.redis.cache.RedisCacheManager$RedisCacheManagerBuilder[], letting you set the default javadoc:org.springframework.data.redis.cache.RedisCacheManager[], transaction behavior, and predefined caches.
 
 [source,java]
 ----
@@ -26,7 +26,7 @@ RedisCacheManager cacheManager = RedisCacheManager.builder(connectionFactory)
 
 As shown in the preceding example, `RedisCacheManager` allows custom configuration on a per-cache basis.
 
-The behavior of `RedisCache` created by `RedisCacheManager` is defined with `RedisCacheConfiguration`.
+The behavior of javadoc:org.springframework.data.redis.cache.RedisCache[] created by javadoc:org.springframework.data.redis.cache.RedisCacheManager[] is defined with `RedisCacheConfiguration`.
 The configuration lets you set key expiration times, prefixes, and `RedisSerializer` implementations for converting to and from the binary storage format, as shown in the following example:
 
 [source,java]
@@ -36,7 +36,7 @@ RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCach
     .disableCachingNullValues();
 ----
 
-`RedisCacheManager` defaults to a lock-free `RedisCacheWriter` for reading and writing binary values.
+javadoc:org.springframework.data.redis.cache.RedisCacheManager[] defaults to a lock-free javadoc:org.springframework.data.redis.cache.RedisCacheWriter[] for reading and writing binary values.
 Lock-free caching improves throughput.
 The lack of entry locking can lead to overlapping, non-atomic commands for the `Cache` `putIfAbsent` and `clean` operations, as those require multiple commands to be sent to Redis.
 The locking counterpart prevents command overlap by setting an explicit lock key and checking against presence of this key, which leads to additional requests and potential command wait times.

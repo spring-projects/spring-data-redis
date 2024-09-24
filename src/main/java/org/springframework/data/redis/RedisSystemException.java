@@ -16,6 +16,7 @@
 package org.springframework.data.redis;
 
 import org.springframework.dao.UncategorizedDataAccessException;
+import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when we can't classify a Redis exception into one of Spring generic data access exceptions.
@@ -28,7 +29,7 @@ public class RedisSystemException extends UncategorizedDataAccessException {
 	 * @param msg the detail message.
 	 * @param cause the root cause from the data access API in use.
 	 */
-	public RedisSystemException(String msg, Throwable cause) {
+	public RedisSystemException(String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

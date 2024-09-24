@@ -32,10 +32,20 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
@@ -51,6 +61,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Marcin Zielinski
+ * @author jinkshower
  */
 @MethodSource("testParams")
 @EnabledOnCommand("XADD")
@@ -65,7 +76,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 	private final StreamOperations<K, HK, HV> streamOps;
 
 	public DefaultStreamOperationsIntegrationTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
-                                                   ObjectFactory<?> objectFactory) {
+			ObjectFactory<?> objectFactory) {
 
 		this.redisTemplate = redisTemplate;
 		this.connectionFactory = redisTemplate.getRequiredConnectionFactory();
@@ -81,7 +92,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		params.addAll(AbstractOperationsTestParams
 				.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		if(RedisDetector.isClusterAvailable()) {
+		if (RedisDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
 		}
@@ -89,7 +100,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		params.addAll(AbstractOperationsTestParams
 				.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 
-		if(RedisDetector.isClusterAvailable()) {
+		if (RedisDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisCluster.class)));
 		}
@@ -147,6 +158,155 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(message.getStream()).isEqualTo(key);
 
 		assertThat(message.getValue()).isEqualTo(value);
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMaxLenShouldLimitMessagesSize() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		HV newValue = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(1).approximateTrimming(false);
+
+		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, newValue), options);
+
+		List<MapRecord<K, HK, HV>> messages = streamOps.range(key, Range.unbounded());
+
+		assertThat(messages).hasSize(1);
+
+		MapRecord<K, HK, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		if (!(key instanceof byte[] || value instanceof byte[])) {
+			assertThat(message.getValue()).containsEntry(hashKey, newValue);
+		}
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMaxLenShouldLimitSimpleMessagesSize() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		HV newValue = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(1).approximateTrimming(false);
+
+		RecordId messageId = streamOps.add(StreamRecords.objectBacked(newValue).withStreamKey(key), options);
+
+		List<ObjectRecord<K, HV>> messages = streamOps.range((Class<HV>) value.getClass(), key, Range.unbounded());
+
+		assertThat(messages).hasSize(1);
+
+		ObjectRecord<K, HV> message = messages.get(0);
+
+		assertThat(message.getId()).isEqualTo(messageId);
+		assertThat(message.getStream()).isEqualTo(key);
+
+		assertThat(message.getValue()).isEqualTo(newValue);
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMinIdShouldEvictLowerIdMessages() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		streamOps.add(key, Collections.singletonMap(hashKey, value));
+		RecordId messageId1 = streamOps.add(key, Collections.singletonMap(hashKey, value));
+
+		XAddOptions options = XAddOptions.none().minId(messageId1);
+
+		RecordId messageId2 = streamOps.add(key, Collections.singletonMap(hashKey, value), options);
+
+		List<MapRecord<K, HK, HV>> messages = streamOps.range(key, Range.unbounded());
+
+		assertThat(messages).hasSize(2);
+
+		MapRecord<K, HK, HV> message1 = messages.get(0);
+
+		assertThat(message1.getId()).isEqualTo(messageId1);
+		assertThat(message1.getStream()).isEqualTo(key);
+
+		MapRecord<K, HK, HV> message2 = messages.get(1);
+
+		assertThat(message2.getId()).isEqualTo(messageId2);
+		assertThat(message2.getStream()).isEqualTo(key);
+
+		if (!(key instanceof byte[] || value instanceof byte[])) {
+			assertThat(message1.getValue()).containsEntry(hashKey, value);
+			assertThat(message2.getValue()).containsEntry(hashKey, value);
+		}
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMinIdShouldEvictLowerIdSimpleMessages() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		XAddOptions options = XAddOptions.none().minId(messageId1);
+
+		RecordId messageId2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+
+		List<ObjectRecord<K, HV>> messages = streamOps.range((Class<HV>) value.getClass(), key, Range.unbounded());
+
+		assertThat(messages).hasSize(2);
+
+		ObjectRecord<K, HV> message1 = messages.get(0);
+
+		assertThat(message1.getId()).isEqualTo(messageId1);
+		assertThat(message1.getStream()).isEqualTo(key);
+		assertThat(message1.getValue()).isEqualTo(value);
+
+		ObjectRecord<K, HV> message2 = messages.get(1);
+
+		assertThat(message2.getId()).isEqualTo(messageId2);
+		assertThat(message2.getStream()).isEqualTo(key);
+		assertThat(message2.getValue()).isEqualTo(value);
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMakeNoStreamShouldNotCreateStreamWhenNoStreamExists() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.makeNoStream();
+
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+
+		assertThat(streamOps.size(key)).isZero();
+		assertThat(streamOps.range(key, Range.unbounded())).isEmpty();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMakeNoStreamShouldCreateStreamWhenStreamExists() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		XAddOptions options = XAddOptions.makeNoStream();
+
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+
+		assertThat(streamOps.size(key)).isEqualTo(2);
+		assertThat(streamOps.range(key, Range.unbounded())).hasSize(2);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-864
@@ -305,7 +465,8 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		RecordId messageId1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
 
-		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(), StreamOffset.create(key, ReadOffset.from("0-0")));
+		List<ObjectRecord<K, HV>> messages = streamOps.read((Class<HV>) value.getClass(),
+				StreamOffset.create(key, ReadOffset.from("0-0")));
 
 		assertThat(messages).hasSize(2);
 
@@ -384,8 +545,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		streamOps.read(Consumer.from("my-group", "my-consumer"),
-				StreamOffset.create(key, ReadOffset.lastConsumed()));
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
 		PendingMessagesSummary pending = streamOps.pending(key, "my-group");
 
@@ -403,8 +563,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		RecordId messageId = streamOps.add(key, Collections.singletonMap(hashKey, value));
 		streamOps.createGroup(key, ReadOffset.from("0-0"), "my-group");
 
-		streamOps.read(Consumer.from("my-group", "my-consumer"),
-				StreamOffset.create(key, ReadOffset.lastConsumed()));
+		streamOps.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()));
 
 		PendingMessages pending = streamOps.pending(key, "my-group", Range.unbounded(), 10L);
 

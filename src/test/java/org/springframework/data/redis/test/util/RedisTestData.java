@@ -86,7 +86,7 @@ public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAs
 
 			isNotNull();
 
-			String hint = String.format("Type hint for <%s> at <%s>", type.getName(), path);
+			String hint = "Type hint for <%s> at <%s>".formatted(type.getName(), path);
 
 			if (!actual.containsKey(path)) {
 

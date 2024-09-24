@@ -60,7 +60,7 @@ public class ClusterSlotHashUtilsTests {
 			Long serverSlot = jedis.clusterKeySlot(key);
 
 			assertThat(slot)
-					.as(String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot))
+					.describedAs("Expected slot for key '%s' to be %s but server calculated %s", key, slot, serverSlot)
 					.isEqualTo(serverSlot.intValue());
 		}
 

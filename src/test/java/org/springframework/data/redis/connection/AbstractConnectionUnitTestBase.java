@@ -55,8 +55,7 @@ public abstract class AbstractConnectionUnitTestBase<T> {
 	private ParameterizedType resolveReturnedClassFromGernericType(Class<?> clazz) {
 
 		Object genericSuperclass = clazz.getGenericSuperclass();
-		if (genericSuperclass instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+		if (genericSuperclass instanceof ParameterizedType parameterizedType) {
 			Type rawtype = parameterizedType.getRawType();
 			if (AbstractConnectionUnitTestBase.class.equals(rawtype)) {
 				return parameterizedType;

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.support.atomic;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,7 @@ import org.springframework.util.Assert;
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
 
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
@@ -159,11 +161,12 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	public long get() {
 
 		Long value = operations.get(key);
+
 		if (value != null) {
 			return value;
 		}
 
-		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist", key));
+		throw new DataRetrievalFailureException("The key '%s' seems to no longer exist".formatted(key));
 	}
 
 	/**

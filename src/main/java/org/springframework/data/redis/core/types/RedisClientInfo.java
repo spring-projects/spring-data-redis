@@ -269,13 +269,12 @@ public class RedisClientInfo {
 
 		public static RedisClientInfo fromString(String source) {
 
-			Assert.notNull(source, "Cannot read client properties form 'null'");
+			Assert.notNull(source, "Cannot read client properties from 'null'");
 			Properties properties = new Properties();
 			try {
 				properties.load(new StringReader(source.replace(' ', '\n')));
 			} catch (IOException ex) {
-				String message = String.format("Properties could not be loaded from String '%s'", source);
-				throw new IllegalArgumentException(message, ex);
+				throw new IllegalArgumentException("Properties could not be loaded from String '%s'".formatted(source), ex);
 			}
 			return new RedisClientInfo(properties);
 		}

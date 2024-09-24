@@ -70,7 +70,7 @@ class BoundOperationsProxyFactory {
 		proxyFactory.addAdvice(
 				new BoundOperationsMethodInterceptor(key, operations, boundOperationsInterface, operationsTarget, delegate));
 
-		return (T) proxyFactory.getProxy();
+		return (T) proxyFactory.getProxy(getClass().getClassLoader());
 	}
 
 	Method lookupRequiredMethod(Method method, Class<?> targetClass, boolean considerKeyArgument) {
@@ -144,9 +144,9 @@ class BoundOperationsProxyFactory {
 					yield null;
 				}
 				case "getOperations" -> delegate.getOps();
-				default -> method.getDeclaringClass() == boundOperationsInterface
-						? doInvoke(invocation, method, operationsTarget, true)
-						: doInvoke(invocation, method, delegate, false);
+				default ->
+					method.getDeclaringClass() == boundOperationsInterface ? doInvoke(invocation, method, operationsTarget, true)
+							: doInvoke(invocation, method, delegate, false);
 			};
 		}
 
