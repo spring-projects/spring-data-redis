@@ -117,7 +117,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public static final long DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME = 2000L;
 
 	/**
-	 * Default thread name prefix: "RedisListeningContainer-".
+	 * Default thread name prefix: "RedisMessageListenerContainer-".
 	 */
 	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class)
 			+ "-";
