@@ -101,6 +101,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author John Blum
+ * @author SEONGJUN LEE
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -770,32 +771,34 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	private void remove(@Nullable MessageListener listener, Topic topic, ByteArrayWrapper holder,
-			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
+						Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
-		Collection<MessageListener> listenersToRemove = null;
+		if (listeners == null || listeners.isEmpty()) {
+			return;
+		}
 
-		if (listeners != null) {
-			// remove only one listener
-			listeners.remove(listener);
-			listenersToRemove = Collections.singletonList(listener);
+		Collection<MessageListener> listenersToRemove = (listener == null) ? new ArrayList<>(listeners)
+				: Collections.singletonList(listener);
 
-			// start removing listeners
-			for (MessageListener messageListener : listenersToRemove) {
-				Set<Topic> topics = listenerTopics.get(messageListener);
-				if (topics != null) {
-					topics.remove(topic);
-				}
-				if (CollectionUtils.isEmpty(topics)) {
-					listenerTopics.remove(messageListener);
-				}
+		// Remove the specified listener(s) from the original collection
+		listeners.removeAll(listenersToRemove);
+
+		// Start removing listeners
+		for (MessageListener messageListener : listenersToRemove) {
+			Set<Topic> topics = listenerTopics.get(messageListener);
+			if (topics != null) {
+				topics.remove(topic);
 			}
-
-			// if we removed everything, remove the empty holder collection
-			if (listeners.isEmpty()) {
-				mapping.remove(holder);
-				topicToRemove.add(holder.getArray());
+			if (CollectionUtils.isEmpty(topics)) {
+				listenerTopics.remove(messageListener);
 			}
+		}
+
+		// If all listeners were removed, clean up the mapping and the holder
+		if (listeners.isEmpty()) {
+			mapping.remove(holder);
+			topicToRemove.add(holder.getArray());
 		}
 	}
 
