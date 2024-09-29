@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -55,6 +56,8 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.SubscriptionListener;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
+import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -68,6 +71,9 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
 
 /**
  * Container providing asynchronous behaviour for Redis message listeners. Handles the low level details of listening,
@@ -1502,17 +1508,44 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			addSynchronization(new SynchronizingMessageListener.SubscriptionSynchronization(patterns, channels,
 					() -> subscriptionDone.complete(null)));
 
-			this.executor.execute(() -> {
 
-				try {
-					doSubscribe(connection, patterns, initiallySubscribeToChannels);
-					closeConnection();
-					unsubscribeFuture.complete(null);
-				} catch (Throwable cause) {
-					handleSubscriptionException(subscriptionDone,
-							nextBackoffExecution(backOffExecution, connection.isSubscribed()), cause);
-				}
-			});
+			// for keyspace notification subscribtion start
+			if(connection instanceof JedisClusterConnection) {
+				DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
+				JedisCluster cluster = (JedisCluster) dfa.getPropertyValue("cluster");
+				cluster.getClusterNodes().forEach((key, pool ) -> {
+					this.executor.execute(() -> {
+						try {
+							Jedis jedis = new Jedis(pool.borrowObject());
+							String info = jedis.info("replication");
+							if (info.contains("role:master")) {
+								logger.info("Start to psubscribe with: " + key);
+								doSubscribe(new JedisConnection(jedis), patterns, initiallySubscribeToChannels);
+								closeConnection();
+								unsubscribeFuture.complete(null);
+							}
+							else closeConnection();
+						} catch (Throwable cause) {
+							handleSubscriptionException(subscriptionDone,
+									nextBackoffExecution(backOffExecution, connection.isSubscribed()), cause);
+						}
+					});
+				});
+			}
+			// for keyspace notification subscribtion end
+			else {
+				this.executor.execute(() -> {
+
+					try {
+						doSubscribe(connection, patterns, initiallySubscribeToChannels);
+						closeConnection();
+						unsubscribeFuture.complete(null);
+					} catch (Throwable cause) {
+						handleSubscriptionException(subscriptionDone,
+								nextBackoffExecution(backOffExecution, connection.isSubscribed()), cause);
+					}
+				});
+			}
 		}
 	}
 }
