@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,10 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.SubscriptionListener;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
@@ -220,5 +218,35 @@ class RedisMessageListenerContainerUnitTests {
 	@Test // GH-964
 	void failsOnDuplicateInit() {
 		assertThatIllegalStateException().isThrownBy(() -> container.afterPropertiesSet());
+	}
+
+	@Test
+	void shouldRemoveSpecificListenerFromMappingAndListenerTopics() {
+		MessageListener listener1 = mock(MessageListener.class);
+		MessageListener listener2 = mock(MessageListener.class);
+		Topic topic = new ChannelTopic("topic1");
+
+		container.addMessageListener(listener1, Collections.singletonList(topic));
+		container.addMessageListener(listener2, Collections.singletonList(topic));
+
+		container.removeMessageListener(listener1, Collections.singletonList(topic));
+
+		container.addMessageListener(listener2, Collections.singletonList(topic));
+		verify(listener1, never()).onMessage(any(), any());
+	}
+
+	@Test
+	void shouldRemoveAllListenersWhenListenerIsNull() {
+		MessageListener listener1 = mock(MessageListener.class);
+		MessageListener listener2 = mock(MessageListener.class);
+		Topic topic = new ChannelTopic("topic1");
+
+		container.addMessageListener(listener1, Collections.singletonList(topic));
+		container.addMessageListener(listener2, Collections.singletonList(topic));
+
+		container.removeMessageListener(null, Collections.singletonList(topic));
+
+		verify(listener1, never()).onMessage(any(), any());
+		verify(listener2, never()).onMessage(any(), any());
 	}
 }
