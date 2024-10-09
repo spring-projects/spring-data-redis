@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.HostAndPortMapper;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
 
@@ -77,6 +78,11 @@ public interface JedisClientConfiguration {
 	 * @return the optional {@link HostnameVerifier}.
 	 */
 	Optional<HostnameVerifier> getHostnameVerifier();
+
+	/**
+	 * @return the optional {@link HostAndPortMapper}.
+	 */
+	Optional<HostAndPortMapper> getHostAndPortMapper();
 
 	/**
 	 * @return {@literal true} to use connection-pooling. Applies only to single node Redis. Sentinel and Cluster modes
@@ -167,6 +173,15 @@ public interface JedisClientConfiguration {
 		 * @throws IllegalArgumentException if clientName is {@literal null}.
 		 */
 		JedisClientConfigurationBuilder clientName(String clientName);
+
+		/**
+		 * Configure a {@code hostAndPortMapper}
+		 *
+		 * @param hostAndPortMapper must not be {@literal null}.
+		 * @return {@literal this} builder.
+		 * @throws IllegalArgumentException if clientName is {@literal null}.
+		 */
+		JedisClientConfigurationBuilder hostAndPortMapper(HostAndPortMapper hostAndPortMapper);
 
 		/**
 		 * Configure a read timeout.
@@ -273,6 +288,7 @@ public interface JedisClientConfiguration {
 		private @Nullable SSLSocketFactory sslSocketFactory;
 		private @Nullable SSLParameters sslParameters;
 		private @Nullable HostnameVerifier hostnameVerifier;
+		private @Nullable HostAndPortMapper hostAndPortMapper;
 		private boolean usePooling;
 		private GenericObjectPoolConfig poolConfig = new JedisPoolConfig();
 		private @Nullable String clientName;
@@ -281,6 +297,10 @@ public interface JedisClientConfiguration {
 
 		private DefaultJedisClientConfigurationBuilder() {}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#useSsl()
+		 */
 		@Override
 		public JedisSslClientConfigurationBuilder useSsl() {
 
@@ -288,33 +308,49 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslSocketFactory(javax.net.ssl.SSLSocketFactory)
+		 */
 		@Override
 		public JedisSslClientConfigurationBuilder sslSocketFactory(SSLSocketFactory sslSocketFactory) {
 
-			Assert.notNull(sslSocketFactory, "SSLSocketFactory must not be null");
+			Assert.notNull(sslSocketFactory, "SSLSocketFactory must not be null!");
 
 			this.sslSocketFactory = sslSocketFactory;
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#sslParameters(javax.net.ssl.SSLParameters)
+		 */
 		@Override
 		public JedisSslClientConfigurationBuilder sslParameters(SSLParameters sslParameters) {
 
-			Assert.notNull(sslParameters, "SSLParameters must not be null");
+			Assert.notNull(sslParameters, "SSLParameters must not be null!");
 
 			this.sslParameters = sslParameters;
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisSslClientConfigurationBuilder#hostnameVerifier(javax.net.ssl.HostnameVerifier)
+		 */
 		@Override
 		public JedisSslClientConfigurationBuilder hostnameVerifier(HostnameVerifier hostnameVerifier) {
 
-			Assert.notNull(hostnameVerifier, "HostnameVerifier must not be null");
+			Assert.notNull(hostnameVerifier, "HostnameVerifier must not be null!");
 
 			this.hostnameVerifier = hostnameVerifier;
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#usePooling()
+		 */
 		@Override
 		public JedisPoolingClientConfigurationBuilder usePooling() {
 
@@ -322,42 +358,70 @@ public interface JedisClientConfiguration {
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisPoolingClientConfigurationBuilder#poolConfig(org.apache.commons.pool2.impl.GenericObjectPoolConfig)
+		 */
 		@Override
 		public JedisPoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
 
-			Assert.notNull(poolConfig, "GenericObjectPoolConfig must not be null");
+			Assert.notNull(poolConfig, "GenericObjectPoolConfig must not be null!");
 
 			this.poolConfig = poolConfig;
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisPoolingClientConfigurationBuilder#and()
+		 */
 		@Override
 		public JedisClientConfigurationBuilder and() {
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#clientName(java.lang.String)
+		 */
 		@Override
 		public JedisClientConfigurationBuilder clientName(String clientName) {
 
-			Assert.hasText(clientName, "Client name must not be null or empty");
+			Assert.hasText(clientName, "Client name must not be null or empty!");
 
 			this.clientName = clientName;
 			return this;
 		}
 
 		@Override
+		public JedisClientConfigurationBuilder hostAndPortMapper(HostAndPortMapper hostAndPortMapper) {
+			Assert.notNull(hostAndPortMapper, "HostAndPortMapper can not be null");
+
+			this.hostAndPortMapper = hostAndPortMapper;
+			return this;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#readTimeout(java.time.Duration)
+		 */
+		@Override
 		public JedisClientConfigurationBuilder readTimeout(Duration readTimeout) {
 
-			Assert.notNull(readTimeout, "Duration must not be null");
+			Assert.notNull(readTimeout, "Duration must not be null!");
 
 			this.readTimeout = readTimeout;
 			return this;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.jedis.JedisClientConfiguration.JedisClientConfigurationBuilder#connectTimeout(java.time.Duration)
+		 */
 		@Override
 		public JedisClientConfigurationBuilder connectTimeout(Duration connectTimeout) {
 
-			Assert.notNull(connectTimeout, "Duration must not be null");
+			Assert.notNull(connectTimeout, "Duration must not be null!");
 
 			this.connectTimeout = connectTimeout;
 			return this;
@@ -366,7 +430,7 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisClientConfiguration build() {
 
-			return new DefaultJedisClientConfiguration(useSsl, sslSocketFactory, sslParameters, hostnameVerifier, usePooling,
+			return new DefaultJedisClientConfiguration(useSsl, sslSocketFactory, sslParameters, hostnameVerifier, hostAndPortMapper, usePooling,
 					poolConfig, clientName, readTimeout, connectTimeout);
 		}
 	}
