@@ -556,4 +556,17 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeBinaryCommands.ttl(KEY_1_BBUFFER)).isCloseTo(expireSeconds, Offset.offset(5L));
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
 	}
+
+	@ParameterizedRedisTest // GH-2853
+	void setWithGetOption() {
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands().setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.keepTtl(), SetOption.upsert())
+				.map(CommandResponse::getOutput)
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
 }

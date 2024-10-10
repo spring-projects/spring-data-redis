@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Marcin Grzejszczak
  * @since 2.0
  */
 public interface ReactiveStringCommands {
@@ -62,15 +63,23 @@ public interface ReactiveStringCommands {
 		private @Nullable ByteBuffer value;
 		private Expiration expiration;
 		private SetOption option;
+		private boolean get;
 
 		private SetCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
 				@Nullable SetOption option) {
+
+			this(key, value, expiration, option, false);
+		}
+
+		private SetCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
+				@Nullable SetOption option, boolean get) {
 
 			super(key);
 
 			this.value = value;
 			this.expiration = expiration;
 			this.option = option;
+			this.get = get;
 		}
 
 		/**
@@ -126,6 +135,16 @@ public interface ReactiveStringCommands {
 		}
 
 		/**
+		 * Applies GET option. Return the old string stored at key, or {@code null} if key did not exist.
+		 * An error is returned and SET aborted if the value stored at key is not a string.
+		 *
+		 * @return a new {@link SetCommand} with {@link SetOption} applied.
+		 */
+		public SetCommand withGet() {
+			return new SetCommand(getKey(), value, expiration, option, true);
+		}
+
+		/**
 		 * @return
 		 */
 		@Nullable
@@ -145,6 +164,13 @@ public interface ReactiveStringCommands {
 		 */
 		public Optional<SetOption> getOption() {
 			return Optional.ofNullable(option);
+		}
+
+		/**
+		 * @return
+		 */
+		public boolean isGet() {
+			return get;
 		}
 	}
 
@@ -183,6 +209,22 @@ public interface ReactiveStringCommands {
 		return set(Mono.just(SetCommand.set(key).value(value).withSetOption(option).expiring(expiration))).next()
 				.map(BooleanResponse::getOutput);
 	}
+
+	/**
+	 * Set {@literal value} for {@literal key} with {@literal expiration} and {@literal options}. Return the old
+	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
+	 * stored at key is not a string.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
+	 *          {@link Expiration#keepTtl()} to keep the existing.
+	 * @param option must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 3.4
+	 */
+	Flux<ByteBufferResponse<SetCommand>> setGet(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option);
 
 	/**
 	 * Set each and every item separately by invoking {@link SetCommand}.
