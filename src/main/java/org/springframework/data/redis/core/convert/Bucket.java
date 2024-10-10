@@ -108,10 +108,10 @@ public class Bucket {
 	}
 
 	/**
-	 * Return whether {@code path} is associated with a non-{@code null} value.
+	 * Return whether {@code path} is associated with a non-{@literal null} value.
 	 *
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
-	 * @return {@literal true} if the {@code path} is associated with a non-{@code null} value.
+	 * @return {@literal true} if the {@code path} is associated with a non-{@literal null} value.
 	 * @since 2.5
 	 */
 	public boolean hasValue(String path) {

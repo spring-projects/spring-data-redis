@@ -69,7 +69,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Get values for given {@code fields} from hash at {@code key}. Values are in the order of the requested keys Absent
-	 * field values are represented using {@code null} in the resulting {@link List}.
+	 * field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal empty}.

@@ -86,10 +86,10 @@ public interface RedisStringCommands {
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys Absent field values are represented using
-	 * {@code null} in the resulting {@link List}.
+	 * {@literal null} in the resulting {@link List}.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return {@code null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
 	@Nullable

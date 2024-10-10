@@ -86,7 +86,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * Crates new {@link ScanCursor}
 	 *
 	 * @param cursorId the cursor Id.
-	 * @param options Defaulted to {@link ScanOptions#NONE} if {@code null}.
+	 * @param options Defaulted to {@link ScanOptions#NONE} if {@literal null}.
 	 * @deprecated since 3.3.0 - Use {@link ScanCursor#ScanCursor(CursorId, ScanOptions)} instead.
 	 */
 	@Deprecated(since = "3.3.0")
@@ -98,7 +98,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * Crates new {@link ScanCursor}
 	 *
 	 * @param cursorId the cursor Id.
-	 * @param options Defaulted to {@link ScanOptions#NONE} if {@code null}.
+	 * @param options Defaulted to {@link ScanOptions#NONE} if {@literal null}.
 	 * @since 3.3.0
 	 */
 	public ScanCursor(CursorId cursorId, @Nullable ScanOptions options) {
@@ -125,7 +125,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Performs the actual scan command using the native client implementation. The given {@literal options} are never
-	 * {@code null}.
+	 * {@literal null}.
 	 *
 	 * @param cursorId
 	 * @param options
@@ -139,7 +139,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	/**
 	 * Performs the actual scan command using the native client implementation. The given {@literal options} are never
-	 * {@code null}.
+	 * {@literal null}.
 	 *
 	 * @param cursorId
 	 * @param options
