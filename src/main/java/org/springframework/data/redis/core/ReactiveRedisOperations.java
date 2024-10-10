@@ -437,6 +437,20 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param args args that need to be passed to the script. Must not be {@literal null}.
 	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
 	 *         likely indicating a throw-away status reply (i.e. "OK").
+	 * @since 3.4
+	 */
+	default <T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args) {
+		return execute(script, keys, Arrays.asList(args));
+	}
+
+	/**
+	 * Executes the given {@link RedisScript}
+	 *
+	 * @param script The script to execute. Must not be {@literal null}.
+	 * @param keys keys that need to be passed to the script. Must not be {@literal null}.
+	 * @param args args that need to be passed to the script. Must not be {@literal null}.
+	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
+	 *         likely indicating a throw-away status reply (i.e. "OK").
 	 */
 	<T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args);
 

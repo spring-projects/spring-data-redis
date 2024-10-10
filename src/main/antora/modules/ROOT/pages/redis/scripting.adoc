@@ -34,7 +34,7 @@ public class Example {
   RedisScript<Boolean> script;
 
   public boolean checkAndSet(String expectedValue, String newValue) {
-    return redisOperations.execute(script, singletonList("key"), asList(expectedValue, newValue));
+    return redisOperations.execute(script, List.of("key"), expectedValue, newValue);
   }
 }
 ----
@@ -52,7 +52,7 @@ public class Example {
   RedisScript<Boolean> script;
 
   public Flux<Boolean> checkAndSet(String expectedValue, String newValue) {
-    return redisOperations.execute(script, singletonList("key"), asList(expectedValue, newValue));
+    return redisOperations.execute(script, List.of("key"), expectedValue, newValue);
   }
 }
 ----
