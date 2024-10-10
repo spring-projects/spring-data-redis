@@ -30,8 +30,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
- * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
- * particular element as Reactive Streams prohibit the usage of {@code null} values.
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@literal null} for a
+ * particular element as Reactive Streams prohibit the usage of {@literal null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -45,7 +45,7 @@ public interface ReactiveScriptExecutor<K> {
 	 *
 	 * @param script must not be {@literal null}.
 	 * @return the return value of the script or {@link Flux#empty()} if {@link RedisScript#getResultType()} is
-	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
+	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK").
 	 */
 	default <T> Flux<T> execute(RedisScript<T> script) {
 		return execute(script, Collections.emptyList());
@@ -57,7 +57,7 @@ public interface ReactiveScriptExecutor<K> {
 	 * @param script must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return the return value of the script or {@link Flux#empty()} if {@link RedisScript#getResultType()} is
-	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
+	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK").
 	 */
 	default <T> Flux<T> execute(RedisScript<T> script, List<K> keys) {
 		return execute(script, keys, Collections.emptyList());
@@ -67,8 +67,8 @@ public interface ReactiveScriptExecutor<K> {
 	 * Executes the given {@link RedisScript}
 	 *
 	 * @param script The script to execute. Must not be {@literal null}.
-	 * @param keys Any keys that need to be passed to the script. Must not be {@literal null}.
-	 * @param args Any args that need to be passed to the script. Can be {@literal empty}.
+	 * @param keys any keys that need to be passed to the script. Must not be {@literal null}.
+	 * @param args any args that need to be passed to the script. Can be {@literal empty}.
 	 * @return The return value of the script or {@link Flux#empty()} if {@link RedisScript#getResultType()} is
 	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
 	 */
@@ -79,8 +79,8 @@ public interface ReactiveScriptExecutor<K> {
 	 * arguments and result.
 	 *
 	 * @param script The script to execute. must not be {@literal null}.
-	 * @param keys Any keys that need to be passed to the script
-	 * @param args Any args that need to be passed to the script
+	 * @param keys any keys that need to be passed to the script.
+	 * @param args any args that need to be passed to the script.
 	 * @param argsWriter The {@link RedisElementWriter} to use for serializing args. Must not be {@literal null}.
 	 * @param resultReader The {@link RedisElementReader} to use for serializing the script return value. Must not be
 	 *          {@literal null}.
