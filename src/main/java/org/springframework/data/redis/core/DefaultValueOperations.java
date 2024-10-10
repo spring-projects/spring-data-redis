@@ -282,6 +282,16 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public void set(K key, V value, boolean keepTtl) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		Expiration expiration = keepTtl ? Expiration.keepTtl() : Expiration.persistent();
+		execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.upsert()));
+	}
+
+	@Override
 	public Boolean setIfAbsent(K key, V value) {
 
 		byte[] rawKey = rawKey(key);
@@ -317,6 +327,16 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		byte[] rawValue = rawValue(value);
 
 		Expiration expiration = Expiration.from(timeout, unit);
+		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
+	}
+
+	@Override
+	public Boolean setIfPresent(K key, V value, boolean keepTtl) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(value);
+
+		Expiration expiration = keepTtl ? Expiration.keepTtl() : Expiration.persistent();
 		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()));
 	}
 
