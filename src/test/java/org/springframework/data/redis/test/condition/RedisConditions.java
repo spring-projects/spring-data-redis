@@ -65,7 +65,7 @@ class RedisConditions {
 	/**
 	 * Create {@link RedisCommands} given {@link StatefulRedisConnection}.
 	 *
-	 * @param connection must not be {@code null}.
+	 * @param connection must not be {@literal null}.
 	 * @return
 	 */
 	public static RedisConditions of(StatefulRedisConnection<String, String> connection) {
@@ -75,7 +75,7 @@ class RedisConditions {
 	/**
 	 * Create {@link RedisCommands} given {@link StatefulRedisClusterConnection}.
 	 *
-	 * @param connection must not be {@code null}.
+	 * @param connection must not be {@literal null}.
 	 * @return
 	 */
 	public static RedisConditions of(StatefulRedisClusterConnection<String, String> connection) {
@@ -85,7 +85,7 @@ class RedisConditions {
 	/**
 	 * Create {@link RedisConditions} given {@link RedisCommands}.
 	 *
-	 * @param commands must not be {@code null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
 	public static RedisConditions of(RedisClusterCommands<String, String> commands) {

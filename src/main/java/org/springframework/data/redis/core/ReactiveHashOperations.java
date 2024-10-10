@@ -28,8 +28,8 @@ import java.util.Map;
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
- * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
- * particular element as Reactive Streams prohibit the usage of {@code null} values.
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@literal null} for a
+ * particular element as Reactive Streams prohibit the usage of {@literal null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -66,7 +66,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 
 	/**
 	 * Get values for given {@code hashKeys} from hash at {@code key}. Values are in the order of the requested keys.
-	 * Absent field values are represented using {@code null} in the resulting {@link List}.
+	 * Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.

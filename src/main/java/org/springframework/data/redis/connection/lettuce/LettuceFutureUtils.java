@@ -87,8 +87,8 @@ class LettuceFutureUtils {
 
 	/**
 	 * Returns a {@link Function} that ignores {@link CompletionStage#exceptionally(Function) exceptional completion} by
-	 * recovering to {@code null}. This allows to progress with a previously failed {@link CompletionStage} without regard
-	 * to the actual success/exception state.
+	 * recovering to {@literal null}. This allows to progress with a previously failed {@link CompletionStage} without
+	 * regard to the actual success/exception state.
 	 *
 	 * @return
 	 */

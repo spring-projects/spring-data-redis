@@ -61,7 +61,7 @@ public interface HashOperations<H, HK, HV> {
 
 	/**
 	 * Get values for given {@code hashKeys} from hash at {@code key}. Values are in the order of the requested keys
-	 * Absent field values are represented using {@code null} in the resulting {@link List}.
+	 * Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
