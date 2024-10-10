@@ -20,6 +20,8 @@ import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisClusterInfoCache;
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.providers.ClusterConnectionProvider;
 
 import java.time.Duration;
@@ -764,11 +766,16 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new DataAccessResourceFailureException("Node %s is unknown to cluster".formatted(node));
 		}
 
+		@Nullable
 		private ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
 
 			Map<String, ConnectionPool> clusterNodes = cluster.getClusterNodes();
-			if (clusterNodes.containsKey(node.asString())) {
-				return clusterNodes.get(node.asString());
+			HostAndPort hap = new HostAndPort(node.getHost(),
+					node.getPort() == null ? Protocol.DEFAULT_PORT : node.getPort());
+			String key = JedisClusterInfoCache.getNodeKey(hap);
+
+			if (clusterNodes.containsKey(key)) {
+				return clusterNodes.get(key);
 			}
 
 			return null;
