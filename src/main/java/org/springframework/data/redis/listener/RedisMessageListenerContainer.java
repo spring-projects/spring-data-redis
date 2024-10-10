@@ -107,6 +107,7 @@ import redis.clients.jedis.JedisCluster;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author John Blum
+ * @author Kenty Chen
  * @see MessageListener
  * @see SubscriptionListener
  */
