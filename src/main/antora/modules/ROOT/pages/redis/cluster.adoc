@@ -44,7 +44,7 @@ b8b5ee... 127.0.0.1:7382 slave 6b38bb... 0 1449730618304 25 connected          <
 
 [source,java]
 ----
-RedisClusterConnection connection = connectionFactory.getClusterConnnection();
+RedisClusterConnection connection = connectionFactory.getClusterConnection();
 
 connection.set("thing1", value);                                               <5>
 connection.set("thing2", value);                                               <6>
@@ -88,7 +88,7 @@ redis-cli@127.0.0.1:7379 > cluster nodes
 
 [source,java]
 ----
-RedisClusterConnection connection = connectionFactory.getClusterConnnection();
+RedisClusterConnection connection = connectionFactory.getClusterConnection();
 
 connection.set("thing1", value);           // slot: 12182
 connection.set("{thing1}.thing2", value);  // slot: 12182
@@ -134,5 +134,5 @@ clusterOps.shutdown(NODE_7379);                                              <1>
 <1> Shut down node at 7379 and cross fingers there is a replica in place that can take over.
 ====
 
-NOTE: Redis Cluster pipelining is currently only supported throug the Lettuce driver except for the following commands when using cross-slot keys: `rename`, `renameNX`, `sort`, `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `info`, `sMove`, `sInter`, `sInterStore`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
+NOTE: Redis Cluster pipelining is currently only supported through the Lettuce driver except for the following commands when using cross-slot keys: `rename`, `renameNX`, `sort`, `bLPop`, `bRPop`, `rPopLPush`, `bRPopLPush`, `info`, `sMove`, `sInter`, `sInterStore`, `sUnion`, `sUnionStore`, `sDiff`, `sDiffStore`.
 Same-slot keys are fully supported.
