@@ -106,6 +106,19 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 	}
 
 	@Override
+	public Flux<ByteBufferResponse<SetCommand>> setGet(Publisher<SetCommand> commands) {
+		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap((command) -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getValue(), "Value must not be null");
+
+			return reactiveCommands.setGet(command.getKey(), command.getValue())
+					.map(v -> new ByteBufferResponse<>(command, v))
+					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+		}));
+	}
+
+	@Override
 	public Flux<ByteBufferResponse<SetCommand>> getSet(Publisher<SetCommand> commands) {
 
 		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap((command) -> {

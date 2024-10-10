@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Marcin Grzejszczak
  * @since 2.0
  */
 public interface ReactiveStringCommands {
@@ -192,6 +193,41 @@ public interface ReactiveStringCommands {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Flux<BooleanResponse<SetCommand>> set(Publisher<SetCommand> commands);
+
+	/**
+	 * Set {@literal value} for {@literal key} with {@literal expiration} and {@literal options}. Return the old
+	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
+	 * stored at key is not a string.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} for no expiration time or
+	 *          {@link Expiration#keepTtl()} to keep the existing.
+	 * @param option must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 3.4
+	 */
+	@Nullable
+	default Mono<ByteBuffer> setGet(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return setGet(Mono.just(SetCommand.set(key).value(value).withSetOption(option).expiring(expiration))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Set each and every item separately by invoking {@link SetCommand}. Return the old
+	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
+	 * stored at key is not a string.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@link SetCommand} along with the command result.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Flux<ByteBufferResponse<SetCommand>> setGet(Publisher<SetCommand> commands);
 
 	/**
 	 * Get single element stored at {@literal key}.

@@ -571,6 +571,23 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assertThat(ttl).isLessThan(25L);
 	}
 
+	@ParameterizedRedisTest // GH-3017
+	void testSetGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		redisTemplate.boundValueOps(key).set(value1);
+
+		V oldValue = redisTemplate.boundValueOps(key).setGet(value2, 1, TimeUnit.DAYS);
+		redisTemplate.expire(key, 1, TimeUnit.DAYS);
+		Long ttl = redisTemplate.getExpire(key, TimeUnit.HOURS);
+
+		assertThat(oldValue).isEqualTo(value1);
+		assertThat(ttl).isGreaterThanOrEqualTo(23L);
+		assertThat(ttl).isLessThan(25L);
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-611
 	void testGetExpireDuration() {
 

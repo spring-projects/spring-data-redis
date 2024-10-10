@@ -117,6 +117,20 @@ class JedisStringCommands implements RedisStringCommands {
 	}
 
 	@Override
+	@Nullable
+	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+		Assert.notNull(option, "Option must not be null");
+
+		SetParams params = JedisConverters.toSetCommandExPxArgument(expiration,
+				JedisConverters.toSetCommandNxXxArgument(option));
+
+		return connection.invoke().just(Jedis::setGet, PipelineBinaryCommands::setGet, key, value, params);
+	}
+
+	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null");
