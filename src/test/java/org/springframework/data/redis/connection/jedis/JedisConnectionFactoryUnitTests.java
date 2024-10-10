@@ -18,9 +18,11 @@ package org.springframework.data.redis.connection.jedis;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.RedisProtocol;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -336,6 +338,30 @@ class JedisConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		assertThat(connectionFactory.isRunning()).isTrue();
+	}
+
+	@Test // GH-3007
+	void clientConfigurationAppliesCustomizer() {
+
+		JedisClientConfig resp3Config = apply(
+				JedisClientConfiguration.builder().customize(DefaultJedisClientConfig.Builder::resp3).build());
+
+		assertThat(resp3Config.getRedisProtocol()).isEqualTo(RedisProtocol.RESP3);
+
+		JedisClientConfig resp2Config = apply(
+				JedisClientConfiguration.builder().customize(it -> it.protocol(RedisProtocol.RESP2)).build());
+
+		assertThat(resp2Config.getRedisProtocol()).isEqualTo(RedisProtocol.RESP2);
+	}
+
+	private static JedisClientConfig apply(JedisClientConfiguration configuration) {
+
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),
+				configuration);
+		connectionFactory.setEarlyStartup(false);
+		connectionFactory.afterPropertiesSet();
+
+		return (JedisClientConfig) ReflectionTestUtils.getField(connectionFactory, "clientConfig");
 	}
 
 	@Test // GH-2866
