@@ -1510,12 +1510,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 
 			// for keyspace notification subscribtion start
-			if(connection instanceof JedisClusterConnection && isKeySpaceNotification(patterns)) {
+			if (connection instanceof JedisClusterConnection && isKeySpaceNotification(patterns)) {
 				DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
 				JedisCluster cluster = (JedisCluster) dfa.getPropertyValue("cluster");
-				cluster.getClusterNodes().forEach((key, pool ) -> {
+				cluster.getClusterNodes().forEach((key, pool) -> {
 					this.executor.execute(() -> {
-						try(Jedis jedis = new Jedis(pool.borrowObject())) {
+						try (Jedis jedis = new Jedis(pool.borrowObject())) {
 							String info = jedis.info("replication");
 							if (info.contains("role:master")) {
 								logger.info("Start to psubscribe with: " + key);
@@ -1547,7 +1547,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		private boolean isKeySpaceNotification(Collection<byte[]> patterns) {
-			if (patterns.size() != 1) return false;
+			if (patterns.size() != 1)
+				return false;
 			byte[] pattern = patterns.stream().findFirst().orElse(null);
 			return pattern != null && new String(pattern).contains("__keyspace@");
 		}
