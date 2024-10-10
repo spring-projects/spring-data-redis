@@ -101,7 +101,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author John Blum
- * @author SEONGJUN LEE
+ * @author Seongjun Lee
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -555,8 +555,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Adds a message listener to the (potentially running) container. If the container is running, the listener starts
 	 * receiving (matching) messages as soon as possible.
 	 *
-	 * @param listener message listener
-	 * @param topics message listener topic
+	 * @param listener message listener.
+	 * @param topics message listener topic.
 	 */
 	public void addMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
 		addListener(listener, topics);
@@ -566,8 +566,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Adds a message listener to the (potentially running) container. If the container is running, the listener starts
 	 * receiving (matching) messages as soon as possible.
 	 *
-	 * @param listener message listener
-	 * @param topic message topic
+	 * @param listener message listener.
+	 * @param topic message topic.
 	 */
 	public void addMessageListener(MessageListener listener, Topic topic) {
 		addMessageListener(listener, Collections.singleton(topic));
@@ -580,8 +580,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels.
 	 *
-	 * @param listener message listener
-	 * @param topics message listener topics
+	 * @param listener message listener.
+	 * @param topics message listener topics.
 	 */
 	public void removeMessageListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
 		removeListener(listener, topics);
@@ -594,8 +594,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels.
 	 *
-	 * @param listener message listener
-	 * @param topic message topic
+	 * @param listener message listener.
+	 * @param topic message topic.
 	 */
 	public void removeMessageListener(@Nullable MessageListener listener, Topic topic) {
 		removeMessageListener(listener, Collections.singleton(topic));
@@ -605,7 +605,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Removes the given message listener completely (from all topics). If the container is running, the listener stops
 	 * receiving (matching) messages as soon as possible.
 	 *
-	 * @param listener message listener
+	 * @param listener message listener.
 	 */
 	public void removeMessageListener(MessageListener listener) {
 
@@ -774,7 +774,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
-		if (listeners == null || listeners.isEmpty()) {
+		if (CollectionUtils.isEmpty(listeners)) {
 			return;
 		}
 

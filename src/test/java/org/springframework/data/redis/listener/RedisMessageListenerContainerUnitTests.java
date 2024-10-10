@@ -31,7 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
@@ -42,6 +46,7 @@ import org.springframework.util.backoff.FixedBackOff;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Seongjun Lee
  */
 class RedisMessageListenerContainerUnitTests {
 
@@ -220,23 +225,9 @@ class RedisMessageListenerContainerUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> container.afterPropertiesSet());
 	}
 
-	@Test
-	void shouldRemoveSpecificListenerFromMappingAndListenerTopics() {
-		MessageListener listener1 = mock(MessageListener.class);
-		MessageListener listener2 = mock(MessageListener.class);
-		Topic topic = new ChannelTopic("topic1");
-
-		container.addMessageListener(listener1, Collections.singletonList(topic));
-		container.addMessageListener(listener2, Collections.singletonList(topic));
-
-		container.removeMessageListener(listener1, Collections.singletonList(topic));
-
-		container.addMessageListener(listener2, Collections.singletonList(topic));
-		verify(listener1, never()).onMessage(any(), any());
-	}
-
-	@Test
+	@Test // GH-3009
 	void shouldRemoveAllListenersWhenListenerIsNull() {
+
 		MessageListener listener1 = mock(MessageListener.class);
 		MessageListener listener2 = mock(MessageListener.class);
 		Topic topic = new ChannelTopic("topic1");
@@ -246,7 +237,6 @@ class RedisMessageListenerContainerUnitTests {
 
 		container.removeMessageListener(null, Collections.singletonList(topic));
 
-		verify(listener1, never()).onMessage(any(), any());
-		verify(listener2, never()).onMessage(any(), any());
+		assertThatNoException().isThrownBy(() -> container.removeMessageListener(null, Collections.singletonList(topic)));
 	}
 }
