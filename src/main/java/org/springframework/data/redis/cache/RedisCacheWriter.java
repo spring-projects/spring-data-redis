@@ -293,7 +293,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		 * persistent value that does not expire.
 		 *
 		 * @param key the cache key.
-		 * @param value the cache value. Can be {@code null} if the cache supports {@code null} value caching.
+		 * @param value the cache value. Can be {@literal null} if the cache supports {@literal null} value caching.
 		 * @return the computed {@link Duration time-to-live (TTL)}. Can be {@link Duration#ZERO} for persistent values
 		 *         (i.e. cache entry does not expire).
 		 */

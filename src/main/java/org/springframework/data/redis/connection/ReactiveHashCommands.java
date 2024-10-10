@@ -289,7 +289,7 @@ public interface ReactiveHashCommands {
 
 	/**
 	 * Get values for given {@literal fields} from hash at {@literal key}. Values are in the order of the requested keys.
-	 * Absent field values are represented using {@code null} in the resulting {@link List}.
+	 * Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
@@ -306,7 +306,7 @@ public interface ReactiveHashCommands {
 
 	/**
 	 * Get values for given {@literal fields} from hash at {@literal key}. Values are in the order of the requested keys.
-	 * Absent field values are represented using {@code null} in the resulting {@link List}.
+	 * Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return

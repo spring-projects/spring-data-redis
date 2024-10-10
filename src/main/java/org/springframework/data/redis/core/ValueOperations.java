@@ -264,7 +264,7 @@ public interface ValueOperations<K, V> {
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys Absent field values are represented using
-	 * {@code null} in the resulting {@link List}.
+	 * {@literal null} in the resulting {@link List}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.

@@ -587,7 +587,7 @@ public abstract class RedisConnectionUtils {
 		 * Override the existing {@link RedisConnection} handle with the given {@link RedisConnection}. Reset the handle if
 		 * given {@literal null}.
 		 * <p>
-		 * Used for releasing the Connection on suspend (with a {@code null} argument) and setting a fresh Connection on
+		 * Used for releasing the Connection on suspend (with a {@literal null} argument) and setting a fresh Connection on
 		 * resume.
 		 */
 		protected void setConnection(@Nullable RedisConnection connection) {

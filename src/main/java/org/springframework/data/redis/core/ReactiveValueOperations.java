@@ -30,8 +30,8 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
- * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
- * particular element as Reactive Streams prohibit the usage of {@code null} values.
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@literal null} for a
+ * particular element as Reactive Streams prohibit the usage of {@literal null} values.
  *
  * @author Mark Paluch
  * @author Jiahe Cai
@@ -162,7 +162,7 @@ public interface ReactiveValueOperations<K, V> {
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys. Absent field values are represented using
-	 * {@code null} in the resulting {@link List}.
+	 * {@literal null} in the resulting {@link List}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>

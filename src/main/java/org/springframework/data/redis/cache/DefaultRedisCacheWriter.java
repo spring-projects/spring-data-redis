@@ -429,7 +429,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		 * @param name the cache name from which to retrieve the cache entry.
 		 * @param key the cache entry key.
 		 * @param ttl optional TTL to set for Time-to-Idle eviction.
-		 * @return a future that completes either with a value if the value exists or completing with {@code null} if the
+		 * @return a future that completes either with a value if the value exists or completing with {@literal null} if the
 		 *         cache does not contain an entry.
 		 */
 		CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl);
