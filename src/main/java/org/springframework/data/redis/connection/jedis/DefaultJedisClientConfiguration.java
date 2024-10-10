@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  */
 class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 
+	private final Optional<JedisClientConfigBuilderCustomizer> customizer;
 	private final boolean useSsl;
 	private final Optional<SSLSocketFactory> sslSocketFactory;
 	private final Optional<SSLParameters> sslParameters;
@@ -44,11 +45,13 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Duration readTimeout;
 	private final Duration connectTimeout;
 
-	DefaultJedisClientConfiguration(boolean useSsl, @Nullable SSLSocketFactory sslSocketFactory,
+	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer customizer, boolean useSsl,
+			@Nullable SSLSocketFactory sslSocketFactory,
 			@Nullable SSLParameters sslParameters, @Nullable HostnameVerifier hostnameVerifier, boolean usePooling,
 			@Nullable GenericObjectPoolConfig poolConfig, @Nullable String clientName, Duration readTimeout,
 			Duration connectTimeout) {
 
+		this.customizer = Optional.ofNullable(customizer);
 		this.useSsl = useSsl;
 		this.sslSocketFactory = Optional.ofNullable(sslSocketFactory);
 		this.sslParameters = Optional.ofNullable(sslParameters);
@@ -58,6 +61,11 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 		this.clientName = Optional.ofNullable(clientName);
 		this.readTimeout = readTimeout;
 		this.connectTimeout = connectTimeout;
+	}
+
+	@Override
+	public Optional<JedisClientConfigBuilderCustomizer> getCustomizer() {
+		return customizer;
 	}
 
 	@Override

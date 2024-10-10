@@ -59,6 +59,12 @@ import org.springframework.util.Assert;
 public interface JedisClientConfiguration {
 
 	/**
+	 * @return the optional {@link JedisClientConfigBuilderCustomizer}.
+	 * @since 3.4
+	 */
+	Optional<JedisClientConfigBuilderCustomizer> getCustomizer();
+
+	/**
 	 * @return {@literal true} to use SSL, {@literal false} to use unencrypted connections.
 	 */
 	boolean isUseSsl();
@@ -119,6 +125,8 @@ public interface JedisClientConfiguration {
 	/**
 	 * Creates a default {@link JedisClientConfiguration}.
 	 * <dl>
+	 * <dt>Customizer</dt>
+	 * <dd>none</dd>
 	 * <dt>SSL enabled</dt>
 	 * <dd>no</dd>
 	 * <dt>Pooling enabled</dt>
@@ -141,6 +149,15 @@ public interface JedisClientConfiguration {
 	 * Builder for {@link JedisClientConfiguration}.
 	 */
 	interface JedisClientConfigurationBuilder {
+
+		/**
+		 * Configure a {@link JedisClientConfigBuilderCustomizer} to configure
+		 * {@link redis.clients.jedis.JedisClientConfig}.
+		 *
+		 * @return {@link JedisClientConfigurationBuilder}.
+		 * @since 3.4
+		 */
+		JedisClientConfigurationBuilder customize(JedisClientConfigBuilderCustomizer customizer);
 
 		/**
 		 * Enable SSL connections.
@@ -269,6 +286,7 @@ public interface JedisClientConfiguration {
 	class DefaultJedisClientConfigurationBuilder implements JedisClientConfigurationBuilder,
 			JedisPoolingClientConfigurationBuilder, JedisSslClientConfigurationBuilder {
 
+		private @Nullable JedisClientConfigBuilderCustomizer customizer;
 		private boolean useSsl;
 		private @Nullable SSLSocketFactory sslSocketFactory;
 		private @Nullable SSLParameters sslParameters;
@@ -280,6 +298,15 @@ public interface JedisClientConfiguration {
 		private Duration connectTimeout = Duration.ofMillis(Protocol.DEFAULT_TIMEOUT);
 
 		private DefaultJedisClientConfigurationBuilder() {}
+
+		@Override
+		public JedisClientConfigurationBuilder customize(JedisClientConfigBuilderCustomizer customizer) {
+
+			Assert.notNull(customizer, "JedisClientConfigBuilderCustomizer must not be null");
+
+			this.customizer = customizer;
+			return this;
+		}
 
 		@Override
 		public JedisSslClientConfigurationBuilder useSsl() {
@@ -366,8 +393,8 @@ public interface JedisClientConfiguration {
 		@Override
 		public JedisClientConfiguration build() {
 
-			return new DefaultJedisClientConfiguration(useSsl, sslSocketFactory, sslParameters, hostnameVerifier, usePooling,
-					poolConfig, clientName, readTimeout, connectTimeout);
+			return new DefaultJedisClientConfiguration(customizer, useSsl, sslSocketFactory, sslParameters, hostnameVerifier,
+					usePooling, poolConfig, clientName, readTimeout, connectTimeout);
 		}
 	}
 

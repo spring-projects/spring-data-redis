@@ -711,6 +711,8 @@ public class JedisConnectionFactory
 			this.clientConfiguration.getSslParameters().ifPresent(builder::sslParameters);
 		}
 
+		this.clientConfiguration.getCustomizer().ifPresent(customizer -> customizer.customize(builder));
+
 		return builder.build();
 	}
 
@@ -1085,6 +1087,11 @@ public class JedisConnectionFactory
 			MutableJedisClientConfiguration configuration = new MutableJedisClientConfiguration();
 			configuration.setPoolConfig(jedisPoolConfig);
 			return configuration;
+		}
+
+		@Override
+		public Optional<JedisClientConfigBuilderCustomizer> getCustomizer() {
+			return Optional.empty();
 		}
 
 		@Override
