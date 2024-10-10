@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.springframework.data.redis.connection.jedis.StreamConverters.*;
 
+import org.springframework.data.redis.connection.stream.ClaimedMessages;
+import org.springframework.data.redis.connection.stream.ClaimedMessagesIds;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XClaimParams;
@@ -24,6 +26,7 @@ import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,6 +132,26 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	@Override
+	public ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
+		return null;
+	}
+
+	@Override
+	public ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
+		return null;
+	}
+
+	@Override
+	public ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
+		return null;
+	}
+
+	@Override
+	public ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
+		return null;
 	}
 
 	@Override
