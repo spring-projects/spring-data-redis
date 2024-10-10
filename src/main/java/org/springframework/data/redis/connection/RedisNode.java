@@ -29,7 +29,8 @@ import org.springframework.util.StringUtils;
  */
 public class RedisNode implements NamedNode {
 
-	private static final int DEFAULT_PORT = 6379;
+	public static final int DEFAULT_PORT = 6379;
+	public static final int DEFAULT_SENTINEL_PORT = 26379;
 
 	@Nullable String id;
 	@Nullable String name;
@@ -69,8 +70,11 @@ public class RedisNode implements NamedNode {
 	 * the port. For example:
 	 *
 	 * <pre class="code">
+	 * RedisNode.fromString("127.0.0.1");
 	 * RedisNode.fromString("127.0.0.1:6379");
+	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]");
 	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]:6379");
+	 * RedisNode.fromString("my.redis.server");
 	 * RedisNode.fromString("my.redis.server:6379");
 	 * </pre>
 	 *
@@ -79,6 +83,27 @@ public class RedisNode implements NamedNode {
 	 * @since 2.7.4
 	 */
 	public static RedisNode fromString(String hostPortString) {
+		return fromString(hostPortString, DEFAULT_PORT);
+	}
+
+	/**
+	 * Parse a {@code hostAndPort} string into {@link RedisNode}. Supports IPv4, IPv6, and hostname notations including
+	 * the port. For example:
+	 *
+	 * <pre class="code">
+	 * RedisNode.fromString("127.0.0.1");
+	 * RedisNode.fromString("127.0.0.1:6379");
+	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]");
+	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]:6379");
+	 * RedisNode.fromString("my.redis.server");
+	 * RedisNode.fromString("my.redis.server:6379");
+	 * </pre>
+	 *
+	 * @param hostPortString must not be {@literal null} or empty.
+	 * @return the parsed {@link RedisNode}.
+	 * @since 3.4
+	 */
+	public static RedisNode fromString(String hostPortString, int defaultPort) {
 
 		Assert.notNull(hostPortString, "HostAndPort must not be null");
 
@@ -106,16 +131,18 @@ public class RedisNode implements NamedNode {
 				} else {
 					// bare hostname
 					host = hostPortString;
-					portString = Integer.toString(DEFAULT_PORT);
 				}
 			}
 		}
 
-		int port = -1;
-		try {
-			port = Integer.parseInt(portString);
-		} catch (RuntimeException ignore) {
-			throw new IllegalArgumentException("Unparseable port number: %s".formatted(hostPortString));
+		int port = defaultPort;
+
+		if (StringUtils.hasText(portString)) {
+			try {
+				port = Integer.parseInt(portString);
+			} catch (RuntimeException ignore) {
+				throw new IllegalArgumentException("Unparseable port number: %s".formatted(hostPortString));
+			}
 		}
 
 		if (!isValidPort(port)) {

@@ -62,11 +62,9 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	/**
 	 * Creates a new {@link RedisClusterConfiguration} for given {@link String hostPort} combinations.
 	 *
-	 * <pre>
-	 * <code>
+	 * <pre class="code">
 	 * clusterHostAndPorts[0] = 127.0.0.1:23679
 	 * clusterHostAndPorts[1] = 127.0.0.1:23680 ...
-	 * </code>
 	 * </pre>
 	 *
 	 * @param clusterNodes must not be {@literal null}.

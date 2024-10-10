@@ -77,8 +77,9 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	/**
 	 * Creates a new {@link RedisSentinelConfiguration} for given {@link String hostPort} combinations.
 	 *
-	 * <pre>
-	 * sentinelHostAndPorts[0] = 127.0.0.1:23679 sentinelHostAndPorts[1] = 127.0.0.1:23680 ...
+	 * <pre class="code">
+	 * sentinelHostAndPorts[0] = 127.0.0.1:23679
+	 * sentinelHostAndPorts[1] = 127.0.0.1:23680 ...
 	 * </pre>
 	 *
 	 * @param sentinelHostAndPorts must not be {@literal null}.
@@ -92,11 +93,9 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 * Creates a new {@link RedisSentinelConfiguration} looking up configuration values from the given
 	 * {@link PropertySource}.
 	 *
-	 * <pre>
-	 * <code>
+	 * <pre class="code">
 	 * spring.redis.sentinel.master=myMaster
 	 * spring.redis.sentinel.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
-	 * </code>
 	 * </pre>
 	 *
 	 * @param propertySource must not be {@literal null}.
@@ -254,7 +253,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private void appendSentinels(Set<String> hostAndPorts) {
 
 		for (String hostAndPort : hostAndPorts) {
-			addSentinel(RedisNode.fromString(hostAndPort));
+			addSentinel(RedisNode.fromString(hostAndPort, RedisNode.DEFAULT_SENTINEL_PORT));
 		}
 	}
 

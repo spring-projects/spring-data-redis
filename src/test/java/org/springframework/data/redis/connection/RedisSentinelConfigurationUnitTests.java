@@ -41,7 +41,6 @@ class RedisSentinelConfigurationUnitTests {
 	private static final String HOST_AND_PORT_1 = "127.0.0.1:123";
 	private static final String HOST_AND_PORT_2 = "localhost:456";
 	private static final String HOST_AND_PORT_3 = "localhost:789";
-	private static final String HOST_AND_NO_PORT = "localhost";
 
 	@Test // DATAREDIS-372
 	void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndSingleHostAndPortString() {
@@ -72,12 +71,6 @@ class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels()).hasSize(3);
 		assertThat(config.getSentinels()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
 				new RedisNode("localhost", 789));
-	}
-
-	@Test // DATAREDIS-372
-	void shouldThrowExecptionOnInvalidHostAndPortString() {
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new RedisSentinelConfiguration("mymaster", Collections.singleton(HOST_AND_NO_PORT)));
 	}
 
 	@Test // DATAREDIS-372

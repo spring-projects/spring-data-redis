@@ -41,7 +41,6 @@ class RedisClusterConfigurationUnitTests {
 	private static final String HOST_AND_PORT_3 = "localhost:789";
 	private static final String HOST_AND_PORT_4 = "[fe80::a00:27ff:fe4b:ee48]:6379";
 	private static final String HOST_AND_PORT_5 = "[fe80:1234:1a2b:0:27ff:fe4b:0:ee48]:6380";
-	private static final String HOST_AND_NO_PORT = "localhost";
 
 	@Test // DATAREDIS-315
 	void shouldCreateRedisClusterConfigurationCorrectly() {
@@ -73,12 +72,6 @@ class RedisClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes().size()).isEqualTo(3);
 		assertThat(config.getClusterNodes()).contains(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456),
 				new RedisNode("localhost", 789));
-	}
-
-	@Test // DATAREDIS-315
-	void shouldThrowExecptionOnInvalidHostAndPortString() {
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new RedisClusterConfiguration(Collections.singleton(HOST_AND_NO_PORT)));
 	}
 
 	@Test // DATAREDIS-315
