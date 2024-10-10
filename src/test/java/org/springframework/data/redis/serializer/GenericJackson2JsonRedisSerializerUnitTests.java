@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
@@ -449,6 +450,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 	@Test
 	void defaultSerializeAndDeserializeNullValueWithBuilderClass() {
+
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
 				.objectMapper(new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY))
 				.build();
@@ -485,6 +487,31 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		Object deserializedValue = serializer.deserialize(serializedValue);
 		assertThat(deserializedValue).isNull();
+	}
+
+	@Test // GH-2981
+	void defaultSerializeAndDeserializeWithCustomJsonFactory() {
+
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.objectMapper(
+						new ObjectMapper(new MessagePackFactory()).enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY))
+				.build();
+
+		byte[] serializedValue = serializer.serialize(COMPLEX_OBJECT);
+
+		Object deserializedValue = serializer.deserialize(serializedValue, Object.class);
+		assertThat(deserializedValue).isEqualTo(COMPLEX_OBJECT);
+	}
+
+	@Test // GH-2981
+	void defaultSerializeAndDeserializeNullValueWithBuilderClassAndCustomJsonFactory() {
+
+		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
+				.objectMapper(
+						new ObjectMapper(new MessagePackFactory()).enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY))
+				.build();
+
+		serializeAndDeserializeNullValue(serializer);
 	}
 
 	private static void serializeAndDeserializeNullValue(GenericJackson2JsonRedisSerializer serializer) {

@@ -277,6 +277,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.msgpack</groupId>
+			<artifactId>jackson-dataformat-msgpack</artifactId>
+			<version>0.9.8</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>edu.umd.cs.mtc</groupId>
 			<artifactId>multithreadedtc</artifactId>
 			<version>${multithreadedtc}</version>

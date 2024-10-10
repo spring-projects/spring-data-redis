@@ -32,13 +32,19 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerFactory;
+import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.JsonNodeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
@@ -179,7 +185,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		Lazy<String> lazyTypeHintPropertyName = typeHintPropertyName != null ? Lazy.of(typeHintPropertyName)
 				: newLazyTypeHintPropertyName(mapper, defaultTypingEnabled);
 
-		return new TypeResolver(lazyTypeFactory, lazyTypeHintPropertyName);
+		return new TypeResolver(mapper, lazyTypeFactory, lazyTypeHintPropertyName);
 	}
 
 	private static Lazy<String> newLazyTypeHintPropertyName(ObjectMapper mapper, Lazy<Boolean> defaultTypingEnabled) {
@@ -340,14 +346,13 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	static class TypeResolver {
 
-		// need a separate instance to bypass class hint checks
-		private final ObjectMapper mapper = new ObjectMapper();
-
+		private final ObjectMapper mapper;
 		private final Supplier<TypeFactory> typeFactory;
 		private final Supplier<String> hintName;
 
-		TypeResolver(Supplier<TypeFactory> typeFactory, Supplier<String> hintName) {
+		TypeResolver(ObjectMapper mapper, Supplier<TypeFactory> typeFactory, Supplier<String> hintName) {
 
+			this.mapper = mapper;
 			this.typeFactory = typeFactory;
 			this.hintName = hintName;
 		}
@@ -358,7 +363,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		protected JavaType resolveType(byte[] source, Class<?> type) throws IOException {
 
-			JsonNode root = mapper.readTree(source);
+			JsonNode root = readTree(source);
 			JsonNode jsonNode = root.get(hintName.get());
 
 			if (jsonNode instanceof TextNode && jsonNode.asText() != null) {
@@ -366,6 +371,48 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			}
 
 			return constructType(type);
+		}
+
+		/**
+		 * Lenient variant of ObjectMapper._readTreeAndClose using a strict {@link JsonNodeDeserializer}.
+		 *
+		 * @param source
+		 * @return
+		 * @throws IOException
+		 */
+		private JsonNode readTree(byte[] source) throws IOException {
+
+			JsonDeserializer<? extends JsonNode> deserializer = JsonNodeDeserializer.getDeserializer(JsonNode.class);
+			DeserializationConfig cfg = mapper.getDeserializationConfig();
+
+			try (JsonParser parser = createParser(source, cfg)) {
+
+				JsonToken t = parser.currentToken();
+				if (t == null) {
+					t = parser.nextToken();
+					if (t == null) {
+						return cfg.getNodeFactory().missingNode();
+					}
+				}
+
+				/*
+				 * Hokey pokey! Oh my.
+				 */
+				DefaultDeserializationContext ctxt = new DefaultDeserializationContext.Impl(BeanDeserializerFactory.instance)
+						.createInstance(cfg, parser, mapper.getInjectableValues());
+				if (t == JsonToken.VALUE_NULL) {
+					return cfg.getNodeFactory().nullNode();
+				} else {
+					return deserializer.deserialize(parser, ctxt);
+				}
+			}
+		}
+
+		private JsonParser createParser(byte[] source, DeserializationConfig cfg) throws IOException {
+
+			JsonParser parser = mapper.createParser(source);
+			cfg.initialize(parser);
+			return parser;
 		}
 	}
 

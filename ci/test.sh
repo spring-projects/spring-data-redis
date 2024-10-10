@@ -13,7 +13,7 @@ pushd /tmp && ln -s /work && make -f $cwd/Makefile start && popd
 export JENKINS_USER=${JENKINS_USER_NAME}
 
 # Execute maven test
-MAVEN_OPTS="-Duser.name=${JENKINS_USER} -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -Dredis.server.version=${REDIS_VERSION:-unknown} -U -B
+MAVEN_OPTS="-Duser.name=${JENKINS_USER} -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Ddevelocity.storage.directory=/tmp/jenkins-home/.develocity-root -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-redis clean test -P${PROFILE} -DrunLongTests=${LONG_TESTS:-false} -Dredis.server.version=${REDIS_VERSION:-unknown} -U -B
 
 # Capture resulting exit code from maven (pass/fail)
 RESULT=$?
