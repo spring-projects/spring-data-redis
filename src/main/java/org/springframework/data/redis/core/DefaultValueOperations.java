@@ -22,8 +22,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import org.springframework.data.redis.connection.BitFieldSubCommands;
-import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.DefaultedRedisConnection;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
@@ -45,79 +46,39 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 	@Override
 	public V get(Object key) {
-
-		return execute(new ValueDeserializingRedisCallback(key) {
-
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.get(rawKey);
-			}
-		});
+		return execute(valueCallbackFor(key, DefaultedRedisConnection::get));
 	}
 
 	@Nullable
 	@Override
 	public V getAndDelete(K key) {
-
-		return execute(new ValueDeserializingRedisCallback(key) {
-
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.getDel(rawKey);
-			}
-		});
+		return execute(valueCallbackFor(key, DefaultedRedisConnection::getDel));
 	}
 
 	@Nullable
 	@Override
 	public V getAndExpire(K key, long timeout, TimeUnit unit) {
-
-		return execute(new ValueDeserializingRedisCallback(key) {
-
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.getEx(rawKey, Expiration.from(timeout, unit));
-			}
-		});
+		return execute(
+				valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.from(timeout, unit))));
 	}
 
 	@Nullable
 	@Override
 	public V getAndExpire(K key, Duration timeout) {
-
-		return execute(new ValueDeserializingRedisCallback(key) {
-
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.getEx(rawKey, Expiration.from(timeout));
-			}
-		});
+		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.from(timeout))));
 	}
 
 	@Nullable
 	@Override
 	public V getAndPersist(K key) {
-
-		return execute(new ValueDeserializingRedisCallback(key) {
-
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.getEx(rawKey, Expiration.persistent());
-			}
-		});
+		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.persistent())));
 	}
 
 	@Override
 	public V getAndSet(K key, V newValue) {
 
 		byte[] rawValue = rawValue(newValue);
-		return execute(new ValueDeserializingRedisCallback(key) {
-
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.getSet(rawKey, rawValue);
-			}
-		});
+		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getSet(rawKey, rawValue)));
 	}
 
 	@Override
@@ -232,15 +193,10 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	@Override
 	public void set(K key, V value) {
 
+		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
-		execute(new ValueDeserializingRedisCallback(key) {
 
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				connection.set(rawKey, rawValue);
-				return null;
-			}
-		});
+		execute(connection -> connection.set(rawKey, rawValue));
 	}
 
 	@Override

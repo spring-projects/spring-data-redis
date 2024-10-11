@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -51,7 +52,7 @@ abstract class AbstractOperations<K, V> {
 
 	// utility methods for the template internal methods
 	abstract class ValueDeserializingRedisCallback implements RedisCallback<V> {
-		private Object key;
+		private final Object key;
 
 		public ValueDeserializingRedisCallback(Object key) {
 			this.key = key;
@@ -66,10 +67,29 @@ abstract class AbstractOperations<K, V> {
 		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
+	private class FunctionalValueDeserializingRedisCallback extends ValueDeserializingRedisCallback {
+
+		private final BiFunction<RedisConnection, byte[], byte[]> function;
+
+		public FunctionalValueDeserializingRedisCallback(Object key, BiFunction<RedisConnection, byte[], byte[]> function) {
+			super(key);
+			this.function = function;
+		}
+
+		@Nullable
+		protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+			return function.apply(connection, rawKey);
+		}
+	}
+
 	final RedisTemplate<K, V> template;
 
 	AbstractOperations(RedisTemplate<K, V> template) {
 		this.template = template;
+	}
+
+	ValueDeserializingRedisCallback valueCallbackFor(Object key, BiFunction<RedisConnection, byte[], byte[]> function) {
+		return new FunctionalValueDeserializingRedisCallback(key, function);
 	}
 
 	RedisSerializer keySerializer() {
