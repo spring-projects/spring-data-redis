@@ -558,10 +558,22 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 	}
 
 	@ParameterizedRedisTest // GH-2853
-	void setWithGetOption() {
+	void setGetMono() {
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.stringCommands().setGet(KEY_1_BBUFFER, VALUE_2_BBUFFER, Expiration.keepTtl(), SetOption.upsert())
+				.as(StepVerifier::create) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
+
+		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
+	}
+
+	@ParameterizedRedisTest // GH-2853
+	void setGetFlux() {
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.stringCommands().setGet(Mono.just(SetCommand.set(KEY_1_BBUFFER).value(VALUE_2_BBUFFER).expiring(Expiration.keepTtl()).withSetOption( SetOption.upsert())))
 				.map(CommandResponse::getOutput)
 				.as(StepVerifier::create) //
 				.expectNext(VALUE_1_BBUFFER) //
