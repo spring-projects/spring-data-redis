@@ -106,6 +106,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Christian Rest
+ * @author DongCheol Kim
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -155,9 +156,10 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
-	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
-	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
+	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * immediately, otherwise it'll be scheduled and started once the container is actually
+	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
 	 * Errors during {@link Record} retrieval lead to {@link Subscription#cancel() cancellation} of the underlying task.
 	 * <p>
@@ -174,9 +176,10 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
-	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
-	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
+	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * immediately, otherwise it'll be scheduled and started once the container is actually
+	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
 	 * Every message must be acknowledged using
 	 * {@link org.springframework.data.redis.core.StreamOperations#acknowledge(Object, String, String...)} after
@@ -200,9 +203,10 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
-	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
-	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
+	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * immediately, otherwise it'll be scheduled and started once the container is actually
+	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
 	 * Every message is acknowledged when received.
 	 * <p>
@@ -223,9 +227,10 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If the {@link StreamMessageListenerContainer#isRunning() is already
-	 * running} the {@link Subscription} will be added and run immediately, otherwise it'll be scheduled and started once
-	 * the container is actually {@link StreamMessageListenerContainer#start() started}.
+	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * immediately, otherwise it'll be scheduled and started once the container is actually
+	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
 	 * Errors during {@link Record} are tested against test {@link StreamReadRequest#getCancelSubscriptionOnError()
 	 * cancellation predicate} whether to cancel the underlying task.
