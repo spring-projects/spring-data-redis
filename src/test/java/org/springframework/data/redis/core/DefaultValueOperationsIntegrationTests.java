@@ -317,6 +317,32 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
+	void testSetGetWithExpiration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.setGet(key, value2, 1, TimeUnit.SECONDS)).isEqualTo(value1);
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+	}
+
+	@ParameterizedRedisTest
+	void testSetGetWithExpirationDuration() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key, value1);
+
+		assertThat(valueOps.setGet(key, value2, Duration.ofMillis(1000))).isEqualTo(value1);
+		assertThat(valueOps.get(key)).isEqualTo(value2);
+	}
+
+	@ParameterizedRedisTest
 	void testAppend() {
 
 		K key = keyFactory.instance();

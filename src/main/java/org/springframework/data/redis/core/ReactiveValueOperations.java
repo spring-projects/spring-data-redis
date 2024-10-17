@@ -59,6 +59,18 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> set(K key, V value, Duration timeout);
 
 	/**
+	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old
+	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
+	 * stored at key is not a string.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param timeout must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 */
+	Mono<V> setGet(K key, V value, Duration timeout);
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
