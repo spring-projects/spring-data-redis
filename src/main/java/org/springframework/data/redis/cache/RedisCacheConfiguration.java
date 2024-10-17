@@ -436,7 +436,6 @@ public class RedisCacheConfiguration {
 	 * Registers default cache {@link Converter key converters}.
 	 * <p>
 	 * The following converters get registered:
-	 * <p>
 	 * <ul>
 	 * <li>{@link String} to {@link byte byte[]} using UTF-8 encoding.</li>
 	 * <li>{@link SimpleKey} to {@link String}</li>
