@@ -65,7 +65,6 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
  * <h3>Example</h3>
- * <p>
  * <pre class="code">
  * class Person {
  * 	String firstname;
