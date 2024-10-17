@@ -47,7 +47,7 @@ It is possible to opt in to the locking behavior as follows:
 
 [source,java]
 ----
-RedisCacheManager cacheMangager = RedisCacheManager
+RedisCacheManager cacheManager = RedisCacheManager
     .build(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
     .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig())
     ...
