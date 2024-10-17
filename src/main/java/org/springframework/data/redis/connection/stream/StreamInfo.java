@@ -219,6 +219,8 @@ public class StreamInfo {
 	 * {@literal Redis Stream}.
 	 *
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
+	 * @author Krzysztof Kocel
 	 */
 	public static class XInfoGroups implements Streamable<XInfoGroup> {
 
@@ -360,6 +362,26 @@ public class StreamInfo {
 		 */
 		public String lastDeliveredId() {
 			return getRequired("last-delivered-id", String.class);
+		}
+
+		/**
+		 * The logical "read counter" of the last entry delivered to the group's consumers. Corresponds to {@literal entries-read}.
+		 *
+		 * @return
+		 */
+		public Long entriesRead() {
+			return getRequired("entries-read", Long.class);
+		}
+
+		/**
+		 * The number of entries in the stream that are still waiting to be delivered to the group's consumers,
+		 * or a NULL when that number can't be determined. Corresponds to {@literal lag}.
+		 *
+		 * @return
+		 */
+		@Nullable
+		public Long lag() {
+			return get("lag", Long.class);
 		}
 	}
 
