@@ -329,6 +329,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
+	default byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		return stringCommands().setGet(key, value, expiration, option);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
 	default Boolean setNX(byte[] key, byte[] value) {
 		return stringCommands().setNX(key, value);
 	}
