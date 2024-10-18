@@ -429,6 +429,8 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 					assertThat(info.groupName()).isEqualTo("my-group");
 					assertThat(info.consumerCount()).isEqualTo(1L);
 					assertThat(info.pendingCount()).isEqualTo(2L);
+					assertThat(info.lag()).isZero();
+					assertThat(info.entriesRead()).isEqualTo(2L);
 					assertThat(info.lastDeliveredId()).isEqualTo(lastRecord);
 				}).verifyComplete();
 	}
@@ -455,6 +457,8 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 					assertThat(info.groupName()).isEqualTo("my-group");
 					assertThat(info.consumerCount()).isZero();
 					assertThat(info.pendingCount()).isZero();
+					assertThat(info.entriesRead()).isZero();
+					assertThat(info.lag()).isZero();
 					assertThat(info.lastDeliveredId()).isEqualTo("0-0");
 				}).verifyComplete();
 	}
