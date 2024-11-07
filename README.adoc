@@ -2,7 +2,8 @@
 
 The primary goal of the https://spring.io/projects/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-This module provides integration with the https://redis.io/[Redis] store. It is also tested to work with https://valkey.io/[Valkey].
+This module provides integration with the https://redis.io/[Redis] store.
+It is also tested to work with https://valkey.io/[Valkey] on a best-effort basis as long as Valkey remains largely compatible with Redis.
 
 == Features
 
