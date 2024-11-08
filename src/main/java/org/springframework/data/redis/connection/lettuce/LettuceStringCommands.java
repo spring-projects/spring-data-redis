@@ -116,6 +116,18 @@ class LettuceStringCommands implements RedisStringCommands {
 	}
 
 	@Override
+	@Nullable
+	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(expiration, "Expiration must not be null");
+		Assert.notNull(option, "Option must not be null");
+
+		return connection.invoke()
+				.just(RedisStringAsyncCommands::setGet, key, value, LettuceConverters.toSetArgs(expiration, option));
+	}
+
+	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 
 		Assert.notNull(key, "Key must not be null");

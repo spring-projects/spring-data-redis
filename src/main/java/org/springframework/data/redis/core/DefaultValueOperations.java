@@ -209,6 +209,27 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	public V setGet(K key, V value, long timeout, TimeUnit unit) {
+		return doSetGet(key, value, Expiration.from(timeout, unit));
+	}
+
+	@Override
+	public V setGet(K key, V value, Duration duration) {
+		return doSetGet(key, value, Expiration.from(duration));
+	}
+
+	private V doSetGet(K key, V value, Expiration duration) {
+		byte[] rawValue = rawValue(value);
+		return execute( new ValueDeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.stringCommands().setGet(rawKey, rawValue, duration, SetOption.UPSERT);
+			}
+		});
+	}
+
+	@Override
 	public Boolean setIfAbsent(K key, V value) {
 
 		byte[] rawKey = rawKey(key);

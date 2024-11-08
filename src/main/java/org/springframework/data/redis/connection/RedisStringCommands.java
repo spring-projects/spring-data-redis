@@ -123,6 +123,22 @@ public interface RedisStringCommands {
 	Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option);
 
 	/**
+	 * Set {@code value} for {@code key}. Return the old string stored at key, or nil if key did not exist.
+	 * An error is returned and SET aborted if the value stored at key is not a string.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration must not be {@literal null}. Use {@link Expiration#persistent()} to not set any ttl or
+	 *          {@link Expiration#keepTtl()} to keep the existing expiration.
+	 * @param option must not be {@literal null}. Use {@link SetOption#upsert()} to add non existing.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option);
+
+	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
 	 *
 	 * @param key must not be {@literal null}.

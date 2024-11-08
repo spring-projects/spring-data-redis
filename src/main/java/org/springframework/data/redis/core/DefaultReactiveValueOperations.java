@@ -78,6 +78,18 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
+	public Mono<V> setGet(K key, V value, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+		Assert.notNull(timeout, "Duration must not be null");
+
+		return createMono(stringCommands ->
+				stringCommands.setGet(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.UPSERT))
+				.map(this::readRequiredValue);
+	}
+
+	@Override
 	public Mono<Boolean> setIfAbsent(K key, V value) {
 
 		Assert.notNull(key, "Key must not be null");
