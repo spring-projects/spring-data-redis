@@ -22,7 +22,7 @@
 		<springdata.commons>3.3.6-SNAPSHOT</springdata.commons>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
-		<xstream>1.4.20</xstream>
+		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
 		<lettuce>6.3.2.RELEASE</lettuce>
 		<jedis>5.0.2</jedis>
