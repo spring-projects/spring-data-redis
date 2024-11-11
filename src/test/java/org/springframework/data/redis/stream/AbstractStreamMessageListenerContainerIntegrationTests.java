@@ -384,6 +384,27 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
+	@Test // GH-2261
+	void containerShouldStopGracefully() throws InterruptedException {
+		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+			.create(connectionFactory, containerOptions);
+
+		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
+		container.start();
+		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), r -> {
+			try {
+				Thread.sleep(1500);
+			} catch (InterruptedException e) {
+				// ignore
+			}
+			queue.add(r);
+		});
+		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("key", "value1"));
+		subscription.await(DEFAULT_TIMEOUT);
+		container.stop();
+		assertThat(queue.poll(500, TimeUnit.MILLISECONDS)).isNotNull();
+	}
+
 	private static void cancelAwait(Subscription subscription) {
 
 		subscription.cancel();
