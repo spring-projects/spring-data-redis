@@ -139,6 +139,7 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 			} catch (InterruptedException ex) {
 
+				cancelLatch.countDown();
 				cancel();
 				Thread.currentThread().interrupt();
 			} catch (RuntimeException ex) {
