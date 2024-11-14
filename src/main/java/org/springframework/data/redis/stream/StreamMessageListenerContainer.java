@@ -156,8 +156,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
-	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * Register a new subscription for a Redis Stream. If the container is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and started
 	 * immediately, otherwise it'll be scheduled and started once the container is actually
 	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
@@ -176,8 +176,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
-	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * Register a new subscription for a Redis Stream. If the container is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and started
 	 * immediately, otherwise it'll be scheduled and started once the container is actually
 	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
@@ -203,8 +203,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
-	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * Register a new subscription for a Redis Stream. If the container is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and started
 	 * immediately, otherwise it'll be scheduled and started once the container is actually
 	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
@@ -227,8 +227,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	}
 
 	/**
-	 * Register a new subscription for a Redis Stream. If a {@link StreamMessageListenerContainer} is already
-	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and run
+	 * Register a new subscription for a Redis Stream. If the container is already
+	 * {@link StreamMessageListenerContainer#isRunning() running} the {@link Subscription} will be added and started
 	 * immediately, otherwise it'll be scheduled and started once the container is actually
 	 * {@link StreamMessageListenerContainer#start() started}.
 	 * <p>
@@ -250,9 +250,9 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 	/**
 	 * Unregister a given {@link Subscription} from the container. This prevents the {@link Subscription} to be restarted
-	 * in a potential {@link SmartLifecycle#stop() stop}/{@link SmartLifecycle#start() start} scenario.<br />
-	 * An {@link Subscription#isActive() active} {@link Subscription subcription} is {@link Subscription#cancel()
-	 * cancelled} prior to removal.
+	 * in a potential {@link SmartLifecycle#stop() stop}/{@link SmartLifecycle#start() start} scenario. An
+	 * {@link Subscription#isActive() active} {@link Subscription subcription} is {@link Subscription#cancel() cancelled}
+	 * prior to removal.
 	 *
 	 * @param subscription must not be {@literal null}.
 	 */
