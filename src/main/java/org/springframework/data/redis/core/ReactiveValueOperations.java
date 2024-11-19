@@ -63,7 +63,7 @@ public interface ReactiveValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Mono<Boolean> setIfAbsent(K key, V value);
 
