@@ -35,9 +35,9 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.Streamable;
@@ -54,9 +54,9 @@ public class RedisPartTreeQuery extends KeyValuePartTreeQuery {
 
 	private final RedisKeyValueAdapter adapter;
 
-	public RedisPartTreeQuery(QueryMethod queryMethod, QueryMethodEvaluationContextProvider evaluationContextProvider,
+	public RedisPartTreeQuery(QueryMethod queryMethod, ValueExpressionDelegate valueExpressionDelegate,
 			KeyValueOperations template, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-		super(queryMethod, evaluationContextProvider, template, queryCreator);
+		super(queryMethod, valueExpressionDelegate, template, queryCreator);
 		this.adapter = (RedisKeyValueAdapter) template.getKeyValueAdapter();
 	}
 
