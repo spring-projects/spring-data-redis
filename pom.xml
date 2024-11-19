@@ -14,12 +14,12 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.5.0-SNAPSHOT</version>
+		<version>4.0.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.5.0-SNAPSHOT</springdata.keyvalue>
-		<springdata.commons>3.5.0-SNAPSHOT</springdata.commons>
+		<springdata.keyvalue>4.0.0-SNAPSHOT</springdata.keyvalue>
+		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.21</xstream>
