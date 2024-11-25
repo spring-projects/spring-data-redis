@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Todd Merrill
  * @author Chen Li
  * @author Vedran Pavic
+ * @author Marcin Grzejszczak
  */
 public interface RedisOperations<K, V> {
 
@@ -151,7 +152,7 @@ public interface RedisOperations<K, V> {
 	 * to free resources after use.
 	 *
 	 * @param callback must not be {@literal null}.
-	 * @return
+	 * @return the {@link Object result} of the operation performed in the callback or {@literal null}.
 	 * @since 1.8
 	 */
 	@Nullable
@@ -167,7 +168,7 @@ public interface RedisOperations<K, V> {
 	 * @param sourceKey must not be {@literal null}.
 	 * @param targetKey must not be {@literal null}.
 	 * @param replace whether the key was copied. {@literal null} when used in pipeline / transaction.
-	 * @return
+	 * @return {@code true} when copied successfully or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6
 	 */
@@ -361,7 +362,7 @@ public interface RedisOperations<K, V> {
 	 * Remove the expiration from given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@code true} when persisted successfully or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
 	@Nullable
