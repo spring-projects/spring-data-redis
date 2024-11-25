@@ -17,16 +17,10 @@ package org.springframework.data.redis.support.collections;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
@@ -304,4 +298,35 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	public Iterator<java.util.Map.Entry<Object, Object>> scan() {
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public List<Long> expire(Duration timeout, Collection<Object> hashKeys) {
+		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
+		return Objects.requireNonNull(hashOps.expire(timeout, keys));
+	}
+
+	@Override
+	public List<Long> expireAt(Instant expireAt, Collection<Object> hashKeys) {
+		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
+		return Objects.requireNonNull(hashOps.expireAt(expireAt, keys));
+	}
+
+	@Override
+	public List<Long> persist(Collection<Object> hashKeys) {
+		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
+		return Objects.requireNonNull(hashOps.persist(keys));
+	}
+
+	@Override
+	public List<Long> getExpire(Collection<Object> hashKeys) {
+		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
+		return Objects.requireNonNull(hashOps.getExpire(keys));
+	}
+
+	@Override
+	public List<Long> getExpire(TimeUnit timeUnit, Collection<Object> hashKeys) {
+		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
+		return Objects.requireNonNull(hashOps.getExpire(timeUnit, keys));
+	}
+
 }
