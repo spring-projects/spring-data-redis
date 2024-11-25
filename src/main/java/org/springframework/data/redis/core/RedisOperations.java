@@ -178,7 +178,7 @@ public interface RedisOperations<K, V> {
 	 * Determine if given {@code key} exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if key exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	@Nullable
