@@ -65,6 +65,7 @@ import org.springframework.lang.Nullable;
  * @author ihaohong
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
+ * @author Tihomir Mateev
  * @since 2.0
  */
 @Deprecated
@@ -1468,6 +1469,55 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default Long hStrLen(byte[] key, byte[] field) {
 		return hashCommands().hStrLen(key, field);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+		return hashCommands().hExpire(key, seconds, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+		return hashCommands().hpExpire(key, millis, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+		return hashCommands().hExpireAt(key, unixTime, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+		return hashCommands().hpExpireAt(key, unixTimeInMillis, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hPersist(byte[] key, byte[]... fields) {
+		return hashCommands().hPersist(key, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hTtl(byte[] key, byte[]... fields) {
+		return hashCommands().hTtl(key, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
+		return hashCommands().hTtl(key, timeUnit, fields);
 	}
 
 	// GEO COMMANDS
