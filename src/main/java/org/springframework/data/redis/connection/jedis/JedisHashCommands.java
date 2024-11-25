@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisHashCommands;
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Tihomir Mateev
  * @since 2.0
  */
 class JedisHashCommands implements RedisHashCommands {
@@ -248,6 +250,42 @@ class JedisHashCommands implements RedisHashCommands {
 			};
 
 		}.open();
+	}
+
+	@Override
+	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+		return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, fields);
+	}
+
+	@Override
+	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+		return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, fields);
+	}
+
+	@Override
+	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+		return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
+	}
+
+	@Override
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+		return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis, fields);
+	}
+
+	@Override
+	public List<Long> hPersist(byte[] key, byte[]... fields) {
+		return connection.invoke().just(Jedis::hpersist, PipelineBinaryCommands::hpersist, key, fields);
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, byte[]... fields) {
+		return connection.invoke().just(Jedis::httl, PipelineBinaryCommands::httl, key, fields);
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
+		return connection.invoke().fromMany(Jedis::httl, PipelineBinaryCommands::httl, key, fields)
+				.toList(Converters.secondsToTimeUnit(timeUnit));
 	}
 
 	@Nullable

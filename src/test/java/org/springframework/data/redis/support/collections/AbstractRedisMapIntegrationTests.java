@@ -20,14 +20,18 @@ import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -188,6 +192,34 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		V v1 = getValue();
 		map.put(k1, v1);
 		assertThat(map.increment(k1, 10)).isEqualTo(Long.valueOf(Long.valueOf((String) v1) + 10));
+	}
+
+	@ParameterizedRedisTest
+	void testExpire() {
+		K k1 = getKey();
+		V v1 = getValue();
+		assertThat(map.put(k1, v1)).isEqualTo(null);
+
+		Collection<K> keys = Collections.singletonList(k1);
+		assertThat(map.expire(Duration.ofSeconds(5), keys)).contains(1L);
+		assertThat(map.getExpire(keys)).allSatisfy(expiration -> assertThat(expiration).isBetween(1L, 5L));
+		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys))
+				.allSatisfy(expiration -> assertThat(expiration).isBetween(1000L, 5000L));
+		assertThat(map.persist(keys)).contains(1L);
+	}
+
+	@ParameterizedRedisTest
+	void testExpireAt() {
+		K k1 = getKey();
+		V v1 = getValue();
+		assertThat(map.put(k1, v1)).isEqualTo(null);
+
+		Collection<K> keys = Collections.singletonList(k1);
+		assertThat(map.expireAt(Instant.now().plusSeconds(5), keys)).contains(1L);
+		assertThat(map.getExpire(keys)).allSatisfy(expiration -> assertThat(expiration).isBetween(1L, 5L));
+		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys))
+				.allSatisfy(expiration -> assertThat(expiration).isBetween(1000L, 5000L));
+		assertThat(map.persist(keys)).contains(1L);
 	}
 
 	@ParameterizedRedisTest
@@ -496,4 +528,5 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		assertThat(map.randomEntry()).isIn(new AbstractMap.SimpleImmutableEntry(k1, v1),
 				new AbstractMap.SimpleImmutableEntry(k2, v2));
 	}
+
 }
