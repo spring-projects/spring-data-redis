@@ -54,7 +54,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param timeout must not be {@literal null}.
-	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Mono<Boolean> set(K key, V value, Duration timeout);
 
@@ -281,6 +281,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param command must not be {@literal null}.
 	 * @return
 	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 */
 	Mono<List<Long>> bitField(K key, BitFieldSubCommands command);
 
@@ -288,6 +289,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * Removes the given {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Mono<Boolean> delete(K key);
 }
