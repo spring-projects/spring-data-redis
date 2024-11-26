@@ -589,6 +589,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 * Boolean, Integer, Double) will never use typing; that is both due to them being concrete and final, and since
 		 * actual serializers and deserializers will also ignore any attempts to enforce typing.
 		 */
+		@Override
 		public boolean useForType(JavaType javaType) {
 
 			if (javaType.isJavaLangObject()) {
