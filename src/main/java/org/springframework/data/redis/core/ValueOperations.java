@@ -77,6 +77,16 @@ public interface ValueOperations<K, V> {
 	}
 
 	/**
+	 * Set {@code value} for {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param keepTtl whether to retain TTL associated with the key.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	void set(K key, V value, boolean keepTtl);
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
@@ -174,6 +184,19 @@ public interface ValueOperations<K, V> {
 
 		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
+
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param keepTtl whether to retain TTL associated with the key.
+	 * @return command result indicating if the key has been set.
+	 * @throws IllegalArgumentException if either {@code key} or {@code value} is not present.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	@Nullable
+	Boolean setIfPresent(K key, V value, boolean keepTtl);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
