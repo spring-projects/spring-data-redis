@@ -62,7 +62,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action. Must not be {@literal null}.
-	 * @return a result object returned by the action or {@literal null}
+	 * @return result of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation.
 	 */
 	@Nullable
 	<T> T execute(RedisCallback<T> action);
@@ -73,7 +73,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param session session callback. Must not be {@literal null}.
-	 * @return result object returned by the action or {@literal null}
+	 * @return result of the given {@link SessionCallback#execute(RedisOperations)} invocation.
 	 */
 	@Nullable
 	<T> T execute(SessionCallback<T> session);
@@ -84,7 +84,9 @@ public interface RedisOperations<K, V> {
 	 * serializers to deserialize results
 	 *
 	 * @param action callback object to execute
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation. Results are
+	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(RedisCallback<?> action);
 
@@ -95,7 +97,9 @@ public interface RedisOperations<K, V> {
 	 * @param action callback object to execute
 	 * @param resultSerializer The Serializer to use for individual values or Collections of values. If any returned
 	 *          values are hashes, this serializer will be used to deserialize both the key and value
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation. Results are
+	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(RedisCallback<?> action, RedisSerializer<?> resultSerializer);
 
@@ -104,7 +108,9 @@ public interface RedisOperations<K, V> {
 	 * callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
 	 *
 	 * @param session Session callback
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link SessionCallback#execute(RedisOperations)} invocation. Results are
+	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(SessionCallback<?> session);
 
@@ -115,7 +121,9 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param session Session callback
 	 * @param resultSerializer
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link SessionCallback#execute(RedisOperations)} invocation. Results are
+	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(SessionCallback<?> session, RedisSerializer<?> resultSerializer);
 
