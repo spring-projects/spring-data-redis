@@ -48,7 +48,7 @@ It is possible to opt in to the locking behavior as follows:
 [source,java]
 ----
 RedisCacheManager cacheManager = RedisCacheManager
-    .build(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
+    .builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
     .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig())
     ...
 ----
@@ -77,7 +77,7 @@ The `SCAN` strategy requires a batch size to avoid excessive Redis command round
 [source,java]
 ----
 RedisCacheManager cacheManager = RedisCacheManager
-    .build(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(1000)))
+    .builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(1000)))
     .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig())
     ...
 ----
