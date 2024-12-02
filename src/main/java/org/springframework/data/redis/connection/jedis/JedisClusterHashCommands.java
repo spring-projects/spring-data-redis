@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisHashCommands;
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Tihomir Mateev
  * @since 2.0
  */
 class JedisClusterHashCommands implements RedisHashCommands {
@@ -285,6 +287,92 @@ class JedisClusterHashCommands implements RedisHashCommands {
 				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 		}.open();
+	}
+
+	@Override
+	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().hexpire(key, seconds, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().hpexpire(key, millis, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().hexpireAt(key, unixTime, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().hpexpireAt(key, unixTimeInMillis, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hPersist(byte[] key, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().hpersist(key, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().httl(key, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().httl(key, fields).stream()
+					.map(it -> it != null ? timeUnit.convert(it, TimeUnit.SECONDS) : null)
+					.toList();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Nullable
