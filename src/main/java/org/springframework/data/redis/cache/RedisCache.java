@@ -425,10 +425,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 				.thenApply(this::toValueWrapper);
 	}
 
-	@Nullable
-	private Object nullSafeDeserializedStoreValue(@Nullable byte[] value) {
-		return value != null ? fromStoreValue(deserializeCacheValue(value)) : null;
-	}
 
 	private boolean hasToStringMethod(Object target) {
 		return hasToStringMethod(target.getClass());
