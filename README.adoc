@@ -36,7 +36,7 @@ public class Example {
 
     // inject the actual template
     @Autowired
-    private RedisTemplate<String, String> template;
+    private RedisTemplate<String, String> redisTemplate;
 
     // inject the template as ListOperations
     // can also inject as Value, Set, ZSet, and HashOperations
