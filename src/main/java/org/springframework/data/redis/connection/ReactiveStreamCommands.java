@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -58,6 +59,7 @@ import org.springframework.util.StringUtils;
  * @author Tugdual Grall
  * @author Dengliming
  * @author Mark John Moreno
+ * @author jinkshower
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -335,7 +337,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.3
 		 */
 		public boolean hasMaxlen() {
-			return maxlen != null && maxlen > 0;
+			return maxlen != null;
 		}
 
 		/**
@@ -395,10 +397,39 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
+	 * Add stream record with the specified options.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param xAddOptions parameters for the {@literal XADD} call. Must not be {@literal null}.
+	 * @return {@link Mono} the {@link RecordId id}.
+	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
+	 * @since 3.4
+	 */
+	default Mono<RecordId> xAdd(ByteBufferRecord record, XAddOptions xAddOptions) {
+
+		Assert.notNull(record, "Record must not be null");
+		Assert.notNull(xAddOptions, "XAddOptions must not be null");
+
+		AddStreamRecord addStreamRecord = AddStreamRecord.of(record)
+			.approximateTrimming(xAddOptions.isApproximateTrimming())
+			.makeNoStream(xAddOptions.isNoMkStream());
+
+		if (xAddOptions.hasMaxlen()) {
+			addStreamRecord = addStreamRecord.maxlen(xAddOptions.getMaxlen());
+		}
+
+		if (xAddOptions.hasMinId()) {
+			addStreamRecord = addStreamRecord.minId(xAddOptions.getMinId());
+		}
+
+		return xAdd(Mono.just(addStreamRecord)).next().map(CommandResponse::getOutput);
+	}
+
+	/**
 	 * Add stream record with given {@literal body} to {@literal key}.
 	 *
 	 * @param commands must not be {@literal null}.
-	 * @return {@link Flux} emitting the {@link RecordId} on by for for the given {@link AddStreamRecord} commands.
+	 * @return {@link Flux} emitting the {@link RecordId} on by for the given {@link AddStreamRecord} commands.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands);
@@ -654,7 +685,7 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(groupName, "GroupName must not be null");
 
-		return xPendingSummary(Mono.just(new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null))).next()
+		return xPendingSummary(Mono.just(PendingRecordsCommand.pending(key, groupName))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -695,7 +726,7 @@ public interface ReactiveStreamCommands {
 	 */
 	@Nullable
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, Range.unbounded(), null))).next()
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -712,7 +743,7 @@ public interface ReactiveStreamCommands {
 	 * @since 2.3
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, null, range, count))).next()
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -748,8 +779,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
 			Long count) {
-		return xPending(Mono.just(new PendingRecordsCommand(key, groupName, consumerName, range, count))).next()
-				.map(CommandResponse::getOutput);
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count)))
+				.next().map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -801,9 +832,15 @@ public interface ReactiveStreamCommands {
 		/**
 		 * Create new {@link PendingRecordsCommand} with given {@link Range} and limit.
 		 *
+		 * @param range must not be {@literal null}.
+		 * @param count the max number of messages to return. Must not be negative.
 		 * @return new instance of {@link XPendingOptions}.
 		 */
-		public PendingRecordsCommand range(Range<String> range, Long count) {
+		public PendingRecordsCommand range(Range<?> range, Long count) {
+
+			Assert.notNull(range, "Range must not be null");
+			Assert.isTrue(count > -1, "Count must not be negative");
+
 			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
 		}
 
@@ -855,7 +892,7 @@ public interface ReactiveStreamCommands {
 		 * @return {@literal true} count is set.
 		 */
 		public boolean isLimited() {
-			return count != null && count > -1;
+			return count != null;
 		}
 	}
 

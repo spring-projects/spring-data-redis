@@ -34,7 +34,6 @@ import org.springframework.data.util.TypeInformation;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @param <T>
- * @param <ID>
  */
 @ExtendWith(MockitoExtension.class)
 class BasicRedisPersistentEntityUnitTests<T> {
@@ -66,7 +65,8 @@ class BasicRedisPersistentEntityUnitTests<T> {
 		entity.addPersistentProperty(property1);
 
 		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> entity.addPersistentProperty(property2))
-				.withMessageContaining("Attempt to add id property").withMessageContaining("but already have an property");
+				.withMessageContaining("Attempt to add id property")
+				.withMessageContaining("but already have a property");
 	}
 
 	@Test // DATAREDIS-425
@@ -84,7 +84,7 @@ class BasicRedisPersistentEntityUnitTests<T> {
 		entity.addPersistentProperty(property1);
 		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> entity.addPersistentProperty(property2))
 				.withMessageContaining("Attempt to add explicit id property")
-				.withMessageContaining("but already have an property");
+				.withMessageContaining("but already have a property");
 	}
 
 	@Test // DATAREDIS-425

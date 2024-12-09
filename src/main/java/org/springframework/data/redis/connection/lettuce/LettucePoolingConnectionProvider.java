@@ -135,9 +135,8 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 			return ((RedisClientProvider) connectionProvider).getRedisClient();
 		}
 
-		throw new IllegalStateException(
-				String.format("Underlying connection provider %s does not implement RedisClientProvider",
-						connectionProvider.getClass().getName()));
+		throw new IllegalStateException("Underlying connection provider %s does not implement RedisClientProvider"
+				.formatted(connectionProvider.getClass().getName()));
 	}
 
 	@Override
@@ -165,9 +164,8 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 	private void discardIfNecessary(StatefulConnection<?, ?> connection) {
 
-		if (connection instanceof StatefulRedisConnection) {
+		if (connection instanceof StatefulRedisConnection<?, ?> redisConnection) {
 
-			StatefulRedisConnection<?, ?> redisConnection = (StatefulRedisConnection<?, ?>) connection;
 			if (redisConnection.isMulti()) {
 				redisConnection.async().discard();
 			}

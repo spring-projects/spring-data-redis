@@ -495,14 +495,14 @@ public abstract class RedisConnectionUtils {
 			if (isPotentiallyThreadBoundCommand(commandToExecute)) {
 
 				if (log.isDebugEnabled()) {
-					log.debug(String.format("Invoke '%s' on bound connection", method.getName()));
+					log.debug("Invoke '%s' on bound connection".formatted(method.getName()));
 				}
 
 				return invoke(method, obj, args);
 			}
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Invoke '%s' on unbound connection", method.getName()));
+				log.debug("Invoke '%s' on unbound connection".formatted(method.getName()));
 			}
 
 			RedisConnection connection = factory.getConnection();
@@ -587,7 +587,7 @@ public abstract class RedisConnectionUtils {
 		 * Override the existing {@link RedisConnection} handle with the given {@link RedisConnection}. Reset the handle if
 		 * given {@literal null}.
 		 * <p>
-		 * Used for releasing the Connection on suspend (with a {@code null} argument) and setting a fresh Connection on
+		 * Used for releasing the Connection on suspend (with a {@literal null} argument) and setting a fresh Connection on
 		 * resume.
 		 */
 		protected void setConnection(@Nullable RedisConnection connection) {

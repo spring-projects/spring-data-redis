@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>3.4.0-SNAPSHOT</version>
+	<version>3.5.0-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 	<description>Spring Data module for Redis</description>
@@ -14,20 +14,20 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.4.0-SNAPSHOT</version>
+		<version>3.5.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.4.0-SNAPSHOT</springdata.keyvalue>
-		<springdata.commons>3.4.0-SNAPSHOT</springdata.commons>
+		<springdata.keyvalue>3.5.0-SNAPSHOT</springdata.keyvalue>
+		<springdata.commons>3.5.0-SNAPSHOT</springdata.commons>
 		<awaitility>4.0.2</awaitility>
 		<beanutils>1.9.4</beanutils>
-		<xstream>1.4.20</xstream>
+		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
-		<lettuce>6.3.2.RELEASE</lettuce>
-		<jedis>5.0.2</jedis>
+		<lettuce>6.4.1.RELEASE</lettuce>
+		<jedis>5.2.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.107.Final</netty>
+		<netty>4.1.115.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
@@ -49,6 +49,14 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-pool2</artifactId>
 				<version>${pool}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-bom</artifactId>
+				<version>${netty}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 
 		</dependencies>
@@ -104,7 +112,6 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-transport-native-epoll</artifactId>
 			<classifier>linux-x86_64</classifier>
-			<version>${netty}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -112,7 +119,6 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-transport-native-kqueue</artifactId>
 			<classifier>osx-x86_64</classifier>
-			<version>${netty}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -277,6 +283,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.msgpack</groupId>
+			<artifactId>jackson-dataformat-msgpack</artifactId>
+			<version>0.9.8</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>edu.umd.cs.mtc</groupId>
 			<artifactId>multithreadedtc</artifactId>
 			<version>${multithreadedtc}</version>
@@ -367,7 +380,7 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.spring.maven.antora</groupId>
+						<groupId>org.antora</groupId>
 						<artifactId>antora-maven-plugin</artifactId>
 					</plugin>
 				</plugins>

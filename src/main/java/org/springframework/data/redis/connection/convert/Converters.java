@@ -20,11 +20,10 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -63,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author daihuabin
  * @author John Blum
  * @author Sorokin Evgeniy
+ * @author Marcin Grzejszczak
  */
 public abstract class Converters {
 
@@ -410,7 +410,7 @@ public abstract class Converters {
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(String.format("parsing %s (%s) as %s", sourcePath, path, targetType));
+			LOGGER.debug("parsing %s (%s) as %s".formatted(sourcePath, path, targetType));
 		}
 
 		if (targetType == Object.class) {
@@ -545,10 +545,15 @@ public abstract class Converters {
 		 * <li>{@code %s:%i} (Redis 3)</li>
 		 * <li>{@code %s:%i@%i} (Redis 4, with bus port)</li>
 		 * <li>{@code %s:%i@%i,%s} (Redis 7, with announced hostname)</li>
+		 *
+		 * The output of the {@code CLUSTER NODES } command is just a space-separated CSV string, where each
+		 * line represents a node in the cluster. The following is an example of output on Redis 7.2.0.
+		 * You can check the latest <a href="https://redis.io/docs/latest/commands/cluster-nodes/">here</a>.
+		 *
+		 * {@code <id> <ip:port@cport[,hostname]> <flags> <master> <ping-sent> <pong-recv> <config-epoch> <link-state> <slot> <slot> ... <slot>}
+		 *
 		 * </ul>
 		 */
-		static final Pattern clusterEndpointPattern = Pattern
-				.compile("\\[?([0-9a-zA-Z\\-_\\.:]*)\\]?:([0-9]+)(?:@[0-9]+(?:,([^,].*))?)?");
 		private static final Map<String, Flag> flagLookupMap;
 
 		static {
@@ -567,32 +572,88 @@ public abstract class Converters {
 		static final int LINK_STATE_INDEX = 7;
 		static final int SLOTS_INDEX = 8;
 
+		/**
+		 * Value object capturing Redis' representation of a cluster node network coordinate.
+		 *
+		 * @author Marcin Grzejszczak
+		 * @author Mark Paluch
+		 */
+		record AddressPortHostname(String address, String port, @Nullable String hostname) {
+
+			/**
+			 * Parses Redis {@code CLUSTER NODES} host and port segment into {@link AddressPortHostname}.
+			 */
+			static AddressPortHostname parse(String hostAndPortPart) {
+
+				String[] segments = hostAndPortPart.split(",");
+				int portSeparator = segments[0].lastIndexOf(":");
+				Assert.isTrue(portSeparator != -1, "ClusterNode information does not define host and port");
+
+				String addressPart = getAddressPart(segments[0].substring(0, portSeparator));
+				String portPart = getPortPart(segments[0].substring(portSeparator + 1));
+				String hostnamePart = segments.length > 1 ? segments[1] : null;
+
+				return new AddressPortHostname(addressPart, portPart, hostnamePart);
+			}
+
+			private static String getAddressPart(String address) {
+				return address.startsWith("[") && address.endsWith("]") ? address.substring(1, address.length() - 1) : address;
+			}
+
+			private static String getPortPart(String segment) {
+
+				if (segment.contains("@")) {
+					return segment.substring(0, segment.indexOf('@'));
+				}
+
+				if (segment.contains(":")) {
+					return segment.substring(0, segment.indexOf(':'));
+				}
+
+				return segment;
+			}
+
+			public int portAsInt() {
+				return Integer.parseInt(port());
+			}
+
+			public boolean hasHostname() {
+				return StringUtils.hasText(hostname());
+			}
+
+			public String getRequiredHostname() {
+
+				if (StringUtils.hasText(hostname())) {
+					return hostname();
+				}
+
+				throw new IllegalStateException("Hostname not available");
+			}
+		}
+
 		@Override
 		public RedisClusterNode convert(String source) {
 
 			String[] args = source.split(" ");
 
-			Matcher matcher = clusterEndpointPattern.matcher(args[HOST_PORT_INDEX]);
+			Assert.isTrue(args.length >= MASTER_ID_INDEX + 1,
+					() -> "Invalid ClusterNode information, insufficient segments: %s".formatted(source));
 
-			Assert.isTrue(matcher.matches(), "ClusterNode information does not define host and port");
-
-			String addressPart = matcher.group(1);
-			String portPart = matcher.group(2);
-			String hostnamePart = matcher.group(3);
+			AddressPortHostname endpoint = AddressPortHostname.parse(args[HOST_PORT_INDEX]);
 
 			SlotRange range = parseSlotRange(args);
-			Set<Flag> flags = parseFlags(args);
+			Set<Flag> flags = parseFlags(args[FLAGS_INDEX]);
 
 			RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-					.listeningAt(addressPart, Integer.parseInt(portPart)) //
+					.listeningAt(endpoint.address(), endpoint.portAsInt()) //
 					.withId(args[ID_INDEX]) //
 					.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.REPLICA) //
 					.serving(range) //
 					.withFlags(flags) //
 					.linkState(parseLinkState(args));
 
-			if (hostnamePart != null) {
-				nodeBuilder.withName(hostnamePart);
+			if (endpoint.hasHostname()) {
+				nodeBuilder.withName(endpoint.getRequiredHostname());
 			}
 
 			if (!args[MASTER_ID_INDEX].isEmpty() && !args[MASTER_ID_INDEX].startsWith("-")) {
@@ -602,14 +663,12 @@ public abstract class Converters {
 			return nodeBuilder.build();
 		}
 
-		private Set<Flag> parseFlags(String[] args) {
-
-			String raw = args[FLAGS_INDEX];
+		private Set<Flag> parseFlags(String source) {
 
 			Set<Flag> flags = new LinkedHashSet<>(8, 1);
 
-			if (StringUtils.hasText(raw)) {
-				for (String flag : raw.split(",")) {
+			if (StringUtils.hasText(source)) {
+				for (String flag : source.split(",")) {
 					flags.add(flagLookupMap.get(flag));
 				}
 			}

@@ -10,7 +10,10 @@ ENV GH_ORG=valkey-io
 COPY ./Makefile /
 
 RUN set -eux; \
-#	sed -i -e 's/http/https/g' /etc/apt/sources.list ; \
+	sed -i -e 's/archive.ubuntu.com/mirror.one.com/g' /etc/apt/sources.list && \
+	sed -i -e 's/security.ubuntu.com/mirror.one.com/g' /etc/apt/sources.list && \
+	sed -i -e 's/ports.ubuntu.com/mirrors.ocf.berkeley.edu/g' /etc/apt/sources.list && \
+	sed -i -e 's/http/https/g' /etc/apt/sources.list && \
 	apt-get update ; \
 	apt-get install -y build-essential ; \
 	make work/valkey/bin/valkey-cli work/valkey/bin/valkey-server VERSION=${VERSION}; \

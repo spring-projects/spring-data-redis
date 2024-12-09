@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.repository.query;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -29,6 +30,8 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -37,6 +40,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Junghoon Ban
  * @since 1.7
  */
 public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisOperationChain>, RedisOperationChain> {
@@ -57,10 +61,8 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 			case TRUE -> sink.sismember(part.getProperty().toDotPath(), true);
 			case FALSE -> sink.sismember(part.getProperty().toDotPath(), false);
 			case WITHIN, NEAR -> sink.near(getNearPath(part, iterator));
-			default -> {
-				String message = String.format("%s is not supported for Redis query derivation", part.getType());
-				throw new IllegalArgumentException(message);
-			}
+			default ->
+				throw new IllegalArgumentException("%s is not supported for Redis query derivation".formatted(part.getType()));
 		}
 
 		return sink;
@@ -78,17 +80,15 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	}
 
 	@Override
-	protected KeyValueQuery<RedisOperationChain> complete(final RedisOperationChain criteria, Sort sort) {
+	protected KeyValueQuery<RedisOperationChain> complete(@Nullable RedisOperationChain criteria, Sort sort) {
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<>(criteria);
 
-		if (query.getCriteria() != null && !CollectionUtils.isEmpty(query.getCriteria().getSismember())
-				&& !CollectionUtils.isEmpty(query.getCriteria().getOrSismember()))
-			if (query.getCriteria().getSismember().size() == 1 && query.getCriteria().getOrSismember().size() == 1) {
-
-				query.getCriteria().getOrSismember().add(query.getCriteria().getSismember().iterator().next());
-				query.getCriteria().getSismember().clear();
-			}
+		if (criteria != null && containsExactlyOne(criteria.getSismember())
+				&& containsExactlyOne(criteria.getOrSismember())) {
+			criteria.getOrSismember().addAll(criteria.getSismember());
+			criteria.getSismember().clear();
+		}
 
 		if (sort.isSorted()) {
 			query.setSort(sort);
@@ -99,43 +99,42 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 	private NearPath getNearPath(Part part, Iterator<Object> iterator) {
 
+		String path = part.getProperty().toDotPath();
 		Object value = iterator.next();
 
-		Point point;
-		Distance distance;
-
-		if (value instanceof Circle) {
-			point = ((Circle) value).getCenter();
-			distance = ((Circle) value).getRadius();
-		} else if (value instanceof Point) {
-
-			point = (Point) value;
-
-			if (!iterator.hasNext()) {
-				String message = "Expected to find distance value for geo query; Are you missing a parameter";
-				throw new InvalidDataAccessApiUsageException(message);
-			}
-
-			Object distObject = iterator.next();
-			if (distObject instanceof Distance) {
-				distance = (Distance) distObject;
-			} else if (distObject instanceof Number) {
-				distance = new Distance(((Number) distObject).doubleValue(), Metrics.KILOMETERS);
-			} else {
-
-				String message = String.format("Expected to find Distance or Numeric value for geo query but was %s",
-						distObject.getClass());
-
-				throw new InvalidDataAccessApiUsageException(message);
-			}
-		} else {
-
-			String message = String.format("Expected to find a Circle or Point/Distance for geo query but was %s.",
-					value.getClass());
-
-			throw new InvalidDataAccessApiUsageException(message);
+		if (value instanceof Circle circle) {
+			return new NearPath(path, circle.getCenter(), circle.getRadius());
 		}
 
-		return new NearPath(part.getProperty().toDotPath(), point, distance);
+		if (value instanceof Point point) {
+
+			if (!iterator.hasNext()) {
+				throw new InvalidDataAccessApiUsageException(
+						"Expected to find distance value for geo query;" + " Are you missing a parameter?");
+			}
+
+			Distance distance;
+			Object distObject = iterator.next();
+
+			if (distObject instanceof Distance dist) {
+				distance = dist;
+			} else if (distObject instanceof Number num) {
+				distance = new Distance(num.doubleValue(), Metrics.KILOMETERS);
+			} else {
+
+				throw new InvalidDataAccessApiUsageException(
+						"Expected to find Distance or Numeric value for geo query but was %s"
+								.formatted(ClassUtils.getDescriptiveType(distObject)));
+			}
+
+			return new NearPath(path, point, distance);
+		}
+
+		throw new InvalidDataAccessApiUsageException("Expected to find a Circle or Point/Distance for geo query but was %s"
+				.formatted(ClassUtils.getDescriptiveType(value.getClass())));
+	}
+
+	private static boolean containsExactlyOne(Collection<?> collection) {
+		return !CollectionUtils.isEmpty(collection) && collection.size() == 1;
 	}
 }

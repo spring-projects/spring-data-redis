@@ -35,6 +35,7 @@ import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -61,6 +62,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Marcin Zielinski
+ * @author jinkshower
  */
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
@@ -80,12 +82,6 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		return ReactiveOperationsTestParams.testParams();
 	}
 
-	/**
-	 * @param redisTemplate
-	 * @param keyFactory
-	 * @param valueFactory
-	 * @param label parameterized test label, no further use besides that.
-	 */
 	public DefaultReactiveStreamOperationsIntegrationTests(Fixture<K, HV> fixture) {
 
 		this.serializer = fixture.getSerializer();
@@ -190,6 +186,153 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 					assertThat(it.getValue()).isEqualTo(value);
 				}) //
 				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMaxLenShouldLimitMessagesSize() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		HV newValue = valueFactory.instance();
+		XAddOptions options = XAddOptions.maxlen(1).approximateTrimming(false);
+
+		RecordId messageId = streamOperations.add(key, Collections.singletonMap(hashKey, newValue), options).block();
+
+		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).consumeNextWith(actual -> {
+
+			assertThat(actual.getId()).isEqualTo(messageId);
+			assertThat(actual.getStream()).isEqualTo(key);
+			assertThat(actual).hasSize(1);
+
+			if (!(key instanceof byte[] || value instanceof byte[])) {
+				assertThat(actual.getValue()).containsEntry(hashKey, newValue);
+			}
+
+		}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMaxLenShouldLimitSimpleMessagesSize() {
+
+		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof JdkSerializationRedisSerializer) && !(serializer instanceof OxmSerializer));
+
+		K key = keyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(StreamRecords.objectBacked(value).withStreamKey(key)).block();
+
+		HV newValue = valueFactory.instance();
+		XAddOptions options = XAddOptions.maxlen(1).approximateTrimming(false);
+
+		RecordId messageId = streamOperations.add(StreamRecords.objectBacked(newValue).withStreamKey(key), options).block();
+
+		streamOperations.range((Class<HV>) value.getClass(), key, Range.unbounded()).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+
+					assertThat(actual.getId()).isEqualTo(messageId);
+					assertThat(actual.getStream()).isEqualTo(key);
+					assertThat(actual.getValue()).isEqualTo(newValue);
+
+				}).expectNextCount(0).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMaxLenShouldLimitSimpleMessageWithRawSerializerSize() {
+
+		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer));
+
+		SerializationPair<K> keySerializer = redisTemplate.getSerializationContext().getKeySerializationPair();
+
+		RedisSerializationContext<K, String> serializationContext = RedisSerializationContext
+				.<K, String> newSerializationContext(StringRedisSerializer.UTF_8).key(keySerializer)
+				.hashValue(SerializationPair.raw()).hashKey(SerializationPair.raw()).build();
+
+		ReactiveRedisTemplate<K, String> raw = new ReactiveRedisTemplate<>(redisTemplate.getConnectionFactory(),
+				serializationContext);
+
+		K key = keyFactory.instance();
+		Person value = new PersonObjectFactory().instance();
+
+		raw.opsForStream().add(StreamRecords.objectBacked(value).withStreamKey(key)).block();
+
+		Person newValue = new PersonObjectFactory().instance();
+		XAddOptions options = XAddOptions.maxlen(1).approximateTrimming(false);
+
+		RecordId messageId = raw.opsForStream().add(StreamRecords.objectBacked(newValue).withStreamKey(key), options)
+				.block();
+
+		raw.opsForStream().range((Class<HV>) value.getClass(), key, Range.unbounded()).as(StepVerifier::create)
+				.consumeNextWith(it -> {
+
+					assertThat(it.getId()).isEqualTo(messageId);
+					assertThat(it.getStream()).isEqualTo(key);
+					assertThat(it.getValue()).isEqualTo(newValue);
+
+				}).expectNextCount(0).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMinIdShouldEvictLowerIdMessages() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId messageId1 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		XAddOptions options = XAddOptions.none().minId(messageId1);
+
+		RecordId messageId2 = streamOperations.add(key, Collections.singletonMap(hashKey, value), options).block();
+
+		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).consumeNextWith(actual -> {
+			assertThat(actual.getId()).isEqualTo(messageId1);
+			assertThat(actual.getStream()).isEqualTo(key);
+		}).consumeNextWith(actual -> {
+			assertThat(actual.getId()).isEqualTo(messageId2);
+			assertThat(actual.getStream()).isEqualTo(key);
+		}).expectNextCount(0).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMakeNoStreamShouldNotCreateStreamWhenNoStreamExists() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		XAddOptions options = XAddOptions.makeNoStream();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value), options).block();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(0L).verifyComplete();
+
+		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).expectNextCount(0L).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2915
+	void addMakeNoStreamShouldCreateStreamWhenStreamExists() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		XAddOptions options = XAddOptions.makeNoStream();
+
+		streamOperations.add(key, Collections.singletonMap(hashKey, value), options).block();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).expectNextCount(2L).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-864
@@ -359,7 +502,6 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 			assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
 			assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
 		}).verifyComplete();
-
 	}
 
 	@ParameterizedRedisTest // GH-2465
@@ -384,6 +526,5 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 					assertThat(claimed.getValue()).isEqualTo(content);
 					assertThat(claimed.getId()).isEqualTo(messageId);
 				}).verifyComplete();
-
 	}
 }

@@ -863,16 +863,15 @@ public abstract class LettuceConverters extends Converters {
 			return GeoSearch.byRadius(radius.getValue(), toGeoArgsUnit(radius.getMetric()));
 		}
 
-		if (predicate instanceof BoxShape) {
+		if (predicate instanceof BoxShape boxPredicate) {
 
-			BoxShape boxPredicate = (BoxShape) predicate;
 			BoundingBox boundingBox = boxPredicate.getBoundingBox();
 
 			return GeoSearch.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
 					toGeoArgsUnit(boxPredicate.getMetric()));
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoPredicate", predicate));
+		throw new IllegalArgumentException("Cannot convert %s to Lettuce GeoPredicate".formatted(predicate));
 	}
 
 	static <T> GeoSearch.GeoRef<T> toGeoRef(GeoReference<T> reference) {
@@ -881,14 +880,12 @@ public abstract class LettuceConverters extends Converters {
 			return GeoSearch.fromMember(((GeoMemberReference<T>) reference).getMember());
 		}
 
-		if (reference instanceof GeoReference.GeoCoordinateReference) {
-
-			GeoCoordinateReference<?> coordinates = (GeoCoordinateReference<?>) reference;
+		if (reference instanceof GeoCoordinateReference<?> coordinates) {
 
 			return GeoSearch.fromCoordinates(coordinates.getLongitude(), coordinates.getLatitude());
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert %s to Lettuce GeoRef", reference));
+		throw new IllegalArgumentException("Cannot convert %s to Lettuce GeoRef".formatted(reference));
 	}
 
 	static FlushMode toFlushMode(@Nullable RedisServerCommands.FlushOption option) {

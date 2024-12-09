@@ -26,6 +26,7 @@ import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
@@ -76,6 +77,7 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Andrea Como
  * @author Chris Bono
  * @author John Blum
+ * @author Zhian Chen
  */
 class LettuceConnectionFactoryUnitTests {
 
@@ -374,7 +376,9 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isStartTls()).isFalse();
 		assertThat(connectionFactory.isStartTls()).isFalse();
 		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(connectionFactory.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
 	@Test // DATAREDIS-476
@@ -393,7 +397,9 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isSsl()).isTrue();
 		assertThat(connectionFactory.isUseSsl()).isTrue();
 		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(connectionFactory.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
 	@Test // DATAREDIS-480
@@ -411,7 +417,9 @@ class LettuceConnectionFactoryUnitTests {
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
 		assertThat(redisUri.isVerifyPeer()).isFalse();
+		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(connectionFactory.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 	}
 
 	@Test // DATAREDIS-480
@@ -450,7 +458,9 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.isSsl()).isTrue();
 		assertThat(connectionFactory.isUseSsl()).isTrue();
 		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(redisUri.getVerifyMode().equals(SslVerifyMode.FULL));
 		assertThat(connectionFactory.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
 	@Test // DATAREDIS-990
@@ -470,6 +480,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		assertThat(redisUri.isVerifyPeer()).isFalse();
 		assertThat(connectionFactory.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 	}
 
 	@Test // DATAREDIS-990
@@ -545,6 +556,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		for (RedisURI uri : initialUris) {
 			assertThat(uri.isVerifyPeer()).isTrue();
+			assertThat(uri.getVerifyMode().equals(SslVerifyMode.FULL));
 		}
 	}
 
@@ -745,6 +757,7 @@ class LettuceConnectionFactoryUnitTests {
 
 		assertThat(connectionFactory.isUseSsl()).isTrue();
 		assertThat(connectionFactory.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 		assertThat(connectionFactory.isStartTls()).isTrue();
 		assertThat(connectionFactory.getClientResources()).isEqualTo(sharedClientResources);
 		assertThat(connectionFactory.getTimeout()).isEqualTo(Duration.ofMinutes(5).toMillis());

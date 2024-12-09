@@ -203,6 +203,15 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
+	@Test // GH-2979
+	void enumsShouldBeTreatedCorrectly() {
+
+		WithEnumValue source = new WithEnumValue();
+		source.value = SpringDataEnum.REDIS;
+
+		assertBackAndForwardMapping(source);
+	}
+
 	public static class WithList {
 
 		List<String> strings;
@@ -450,6 +459,40 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		@Override
 		public int hashCode() {
 			return Objects.hash(getValue());
+		}
+	}
+
+	enum SpringDataEnum {
+		COMMONS, REDIS
+	}
+
+	static class WithEnumValue {
+
+		SpringDataEnum value;
+
+		public SpringDataEnum getValue() {
+			return value;
+		}
+
+		public void setValue(SpringDataEnum value) {
+			this.value = value;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o == this) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			WithEnumValue that = (WithEnumValue) o;
+			return value == that.value;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(value);
 		}
 	}
 }

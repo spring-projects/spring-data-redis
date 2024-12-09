@@ -52,12 +52,12 @@ public abstract class LettuceReactiveClusterTestSupport {
 		if (nativeCommands != null) {
 			nativeCommands.flushall();
 
-			if (nativeCommands instanceof RedisCommands) {
-				((RedisCommands) nativeCommands).getStatefulConnection().close();
+			if (nativeCommands instanceof RedisCommands redisCommands) {
+				redisCommands.getStatefulConnection().close();
 			}
 
-			if (nativeCommands instanceof RedisAdvancedClusterCommands) {
-				((RedisAdvancedClusterCommands) nativeCommands).getStatefulConnection().close();
+			if (nativeCommands instanceof RedisAdvancedClusterCommands redisAdvancedClusterCommands) {
+				redisAdvancedClusterCommands.getStatefulConnection().close();
 			}
 		}
 

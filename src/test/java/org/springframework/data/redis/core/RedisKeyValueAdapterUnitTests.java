@@ -100,6 +100,7 @@ class RedisKeyValueAdapterUnitTests {
 
 		adapter = new RedisKeyValueAdapter(template, context);
 		adapter.afterPropertiesSet();
+		adapter.start();
 	}
 
 	@AfterEach
@@ -153,10 +154,30 @@ class RedisKeyValueAdapterUnitTests {
 		adapter = new RedisKeyValueAdapter(template, context);
 		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
 		adapter.afterPropertiesSet();
+		adapter.start();
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
 		assertThat(listener).isNotNull();
+	}
+
+	@Test // GH-2957
+	void adapterShouldBeRestartable() throws Exception {
+
+		adapter.destroy();
+
+		adapter = new RedisKeyValueAdapter(template, context);
+		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		adapter.stop();
+
+		assertThat(((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get())
+				.isNull();
+
+		adapter.start();
+		assertThat(((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get())
+				.isNotNull();
 	}
 
 	@Test // DATAREDIS-491

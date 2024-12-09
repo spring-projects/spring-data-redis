@@ -117,13 +117,12 @@ pipeline {
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 			}
 			steps {
 				script {
 					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 							sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 						}
 					}
@@ -147,13 +146,12 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 					}
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 									sh "PROFILE=runtimehints LONG_TESTS=false JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
@@ -167,13 +165,12 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 					}
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image("springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside(p['docker.java.inside.docker']) {
 									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
@@ -187,13 +184,12 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
 					   	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 					}
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image("springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
@@ -208,13 +204,12 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES') }
 					environment {
 					   	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 					}
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-valkey-7.2:${p['java.main.tag']}").inside('-v $HOME:/tmp/jenkins-home') {
+								docker.image("springci/spring-data-with-valkey-7.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
@@ -239,25 +234,23 @@ pipeline {
 
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 			}
 
 			steps {
 				script {
 					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
 							sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
-									"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
-									"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
-									"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
 									"./mvnw -s settings.xml -Pci,artifactory " +
+									"-Ddevelocity.storage.directory=/tmp/jenkins-home/.develocity-root " +
 									"-Dartifactory.server=${p['artifactory.url']} " +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
 									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
 									"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
 									"-Dartifactory.build-name=spring-data-redis " +
 									"-Dartifactory.build-number=spring-data-redis-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
+									"-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-redis " +
 									"-Dmaven.test.skip=true clean deploy -U -B"
 						}
 					}

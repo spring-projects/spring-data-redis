@@ -46,7 +46,10 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Yanming Zhou
  * @since 3.0
+ * @deprecated since 3.4 for removal with the next major revision. Use Lettuce's Micrometer integration through
+ *             {@link io.lettuce.core.tracing.MicrometerTracing}.
  */
+@Deprecated(since = "3.4", forRemoval = true)
 public class MicrometerTracingAdapter implements Tracing {
 
 	private static final Log log = LogFactory.getLog(MicrometerTracingAdapter.class);
@@ -214,7 +217,7 @@ public class MicrometerTracingAdapter implements Tracing {
 			this.command = command;
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Starting Observation for Command %s", command));
+				log.debug("Starting Observation for Command %s".formatted(command));
 			}
 
 			if (command instanceof CompleteableCommand<?> completeableCommand) {
@@ -262,7 +265,7 @@ public class MicrometerTracingAdapter implements Tracing {
 		public Span error(Throwable throwable) {
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Attaching error to Observation for Command %s", command));
+				log.debug("Attaching error to Observation for Command %s".formatted(command));
 			}
 
 			observation.error(throwable);
@@ -280,7 +283,7 @@ public class MicrometerTracingAdapter implements Tracing {
 		public void finish() {
 
 			if (log.isDebugEnabled()) {
-				log.debug(String.format("Stopping Observation for Command %s", command));
+				log.debug("Stopping Observation for Command %s".formatted(command));
 			}
 
 			observation.stop();

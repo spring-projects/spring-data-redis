@@ -26,6 +26,7 @@ import java.util.Collection;
 
 import org.springframework.data.redis.core.ListOperations.MoveFrom;
 import org.springframework.data.redis.core.ListOperations.MoveTo;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -33,8 +34,8 @@ import org.springframework.util.Assert;
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
- * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
- * particular element as Reactive Streams prohibit the usage of {@code null} values.
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@literal null} for a
+ * particular element as Reactive Streams prohibit the usage of {@literal null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -277,7 +278,31 @@ public interface ReactiveListOperations<K, V> {
 	Mono<Long> remove(K key, long count, Object value);
 
 	/**
-	 * Get element at {@code index} form list at {@code key}.
+	 * Returns the first element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 3.4
+	 */
+	@Nullable
+	default Mono<V> getFirst(K key) {
+		return index(key, 0);
+	}
+
+	/**
+	 * Returns the last element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 3.4
+	 */
+	@Nullable
+	default Mono<V> getLast(K key) {
+		return index(key, -1);
+	}
+
+	/**
+	 * Get element at {@code index} from list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param index

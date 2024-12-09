@@ -30,8 +30,8 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
- * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
- * particular element as Reactive Streams prohibit the usage of {@code null} values.
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@literal null} for a
+ * particular element as Reactive Streams prohibit the usage of {@literal null} values.
  *
  * @author Mark Paluch
  * @author Jiahe Cai
@@ -54,7 +54,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param timeout must not be {@literal null}.
-	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Mono<Boolean> set(K key, V value, Duration timeout);
 
@@ -63,7 +63,7 @@ public interface ReactiveValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Mono<Boolean> setIfAbsent(K key, V value);
 
@@ -162,7 +162,7 @@ public interface ReactiveValueOperations<K, V> {
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys. Absent field values are represented using
-	 * {@code null} in the resulting {@link List}.
+	 * {@literal null} in the resulting {@link List}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
@@ -281,6 +281,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * @param command must not be {@literal null}.
 	 * @return
 	 * @since 2.1
+	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 */
 	Mono<List<Long>> bitField(K key, BitFieldSubCommands command);
 
@@ -288,6 +289,7 @@ public interface ReactiveValueOperations<K, V> {
 	 * Removes the given {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Mono<Boolean> delete(K key);
 }

@@ -38,4 +38,13 @@ public interface IndexedData {
 	 */
 	String getKeyspace();
 
+	/**
+	 * Return the key prefix for usage in Redis.
+	 *
+	 * @return concatenated form of the keyspace and the index name.
+	 * @since 3.3.4
+	 */
+	default String getKeyPrefix() {
+		return getKeyspace() + ":" + getIndexName();
+	}
 }

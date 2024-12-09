@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
+
+import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.output.NestedMultiOutput;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -47,9 +50,6 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer.Stre
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.util.NumberUtils;
-
-import io.lettuce.core.codec.StringCodec;
-import io.lettuce.core.output.NestedMultiOutput;
 
 /**
  * Integration tests for {@link StreamMessageListenerContainer}.
@@ -395,9 +395,9 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		RedisConnection connection = connectionFactory.getConnection();
 
-		if (connection instanceof LettuceConnection) {
+		if (connection instanceof LettuceConnection lettuce) {
 
-			String value = ((List) ((LettuceConnection) connectionFactory.getConnection()).execute("XPENDING",
+			String value = ((List) lettuce.execute("XPENDING",
 					new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
 							.toString();
 			return NumberUtils.parseNumber(value, Integer.class);

@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author Lee Jaeheon
  */
 public interface ListOperations<K, V> {
 
@@ -368,7 +369,31 @@ public interface ListOperations<K, V> {
 	Long remove(K key, long count, Object value);
 
 	/**
-	 * Get element at {@code index} form list at {@code key}.
+	 * Returns the first element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	default V getFirst(K key) {
+		return index(key, 0);
+	}
+
+	/**
+	 * Returns the last element from the list at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	default V getLast(K key) {
+		return index(key, -1);
+	}
+
+	/**
+	 * Get element at {@code index} from list at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param index
@@ -525,7 +550,8 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey);
 
 	/**
-	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.<br>
+	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its
+	 * value.<br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.
@@ -539,7 +565,8 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);
 
 	/**
-	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its value.<br>
+	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its
+	 * value.<br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
 	 *
 	 * @param sourceKey must not be {@literal null}.

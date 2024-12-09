@@ -45,8 +45,8 @@ import org.springframework.util.Assert;
  * <p>
  * Streams of methods returning {@code Mono<K>} or {@code Flux<M>} are terminated with
  * {@link org.springframework.dao.InvalidDataAccessApiUsageException} when
- * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@code null} for a
- * particular element as Reactive Streams prohibit the usage of {@code null} values.
+ * {@link org.springframework.data.redis.serializer.RedisElementReader#read(ByteBuffer)} returns {@literal null} for a
+ * particular element as Reactive Streams prohibit the usage of {@literal null} values.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -427,6 +427,20 @@ public interface ReactiveRedisOperations<K, V> {
 	 */
 	default <T> Flux<T> execute(RedisScript<T> script, List<K> keys) {
 		return execute(script, keys, Collections.emptyList());
+	}
+
+	/**
+	 * Executes the given {@link RedisScript}
+	 *
+	 * @param script The script to execute. Must not be {@literal null}.
+	 * @param keys keys that need to be passed to the script. Must not be {@literal null}.
+	 * @param args args that need to be passed to the script. Must not be {@literal null}.
+	 * @return result value of the script {@link Flux#empty()} if {@link RedisScript#getResultType()} is {@literal null},
+	 *         likely indicating a throw-away status reply (i.e. "OK").
+	 * @since 3.4
+	 */
+	default <T> Flux<T> execute(RedisScript<T> script, List<K> keys, Object... args) {
+		return execute(script, keys, Arrays.asList(args));
 	}
 
 	/**

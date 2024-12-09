@@ -213,7 +213,25 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	Long remove(long count, Object value);
 
 	/**
-	 * Get element at {@code index} form list at the bound key.
+	 * Returns the first element from the list at the bound {@code key}.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	V getFirst();
+
+	/**
+	 * Returns the last element from the list at the bound {@code key}.
+	 *
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.4
+	 */
+	@Nullable
+	V getLast();
+
+	/**
+	 * Get element at {@code index} from list at the bound key.
 	 *
 	 * @param index
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -231,6 +249,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
+	@Nullable
 	Long indexOf(V value);
 
 	/**
@@ -242,6 +261,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
+	@Nullable
 	Long lastIndexOf(V value);
 
 	/**

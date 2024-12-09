@@ -15,14 +15,17 @@
  */
 package org.springframework.data.redis.connection.lettuce.observability;
 
+import io.lettuce.core.tracing.Tracing.Endpoint;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import io.lettuce.core.tracing.Tracing.Endpoint;
-
 /**
  * @author Mark Paluch
+ * @deprecated since 3.4 for removal with the next major revision. Use Lettuce's Micrometer integration through
+ *             {@link io.lettuce.core.tracing.MicrometerTracing}.
  */
+@Deprecated(since = "3.4", forRemoval = true)
 record SocketAddressEndpoint(SocketAddress socketAddress) implements Endpoint {
 
 	@Override

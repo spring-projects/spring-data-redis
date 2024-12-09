@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Todd Merrill
  * @author Chen Li
  * @author Vedran Pavic
+ * @author Marcin Grzejszczak
  */
 public interface RedisOperations<K, V> {
 
@@ -61,7 +62,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action. Must not be {@literal null}.
-	 * @return a result object returned by the action or {@literal null}
+	 * @return result of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation.
 	 */
 	@Nullable
 	<T> T execute(RedisCallback<T> action);
@@ -72,7 +73,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param session session callback. Must not be {@literal null}.
-	 * @return result object returned by the action or {@literal null}
+	 * @return result of the given {@link SessionCallback#execute(RedisOperations)} invocation.
 	 */
 	@Nullable
 	<T> T execute(SessionCallback<T> session);
@@ -83,7 +84,9 @@ public interface RedisOperations<K, V> {
 	 * serializers to deserialize results
 	 *
 	 * @param action callback object to execute
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation. Results are
+	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(RedisCallback<?> action);
 
@@ -94,7 +97,9 @@ public interface RedisOperations<K, V> {
 	 * @param action callback object to execute
 	 * @param resultSerializer The Serializer to use for individual values or Collections of values. If any returned
 	 *          values are hashes, this serializer will be used to deserialize both the key and value
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation. Results are
+	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(RedisCallback<?> action, RedisSerializer<?> resultSerializer);
 
@@ -103,7 +108,9 @@ public interface RedisOperations<K, V> {
 	 * callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
 	 *
 	 * @param session Session callback
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link SessionCallback#execute(RedisOperations)} invocation. Results are
+	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(SessionCallback<?> session);
 
@@ -114,7 +121,9 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @param session Session callback
 	 * @param resultSerializer
-	 * @return list of objects returned by the pipeline
+	 * @return pipeline results of the given {@link SessionCallback#execute(RedisOperations)} invocation. Results are
+	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
+	 *         return {@literal null}.
 	 */
 	List<Object> executePipelined(SessionCallback<?> session, RedisSerializer<?> resultSerializer);
 
@@ -151,7 +160,7 @@ public interface RedisOperations<K, V> {
 	 * to free resources after use.
 	 *
 	 * @param callback must not be {@literal null}.
-	 * @return
+	 * @return the {@link Object result} of the operation performed in the callback or {@literal null}.
 	 * @since 1.8
 	 */
 	@Nullable
@@ -167,7 +176,7 @@ public interface RedisOperations<K, V> {
 	 * @param sourceKey must not be {@literal null}.
 	 * @param targetKey must not be {@literal null}.
 	 * @param replace whether the key was copied. {@literal null} when used in pipeline / transaction.
-	 * @return
+	 * @return {@code true} when copied successfully or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6
 	 */
@@ -178,7 +187,7 @@ public interface RedisOperations<K, V> {
 	 * Determine if given {@code key} exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return
+	 * @return {@literal true} if key exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	@Nullable
@@ -361,7 +370,7 @@ public interface RedisOperations<K, V> {
 	 * Remove the expiration from given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@code true} when persisted successfully or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
 	@Nullable
@@ -650,7 +659,7 @@ public interface RedisOperations<K, V> {
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
 
 	/**
-	 * @return
+	 * @return never {@literal null}.
 	 * @since 1.5
 	 */
 	HyperLogLogOperations<K, V> opsForHyperLogLog();

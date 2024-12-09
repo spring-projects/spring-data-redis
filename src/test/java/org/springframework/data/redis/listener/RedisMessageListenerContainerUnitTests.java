@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.Subscription;
@@ -44,6 +46,7 @@ import org.springframework.util.backoff.FixedBackOff;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Seongjun Lee
  */
 class RedisMessageListenerContainerUnitTests {
 
@@ -220,5 +223,20 @@ class RedisMessageListenerContainerUnitTests {
 	@Test // GH-964
 	void failsOnDuplicateInit() {
 		assertThatIllegalStateException().isThrownBy(() -> container.afterPropertiesSet());
+	}
+
+	@Test // GH-3009
+	void shouldRemoveAllListenersWhenListenerIsNull() {
+
+		MessageListener listener1 = mock(MessageListener.class);
+		MessageListener listener2 = mock(MessageListener.class);
+		Topic topic = new ChannelTopic("topic1");
+
+		container.addMessageListener(listener1, Collections.singletonList(topic));
+		container.addMessageListener(listener2, Collections.singletonList(topic));
+
+		container.removeMessageListener(null, Collections.singletonList(topic));
+
+		assertThatNoException().isThrownBy(() -> container.removeMessageListener(null, Collections.singletonList(topic)));
 	}
 }

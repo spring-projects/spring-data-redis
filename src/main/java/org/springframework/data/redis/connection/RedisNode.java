@@ -24,9 +24,13 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author LeeHyungGeol
  * @since 1.4
  */
 public class RedisNode implements NamedNode {
+
+	public static final int DEFAULT_PORT = 6379;
+	public static final int DEFAULT_SENTINEL_PORT = 26379;
 
 	@Nullable String id;
 	@Nullable String name;
@@ -66,8 +70,11 @@ public class RedisNode implements NamedNode {
 	 * the port. For example:
 	 *
 	 * <pre class="code">
+	 * RedisNode.fromString("127.0.0.1");
 	 * RedisNode.fromString("127.0.0.1:6379");
+	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]");
 	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]:6379");
+	 * RedisNode.fromString("my.redis.server");
 	 * RedisNode.fromString("my.redis.server:6379");
 	 * </pre>
 	 *
@@ -76,6 +83,27 @@ public class RedisNode implements NamedNode {
 	 * @since 2.7.4
 	 */
 	public static RedisNode fromString(String hostPortString) {
+		return fromString(hostPortString, DEFAULT_PORT);
+	}
+
+	/**
+	 * Parse a {@code hostAndPort} string into {@link RedisNode}. Supports IPv4, IPv6, and hostname notations including
+	 * the port. For example:
+	 *
+	 * <pre class="code">
+	 * RedisNode.fromString("127.0.0.1");
+	 * RedisNode.fromString("127.0.0.1:6379");
+	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]");
+	 * RedisNode.fromString("[aaaa:bbbb::dddd:eeee]:6379");
+	 * RedisNode.fromString("my.redis.server");
+	 * RedisNode.fromString("my.redis.server:6379");
+	 * </pre>
+	 *
+	 * @param hostPortString must not be {@literal null} or empty.
+	 * @return the parsed {@link RedisNode}.
+	 * @since 3.4
+	 */
+	public static RedisNode fromString(String hostPortString, int defaultPort) {
 
 		Assert.notNull(hostPortString, "HostAndPort must not be null");
 
@@ -94,19 +122,31 @@ public class RedisNode implements NamedNode {
 				portString = hostPortString.substring(colonPos + 1);
 			} else {
 				// 0 or 2+ colons. Bare hostname or IPv6 literal.
-				host = hostPortString;
+				int lastColonIndex = hostPortString.lastIndexOf(':');
+
+				// IPv6 literal
+				if (lastColonIndex > hostPortString.indexOf(']')) {
+					host = hostPortString.substring(0, lastColonIndex);
+					portString = hostPortString.substring(lastColonIndex + 1);
+				} else {
+					// bare hostname
+					host = hostPortString;
+				}
 			}
 		}
 
-		int port = -1;
-		try {
-			port = Integer.parseInt(portString);
-		} catch (RuntimeException ignore) {
-			throw new IllegalArgumentException(String.format("Unparseable port number: %s", hostPortString));
+		int port = defaultPort;
+
+		if (StringUtils.hasText(portString)) {
+			try {
+				port = Integer.parseInt(portString);
+			} catch (RuntimeException ignore) {
+				throw new IllegalArgumentException("Unparseable port number: %s".formatted(hostPortString));
+			}
 		}
 
 		if (!isValidPort(port)) {
-			throw new IllegalArgumentException(String.format("Port number out of range: %s", hostPortString));
+			throw new IllegalArgumentException("Port number out of range: %s".formatted(hostPortString));
 		}
 
 		return new RedisNode(host, port);
@@ -123,14 +163,14 @@ public class RedisNode implements NamedNode {
 
 		if (hostPortString.charAt(0) != '[') {
 			throw new IllegalArgumentException(
-					String.format("Bracketed host-port string must start with a bracket: %s", hostPortString));
+					"Bracketed host-port string must start with a bracket: %s".formatted(hostPortString));
 		}
 
 		int colonIndex = hostPortString.indexOf(':');
 		int closeBracketIndex = hostPortString.lastIndexOf(']');
 
 		if (!(colonIndex > -1 && closeBracketIndex > colonIndex)) {
-			throw new IllegalArgumentException(String.format("Invalid bracketed host/port: %s", hostPortString));
+			throw new IllegalArgumentException("Invalid bracketed host/port: %s".formatted(hostPortString));
 		}
 
 		String host = hostPortString.substring(1, closeBracketIndex);
@@ -138,12 +178,11 @@ public class RedisNode implements NamedNode {
 			return new String[] { host, "" };
 		} else {
 			if (!(hostPortString.charAt(closeBracketIndex + 1) == ':')) {
-				throw new IllegalArgumentException(
-						String.format("Only a colon may follow a close bracket: %s", hostPortString));
+				throw new IllegalArgumentException("Only a colon may follow a close bracket: %s".formatted(hostPortString));
 			}
 			for (int i = closeBracketIndex + 2; i < hostPortString.length(); ++i) {
 				if (!Character.isDigit(hostPortString.charAt(i))) {
-					throw new IllegalArgumentException(String.format("Port must be numeric: %s", hostPortString));
+					throw new IllegalArgumentException("Port must be numeric: %s".formatted(hostPortString));
 				}
 			}
 			return new String[] { host, hostPortString.substring(closeBracketIndex + 2) };

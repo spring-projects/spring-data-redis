@@ -18,6 +18,7 @@ package org.springframework.data.redis.serializer;
 import java.nio.ByteBuffer;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Default implementation of {@link RedisElementWriter}.
@@ -38,7 +39,8 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 	public ByteBuffer write(@Nullable T value) {
 
 		if (serializer != null && (value == null || serializer.canSerialize(value.getClass()))) {
-			return ByteBuffer.wrap(serializer.serialize(value));
+			byte[] serializedValue = serializer.serialize(value);
+			return serializedValue != null ? ByteBuffer.wrap(serializedValue) : ByteBuffer.wrap(new byte[0]);
 		}
 
 		if (value instanceof byte[]) {
@@ -50,6 +52,6 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 		}
 
 		throw new IllegalStateException(
-				String.format("Cannot serialize value of type %s without a serializer", value.getClass()));
+				"Cannot serialize value of type %s without a serializer".formatted(ObjectUtils.nullSafeClassName(value)));
 	}
 }

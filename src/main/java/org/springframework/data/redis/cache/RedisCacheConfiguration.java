@@ -424,11 +424,9 @@ public class RedisCacheConfiguration {
 	public void configureKeyConverters(Consumer<ConverterRegistry> registryConsumer) {
 
 		if (!(getConversionService() instanceof ConverterRegistry)) {
-
-			String message = "'%s' returned by getConversionService() does not allow Converter registration;"
-					+ " Please make sure to provide a ConversionService that implements ConverterRegistry";
-
-			throw new IllegalStateException(String.format(message, getConversionService().getClass().getName()));
+			throw new IllegalStateException(("'%s' returned by getConversionService() does not allow Converter registration;"
+					+ " Please make sure to provide a ConversionService that implements ConverterRegistry")
+					.formatted(getConversionService().getClass().getName()));
 		}
 
 		registryConsumer.accept((ConverterRegistry) getConversionService());
@@ -438,7 +436,6 @@ public class RedisCacheConfiguration {
 	 * Registers default cache {@link Converter key converters}.
 	 * <p>
 	 * The following converters get registered:
-	 * <p>
 	 * <ul>
 	 * <li>{@link String} to {@link byte byte[]} using UTF-8 encoding.</li>
 	 * <li>{@link SimpleKey} to {@link String}</li>

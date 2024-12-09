@@ -26,12 +26,16 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
@@ -102,12 +106,15 @@ import org.springframework.util.ObjectUtils;
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
-		implements InitializingBean, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
+		implements InitializingBean, SmartLifecycle, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
 	/**
 	 * Time To Live in seconds that phantom keys should live longer than the actual key.
 	 */
 	private static final int PHANTOM_KEY_TTL = 300;
+
+	private final Log logger = LogFactory.getLog(getClass());
+	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
@@ -119,6 +126,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
 	private @Nullable String keyspaceNotificationsConfigParameter = null;
 	private ShadowCopy shadowCopy = ShadowCopy.DEFAULT;
+
+	/**
+	 * Lifecycle state of this factory.
+	 */
+	enum State {
+		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
+	}
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
@@ -201,7 +215,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				&& this.expirationListener.get() == null) {
 
 			if (rdo.getTimeToLive() != null && rdo.getTimeToLive() > 0) {
-				initKeyExpirationListener();
+				initKeyExpirationListener(this.messageListenerContainer);
 			}
 		}
 
@@ -571,8 +585,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
 	 */
 	public byte[] toBytes(Object source) {
-		return source instanceof byte[] bytes ? bytes
-				: getConverter().getConversionService().convert(source, byte[].class);
+		return source instanceof byte[] bytes ? bytes : getConverter().getConversionService().convert(source, byte[].class);
 	}
 
 	private String toString(Object value) {
@@ -686,6 +699,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		this.shadowCopy = shadowCopy;
 	}
 
+	@Override
+	public boolean isRunning() {
+		return State.STARTED.equals(this.state.get());
+	}
+
 	/**
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 * @since 1.8
@@ -696,22 +714,61 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		if (this.managedListenerContainer) {
 			initMessageListenerContainer();
 		}
+	}
 
-		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP, this.enableKeyspaceEvents)) {
-			initKeyExpirationListener();
+	@Override
+	public void start() {
+
+		State current = this.state.getAndUpdate(state -> isCreatedOrStopped(state) ? State.STARTING : state);
+
+		if (isCreatedOrStopped(current)) {
+
+			messageListenerContainer.start();
+
+			if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP, this.enableKeyspaceEvents)) {
+				initKeyExpirationListener(this.messageListenerContainer);
+			}
+
+			this.state.set(State.STARTED);
+		}
+	}
+
+	private static boolean isCreatedOrStopped(@Nullable State state) {
+		return State.CREATED.equals(state) || State.STOPPED.equals(state);
+	}
+
+	@Override
+	public void stop() {
+
+		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+
+			KeyExpirationEventMessageListener listener = this.expirationListener.get();
+			if (listener != null) {
+
+				if (this.expirationListener.compareAndSet(listener, null)) {
+					try {
+						listener.destroy();
+					} catch (Exception e) {
+						logger.warn("Could not destroy KeyExpirationEventMessageListener", e);
+					}
+				}
+			}
+
+			messageListenerContainer.stop();
+			state.set(State.STOPPED);
 		}
 	}
 
 	public void destroy() throws Exception {
 
-		if (this.expirationListener.get() != null) {
-			this.expirationListener.get().destroy();
-		}
+		stop();
 
 		if (this.managedListenerContainer && this.messageListenerContainer != null) {
 			this.messageListenerContainer.destroy();
 			this.messageListenerContainer = null;
 		}
+
+		this.state.set(State.DESTROYED);
 	}
 
 	@Override
@@ -729,15 +786,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		this.messageListenerContainer = new RedisMessageListenerContainer();
 		this.messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getConnectionFactory());
 		this.messageListenerContainer.afterPropertiesSet();
-		this.messageListenerContainer.start();
 	}
 
-	private void initKeyExpirationListener() {
+	private void initKeyExpirationListener(RedisMessageListenerContainer messageListenerContainer) {
 
 		if (this.expirationListener.get() == null) {
-
-			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
-					this.converter);
+			MappingExpirationListener listener = new MappingExpirationListener(messageListenerContainer, this.redisOps,
+					this.converter, this.shadowCopy);
 
 			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
 
@@ -763,16 +818,18 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		private final RedisOperations<?, ?> ops;
 		private final RedisConverter converter;
+		private final ShadowCopy shadowCopy;
 
 		/**
 		 * Creates new {@link MappingExpirationListener}.
 		 */
 		MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
-				RedisConverter converter) {
+				RedisConverter converter, ShadowCopy shadowCopy) {
 
 			super(listenerContainer);
 			this.ops = ops;
 			this.converter = converter;
+			this.shadowCopy = shadowCopy;
 		}
 
 		@Override
@@ -783,23 +840,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			}
 
 			byte[] key = message.getBody();
-
-			byte[] phantomKey = ByteUtils.concat(key,
-					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
-
-			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
-
-				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
-
-				if (!CollectionUtils.isEmpty(phantomValue)) {
-					connection.del(phantomKey);
-				}
-
-				return phantomValue;
-			});
-
-			Object value = CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
-
+			Object value = readShadowCopyIfEnabled(key);
 			byte[] channelAsBytes = message.getChannel();
 
 			String channel = !ObjectUtils.isEmpty(channelAsBytes)
@@ -820,6 +861,35 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		private boolean isKeyExpirationMessage(Message message) {
 			return BinaryKeyspaceIdentifier.isValid(message.getBody());
+		}
+
+		@Nullable
+		private Object readShadowCopyIfEnabled(byte[] key) {
+
+			if (shadowCopy == ShadowCopy.OFF) {
+				return null;
+			}
+			return readShadowCopy(key);
+		}
+
+		@Nullable
+		private Object readShadowCopy(byte[] key) {
+
+			byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));
+
+			Map<byte[], byte[]> hash = ops.execute((RedisCallback<Map<byte[], byte[]>>) connection -> {
+
+				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
+
+				if (!CollectionUtils.isEmpty(phantomValue)) {
+					connection.del(phantomKey);
+				}
+
+				return phantomValue;
+			});
+
+			return CollectionUtils.isEmpty(hash) ? null : converter.read(Object.class, new RedisData(hash));
 		}
 	}
 

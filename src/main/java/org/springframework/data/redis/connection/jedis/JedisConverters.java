@@ -472,7 +472,7 @@ abstract class JedisConverters extends Converters {
 		} else if (theValue instanceof String string) {
 			value = toBytes(string);
 		} else {
-			throw new IllegalArgumentException(String.format("Cannot convert %s to binary format", boundary.getValue()));
+			throw new IllegalArgumentException("Cannot convert %s to binary format".formatted(boundary.getValue()));
 		}
 
 		ByteBuffer buffer = ByteBuffer.allocate(prefix.length + value.length);
@@ -760,9 +760,8 @@ abstract class JedisConverters extends Converters {
 			return param;
 		}
 
-		if (predicate instanceof BoxShape) {
+		if (predicate instanceof BoxShape boxPredicate) {
 
-			BoxShape boxPredicate = (BoxShape) predicate;
 			BoundingBox boundingBox = boxPredicate.getBoundingBox();
 
 			param.byBox(boundingBox.getWidth().getValue(), boundingBox.getHeight().getValue(),
@@ -771,7 +770,7 @@ abstract class JedisConverters extends Converters {
 			return param;
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert %s to Jedis GeoSearchParam", predicate));
+		throw new IllegalArgumentException("Cannot convert %s to Jedis GeoSearchParam".formatted(predicate));
 	}
 
 	private static void configureGeoReference(GeoReference<byte[]> reference, GeoSearchParam param) {
@@ -782,14 +781,13 @@ abstract class JedisConverters extends Converters {
 			return;
 		}
 
-		if (reference instanceof GeoReference.GeoCoordinateReference) {
+		if (reference instanceof GeoReference.GeoCoordinateReference<?> coordinates) {
 
-			GeoReference.GeoCoordinateReference<?> coordinates = (GeoReference.GeoCoordinateReference<?>) reference;
 			param.fromLonLat(coordinates.getLongitude(), coordinates.getLatitude());
 			return;
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot extract Geo Reference from %s", reference));
+		throw new IllegalArgumentException("Cannot extract Geo Reference from %s".formatted(reference));
 	}
 
 	/**

@@ -15,23 +15,12 @@
  */
 package org.springframework.data.redis.hash;
 
-import static com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.EVERYTHING;
+import static com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.*;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.support.collections.CollectionUtils;
@@ -76,7 +65,6 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
  * <h3>Example</h3>
- * <p>
  * <pre class="code">
  * class Person {
  * 	String firstname;
@@ -188,7 +176,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 							return false;
 						}
 
-						if (flatten && type.isTypeOrSubTypeOf(Number.class)) {
+						if (flatten && (type.isTypeOrSubTypeOf(Number.class) || type.isEnumType())) {
 							return false;
 						}
 
@@ -379,12 +367,10 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 	private void flattenElement(String propertyPrefix, Object source, Map<String, Object> resultMap) {
 
-		if (!(source instanceof JsonNode)) {
+		if (!(source instanceof JsonNode element)) {
 			resultMap.put(propertyPrefix, source);
 			return;
 		}
-
-		JsonNode element = (JsonNode) source;
 
 		if (element.isArray()) {
 
@@ -425,8 +411,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 							resultMap.put(propertyPrefix, next.binaryValue());
 						}
 						catch (IOException ex) {
-							String message = String.format("Cannot read binary value of '%s'", propertyPrefix);
-							throw new IllegalStateException(message, ex);
+							throw new IllegalStateException("Cannot read binary value '%s'".formatted(propertyPrefix), ex);
 						}
 
 						break;

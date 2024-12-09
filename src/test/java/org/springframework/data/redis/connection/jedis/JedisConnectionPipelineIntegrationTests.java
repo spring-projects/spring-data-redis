@@ -37,6 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Ivan Kripakov
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
@@ -75,97 +76,6 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	}
 
 	// Unsupported Ops
-	@Test
-	public void testScriptLoadEvalSha() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testScriptLoadEvalSha);
-	}
-
-	@Test
-	public void testEvalShaArrayStrings() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalShaArrayStrings);
-	}
-
-	@Test
-	public void testEvalShaArrayBytes() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalShaArrayBytes);
-	}
-
-	@Test
-	@Disabled
-	public void testEvalShaNotFound() {}
-
-	@Test
-	@Disabled
-	public void testEvalShaArrayError() {}
-
-	@Test
-	public void testEvalReturnString() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnString);
-	}
-
-	@Test
-	public void testEvalReturnNumber() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnNumber);
-	}
-
-	@Test
-	public void testEvalReturnSingleOK() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnSingleOK);
-	}
-
-	@Test
-	@Disabled
-	public void testEvalReturnSingleError() {}
-
-	@Test
-	public void testEvalReturnFalse() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnFalse);
-	}
-
-	@Test
-	public void testEvalReturnTrue() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnTrue);
-	}
-
-	@Test
-	public void testEvalReturnArrayStrings() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayStrings);
-	}
-
-	@Test
-	public void testEvalReturnArrayNumbers() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayNumbers);
-	}
-
-	@Test
-	public void testEvalReturnArrayOKs() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayOKs);
-	}
-
-	@Test
-	public void testEvalReturnArrayFalses() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayFalses);
-	}
-
-	@Test
-	public void testEvalReturnArrayTrues() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testEvalReturnArrayTrues);
-	}
-
-	@Test
-	public void testScriptExists() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::testScriptExists);
-	}
-
-	@Test
-	public void testScriptKill() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> connection.scriptKill());
-	}
-
-	@Test
-	@Disabled
-	public void testScriptFlush() {}
-
 	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::clientSetNameWorksCorrectly);

@@ -23,7 +23,10 @@ import io.micrometer.observation.docs.ObservationDocumentation;
  *
  * @author Mark Paluch
  * @since 3.0
+ * @deprecated since 3.4 for removal with the next major revision. Use Lettuce's Micrometer integration through
+ *             {@link io.lettuce.core.tracing.MicrometerTracing}.
  */
+@Deprecated(since = "3.4", forRemoval = true)
 public enum RedisObservation implements ObservationDocumentation {
 
 	/**

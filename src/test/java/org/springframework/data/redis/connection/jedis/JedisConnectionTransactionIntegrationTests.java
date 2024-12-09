@@ -36,6 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Ivan Kripakov
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
@@ -56,91 +57,44 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	@Disabled("Jedis issue: Transaction tries to return String instead of List<String>")
 	public void testGetConfig() {}
 
-	// Unsupported Ops
 	@Test
-	@Disabled
-	public void testScriptLoadEvalSha() {}
-
-	@Test
-	@Disabled
-	public void testEvalShaArrayStrings() {}
-
-	@Test
-	@Disabled
-	public void testEvalShaArrayBytes() {}
-
-	@Test
-	@Disabled
-	public void testEvalShaNotFound() {}
+	public void testEvalShaNotFound() {
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> {
+					connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+					getResults();
+				});
+	}
 
 	@Test
 	public void testEvalShaArrayError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1"));
+				.isThrownBy(() -> {
+					connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1");
+					getResults();
+				});
 	}
 
 	@Test
 	public void testEvalArrayScriptError() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar"));
+				.isThrownBy(() -> {
+					connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar");
+					getResults();
+				});
 	}
 
 	@Test
-	@Disabled
-	public void testEvalReturnString() {}
+	public void testEvalReturnSingleError() {
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(()-> {
+					connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+					getResults();
+				});
+	}
 
-	@Test
-	@Disabled
-	public void testEvalReturnNumber() {}
 
-	@Test
-	@Disabled
-	public void testEvalReturnSingleOK() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnSingleError() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnFalse() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnTrue() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnArrayStrings() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnArrayNumbers() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnArrayOKs() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnArrayFalses() {}
-
-	@Test
-	@Disabled
-	public void testEvalReturnArrayTrues() {}
-
-	@Test
-	@Disabled
-	public void testScriptExists() {}
-
-	@Test
-	@Disabled
-	public void testScriptKill() {}
-
-	@Test
-	@Disabled
-	public void testScriptFlush() {}
-
+	// Unsupported Ops
 	@Test
 	@Disabled
 	public void testInfoBySection() {}

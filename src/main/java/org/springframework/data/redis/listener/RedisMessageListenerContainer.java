@@ -101,6 +101,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author John Blum
+ * @author Seongjun Lee
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -117,7 +118,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public static final long DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME = 2000L;
 
 	/**
-	 * Default thread name prefix: "RedisListeningContainer-".
+	 * Default thread name prefix: "RedisMessageListenerContainer-".
 	 */
 	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class)
 			+ "-";
@@ -554,8 +555,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Adds a message listener to the (potentially running) container. If the container is running, the listener starts
 	 * receiving (matching) messages as soon as possible.
 	 *
-	 * @param listener message listener
-	 * @param topics message listener topic
+	 * @param listener message listener.
+	 * @param topics message listener topic.
 	 */
 	public void addMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
 		addListener(listener, topics);
@@ -565,8 +566,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Adds a message listener to the (potentially running) container. If the container is running, the listener starts
 	 * receiving (matching) messages as soon as possible.
 	 *
-	 * @param listener message listener
-	 * @param topic message topic
+	 * @param listener message listener.
+	 * @param topic message topic.
 	 */
 	public void addMessageListener(MessageListener listener, Topic topic) {
 		addMessageListener(listener, Collections.singleton(topic));
@@ -579,8 +580,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels.
 	 *
-	 * @param listener message listener
-	 * @param topics message listener topics
+	 * @param listener message listener.
+	 * @param topics message listener topics.
 	 */
 	public void removeMessageListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
 		removeListener(listener, topics);
@@ -593,8 +594,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels.
 	 *
-	 * @param listener message listener
-	 * @param topic message topic
+	 * @param listener message listener.
+	 * @param topic message topic.
 	 */
 	public void removeMessageListener(@Nullable MessageListener listener, Topic topic) {
 		removeMessageListener(listener, Collections.singleton(topic));
@@ -604,7 +605,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Removes the given message listener completely (from all topics). If the container is running, the listener stops
 	 * receiving (matching) messages as soon as possible.
 	 *
-	 * @param listener message listener
+	 * @param listener message listener.
 	 */
 	public void removeMessageListener(MessageListener listener) {
 
@@ -657,14 +658,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				Collection<MessageListener> collection = resolveMessageListeners(this.channelMapping, serializedTopic);
 				collection.add(listener);
 				channels.add(serializedTopic.getArray());
-				logTrace(() -> String.format("Adding listener '%s' on channel '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Adding listener '%s' on channel '%s'".formatted(listener, topic.getTopic()));
 			} else if (topic instanceof PatternTopic) {
 				Collection<MessageListener> collection = resolveMessageListeners(this.patternMapping, serializedTopic);
 				collection.add(listener);
 				patterns.add(serializedTopic.getArray());
-				logTrace(() -> String.format("Adding listener '%s' for pattern '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Adding listener '%s' for pattern '%s'".formatted(listener, topic.getTopic()));
 			} else {
-				throw new IllegalArgumentException(String.format("Unknown topic type '%s'", topic.getClass()));
+				throw new IllegalArgumentException("Unknown topic type '%s'".formatted(topic.getClass()));
 			}
 		}
 		boolean wasListening = isListening();
@@ -748,12 +749,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			if (topic instanceof ChannelTopic) {
 				remove(listener, topic, holder, channelMapping, channelsToRemove);
-				logTrace(() -> String.format("Removing listener '%s' from channel '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Removing listener '%s' from channel '%s'".formatted(listener, topic.getTopic()));
 			}
 
 			else if (topic instanceof PatternTopic) {
 				remove(listener, topic, holder, patternMapping, patternsToRemove);
-				logTrace(() -> String.format("Removing listener '%s' from pattern '%s'", listener, topic.getTopic()));
+				logTrace(() -> "Removing listener '%s' from pattern '%s'".formatted(listener, topic.getTopic()));
 			}
 		}
 
@@ -770,32 +771,34 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	private void remove(@Nullable MessageListener listener, Topic topic, ByteArrayWrapper holder,
-			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
+						Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
-		Collection<MessageListener> listenersToRemove = null;
+		if (CollectionUtils.isEmpty(listeners)) {
+			return;
+		}
 
-		if (listeners != null) {
-			// remove only one listener
-			listeners.remove(listener);
-			listenersToRemove = Collections.singletonList(listener);
+		Collection<MessageListener> listenersToRemove = (listener == null) ? new ArrayList<>(listeners)
+				: Collections.singletonList(listener);
 
-			// start removing listeners
-			for (MessageListener messageListener : listenersToRemove) {
-				Set<Topic> topics = listenerTopics.get(messageListener);
-				if (topics != null) {
-					topics.remove(topic);
-				}
-				if (CollectionUtils.isEmpty(topics)) {
-					listenerTopics.remove(messageListener);
-				}
+		// Remove the specified listener(s) from the original collection
+		listeners.removeAll(listenersToRemove);
+
+		// Start removing listeners
+		for (MessageListener messageListener : listenersToRemove) {
+			Set<Topic> topics = listenerTopics.get(messageListener);
+			if (topics != null) {
+				topics.remove(topic);
 			}
-
-			// if we removed everything, remove the empty holder collection
-			if (listeners.isEmpty()) {
-				mapping.remove(holder);
-				topicToRemove.add(holder.getArray());
+			if (CollectionUtils.isEmpty(topics)) {
+				listenerTopics.remove(messageListener);
 			}
+		}
+
+		// If all listeners were removed, clean up the mapping and the holder
+		if (listeners.isEmpty()) {
+			mapping.remove(holder);
+			topicToRemove.add(holder.getArray());
 		}
 	}
 
@@ -874,9 +877,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				long recoveryInterval = backOffExecution.nextBackOff();
 
 				if (recoveryInterval != BackOffExecution.STOP) {
-					String message = String.format("Connection failure occurred: %s; Restarting subscription task after %s ms",
-							cause, recoveryInterval);
-					logger.error(message, cause);
+					logger.error("Connection failure occurred: %s; Restarting subscription task after %s ms".formatted(cause,
+							recoveryInterval), cause);
 				}
 
 				return recoveryInterval;

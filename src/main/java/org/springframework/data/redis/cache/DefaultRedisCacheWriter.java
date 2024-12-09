@@ -24,7 +24,9 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
@@ -137,9 +139,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		byte[] result = shouldExpireWithin(ttl)
-				? execute(name, connection -> connection.stringCommands().getEx(key, Expiration.from(ttl)))
-				: execute(name, connection -> connection.stringCommands().get(key));
+		return execute(name, connection -> doGet(connection, name, key, ttl));
+	}
+
+	@Nullable
+	private byte[] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
+
+		byte[] result = shouldExpireWithin(ttl) ? connection.stringCommands().getEx(key, Expiration.from(ttl))
+				: connection.stringCommands().get(key);
 
 		statistics.incGets(name);
 
@@ -150,6 +157,48 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		return result;
+	}
+
+	@Override
+	public byte[] get(String name, byte[] key, Supplier<byte[]> valueLoader, @Nullable Duration ttl,
+			boolean timeToIdleEnabled) {
+
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(key, "Key must not be null");
+
+		boolean withTtl = shouldExpireWithin(ttl);
+
+		// double-checked locking optimization
+		if (isLockingCacheWriter()) {
+			byte[] bytes = get(name, key, timeToIdleEnabled && withTtl ? ttl : null);
+			if (bytes != null) {
+				return bytes;
+			}
+		}
+
+		return execute(name, connection -> {
+
+			if (isLockingCacheWriter()) {
+				doLock(name, key, null, connection);
+			}
+
+			try {
+
+				byte[] result = doGet(connection, name, key, timeToIdleEnabled && withTtl ? ttl : null);
+
+				if (result != null) {
+					return result;
+				}
+
+				byte[] value = valueLoader.get();
+				doPut(connection, name, key, value, ttl);
+				return value;
+			} finally {
+				if (isLockingCacheWriter()) {
+					doUnlock(name, connection);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -186,16 +235,20 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(value, "Value must not be null");
 
 		execute(name, connection -> {
-
-			if (shouldExpireWithin(ttl)) {
-				connection.stringCommands().set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS),
-						SetOption.upsert());
-			} else {
-				connection.stringCommands().set(key, value);
-			}
-
+			doPut(connection, name, key, value, ttl);
 			return "OK";
 		});
+
+	}
+
+	private void doPut(RedisConnection connection, String name, byte[] key, byte[] value, @Nullable Duration ttl) {
+
+		if (shouldExpireWithin(ttl)) {
+			connection.stringCommands().set(key, value, Expiration.from(ttl.toMillis(), TimeUnit.MILLISECONDS),
+					SetOption.upsert());
+		} else {
+			connection.stringCommands().set(key, value);
+		}
 
 		statistics.incPuts(name);
 	}
@@ -220,10 +273,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		return execute(name, connection -> {
 
-			boolean wasLocked = false;
 			if (isLockingCacheWriter()) {
 				doLock(name, key, value, connection);
-				wasLocked = true;
 			}
 
 			try {
@@ -245,7 +296,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				return connection.stringCommands().get(key);
 
 			} finally {
-				if (isLockingCacheWriter() && wasLocked) {
+				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
@@ -270,12 +321,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 		execute(name, connection -> {
 
-			boolean wasLocked = false;
-
 			try {
 				if (isLockingCacheWriter()) {
 					doLock(name, name, pattern, connection);
-					wasLocked = true;
 				}
 
 				long deleteCount = batchStrategy.cleanCache(connection, name, pattern);
@@ -288,7 +336,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				statistics.incDeletesBy(name, (int) deleteCount);
 
 			} finally {
-				if (wasLocked && isLockingCacheWriter()) {
+				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
@@ -319,10 +367,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param name the name of the cache to lock.
 	 */
 	void lock(String name) {
-		execute(name, connection -> doLock(name, name, null, connection));
+		executeWithoutResult(name, connection -> doLock(name, name, null, connection));
 	}
 
-	boolean doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
+	void doLock(String name, Object contextualKey, @Nullable Object contextualValue, RedisConnection connection) {
 
 		RedisStringCommands commands = connection.stringCommands();
 		Expiration expiration = Expiration.from(this.lockTtl.getTimeToLive(contextualKey, contextualValue));
@@ -332,8 +380,6 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				true)) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 		}
-
-		return true;
 	}
 
 	/**
@@ -355,6 +401,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		try (RedisConnection connection = this.connectionFactory.getConnection()) {
 			checkAndPotentiallyWaitUntilUnlocked(name, connection);
 			return callback.apply(connection);
+		}
+	}
+
+	private void executeWithoutResult(String name, Consumer<RedisConnection> callback) {
+
+		try (RedisConnection connection = this.connectionFactory.getConnection()) {
+			checkAndPotentiallyWaitUntilUnlocked(name, connection);
+			callback.accept(connection);
 		}
 	}
 
@@ -391,9 +445,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			// Re-interrupt current Thread to allow other participants to react.
 			Thread.currentThread().interrupt();
 
-			String message = String.format("Interrupted while waiting to unlock cache %s", name);
-
-			throw new PessimisticLockingFailureException(message, ex);
+			throw new PessimisticLockingFailureException("Interrupted while waiting to unlock cache %s".formatted(name), ex);
 		} finally {
 			this.statistics.incLockTime(name, System.nanoTime() - lockWaitTimeNs);
 		}
@@ -429,7 +481,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		 * @param name the cache name from which to retrieve the cache entry.
 		 * @param key the cache entry key.
 		 * @param ttl optional TTL to set for Time-to-Idle eviction.
-		 * @return a future that completes either with a value if the value exists or completing with {@code null} if the
+		 * @return a future that completes either with a value if the value exists or completing with {@literal null} if the
 		 *         cache does not contain an entry.
 		 */
 		CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl);

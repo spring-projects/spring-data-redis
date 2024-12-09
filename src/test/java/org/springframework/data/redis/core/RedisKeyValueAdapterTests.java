@@ -82,19 +82,17 @@ public class RedisKeyValueAdapterTests {
 		adapter = new RedisKeyValueAdapter(template, mappingContext);
 		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
 		adapter.afterPropertiesSet();
+		adapter.start();
 
 		template.execute((RedisCallback<Void>) connection -> {
 			connection.flushDb();
 			return null;
 		});
 
-		RedisConnection connection = template.getConnectionFactory().getConnection();
-
-		try {
+		try (RedisConnection connection = template.getConnectionFactory()
+				.getConnection()) {
 			connection.setConfig("notify-keyspace-events", "");
 			connection.setConfig("notify-keyspace-events", "KEA");
-		} finally {
-			connection.close();
 		}
 	}
 
@@ -823,7 +821,7 @@ public class RedisKeyValueAdapterTests {
 		while (template.hasKey(key)) {
 
 			if (waitedMs > limitMs) {
-				throw new TimeoutException(String.format("Key '%s' after %d %s still present", key, timeout, timeUnit));
+				throw new TimeoutException("Key '%s' after %d %s still present".formatted(key, timeout, timeUnit));
 			}
 
 			Thread.sleep(sleepMs);

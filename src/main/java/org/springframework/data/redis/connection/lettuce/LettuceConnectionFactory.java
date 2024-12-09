@@ -24,6 +24,7 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.RedisCredentialsProvider;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.SslVerifyMode;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.ClusterClientOptions;
@@ -63,7 +64,6 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.data.util.Optionals;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -115,6 +115,7 @@ import org.springframework.util.StringUtils;
  * @author Andrea Como
  * @author Chris Bono
  * @author John Blum
+ * @author Zhian Chen
  */
 public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
 		InitializingBean, DisposableBean, SmartLifecycle {
@@ -473,7 +474,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * Returns whether to verify certificate validity/hostname check when SSL is used.
 	 *
 	 * @return whether to verify peers when using SSL.
+	 * @deprecated since 3.4, use {@link LettuceClientConfiguration#getVerifyMode()} instead.
 	 */
+	@Deprecated(since = "3.4")
 	public boolean isVerifyPeer() {
 		return clientConfiguration.isVerifyPeer();
 	}
@@ -666,8 +669,11 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 */
 	public AbstractRedisClient getRequiredNativeClient() {
 
-		return RedisAssertions.requireState(getNativeClient(),
-				"Client not yet initialized; Did you forget to call initialize the bean");
+		AbstractRedisClient client = getNativeClient();
+
+		Assert.state(client != null, "Client not yet initialized; Did you forget to call initialize the bean");
+
+		return client;
 	}
 
 	@Nullable
@@ -1360,7 +1366,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			this.clientConfiguration.getClientName().ifPresent(it::setClientName);
 
 			it.setSsl(this.clientConfiguration.isUseSsl());
-			it.setVerifyPeer(this.clientConfiguration.isVerifyPeer());
+			it.setVerifyPeer(this.clientConfiguration.getVerifyMode());
 			it.setStartTls(this.clientConfiguration.isStartTls());
 			it.setTimeout(this.clientConfiguration.getCommandTimeout());
 		});
@@ -1440,10 +1446,10 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		switch (current) {
 			case CREATED, STOPPED -> throw new IllegalStateException(
-					String.format("LettuceConnectionFactory has been %s. Use start() to initialize it", current));
+					"LettuceConnectionFactory has been %s. Use start() to initialize it".formatted(current));
 			case DESTROYED ->
 				throw new IllegalStateException("LettuceConnectionFactory was destroyed and cannot be used anymore");
-			default -> throw new IllegalStateException(String.format("LettuceConnectionFactory is %s", current));
+			default -> throw new IllegalStateException("LettuceConnectionFactory is %s".formatted(current));
 		}
 	}
 
@@ -1463,7 +1469,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		builder.withDatabase(getDatabase());
 		builder.withSsl(clientConfiguration.isUseSsl());
-		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
+		builder.withVerifyPeer(clientConfiguration.getVerifyMode());
 		builder.withStartTls(clientConfiguration.isStartTls());
 		builder.withTimeout(clientConfiguration.getCommandTimeout());
 
@@ -1496,8 +1502,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	private MutableLettuceClientConfiguration getMutableConfiguration() {
 
 		Assert.state(clientConfiguration instanceof MutableLettuceClientConfiguration,
-				() -> String.format("Client configuration must be instance of MutableLettuceClientConfiguration but is %s",
-						ClassUtils.getShortName(clientConfiguration.getClass())));
+				() -> "Client configuration must be instance of MutableLettuceClientConfiguration but is %s"
+						.formatted(ClassUtils.getShortName(clientConfiguration.getClass())));
 
 		return (MutableLettuceClientConfiguration) clientConfiguration;
 	}
@@ -1659,7 +1665,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	static class MutableLettuceClientConfiguration implements LettuceClientConfiguration {
 
 		private boolean useSsl;
-		private boolean verifyPeer = true;
+		private SslVerifyMode verifyMode = SslVerifyMode.FULL;
 		private boolean startTls;
 
 		private @Nullable ClientResources clientResources;
@@ -1680,11 +1686,16 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		@Override
 		public boolean isVerifyPeer() {
-			return verifyPeer;
+			return verifyMode != SslVerifyMode.NONE;
+		}
+
+		@Override
+		public SslVerifyMode getVerifyMode() {
+			return verifyMode;
 		}
 
 		void setVerifyPeer(boolean verifyPeer) {
-			this.verifyPeer = verifyPeer;
+			this.verifyMode = verifyPeer ? SslVerifyMode.FULL : SslVerifyMode.NONE;
 		}
 
 		@Override

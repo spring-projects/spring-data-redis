@@ -25,8 +25,6 @@ import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import org.springframework.cache.Cache;
@@ -39,7 +37,6 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.data.redis.util.RedisAssertions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -64,8 +61,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE = "The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
 
-	private final Lock lock = new ReentrantLock();
-
 	private final RedisCacheConfiguration cacheConfiguration;
 
 	private final RedisCacheWriter cacheWriter;
@@ -86,8 +81,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected RedisCache(String name, RedisCacheWriter cacheWriter, RedisCacheConfiguration cacheConfiguration) {
 
-		super(RedisAssertions.requireNonNull(cacheConfiguration, "CacheConfiguration must not be null")
-				.getAllowCacheNullValues());
+		super(cacheConfiguration.getAllowCacheNullValues());
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(cacheWriter, "CacheWriter must not be null");
@@ -154,28 +148,18 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@SuppressWarnings("unchecked")
 	public <T> T get(Object key, Callable<T> valueLoader) {
 
-		ValueWrapper result = get(key);
+		byte[] binaryKey = createAndConvertCacheKey(key);
+		byte[] binaryValue = getCacheWriter().get(getName(), binaryKey,
+				() -> serializeCacheValue(toStoreValue(loadCacheValue(key, valueLoader))), getTimeToLive(key),
+				getCacheConfiguration().isTimeToIdleEnabled());
 
-		return result != null ? (T) result.get() : getSynchronized(key, valueLoader);
-	}
+		ValueWrapper result = toValueWrapper(deserializeCacheValue(binaryValue));
 
-	@Nullable
-	@SuppressWarnings("unchecked")
-	private <T> T getSynchronized(Object key, Callable<T> valueLoader) {
-
-		lock.lock();
-
-		try {
-			ValueWrapper result = get(key);
-			return result != null ? (T) result.get() : loadCacheValue(key, valueLoader);
-		} finally {
-			lock.unlock();
-		}
+		return result != null ? (T) result.get() : null;
 	}
 
 	/**
-	 * Loads the {@link Object} using the given {@link Callable valueLoader} and {@link #put(Object, Object) puts} the
-	 * {@link Object loaded value} in the cache.
+	 * Loads the {@link Object} using the given {@link Callable valueLoader}.
 	 *
 	 * @param <T> {@link Class type} of the loaded {@link Object cache value}.
 	 * @param key {@link Object key} mapped to the loaded {@link Object cache value}.
@@ -184,17 +168,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	protected <T> T loadCacheValue(Object key, Callable<T> valueLoader) {
 
-		T value;
-
 		try {
-			value = valueLoader.call();
+			return valueLoader.call();
 		} catch (Exception ex) {
 			throw new ValueRetrievalException(key, valueLoader, ex);
 		}
-
-		put(key, value);
-
-		return value;
 	}
 
 	@Override
@@ -318,12 +296,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		Object cacheValue = preProcessCacheValue(value);
 
 		if (nullCacheValueIsNotAllowed(cacheValue)) {
-
-			String message = String.format("Cache '%s' does not allow 'null' values; Avoid storing null"
+			throw new IllegalArgumentException(("Cache '%s' does not allow 'null' values; Avoid storing null"
 					+ " via '@Cacheable(unless=\"#result == null\")' or configure RedisCache to allow 'null'"
-					+ " via RedisCacheConfiguration", getName());
-
-			throw new IllegalArgumentException(message);
+					+ " via RedisCacheConfiguration").formatted(getName()));
 		}
 
 		return cacheValue;
@@ -434,16 +409,18 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return key.toString();
 		}
 
-		String message = String.format(
-				"Cannot convert cache key %s to String; Please register a suitable Converter"
-						+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'",
-				source, key.getClass().getName());
-
-		throw new IllegalStateException(message);
+		throw new IllegalStateException(("Cannot convert cache key %s to String; Please register a suitable Converter"
+				+ " via 'RedisCacheConfiguration.configureKeyConverters(...)' or override '%s.toString()'")
+				.formatted(source, key.getClass().getName()));
 	}
 
 	private CompletableFuture<ValueWrapper> retrieveValue(Object key) {
-		return getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key)) //
+
+		CompletableFuture<byte[]> retrieve = getCacheConfiguration().isTimeToIdleEnabled()
+				? getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key), getTimeToLive(key))
+				: getCacheWriter().retrieve(getName(), createAndConvertCacheKey(key));
+
+		return retrieve //
 				.thenApply(binaryValue -> binaryValue != null ? deserializeCacheValue(binaryValue) : null) //
 				.thenApply(this::toValueWrapper);
 	}
@@ -499,7 +476,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 			return "[" + stringJoiner + "]";
 		}
 
-		throw new IllegalArgumentException(String.format("Cannot convert cache key [%s] to String", key));
+		throw new IllegalArgumentException("Cannot convert cache key [%s] to String".formatted(key));
 	}
 
 	private byte[] createAndConvertCacheKey(Object key) {

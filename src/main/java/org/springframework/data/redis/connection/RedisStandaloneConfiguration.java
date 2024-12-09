@@ -70,7 +70,7 @@ public class RedisStandaloneConfiguration
 
 		Assert.hasText(hostName, "Host name must not be null or empty");
 		Assert.isTrue(port >= 1 && port <= 65535,
-				() -> String.format("Port %d must be a valid TCP port in the range between 1-65535", port));
+				"Port %d must be a valid TCP port in the range between 1-65535".formatted(port));
 
 		this.hostName = hostName;
 		this.port = port;
@@ -103,7 +103,7 @@ public class RedisStandaloneConfiguration
 	@Override
 	public void setDatabase(int index) {
 
-		Assert.isTrue(index >= 0, () -> String.format("Invalid DB index '%s' (a positive index required)", index));
+		Assert.isTrue(index >= 0, "Invalid DB index '%d'; non-negative index required".formatted(index));
 
 		this.database = index;
 	}
@@ -137,10 +137,9 @@ public class RedisStandaloneConfiguration
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof RedisStandaloneConfiguration)) {
+		if (!(o instanceof RedisStandaloneConfiguration that)) {
 			return false;
 		}
-		RedisStandaloneConfiguration that = (RedisStandaloneConfiguration) o;
 		if (port != that.port) {
 			return false;
 		}
