@@ -369,8 +369,9 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
+		@Nullable
 		public Long entriesRead() {
-			return getRequired("entries-read", Long.class);
+			return get("entries-read", Long.class);
 		}
 
 		/**
