@@ -16,14 +16,12 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.XAddArgs;
-import io.lettuce.core.XAutoClaimArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.api.async.RedisStreamAsyncCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +31,6 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
-import org.springframework.data.redis.connection.stream.ClaimedMessages;
-import org.springframework.data.redis.connection.stream.ClaimedMessagesIds;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -54,7 +50,6 @@ import org.springframework.util.Assert;
  * @author Dejan Jankov
  * @author Dengliming
  * @author Mark John Moreno
- * @author Krzysztof Kocel
  * @since 2.2
  */
 class LettuceStreamCommands implements RedisStreamCommands {
@@ -120,50 +115,6 @@ class LettuceStreamCommands implements RedisStreamCommands {
 
 		return connection.invoke().fromMany(RedisStreamAsyncCommands::xclaim, key, from, args, ids)
 				.toList(StreamConverters.byteRecordConverter());
-	}
-
-	@Override
-	public ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
-
-		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
-				LettuceConverters.toBytes(newOwner));
-		XAutoClaimArgs<byte[]> args = XAutoClaimArgs.Builder.justid(from, minIdleTime, start);
-
-		return connection.invoke().from(RedisStreamAsyncCommands::xautoclaim, key, args)
-				.get(StreamConverters.claimedMessageJustIdConverter());
-	}
-
-	@Override
-	public ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
-
-		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
-				LettuceConverters.toBytes(newOwner));
-		XAutoClaimArgs<byte[]> args = XAutoClaimArgs.Builder.justid(from, minIdleTime, start).count(count);
-
-		return connection.invoke().from(RedisStreamAsyncCommands::xautoclaim, key, args)
-				.get(StreamConverters.claimedMessageJustIdConverter());
-	}
-
-	@Override
-	public ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
-
-		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
-				LettuceConverters.toBytes(newOwner));
-		XAutoClaimArgs<byte[]> args = XAutoClaimArgs.Builder.xautoclaim(from, minIdleTime, start);
-
-		return connection.invoke().from(RedisStreamAsyncCommands::xautoclaim, key, args)
-				.get(StreamConverters.claimedMessageConverter());
-	}
-
-	@Override
-	public ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
-
-		io.lettuce.core.Consumer<byte[]> from = io.lettuce.core.Consumer.from(LettuceConverters.toBytes(group),
-				LettuceConverters.toBytes(newOwner));
-		XAutoClaimArgs<byte[]> args = XAutoClaimArgs.Builder.xautoclaim(from, minIdleTime, start).count(count);
-
-        return connection.invoke().from(RedisStreamAsyncCommands::xautoclaim, key, args)
-				.get(StreamConverters.claimedMessageConverter());
 	}
 
 	@Override

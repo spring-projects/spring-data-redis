@@ -29,8 +29,6 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.stream.ByteRecord;
-import org.springframework.data.redis.connection.stream.ClaimedMessages;
-import org.springframework.data.redis.connection.stream.ClaimedMessagesIds;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -503,34 +501,6 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, XClaimOptions options) {
 		return streamCommands().xClaim(key, group, newOwner, options);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
-	@Override
-	@Deprecated
-	default ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
-		return streamCommands().xAutoclaimJustId(key, group, newOwner, minIdleTime, start);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
-	@Override
-	@Deprecated
-	default ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
-		return streamCommands().xAutoclaimJustId(key, group, newOwner, minIdleTime, start, count);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
-	@Override
-	@Deprecated
-	default ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
-		return streamCommands().xAutoclaim(key, group, newOwner, minIdleTime, start);
-	}
-
-	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
-	@Override
-	@Deprecated
-	default ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
-		return streamCommands().xAutoclaim(key, group, newOwner, minIdleTime, start, count);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */

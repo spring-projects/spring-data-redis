@@ -18,13 +18,11 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XReadArgs;
-import io.lettuce.core.models.stream.ClaimedMessages;
 import io.lettuce.core.models.stream.PendingMessage;
 import io.lettuce.core.models.stream.PendingMessages;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
@@ -72,14 +70,6 @@ class StreamConverters {
 	static Converter<StreamMessage<byte[], byte[]>, ByteRecord> byteRecordConverter() {
 		return (it) -> StreamRecords.newRecord().in(it.getStream()).withId(it.getId()).ofBytes(it.getBody());
 	}
-
-    static Converter<ClaimedMessages<byte[], byte[]>, org.springframework.data.redis.connection.stream.ClaimedMessages> claimedMessageConverter() {
-        return (it) -> new org.springframework.data.redis.connection.stream.ClaimedMessages(RecordId.of(it.getId()), it.getMessages().stream().map((message) -> StreamConverters.byteRecordConverter().convert(message)).toList(), List.of());
-    }
-
-    static Converter<ClaimedMessages<byte[], byte[]>, org.springframework.data.redis.connection.stream.ClaimedMessagesIds> claimedMessageJustIdConverter() {
-        return (it) -> new org.springframework.data.redis.connection.stream.ClaimedMessagesIds(RecordId.of(it.getId()), it.getMessages().stream().map((message) -> RecordId.of(message.getId())).toList(), List.of());
-    }
 
 	/**
 	 * Convert the raw Lettuce xpending result to {@link PendingMessages}.

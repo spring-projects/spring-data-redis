@@ -15,14 +15,11 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.connection.stream.ClaimedMessages;
-import org.springframework.data.redis.connection.stream.ClaimedMessagesIds;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.commands.StreamPipelineBinaryCommands;
 import redis.clients.jedis.params.XAddParams;
-import redis.clients.jedis.params.XAutoClaimParams;
 import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
@@ -30,7 +27,6 @@ import redis.clients.jedis.params.XReadParams;
 import redis.clients.jedis.resps.StreamConsumersInfo;
 import redis.clients.jedis.resps.StreamGroupInfo;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,74 +114,6 @@ class JedisStreamCommands implements RedisStreamCommands {
 						JedisConverters.toBytes(newOwner), options.getMinIdleTime().toMillis(), params,
 						StreamConverters.entryIdsToBytes(options.getIds()))
 				.get(r -> StreamConverters.convertToByteRecord(key, r));
-	}
-
-	@Override
-	public ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(group, "Group must not be null");
-		Assert.notNull(minIdleTime, "MinIdleTime must not be null");
-		Assert.notNull(start, "Start must not be null");
-
-		XAutoClaimParams params = XAutoClaimParams.xAutoClaimParams();
-
-		final List<ByteRecord> byteRecords =  connection.invoke()
-				.from(Jedis::xautoclaimJustId, ResponseCommands::xautoclaimJustId, key, JedisConverters.toBytes(group),
-						JedisConverters.toBytes(newOwner), minIdleTime.toMillis(), JedisConverters.toBytes(start),
-						params).get(r -> StreamConverters.convertToByteRecord(key, r));
-
-		return null;
-	}
-
-	@Override
-	public ClaimedMessagesIds xAutoclaimJustId(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(group, "Group must not be null");
-		Assert.notNull(minIdleTime, "MinIdleTime must not be null");
-		Assert.notNull(start, "Start must not be null");
-		Assert.notNull(count, "Count must not be null");
-
-		XAutoClaimParams params = XAutoClaimParams.xAutoClaimParams().count(count.intValue());
-
-		final List<ByteRecord> byteRecords = connection.invoke()
-				.from(Jedis::xautoclaimJustId, ResponseCommands::xautoclaimJustId, key, JedisConverters.toBytes(group),
-						JedisConverters.toBytes(newOwner), minIdleTime.toMillis(), JedisConverters.toBytes(start),
-						params).get(r -> StreamConverters.convertToByteRecord(key, r));
-
-		return null;
-	}
-
-	@Override
-	public ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(group, "Group must not be null");
-		Assert.notNull(newOwner, "NewOwner must not be null");
-
-		XAutoClaimParams params = XAutoClaimParams.xAutoClaimParams();
-
-		final List<ByteRecord> br=  connection.invoke()
-				.from(Jedis::xautoclaim, ResponseCommands::xautoclaim, key, JedisConverters.toBytes(group),
-						JedisConverters.toBytes(newOwner), minIdleTime.toMillis(), JedisConverters.toBytes(start),
-						params).get(r -> StreamConverters.convertToByteRecord(key, r));
-
-		return null;
-	}
-
-	@Override
-	public ClaimedMessages xAutoclaim(byte[] key, String group, String newOwner, Duration minIdleTime, String start, Long count) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(group, "Group must not be null");
-		Assert.notNull(newOwner, "NewOwner must not be null");
-
-		XAutoClaimParams params = XAutoClaimParams.xAutoClaimParams().count(count.intValue());
-
-		final List<ByteRecord> br= connection.invoke()
-				.from(Jedis::xautoclaim, ResponseCommands::xautoclaim, key, JedisConverters.toBytes(group),
-						JedisConverters.toBytes(newOwner), minIdleTime.toMillis(), JedisConverters.toBytes(start),
-						params).get(r -> StreamConverters.convertToByteRecord(key, r));
-
-		return null;
 	}
 
 	@Override
