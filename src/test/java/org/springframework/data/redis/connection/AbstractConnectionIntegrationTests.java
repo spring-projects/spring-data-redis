@@ -113,6 +113,7 @@ import org.springframework.data.util.Streamable;
  * @author Hendrik Duerkop
  * @author Shyngys Sapraliyev
  * @author Roman Osadchuk
+ * @author Tihomir Mateev
  */
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -3430,6 +3431,194 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hStrLen("hash-no-exist", "key-2"));
 
 		verifyResults(Arrays.asList(new Object[] { 0L }));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIRE")
+	public void hExpireReturnsSuccessAndSetsTTL() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
+		actual.add(connection.hTtl("hash-hexpire", "key-2"));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat((List) results.get(1)).contains(1L);
+		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5L));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIRE")
+	public void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hExpire("hash-hexpire", 5L, "missking-field"));
+		actual.add(connection.hExpire("missing-key", 5L, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIRE")
+	public void hExpireReturnsTwoWhenZeroProvided() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hExpire("hash-hexpire", 0, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HPEXPIRE")
+	public void hpExpireReturnsSuccessAndSetsTTL() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hpExpire("hash-hexpire", 5000L, "key-2"));
+		actual.add(connection.hTtl("hash-hexpire", TimeUnit.MILLISECONDS,"key-2"));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat((List) results.get(1)).contains(1L);
+		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5000L));
+	}
+
+	@Test
+	@EnabledOnCommand("HPEXPIRE")
+	public void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hpExpire("hash-hexpire", 5L, "missing-field"));
+		actual.add(connection.hpExpire("missing-key", 5L, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HPEXPIRE")
+	public void hpExpireReturnsTwoWhenZeroProvided() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hpExpire("hash-hexpire", 0, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIREAT")
+	public void hExpireAtReturnsSuccessAndSetsTTL() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
+
+		actual.add(connection.hExpireAt("hash-hexpire", inFiveSeconds, "key-2"));
+		actual.add(connection.hTtl("hash-hexpire", "key-2"));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat((List) results.get(1)).contains(1L);
+		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5L));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIREAT")
+	public void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
+
+		actual.add(connection.hpExpire("hash-hexpire", inFiveSeconds, "missing-field"));
+		actual.add(connection.hpExpire("missing-key", inFiveSeconds, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIREAT")
+	public void hExpireAtReturnsTwoWhenZeroProvided() {
+		long fiveSecondsAgo = Instant.now().minusSeconds(5L).getEpochSecond();
+
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hExpireAt("hash-hexpire", fiveSecondsAgo, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIREAT")
+	public void hpExpireAtReturnsSuccessAndSetsTTL() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
+
+		actual.add(connection.hpExpireAt("hash-hexpire", inFiveSeconds, "key-2"));
+		actual.add(connection.hTtl("hash-hexpire", "key-2"));
+
+		List<Object> results = getResults();
+		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
+		assertThat((List) results.get(1)).contains(1L);
+		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5L));
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIREAT")
+	public void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
+
+		actual.add(connection.hpExpireAt("hash-hexpire", inFiveSeconds, "missing-field"));
+		actual.add(connection.hpExpireAt("missing-key", inFiveSeconds, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HPEXPIREAT")
+	public void hpExpireAdReturnsTwoWhenZeroProvided() {
+		long fiveSecondsAgo = Instant.now().minusSeconds(5L).getEpochSecond();
+
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hpExpireAt("hash-hexpire", fiveSecondsAgo, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HPERSIST")
+	public void hPersistReturnsSuccessAndPersistsField() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
+		actual.add(connection.hPersist("hash-hexpire", "key-2"));
+		actual.add(connection.hTtl("hash-hexpire", "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(1L), List.of(1L), List.of(-1L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HPERSIST")
+	public void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hPersist("hash-hexpire", "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-1L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HPERSIST")
+	public void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hPersist("hash-hexpire", "missing-field"));
+		actual.add(connection.hPersist("missing-key", "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HTTL")
+	public void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hTtl("hash-hexpire", "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-1L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HTTL")
+	public void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
+		actual.add(connection.hTtl("hash-hexpire", "missing-field"));
+		actual.add(connection.hTtl("missing-key", "key-2"));
+
+		verifyResults(Arrays.asList(new Object[] { List.of(-2L), List.of(-2L) }));
 	}
 
 	@Test // DATAREDIS-694

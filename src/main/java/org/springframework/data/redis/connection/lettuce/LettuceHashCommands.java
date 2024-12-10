@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisHashCommands;
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tihomir Mateev
  * @since 2.0
  */
 class LettuceHashCommands implements RedisHashCommands {
@@ -208,6 +210,41 @@ class LettuceHashCommands implements RedisHashCommands {
 		return hScan(key, CursorId.initial(), options);
 	}
 
+	@Override
+	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpire, key, seconds, fields).toList();
+	}
+
+	@Override
+	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpire, key, millis, fields).toList();
+	}
+
+	@Override
+	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpireat, key, unixTime, fields).toList();
+	}
+
+	@Override
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpireat, key, unixTimeInMillis, fields).toList();
+	}
+
+	@Override
+	public List<Long> hPersist(byte[] key, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hpersist, key, fields).toList();
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::httl, key, fields).toList();
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::httl, key, fields)
+				.toList(Converters.secondsToTimeUnit(timeUnit));
+	}
 
 	/**
 	 * @param key
