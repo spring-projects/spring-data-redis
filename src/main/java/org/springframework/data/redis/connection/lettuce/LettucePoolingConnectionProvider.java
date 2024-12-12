@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Asmir Mustafic
  * @since 2.0
  * @see #getConnection(Class)
  */
@@ -90,8 +91,18 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
 		GenericObjectPool<StatefulConnection<?, ?>> pool = pools.computeIfAbsent(connectionType, poolType -> {
-			return ConnectionPoolSupport.createGenericObjectPool(() -> connectionProvider.getConnection(connectionType),
-					poolConfig, false);
+
+			GenericObjectPool<StatefulConnection<?, ?>> newPool = ConnectionPoolSupport
+					.createGenericObjectPool(() -> connectionProvider.getConnection(connectionType), poolConfig, false);
+
+			try {
+				newPool.preparePool();
+
+			} catch (Exception ex) {
+				throw new PoolException("Could not prepare the pool", ex);
+			}
+
+			return newPool;
 		});
 
 		try {
