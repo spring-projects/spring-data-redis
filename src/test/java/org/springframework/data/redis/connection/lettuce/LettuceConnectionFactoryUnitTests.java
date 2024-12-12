@@ -1071,7 +1071,6 @@ class LettuceConnectionFactoryUnitTests {
 
 		assertThat(options.getMaxRedirects()).isEqualTo(42);
 		assertThat(options.isValidateClusterNodeMembership()).isFalse();
-		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isFalse();
 	}
 
 	@Test // DATAREDIS-1142

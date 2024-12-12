@@ -42,7 +42,7 @@ record DefaultLettuceObservationConvention(
 
 		Endpoint ep = context.getRequiredEndpoint();
 		KeyValues keyValues = KeyValues.of(LowCardinalityCommandKeyNames.DATABASE_SYSTEM.withValue("redis"), //
-				LowCardinalityCommandKeyNames.REDIS_COMMAND.withValue(context.getRequiredCommand().getType().name()));
+				LowCardinalityCommandKeyNames.REDIS_COMMAND.withValue(context.getRequiredCommand().getType().toString()));
 
 		if (ep instanceof SocketAddressEndpoint endpoint) {
 
@@ -70,7 +70,7 @@ record DefaultLettuceObservationConvention(
 
 			if (command.getArgs() != null) {
 				return KeyValues.of(HighCardinalityCommandKeyNames.STATEMENT
-						.withValue(command.getType().name() + " " + command.getArgs().toCommandString()));
+						.withValue(command.getType().toString() + " " + command.getArgs().toCommandString()));
 			}
 		}
 
@@ -79,6 +79,6 @@ record DefaultLettuceObservationConvention(
 
 	@Override
 	public String getContextualName(LettuceObservationContext context) {
-		return context.getRequiredCommand().getType().name().toLowerCase(Locale.ROOT);
+		return context.getRequiredCommand().getType().toString().toLowerCase(Locale.ROOT);
 	}
 }

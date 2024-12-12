@@ -1075,7 +1075,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	private void validateCommand(ProtocolKeyword command, @Nullable byte[]... args) {
 
-		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(command.name());
+		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(command.toString());
 
 		if (!RedisCommand.UNKNOWN.equals(redisCommand) && redisCommand.requiresArguments()) {
 			try {
