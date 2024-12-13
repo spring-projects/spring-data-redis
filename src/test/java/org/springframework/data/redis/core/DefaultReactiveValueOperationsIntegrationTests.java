@@ -98,6 +98,50 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-2084
+	void setWithKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.set(key, value1, Duration.ofMillis(5500)).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+		valueOperations.set(key, value2, true).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create) //
+				.expectNext(value2) //
+				.verifyComplete();
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(6))) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2084
+	void setWithoutKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.set(key, value1, Duration.ofMillis(5500)).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+		valueOperations.set(key, value2, false).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create) //
+				.expectNext(value2) //
+				.verifyComplete();
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> assertThat(actual).isZero()) //
+				.verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-602
 	void setWithExpiry() {
 
@@ -184,6 +228,58 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 
 					assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(5));
 				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2084
+	void setIfPresentWithKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.setIfPresent(key, value1, true).as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+		valueOperations.set(key, value1, Duration.ofMillis(5500)).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		valueOperations.setIfPresent(key, value2, true).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create) //
+				.expectNext(value2) //
+				.verifyComplete();
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> assertThat(actual).isBetween(Duration.ofMillis(1), Duration.ofSeconds(6))) //
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2084
+	void setIfPresentWithoutKeepTtl() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOperations.setIfPresent(key, value1, false).as(StepVerifier::create) //
+				.expectNext(false) //
+				.verifyComplete();
+		valueOperations.set(key, value1, Duration.ofMillis(5500)).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		valueOperations.setIfPresent(key, value2, false).as(StepVerifier::create) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		valueOperations.get(key).as(StepVerifier::create) //
+				.expectNext(value2) //
+				.verifyComplete();
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.assertNext(actual -> assertThat(actual).isZero()) //
+				.verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602
