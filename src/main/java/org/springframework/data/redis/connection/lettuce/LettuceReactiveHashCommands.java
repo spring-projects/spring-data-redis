@@ -264,6 +264,90 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
+	@Override
+	public Flux<NumericResponse<Expire, Long>> hExpire(Publisher<Expire> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.hexpire(command.getKey(), command.getTtl().toSeconds(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<Expire, Long>> hpExpire(Publisher<Expire> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.hpexpire(command.getKey(), command.getTtl().toMillis(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<ExpireAt, Long>> hExpireAt(Publisher<ExpireAt> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.hexpireat(command.getKey(), command.getExpireAt().getEpochSecond(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<ExpireAt, Long>> hpExpireAt(Publisher<ExpireAt> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.hpexpireat(command.getKey(), command.getExpireAt().toEpochMilli(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<KeyFieldsCommand, Long>> hPersist(Publisher<KeyFieldsCommand> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.hpersist(command.getKey(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<KeyFieldsCommand, Long>> hTtl(Publisher<KeyFieldsCommand> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.httl(command.getKey(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<KeyFieldsCommand, Long>> hpTtl(Publisher<KeyFieldsCommand> commands) {
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getFields(), "Fields must not be null");
+
+			return cmd.hpttl(command.getKey(), command.getFields().toArray(ByteBuffer[]::new))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
 	private static Map.Entry<ByteBuffer, ByteBuffer> toEntry(KeyValue<ByteBuffer, ByteBuffer> kv) {
 
 		return new Entry<ByteBuffer, ByteBuffer>() {
