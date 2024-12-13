@@ -16,6 +16,7 @@
 package org.springframework.data.redis.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
@@ -24,12 +25,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.lang.Nullable;
 
@@ -38,6 +44,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  * @author John Blum
+ * @author Chaelin Kwon
  */
 class RedisCacheConfigurationUnitTests {
 
@@ -128,4 +135,65 @@ class RedisCacheConfigurationUnitTests {
 			return null;
 		}
 	}
+
+	@Test // DATAREDIS-938
+	void getCacheConfigFromProperties() {
+
+		RedisCacheConfiguration config = RedisCacheConfiguration.propertyCacheConfig(null);
+
+		Properties properties = new Properties();
+		try (InputStream input = RedisCacheConfiguration.class.getClassLoader().getResourceAsStream("redis-cache.properties")) {
+			if (input != null) {
+				properties.load(input);
+			} else {
+				throw new FileNotFoundException("Property file 'redis-cache.properties' not found in the classpath");
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load redis-cache.properties", e);
+		}
+
+		assertThat(config.getTtlFunction().getTimeToLive(null, null)).isEqualTo(Duration.ofSeconds(Long.parseLong(properties.getProperty("ttl", "0"))));
+		assertThat(config.usePrefix()).isTrue();
+		assertThat(config.getKeyPrefixFor("myCache")).isEqualTo(properties.getProperty("keyPrefix", "") + "myCache::");
+		assertThat(config.getAllowCacheNullValues()).isEqualTo(Boolean.parseBoolean(properties.getProperty("nullValues", "true")));
+	}
+
+	@Test // DATAREDIS-938
+	void testPropertiesFileNonExist() {
+		assertThatThrownBy(() -> {
+			try (InputStream input = RedisCacheConfiguration.class.getClassLoader().getResourceAsStream("nonexistent-file.properties")) {
+				if (input == null) {
+					throw new FileNotFoundException("Property file 'nonexistent-file.properties' not found in the classpath");
+				}
+				Properties properties = new Properties();
+				properties.load(input);
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to load properties", e);
+			}
+		}).isInstanceOf(RuntimeException.class)
+				.hasMessageContaining("Failed to load properties");
+	}
+
+	@Test // DATAREDIS-938
+	void getInvalidFromProperties() {
+
+		RedisCacheConfiguration config = RedisCacheConfiguration.propertyCacheConfig(null);
+
+		Properties properties = new Properties();
+		try (InputStream input = RedisCacheConfiguration.class.getClassLoader().getResourceAsStream("redis-cache.properties")) {
+			if (input != null) {
+				properties.load(input);
+			} else {
+				throw new FileNotFoundException("Property file 'redis-cache.properties' not found in the classpath");
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load redis-cache.properties", e);
+		}
+
+		assertThat(config.getTtlFunction().getTimeToLive(null, null)).isEqualTo(Duration.ZERO); //
+		assertThat(config.usePrefix()).isTrue();
+		assertThat(config.getKeyPrefixFor("myCache")).isEqualTo(properties.getProperty("keyPrefix", "") + "myCache::");
+		assertThat(config.getAllowCacheNullValues()).isEqualTo(Boolean.parseBoolean(properties.getProperty("nullValues", "true")));
+	}
+
 }

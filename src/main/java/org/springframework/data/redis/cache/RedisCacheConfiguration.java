@@ -15,9 +15,14 @@
  */
 package org.springframework.data.redis.cache;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Properties;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
+import java.io.FileNotFoundException;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
@@ -42,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
+ * @author Chaelin Kwon
  * @since 2.0
  */
 public class RedisCacheConfiguration {
@@ -118,6 +124,106 @@ public class RedisCacheConfiguration {
 				SerializationPair.fromSerializer(RedisSerializer.string()),
 				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)),
 				conversionService);
+	}
+
+	private static final Logger logger = Logger.getLogger(RedisCacheConfiguration.class.getName());
+
+	public static RedisCacheConfiguration propertyCacheConfig(@Nullable ClassLoader classLoader) {
+
+		DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+		registerDefaultConverters(conversionService);
+
+		Properties properties = loadProperties();
+
+		Duration ttl = getValidatedDuration(properties, "ttl", Duration.ofSeconds(0));
+		boolean cacheNullValues = getValidatedBoolean(properties, "nullValues", true);
+		String keyPrefix = getValidatedString(properties, "keyPrefix", "simple", new String[]{"simple", "none"});
+		SerializationPair<?> defaultSerializer = getValidatedSerializer(properties, "serializer", "raw", classLoader);
+		SerializationPair<String> keySerializer = getValidatedSerializer(properties, "key.serializer", "string", classLoader);
+		SerializationPair<?> valueSerializer = getValidatedSerializer(properties, "value.serializer", defaultSerializer, classLoader);
+
+		return new RedisCacheConfiguration(
+				TtlFunction.just(ttl),
+				cacheNullValues,
+				DEFAULT_ENABLE_TIME_TO_IDLE_EXPIRATION,
+				DEFAULT_USE_PREFIX,
+				CacheKeyPrefix.prefixed(keyPrefix),
+				keySerializer,
+				valueSerializer,
+				conversionService
+		);
+	}
+
+	private static Properties loadProperties() {
+		Properties properties = new Properties();
+		try (InputStream input = RedisCacheConfiguration.class.getClassLoader().getResourceAsStream("redis-cache.properties")) {
+			if (input != null) {
+				properties.load(input);
+			} else {
+				throw new FileNotFoundException("Property file 'redis-cache.properties' not found in the classpath");
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load redis-cache.properties", e);
+		}
+		return properties;
+	}
+
+	private static Duration getValidatedDuration(Properties properties, String key, Duration defaultValue) {
+		String value = properties.getProperty(key, String.valueOf(defaultValue.getSeconds()));
+		try {
+			return Duration.ofSeconds(Long.parseLong(value));
+		} catch (NumberFormatException e) {
+			logger.warning("Invalid " + key + " value: " + value + ". Expected a positive integer. Defaulting to " + defaultValue);
+			return defaultValue;
+		}
+	}
+
+	private static boolean getValidatedBoolean(Properties properties, String key, boolean defaultValue) {
+		String value = properties.getProperty(key, String.valueOf(defaultValue));
+		switch (value.toLowerCase()) {
+			case "true":
+			case "false":
+				return Boolean.parseBoolean(value);
+			default:
+				logger.warning("Invalid " + key + " value: " + value + ". Expected 'true' or 'false'. Defaulting to " + defaultValue);
+				return defaultValue;
+		}
+	}
+
+	private static String getValidatedString(Properties properties, String key, String defaultValue, String[] validValues) {
+		String value = properties.getProperty(key, defaultValue);
+		for (String validValue : validValues) {
+			if (validValue.equalsIgnoreCase(value)) {
+				return value.toLowerCase();
+			}
+		}
+		logger.warning("Invalid " + key + " value: " + value + ". Expected one of " + String.join(", ", validValues) + ". Defaulting to " + defaultValue);
+		return defaultValue;
+	}
+
+	private static <T> SerializationPair<T> getValidatedSerializer(Properties properties, String key, Object defaultValue, @Nullable ClassLoader classLoader) {
+		String value = properties.getProperty(key);
+
+		if (value == null && defaultValue instanceof SerializationPair) {
+			return (SerializationPair<T>) defaultValue;
+		}
+		if (value == null) {
+			value = String.valueOf(defaultValue);
+		}
+
+		switch (value.toLowerCase()) {
+			case "java":
+				return (SerializationPair<T>) SerializationPair.fromSerializer(RedisSerializer.java(classLoader));
+			case "string":
+				return (SerializationPair<T>) SerializationPair.fromSerializer(RedisSerializer.string());
+			case "json":
+				return (SerializationPair<T>) SerializationPair.fromSerializer(RedisSerializer.json());
+			case "raw":
+				return (SerializationPair<T>) SerializationPair.fromSerializer(RedisSerializer.byteArray());
+			default:
+				logger.warning("Invalid " + key + " value: " + value + ". Expected 'raw', 'java', 'string', or 'json'. Defaulting to 'raw'.");
+				return (SerializationPair<T>) SerializationPair.fromSerializer(RedisSerializer.byteArray());
+		}
 	}
 
 	private final boolean cacheNullValues;
