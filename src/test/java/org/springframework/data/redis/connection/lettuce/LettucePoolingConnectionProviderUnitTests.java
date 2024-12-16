@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,11 +28,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder;
 
 /**
  * Unit tests for {@link LettucePoolingConnectionProvider}.
  *
  * @author Mark Paluch
+ * @author Asmir Mustafic
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -69,5 +72,22 @@ class LettucePoolingConnectionProviderUnitTests {
 		provider.release(provider.getConnection(StatefulRedisConnection.class));
 
 		verify(commandsMock).discard();
+	}
+
+	@Test
+	void shouldPrepareThePool() {
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMinIdle(5);
+		poolConfig.setMaxIdle(8);
+		poolConfig.setMaxTotal(10);
+
+		LettucePoolingClientConfiguration config = new LettucePoolingClientConfigurationBuilder().poolConfig(poolConfig)
+				.build();
+
+		LettucePoolingConnectionProvider provider = new LettucePoolingConnectionProvider(connectionProviderMock, config);
+
+		provider.getConnection(StatefulRedisConnection.class);
+		verify(connectionProviderMock, times(5)).getConnection(any());
 	}
 }
