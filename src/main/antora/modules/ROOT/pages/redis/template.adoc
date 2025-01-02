@@ -159,7 +159,7 @@ class MyConfig {
   }
 
   @Bean
-  ReactiveRedisTemplate<String, String> ReactiveRedisTemplate(ReactoveRedisConnectionFactory connectionFactory) {
+  ReactiveRedisTemplate<String, String> ReactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory) {
     return new ReactiveRedisTemplate<>(connectionFactory, RedisSerializationContext.string());
   }
 }
