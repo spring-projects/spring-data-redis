@@ -37,8 +37,8 @@ The following example shows a set of commands being run across the cluster:
 redis-cli@127.0.0.1:7379 > cluster nodes
 
 6b38bb... 127.0.0.1:7379 master - 0 0 25 connected 0-5460                      <1>
-7bb78c... 127.0.0.1:7380 master - 0 1449730618304 2 connected 5461-20242       <2>
-164888... 127.0.0.1:7381 master - 0 1449730618304 3 connected 10923-20243      <3>
+7bb78c... 127.0.0.1:7380 master - 0 1449730618304 2 connected 5461-20252       <2>
+164888... 127.0.0.1:7381 master - 0 1449730618304 3 connected 10923-20253      <3>
 b8b5ee... 127.0.0.1:7382 slave 6b38bb... 0 1449730618304 25 connected          <4>
 ----
 
