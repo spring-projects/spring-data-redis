@@ -97,7 +97,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 			try {
 				newPool.preparePool();
-
 			} catch (Exception ex) {
 				throw new PoolException("Could not prepare the pool", ex);
 			}
