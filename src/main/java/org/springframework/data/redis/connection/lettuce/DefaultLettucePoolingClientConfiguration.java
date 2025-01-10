@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.SslVerifyMode;
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -37,10 +38,10 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientConfiguration {
 
 	private final LettuceClientConfiguration clientConfiguration;
-	private final GenericObjectPoolConfig poolConfig;
+	private final GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig;
 
 	DefaultLettucePoolingClientConfiguration(LettuceClientConfiguration clientConfiguration,
-			GenericObjectPoolConfig poolConfig) {
+			GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig) {
 
 		this.clientConfiguration = clientConfiguration;
 		this.poolConfig = poolConfig;
@@ -108,7 +109,7 @@ class DefaultLettucePoolingClientConfiguration implements LettucePoolingClientCo
 	}
 
 	@Override
-	public GenericObjectPoolConfig getPoolConfig() {
+	public GenericObjectPoolConfig<StatefulConnection<?, ?>> getPoolConfig() {
 		return poolConfig;
 	}
 }

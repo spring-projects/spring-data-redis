@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.resource.ClientResources;
 
 import java.time.Duration;
@@ -39,7 +40,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	/**
 	 * @return the {@link GenericObjectPoolConfig}. Never {@literal null}.
 	 */
-	GenericObjectPoolConfig getPoolConfig();
+	GenericObjectPoolConfig<StatefulConnection<?, ?>> getPoolConfig();
 
 	/**
 	 * Creates a new {@link LettucePoolingClientConfigurationBuilder} to build {@link LettucePoolingClientConfiguration}
@@ -91,7 +92,7 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 	 */
 	class LettucePoolingClientConfigurationBuilder extends LettuceClientConfigurationBuilder {
 
-		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig = new GenericObjectPoolConfig<>();
 
 		LettucePoolingClientConfigurationBuilder() {
 			super();
@@ -163,7 +164,8 @@ public interface LettucePoolingClientConfiguration extends LettuceClientConfigur
 		 *
 		 * @param poolConfig must not be {@literal null}.
 		 */
-		public LettucePoolingClientConfigurationBuilder poolConfig(GenericObjectPoolConfig poolConfig) {
+		public LettucePoolingClientConfigurationBuilder poolConfig(
+				GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig) {
 
 			Assert.notNull(poolConfig, "PoolConfig must not be null");
 

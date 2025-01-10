@@ -730,6 +730,12 @@ public class JedisConnectionFactory
 
 			if (getUsePool() && !isRedisClusterAware()) {
 				this.pool = createPool();
+
+				try {
+					this.pool.preparePool();
+				} catch (Exception ex) {
+					throw new PoolException("Could not prepare the pool", ex);
+				}
 			}
 
 			if (isRedisClusterAware()) {

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.mockito.Mockito.*;
 
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 
@@ -74,10 +75,10 @@ class LettucePoolingConnectionProviderUnitTests {
 		verify(commandsMock).discard();
 	}
 
-	@Test
+	@Test // GH-3072
 	void shouldPrepareThePool() {
 
-		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig = new GenericObjectPoolConfig<>();
 		poolConfig.setMinIdle(5);
 		poolConfig.setMaxIdle(8);
 		poolConfig.setMaxTotal(10);

@@ -64,7 +64,7 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 	private static final Log log = LogFactory.getLog(LettucePoolingConnectionProvider.class);
 
 	private final LettuceConnectionProvider connectionProvider;
-	private final GenericObjectPoolConfig poolConfig;
+	private final GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig;
 	private final Map<StatefulConnection<?, ?>, GenericObjectPool<StatefulConnection<?, ?>>> poolRef = new ConcurrentHashMap<>(
 			32);
 
@@ -97,7 +97,6 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 			try {
 				newPool.preparePool();
-
 			} catch (Exception ex) {
 				throw new PoolException("Could not prepare the pool", ex);
 			}

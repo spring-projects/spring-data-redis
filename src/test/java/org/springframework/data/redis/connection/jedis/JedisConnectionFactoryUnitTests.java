@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.RedisProtocol;
+import redis.clients.jedis.util.Pool;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -265,6 +267,28 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPoolConfig()).isSameAs(poolConfig);
 	}
 
+	@Test // GH-3072
+	void shouldInitializePool() throws Exception {
+
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+		Pool<Jedis> poolMock = mock(Pool.class);
+
+		JedisClientConfiguration configuration = JedisClientConfiguration.builder() //
+				.usePooling().poolConfig(poolConfig) //
+				.build();
+
+		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(), configuration) {
+			@Override
+			protected Pool<Jedis> createRedisPool() {
+				return poolMock;
+			}
+		};
+
+		connectionFactory.afterPropertiesSet();
+
+		verify(poolMock).preparePool();
+	}
+
 	@Test // DATAREDIS-574
 	void shouldReturnStandaloneConfiguration() {
 
@@ -382,12 +406,12 @@ class JedisConnectionFactoryUnitTests {
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
+		Pool<Jedis> poolMock = mock(Pool.class);
 		// we have to use a spy here as jedis would start connecting to redis sentinels when the pool is created.
 		JedisConnectionFactory connectionFactorySpy = spy(new JedisConnectionFactory(sentinelConfiguration, poolConfig));
 
-		doReturn(null).when(connectionFactorySpy).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
-
-		doReturn(null).when(connectionFactorySpy).createRedisPool();
+		doReturn(poolMock).when(connectionFactorySpy).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
+		doReturn(poolMock).when(connectionFactorySpy).createRedisPool();
 
 		return connectionFactorySpy;
 	}
