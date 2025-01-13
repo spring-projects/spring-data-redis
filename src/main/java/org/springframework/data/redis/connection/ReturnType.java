@@ -73,7 +73,11 @@ public enum ReturnType {
 			return ReturnType.BOOLEAN;
 		}
 
-		if (ClassUtils.isAssignable(Long.class, javaType)) {
+		if (ClassUtils.isAssignable(Double.class, javaType) || ClassUtils.isAssignable(Float.class, javaType)) {
+			return ReturnType.VALUE;
+		}
+
+		if (ClassUtils.isAssignable(Number.class, javaType)) {
 			return ReturnType.INTEGER;
 		}
 
