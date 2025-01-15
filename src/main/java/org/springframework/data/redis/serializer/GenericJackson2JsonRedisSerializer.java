@@ -271,6 +271,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	@Override
+	@Nullable
 	public Object deserialize(@Nullable byte[] source) throws SerializationException {
 		return deserialize(source, Object.class);
 	}
