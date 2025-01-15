@@ -80,11 +80,13 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 		this.charset = charset;
 	}
 
+	@Nullable
 	@Override
 	public byte[] serialize(@Nullable String value) {
 		return (value == null ? null : value.getBytes(charset));
 	}
 
+	@Nullable
 	@Override
 	public String deserialize(@Nullable byte[] bytes) {
 		return (bytes == null ? null : new String(bytes, charset));

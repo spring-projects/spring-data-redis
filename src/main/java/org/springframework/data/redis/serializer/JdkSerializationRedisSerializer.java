@@ -84,6 +84,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		this.deserializer = deserializer;
 	}
 
+	@Nullable
 	@Override
 	public byte[] serialize(@Nullable Object value) {
 
@@ -98,6 +99,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		}
 	}
 
+	@Nullable
 	@Override
 	public Object deserialize(@Nullable byte[] bytes) {
 

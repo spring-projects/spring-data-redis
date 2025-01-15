@@ -92,6 +92,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
+	@Nullable
 	public T deserialize(@Nullable byte[] bytes) {
 
 		if (bytes == null) {
