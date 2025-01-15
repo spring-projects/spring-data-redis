@@ -277,6 +277,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	@Override
+	@Nullable
 	public Object deserialize(@Nullable byte[] source) throws SerializationException {
 		return deserialize(source, Object.class);
 	}
@@ -375,10 +376,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 		/**
 		 * Lenient variant of ObjectMapper._readTreeAndClose using a strict {@link JsonNodeDeserializer}.
-		 *
-		 * @param source
-		 * @return
-		 * @throws IOException
 		 */
 		private JsonNode readTree(byte[] source) throws IOException {
 

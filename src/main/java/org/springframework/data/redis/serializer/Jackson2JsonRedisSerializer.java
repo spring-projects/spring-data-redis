@@ -158,6 +158,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 		}
 	}
 
+	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
 	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
