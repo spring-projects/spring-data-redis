@@ -103,6 +103,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Muchnik
  * @author John Blum
+ * @author Mohammad Javad Imani
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -228,7 +229,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			byte[] key = toBytes(rdo.getId());
 			byte[] objectKey = createKey(rdo.getKeyspace(), rdo.getId());
 
-			boolean isNew = connection.del(objectKey) == 0;
+			boolean isNew = connection.keyCommands().del(objectKey) == 0;
 
 			connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
@@ -245,11 +246,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 
 				if (expires(rdo)) {
-					connection.del(phantomKey);
+					connection.keyCommands().del(phantomKey);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
 				} else if (!isNew) {
-					connection.del(phantomKey);
+					connection.keyCommands().del(phantomKey);
 				}
 			}
 
@@ -323,7 +324,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			redisOps.execute((RedisCallback<Void>) connection -> {
 
-				connection.del(keyToDelete);
+				connection.keyCommands().del(keyToDelete);
 				connection.sRem(binKeyspace, binId);
 				new IndexWriter(connection, converter).removeKeyFromIndexes(keyspace, binId);
 
@@ -335,7 +336,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 						byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 
-						connection.del(phantomKey);
+						connection.keyCommands().del(phantomKey);
 					}
 				}
 				return null;
@@ -395,7 +396,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		redisOps.execute((RedisCallback<Void>) connection -> {
 
-			connection.del(toBytes(keyspace));
+			connection.keyCommands().del(toBytes(keyspace));
 			new IndexWriter(connection, converter).removeAllIndexes(keyspace);
 
 			return null;
@@ -485,7 +486,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					connection.persist(redisKey);
 
 					if (keepShadowCopy()) {
-						connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+						connection.keyCommands().del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 					}
 				}
 			}
@@ -883,7 +884,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
 
 				if (!CollectionUtils.isEmpty(phantomValue)) {
-					connection.del(phantomKey);
+					connection.keyCommands().del(phantomKey);
 				}
 
 				return phantomValue;
