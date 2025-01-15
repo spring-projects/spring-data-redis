@@ -102,6 +102,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		return stream.toByteArray();
 	}
 
+	@Nullable
 	@Override
 	public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
 
