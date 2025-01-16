@@ -19,6 +19,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,9 +46,33 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tihomir Mateev
  * @since 2.0
  */
 public interface ReactiveHashCommands {
+
+	/**
+	 * {@link Command} for hash-bound operations.
+	 *
+	 * @author Christoph Strobl
+	 * @author Tihomir Mateev
+	 */
+	class KeyFieldsCommand extends KeyCommand {
+
+		private final List<ByteBuffer> fields;
+
+		private KeyFieldsCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
+			super(key);
+			this.fields = fields;
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public List<ByteBuffer> getFields() {
+			return fields;
+		}
+	}
 
 	/**
 	 * {@literal HSET} {@link Command}.
@@ -216,15 +242,10 @@ public interface ReactiveHashCommands {
 	 * @author Christoph Strobl
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
-	class HGetCommand extends KeyCommand {
-
-		private List<ByteBuffer> fields;
+	class HGetCommand extends KeyFieldsCommand {
 
 		private HGetCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
-
-			super(key);
-
-			this.fields = fields;
+			super(key, fields);
 		}
 
 		/**
@@ -263,14 +284,7 @@ public interface ReactiveHashCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new HGetCommand(key, fields);
-		}
-
-		/**
-		 * @return never {@literal null}.
-		 */
-		public List<ByteBuffer> getFields() {
-			return fields;
+			return new HGetCommand(key, getFields());
 		}
 	}
 
@@ -394,15 +408,10 @@ public interface ReactiveHashCommands {
 	 * @author Christoph Strobl
 	 * @see <a href="https://redis.io/commands/hdel">Redis Documentation: HDEL</a>
 	 */
-	class HDelCommand extends KeyCommand {
-
-		private final List<ByteBuffer> fields;
+	class HDelCommand extends KeyFieldsCommand {
 
 		private HDelCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
-
-			super(key);
-
-			this.fields = fields;
+			super(key, fields);
 		}
 
 		/**
@@ -441,14 +450,7 @@ public interface ReactiveHashCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new HDelCommand(key, fields);
-		}
-
-		/**
-		 * @return never {@literal null}.
-		 */
-		public List<ByteBuffer> getFields() {
-			return fields;
+			return new HDelCommand(key, getFields());
 		}
 	}
 
@@ -842,4 +844,453 @@ public interface ReactiveHashCommands {
 	 * @since 2.1
 	 */
 	Flux<NumericResponse<HStrLenCommand, Long>> hStrLen(Publisher<HStrLenCommand> commands);
+
+	/**
+	 * @author Tihomir Mateev
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	class Expire extends KeyFieldsCommand {
+
+		private final Duration ttl;
+
+		/**
+		 * Creates a new {@link Expire} given a {@code key}, a {@link List} of {@code fields} and a time-to-live
+		 *
+		 * @param key can be {@literal null}.
+		 * @param fields must not be {@literal null}.
+		 * @param ttl the duration of the time to live.
+		 */
+		private Expire(@Nullable ByteBuffer key, List<ByteBuffer> fields, Duration ttl) {
+
+			super(key, fields);
+			this.ttl = ttl;
+		}
+
+		/**
+		 * Specify the {@code fields} within the hash to set an expiration for.
+		 *
+		 * @param fields must not be {@literal null}.
+		 * @return new instance of {@link Expire}.
+		 */
+		public static Expire expire(List<ByteBuffer> fields, Duration ttl) {
+
+			Assert.notNull(fields, "Field must not be null");
+			return new Expire(null, fields, ttl);
+		}
+
+		/**
+		 * Define the {@code key} the hash is stored at.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link Expire}.
+		 */
+		public Expire from(ByteBuffer key) {
+			return new Expire(key, getFields(), ttl);
+		}
+
+		/**
+		 * @return the ttl.
+		 */
+		public Duration getTtl() {
+			return ttl;
+		}
+	}
+
+	/**
+	 * Expire a given {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @param duration must not be {@literal null}.
+	 * @return a {@link Mono} emitting the expiration result - {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 * 	       {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hExpire(ByteBuffer key, Duration duration, ByteBuffer field) {
+		Assert.notNull(duration, "Duration must not be null");
+
+		return hExpire(key, duration, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @param duration must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 * 	       already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 * 	       {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 * 	       {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hExpire(ByteBuffer key, Duration duration, List<ByteBuffer> fields) {
+		Assert.notNull(duration, "Duration must not be null");
+
+		return hExpire(Flux.just(Expire.expire(fields, duration).from(key)))
+				.mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 * 	       {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 * 	       {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 */
+	Flux<NumericResponse<Expire, Long>> hExpire(Publisher<Expire> commands);
+
+	/**
+	 * Expire a given {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @param duration must not be {@literal null}.
+	 * @return a {@link Mono} emitting the expiration result - {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 * 	       {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hpExpire(ByteBuffer key, Duration duration, ByteBuffer field) {
+		Assert.notNull(duration, "Duration must not be null");
+
+		return hpExpire(key, duration, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @param duration must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 * 	       already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 * 	       {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 * 	       {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hpExpire(ByteBuffer key, Duration duration, List<ByteBuffer> fields) {
+		Assert.notNull(duration, "Duration must not be null");
+
+		return hpExpire(Flux.just(Expire.expire(fields, duration).from(key)))
+				.mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 * 	       {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 * 	       {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
+	 */
+	Flux<NumericResponse<Expire, Long>> hpExpire(Publisher<Expire> commands);
+
+	/**
+	 * @author Tihomir Mateev
+	 * @see <a href="https://redis.io/commands/hexpireat">Redis Documentation: HEXPIREAT</a>
+	 * @since 3.5
+	 */
+	class ExpireAt extends KeyFieldsCommand {
+
+		private final Instant expireAt;
+
+		/**
+		 * Creates a new {@link ExpireAt} given a {@code key}, a {@link List} of {@literal fields} and a {@link Instant}
+		 *
+		 * @param key can be {@literal null}.
+		 * @param fields must not be {@literal null}.
+		 * @param expireAt the {@link Instant} to expire at.
+		 */
+		private ExpireAt(@Nullable ByteBuffer key, List<ByteBuffer> fields, Instant expireAt) {
+
+			super(key, fields);
+			this.expireAt = expireAt;
+		}
+
+		/**
+		 * Specify the {@code fields} within the hash to set an expiration for.
+		 *
+		 * @param fields must not be {@literal null}.
+		 * @return new instance of {@link ExpireAt}.
+		 */
+		public static ExpireAt expireAt(List<ByteBuffer> fields, Instant expireAt) {
+
+			Assert.notNull(fields, "Fields must not be null");
+			return new ExpireAt(null, fields, expireAt);
+		}
+
+		/**
+		 * Define the {@code key} the hash is stored at.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return new instance of {@link ExpireAt}.
+		 */
+		public ExpireAt from(ByteBuffer key) {
+			return new ExpireAt(key, getFields(), expireAt);
+		}
+
+		/**
+		 * @return the ttl.
+		 */
+		public Instant getExpireAt() {
+			return expireAt;
+		}
+	}
+
+	/**
+	 * Expire a given {@literal field} in a given {@link Instant} of time, indicated as an absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in seconds since Unix epoch
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return a {@link Mono} emitting the expiration result - {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
+	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
+	 *         met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hexpireat">Redis Documentation: HEXPIREAT</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hExpireAt(ByteBuffer key, Instant expireAt, ByteBuffer field) {
+
+		Assert.notNull(expireAt, "Duration must not be null");
+		return hExpireAt(key, expireAt, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} in a given {@link Instant} of time, indicated as an absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in seconds since Unix epoch
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 * 	       already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
+	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
+	 * 	       met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hexpireat">Redis Documentation: HEXPIREAT</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hExpireAt(ByteBuffer key, Instant expireAt, List<ByteBuffer> fields) {
+		Assert.notNull(expireAt, "Duration must not be null");
+
+		return hExpireAt(Flux.just(ExpireAt.expireAt(fields, expireAt).from(key))).mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} in a given {@link Instant} of time, indicated as an absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in seconds since Unix epoch
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 * 	       already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
+	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
+	 * 	       met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/hexpireat">Redis Documentation: HEXPIREAT</a>
+	 */
+	Flux<NumericResponse<ExpireAt, Long>> hExpireAt(Publisher<ExpireAt> commands);
+
+	/**
+	 * Expire a given {@literal field} in a given {@link Instant} of time, indicated as an absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in milliseconds since Unix epoch
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return a {@link Mono} emitting the expiration result - {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
+	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
+	 *         met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hpexpireat">Redis Documentation: HPEXPIREAT</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hpExpireAt(ByteBuffer key, Instant expireAt, ByteBuffer field) {
+
+		Assert.notNull(expireAt, "Duration must not be null");
+		return hpExpireAt(key, expireAt, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} in a given {@link Instant} of time, indicated as an absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in milliseconds since Unix epoch
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 * 	       already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
+	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
+	 * 	       met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hpexpireat">Redis Documentation: HPEXPIREAT</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hpExpireAt(ByteBuffer key, Instant expireAt, List<ByteBuffer> fields) {
+		Assert.notNull(expireAt, "Duration must not be null");
+
+		return hpExpireAt(Flux.just(ExpireAt.expireAt(fields, expireAt).from(key))).mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} in a given {@link Instant} of time, indicated as an absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in milliseconds since Unix epoch
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@code 2} indicating the specific field is deleted
+	 * 	       already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
+	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
+	 * 	       met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/hpexpireat">Redis Documentation: HPEXPIREAT</a>
+	 */
+	Flux<NumericResponse<ExpireAt, Long>> hpExpireAt(Publisher<ExpireAt> commands);
+
+	/**
+	 * Persist a given {@literal field} removing any associated expiration, measured as absolute
+	 * <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a> in seconds since Unix epoch
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @return a {@link Mono} emitting the persist result - {@code 1} indicating expiration time is removed;
+	 *         {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such field;
+	 * 	       {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hpersist">Redis Documentation: HPERSIST</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hPersist(ByteBuffer key, ByteBuffer field) {
+
+		return hPersist(key, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Persist a given {@link List} of {@literal field} removing any associated expiration.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a {@link Flux} emitting the persisting results one by one - {@code 1} indicating expiration time is removed;
+	 * 	       {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such field;
+	 * 	       {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hpersist">Redis Documentation: HPERSIST</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hPersist(ByteBuffer key, List<ByteBuffer> fields) {
+
+		return hPersist(Flux.just(new KeyFieldsCommand(key, fields))).mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Persist a given {@link List} of {@literal field} removing any associated expiration.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the persisting results one by one - {@code 1} indicating expiration time is removed;
+	 * 	       {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such field;
+	 * 	       {@literal null} when used in pipeline / transaction.	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/hpersist">Redis Documentation: HPERSIST</a>
+	 */
+	Flux<NumericResponse<KeyFieldsCommand, Long>> hPersist(Publisher<KeyFieldsCommand> commands);
+
+	/**
+	 * Returns the time-to-live of a given {@literal field} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @return a {@link Mono} emitting the TTL result - the time to live in seconds; or a negative value
+	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/httl">Redis Documentation: HTTL</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hTtl(ByteBuffer key, ByteBuffer field) {
+
+		return hTtl(key, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Returns the time-to-live of all the given {@literal field} in the {@link List} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a {@link Flux} emitting the TTL results one by one - the time to live in seconds; or a negative value
+	 *	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/httl">Redis Documentation: HTTL</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hTtl(ByteBuffer key, List<ByteBuffer> fields) {
+
+		return hTtl(Flux.just(new KeyFieldsCommand(key, fields))).mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Returns the time-to-live of all the given {@literal field} in the {@link List} in seconds.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the persisting results one by one - the time to live in seconds; or a negative value
+	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/httl">Redis Documentation: HTTL</a>
+	 */
+	Flux<NumericResponse<KeyFieldsCommand, Long>> hTtl(Publisher<KeyFieldsCommand> commands);
+
+
+	/**
+	 * Returns the time-to-live of a given {@literal field} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param field must not be {@literal null}.
+	 * @return a {@link Mono} emitting the TTL result - the time to live in milliseconds; or a negative value
+	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hpttl">Redis Documentation: HPTTL</a>
+	 * @since 3.5
+	 */
+	default Mono<Long> hpTtl(ByteBuffer key, ByteBuffer field) {
+
+		return hpTtl(key, Collections.singletonList(field)).singleOrEmpty();
+	}
+
+	/**
+	 * Returns the time-to-live of all the given {@literal field} in the {@link List} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a {@link Flux} emitting the TTL results one by one - the time to live in milliseconds; or a negative value
+	 *	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/hpttl">Redis Documentation: HPTTL</a>
+	 * @since 3.5
+	 */
+	default Flux<Long> hpTtl(ByteBuffer key, List<ByteBuffer> fields) {
+
+		return hpTtl(Flux.just(new KeyFieldsCommand(key, fields))).mapNotNull(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Returns the time-to-live of all the given {@literal field} in the {@link List} in milliseconds.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the persisting results one by one - the time to live in milliseconds; or a negative value
+	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/hpttl">Redis Documentation: HPTTL</a>
+	 */
+	Flux<NumericResponse<KeyFieldsCommand, Long>> hpTtl(Publisher<KeyFieldsCommand> commands);
 }

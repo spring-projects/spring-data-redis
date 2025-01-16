@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -34,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Ninad Divadkar
+ * @author Tihomir Mateev
  */
 class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
 
@@ -208,6 +212,47 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawHashValue = rawHashValue(value);
 
 		return execute(connection -> connection.hSetNX(rawKey, rawHashKey, rawHashValue));
+	}
+
+	@Override
+	public List<Long> expire(K key, Duration duration, Collection<HK> hashKeys) {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = rawHashKeys(hashKeys.toArray());
+		long rawTimeout = duration.toMillis();
+
+		return execute(connection -> connection.hpExpire(rawKey, rawTimeout, rawHashKeys));
+	}
+
+	@Override
+	public List<Long> expireAt(K key, Instant instant, Collection<HK> hashKeys) {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = rawHashKeys(hashKeys.toArray());
+
+		return execute(connection -> connection.hpExpireAt(rawKey, instant.toEpochMilli(), rawHashKeys));
+	}
+
+	@Override
+	public List<Long> persist(K key, Collection<HK> hashKeys) {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = rawHashKeys(hashKeys.toArray());
+
+		return execute(connection -> connection.hPersist(rawKey, rawHashKeys));
+	}
+
+	@Override
+	public List<Long> getExpire(K key, Collection<HK> hashKeys) {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = rawHashKeys(hashKeys.toArray());
+
+		return execute(connection -> connection.hTtl(rawKey, rawHashKeys));
+	}
+
+	@Override
+	public List<Long> getExpire(K key, TimeUnit timeUnit, Collection<HK> hashKeys) {
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = rawHashKeys(hashKeys.toArray());
+
+		return execute(connection -> connection.hTtl(rawKey, timeUnit, rawHashKeys));
 	}
 
 	@Override
