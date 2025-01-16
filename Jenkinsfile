@@ -60,10 +60,10 @@ pipeline {
 						}
 					}
 				}
-				stage('Publish JDK 17 + Valkey 7.2 Docker Image') {
+				stage('Publish JDK 17 + Valkey 8.0 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk17-valkey-7.2/Dockerfile"
+							changeset "ci/openjdk17-valkey-8.0/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -73,7 +73,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-valkey-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-valkey-8.0:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.valkey.8.version']} -f ci/openjdk17-valkey-8.0/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
@@ -197,7 +197,7 @@ pipeline {
 					}
 				}
 
-				stage("test: Valkey 7") {
+				stage("test: Valkey 8") {
 					agent {
 						label 'data'
 					}
@@ -209,7 +209,7 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-valkey-7.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
+								docker.image("springci/spring-data-with-valkey-8.0:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
