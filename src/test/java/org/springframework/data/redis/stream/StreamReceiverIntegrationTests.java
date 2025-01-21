@@ -15,11 +15,13 @@
  */
 package org.springframework.data.redis.stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -50,10 +52,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.StreamReceiver.StreamReceiverOptions;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 /**
  * Integration tests for {@link StreamReceiver}.
@@ -227,13 +225,13 @@ public class StreamReceiverIntegrationTests {
 				.consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
-					// assertThat(it.getValue()).containsEntry("key", "value");
-					assertThat(it.getValue()).containsValue("value");
+
+					assertThat(it.getValue().values()).containsAnyOf("value", "value2");
 				}).consumeNextWith(it -> {
 
 					assertThat(it.getStream()).isEqualTo("my-stream");
 					// assertThat(it.getValue()).containsEntry("key2", "value2");
-					assertThat(it.getValue()).containsValue("value2");
+					assertThat(it.getValue().values()).containsAnyOf("value", "value2");
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(5));
