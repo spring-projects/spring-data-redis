@@ -21,6 +21,8 @@ import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +37,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Tihomir Mateev
  */
 public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
 
@@ -287,5 +290,62 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 
 		connection.hashCommands().hStrLen(KEY_1_BBUFFER, FIELD_1_BBUFFER).as(StepVerifier::create).expectNext(0L) //
 				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest
+	void hExpireShouldHandleMultipleParametersCorrectly() {
+		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
+		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
+		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
+
+		connection.hashCommands().hExpire(KEY_1_BBUFFER, Duration.ofSeconds(1), fields).as(StepVerifier::create) //
+				.expectNext(1L)
+				.expectNext(1L)
+				.expectNext(-2L)
+				.expectComplete()
+				.verify();
+
+		assertThat(nativeCommands.httl(KEY_1, FIELD_1)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
+		assertThat(nativeCommands.httl(KEY_1, FIELD_2)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
+		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
+
+	}
+
+	@ParameterizedRedisTest
+	void hExpireAtShouldHandleMultipleParametersCorrectly() {
+		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
+		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
+		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
+
+		connection.hashCommands().hExpireAt(KEY_1_BBUFFER, Instant.now().plusSeconds(1), fields).as(StepVerifier::create) //
+				.expectNext(1L)
+				.expectNext(1L)
+				.expectNext(-2L)
+				.expectComplete()
+				.verify();
+
+		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
+		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
+
+	}
+
+	@ParameterizedRedisTest
+	void hPersistShouldPersistFields() {
+		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
+		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
+
+		assertThat(nativeCommands.hexpire(KEY_1, 1000, FIELD_1))
+				.allSatisfy(it -> assertThat(it).isEqualTo(1L));
+
+		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
+
+		connection.hashCommands().hPersist(KEY_1_BBUFFER, fields).as(StepVerifier::create) //
+				.expectNext(1L)
+				.expectNext(-1L)
+				.expectNext(-2L)
+				.expectComplete()
+				.verify();
+
+		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isEqualTo(-1L));
 	}
 }

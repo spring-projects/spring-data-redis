@@ -19,9 +19,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 
@@ -39,6 +43,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Tihomir Mateev
  * @param <K> Key type
  * @param <HK> Hash key type
  * @param <HV> Hash value type
@@ -201,5 +206,80 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		Map<HK, HV> values = hashOps.randomEntries(key, 10);
 		assertThat(values).hasSize(2).containsEntry(key1, val1).containsEntry(key2, val2);
+	}
+
+	@ParameterizedRedisTest
+	void testExpireAndGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		assertThat(redisTemplate.opsForHash().expire(key, Duration.ofMillis(500), List.of(key1)))
+				.containsExactly(1L);
+
+		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1)))
+				.allSatisfy(it -> assertThat(it).isBetween(0L, 500L));
+	}
+
+	@ParameterizedRedisTest
+	void testExpireAndGetExpireSeconds() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		assertThat(redisTemplate.opsForHash().expire(key, Duration.ofSeconds(5), List.of(key1, key2)))
+				.containsExactly(1L, 1L);
+
+		assertThat(redisTemplate.opsForHash().getExpire(key, TimeUnit.SECONDS, List.of(key1, key2)))
+				.allSatisfy(it -> assertThat(it).isBetween(0L, 5L));
+	}
+
+	@ParameterizedRedisTest
+	void testExpireAtAndGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		assertThat(redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(500), List.of(key1, key2)))
+				.containsExactly(1L, 1L);
+
+		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)))
+				.allSatisfy(it -> assertThat(it).isBetween(0L, 500L));
+	}
+
+	@ParameterizedRedisTest
+	void testPersistAndGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		assertThat(redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(500), List.of(key1, key2)))
+				.containsExactly(1L, 1L);
+
+		assertThat(redisTemplate.opsForHash().persist(key, List.of(key1, key2)))
+				.allSatisfy(it -> assertThat(it).isEqualTo(1L));
+
+		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)))
+				.allSatisfy(it -> assertThat(it).isEqualTo(-1L));
 	}
 }

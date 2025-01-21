@@ -2567,6 +2567,76 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+		return this.delegate.hExpire(key, seconds, fields);
+	}
+
+	@Override
+	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+		return this.delegate.hpExpire(key, millis, fields);
+	}
+
+	@Override
+	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+		return this.delegate.hExpireAt(key, unixTime, fields);
+	}
+
+	@Override
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+		return this.delegate.hpExpireAt(key, unixTimeInMillis, fields);
+	}
+
+	@Override
+	public List<Long> hPersist(byte[] key, byte[]... fields) {
+		return this.delegate.hPersist(key, fields);
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, byte[]... fields) {
+		return this.delegate.hTtl(key, fields);
+	}
+
+	@Override
+	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
+		return this.delegate.hTtl(key, timeUnit, fields);
+	}
+
+	@Override
+	public List<Long> hExpire(String key, long seconds, String... fields) {
+		return hExpire(serialize(key), seconds, serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hpExpire(String key, long millis, String... fields) {
+		return hpExpire(serialize(key), millis, serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hExpireAt(String key, long unixTime, String... fields) {
+		return hExpireAt(serialize(key), unixTime, serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
+		return hpExpireAt(serialize(key), unixTimeInMillis, serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hPersist(String key, String... fields) {
+		return hPersist(serialize(key), serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hTtl(String key, String... fields) {
+		return hTtl(serialize(key), serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hTtl(String key, TimeUnit timeUnit, String... fields) {
+		return hTtl(serialize(key), timeUnit, serializeMulti(fields));
+	}
+
+	@Override
 	public void setClientName(byte[] name) {
 		this.delegate.setClientName(name);
 	}
