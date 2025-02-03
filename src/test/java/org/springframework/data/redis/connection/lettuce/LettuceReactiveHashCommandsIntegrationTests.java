@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -293,6 +294,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void hExpireShouldHandleMultipleParametersCorrectly() {
 		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
@@ -312,6 +314,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void hExpireAtShouldHandleMultipleParametersCorrectly() {
 		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
@@ -330,6 +333,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void hPersistShouldPersistFields() {
 		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();

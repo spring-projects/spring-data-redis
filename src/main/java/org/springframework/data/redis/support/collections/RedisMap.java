@@ -19,11 +19,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.core.Expirations;
+import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.lang.Nullable;
 
 /**
@@ -91,7 +92,7 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	List<Long> expire(Duration timeout, Collection<K> hashKeys);
+	ExpireChanges<K> expire(Duration timeout, Collection<K> hashKeys);
 
 	/**
 	 * Set the expiration for given hash {@code key} as a {@literal date} timestamp.
@@ -106,7 +107,7 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	List<Long> expireAt(Instant expireAt, Collection<K> hashKeys);
+	ExpireChanges<K> expireAt(Instant expireAt, Collection<K> hashKeys);
 
 	/**
 	 * Remove the expiration from given hash {@code key}.
@@ -118,7 +119,7 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */
-	List<Long> persist(Collection<K> hashKeys);
+	ExpireChanges<K> persist(Collection<K> hashKeys);
 
 	/**
 	 * Get the time to live for hash {@code key} in seconds.
@@ -130,7 +131,7 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	List<Long> getExpire(Collection<K> hashKeys);
+	Expirations<K> getExpire(Collection<K> hashKeys);
 
 	/**
 	 * Get the time to live for hash {@code key} and convert it to the given {@link TimeUnit}.
@@ -143,5 +144,5 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	List<Long> getExpire(TimeUnit timeUnit, Collection<K> hashKeys);
+	Expirations<K> getExpire(TimeUnit timeUnit, Collection<K> hashKeys);
 }

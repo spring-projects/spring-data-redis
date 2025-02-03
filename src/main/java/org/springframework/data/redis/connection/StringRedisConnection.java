@@ -2333,6 +2333,7 @@ public interface StringRedisConnection extends RedisConnection {
 	@Nullable
 	Long hStrLen(String key, String field);
 
+	// TODO: why why whay is this such a shitty api that there's missing all the NX, XX, GT Options
 	/**
 	 * Set time to live for given {@code field} in seconds.
 	 *
@@ -2412,7 +2413,7 @@ public interface StringRedisConnection extends RedisConnection {
 	List<Long> hPersist(String key, String... fields);
 
 	/**
-	 * Get the time to live for {@code field} in seconds.
+	 * Get the time to live for {@code fields} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
@@ -2420,13 +2421,13 @@ public interface StringRedisConnection extends RedisConnection {
 	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
 	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hTtl(String key, String... fields);
 
 	/**
-	 * Get the time to live for {@code field} in and convert it to the given {@link TimeUnit}.
+	 * Get the time to live for {@code fields} in and convert it to the given {@link TimeUnit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
@@ -2435,10 +2436,24 @@ public interface StringRedisConnection extends RedisConnection {
 	 *         to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
 	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hTtl(String key, TimeUnit timeUnit, String... fields);
+
+	/**
+	 * Get the time to live for {@code fields} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in milliseconds; or a negative value
+	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	List<Long> hpTtl(String key, String... fields);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog

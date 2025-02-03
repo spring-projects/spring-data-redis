@@ -15,10 +15,12 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.ExpireArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.MapScanCursor;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
+import io.lettuce.core.protocol.CommandArgs;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
@@ -36,6 +39,7 @@ import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -211,6 +215,46 @@ class LettuceHashCommands implements RedisHashCommands {
 	}
 
 	@Override
+	public @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+			FieldExpirationOptions options, byte[]... fields) {
+
+		if (expiration.isPersistent()) {
+			return hPersist(key, fields);
+		}
+
+		ExpireArgs option = new ExpireArgs() {
+			@Override
+			public <K, V> void build(CommandArgs<K, V> args) {
+
+				if(ObjectUtils.nullSafeEquals(options, FieldExpirationOptions.none())) {
+					return;
+				}
+
+				args.add(options.getCondition().name());
+			}
+		};
+
+		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+			if (expiration.isUnixTimestamp()) {
+				return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpireat, key,
+						expiration.getExpirationTimeInMilliseconds(), option, fields).toList();
+			}
+			return connection.invoke()
+					.fromMany(RedisHashAsyncCommands::hpexpire, key, expiration.getExpirationTimeInMilliseconds(), option, fields)
+					.toList();
+		}
+
+		if (expiration.isUnixTimestamp()) {
+			return connection.invoke()
+					.fromMany(RedisHashAsyncCommands::hexpireat, key, expiration.getExpirationTimeInSeconds(), option, fields)
+					.toList();
+		}
+		return connection.invoke()
+				.fromMany(RedisHashAsyncCommands::hexpire, key, expiration.getExpirationTimeInSeconds(), option, fields)
+				.toList();
+	}
+
+	@Override
 	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpire, key, seconds, fields).toList();
 	}
@@ -244,6 +288,11 @@ class LettuceHashCommands implements RedisHashCommands {
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::httl, key, fields)
 				.toList(Converters.secondsToTimeUnit(timeUnit));
+	}
+
+	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hpttl, key, fields).toList();
 	}
 
 	/**

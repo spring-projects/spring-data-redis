@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -41,6 +42,7 @@ import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
@@ -195,31 +197,41 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpire() {
+
 		K k1 = getKey();
 		V v1 = getValue();
 		assertThat(map.put(k1, v1)).isEqualTo(null);
 
 		Collection<K> keys = Collections.singletonList(k1);
-		assertThat(map.expire(Duration.ofSeconds(5), keys)).contains(1L);
-		assertThat(map.getExpire(keys)).allSatisfy(expiration -> assertThat(expiration).isBetween(1L, 5L));
-		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys))
-				.allSatisfy(expiration -> assertThat(expiration).isBetween(1000L, 5000L));
-		assertThat(map.persist(keys)).contains(1L);
+		assertThat(map.expire(Duration.ofSeconds(5), keys)).satisfies(ExpireChanges::allOk);
+		assertThat(map.getExpire(keys)).satisfies(expiration -> {
+			assertThat(expiration.expirationOf(k1).raw()).isBetween(1L, 5L);
+		});
+		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys)).satisfies(expiration -> {
+			assertThat(expiration.expirationOf(k1).raw()).isBetween(1000L, 5000L);
+		});
+		assertThat(map.persist(keys)).satisfies(ExpireChanges::allOk);
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireAt() {
+
 		K k1 = getKey();
 		V v1 = getValue();
 		assertThat(map.put(k1, v1)).isEqualTo(null);
 
 		Collection<K> keys = Collections.singletonList(k1);
-		assertThat(map.expireAt(Instant.now().plusSeconds(5), keys)).contains(1L);
-		assertThat(map.getExpire(keys)).allSatisfy(expiration -> assertThat(expiration).isBetween(1L, 5L));
-		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys))
-				.allSatisfy(expiration -> assertThat(expiration).isBetween(1000L, 5000L));
-		assertThat(map.persist(keys)).contains(1L);
+		assertThat(map.expireAt(Instant.now().plusSeconds(5), keys)).satisfies(ExpireChanges::allOk);
+		assertThat(map.getExpire(keys)).satisfies(expiration -> {
+			assertThat(expiration.expirationOf(k1).raw()).isBetween(1L, 5L);
+		});
+		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys)).satisfies(expiration -> {
+			assertThat(expiration.expirationOf(k1).raw()).isBetween(1000L, 5000L);
+		});
+		assertThat(map.persist(keys)).satisfies(ExpireChanges::allOk);
 	}
 
 	@ParameterizedRedisTest

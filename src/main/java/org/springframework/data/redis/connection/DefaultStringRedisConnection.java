@@ -30,6 +30,7 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
@@ -2571,6 +2572,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.hStrLen(key, field), Converters.identityConverter());
 	}
 
+	public @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+		FieldExpirationOptions options, byte[]... fields) {
+		return this.delegate.expireHashField(key, expiration, options, fields);
+	}
+
 	@Override
 	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
 		return this.delegate.hExpire(key, seconds, fields);
@@ -2602,8 +2608,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return this.delegate.hpTtl(key, fields);
+	}
+
+	@Override
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
 		return this.delegate.hTtl(key, timeUnit, fields);
+	}
+
+	public @Nullable List<Long> expireHashField(String key, org.springframework.data.redis.core.types.Expiration expiration,
+		FieldExpirationOptions options, String... fields) {
+		return expireHashField(serialize(key), expiration, options, serializeMulti(fields));
 	}
 
 	@Override
@@ -2639,6 +2655,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public List<Long> hTtl(String key, TimeUnit timeUnit, String... fields) {
 		return hTtl(serialize(key), timeUnit, serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hpTtl(String key, String... fields) {
+		return hTtl(serialize(key), serializeMulti(fields));
 	}
 
 	@Override

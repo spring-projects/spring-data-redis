@@ -1098,7 +1098,9 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 5L, KEY_2_BYTES)).contains(1L);
@@ -1106,7 +1108,9 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		// missing field
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 5L, KEY_1_BYTES)).contains(-2L);
@@ -1115,6 +1119,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsTwoWhenZeroProvided() {
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
@@ -1122,16 +1127,19 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireReturnsSuccessAndSetsTTL() {
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_1_BYTES, 5000L, KEY_2_BYTES)).contains(1L);
-		assertThat(clusterConnection.hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS,KEY_2_BYTES))
+		assertThat(clusterConnection.hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS, KEY_2_BYTES))
 				.allSatisfy(val -> assertThat(val).isBetween(0L, 5000L));
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		// missing field
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_1_BYTES, 5L, KEY_1_BYTES)).contains(-2L);
@@ -1140,14 +1148,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireReturnsTwoWhenZeroProvided() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_1_BYTES, 0L, KEY_2_BYTES)).contains(2L);
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hExpireAtReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
 		assertThat(clusterConnection.hashCommands().hExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(1L);
@@ -1155,17 +1167,21 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
 
 		// missing field
 		assertThat(clusterConnection.hashCommands().hExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_1_BYTES)).contains(-2L);
+
 		// missing key
 		assertThat(clusterConnection.hashCommands().hExpireAt(KEY_2_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(-2L);
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hExpireAdReturnsTwoWhenZeroProvided() {
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
@@ -1173,16 +1189,20 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireAtReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(1L);
-		assertThat(clusterConnection.hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS, KEY_2_BYTES))
-				.allSatisfy(val -> assertThat(val).isBetween(0L, 5000L));
+		assertThat(clusterConnection.hpTtl(KEY_1_BYTES, KEY_2_BYTES))
+				.allSatisfy(val -> assertThat(val).isGreaterThan(1000L).isLessThanOrEqualTo(5000L));
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
 
@@ -1193,14 +1213,18 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireAdReturnsTwoWhenZeroProvided() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_1_BYTES, 0L, KEY_2_BYTES)).contains(2L);
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hPersistReturnsSuccessAndPersistsField() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 5L, KEY_2_BYTES)).contains(1L);
 		assertThat(clusterConnection.hashCommands().hPersist(KEY_1_BYTES,  KEY_2_BYTES)).contains(1L);
@@ -1208,12 +1232,15 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		assertThat(clusterConnection.hashCommands().hPersist(KEY_1_BYTES, KEY_2_BYTES)).contains(-1L);
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
@@ -1223,19 +1250,21 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES)).contains(-1L);
-
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, TimeUnit.HOURS, KEY_2_BYTES)).contains(-1L);
 	}
 
 	@Test
+	@EnabledOnCommand("HEXPIRE")
 	public void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
 
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_1_BYTES)).contains(-2L);
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_3_BYTES,KEY_2_BYTES)).contains(-2L);
-
 	}
 
 	@Test // DATAREDIS-315

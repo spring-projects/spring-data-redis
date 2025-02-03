@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -192,6 +193,20 @@ public interface RedisKeyCommands {
 	Boolean expire(byte[] key, long seconds);
 
 	/**
+	 * Set time to live for given {@code key} using {@link Duration#toSeconds() seconds} precision.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param duration
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default Boolean expire(byte[] key, Duration duration) {
+		return expire(key, duration.toSeconds());
+	}
+
+	/**
 	 * Set time to live for given {@code key} in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
@@ -201,6 +216,20 @@ public interface RedisKeyCommands {
 	 */
 	@Nullable
 	Boolean pExpire(byte[] key, long millis);
+
+	/**
+	 * Set time to live for given {@code key} using {@link Duration#toMillis() milliseconds} precision.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param duration
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default Boolean pExpire(byte[] key, Duration duration) {
+		return pExpire(key, duration.toMillis());
+	}
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
@@ -214,6 +243,21 @@ public interface RedisKeyCommands {
 	Boolean expireAt(byte[] key, long unixTime);
 
 	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in {@link Instant#getEpochSecond() seconds}
+	 * precision.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTime
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default Boolean expireAt(byte[] key, Instant unixTime) {
+		return expireAt(key, unixTime.getEpochSecond());
+	}
+
+	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
@@ -223,6 +267,21 @@ public interface RedisKeyCommands {
 	 */
 	@Nullable
 	Boolean pExpireAt(byte[] key, long unixTimeInMillis);
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in {@link Instant#toEpochMilli()
+	 * milliseconds} precision.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTime
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default Boolean pExpireAt(byte[] key, Instant unixTime) {
+		return pExpireAt(key, unixTime.toEpochMilli());
+	}
 
 	/**
 	 * Remove the expiration from given {@code key}.

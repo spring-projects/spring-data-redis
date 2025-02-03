@@ -15,11 +15,13 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
@@ -252,37 +254,82 @@ public interface RedisHashCommands {
 	@Nullable
 	Long hStrLen(byte[] key, byte[] field);
 
+	default @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+		byte[]... fields) {
+		return expireHashField(key, expiration, FieldExpirationOptions.none(), fields);
+	}
+
+
+	@Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+		FieldExpirationOptions options, byte[]... fields);
+
+		/**
+         * Set time to live for given {@code fields} in seconds.
+         *
+         * @param key must not be {@literal null}.
+         * @param seconds the amount of time after which the fields will be expired in seconds, must not be {@literal null}.
+         * @param fields must not be {@literal null}.
+         * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
+         *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+         *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+         *         {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+         * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
+         * @since 3.5
+         */
+	@Nullable
+	List<Long> hExpire(byte[] key, long seconds, byte[]... fields);
+
 	/**
-	 * Set time to live for given {@code field} in seconds.
+	 * Set time to live for given {@code fields}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param seconds the amount of time after which the key will be expired in seconds, must not be {@literal null}.
+	 * @param ttl the amount of time after which the fields will be expired in {@link Duration#toSeconds() seconds} precision, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
 	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
 	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
 	 *         {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpire(byte[] key, long seconds, byte[]... fields);
+	default List<Long> hExpire(byte[] key, Duration ttl, byte[]... fields) {
+		return hExpire(key, ttl.toSeconds(), fields);
+	}
 
 	/**
-	 * Set time to live for given {@code field} in milliseconds.
+	 * Set time to live for given {@code fields} in milliseconds.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param millis the amount of time after which the key will be expired in milliseconds, must not be {@literal null}.
+	 * @param millis the amount of time after which the fields will be expired in milliseconds, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
 	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
 	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
 	 *         {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hpExpire(byte[] key, long millis, byte[]... fields);
+
+	/**
+	 * Set time to live for given {@code fields} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param ttl the amount of time after which the fields will be expired in {@link Duration#toMillis() milliseconds} precision, must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
+	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
+	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
+	 *         {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default List<Long> hpExpire(byte[] key, Duration ttl, byte[]... fields) {
+		return hpExpire(key, ttl.toMillis(), fields);
+	}
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
@@ -295,7 +342,7 @@ public interface RedisHashCommands {
 	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
 	 *         met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields);
@@ -311,7 +358,7 @@ public interface RedisHashCommands {
 	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
 	 *         met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields);
@@ -325,27 +372,27 @@ public interface RedisHashCommands {
 	 * 	       {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such field;
 	 * 	       {@literal null} when used in pipeline / transaction.{@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hPersist(byte[] key, byte[]... fields);
 
 	/**
-	 * Get the time to live for {@code field} in seconds.
+	 * Get the time to live for {@code fields} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative value
-	 *         to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
-	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 *         to signal an error. The command returns {@code -1} if the field exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the field does not exist; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hTtl(byte[] key, byte[]... fields);
 
 	/**
-	 * Get the time to live for {@code field} in and convert it to the given {@link TimeUnit}.
+	 * Get the time to live for {@code fields} in and convert it to the given {@link TimeUnit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
@@ -354,8 +401,24 @@ public interface RedisHashCommands {
 	 *         to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
 	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
+	// TODO: this is complete nonsense as it would jeopardize negative values
+	// TODO: this should be a List<Map.Entry<byte, Expiration>>
 	List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields);
+
+	/**
+	 * Get the time to live for {@code fields} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative value
+	 *         to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
+	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	List<Long> hpTtl(byte[] key, byte[]... fields);
 }

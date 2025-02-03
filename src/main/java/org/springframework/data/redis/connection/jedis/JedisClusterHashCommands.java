@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
@@ -26,13 +27,16 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Cluster {@link RedisHashCommands} implementation for Jedis.
@@ -281,16 +285,54 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				ScanResult<Entry<byte[], byte[]>> result = connection.getCluster().hscan(key,
-						JedisConverters.toBytes(cursorId),
+				ScanResult<Entry<byte[], byte[]>> result = connection.getCluster().hscan(key, JedisConverters.toBytes(cursorId),
 						params);
 				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}
 
+	@Nullable
+	@Override
+	public List<Long> expireHashField(byte[] key, Expiration expiration, FieldExpirationOptions options,
+			byte[]... fields) {
+
+		if (expiration.isPersistent()) {
+			return hPersist(key, fields);
+		}
+
+		if (ObjectUtils.nullSafeEquals(FieldExpirationOptions.none(), options)) {
+			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+				if (expiration.isUnixTimestamp()) {
+					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
+				}
+				return hpExpire(key, expiration.getExpirationTimeInMilliseconds(), fields);
+			}
+			if (expiration.isUnixTimestamp()) {
+				return hExpireAt(key, expiration.getExpirationTimeInSeconds(), fields);
+			}
+			return hExpire(key, expiration.getExpirationTimeInSeconds(), fields);
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(options.getCondition().name());
+
+		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+			if (expiration.isUnixTimestamp()) {
+				return connection.getCluster().hpexpireAt(key, expiration.getExpirationTimeInMilliseconds(), option, fields);
+			}
+			return connection.getCluster().hpexpire(key, expiration.getExpirationTimeInMilliseconds(), option, fields);
+		}
+
+		if (expiration.isUnixTimestamp()) {
+			return connection.getCluster().hexpireAt(key, expiration.getExpirationTimeInSeconds(), option, fields);
+		}
+		return connection.getCluster().hexpire(key, expiration.getExpirationTimeInSeconds(), option, fields);
+
+	}
+
 	@Override
 	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
@@ -368,8 +410,19 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 		try {
 			return connection.getCluster().httl(key, fields).stream()
-					.map(it -> it != null ? timeUnit.convert(it, TimeUnit.SECONDS) : null)
-					.toList();
+					.map(it -> it != null ? timeUnit.convert(it, TimeUnit.SECONDS) : null).toList();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			return connection.getCluster().hpttl(key, fields);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
@@ -37,6 +39,7 @@ import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link RedisHashCommands} implementation for Jedis.
@@ -152,7 +155,8 @@ class JedisHashCommands implements RedisHashCommands {
 
 					List<Entry<byte[], byte[]>> convertedMapEntryList = new ArrayList<>(mapEntryList.size());
 
-					mapEntryList.forEach(entry -> convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
+					mapEntryList
+							.forEach(entry -> convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
 
 					return convertedMapEntryList;
 
@@ -239,8 +243,8 @@ class JedisHashCommands implements RedisHashCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key,
-						JedisConverters.toBytes(cursorId), params);
+				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key, JedisConverters.toBytes(cursorId),
+						params);
 				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 
@@ -263,13 +267,54 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
+	public @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+			FieldExpirationOptions options, byte[]... fields) {
+
+		if (expiration.isPersistent()) {
+			return hPersist(key, fields);
+		}
+
+		if (ObjectUtils.nullSafeEquals(FieldExpirationOptions.none(), options)) {
+			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+				if (expiration.isUnixTimestamp()) {
+					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
+				}
+				return hpExpire(key, expiration.getExpirationTimeInMilliseconds(), fields);
+			}
+			if (expiration.isUnixTimestamp()) {
+				return hExpireAt(key, expiration.getExpirationTimeInSeconds(), fields);
+			}
+			return hExpire(key, expiration.getExpirationTimeInSeconds(), fields);
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(options.getCondition().name());
+
+		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+			if (expiration.isUnixTimestamp()) {
+				return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key,
+						expiration.getExpirationTimeInMilliseconds(), option, fields);
+			}
+			return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key,
+					expiration.getExpirationTimeInMilliseconds(), option, fields);
+		}
+
+		if (expiration.isUnixTimestamp()) {
+			return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key,
+					expiration.getExpirationTimeInSeconds(), option, fields);
+		}
+		return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key,
+				expiration.getExpirationTimeInSeconds(), option, fields);
+	}
+
+	@Override
 	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
 		return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
 	}
 
 	@Override
 	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis, fields);
+		return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
+				fields);
 	}
 
 	@Override
@@ -286,6 +331,11 @@ class JedisHashCommands implements RedisHashCommands {
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
 		return connection.invoke().fromMany(Jedis::httl, PipelineBinaryCommands::httl, key, fields)
 				.toList(Converters.secondsToTimeUnit(timeUnit));
+	}
+
+	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return connection.invoke().just(Jedis::hpttl, PipelineBinaryCommands::hpttl, key, fields);
 	}
 
 	@Nullable

@@ -15,20 +15,28 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ReactiveHashCommands.ExpireCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.core.types.Expiration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.core.Expirations.Timeouts;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -63,8 +71,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.noNullElements(hashKeys, "Hash keys must not contain null elements");
 
 		return createMono(hashCommands -> Flux.fromArray(hashKeys) //
-				.map(hashKey -> (HK) hashKey)
-				.map(this::rawHashKey) //
+				.map(hashKey -> (HK) hashKey).map(this::rawHashKey) //
 				.collectList() //
 				.flatMap(hks -> hashCommands.hDel(rawKey(key), hks)));
 	}
@@ -86,8 +93,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return createMono(hashCommands -> hashCommands.hGet(rawKey(key), rawHashKey((HK) hashKey))
-				.map(this::readHashValue));
+		return createMono(
+				hashCommands -> hashCommands.hGet(rawKey(key), rawHashKey((HK) hashKey)).map(this::readHashValue));
 	}
 
 	@Override
@@ -109,8 +116,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands()
-				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
+		return template
+				.doCreateMono(connection -> connection.numberCommands().hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
 	@Override
@@ -119,8 +126,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands()
-				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
+		return template
+				.doCreateMono(connection -> connection.numberCommands().hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
 	@Override
@@ -137,8 +144,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(hashCommands -> hashCommands.hRandFieldWithValues(rawKey(key)))
-				.map(this::deserializeHashEntry);
+		return createMono(hashCommands -> hashCommands.hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
 	}
 
 	@Override
@@ -233,6 +239,78 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		return createFlux(hashCommands -> hashCommands.hScan(rawKey(key), options) //
 				.map(this::deserializeHashEntry));
+	}
+
+	@Override
+	public Mono<ExpireChanges<HK>> expire(H key, Duration timeout, Collection<HK> hashKeys) {
+		return expire(key, Expiration.from(timeout), FieldExpirationOptions.none(), hashKeys);
+	}
+
+	@Override
+	public Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys) {
+
+		List<HK> orderedKeys = List.copyOf(hashKeys);
+		ByteBuffer rawKey = rawKey(key);
+		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
+
+		Mono<List<Long>> raw =createFlux(connection -> {
+			return connection.expireHashField(Mono.just(ExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options))).map(NumericResponse::getOutput);
+		}).collectList();
+
+		return raw.map(values -> ExpireChanges.of(orderedKeys, values));
+	}
+
+	@Nullable
+	@Override
+	public Mono<ExpireChanges<HK>> expireAt(H key, Instant expireAt, Collection<HK> hashKeys) {
+
+		List<HK> orderedKeys = List.copyOf(hashKeys);
+		ByteBuffer rawKey = rawKey(key);
+		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
+
+		Mono<List<Long>> raw = createFlux(connection -> connection.hExpireAt(rawKey, expireAt, rawHashKeys)).collectList();
+
+		return raw.map(values -> ExpireChanges.of(orderedKeys, values));
+	}
+
+	@Nullable
+	@Override
+	public Mono<ExpireChanges<HK>> persist(H key, Collection<HK> hashKeys) {
+
+		List<HK> orderedKeys = List.copyOf(hashKeys);
+		ByteBuffer rawKey = rawKey(key);
+		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
+
+		Mono<List<Long>> raw = createFlux(connection -> connection.hPersist(rawKey, rawHashKeys)).collectList();
+
+		return raw.map(values -> ExpireChanges.of(orderedKeys, values));
+	}
+
+	@Nullable
+	@Override
+	public Mono<Expirations<HK>> getExpire(H key, TimeUnit timeUnit, Collection<HK> hashKeys) {
+
+		if (timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
+			throw new IllegalArgumentException("%s precision is not supported must be >= MILLISECONDS".formatted(timeUnit));
+		}
+
+		List<HK> orderedKeys = List.copyOf(hashKeys);
+		ByteBuffer rawKey = rawKey(key);
+		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
+
+		Mono<List<Long>> raw = createFlux(connection -> {
+
+			if (TimeUnit.MILLISECONDS.equals(timeUnit)) {
+				return connection.hpTtl(rawKey, rawHashKeys);
+			}
+			return connection.hTtl(rawKey, rawHashKeys);
+		}).collectList();
+
+		return raw.map(values -> {
+
+			Timeouts timeouts = new Timeouts(TimeUnit.MILLISECONDS.equals(timeUnit) ? timeUnit : TimeUnit.SECONDS, values);
+			return Expirations.of(timeUnit, orderedKeys, timeouts);
+		});
 	}
 
 	@Override
