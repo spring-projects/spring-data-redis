@@ -34,6 +34,7 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -208,6 +209,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(values).hasSize(2).containsEntry(key1, val1).containsEntry(key2, val2);
 	}
 
+	@EnabledOnCommand("HEXPIRE")
 	@ParameterizedRedisTest
 	void testExpireAndGetExpireMillis() {
 
@@ -227,6 +229,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireAndGetExpireSeconds() {
 
 		K key = keyFactory.instance();
@@ -245,6 +248,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
 
 		K key = keyFactory.instance();
@@ -263,6 +267,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testPersistAndGetExpireMillis() {
 
 		K key = keyFactory.instance();

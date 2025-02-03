@@ -195,6 +195,7 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpire() {
 		K k1 = getKey();
 		V v1 = getValue();
@@ -209,6 +210,7 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireAt() {
 		K k1 = getKey();
 		V v1 = getValue();
