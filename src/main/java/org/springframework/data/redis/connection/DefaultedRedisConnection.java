@@ -1520,6 +1520,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 		return hashCommands().hTtl(key, timeUnit, fields);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return hashCommands().hpTtl(key, fields);
+	}
+
 	// GEO COMMANDS
 
 	/** @deprecated in favor of {@link RedisConnection#geoCommands()}}. */

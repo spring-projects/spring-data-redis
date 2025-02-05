@@ -15,28 +15,31 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-import static org.junit.jupiter.api.condition.OS.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.junit.jupiter.api.condition.OS.MAC;
 
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.springframework.data.redis.connection.convert.Converters;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -499,6 +502,113 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
 				}) //
 				.verifyComplete();
+	}
+
+	@EnabledOnCommand("HEXPIRE")
+	@ParameterizedRedisTest
+	void testExpireAndGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		putAll(key, key1, val1, key2, val2);
+
+		hashOperations.expire(key, Duration.ofMillis(1500), List.of(key1)) //
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
+
+		hashOperations.getExpire(key, List.of(key1)) //
+				.as(StepVerifier::create) //
+				.assertNext(it -> {
+					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 2L);
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
+	void testExpireAndGetExpireSeconds() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		putAll(key, key1, val1, key2, val2);
+
+		hashOperations.expire(key, Duration.ofSeconds(5), List.of(key1, key2)) //
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
+
+		hashOperations.getExpire(key, TimeUnit.SECONDS, List.of(key1, key2)) //
+				.as(StepVerifier::create) //
+				.assertNext(it -> {
+					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 5L);
+					assertThat(it.expirationOf(key2).raw()).isBetween(0L, 5L);
+				}).verifyComplete();
+
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
+	void testExpireAtAndGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		putAll(key, key1, val1, key2, val2);
+
+		redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(1500), List.of(key1, key2))
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
+
+		redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)).as(StepVerifier::create)//
+				.assertNext(it -> {
+					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 2L);
+					assertThat(it.expirationOf(key2).raw()).isBetween(0L, 2L);
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
+	void testPersistAndGetExpireMillis() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		putAll(key, key1, val1, key2, val2);
+
+		redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(1500), List.of(key1, key2))
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
+
+		redisTemplate.opsForHash().persist(key, List.of(key1, key2)).as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
+
+		redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)).as(StepVerifier::create)//
+				.assertNext(expirations -> {
+					assertThat(expirations.persistent()).contains(key1, key2);
+				}).verifyComplete();
+
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

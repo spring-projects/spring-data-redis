@@ -246,6 +246,12 @@ class LettuceHashCommands implements RedisHashCommands {
 				.toList(Converters.secondsToTimeUnit(timeUnit));
 	}
 
+	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hpttl, key, fields)
+			.toList();
+	}
+
 	/**
 	 * @param key
 	 * @param cursorId

@@ -24,6 +24,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.Expirations;
+import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.lang.Nullable;
@@ -300,33 +302,38 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	public List<Long> expire(Duration timeout, Collection<Object> hashKeys) {
+	public ExpireChanges<Object> expire(Duration timeout, Collection<Object> hashKeys) {
+
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return Objects.requireNonNull(hashOps.expire(timeout, keys));
+		return (ExpireChanges) hashOps.expire(timeout, keys);
 	}
 
 	@Override
-	public List<Long> expireAt(Instant expireAt, Collection<Object> hashKeys) {
+	public ExpireChanges<Object> expireAt(Instant expireAt, Collection<Object> hashKeys) {
+
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return Objects.requireNonNull(hashOps.expireAt(expireAt, keys));
+		return (ExpireChanges) hashOps.expireAt(expireAt, keys);
 	}
 
 	@Override
-	public List<Long> persist(Collection<Object> hashKeys) {
+	public ExpireChanges<Object> persist(Collection<Object> hashKeys) {
+
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return Objects.requireNonNull(hashOps.persist(keys));
+		return (ExpireChanges) hashOps.persist(keys);
 	}
 
 	@Override
-	public List<Long> getExpire(Collection<Object> hashKeys) {
+	public Expirations<Object> getExpire(Collection<Object> hashKeys) {
+
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return Objects.requireNonNull(hashOps.getExpire(keys));
+		return (Expirations) hashOps.getExpire(keys);
 	}
 
 	@Override
-	public List<Long> getExpire(TimeUnit timeUnit, Collection<Object> hashKeys) {
+	public Expirations<Object> getExpire(TimeUnit timeUnit, Collection<Object> hashKeys) {
+
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return Objects.requireNonNull(hashOps.getExpire(timeUnit, keys));
+		return (Expirations) hashOps.getExpire(timeUnit, keys);
 	}
 
 }

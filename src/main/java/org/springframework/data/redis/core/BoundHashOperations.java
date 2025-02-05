@@ -171,7 +171,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> expire(Duration timeout, Collection<HK> hashKeys);
+	ExpireChanges<HK> expire(Duration timeout, Collection<HK> hashKeys);
 
 	/**
 	 * Set the expiration for given {@code hashKey} (aka field) as a {@literal date} timestamp.
@@ -187,7 +187,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> expireAt(Instant expireAt, Collection<HK> hashKeys);
+	ExpireChanges<HK> expireAt(Instant expireAt, Collection<HK> hashKeys);
 
 	/**
 	 * Remove the expiration from given {@code hashKey} (aka field).
@@ -200,7 +200,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> persist(Collection<HK> hashKeys);
+	ExpireChanges<HK> persist(Collection<HK> hashKeys);
 
 	/**
 	 * Get the time to live for {@code hashKey} (aka field) in seconds.
@@ -213,7 +213,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> getExpire(Collection<HK> hashKeys);
+	Expirations<HK> getExpire(Collection<HK> hashKeys);
 
 	/**
 	 * Get the time to live for {@code hashKey} (aka field) and convert it to the given {@link TimeUnit}.
@@ -227,7 +227,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> getExpire(TimeUnit timeUnit, Collection<HK> hashKeys);
+	Expirations<HK> getExpire(TimeUnit timeUnit, Collection<HK> hashKeys);
 
 	/**
 	 * Get size of hash at the bound key.

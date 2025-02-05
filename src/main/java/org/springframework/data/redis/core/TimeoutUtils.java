@@ -35,7 +35,11 @@ public abstract class TimeoutUtils {
 	 * @since 2.1
 	 */
 	public static boolean hasMillis(Duration duration) {
-		return duration.toMillis() % 1000 != 0;
+		return containsSplitSecond(duration.toMillis());
+	}
+
+	public static boolean containsSplitSecond(long millis) {
+		return millis % 1000 != 0;
 	}
 
 	/**

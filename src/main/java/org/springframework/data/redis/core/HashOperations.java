@@ -240,7 +240,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> expire(H key, Duration timeout, Collection<HK> hashKeys);
+	ExpireChanges<HK> expire(H key, Duration timeout, Collection<HK> hashKeys);
 
 	/**
 	 * Set the expiration for given {@code hashKey} (aka field) as a {@literal date} timestamp.
@@ -257,7 +257,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
+	ExpireChanges<HK> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
 
 	/**
 	 * Remove the expiration from given {@code hashKey} (aka field).
@@ -271,7 +271,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> persist(H key, Collection<HK> hashKeys);
+	ExpireChanges<HK> persist(H key, Collection<HK> hashKeys);
 
 	/**
 	 * Get the time to live for {@code hashKey} (aka field) in seconds.
@@ -285,7 +285,9 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> getExpire(H key, Collection<HK> hashKeys);
+	default Expirations<HK> getExpire(H key, Collection<HK> hashKeys) {
+		return getExpire(key, TimeUnit.SECONDS, hashKeys);
+	}
 
 	/**
 	 * Get the time to live for {@code hashKey} (aka field) and convert it to the given {@link TimeUnit}.
@@ -300,7 +302,8 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> getExpire(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
+	Expirations<HK> getExpire(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
+
 	/**
 	 * @return never {@literal null}.
 	 */

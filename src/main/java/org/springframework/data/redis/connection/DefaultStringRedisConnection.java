@@ -2597,6 +2597,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return this.delegate.hpTtl(key, fields);
+	}
+
+	@Override
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
 		return this.delegate.hTtl(key, timeUnit, fields);
 	}
@@ -2634,6 +2639,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public List<Long> hTtl(String key, TimeUnit timeUnit, String... fields) {
 		return hTtl(serialize(key), timeUnit, serializeMulti(fields));
+	}
+
+	@Override
+	public List<Long> hpTtl(String key, String... fields) {
+		return hTtl(serialize(key), serializeMulti(fields));
 	}
 
 	@Override

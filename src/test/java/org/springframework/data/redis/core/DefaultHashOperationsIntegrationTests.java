@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -27,13 +28,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
+import org.springframework.data.redis.core.Expirations.Expiration;
+import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -137,7 +140,6 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-
 		long count = 0;
 		try (Cursor<Map.Entry<HK, HV>> it = hashOps.scan(key, ScanOptions.scanOptions().count(1).build())) {
 
@@ -222,10 +224,16 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		assertThat(redisTemplate.opsForHash().expire(key, Duration.ofMillis(500), List.of(key1)))
-				.containsExactly(1L);
+				.satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1)))
-				.allSatisfy(it -> assertThat(it).isBetween(0L, 500L));
+		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1))).satisfies(expirations -> {
+
+			assertThat(expirations.missing()).isEmpty();
+			assertThat(expirations.precision()).isEqualTo(TimeUnit.SECONDS);
+			assertThat(expirations.expirationOf(key1)).extracting(Expiration::raw, InstanceOfAssertFactories.LONG)
+					.isBetween(0L, 1L);
+			assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofSeconds(1));
+		});
 	}
 
 	@ParameterizedRedisTest
@@ -241,10 +249,22 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		assertThat(redisTemplate.opsForHash().expire(key, Duration.ofSeconds(5), List.of(key1, key2)))
-				.containsExactly(1L, 1L);
+				.satisfies(changes -> {
+					assertThat(changes.allOk()).isTrue();
+					assertThat(changes.stateOf(key1)).isEqualTo(ExpiryChangeState.OK);
+					assertThat(changes.ok()).containsExactlyInAnyOrder(key1, key2);
+					assertThat(changes.missed()).isEmpty();
+					assertThat(changes.stateChanges()).map(ExpiryChangeState::value).containsExactly(1L, 1L);
+				});
 
 		assertThat(redisTemplate.opsForHash().getExpire(key, TimeUnit.SECONDS, List.of(key1, key2)))
-				.allSatisfy(it -> assertThat(it).isBetween(0L, 5L));
+				.satisfies(expirations -> {
+					assertThat(expirations.missing()).isEmpty();
+					assertThat(expirations.precision()).isEqualTo(TimeUnit.SECONDS);
+					assertThat(expirations.expirationOf(key1)).extracting(Expiration::raw, InstanceOfAssertFactories.LONG)
+							.isBetween(0L, 5L);
+					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ofSeconds(1), Duration.ofSeconds(5));
+				});
 	}
 
 	@ParameterizedRedisTest
@@ -260,10 +280,26 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		assertThat(redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(500), List.of(key1, key2)))
-				.containsExactly(1L, 1L);
+				.satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)))
-				.allSatisfy(it -> assertThat(it).isBetween(0L, 500L));
+		assertThat(redisTemplate.opsForHash().getExpire(key, TimeUnit.MILLISECONDS, List.of(key1, key2)))
+				.satisfies(expirations -> {
+					assertThat(expirations.missing()).isEmpty();
+					assertThat(expirations.precision()).isEqualTo(TimeUnit.MILLISECONDS);
+					assertThat(expirations.expirationOf(key1)).extracting(Expiration::raw, InstanceOfAssertFactories.LONG)
+							.isBetween(0L, 500L);
+					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofMillis(500));
+				});
+	}
+
+	@ParameterizedRedisTest
+	void expireThrowsErrorOfNanoPrecision() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+
+		assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> redisTemplate.opsForHash().getExpire(key, TimeUnit.NANOSECONDS, List.of(key1)));
 	}
 
 	@ParameterizedRedisTest
@@ -278,13 +314,14 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		assertThat(redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(500), List.of(key1, key2)))
-				.containsExactly(1L, 1L);
+		assertThat(redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(800), List.of(key1, key2)))
+				.satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().persist(key, List.of(key1, key2)))
-				.allSatisfy(it -> assertThat(it).isEqualTo(1L));
+		assertThat(redisTemplate.opsForHash().persist(key, List.of(key2))).satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)))
-				.allSatisfy(it -> assertThat(it).isEqualTo(-1L));
+		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1, key2))).satisfies(expirations -> {
+			assertThat(expirations.expirationOf(key1).isPersistent()).isFalse();
+			assertThat(expirations.expirationOf(key2).isPersistent()).isTrue();
+		});
 	}
 }

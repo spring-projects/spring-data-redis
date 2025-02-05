@@ -3436,6 +3436,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsSuccessAndSetsTTL() {
+		
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
 		actual.add(connection.hTtl("hash-hexpire", "key-2"));
@@ -3449,6 +3450,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "missking-field"));
 		actual.add(connection.hExpire("missing-key", 5L, "key-2"));
@@ -3459,6 +3461,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsTwoWhenZeroProvided() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 0, "key-2"));
 
@@ -3468,9 +3471,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPEXPIRE")
 	public void hpExpireReturnsSuccessAndSetsTTL() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hpExpire("hash-hexpire", 5000L, "key-2"));
-		actual.add(connection.hTtl("hash-hexpire", TimeUnit.MILLISECONDS,"key-2"));
+		actual.add(connection.hpTtl("hash-hexpire", "key-2"));
 
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
@@ -3481,6 +3485,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPEXPIRE")
 	public void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hpExpire("hash-hexpire", 5L, "missing-field"));
 		actual.add(connection.hpExpire("missing-key", 5L, "key-2"));
@@ -3491,6 +3496,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPEXPIRE")
 	public void hpExpireReturnsTwoWhenZeroProvided() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hpExpire("hash-hexpire", 0, "key-2"));
 
@@ -3500,6 +3506,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIREAT")
 	public void hExpireAtReturnsSuccessAndSetsTTL() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
 
@@ -3515,6 +3522,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIREAT")
 	public void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
 
@@ -3527,6 +3535,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIREAT")
 	public void hExpireAtReturnsTwoWhenZeroProvided() {
+
 		long fiveSecondsAgo = Instant.now().minusSeconds(5L).getEpochSecond();
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
@@ -3538,6 +3547,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIREAT")
 	public void hpExpireAtReturnsSuccessAndSetsTTL() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
 
@@ -3553,6 +3563,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIREAT")
 	public void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
 
@@ -3565,6 +3576,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPEXPIREAT")
 	public void hpExpireAdReturnsTwoWhenZeroProvided() {
+
 		long fiveSecondsAgo = Instant.now().minusSeconds(5L).getEpochSecond();
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
@@ -3576,6 +3588,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPERSIST")
 	public void hPersistReturnsSuccessAndPersistsField() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
 		actual.add(connection.hPersist("hash-hexpire", "key-2"));
@@ -3587,6 +3600,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPERSIST")
 	public void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hPersist("hash-hexpire", "key-2"));
 
@@ -3596,6 +3610,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HPERSIST")
 	public void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hPersist("hash-hexpire", "missing-field"));
 		actual.add(connection.hPersist("missing-key", "key-2"));
@@ -3606,6 +3621,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HTTL")
 	public void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hTtl("hash-hexpire", "key-2"));
 
@@ -3614,7 +3630,18 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	@EnabledOnCommand("HTTL")
+	public void hTtlReturnsMinusIndependendOfTimeUnitOneWhenFieldHasNoExpiration() {
+
+		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
+		actual.add(connection.hTtl("hash-hexpire", TimeUnit.HOURS, "key-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-1L)));
+	}
+
+	@Test
+	@EnabledOnCommand("HTTL")
 	public void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
+
 		actual.add(connection.hTtl("hash-hexpire", "missing-field"));
 		actual.add(connection.hTtl("missing-key", "key-2"));
 

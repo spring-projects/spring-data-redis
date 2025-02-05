@@ -288,6 +288,11 @@ class JedisHashCommands implements RedisHashCommands {
 				.toList(Converters.secondsToTimeUnit(timeUnit));
 	}
 
+	@Override
+	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+		return connection.invoke().just(Jedis::hpttl, PipelineBinaryCommands::hpttl, key, fields);
+	}
+
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
