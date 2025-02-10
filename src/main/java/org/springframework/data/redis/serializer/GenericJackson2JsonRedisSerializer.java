@@ -151,7 +151,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	public GenericJackson2JsonRedisSerializer(ObjectMapper mapper, JacksonObjectReader reader,
 			JacksonObjectWriter writer) {
-
 		this(mapper, reader, writer, null);
 	}
 
