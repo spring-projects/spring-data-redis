@@ -28,6 +28,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -1525,6 +1526,14 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default List<Long> hpTtl(byte[] key, byte[]... fields) {
 		return hashCommands().hpTtl(key, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+		FieldExpirationOptions options, byte[]... fields) {
+		return hashCommands().expireHashField(key, expiration, options, fields);
 	}
 
 	// GEO COMMANDS

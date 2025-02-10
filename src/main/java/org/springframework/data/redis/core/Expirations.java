@@ -41,7 +41,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @since 3.5
  */
-public class Expirations<K> {
+public class Expirations<K> { // TODO: should we move this to let's say Hash.class or another place
 
 	private final TimeUnit unit;
 	private final Map<K, Expiration> expirations;
@@ -182,7 +182,7 @@ public class Expirations<K> {
 	 * {@link #PERSISTENT} mark predefined states returned by Redis indicating a time to live value could not be retrieved
 	 * due to various reasons.
 	 */
-	public static class Expiration {
+	public static class Expiration { // TODO: is Expiry a better name for this type?
 
 		private final long raw;
 		@Nullable TimeUnit sourceUnit;

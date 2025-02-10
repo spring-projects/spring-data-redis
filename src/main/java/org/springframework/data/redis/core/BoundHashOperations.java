@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 
 /**
@@ -156,6 +158,12 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 */
 	@Nullable
 	Long lengthOfValue(HK hashKey);
+
+	default ExpireChanges<HK> expire(Expiration expiration, Collection<HK> hashKeys) {
+		return expire(expiration, FieldExpirationOptions.none(), hashKeys);
+	}
+
+	ExpireChanges<HK> expire(Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
 	 * Set time to live for given {@code hashKey} (aka field).

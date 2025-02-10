@@ -30,9 +30,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.Expirations.Expiration;
@@ -300,6 +302,44 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
 				.isThrownBy(() -> redisTemplate.opsForHash().getExpire(key, TimeUnit.NANOSECONDS, List.of(key1)));
+	}
+
+	@ParameterizedRedisTest
+	void testExpireWithOptionsNone() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		ExpireChanges<Object> expire = redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1));
+
+		assertThat(expire.allOk()).isTrue();
+	}
+
+	@ParameterizedRedisTest
+	void testExpireWithOptions() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1));
+		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), FieldExpirationOptions.none(), List.of(key2));
+
+		ExpireChanges<Object> changes = redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(30), FieldExpirationOptions.builder().gt().build(), List.of(key1, key2));
+
+		assertThat(changes.ok()).containsExactly(key1);
+		assertThat(changes.skipped()).containsExactly(key2);
 	}
 
 	@ParameterizedRedisTest

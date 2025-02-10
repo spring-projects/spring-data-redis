@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 
 /**
@@ -258,6 +260,8 @@ public interface HashOperations<H, HK, HV> {
 	 */
 	@Nullable
 	ExpireChanges<HK> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
+
+	ExpireChanges<HK> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
 	 * Remove the expiration from given {@code hashKey} (aka field).
