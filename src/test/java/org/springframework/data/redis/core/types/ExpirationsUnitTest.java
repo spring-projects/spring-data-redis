@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core;
+package org.springframework.data.redis.core.types;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
 import java.util.List;
@@ -26,11 +26,14 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.springframework.data.redis.core.Expirations.Timeouts;
+
+import org.springframework.data.redis.core.types.Expirations.Timeouts;
 
 /**
+ * Unit test for {@link Expirations}
+ *
  * @author Christoph Strobl
- * @since 2025/02
+ * @author Mark Paluch
  */
 class ExpirationsUnitTest {
 
@@ -38,19 +41,19 @@ class ExpirationsUnitTest {
 	static final String KEY_2 = "key-2";
 	static final String KEY_3 = "key-3";
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3054
 	@EnumSource(TimeUnit.class)
 	void expirationMemorizesSourceUnit(TimeUnit targetUnit) {
 
 		Expirations<String> exp = Expirations.of(targetUnit, List.of(KEY_1), new Timeouts(TimeUnit.SECONDS, List.of(120L)));
 
-		assertThat(exp.expirations().get(0)).satisfies(expiration -> {
+		assertThat(exp.ttl().get(0)).satisfies(expiration -> {
 			assertThat(expiration.raw()).isEqualTo(120L);
 			assertThat(expiration.value()).isEqualTo(targetUnit.convert(120, TimeUnit.SECONDS));
 		});
 	}
 
-	@Test
+	@Test // GH-3054
 	void expirationsCategorizesElements() {
 
 		Expirations<String> exp = createExpirations(new Timeouts(TimeUnit.SECONDS, List.of(-2L, -1L, 120L)));
@@ -60,7 +63,7 @@ class ExpirationsUnitTest {
 		assertThat(exp.expiring()).containsExactly(Map.entry(KEY_3, Duration.ofMinutes(2)));
 	}
 
-	@Test
+	@Test // GH-3054
 	void returnsNullForMissingElements() {
 
 		Expirations<String> exp = createExpirations(new Timeouts(TimeUnit.SECONDS, List.of(-2L, -1L, 120L)));
@@ -69,7 +72,7 @@ class ExpirationsUnitTest {
 		assertThat(exp.ttlOf("missing")).isNull();
 	}
 
-	@Test
+	@Test // GH-3054
 	void ttlReturnsDurationForEntriesWithTimeout() {
 
 		Expirations<String> exp = createExpirations(new Timeouts(TimeUnit.SECONDS, List.of(-2L, -1L, 120L)));
@@ -77,13 +80,21 @@ class ExpirationsUnitTest {
 		assertThat(exp.ttlOf(KEY_3)).isEqualTo(Duration.ofMinutes(2));
 	}
 
-	@Test
+	@Test // GH-3054
 	void ttlReturnsNullForPersistentAndMissingEntries() {
 
 		Expirations<String> exp = createExpirations(new Timeouts(TimeUnit.SECONDS, List.of(-2L, -1L, 120L)));
 
 		assertThat(exp.ttlOf(KEY_1)).isNull();
 		assertThat(exp.ttlOf(KEY_2)).isNull();
+	}
+
+	@Test // GH-3054
+	void shouldRenderToString() {
+
+		assertThat(Expirations.TimeToLive.PERSISTENT).hasToString("PERSISTENT");
+		assertThat(Expirations.TimeToLive.MISSING).hasToString("MISSING");
+		assertThat(Expirations.TimeToLive.of(1, TimeUnit.SECONDS)).hasToString("1 SECONDS");
 	}
 
 	static Expirations<String> createExpirations(Timeouts timeouts) {

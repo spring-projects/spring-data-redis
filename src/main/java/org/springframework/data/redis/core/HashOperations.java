@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**
@@ -96,7 +98,7 @@ public interface HashOperations<H, HK, HV> {
 	Double increment(H key, HK hashKey, double delta);
 
 	/**
-	 * Return a random hash key (aka field) from the hash stored at {@code key}.
+	 * Return a random hash key from the hash stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
@@ -118,10 +120,10 @@ public interface HashOperations<H, HK, HV> {
 	Map.Entry<HK, HV> randomEntry(H key);
 
 	/**
-	 * Return random hash keys (aka fields) from the hash stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct hash keys, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same hash key multiple times. In this case,
-	 * the number of returned fields is the absolute value of the specified count.
+	 * Return random hash keys from the hash stored at {@code key}. If the provided {@code count} argument is positive,
+	 * return a list of distinct hash keys, capped either at {@code count} or the hash size. If {@code count} is negative,
+	 * the behavior changes and the command is allowed to return the same hash key multiple times. In this case, the
+	 * number of returned fields is the absolute value of the specified count.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count number of fields to return.
@@ -228,15 +230,16 @@ public interface HashOperations<H, HK, HV> {
 	Cursor<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
 
 	/**
-	 * Set time to live for given {@code hashKey} (aka field).
+	 * Set time to live for given {@code hashKey} .
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout the amount of time after which the key will be expired, must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
-	 * already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
-	 * {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met); {@code -2}
-	 * indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
+	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
+	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @throws IllegalArgumentException if the timeout is {@literal null}.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
@@ -245,15 +248,16 @@ public interface HashOperations<H, HK, HV> {
 	ExpireChanges<HK> expire(H key, Duration timeout, Collection<HK> hashKeys);
 
 	/**
-	 * Set the expiration for given {@code hashKey} (aka field) as a {@literal date} timestamp.
+	 * Set the expiration for given {@code hashKeys} as a {@literal date} timestamp.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param expireAt must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
-	 * already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
-	 * set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
-	 * {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
+	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
+	 *         pipeline / transaction.
 	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
@@ -261,16 +265,33 @@ public interface HashOperations<H, HK, HV> {
 	@Nullable
 	ExpireChanges<HK> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
 
+	/**
+	 * Apply the expiration for given {@code hashKeys} as a {@literal date} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @param hashKeys must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
+	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
 	ExpireChanges<HK> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
-	 * Remove the expiration from given {@code hashKey} (aka field).
+	 * Remove the expiration from given {@code hashKeys} .
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is removed;
-	 * {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such field; {@literal null} when
-	 * used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is
+	 *         removed; {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such
+	 *         field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */
@@ -278,38 +299,77 @@ public interface HashOperations<H, HK, HV> {
 	ExpireChanges<HK> persist(H key, Collection<HK> hashKeys);
 
 	/**
-	 * Get the time to live for {@code hashKey} (aka field) in seconds.
+	 * Get the time to live for {@code hashKeys} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative value
-	 * to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time. The command
-	 * returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative
+	 *         value to signal an error. The command returns {@code -1} if the key exists but has no associated expiration
+	 *         time. The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
 	@Nullable
-	default Expirations<HK> getExpire(H key, Collection<HK> hashKeys) {
-		return getExpire(key, TimeUnit.SECONDS, hashKeys);
+	default Expirations<HK> getTimeToLive(H key, Collection<HK> hashKeys) {
+		return getTimeToLive(key, TimeUnit.SECONDS, hashKeys);
 	}
 
 	/**
-	 * Get the time to live for {@code hashKey} (aka field) and convert it to the given {@link TimeUnit}.
+	 * Get the time to live for {@code hashKeys} and convert it to the given {@link TimeUnit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative value
-	 * to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time. The command
-	 * returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative
+	 *         value to signal an error. The command returns {@code -1} if the key exists but has no associated expiration
+	 *         time. The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
 	@Nullable
-	Expirations<HK> getExpire(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
+	Expirations<HK> getTimeToLive(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
+	 * {@code key}. Operations on the expiration object obtain keys at the time of invoking any expiration operation.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(H key) {
+		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> keys(key));
+	}
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
+	 * {@code key} for the given hash fields.
+	 *
+	 * @param hashFields collection of hash fields to operate on.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(H key, HK... hashFields) {
+		return expiration(key, Arrays.asList(hashFields));
+	}
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
+	 * {@code key} for the given hash fields.
+	 *
+	 * @param hashFields collection of hash fields to operate on.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(H key, Collection<HK> hashFields) {
+		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> hashFields);
+	}
 
 	/**
 	 * @return never {@literal null}.
 	 */
 	RedisOperations<H, ?> getOperations();
+
 }

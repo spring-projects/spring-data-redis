@@ -15,11 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.junit.jupiter.api.condition.OS.MAC;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.junit.jupiter.api.condition.OS.*;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -34,10 +33,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -523,7 +524,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(changes.allOk()).isTrue();
 				}).verifyComplete();
 
-		hashOperations.getExpire(key, List.of(key1)) //
+		hashOperations.getTimeToLive(key, List.of(key1)) //
 				.as(StepVerifier::create) //
 				.assertNext(it -> {
 					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 2L);
@@ -576,7 +577,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(changes.allOk()).isTrue();
 				}).verifyComplete();
 
-		hashOperations.getExpire(key, TimeUnit.SECONDS, List.of(key1, key2)) //
+		hashOperations.getTimeToLive(key, TimeUnit.SECONDS, List.of(key1, key2)) //
 				.as(StepVerifier::create) //
 				.assertNext(it -> {
 					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 5L);
@@ -603,7 +604,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(changes.allOk()).isTrue();
 				}).verifyComplete();
 
-		redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)).as(StepVerifier::create)//
+		redisTemplate.opsForHash().getTimeToLive(key, List.of(key1, key2)).as(StepVerifier::create)//
 				.assertNext(it -> {
 					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 2L);
 					assertThat(it.expirationOf(key2).raw()).isBetween(0L, 2L);
@@ -633,7 +634,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(changes.allOk()).isTrue();
 				}).verifyComplete();
 
-		redisTemplate.opsForHash().getExpire(key, List.of(key1, key2)).as(StepVerifier::create)//
+		redisTemplate.opsForHash().getTimeToLive(key, List.of(key1, key2)).as(StepVerifier::create)//
 				.assertNext(expirations -> {
 					assertThat(expirations.persistent()).contains(key1, key2);
 				}).verifyComplete();

@@ -1160,6 +1160,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(PFMERGE, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(PFADD, IntegerOutput.class);
 
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HEXPIRE, IntegerListOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HEXPIREAT, IntegerListOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HPEXPIRE, IntegerListOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HPEXPIREAT, IntegerListOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HPERSIST, IntegerListOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HTTL, IntegerListOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(HPTTL, IntegerListOutput.class);
+
 			// DOUBLE
 			COMMAND_OUTPUT_TYPE_MAPPING.put(HINCRBYFLOAT, DoubleOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(INCRBYFLOAT, DoubleOutput.class);

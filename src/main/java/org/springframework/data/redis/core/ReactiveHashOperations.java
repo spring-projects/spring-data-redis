@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
-import org.springframework.data.redis.core.types.Expiration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**
@@ -102,7 +103,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<Double> increment(H key, HK hashKey, double delta);
 
 	/**
-	 * Return a random hash key (aka field) from the hash stored at {@code key}.
+	 * Return a random hash key from the hash stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
@@ -122,10 +123,10 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<Map.Entry<HK, HV>> randomEntry(H key);
 
 	/**
-	 * Return random hash keys (aka fields) from the hash stored at {@code key}. If the provided {@code count} argument is
-	 * positive, return a list of distinct hash keys, capped either at {@code count} or the hash size. If {@code count} is
-	 * negative, the behavior changes and the command is allowed to return the same hash key multiple times. In this case,
-	 * the number of returned fields is the absolute value of the specified count.
+	 * Return random hash keys from the hash stored at {@code key}. If the provided {@code count} argument is positive,
+	 * return a list of distinct hash keys, capped either at {@code count} or the hash size. If {@code count} is negative,
+	 * the behavior changes and the command is allowed to return the same hash key multiple times. In this case, the
+	 * number of returned fields is the absolute value of the specified count.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count number of fields to return.
@@ -242,7 +243,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
-	 * Set the expiration for given {@code hashKey} (aka field) as a {@literal date} timestamp.
+	 * Set the expiration for given {@code hashKey} as a {@literal date} timestamp.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param expireAt must not be {@literal null}.
@@ -260,7 +261,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<ExpireChanges<HK>> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
 
 	/**
-	 * Remove the expiration from given {@code hashKey} (aka field).
+	 * Remove the expiration from given {@code hashKey} .
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
@@ -274,7 +275,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<ExpireChanges<HK>> persist(H key, Collection<HK> hashKeys);
 
 	/**
-	 * Get the time to live for {@code hashKey} (aka field) in seconds.
+	 * Get the time to live for {@code hashKey} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
@@ -286,12 +287,12 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	default Mono<Expirations<HK>> getExpire(H key, Collection<HK> hashKeys) {
-		return getExpire(key, TimeUnit.SECONDS, hashKeys);
+	default Mono<Expirations<HK>> getTimeToLive(H key, Collection<HK> hashKeys) {
+		return getTimeToLive(key, TimeUnit.SECONDS, hashKeys);
 	}
 
 	/**
-	 * Get the time to live for {@code hashKey} (aka field) and convert it to the given {@link TimeUnit}.
+	 * Get the time to live for {@code hashKey} and convert it to the given {@link TimeUnit}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
@@ -304,7 +305,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @since 3.5
 	 */
 	@Nullable
-	Mono<Expirations<HK>> getExpire(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
+	Mono<Expirations<HK>> getTimeToLive(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
 
 	/**
 	 * Removes the given {@literal key}.

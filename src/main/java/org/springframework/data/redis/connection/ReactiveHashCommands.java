@@ -858,7 +858,9 @@ public interface ReactiveHashCommands {
 
 		private ExpireCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields, Expiration expiration,
 				FieldExpirationOptions options) {
+
 			super(key, fields);
+
 			this.expiration = expiration;
 			this.options = options;
 		}
@@ -921,6 +923,7 @@ public interface ReactiveHashCommands {
 	default Mono<Long> hExpire(ByteBuffer key, Duration duration, ByteBuffer field) {
 
 		Assert.notNull(duration, "Duration must not be null");
+
 		return hExpire(key, duration, Collections.singletonList(field)).singleOrEmpty();
 	}
 
@@ -939,9 +942,10 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Flux<Long> hExpire(ByteBuffer key, Duration duration, List<ByteBuffer> fields) {
+
 		Assert.notNull(duration, "Duration must not be null");
 
-		return expireHashField(Flux.just(ExpireCommand.expire(fields, duration).from(key)))
+		return applyExpiration(Flux.just(ExpireCommand.expire(fields, duration).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -957,7 +961,7 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
 	 */
-	Flux<NumericResponse<ExpireCommand, Long>> expireHashField(Publisher<ExpireCommand> commands);
+	Flux<NumericResponse<ExpireCommand, Long>> applyExpiration(Publisher<ExpireCommand> commands);
 
 	/**
 	 * Expire a given {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
@@ -975,6 +979,7 @@ public interface ReactiveHashCommands {
 	default Mono<Long> hpExpire(ByteBuffer key, Duration duration, ByteBuffer field) {
 
 		Assert.notNull(duration, "Duration must not be null");
+
 		return hpExpire(key, duration, Collections.singletonList(field)).singleOrEmpty();
 	}
 
@@ -995,7 +1000,8 @@ public interface ReactiveHashCommands {
 	default Flux<Long> hpExpire(ByteBuffer key, Duration duration, List<ByteBuffer> fields) {
 
 		Assert.notNull(duration, "Duration must not be null");
-		return expireHashField(Flux.just(new ExpireCommand(key, fields,
+
+		return applyExpiration(Flux.just(new ExpireCommand(key, fields,
 				Expiration.from(duration.toMillis(), TimeUnit.MILLISECONDS), FieldExpirationOptions.none())))
 				.mapNotNull(NumericResponse::getOutput);
 	}
@@ -1017,6 +1023,7 @@ public interface ReactiveHashCommands {
 	default Mono<Long> hExpireAt(ByteBuffer key, Instant expireAt, ByteBuffer field) {
 
 		Assert.notNull(expireAt, "Duration must not be null");
+
 		return hExpireAt(key, expireAt, Collections.singletonList(field)).singleOrEmpty();
 	}
 
@@ -1035,9 +1042,10 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Flux<Long> hExpireAt(ByteBuffer key, Instant expireAt, List<ByteBuffer> fields) {
+
 		Assert.notNull(expireAt, "Duration must not be null");
 
-		return expireHashField(Flux.just(ExpireCommand.expireAt(fields, expireAt, TimeUnit.SECONDS).from(key)))
+		return applyExpiration(Flux.just(ExpireCommand.expireAt(fields, expireAt, TimeUnit.SECONDS).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -1058,6 +1066,7 @@ public interface ReactiveHashCommands {
 	default Mono<Long> hpExpireAt(ByteBuffer key, Instant expireAt, ByteBuffer field) {
 
 		Assert.notNull(expireAt, "Duration must not be null");
+
 		return hpExpireAt(key, expireAt, Collections.singletonList(field)).singleOrEmpty();
 	}
 
@@ -1076,9 +1085,10 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Flux<Long> hpExpireAt(ByteBuffer key, Instant expireAt, List<ByteBuffer> fields) {
+
 		Assert.notNull(expireAt, "Duration must not be null");
 
-		return expireHashField(Flux.just(ExpireCommand.expireAt(fields, expireAt, TimeUnit.MILLISECONDS).from(key)))
+		return applyExpiration(Flux.just(ExpireCommand.expireAt(fields, expireAt, TimeUnit.MILLISECONDS).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -1135,7 +1145,6 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Mono<Long> hTtl(ByteBuffer key, ByteBuffer field) {
-
 		return hTtl(key, Collections.singletonList(field)).singleOrEmpty();
 	}
 
@@ -1151,7 +1160,6 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Flux<Long> hTtl(ByteBuffer key, List<ByteBuffer> fields) {
-
 		return hTtl(Flux.just(new HashFieldsCommand(key, fields))).mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -1179,7 +1187,6 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Mono<Long> hpTtl(ByteBuffer key, ByteBuffer field) {
-
 		return hpTtl(key, Collections.singletonList(field)).singleOrEmpty();
 	}
 
@@ -1195,7 +1202,6 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 */
 	default Flux<Long> hpTtl(ByteBuffer key, List<ByteBuffer> fields) {
-
 		return hpTtl(Flux.just(new HashFieldsCommand(key, fields))).mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -1210,4 +1216,5 @@ public interface ReactiveHashCommands {
 	 * @see <a href="https://redis.io/commands/hpttl">Redis Documentation: HPTTL</a>
 	 */
 	Flux<NumericResponse<HashFieldsCommand, Long>> hpTtl(Publisher<HashFieldsCommand> commands);
+
 }

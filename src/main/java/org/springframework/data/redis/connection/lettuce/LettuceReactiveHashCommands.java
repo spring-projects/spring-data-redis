@@ -269,7 +269,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	}
 
 	@Override
-	public Flux<NumericResponse<ExpireCommand, Long>> expireHashField(Publisher<ExpireCommand> commands) {
+	public Flux<NumericResponse<ExpireCommand, Long>> applyExpiration(Publisher<ExpireCommand> commands) {
+
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
@@ -317,6 +318,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 	@Override
 	public Flux<NumericResponse<HashFieldsCommand, Long>> hPersist(Publisher<HashFieldsCommand> commands) {
+
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
@@ -329,6 +331,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 	@Override
 	public Flux<NumericResponse<HashFieldsCommand, Long>> hTtl(Publisher<HashFieldsCommand> commands) {
+
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
@@ -341,6 +344,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 	@Override
 	public Flux<NumericResponse<HashFieldsCommand, Long>> hpTtl(Publisher<HashFieldsCommand> commands) {
+
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");

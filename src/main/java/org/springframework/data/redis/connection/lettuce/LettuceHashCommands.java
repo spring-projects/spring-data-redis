@@ -215,63 +215,28 @@ class LettuceHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
-			FieldExpirationOptions options, byte[]... fields) {
-
-		if (expiration.isPersistent()) {
-			return hPersist(key, fields);
-		}
-
-		ExpireArgs option = new ExpireArgs() {
-			@Override
-			public <K, V> void build(CommandArgs<K, V> args) {
-
-				if(ObjectUtils.nullSafeEquals(options, FieldExpirationOptions.none())) {
-					return;
-				}
-
-				args.add(options.getCondition().name());
-			}
-		};
-
-		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-			if (expiration.isUnixTimestamp()) {
-				return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpireat, key,
-						expiration.getExpirationTimeInMilliseconds(), option, fields).toList();
-			}
-			return connection.invoke()
-					.fromMany(RedisHashAsyncCommands::hpexpire, key, expiration.getExpirationTimeInMilliseconds(), option, fields)
-					.toList();
-		}
-
-		if (expiration.isUnixTimestamp()) {
-			return connection.invoke()
-					.fromMany(RedisHashAsyncCommands::hexpireat, key, expiration.getExpirationTimeInSeconds(), option, fields)
-					.toList();
-		}
-		return connection.invoke()
-				.fromMany(RedisHashAsyncCommands::hexpire, key, expiration.getExpirationTimeInSeconds(), option, fields)
+	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpire, key, seconds, getExpireArgs(condition), fields)
 				.toList();
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpire, key, seconds, fields).toList();
+	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpire, key, millis, getExpireArgs(condition), fields)
+				.toList();
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpire, key, millis, fields).toList();
+	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return connection.invoke()
+				.fromMany(RedisHashAsyncCommands::hexpireat, key, unixTime, getExpireArgs(condition), fields).toList();
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpireat, key, unixTime, fields).toList();
-	}
-
-	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpireat, key, unixTimeInMillis, fields).toList();
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+			byte[]... fields) {
+		return connection.invoke()
+				.fromMany(RedisHashAsyncCommands::hpexpireat, key, unixTimeInMillis, getExpireArgs(condition), fields).toList();
 	}
 
 	@Override
@@ -347,6 +312,21 @@ class LettuceHashCommands implements RedisHashCommands {
 	@Nullable
 	private static Entry<byte[], byte[]> toEntry(KeyValue<byte[], byte[]> value) {
 		return value.hasValue() ? Converters.entryOf(value.getKey(), value.getValue()) : null;
+	}
+
+	private ExpireArgs getExpireArgs(FieldExpirationOptions.Condition condition) {
+
+		return new ExpireArgs() {
+			@Override
+			public <K, V> void build(CommandArgs<K, V> args) {
+
+				if (ObjectUtils.nullSafeEquals(condition, FieldExpirationOptions.Condition.ALWAYS)) {
+					return;
+				}
+
+				args.add(condition.name());
+			}
+		};
 	}
 
 }

@@ -15,10 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
-import org.springframework.data.redis.connection.ReactiveHashCommands.ExpireCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
-import org.springframework.data.redis.core.types.Expiration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,10 +29,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
+import org.springframework.data.redis.connection.ReactiveHashCommands.ExpireCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.core.Expirations.Timeouts;
+import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.types.Expirations;
+import org.springframework.data.redis.core.types.Expirations.Timeouts;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -254,7 +256,9 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
 
 		Mono<List<Long>> raw =createFlux(connection -> {
-			return connection.expireHashField(Mono.just(ExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options))).map(NumericResponse::getOutput);
+			return connection
+					.applyExpiration(Mono.just(ExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options)))
+					.map(NumericResponse::getOutput);
 		}).collectList();
 
 		return raw.map(values -> ExpireChanges.of(orderedKeys, values));
@@ -288,7 +292,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	@Nullable
 	@Override
-	public Mono<Expirations<HK>> getExpire(H key, TimeUnit timeUnit, Collection<HK> hashKeys) {
+	public Mono<Expirations<HK>> getTimeToLive(H key, TimeUnit timeUnit, Collection<HK> hashKeys) {
 
 		if (timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
 			throw new IllegalArgumentException("%s precision is not supported must be >= MILLISECONDS".formatted(timeUnit));

@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -36,14 +35,16 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.core.ExpireChanges;
+import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -204,15 +205,15 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		V v1 = getValue();
 		assertThat(map.put(k1, v1)).isEqualTo(null);
 
-		Collection<K> keys = Collections.singletonList(k1);
-		assertThat(map.expire(Duration.ofSeconds(5), keys)).satisfies(ExpireChanges::allOk);
-		assertThat(map.getExpire(keys)).satisfies(expiration -> {
+		BoundHashFieldExpirationOperations<K> ops = map.expiration(Collections.singletonList(k1));
+		assertThat(ops.expire(Duration.ofSeconds(5))).satisfies(ExpireChanges::allOk);
+		assertThat(ops.getTimeToLive()).satisfies(expiration -> {
 			assertThat(expiration.expirationOf(k1).raw()).isBetween(1L, 5L);
 		});
-		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys)).satisfies(expiration -> {
+		assertThat(ops.getTimeToLive(TimeUnit.MILLISECONDS)).satisfies(expiration -> {
 			assertThat(expiration.expirationOf(k1).raw()).isBetween(1000L, 5000L);
 		});
-		assertThat(map.persist(keys)).satisfies(ExpireChanges::allOk);
+		assertThat(ops.persist()).satisfies(ExpireChanges::allOk);
 	}
 
 	@ParameterizedRedisTest
@@ -223,15 +224,15 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		V v1 = getValue();
 		assertThat(map.put(k1, v1)).isEqualTo(null);
 
-		Collection<K> keys = Collections.singletonList(k1);
-		assertThat(map.expireAt(Instant.now().plusSeconds(5), keys)).satisfies(ExpireChanges::allOk);
-		assertThat(map.getExpire(keys)).satisfies(expiration -> {
+		BoundHashFieldExpirationOperations<K> ops = map.expiration(Collections.singletonList(k1));
+		assertThat(ops.expireAt(Instant.now().plusSeconds(5))).satisfies(ExpireChanges::allOk);
+		assertThat(ops.getTimeToLive()).satisfies(expiration -> {
 			assertThat(expiration.expirationOf(k1).raw()).isBetween(1L, 5L);
 		});
-		assertThat(map.getExpire(TimeUnit.MILLISECONDS, keys)).satisfies(expiration -> {
+		assertThat(ops.getTimeToLive(TimeUnit.MILLISECONDS)).satisfies(expiration -> {
 			assertThat(expiration.expirationOf(k1).raw()).isBetween(1000L, 5000L);
 		});
-		assertThat(map.persist(keys)).satisfies(ExpireChanges::allOk);
+		assertThat(ops.persist()).satisfies(ExpireChanges::allOk);
 	}
 
 	@ParameterizedRedisTest

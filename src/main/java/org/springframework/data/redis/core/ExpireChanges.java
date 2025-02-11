@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -35,7 +37,7 @@ import org.springframework.util.CollectionUtils;
  * <li>{@link #skipped()} returns keys for which the time to live has not been set because a precondition was not
  * met</li>
  * </ol>
- * 
+ *
  * @author Christoph Strobl
  * @since 3.5
  */
@@ -50,23 +52,25 @@ public class ExpireChanges<K> {
 	/**
 	 * Factory Method to create {@link ExpireChanges} from raw sources.
 	 *
-	 * @param keys the keys to associated with the raw values in states. Defines the actual order of entries within
+	 * @param fields the fields to associated with the raw values in states. Defines the actual order of entries within
 	 *          {@link ExpireChanges}.
 	 * @param states the raw Redis state change values.
 	 * @return new instance of {@link ExpireChanges}.
 	 * @param <K> the key type used
 	 */
-	public static <K> ExpireChanges<K> of(List<K> keys, List<Long> states) {
+	public static <K> ExpireChanges<K> of(List<K> fields, List<Long> states) {
 
-		if (keys.size() == 1) {
-			return new ExpireChanges<>(Map.of(keys.iterator().next(), stateFromValue(states.iterator().next())));
+		Assert.isTrue(fields.size() == states.size(), "Keys and States must have the same number of elements");
+
+		if (fields.size() == 1) {
+			return new ExpireChanges<>(Map.of(fields.iterator().next(), stateFromValue(states.iterator().next())));
 		}
 
-		Map<K, ExpiryChangeState> target = CollectionUtils.newLinkedHashMap(keys.size());
-		for (int i = 0; i < keys.size(); i++) {
-			target.put(keys.get(i), stateFromValue(states.get(i)));
+		Map<K, ExpiryChangeState> target = CollectionUtils.newLinkedHashMap(fields.size());
+		for (int i = 0; i < fields.size(); i++) {
+			target.put(fields.get(i), stateFromValue(states.get(i)));
 		}
-		return new ExpireChanges<>(target);
+		return new ExpireChanges<>(Collections.unmodifiableMap(target));
 	}
 
 	/**

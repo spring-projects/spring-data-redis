@@ -29,8 +29,9 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.core.Expirations.Timeouts;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.types.Expirations;
+import org.springframework.data.redis.core.types.Expirations.Timeouts;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -224,14 +225,11 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(orderedKeys.toArray());
-		boolean splitSecond = TimeoutUtils.hasMillis(duration);
+		boolean hasMillis = TimeoutUtils.hasMillis(duration);
 
-		List<Long> raw = execute(connection -> {
-			if (splitSecond) {
-				return connection.hashCommands().hpExpire(rawKey, duration.toMillis(), rawHashKeys);
-			}
-			return connection.hashCommands().hExpire(rawKey, TimeoutUtils.toSeconds(duration), rawHashKeys);
-		});
+		List<Long> raw = execute(connection -> TimeoutUtils.hasMillis(duration)
+				? connection.hashCommands().hpExpire(rawKey, duration.toMillis(), rawHashKeys)
+				: connection.hashCommands().hExpire(rawKey, TimeoutUtils.toSeconds(duration), rawHashKeys));
 
 		return raw != null ? ExpireChanges.of(orderedKeys, raw) : null;
 	}
@@ -243,8 +241,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(orderedKeys.toArray());
-
-		Long millis = instant.toEpochMilli();
+		long millis = instant.toEpochMilli();
 
 		List<Long> raw = execute(connection -> TimeoutUtils.containsSplitSecond(millis)
 				? connection.hashCommands().hpExpireAt(rawKey, millis, rawHashKeys)
@@ -257,10 +254,10 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public ExpireChanges<HK> expire(K key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
-
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(orderedKeys.toArray());
-		List<Long> raw = execute(connection -> connection.hashCommands().expireHashField(rawKey, expiration, options, rawHashKeys));
+		List<Long> raw = execute(
+				connection -> connection.hashCommands().applyExpiration(rawKey, expiration, options, rawHashKeys));
 
 		return raw != null ? ExpireChanges.of(orderedKeys, raw) : null;
 	}
@@ -269,7 +266,6 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public ExpireChanges<HK> persist(K key, Collection<HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
-
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(orderedKeys.toArray());
 
@@ -279,7 +275,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Expirations<HK> getExpire(K key, TimeUnit timeUnit, Collection<HK> hashKeys) {
+	public Expirations<HK> getTimeToLive(K key, TimeUnit timeUnit, Collection<HK> hashKeys) {
 
 		if(timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
 			throw new IllegalArgumentException("%s precision is not supported must be >= MILLISECONDS".formatted(timeUnit));

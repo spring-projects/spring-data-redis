@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -30,15 +29,15 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
-import org.springframework.data.redis.core.Expirations.Expiration;
 import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
+import org.springframework.data.redis.core.types.Expirations.TimeToLive;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -228,11 +227,11 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(redisTemplate.opsForHash().expire(key, Duration.ofMillis(500), List.of(key1)))
 				.satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1))).satisfies(expirations -> {
+		assertThat(redisTemplate.opsForHash().getTimeToLive(key, List.of(key1))).satisfies(expirations -> {
 
 			assertThat(expirations.missing()).isEmpty();
-			assertThat(expirations.precision()).isEqualTo(TimeUnit.SECONDS);
-			assertThat(expirations.expirationOf(key1)).extracting(Expiration::raw, InstanceOfAssertFactories.LONG)
+			assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.SECONDS);
+			assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
 					.isBetween(0L, 1L);
 			assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofSeconds(1));
 		});
@@ -259,14 +258,46 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(changes.stateChanges()).map(ExpiryChangeState::value).containsExactly(1L, 1L);
 				});
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, TimeUnit.SECONDS, List.of(key1, key2)))
+		assertThat(redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.SECONDS, List.of(key1, key2)))
 				.satisfies(expirations -> {
 					assertThat(expirations.missing()).isEmpty();
-					assertThat(expirations.precision()).isEqualTo(TimeUnit.SECONDS);
-					assertThat(expirations.expirationOf(key1)).extracting(Expiration::raw, InstanceOfAssertFactories.LONG)
+					assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.SECONDS);
+					assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
 							.isBetween(0L, 5L);
 					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ofSeconds(1), Duration.ofSeconds(5));
 				});
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
+	void testBoundExpireAndGetExpireSeconds() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		BoundHashOperations<K, HK, HV> hashOps = redisTemplate.boundHashOps(key);
+		BoundHashFieldExpirationOperations<HK> exp = hashOps.expiration(key1, key2);
+
+		assertThat(exp.expire(Duration.ofSeconds(5))).satisfies(changes -> {
+			assertThat(changes.allOk()).isTrue();
+			assertThat(changes.stateOf(key1)).isEqualTo(ExpiryChangeState.OK);
+			assertThat(changes.ok()).containsExactlyInAnyOrder(key1, key2);
+			assertThat(changes.missed()).isEmpty();
+			assertThat(changes.stateChanges()).map(ExpiryChangeState::value).containsExactly(1L, 1L);
+		});
+
+		assertThat(exp.getTimeToLive(TimeUnit.SECONDS)).satisfies(expirations -> {
+			assertThat(expirations.missing()).isEmpty();
+			assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.SECONDS);
+			assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
+					.isBetween(0L, 5L);
+			assertThat(expirations.ttlOf(key1)).isBetween(Duration.ofSeconds(1), Duration.ofSeconds(5));
+		});
 	}
 
 	@ParameterizedRedisTest
@@ -284,27 +315,29 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(redisTemplate.opsForHash().expireAt(key, Instant.now().plusMillis(500), List.of(key1, key2)))
 				.satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, TimeUnit.MILLISECONDS, List.of(key1, key2)))
+		assertThat(redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.MILLISECONDS, List.of(key1, key2)))
 				.satisfies(expirations -> {
 					assertThat(expirations.missing()).isEmpty();
-					assertThat(expirations.precision()).isEqualTo(TimeUnit.MILLISECONDS);
-					assertThat(expirations.expirationOf(key1)).extracting(Expiration::raw, InstanceOfAssertFactories.LONG)
+					assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
+					assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
 							.isBetween(0L, 500L);
 					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofMillis(500));
 				});
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void expireThrowsErrorOfNanoPrecision() {
 
 		K key = keyFactory.instance();
 		HK key1 = hashKeyFactory.instance();
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> redisTemplate.opsForHash().getExpire(key, TimeUnit.NANOSECONDS, List.of(key1)));
+				.isThrownBy(() -> redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.NANOSECONDS, List.of(key1)));
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptionsNone() {
 
 		K key = keyFactory.instance();
@@ -360,7 +393,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		assertThat(redisTemplate.opsForHash().persist(key, List.of(key2))).satisfies(ExpireChanges::allOk);
 
-		assertThat(redisTemplate.opsForHash().getExpire(key, List.of(key1, key2))).satisfies(expirations -> {
+		assertThat(redisTemplate.opsForHash().getTimeToLive(key, List.of(key1, key2))).satisfies(expirations -> {
 			assertThat(expirations.expirationOf(key1).isPersistent()).isFalse();
 			assertThat(expirations.expirationOf(key2).isPersistent()).isTrue();
 		});

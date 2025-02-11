@@ -107,6 +107,13 @@ public enum RedisCommand {
 	HSET("w", 3, 3), //
 	HSETNX("w", 3, 3), //
 	HVALS("r", 1, 1), //
+	HEXPIRE("w", 5), //
+	HEXPIREAT("w", 5), //
+	HPEXPIRE("w", 5), //
+	HPEXPIREAT("w", 5), //
+	HPERSIST("w", 4), //
+	HTTL("r", 4), //
+	HPTTL("r", 4), //
 	// -- I
 	INCR("rw", 1), //
 	INCRBYFLOAT("rw", 2, 2), //
