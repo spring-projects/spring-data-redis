@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -105,8 +106,8 @@ public class Expiration {
 		Assert.notNull(duration, "Duration must not be null");
 
 		return duration.isZero() ? Expiration.persistent()
-			: duration.toMillis() % 1000 == 0 ? new Expiration(duration.getSeconds(), TimeUnit.SECONDS)
-			: new Expiration(duration.toMillis(), TimeUnit.MILLISECONDS);
+			: TimeoutUtils.hasMillis(duration) ? new Expiration(duration.toMillis(), TimeUnit.MILLISECONDS)
+			: new Expiration(duration.getSeconds(), TimeUnit.SECONDS);
 	}
 
 	/**

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -236,6 +238,8 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Flux<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
 
 	Mono<ExpireChanges<HK>> expire(H key, Duration timeout, Collection<HK> hashKeys);
+
+	Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
 	 * Set the expiration for given {@code hashKey} (aka field) as a {@literal date} timestamp.

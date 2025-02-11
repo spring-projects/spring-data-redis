@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.ExpireArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.ScanStream;
+import io.lettuce.core.protocol.CommandArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -25,10 +27,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
-
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -38,6 +41,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -265,49 +269,48 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	}
 
 	@Override
-	public Flux<NumericResponse<Expire, Long>> hExpire(Publisher<Expire> commands) {
+	public Flux<NumericResponse<ExpireCommand, Long>> expireHashField(Publisher<ExpireCommand> commands) {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getFields(), "Fields must not be null");
 
-			return cmd.hexpire(command.getKey(), command.getTtl().toSeconds(), command.getFields().toArray(ByteBuffer[]::new))
-					.map(value -> new NumericResponse<>(command, value));
-		}));
-	}
+			ByteBuffer[] fields = command.getFields().toArray(ByteBuffer[]::new);
 
-	@Override
-	public Flux<NumericResponse<Expire, Long>> hpExpire(Publisher<Expire> commands) {
-		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+			if (command.getExpiration().isPersistent()) {
+				return cmd.hpersist(command.getKey(), fields).map(value -> new NumericResponse<>(command, value));
+			}
 
-			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getFields(), "Fields must not be null");
+			ExpireArgs args = new ExpireArgs() {
 
-			return cmd.hpexpire(command.getKey(), command.getTtl().toMillis(), command.getFields().toArray(ByteBuffer[]::new))
-					.map(value -> new NumericResponse<>(command, value));
-		}));
-	}
+				@Override
+				public <K, V> void build(CommandArgs<K, V> args) {
+					super.build(args);
+					if (ObjectUtils.nullSafeEquals(command.getOptions(), FieldExpirationOptions.none())) {
+						return;
+					}
 
-	@Override
-	public Flux<NumericResponse<ExpireAt, Long>> hExpireAt(Publisher<ExpireAt> commands) {
-		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+					args.add(command.getOptions().getCondition().name());
+				}
+			};
 
-			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getFields(), "Fields must not be null");
+			if (command.getExpiration().isUnixTimestamp()) {
 
-			return cmd.hexpireat(command.getKey(), command.getExpireAt().getEpochSecond(), command.getFields().toArray(ByteBuffer[]::new))
-					.map(value -> new NumericResponse<>(command, value));
-		}));
-	}
+				if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+					return cmd
+							.hpexpireat(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args, fields)
+							.map(value -> new NumericResponse<>(command, value));
+				}
+				return cmd.hexpireat(command.getKey(), command.getExpiration().getExpirationTimeInSeconds(), args, fields)
+						.map(value -> new NumericResponse<>(command, value));
+			}
 
-	@Override
-	public Flux<NumericResponse<ExpireAt, Long>> hpExpireAt(Publisher<ExpireAt> commands) {
-		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+			if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+				return cmd.hpexpire(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args, fields)
+						.map(value -> new NumericResponse<>(command, value));
+			}
 
-			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getFields(), "Fields must not be null");
-
-			return cmd.hpexpireat(command.getKey(), command.getExpireAt().toEpochMilli(), command.getFields().toArray(ByteBuffer[]::new))
+			return cmd.hexpire(command.getKey(), command.getExpiration().getExpirationTimeInSeconds(), args, fields)
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.condition.OS.MAC;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -527,6 +528,34 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.assertNext(it -> {
 					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 2L);
 				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
+	void testExpireWithOptions() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+
+		putAll(key, key1, val1, key2, val2);
+
+		hashOperations.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1)).as(StepVerifier::create)//
+			.assertNext(changes -> {
+				assertThat(changes.allOk()).isTrue();
+			}).verifyComplete();
+		hashOperations.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), FieldExpirationOptions.none(), List.of(key2)).as(StepVerifier::create)//
+			.assertNext(changes -> {
+				assertThat(changes.allOk()).isTrue();
+			}).verifyComplete();
+
+		hashOperations.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(30), FieldExpirationOptions.builder().gt().build(), List.of(key1, key2)).as(StepVerifier::create)//
+			.assertNext(changes -> {
+				assertThat(changes.ok()).containsExactly(key1);
+				assertThat(changes.skipped()).containsExactly(key2);
+			}).verifyComplete();
 	}
 
 	@ParameterizedRedisTest

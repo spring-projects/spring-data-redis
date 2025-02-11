@@ -322,6 +322,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptions() {
 
 		K key = keyFactory.instance();

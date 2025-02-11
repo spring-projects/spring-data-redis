@@ -222,22 +222,14 @@ class LettuceHashCommands implements RedisHashCommands {
 			return hPersist(key, fields);
 		}
 
-		if (ObjectUtils.nullSafeEquals(FieldExpirationOptions.none(), options)) {
-			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-				if (expiration.isUnixTimestamp()) {
-					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
-				}
-				return hpExpire(key, expiration.getExpirationTimeInMilliseconds(), fields);
-			}
-			if (expiration.isUnixTimestamp()) {
-				return hExpireAt(key, expiration.getExpirationTimeInSeconds(), fields);
-			}
-			return hExpire(key, expiration.getExpirationTimeInSeconds(), fields);
-		}
-
 		ExpireArgs option = new ExpireArgs() {
 			@Override
 			public <K, V> void build(CommandArgs<K, V> args) {
+
+				if(ObjectUtils.nullSafeEquals(options, FieldExpirationOptions.none())) {
+					return;
+				}
+
 				args.add(options.getCondition().name());
 			}
 		};

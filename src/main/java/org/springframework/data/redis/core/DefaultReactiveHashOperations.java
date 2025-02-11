@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ReactiveHashCommands.ExpireCommand;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.core.types.Expiration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -239,18 +243,18 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	@Override
 	public Mono<ExpireChanges<HK>> expire(H key, Duration timeout, Collection<HK> hashKeys) {
+		return expire(key, Expiration.from(timeout), FieldExpirationOptions.none(), hashKeys);
+	}
+
+	@Override
+	public Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 		ByteBuffer rawKey = rawKey(key);
 		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
 
-		Mono<List<Long>> raw = createFlux(connection -> {
-
-			if (TimeoutUtils.hasMillis(timeout)) {
-				return connection.hpExpire(rawKey, timeout, rawHashKeys);
-			}
-
-			return connection.hExpire(rawKey, timeout, rawHashKeys);
+		Mono<List<Long>> raw =createFlux(connection -> {
+			return connection.expireHashField(Mono.just(ExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options))).map(NumericResponse::getOutput);
 		}).collectList();
 
 		return raw.map(values -> ExpireChanges.of(orderedKeys, values));
