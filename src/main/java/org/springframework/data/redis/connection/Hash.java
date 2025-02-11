@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 import java.util.Objects;
 
 import org.springframework.lang.Contract;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -29,10 +28,10 @@ public interface Hash {
 
 	class FieldExpirationOptions {
 
-		private static final FieldExpirationOptions NONE = new FieldExpirationOptions(null);
-		private @Nullable Condition condition;
+		private static final FieldExpirationOptions NONE = new FieldExpirationOptions(Condition.ALWAYS);
+		private final Condition condition;
 
-		FieldExpirationOptions(@Nullable Condition condition) {
+		FieldExpirationOptions(Condition condition) {
 			this.condition = condition;
 		}
 
@@ -40,12 +39,11 @@ public interface Hash {
 			return NONE;
 		}
 
-		@Contract("_ -> new")
 		public static FieldExpireOptionsBuilder builder() {
 			return new FieldExpireOptionsBuilder();
 		}
 
-		public @Nullable Condition getCondition() {
+		public Condition getCondition() {
 			return condition;
 		}
 
@@ -68,47 +66,63 @@ public interface Hash {
 
 		public static class FieldExpireOptionsBuilder {
 
-			@Nullable Condition condition;
+			private Condition condition = Condition.ALWAYS;
 
-			@Contract("_ -> this")
+			@Contract("-> this")
 			public FieldExpireOptionsBuilder nx() {
 				this.condition = Condition.NX;
 				return this;
 			}
 
-			@Contract("_ -> this")
+			@Contract("-> this")
 			public FieldExpireOptionsBuilder xx() {
 				this.condition = Condition.XX;
 				return this;
 			}
 
-			@Contract("_ -> this")
+			@Contract("-> this")
 			public FieldExpireOptionsBuilder gt() {
 				this.condition = Condition.GT;
 				return this;
 			}
 
-			@Contract("_ -> this")
+			@Contract("-> this")
 			public FieldExpireOptionsBuilder lt() {
 				this.condition = Condition.LT;
 				return this;
 			}
 
-			@Contract("_ -> !null")
 			public FieldExpirationOptions build() {
-				return condition == null ? NONE : new FieldExpirationOptions(condition);
+				return condition == Condition.ALWAYS ? NONE : new FieldExpirationOptions(condition);
 			}
+
 		}
 
 		public enum Condition {
 
-			/** Set expiration only when the field has no expiration. */
+			/**
+			 * Always apply expiration.
+			 */
+			ALWAYS,
+
+			/**
+			 * Set expiration only when the field has no expiration.
+			 */
 			NX,
-			/** Set expiration only when the field has an existing expiration. */
+
+			/**
+			 * Set expiration only when the field has an existing expiration.
+			 */
 			XX,
-			/** Set expiration only when the new expiration is greater than current one. */
+
+			/**
+			 * Set expiration only when the new expiration is greater than current one.
+			 */
 			GT,
-			/** Set expiration only when the new expiration is greater than current one. */
+
+			/**
+			 * Set expiration only when the new expiration is greater than current one.
+			 */
 			LT
 		}
 	}

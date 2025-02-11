@@ -376,6 +376,7 @@ public interface RedisOperations<K, V> {
 	@Nullable
 	Boolean persist(K key);
 
+	// TODO: Add TimeToLive (getTimeToLive)
 	/**
 	 * Get the time to live for {@code key} in seconds.
 	 *

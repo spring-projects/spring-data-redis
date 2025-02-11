@@ -29,31 +29,31 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Value Object linking a number of keys to their {@link Expiration} retaining the order of the original source.
+ * Value Object linking a number of keys to their {@link TimeToLive} retaining the order of the original source.
  * Dedicated higher level methods interpret raw expiration values retrieved from a Redis Client.
  * <ol>
  * <li>{@link #persistent()} returns keys that do not have an associated time to live</li>
  * <li>{@link #missing()} returns keys that do not exist and therefore have no associated time to live</li>
- * <li>{@link #expirations()} returns the ordered list of {@link Expiration expirations} based on the raw values</li>
+ * <li>{@link #ttl()} returns the ordered list of {@link TimeToLive expirations} based on the raw values</li>
  * <li>{@link #expiring()} returns the expiring keys along with their {@link Duration time to live}</li>
  * </ol>
- * 
+ *
  * @author Christoph Strobl
  * @since 3.5
  */
 public class Expirations<K> { // TODO: should we move this to let's say Hash.class or another place
 
 	private final TimeUnit unit;
-	private final Map<K, Expiration> expirations;
+	private final Map<K, TimeToLive> expirations;
 
-	Expirations(TimeUnit unit, Map<K, Expiration> expirations) {
+	Expirations(TimeUnit unit, Map<K, TimeToLive> expirations) {
 		this.unit = unit;
 		this.expirations = expirations;
 	}
 
 	/**
 	 * Factory Method to create {@link Expirations} from raw sources provided in a given {@link TimeUnit}.
-	 * 
+	 *
 	 * @param targetUnit the actual time unit of the raw timeToLive values.
 	 * @param keys the keys to associated with the raw values in timeToLive. Defines the actual order of entries within
 	 *          {@link Expirations}.
@@ -69,12 +69,12 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 		}
 		if (keys.size() == 1) {
 			return new Expirations<>(targetUnit,
-					Map.of(keys.iterator().next(), Expiration.of(timeouts.raw().iterator().next(), timeouts.timeUnit())));
+					Map.of(keys.iterator().next(), TimeToLive.of(timeouts.raw().iterator().next(), timeouts.timeUnit())));
 		}
 
-		Map<K, Expiration> target = CollectionUtils.newLinkedHashMap(keys.size());
+		Map<K, TimeToLive> target = CollectionUtils.newLinkedHashMap(keys.size());
 		for (int i = 0; i < keys.size(); i++) {
-			target.put(keys.get(i), Expiration.of(timeouts.get(i), timeouts.timeUnit()));
+			target.put(keys.get(i), TimeToLive.of(timeouts.get(i), timeouts.timeUnit()));
 		}
 		return new Expirations<>(targetUnit, target);
 	}
@@ -83,26 +83,26 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	 * @return an ordered set of keys that do not have a time to live.
 	 */
 	public Set<K> persistent() {
-		return filterByState(Expiration.PERSISTENT);
+		return filterByState(TimeToLive.PERSISTENT);
 	}
 
 	/**
 	 * @return an ordered set of keys that do not exists and therefore do not have a time to live.
 	 */
 	public Set<K> missing() {
-		return filterByState(Expiration.MISSING);
+		return filterByState(TimeToLive.MISSING);
 	}
 
 	/**
-	 * @return an ordered set of all {@link Expirations expirations} where the {@link Expiration#value()} is using the
+	 * @return an ordered set of all {@link Expirations expirations} where the {@link TimeToLive#value()} is using the
 	 *         {@link TimeUnit} defined in {@link #precision()}.
 	 */
-	public List<Expiration> expirations() {
+	public List<TimeToLive> ttl() {
 		return expirations.values().stream().map(it -> it.convert(this.unit)).toList();
 	}
 
 	/**
-	 * @return the {@link TimeUnit} for {@link Expiration expirations} held by this instance.
+	 * @return the {@link TimeUnit} for {@link TimeToLive expirations} held by this instance.
 	 */
 	public TimeUnit precision() {
 		return unit;
@@ -110,7 +110,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 
 	/**
 	 * @return an ordered {@link List} of {@link java.util.Map.Entry entries} combining keys with their actual time to
-	 *         live. {@link Expiration#isMissing() Missing} and {@link Expiration#isPersistent() persistent} entries are
+	 *         live. {@link TimeToLive#isMissing() Missing} and {@link TimeToLive#isPersistent() persistent} entries are
 	 *         skipped.
 	 */
 	public List<Map.Entry<K, Duration>> expiring() {
@@ -120,48 +120,48 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 
 	/**
 	 * @param key
-	 * @return the {@link Expirations expirations} where the {@link Expiration#value()} is using the {@link TimeUnit}
+	 * @return the {@link Expirations expirations} where the {@link TimeToLive#value()} is using the {@link TimeUnit}
 	 *         defined in {@link #precision()} or {@literal null} if no entry could be found.
 	 */
 	@Nullable
-	public Expiration expirationOf(K key) {
+	public TimeToLive expirationOf(K key) {
 
-		Expiration expiration = expirations.get(key);
-		if (expiration == null) {
+		TimeToLive timeToLive = expirations.get(key);
+		if (timeToLive == null) {
 			return null;
 		}
 
-		return expiration.convert(this.unit);
+		return timeToLive.convert(this.unit);
 	}
 
 	/**
 	 * @param key
 	 * @return the time to live value of the requested key if it exists and the expiration is neither
-	 *         {@link Expiration#isMissing() missing} nor {@link Expiration#isPersistent() persistent}, {@literal null}
+	 *         {@link TimeToLive#isMissing() missing} nor {@link TimeToLive#isPersistent() persistent}, {@literal null}
 	 *         otherwise.
 	 */
 	@Nullable
 	public Duration ttlOf(K key) {
 
-		Expiration expiration = expirationOf(key);
-		if (expiration == null) {
+		TimeToLive timeToLive = expirationOf(key);
+		if (timeToLive == null) {
 			return null;
 		}
-		return toDuration(expiration);
+		return toDuration(timeToLive);
 	}
 
-	private Set<K> filterByState(Expiration filter) {
+	private Set<K> filterByState(TimeToLive filter) {
 		return expirations.entrySet().stream().filter(entry -> entry.getValue().equals(filter)).map(Map.Entry::getKey)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 	@Nullable
-	static Duration toDuration(Expiration expiration) {
+	static Duration toDuration(TimeToLive timeToLive) {
 
-		if (expiration.sourceUnit == null) {
+		if (timeToLive.sourceUnit == null) {
 			return null;
 		}
-		return Duration.of(expiration.raw(), expiration.sourceUnit.toChronoUnit());
+		return Duration.of(timeToLive.raw(), timeToLive.sourceUnit.toChronoUnit());
 	}
 
 	public record Timeouts(TimeUnit timeUnit, List<Long> raw) {
@@ -182,30 +182,55 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	 * {@link #PERSISTENT} mark predefined states returned by Redis indicating a time to live value could not be retrieved
 	 * due to various reasons.
 	 */
-	public static class Expiration { // TODO: is Expiry a better name for this type?
+	public static class TimeToLive { // TODO: is Expiry a better name for this type?
+
+		/**
+		 * Predefined {@link TimeToLive} for a key that does not exists and therefore does not have a time to live.
+		 */
+		public static TimeToLive MISSING = new TimeToLive(-2L);
+
+		/**
+		 * Predefined {@link TimeToLive} for a key that exists but does not expire.
+		 */
+		public static TimeToLive PERSISTENT = new TimeToLive(-1L);
 
 		private final long raw;
 		@Nullable TimeUnit sourceUnit;
 		@Nullable TimeUnit targetUnit;
 
-		public Expiration(long value) {
+		public TimeToLive(long value) {
 			this(value, null);
 		}
 
-		public Expiration(long value, @Nullable TimeUnit sourceUnit) {
+		public TimeToLive(long value, @Nullable TimeUnit sourceUnit) {
 			this(value, sourceUnit, null);
 		}
 
-		public Expiration(long value, @Nullable TimeUnit sourceUnit, @Nullable TimeUnit targetUnit) {
+		public TimeToLive(long value, @Nullable TimeUnit sourceUnit, @Nullable TimeUnit targetUnit) {
 			this.raw = value;
 			this.sourceUnit = sourceUnit;
 			this.targetUnit = targetUnit;
 		}
 
 		/**
+		 * Factory method for creating {@link TimeToLive} instances, returning predefined ones if the value matches a known
+		 * reserved state.
+		 *
+		 * @return the {@link TimeToLive} for the given raw value.
+		 */
+		static TimeToLive of(Number value, TimeUnit timeUnit) {
+
+			return switch (value.intValue()) {
+				case -2 -> MISSING;
+				case -1 -> PERSISTENT;
+				default -> new TimeToLive(value.longValue(), timeUnit);
+			};
+		}
+
+		/**
 		 * The raw source value as returned by the Redis Client.
 		 *
-		 * @return the raw data
+		 * @return the raw data.
 		 */
 		public long raw() {
 			return raw;
@@ -219,31 +244,23 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 			if (sourceUnit == null || targetUnit == null) {
 				return raw;
 			}
+
 			return targetUnit.convert(raw, sourceUnit);
 		}
 
 		/**
 		 * @param timeUnit must not be {@literal null}.
-		 * @return the {@link Expiration} instance with new target {@link TimeUnit} set for obtaining the {@link #value()
+		 * @return the {@link TimeToLive} instance with new target {@link TimeUnit} set for obtaining the {@link #value()
 		 *         value}, or the same instance raw value cannot or must not be converted.
 		 */
-		public Expiration convert(TimeUnit timeUnit) {
+		public TimeToLive convert(TimeUnit timeUnit) {
 
 			if (sourceUnit == null || ObjectUtils.nullSafeEquals(sourceUnit, timeUnit)) {
 				return this;
 			}
-			return new Expiration(raw, sourceUnit, timeUnit);
+
+			return new TimeToLive(raw, sourceUnit, timeUnit);
 		}
-
-		/**
-		 * Predefined {@link Expiration} for a key that does not exists and therefore does not have a time to live.
-		 */
-		public static Expiration MISSING = new Expiration(-2L);
-
-		/**
-		 * Predefined {@link Expiration} for a key that exists but does not expire.
-		 */
-		public static Expiration PERSISTENT = new Expiration(-1L);
 
 		/**
 		 * @return {@literal true} if key exists but does not expire.
@@ -253,34 +270,19 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 		}
 
 		/**
-		 * @return {@literal true} if key does not exists and therefore does not have a time to live.
+		 * @return {@literal true} if key does not exist and therefore does not have a time to live.
 		 */
 		public boolean isMissing() {
 			return MISSING.equals(this);
 		}
 
-		/**
-		 * Factory method for creating {@link Expiration} instances, returning predefined ones if the value matches a known
-		 * reserved state.
-		 *
-		 * @return the {@link Expiration} for the given raw value.
-		 */
-		static Expiration of(Number value, TimeUnit timeUnit) {
-			return switch (value.intValue()) {
-				case -2 -> MISSING;
-				case -1 -> PERSISTENT;
-				default -> new Expiration(value.longValue(), timeUnit);
-			};
-		}
-
 		@Override
 		public boolean equals(Object o) {
-
 			if (o == this) {
 				return true;
 			}
 
-			if (!(o instanceof Expiration that)) {
+			if (!(o instanceof Expirations.TimeToLive that)) {
 				return false;
 			}
 

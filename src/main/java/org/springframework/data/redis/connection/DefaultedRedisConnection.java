@@ -1476,28 +1476,58 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-		return hashCommands().hExpire(key, seconds, fields);
+		return hashCommands().hExpire(key, seconds, FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return hashCommands().hExpire(key, seconds, condition, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
 	default List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		return hashCommands().hpExpire(key, millis, fields);
+		return hashCommands().hpExpire(key, millis, FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return hashCommands().hpExpire(key, millis, condition, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
 	default List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		return hashCommands().hExpireAt(key, unixTime, fields);
+		return hashCommands().hExpireAt(key, unixTime, FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition,
+			byte[]... fields) {
+		return hashCommands().hExpireAt(key, unixTime, condition, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
 	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		return hashCommands().hpExpireAt(key, unixTimeInMillis, fields);
+		return hashCommands().hpExpireAt(key, unixTimeInMillis, FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+	@Override
+	@Deprecated
+	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+			byte[]... fields) {
+		return hashCommands().hpExpireAt(key, unixTimeInMillis, condition, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
@@ -1531,9 +1561,10 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
-		FieldExpirationOptions options, byte[]... fields) {
-		return hashCommands().expireHashField(key, expiration, options, fields);
+	default @Nullable List<Long> applyExpiration(byte[] key,
+			org.springframework.data.redis.core.types.Expiration expiration, FieldExpirationOptions options,
+			byte[]... fields) {
+		return hashCommands().applyExpiration(key, expiration, options, fields);
 	}
 
 	// GEO COMMANDS
@@ -1907,9 +1938,8 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
-						  org.springframework.data.domain.Range<byte[]> range,
-						  org.springframework.data.redis.connection.Limit limit) {
+	default Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeStoreByLex(dstKey, srcKey, range, limit);
 	}
 
@@ -1926,7 +1956,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
 			org.springframework.data.domain.Range<? extends Number> range,
-							org.springframework.data.redis.connection.Limit limit) {
+			org.springframework.data.redis.connection.Limit limit) {
 		return zSetCommands().zRangeStoreByScore(dstKey, srcKey, range, limit);
 	}
 

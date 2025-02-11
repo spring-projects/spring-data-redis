@@ -2333,22 +2333,41 @@ public interface StringRedisConnection extends RedisConnection {
 	@Nullable
 	Long hStrLen(String key, String field);
 
-	// TODO: why why whay is this such a shitty api that there's missing all the NX, XX, GT Options
 	/**
 	 * Set time to live for given {@code field} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param seconds the amount of time after which the key will be expired in seconds, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
-	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
-	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
-	 *         {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
+	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
+	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpire(String key, long seconds, String... fields);
+	default List<Long> hExpire(String key, long seconds, String... fields) {
+		return hExpire(key, seconds, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/**
+	 * Set time to live for given {@code field} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param seconds the amount of time after which the key will be expired in seconds, must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
+	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
+	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	List<Long> hExpire(String key, long seconds, Hash.FieldExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Set time to live for given {@code field} in milliseconds.
@@ -2356,15 +2375,35 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param millis the amount of time after which the key will be expired in milliseconds, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
-	 *         already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time is set/updated;
-	 *         {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not met);
-	 *         {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
+	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
+	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpire(String key, long millis, String... fields);
+	default List<Long> hpExpire(String key, long millis, String... fields) {
+		return hpExpire(key, millis, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/**
+	 * Set time to live for given {@code field} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param millis the amount of time after which the key will be expired in milliseconds, must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
+	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
+	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	List<Long> hpExpire(String key, long millis, Hash.FieldExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
@@ -2372,15 +2411,35 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param unixTime the moment in time in which the field expires, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
-	 * 	       already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
-	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
-	 *         met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
+	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
+	 *         pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpireAt(String key, long unixTime, String... fields);
+	default List<Long> hExpireAt(String key, long unixTime, String... fields) {
+		return hExpireAt(key, unixTime, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/**
+	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTime the moment in time in which the field expires, must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
+	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	List<Long> hExpireAt(String key, long unixTime, Hash.FieldExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
@@ -2388,26 +2447,48 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param unixTimeInMillis the moment in time in which the field expires in milliseconds, must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is deleted
-	 * 	       already due to expiration, or provided expiry interval is in the past; {@code 1} indicating expiration time is
-	 * 	       set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition is not
-	 *         met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
+	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
+	 *         pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields);
+	default List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
+		return hpExpireAt(key, unixTimeInMillis, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+	}
+
+	/**
+	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTimeInMillis the moment in time in which the field expires in milliseconds, must not be {@literal null}.
+	 * @param fields must not be {@literal null}.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
+	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
+	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
+	 *         pipeline / transaction.
+	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	List<Long> hpExpireAt(String key, long unixTimeInMillis, Hash.FieldExpirationOptions.Condition condition,
+			String... fields);
 
 	/**
 	 * Remove the expiration from given {@code field}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is removed;
-	 * 	       {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such field;
-	 * 	       {@literal null} when used in pipeline / transaction.{@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is
+	 *         removed; {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such
+	 *         field; {@literal null} when used in pipeline / transaction.{@literal null} when used in pipeline /
+	 *         transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	List<Long> hPersist(String key, String... fields);

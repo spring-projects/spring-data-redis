@@ -19,14 +19,22 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.Expirations;
 import org.springframework.data.redis.core.ExpireChanges;
-import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.lang.Nullable;
 
@@ -323,17 +331,17 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	public Expirations<Object> getExpire(Collection<Object> hashKeys) {
+	public Expirations<Object> getTimeToLive(Collection<Object> hashKeys) {
 
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (Expirations) hashOps.getExpire(keys);
+		return (Expirations) hashOps.getTimeToLive(keys);
 	}
 
 	@Override
-	public Expirations<Object> getExpire(TimeUnit timeUnit, Collection<Object> hashKeys) {
+	public Expirations<Object> getTimeToLive(TimeUnit timeUnit, Collection<Object> hashKeys) {
 
 		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (Expirations) hashOps.getExpire(timeUnit, keys);
+		return (Expirations) hashOps.getTimeToLive(timeUnit, keys);
 	}
 
 }

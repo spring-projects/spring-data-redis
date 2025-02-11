@@ -33,10 +33,8 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Cluster {@link RedisHashCommands} implementation for Jedis.
@@ -292,88 +290,71 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		}.open();
 	}
 
-	@Nullable
 	@Override
-	public List<Long> expireHashField(byte[] key, Expiration expiration, FieldExpirationOptions options,
+	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+				return connection.getCluster().hexpire(key, seconds, fields);
+			}
+
+			return connection.getCluster().hexpire(key, seconds, ExpiryOption.valueOf(condition.name()), fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+				return connection.getCluster().hpexpire(key, millis, fields);
+			}
+
+			return connection.getCluster().hpexpire(key, millis, ExpiryOption.valueOf(condition.name()), fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
+
+		try {
+
+			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+				return connection.getCluster().hexpireAt(key, unixTime, fields);
+			}
+
+			return connection.getCluster().hexpireAt(key, unixTime, ExpiryOption.valueOf(condition.name()), fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
 			byte[]... fields) {
 
-		if (expiration.isPersistent()) {
-			return hPersist(key, fields);
-		}
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-		if (ObjectUtils.nullSafeEquals(FieldExpirationOptions.none(), options)) {
-			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-				if (expiration.isUnixTimestamp()) {
-					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
-				}
-				return hpExpire(key, expiration.getExpirationTimeInMilliseconds(), fields);
+		try {
+
+			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+				return connection.getCluster().hpexpireAt(key, unixTimeInMillis, fields);
 			}
-			if (expiration.isUnixTimestamp()) {
-				return hExpireAt(key, expiration.getExpirationTimeInSeconds(), fields);
-			}
-			return hExpire(key, expiration.getExpirationTimeInSeconds(), fields);
-		}
 
-		ExpiryOption option = ExpiryOption.valueOf(options.getCondition().name());
-
-		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-			if (expiration.isUnixTimestamp()) {
-				return connection.getCluster().hpexpireAt(key, expiration.getExpirationTimeInMilliseconds(), option, fields);
-			}
-			return connection.getCluster().hpexpire(key, expiration.getExpirationTimeInMilliseconds(), option, fields);
-		}
-
-		if (expiration.isUnixTimestamp()) {
-			return connection.getCluster().hexpireAt(key, expiration.getExpirationTimeInSeconds(), option, fields);
-		}
-		return connection.getCluster().hexpire(key, expiration.getExpirationTimeInSeconds(), option, fields);
-
-	}
-
-	@Override
-	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(fields, "Fields must not be null");
-
-		try {
-			return connection.getCluster().hexpire(key, seconds, fields);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(fields, "Fields must not be null");
-
-		try {
-			return connection.getCluster().hpexpire(key, millis, fields);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(fields, "Fields must not be null");
-
-		try {
-			return connection.getCluster().hexpireAt(key, unixTime, fields);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(fields, "Fields must not be null");
-
-		try {
-			return connection.getCluster().hpexpireAt(key, unixTimeInMillis, fields);
+			return connection.getCluster().hpexpireAt(key, unixTimeInMillis, ExpiryOption.valueOf(condition.name()), fields);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -381,6 +362,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 	@Override
 	public List<Long> hPersist(byte[] key, byte[]... fields) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
@@ -393,6 +375,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 	@Override
 	public List<Long> hTtl(byte[] key, byte[]... fields) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
@@ -405,6 +388,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 	@Override
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
@@ -418,6 +402,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 	@Override
 	public List<Long> hpTtl(byte[] key, byte[]... fields) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
@@ -439,7 +424,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	}
 
 	private DataAccessException convertJedisAccessException(Exception ex) {
-
 		return connection.convertJedisAccessException(ex);
 	}
+
 }

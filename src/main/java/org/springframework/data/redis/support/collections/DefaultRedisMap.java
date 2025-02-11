@@ -21,15 +21,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.core.Expirations;
-import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.Expirations;
+import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
@@ -329,27 +328,27 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public ExpireChanges<K> expire(Duration timeout, Collection<K> hashKeys) {
-		return Objects.requireNonNull(hashOps.expire(timeout, hashKeys));
+		return hashOps.expire(timeout, hashKeys);
 	}
 
 	@Override
 	public ExpireChanges<K> expireAt(Instant expireAt, Collection<K> hashKeys) {
-		return Objects.requireNonNull(hashOps.expireAt(expireAt, hashKeys));
+		return hashOps.expireAt(expireAt, hashKeys);
 	}
 
 	@Override
 	public ExpireChanges<K> persist(Collection<K> hashKeys) {
-		return Objects.requireNonNull(hashOps.persist(hashKeys));
+		return hashOps.persist(hashKeys);
 	}
 
 	@Override
-	public Expirations<K> getExpire(Collection<K> hashKeys) {
-		return Objects.requireNonNull(hashOps.getExpire(hashKeys));
+	public Expirations<K> getTimeToLive(Collection<K> hashKeys) {
+		return hashOps.getTimeToLive(hashKeys);
 	}
 
 	@Override
-	public Expirations<K> getExpire(TimeUnit timeUnit, Collection<K> hashKeys) {
-		return Objects.requireNonNull(hashOps.getExpire(timeUnit, hashKeys));
+	public Expirations<K> getTimeToLive(TimeUnit timeUnit, Collection<K> hashKeys) {
+		return hashOps.getTimeToLive(timeUnit, hashKeys);
 	}
 
 	private void checkResult(@Nullable Object obj) {

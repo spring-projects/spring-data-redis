@@ -39,7 +39,6 @@ import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link RedisHashCommands} implementation for Jedis.
@@ -257,62 +256,48 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-		return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, fields);
+	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+
+		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, fields);
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
+		return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, option, fields);
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, fields);
+	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+
+		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, fields);
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
+		return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, option, fields);
 	}
 
 	@Override
-	public @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
-			FieldExpirationOptions options, byte[]... fields) {
+	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
 
-		if (expiration.isPersistent()) {
-			return hPersist(key, fields);
+		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
 		}
 
-		if (ObjectUtils.nullSafeEquals(FieldExpirationOptions.none(), options)) {
-			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-				if (expiration.isUnixTimestamp()) {
-					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
-				}
-				return hpExpire(key, expiration.getExpirationTimeInMilliseconds(), fields);
-			}
-			if (expiration.isUnixTimestamp()) {
-				return hExpireAt(key, expiration.getExpirationTimeInSeconds(), fields);
-			}
-			return hExpire(key, expiration.getExpirationTimeInSeconds(), fields);
-		}
-
-		ExpiryOption option = ExpiryOption.valueOf(options.getCondition().name());
-
-		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
-			if (expiration.isUnixTimestamp()) {
-				return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key,
-						expiration.getExpirationTimeInMilliseconds(), option, fields);
-			}
-			return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key,
-					expiration.getExpirationTimeInMilliseconds(), option, fields);
-		}
-
-		if (expiration.isUnixTimestamp()) {
-			return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key,
-					expiration.getExpirationTimeInSeconds(), option, fields);
-		}
-		return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key,
-				expiration.getExpirationTimeInSeconds(), option, fields);
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
+		return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, option, fields);
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
-	}
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+			byte[]... fields) {
 
-	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
+					fields);
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
 				fields);
 	}

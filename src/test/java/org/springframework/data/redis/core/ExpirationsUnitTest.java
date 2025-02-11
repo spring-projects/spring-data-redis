@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
 import java.util.List;
@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+
 import org.springframework.data.redis.core.Expirations.Timeouts;
 
 /**
@@ -44,7 +45,7 @@ class ExpirationsUnitTest {
 
 		Expirations<String> exp = Expirations.of(targetUnit, List.of(KEY_1), new Timeouts(TimeUnit.SECONDS, List.of(120L)));
 
-		assertThat(exp.expirations().get(0)).satisfies(expiration -> {
+		assertThat(exp.ttl().get(0)).satisfies(expiration -> {
 			assertThat(expiration.raw()).isEqualTo(120L);
 			assertThat(expiration.value()).isEqualTo(targetUnit.convert(120, TimeUnit.SECONDS));
 		});

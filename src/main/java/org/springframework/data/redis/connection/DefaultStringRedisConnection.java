@@ -23,6 +23,7 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -35,10 +36,19 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -2561,35 +2571,36 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return this.delegate.hScan(key, options);
 	}
 
-	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
 		return convertAndReturn(delegate.hStrLen(key, field), Converters.identityConverter());
 	}
 
-	public @Nullable List<Long> expireHashField(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+	public @Nullable List<Long> applyExpiration(byte[] key,
+			org.springframework.data.redis.core.types.Expiration expiration,
 		FieldExpirationOptions options, byte[]... fields) {
-		return this.delegate.expireHashField(key, expiration, options, fields);
+		return this.delegate.applyExpiration(key, expiration, options, fields);
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-		return this.delegate.hExpire(key, seconds, fields);
+	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return this.delegate.hExpire(key, seconds, condition, fields);
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		return this.delegate.hpExpire(key, millis, fields);
+	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return this.delegate.hpExpire(key, millis, condition, fields);
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		return this.delegate.hExpireAt(key, unixTime, fields);
+	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+		return this.delegate.hExpireAt(key, unixTime, condition, fields);
 	}
 
 	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		return this.delegate.hpExpireAt(key, unixTimeInMillis, fields);
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+			byte[]... fields) {
+		return this.delegate.hpExpireAt(key, unixTimeInMillis, condition, fields);
 	}
 
 	@Override
@@ -2612,29 +2623,31 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return this.delegate.hTtl(key, timeUnit, fields);
 	}
 
-	public @Nullable List<Long> expireHashField(String key, org.springframework.data.redis.core.types.Expiration expiration,
+	public @Nullable List<Long> applyExpiration(String key,
+			org.springframework.data.redis.core.types.Expiration expiration,
 		FieldExpirationOptions options, String... fields) {
-		return expireHashField(serialize(key), expiration, options, serializeMulti(fields));
+		return applyExpiration(serialize(key), expiration, options, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hExpire(String key, long seconds, String... fields) {
-		return hExpire(serialize(key), seconds, serializeMulti(fields));
+	public List<Long> hExpire(String key, long seconds, FieldExpirationOptions.Condition condition, String... fields) {
+		return hExpire(serialize(key), seconds, condition, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hpExpire(String key, long millis, String... fields) {
-		return hpExpire(serialize(key), millis, serializeMulti(fields));
+	public List<Long> hpExpire(String key, long millis, FieldExpirationOptions.Condition condition, String... fields) {
+		return hpExpire(serialize(key), millis, condition, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hExpireAt(String key, long unixTime, String... fields) {
-		return hExpireAt(serialize(key), unixTime, serializeMulti(fields));
+	public List<Long> hExpireAt(String key, long unixTime, FieldExpirationOptions.Condition condition, String... fields) {
+		return hExpireAt(serialize(key), unixTime, condition, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
-		return hpExpireAt(serialize(key), unixTimeInMillis, serializeMulti(fields));
+	public List<Long> hpExpireAt(String key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+			String... fields) {
+		return hpExpireAt(serialize(key), unixTimeInMillis, condition, serializeMulti(fields));
 	}
 
 	@Override
