@@ -36,8 +36,8 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
-import org.springframework.data.redis.core.Expirations.TimeToLive;
 import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
+import org.springframework.data.redis.core.types.Expirations.TimeToLive;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.RedisStanalone;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
@@ -230,7 +230,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(redisTemplate.opsForHash().getTimeToLive(key, List.of(key1))).satisfies(expirations -> {
 
 			assertThat(expirations.missing()).isEmpty();
-			assertThat(expirations.precision()).isEqualTo(TimeUnit.SECONDS);
+			assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.SECONDS);
 			assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
 					.isBetween(0L, 1L);
 			assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofSeconds(1));
@@ -261,7 +261,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.SECONDS, List.of(key1, key2)))
 				.satisfies(expirations -> {
 					assertThat(expirations.missing()).isEmpty();
-					assertThat(expirations.precision()).isEqualTo(TimeUnit.SECONDS);
+					assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.SECONDS);
 					assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
 							.isBetween(0L, 5L);
 					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ofSeconds(1), Duration.ofSeconds(5));
@@ -286,7 +286,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.MILLISECONDS, List.of(key1, key2)))
 				.satisfies(expirations -> {
 					assertThat(expirations.missing()).isEmpty();
-					assertThat(expirations.precision()).isEqualTo(TimeUnit.MILLISECONDS);
+					assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
 					assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
 							.isBetween(0L, 500L);
 					assertThat(expirations.ttlOf(key1)).isBetween(Duration.ZERO, Duration.ofMillis(500));

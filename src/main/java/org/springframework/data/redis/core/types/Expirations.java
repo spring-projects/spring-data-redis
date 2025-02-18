@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core;
+package org.springframework.data.redis.core.types;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -39,9 +41,10 @@ import org.springframework.util.ObjectUtils;
  * </ol>
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 3.5
  */
-public class Expirations<K> { // TODO: should we move this to let's say Hash.class or another place
+public class Expirations<K> {
 
 	private final TimeUnit unit;
 	private final Map<K, TimeToLive> expirations;
@@ -87,7 +90,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	}
 
 	/**
-	 * @return an ordered set of keys that do not exists and therefore do not have a time to live.
+	 * @return an ordered set of keys that do not exist and therefore do not have a time to live.
 	 */
 	public Set<K> missing() {
 		return filterByState(TimeToLive.MISSING);
@@ -95,7 +98,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 
 	/**
 	 * @return an ordered set of all {@link Expirations expirations} where the {@link TimeToLive#value()} is using the
-	 *         {@link TimeUnit} defined in {@link #precision()}.
+	 *         {@link TimeUnit} defined in {@link #timeUnit()}.
 	 */
 	public List<TimeToLive> ttl() {
 		return expirations.values().stream().map(it -> it.convert(this.unit)).toList();
@@ -104,7 +107,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	/**
 	 * @return the {@link TimeUnit} for {@link TimeToLive expirations} held by this instance.
 	 */
-	public TimeUnit precision() {
+	public TimeUnit timeUnit() {
 		return unit;
 	}
 
@@ -114,21 +117,30 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	 *         skipped.
 	 */
 	public List<Map.Entry<K, Duration>> expiring() {
+
 		return expirations.entrySet().stream().filter(it -> !it.getValue().isMissing() && !it.getValue().isPersistent())
 				.map(it -> Map.entry(it.getKey(), toDuration(it.getValue()))).toList();
 	}
 
 	/**
+	 * @return the ordered collection of keys that are associated with an expiration.
+	 */
+	public Collection<K> keys() {
+		return expirations.keySet();
+	}
+
+	/**
 	 * @param key
 	 * @return the {@link Expirations expirations} where the {@link TimeToLive#value()} is using the {@link TimeUnit}
-	 *         defined in {@link #precision()} or {@literal null} if no entry could be found.
+	 *         defined in {@link #timeUnit()} or {@literal null} if no entry could be found.
+	 * @throws NoSuchElementException if no expiration found for the given key.
 	 */
-	@Nullable
 	public TimeToLive expirationOf(K key) {
 
 		TimeToLive timeToLive = expirations.get(key);
+
 		if (timeToLive == null) {
-			return null;
+			throw new NoSuchElementException("No expiration found for key '%s'".formatted(key));
 		}
 
 		return timeToLive.convert(this.unit);
@@ -142,12 +154,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	 */
 	@Nullable
 	public Duration ttlOf(K key) {
-
-		TimeToLive timeToLive = expirationOf(key);
-		if (timeToLive == null) {
-			return null;
-		}
-		return toDuration(timeToLive);
+		return toDuration(expirationOf(key));
 	}
 
 	private Set<K> filterByState(TimeToLive filter) {
@@ -161,6 +168,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 		if (timeToLive.sourceUnit == null) {
 			return null;
 		}
+
 		return Duration.of(timeToLive.raw(), timeToLive.sourceUnit.toChronoUnit());
 	}
 
@@ -173,6 +181,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 		public int size() {
 			return raw.size();
 		}
+
 	}
 
 	/**
@@ -182,10 +191,10 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 	 * {@link #PERSISTENT} mark predefined states returned by Redis indicating a time to live value could not be retrieved
 	 * due to various reasons.
 	 */
-	public static class TimeToLive { // TODO: is Expiry a better name for this type?
+	public static class TimeToLive {
 
 		/**
-		 * Predefined {@link TimeToLive} for a key that does not exists and therefore does not have a time to live.
+		 * Predefined {@link TimeToLive} for a key that does not exist and therefore does not have a time to live.
 		 */
 		public static TimeToLive MISSING = new TimeToLive(-2L);
 
@@ -194,9 +203,10 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 		 */
 		public static TimeToLive PERSISTENT = new TimeToLive(-1L);
 
+		final @Nullable TimeUnit sourceUnit;
+		final @Nullable TimeUnit targetUnit;
+
 		private final long raw;
-		@Nullable TimeUnit sourceUnit;
-		@Nullable TimeUnit targetUnit;
 
 		public TimeToLive(long value) {
 			this(value, null);
@@ -301,5 +311,7 @@ public class Expirations<K> { // TODO: should we move this to let's say Hash.cla
 		public int hashCode() {
 			return Objects.hash(raw);
 		}
+
 	}
+
 }

@@ -71,7 +71,6 @@ import org.springframework.util.CollectionUtils;
  * @author Andrey Shlykov
  * @author ihaohong
  * @author Shyngys Sapraliyev
- *
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -1661,7 +1660,6 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	Long zRemRange(String key, long start, long end);
 
-
 	/**
 	 * Remove all elements between the lexicographical {@link Range}.
 	 *
@@ -1941,7 +1939,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
-	 * @see RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.Limit)
+	 * @see RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.domain.Range,
+	 *      org.springframework.data.redis.connection.Limit)
 	 */
 	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range,
 			org.springframework.data.redis.connection.Limit limit);
@@ -1983,7 +1982,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 * @see RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.domain.Range, org.springframework.data.redis.connection.Limit)
+	 * @see RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.domain.Range,
+	 *      org.springframework.data.redis.connection.Limit)
 	 */
 	Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range,
 			org.springframework.data.redis.connection.Limit limit);
@@ -2498,9 +2498,10 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in milliseconds; or a negative value
-	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
-	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in milliseconds; or a
+	 *         negative value to signal an error. The command returns {@code -1} if the key exists but has no associated
+	 *         expiration time. The command returns {@code -2} if the key does not exist; {@literal null} when used in
+	 *         pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
@@ -2513,9 +2514,10 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param key must not be {@literal null}.
 	 * @param timeUnit must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in the {@link TimeUnit} provided; or a negative value
-	 *         to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
-	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in the {@link TimeUnit}
+	 *         provided; or a negative value to signal an error. The command returns {@code -1} if the key exists but has
+	 *         no associated expiration time. The command returns {@code -2} if the key does not exist; {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
@@ -2527,9 +2529,10 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in milliseconds; or a negative value
-	 * 	       to signal an error. The command returns {@code -1} if the key exists but has no associated expiration time.
-	 * 	       The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline / transaction.
+	 * @return a list of {@link Long} values for each of the fields provided: the time to live in milliseconds; or a
+	 *         negative value to signal an error. The command returns {@code -1} if the key exists but has no associated
+	 *         expiration time. The command returns {@code -2} if the key does not exist; {@literal null} when used in
+	 *         pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
@@ -2759,8 +2762,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
-	 * shape}. The query's center point is provided by
-	 * {@link GeoReference}.
+	 * shape}. The query's center point is provided by {@link GeoReference}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.
@@ -2776,8 +2778,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
-	 * and store the result at {@code destKey}. The query's center point is provided by
-	 * {@link GeoReference}.
+	 * and store the result at {@code destKey}. The query's center point is provided by {@link GeoReference}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param reference must not be {@literal null}.

@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**

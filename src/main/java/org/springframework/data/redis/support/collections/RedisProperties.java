@@ -33,9 +33,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.Expirations;
 import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**
