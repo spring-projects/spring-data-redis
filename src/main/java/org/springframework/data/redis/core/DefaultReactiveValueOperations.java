@@ -78,6 +78,15 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 	}
 
 	@Override
+	public Mono<Boolean> set(K key, V value, boolean keepTtl) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		Expiration expiration = keepTtl ? Expiration.keepTtl() : Expiration.persistent();
+		return createMono(stringCommands -> stringCommands.set(rawKey(key), rawValue(value), expiration, SetOption.UPSERT));
+	}
+
+	@Override
 	public Mono<Boolean> setIfAbsent(K key, V value) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -113,6 +122,16 @@ class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K,
 
 		return createMono(stringCommands ->
 				stringCommands.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.SET_IF_PRESENT));
+	}
+
+	@Override
+	public Mono<Boolean> setIfPresent(K key, V value, boolean keepTtl) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		Expiration expiration = keepTtl ? Expiration.keepTtl() : Expiration.persistent();
+		return createMono(
+				stringCommands -> stringCommands.set(rawKey(key), rawValue(value), expiration, SetOption.SET_IF_PRESENT));
 	}
 
 	@Override

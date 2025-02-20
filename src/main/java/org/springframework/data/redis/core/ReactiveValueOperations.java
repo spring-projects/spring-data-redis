@@ -59,6 +59,16 @@ public interface ReactiveValueOperations<K, V> {
 	Mono<Boolean> set(K key, V value, Duration timeout);
 
 	/**
+	 * Set {@code value} for {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param keepTtl whether to retain TTL associated with the key.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Mono<Boolean> set(K key, V value, boolean keepTtl);
+
+	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
 	 * @param key must not be {@literal null}.
@@ -97,6 +107,16 @@ public interface ReactiveValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	Mono<Boolean> setIfPresent(K key, V value, Duration timeout);
+
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param keepTtl whether to retain TTL associated with the key.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
+	Mono<Boolean> setIfPresent(K key, V value, boolean keepTtl);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
