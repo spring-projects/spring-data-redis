@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.support.collections;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +41,7 @@ import org.springframework.lang.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Christian Bühler
+ * @author Tihomir Mateev
  */
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
@@ -319,6 +324,31 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public Cursor<java.util.Map.Entry<K, V>> scan() {
 		return scan(ScanOptions.NONE);
+	}
+
+	@Override
+	public List<Long> expire(Duration timeout, Collection<K> hashKeys) {
+		return Objects.requireNonNull(hashOps.expire(timeout, hashKeys));
+	}
+
+	@Override
+	public List<Long> expireAt(Instant expireAt, Collection<K> hashKeys) {
+		return Objects.requireNonNull(hashOps.expireAt(expireAt, hashKeys));
+	}
+
+	@Override
+	public List<Long> persist(Collection<K> hashKeys) {
+		return Objects.requireNonNull(hashOps.persist(hashKeys));
+	}
+
+	@Override
+	public List<Long> getExpire(Collection<K> hashKeys) {
+		return Objects.requireNonNull(hashOps.getExpire(hashKeys));
+	}
+
+	@Override
+	public List<Long> getExpire(TimeUnit timeUnit, Collection<K> hashKeys) {
+		return Objects.requireNonNull(hashOps.getExpire(timeUnit, hashKeys));
 	}
 
 	private void checkResult(@Nullable Object obj) {
