@@ -195,9 +195,9 @@ public interface ReactiveStringCommands {
 	Flux<BooleanResponse<SetCommand>> set(Publisher<SetCommand> commands);
 
 	/**
-	 * Set {@literal value} for {@literal key} with {@literal expiration} and {@literal options}. Return the old
-	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
-	 * stored at key is not a string.
+	 * Set {@literal value} for {@literal key} with {@literal expiration} and {@literal options}. Return the old string
+	 * stored at key, or empty if key did not exist. An error is returned and SET aborted if the value stored at key is
+	 * not a string.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -206,7 +206,7 @@ public interface ReactiveStringCommands {
 	 * @param option must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	@Nullable
 	default Mono<ByteBuffer> setGet(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
@@ -219,13 +219,13 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Set each and every item separately by invoking {@link SetCommand}. Return the old
-	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
-	 * stored at key is not a string.
+	 * Set each and every item separately by invoking {@link SetCommand}. Return the old string stored at key, or empty if
+	 * key did not exist. An error is returned and SET aborted if the value stored at key is not a string.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@link SetCommand} along with the command result.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 3.5
 	 */
 	Flux<ByteBufferResponse<SetCommand>> setGet(Publisher<SetCommand> commands);
 

@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Michele Mancioppi
  * @author John Blum
+ * @author Marcin Grzejszczak
  * @since 2.0
  */
 class LettuceReactiveStringCommands implements ReactiveStringCommands {
@@ -107,6 +108,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 	@Override
 	public Flux<ByteBufferResponse<SetCommand>> setGet(Publisher<SetCommand> commands) {
+
 		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap((command) -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");

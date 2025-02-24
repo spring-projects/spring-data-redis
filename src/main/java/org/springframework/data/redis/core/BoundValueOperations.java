@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Jiahe Cai
  * @author Christoph Strobl
+ * @author Marcin Grzejszczak
  */
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -50,17 +51,31 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	void set(V value, long timeout, TimeUnit unit);
 
 	/**
-	 * Set the {@code value} and expiration {@code timeout} for the bound key. Return the old
-	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
-	 * stored at key is not a string.
+	 * Set the {@code value} and expiration {@code timeout} for the bound key. Return the old string stored at key, or
+	 * {@literal null} if key did not exist. An error is returned and SET aborted if the value stored at key is not a
+	 * string.
 	 *
 	 * @param value must not be {@literal null}.
 	 * @param timeout
 	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	V setGet(V value, long timeout, TimeUnit unit);
+
+	/**
+	 * Set the {@code value} and expiration {@code timeout} for the bound key. Return the old string stored at key, or
+	 * {@literal null} if key did not exist. An error is returned and SET aborted if the value stored at key is not a
+	 * string.
+	 *
+	 * @param value must not be {@literal null}.
+	 * @param duration expiration duration
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
+	 * @since 3.5
+	 */
+	V setGet(V value, Duration duration);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for the bound key.

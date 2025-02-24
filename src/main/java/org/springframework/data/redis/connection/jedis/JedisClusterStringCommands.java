@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Xiaohu Zhang
  * @author dengliming
+ * @author Marcin Grzejszczak
  * @since 2.0
  */
 class JedisClusterStringCommands implements RedisStringCommands {

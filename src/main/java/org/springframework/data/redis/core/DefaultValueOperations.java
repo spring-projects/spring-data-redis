@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.DefaultedRedisConnection;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
@@ -219,8 +220,9 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	private V doSetGet(K key, V value, Expiration duration) {
+
 		byte[] rawValue = rawValue(value);
-		return execute( new ValueDeserializingRedisCallback(key) {
+		return execute(new ValueDeserializingRedisCallback(key) {
 
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {

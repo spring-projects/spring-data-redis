@@ -46,29 +46,31 @@ public interface ValueOperations<K, V> {
 	void set(K key, V value);
 
 	/**
-	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old
-	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
-	 * stored at key is not a string.
+	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old string stored at key, or
+	 * {@literal null} if key did not exist. An error is returned and SET aborted if the value stored at key is not a
+	 * string.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param timeout the key expiration timeout.
 	 * @param unit must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	V setGet(K key, V value, long timeout, TimeUnit unit);
 
 	/**
-	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old
-	 * string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value
-	 * stored at key is not a string.
+	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old string stored at key, or
+	 * {@literal null} if key did not exist. An error is returned and SET aborted if the value stored at key is not a
+	 * string.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param duration expiration duration
+	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
-	 * @since 3.4
+	 * @since 3.5
 	 */
 	V setGet(K key, V value, Duration duration);
 

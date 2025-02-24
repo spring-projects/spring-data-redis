@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author dengliming
+ * @author Marcin Grzejszczak
  * @since 2.0
  */
 class JedisStringCommands implements RedisStringCommands {
@@ -119,6 +120,7 @@ class JedisStringCommands implements RedisStringCommands {
 	@Override
 	@Nullable
 	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 		Assert.notNull(expiration, "Expiration must not be null");

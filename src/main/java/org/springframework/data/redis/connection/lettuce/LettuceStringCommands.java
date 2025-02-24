@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author dengliming
  * @author John Blum
+ * @author Marcin Grzejszczak
  * @since 2.0
  */
 class LettuceStringCommands implements RedisStringCommands {
@@ -118,6 +119,7 @@ class LettuceStringCommands implements RedisStringCommands {
 	@Override
 	@Nullable
 	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 		Assert.notNull(expiration, "Expiration must not be null");
