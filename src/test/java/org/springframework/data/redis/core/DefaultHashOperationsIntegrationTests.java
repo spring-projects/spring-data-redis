@@ -326,6 +326,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void expireThrowsErrorOfNanoPrecision() {
 
 		K key = keyFactory.instance();
@@ -336,6 +337,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptionsNone() {
 
 		K key = keyFactory.instance();
