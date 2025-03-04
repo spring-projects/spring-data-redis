@@ -21,11 +21,16 @@ import org.springframework.lang.Contract;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * Types for interacting with Hash data structures.
+ *
  * @author Christoph Strobl
  * @since 3.5
  */
 public interface Hash {
 
+	/**
+	 * Expiration options for Hash Expiation updates.
+	 */
 	class FieldExpirationOptions {
 
 		private static final FieldExpirationOptions NONE = new FieldExpirationOptions(Condition.ALWAYS);
@@ -124,6 +129,9 @@ public interface Hash {
 			 * Set expiration only when the new expiration is greater than current one.
 			 */
 			LT
+
 		}
+
 	}
+
 }

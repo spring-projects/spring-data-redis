@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -329,6 +330,42 @@ public interface HashOperations<H, HK, HV> {
 	 */
 	@Nullable
 	Expirations<HK> getTimeToLive(H key, TimeUnit timeUnit, Collection<HK> hashKeys);
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
+	 * {@code key}. Operations on the expiration object obtain keys at the time of invoking any expiration operation.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(H key) {
+		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> keys(key));
+	}
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
+	 * {@code key} for the given hash fields.
+	 *
+	 * @param hashFields collection of hash fields to operate on.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(H key, HK... hashFields) {
+		return expiration(key, Arrays.asList(hashFields));
+	}
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
+	 * {@code key} for the given hash fields.
+	 *
+	 * @param hashFields collection of hash fields to operate on.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(H key, Collection<HK> hashFields) {
+		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> hashFields);
+	}
 
 	/**
 	 * @return never {@literal null}.

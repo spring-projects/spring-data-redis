@@ -15,17 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
-import java.time.Duration;
-import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
-import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**
@@ -160,88 +155,6 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	@Nullable
 	Long lengthOfValue(HK hashKey);
 
-	default ExpireChanges<HK> expire(Expiration expiration, Collection<HK> hashKeys) {
-		return expire(expiration, FieldExpirationOptions.none(), hashKeys);
-	}
-
-	ExpireChanges<HK> expire(Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
-
-	/**
-	 * Set time to live for given {@code hashKey} .
-	 *
-	 * @param timeout the amount of time after which the key will be expired, must not be {@literal null}.
-	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
-	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
-	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
-	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
-	 *         transaction.
-	 * @throws IllegalArgumentException if the timeout is {@literal null}.
-	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
-	 * @since 3.5
-	 */
-	@Nullable
-	ExpireChanges<HK> expire(Duration timeout, Collection<HK> hashKeys);
-
-	/**
-	 * Set the expiration for given {@code hashKey} as a {@literal date} timestamp.
-	 *
-	 * @param expireAt must not be {@literal null}.
-	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
-	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
-	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
-	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
-	 *         pipeline / transaction.
-	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
-	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIRE</a>
-	 * @since 3.5
-	 */
-	@Nullable
-	ExpireChanges<HK> expireAt(Instant expireAt, Collection<HK> hashKeys);
-
-	/**
-	 * Remove the expiration from given {@code hashKey} .
-	 *
-	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: {@code 1} indicating expiration time is
-	 *         removed; {@code -1} field has no expiration time to be removed; {@code -2} indicating there is no such
-	 *         field; {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
-	 * @since 3.5
-	 */
-	@Nullable
-	ExpireChanges<HK> persist(Collection<HK> hashKeys);
-
-	/**
-	 * Get the time to live for {@code hashKey} in seconds.
-	 *
-	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative
-	 *         value to signal an error. The command returns {@code -1} if the key exists but has no associated expiration
-	 *         time. The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline /
-	 *         transaction.
-	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
-	 * @since 3.5
-	 */
-	@Nullable
-	Expirations<HK> getTimeToLive(Collection<HK> hashKeys);
-
-	/**
-	 * Get the time to live for {@code hashKey} and convert it to the given {@link TimeUnit}.
-	 *
-	 * @param timeUnit must not be {@literal null}.
-	 * @param hashKeys must not be {@literal null}.
-	 * @return a list of {@link Long} values for each of the fields provided: the time to live in seconds; or a negative
-	 *         value to signal an error. The command returns {@code -1} if the key exists but has no associated expiration
-	 *         time. The command returns {@code -2} if the key does not exist; {@literal null} when used in pipeline /
-	 *         transaction.
-	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
-	 * @since 3.5
-	 */
-	@Nullable
-	Expirations<HK> getTimeToLive(TimeUnit timeUnit, Collection<HK> hashKeys);
-
 	/**
 	 * Get size of hash at the bound key.
 	 *
@@ -303,7 +216,44 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Cursor<Map.Entry<HK, HV>> scan(ScanOptions options);
 
 	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
+	 * bound {@code key}. Operations on the expiration object obtain keys at the time of invoking any expiration
+	 * operation.
+	 *
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration() {
+		return new DefaultBoundHashFieldExpirationOperations<>(getOperations().opsForHash(), getKey(), this::keys);
+	}
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
+	 * bound {@code key} for the given hash fields.
+	 *
+	 * @param hashFields collection of hash fields to operate on.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(HK... hashFields) {
+		return expiration(Arrays.asList(hashFields));
+	}
+
+	/**
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
+	 * bound {@code key} for the given hash fields.
+	 *
+	 * @param hashFields collection of hash fields to operate on.
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundHashFieldExpirationOperations<HK> expiration(Collection<HK> hashFields) {
+		return new DefaultBoundHashFieldExpirationOperations<>(getOperations().opsForHash(), getKey(), () -> hashFields);
+	}
+
+	/**
 	 * @return never {@literal null}.
 	 */
 	RedisOperations<H, ?> getOperations();
+
 }

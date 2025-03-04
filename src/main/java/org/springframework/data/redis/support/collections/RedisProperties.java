@@ -17,8 +17,6 @@ package org.springframework.data.redis.support.collections;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -32,10 +30,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
 import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**
@@ -306,42 +303,17 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	@Override
 	public Iterator<java.util.Map.Entry<Object, Object>> scan() {
-		throw new UnsupportedOperationException();
+		return (Iterator) delegate.scan();
 	}
 
 	@Override
-	public ExpireChanges<Object> expire(Duration timeout, Collection<Object> hashKeys) {
-
-		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (ExpireChanges) hashOps.expire(timeout, keys);
+	public BoundHashFieldExpirationOperations<Object> expiration() {
+		return (BoundHashFieldExpirationOperations) delegate.expiration();
 	}
 
 	@Override
-	public ExpireChanges<Object> expireAt(Instant expireAt, Collection<Object> hashKeys) {
-
-		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (ExpireChanges) hashOps.expireAt(expireAt, keys);
-	}
-
-	@Override
-	public ExpireChanges<Object> persist(Collection<Object> hashKeys) {
-
-		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (ExpireChanges) hashOps.persist(keys);
-	}
-
-	@Override
-	public Expirations<Object> getTimeToLive(Collection<Object> hashKeys) {
-
-		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (Expirations) hashOps.getTimeToLive(keys);
-	}
-
-	@Override
-	public Expirations<Object> getTimeToLive(TimeUnit timeUnit, Collection<Object> hashKeys) {
-
-		Collection<String> keys = hashKeys.stream().map(key -> (String) key).toList();
-		return (Expirations) hashOps.getTimeToLive(timeUnit, keys);
+	public BoundHashFieldExpirationOperations<Object> expiration(Collection<Object> hashFields) {
+		return (BoundHashFieldExpirationOperations) delegate.expiration((Collection) hashFields);
 	}
 
 }

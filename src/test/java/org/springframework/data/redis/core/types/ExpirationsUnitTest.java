@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.types.Expirations.Timeouts;
  * Unit test for {@link Expirations}
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class ExpirationsUnitTest {
 
@@ -86,6 +87,14 @@ class ExpirationsUnitTest {
 
 		assertThat(exp.ttlOf(KEY_1)).isNull();
 		assertThat(exp.ttlOf(KEY_2)).isNull();
+	}
+
+	@Test // GH-3054
+	void shouldRenderToString() {
+
+		assertThat(Expirations.TimeToLive.PERSISTENT).hasToString("PERSISTENT");
+		assertThat(Expirations.TimeToLive.MISSING).hasToString("MISSING");
+		assertThat(Expirations.TimeToLive.of(1, TimeUnit.SECONDS)).hasToString("1 SECONDS");
 	}
 
 	static Expirations<String> createExpirations(Timeouts timeouts) {

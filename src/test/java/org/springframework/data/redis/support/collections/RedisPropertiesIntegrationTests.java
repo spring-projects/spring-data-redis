@@ -185,12 +185,6 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		assertThat(keys.contains(key3)).isTrue();
 	}
 
-	@ParameterizedRedisTest
-	@Override
-	public void testScanWorksCorrectly() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> super.testScanWorksCorrectly());
-	}
-
 	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
 

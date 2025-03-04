@@ -270,6 +270,38 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 	@ParameterizedRedisTest
 	@EnabledOnCommand("HEXPIRE")
+	void testBoundExpireAndGetExpireSeconds() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		BoundHashOperations<K, HK, HV> hashOps = redisTemplate.boundHashOps(key);
+		BoundHashFieldExpirationOperations<HK> exp = hashOps.expiration(key1, key2);
+
+		assertThat(exp.expire(Duration.ofSeconds(5))).satisfies(changes -> {
+			assertThat(changes.allOk()).isTrue();
+			assertThat(changes.stateOf(key1)).isEqualTo(ExpiryChangeState.OK);
+			assertThat(changes.ok()).containsExactlyInAnyOrder(key1, key2);
+			assertThat(changes.missed()).isEmpty();
+			assertThat(changes.stateChanges()).map(ExpiryChangeState::value).containsExactly(1L, 1L);
+		});
+
+		assertThat(exp.getTimeToLive(TimeUnit.SECONDS)).satisfies(expirations -> {
+			assertThat(expirations.missing()).isEmpty();
+			assertThat(expirations.timeUnit()).isEqualTo(TimeUnit.SECONDS);
+			assertThat(expirations.expirationOf(key1)).extracting(TimeToLive::raw, InstanceOfAssertFactories.LONG)
+					.isBetween(0L, 5L);
+			assertThat(expirations.ttlOf(key1)).isBetween(Duration.ofSeconds(1), Duration.ofSeconds(5));
+		});
+	}
+
+	@ParameterizedRedisTest
+	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
 
 		K key = keyFactory.instance();

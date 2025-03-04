@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -133,14 +132,14 @@ public class Expirations<K> {
 	 * @param key
 	 * @return the {@link Expirations expirations} where the {@link TimeToLive#value()} is using the {@link TimeUnit}
 	 *         defined in {@link #timeUnit()} or {@literal null} if no entry could be found.
-	 * @throws NoSuchElementException if no expiration found for the given key.
 	 */
+	@Nullable
 	public TimeToLive expirationOf(K key) {
 
 		TimeToLive timeToLive = expirations.get(key);
 
 		if (timeToLive == null) {
-			throw new NoSuchElementException("No expiration found for key '%s'".formatted(key));
+			return null;
 		}
 
 		return timeToLive.convert(this.unit);
@@ -163,15 +162,21 @@ public class Expirations<K> {
 	}
 
 	@Nullable
-	static Duration toDuration(TimeToLive timeToLive) {
+	static Duration toDuration(@Nullable TimeToLive timeToLive) {
 
-		if (timeToLive.sourceUnit == null) {
+		if (timeToLive == null || timeToLive.sourceUnit == null) {
 			return null;
 		}
 
 		return Duration.of(timeToLive.raw(), timeToLive.sourceUnit.toChronoUnit());
 	}
 
+	/**
+	 * Collection of timeouts associated with a {@link TimeUnit}.
+	 *
+	 * @param timeUnit
+	 * @param raw
+	 */
 	public record Timeouts(TimeUnit timeUnit, List<Long> raw) {
 
 		Long get(int index) {
@@ -203,20 +208,19 @@ public class Expirations<K> {
 		 */
 		public static TimeToLive PERSISTENT = new TimeToLive(-1L);
 
-		final @Nullable TimeUnit sourceUnit;
-		final @Nullable TimeUnit targetUnit;
-
+		private final @Nullable TimeUnit sourceUnit;
+		private final @Nullable TimeUnit targetUnit;
 		private final long raw;
 
-		public TimeToLive(long value) {
+		TimeToLive(long value) {
 			this(value, null);
 		}
 
-		public TimeToLive(long value, @Nullable TimeUnit sourceUnit) {
+		TimeToLive(long value, @Nullable TimeUnit sourceUnit) {
 			this(value, sourceUnit, null);
 		}
 
-		public TimeToLive(long value, @Nullable TimeUnit sourceUnit, @Nullable TimeUnit targetUnit) {
+		TimeToLive(long value, @Nullable TimeUnit sourceUnit, @Nullable TimeUnit targetUnit) {
 			this.raw = value;
 			this.sourceUnit = sourceUnit;
 			this.targetUnit = targetUnit;
@@ -226,9 +230,11 @@ public class Expirations<K> {
 		 * Factory method for creating {@link TimeToLive} instances, returning predefined ones if the value matches a known
 		 * reserved state.
 		 *
+		 * @param value the TTL value.
+		 * @param timeUnit time unit for the given value.
 		 * @return the {@link TimeToLive} for the given raw value.
 		 */
-		static TimeToLive of(Number value, TimeUnit timeUnit) {
+		public static TimeToLive of(Number value, TimeUnit timeUnit) {
 
 			return switch (value.intValue()) {
 				case -2 -> MISSING;
@@ -276,18 +282,19 @@ public class Expirations<K> {
 		 * @return {@literal true} if key exists but does not expire.
 		 */
 		public boolean isPersistent() {
-			return PERSISTENT.equals(this);
+			return PERSISTENT.raw() == raw();
 		}
 
 		/**
 		 * @return {@literal true} if key does not exist and therefore does not have a time to live.
 		 */
 		public boolean isMissing() {
-			return MISSING.equals(this);
+			return MISSING.raw() == raw();
 		}
 
 		@Override
 		public boolean equals(Object o) {
+
 			if (o == this) {
 				return true;
 			}
@@ -312,6 +319,15 @@ public class Expirations<K> {
 			return Objects.hash(raw);
 		}
 
+		@Override
+		public String toString() {
+
+			return switch ((int) raw()) {
+				case -2 -> "MISSING";
+				case -1 -> "PERSISTENT";
+				default -> "%d %s".formatted(raw(), sourceUnit);
+			};
+		}
 	}
 
 }

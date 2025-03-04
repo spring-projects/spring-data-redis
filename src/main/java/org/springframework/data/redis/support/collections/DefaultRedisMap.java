@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -25,13 +23,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ExpireChanges;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
 
 /**
@@ -327,28 +324,13 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public ExpireChanges<K> expire(Duration timeout, Collection<K> hashKeys) {
-		return hashOps.expire(timeout, hashKeys);
+	public BoundHashFieldExpirationOperations<K> expiration() {
+		return hashOps.expiration();
 	}
 
 	@Override
-	public ExpireChanges<K> expireAt(Instant expireAt, Collection<K> hashKeys) {
-		return hashOps.expireAt(expireAt, hashKeys);
-	}
-
-	@Override
-	public ExpireChanges<K> persist(Collection<K> hashKeys) {
-		return hashOps.persist(hashKeys);
-	}
-
-	@Override
-	public Expirations<K> getTimeToLive(Collection<K> hashKeys) {
-		return hashOps.getTimeToLive(hashKeys);
-	}
-
-	@Override
-	public Expirations<K> getTimeToLive(TimeUnit timeUnit, Collection<K> hashKeys) {
-		return hashOps.getTimeToLive(timeUnit, hashKeys);
+	public BoundHashFieldExpirationOperations<K> expiration(Collection<K> hashFields) {
+		return hashOps.expiration(hashFields);
 	}
 
 	private void checkResult(@Nullable Object obj) {
