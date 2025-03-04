@@ -67,6 +67,13 @@ link:https://www.springframework.org/schema/redis/spring-redis-1.0.xsd[Spring Da
 |GETSET |X
 |HDEL |X
 |HEXISTS |X
+|HEXPIRE |X
+|HEXPIREAT |X
+|HPEXPIRE |X
+|HPEXPIREAT |X
+|HPERSIST |X
+|HTTL |X
+|HPTTL |X
 |HGET |X
 |HGETALL |X
 |HINCRBY |X

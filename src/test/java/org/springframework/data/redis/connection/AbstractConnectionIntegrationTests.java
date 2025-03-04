@@ -98,6 +98,7 @@ import org.springframework.data.redis.test.condition.LongRunningTest;
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.util.HexStringUtils;
 import org.springframework.data.util.Streamable;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Base test class for AbstractConnection integration tests
@@ -750,6 +751,45 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.execute("GET", "foo"));
 
 		assertThat(stringSerializer.deserialize((byte[]) getResults().get(1))).isEqualTo("bar");
+	}
+
+	@Test
+	@EnabledOnCommand("HEXPIRE")
+	void testExecuteHashFieldExpiration() {
+
+		actual.add(connection.hSet("foo", "bar", "field"));
+		actual.add(connection.execute("HTTL", "foo", "FIELDS", "1", "bar"));
+		actual.add(connection.execute("HEXPIRE", "foo", "100", "NX", "FIELDS", "1", "bar"));
+		actual.add(connection.execute("HPERSIST", "foo", "FIELDS", "1", "bar"));
+		actual.add(connection.execute("HTTL", "foo", "FIELDS", "1", "bar"));
+
+		List<Object> results = getResults();
+
+		assertThat(deserializeList(results, 1, stringSerializer)).containsOnly(-1L);
+		assertThat(deserializeList(results, 2, stringSerializer)).containsOnly(1L);
+		assertThat(deserializeList(results, 3, stringSerializer)).containsOnly(1L);
+		assertThat(deserializeList(results, 4, stringSerializer)).containsOnly(-1L);
+	}
+
+	List<Object> deserializeList(List<Object> objects, int index, RedisSerializer<?> serializer) {
+
+		List<Object> result = new ArrayList<>();
+		Object o = objects.get(index);
+		if (o instanceof List<?> ls) {
+			for (Object obj : ls) {
+
+				if (obj instanceof byte[]) {
+					result.add(serializer.deserialize((byte[]) obj));
+				} else {
+					result.add(obj);
+				}
+			}
+
+			return result;
+		}
+
+		throw new IllegalArgumentException(
+				"Object at index " + index + " is not a list but " + ObjectUtils.nullSafeToString(o));
 	}
 
 	@Test
@@ -3436,7 +3476,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsSuccessAndSetsTTL() {
-		
+
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
 		actual.add(connection.hTtl("hash-hexpire", "key-2"));
