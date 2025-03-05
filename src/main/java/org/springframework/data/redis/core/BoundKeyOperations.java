@@ -52,6 +52,16 @@ public interface BoundKeyOperations<K> {
 	DataType getType();
 
 	/**
+	 * Returns a bound operations object to perform expiration operations on the bound key.
+	 *
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundKeyExpirationOperations expiration() {
+		return new DefaultBoundKeyExpirationOperations<>(getOperations(), getKey());
+	}
+
+	/**
 	 * Returns the expiration of this key.
 	 *
 	 * @return expiration value (in seconds). {@literal null} when used in pipeline / transaction.
@@ -127,4 +137,10 @@ public interface BoundKeyOperations<K> {
 	 * @param newKey new key. Must not be {@literal null}.
 	 */
 	void rename(K newKey);
+
+	/**
+	 * @return never {@literal null}.
+	 */
+	RedisOperations<K, ?> getOperations();
+
 }
