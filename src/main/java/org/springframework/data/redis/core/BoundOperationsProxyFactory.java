@@ -143,7 +143,7 @@ class BoundOperationsProxyFactory {
 					delegate.rename(invocation.getArguments()[0]);
 					yield null;
 				}
-				case "getOperations" -> delegate.getOps();
+				case "getOperations" -> delegate.getOperations();
 				default ->
 					method.getDeclaringClass() == boundOperationsInterface ? doInvoke(invocation, method, operationsTarget, true)
 							: doInvoke(invocation, method, delegate, false);
@@ -234,12 +234,15 @@ class BoundOperationsProxyFactory {
 			key = newKey;
 		}
 
+		@Override
 		public DataType getType() {
 			return type;
 		}
 
-		public RedisOperations<Object, ?> getOps() {
+		@Override
+		public RedisOperations<Object, ?> getOperations() {
 			return ops;
 		}
+
 	}
 }

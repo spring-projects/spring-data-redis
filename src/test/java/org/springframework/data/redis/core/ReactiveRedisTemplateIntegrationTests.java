@@ -37,6 +37,7 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.ReactiveSubscription.ChannelMessage;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
@@ -45,6 +46,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisElementReader;
@@ -323,6 +325,24 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))).verifyComplete();
 	}
 
+	@ParameterizedRedisTest // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void expireWithCondition() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.expire(key, Expiration.seconds(10), ExpirationOptions.none()).as(StepVerifier::create)
+				.expectNext(ExpireChanges.ExpiryChangeState.OK).verifyComplete();
+		redisTemplate.expire(key, Expiration.seconds(20), ExpirationOptions.builder().lt().build()).as(StepVerifier::create)
+				.expectNext(ExpireChanges.ExpiryChangeState.CONDITION_NOT_MET).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(5))).verifyComplete();
+	}
+
 	@ParameterizedRedisTest // DATAREDIS-602
 	void preciseExpire() {
 
@@ -335,6 +355,24 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		redisTemplate.getExpire(key).as(StepVerifier::create) //
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void preciseExpireWithCondition() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		redisTemplate.opsForValue().set(key, value).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.expire(key, Expiration.milliseconds(10000), ExpirationOptions.none()).as(StepVerifier::create)
+				.expectNext(ExpireChanges.ExpiryChangeState.OK).verifyComplete();
+		redisTemplate.expire(key, Expiration.milliseconds(20000), ExpirationOptions.builder().lt().build())
+				.as(StepVerifier::create).expectNext(ExpireChanges.ExpiryChangeState.CONDITION_NOT_MET).verifyComplete();
+
+		redisTemplate.getExpire(key).as(StepVerifier::create) //
+				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(5))).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

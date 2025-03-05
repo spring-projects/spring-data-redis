@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.junit.jupiter.api.condition.OS.MAC;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.junit.jupiter.api.condition.OS.*;
 
 import reactor.test.StepVerifier;
 
@@ -33,11 +33,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.convert.Converters;
@@ -543,14 +544,14 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		putAll(key, key1, val1, key2, val2);
 
 		hashOperations
-				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(),
+				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), ExpirationOptions.none(),
 						List.of(key1))
 				.as(StepVerifier::create)//
 				.assertNext(changes -> {
 					assertThat(changes.allOk()).isTrue();
 				}).verifyComplete();
 		hashOperations
-				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), FieldExpirationOptions.none(),
+				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), ExpirationOptions.none(),
 						List.of(key2))
 				.as(StepVerifier::create)//
 				.assertNext(changes -> {
@@ -559,7 +560,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		hashOperations
 				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(30),
-						FieldExpirationOptions.builder().gt().build(), List.of(key1, key2))
+						ExpirationOptions.builder().gt().build(), List.of(key1, key2))
 				.as(StepVerifier::create)//
 				.assertNext(changes -> {
 					assertThat(changes.ok()).containsExactly(key1);

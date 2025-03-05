@@ -78,34 +78,35 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	Iterator<Map.Entry<K, V>> scan();
 
 	/**
-	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at
-	 * {@code key}. Operations on the expiration object obtain keys at the time of invoking any expiration operation.
+	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
+	 * bound {@link #getKey()}. Operations on the expiration object obtain keys at the time of invoking any expiration
+	 * operation.
 	 *
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	BoundHashFieldExpirationOperations<K> expiration();
+	BoundHashFieldExpirationOperations<K> hashFieldExpiration();
 
 	/**
 	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
-	 * bound {@code key} for the given hash fields.
+	 * bound {@link #getKey()} for the given hash fields.
 	 *
 	 * @param hashFields collection of hash fields to operate on.
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundHashFieldExpirationOperations<K> expiration(K... hashFields) {
-		return expiration(Arrays.asList(hashFields));
+	default BoundHashFieldExpirationOperations<K> hashFieldExpiration(K... hashFields) {
+		return hashFieldExpiration(Arrays.asList(hashFields));
 	}
 
 	/**
 	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
-	 * bound {@code key} for the given hash fields.
+	 * bound {@link #getKey()} for the given hash fields.
 	 *
 	 * @param hashFields collection of hash fields to operate on.
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	BoundHashFieldExpirationOperations<K> expiration(Collection<K> hashFields);
+	BoundHashFieldExpirationOperations<K> hashFieldExpiration(Collection<K> hashFields);
 
 }

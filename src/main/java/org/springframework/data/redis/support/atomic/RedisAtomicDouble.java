@@ -400,6 +400,11 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	@Override
+	public RedisOperations<String, ?> getOperations() {
+		return generalOps;
+	}
+
+	@Override
 	public int intValue() {
 		return (int) get();
 	}
@@ -418,4 +423,5 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	public double doubleValue() {
 		return get();
 	}
+
 }

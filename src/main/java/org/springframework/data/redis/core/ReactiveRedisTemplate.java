@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -36,6 +38,7 @@ import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.core.script.DefaultReactiveScriptExecutor;
 import org.springframework.data.redis.core.script.ReactiveScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer;
@@ -452,6 +455,19 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		}
 
 		return doCreateMono(connection -> connection.keyCommands().pExpireAt(rawKey(key), expireAt));
+	}
+
+	@Override
+	public Mono<ExpireChanges.ExpiryChangeState> expire(K key, Expiration expiration, ExpirationOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(expiration, "Expiration at must not be null");
+		Assert.notNull(options, "ExpirationOptions at must not be null");
+
+		Mono<ReactiveKeyCommands.ExpireCommand> just = Mono
+				.just(ReactiveKeyCommands.ExpireCommand.expire(rawKey(key), expiration).withOptions(options));
+		return doCreateMono(connection -> connection.keyCommands().applyExpiration(just))
+				.map(ReactiveRedisConnection.BooleanResponse::getOutput).map(ExpireChanges.ExpiryChangeState::of);
 	}
 
 	@Override

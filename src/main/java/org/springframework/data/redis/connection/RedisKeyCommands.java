@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Key-specific commands supported by Redis.
@@ -182,22 +183,92 @@ public interface RedisKeyCommands {
 	Boolean renameNX(byte[] oldKey, byte[] newKey);
 
 	/**
+	 * @param key must not be {@literal null}.
+	 * @param expiration the {@link org.springframework.data.redis.core.types.Expiration} to apply.
+	 * @param options additional options to be sent along with the command.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 */
+	@Nullable
+	default Boolean applyExpiration(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+			ExpirationOptions options) {
+
+		if (expiration.isPersistent()) {
+			return persist(key);
+		}
+
+		if (ObjectUtils.nullSafeEquals(ExpirationOptions.none(), options)) {
+			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+				if (expiration.isUnixTimestamp()) {
+					return expireAt(key, expiration.getExpirationTimeInMilliseconds());
+				}
+				return expire(key, expiration.getExpirationTimeInMilliseconds());
+			}
+			if (expiration.isUnixTimestamp()) {
+				return expireAt(key, expiration.getExpirationTimeInSeconds());
+			}
+			return expire(key, expiration.getExpirationTimeInSeconds());
+		}
+
+		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+			if (expiration.isUnixTimestamp()) {
+				return expireAt(key, expiration.getExpirationTimeInMilliseconds(), options.getCondition());
+			}
+
+			return expire(key, expiration.getExpirationTimeInMilliseconds(), options.getCondition());
+		}
+
+		if (expiration.isUnixTimestamp()) {
+			return expireAt(key, expiration.getExpirationTimeInSeconds(), options.getCondition());
+		}
+
+		return expire(key, expiration.getExpirationTimeInSeconds(), options.getCondition());
+	}
+
+	/**
 	 * Set time to live for given {@code key} in seconds.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param seconds
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 */
 	@Nullable
-	Boolean expire(byte[] key, long seconds);
+	default Boolean expire(byte[] key, long seconds) {
+		return expire(key, seconds, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set time to live for given {@code key} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param seconds
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set time to live for given {@code key} using {@link Duration#toSeconds() seconds} precision.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param duration
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @since 3.5
 	 */
@@ -211,18 +282,38 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param millis
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
 	@Nullable
-	Boolean pExpire(byte[] key, long millis);
+	default Boolean pExpire(byte[] key, long millis) {
+		return pExpire(key, millis, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set time to live for given {@code key} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param millis
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set time to live for given {@code key} using {@link Duration#toMillis() milliseconds} precision.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param duration
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @since 3.5
 	 */
@@ -236,11 +327,29 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param unixTime
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 */
 	@Nullable
-	Boolean expireAt(byte[] key, long unixTime);
+	default Boolean expireAt(byte[] key, long unixTime) {
+		return expireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTime
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in {@link Instant#getEpochSecond() seconds}
@@ -248,7 +357,9 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param unixTime
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 * @since 3.5
 	 */
@@ -262,11 +373,29 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param unixTimeInMillis
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 */
 	@Nullable
-	Boolean pExpireAt(byte[] key, long unixTimeInMillis);
+	default Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		return pExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTimeInMillis
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in {@link Instant#toEpochMilli()
@@ -274,7 +403,9 @@ public interface RedisKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param unixTime
-	 * @return {@literal null} when used in pipeline / transaction.
+	 * @return {@literal null} when used in pipeline / transaction. {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @since 3.5
 	 */

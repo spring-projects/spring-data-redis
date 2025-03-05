@@ -324,13 +324,13 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public BoundHashFieldExpirationOperations<K> expiration() {
-		return hashOps.expiration();
+	public BoundHashFieldExpirationOperations<K> hashFieldExpiration() {
+		return hashOps.hashExpiration();
 	}
 
 	@Override
-	public BoundHashFieldExpirationOperations<K> expiration(Collection<K> hashFields) {
-		return hashOps.expiration(hashFields);
+	public BoundHashFieldExpirationOperations<K> hashFieldExpiration(Collection<K> hashFields) {
+		return hashOps.hashExpiration(hashFields);
 	}
 
 	private void checkResult(@Nullable Object obj) {

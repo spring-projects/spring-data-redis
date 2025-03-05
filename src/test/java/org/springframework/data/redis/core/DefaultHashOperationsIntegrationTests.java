@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -30,10 +29,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
@@ -281,7 +281,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		BoundHashOperations<K, HK, HV> hashOps = redisTemplate.boundHashOps(key);
-		BoundHashFieldExpirationOperations<HK> exp = hashOps.expiration(key1, key2);
+		BoundHashFieldExpirationOperations<HK> exp = hashOps.hashExpiration(key1, key2);
 
 		assertThat(exp.expire(Duration.ofSeconds(5))).satisfies(changes -> {
 			assertThat(changes.allOk()).isTrue();
@@ -350,7 +350,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		ExpireChanges<Object> expire = redisTemplate.opsForHash().expire(key,
-				org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1));
+				org.springframework.data.redis.core.types.Expiration.seconds(20), ExpirationOptions.none(), List.of(key1));
 
 		assertThat(expire.allOk()).isTrue();
 	}
@@ -369,12 +369,12 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20),
-				FieldExpirationOptions.none(), List.of(key1));
+				ExpirationOptions.none(), List.of(key1));
 		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60),
-				FieldExpirationOptions.none(), List.of(key2));
+				ExpirationOptions.none(), List.of(key2));
 
 		ExpireChanges<Object> changes = redisTemplate.opsForHash().expire(key,
-				org.springframework.data.redis.core.types.Expiration.seconds(30), FieldExpirationOptions.builder().gt().build(),
+				org.springframework.data.redis.core.types.Expiration.seconds(30), ExpirationOptions.builder().gt().build(),
 				List.of(key1, key2));
 
 		assertThat(changes.ok()).containsExactly(key1);

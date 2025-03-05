@@ -400,6 +400,11 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	@Override
+	public RedisOperations<String, ?> getOperations() {
+		return generalOps;
+	}
+
+	@Override
 	public int intValue() {
 		return get();
 	}

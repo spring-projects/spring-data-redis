@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.Hash;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
@@ -40,18 +40,17 @@ public interface BoundHashFieldExpirationOperations<HK> {
 	 * @return changes to the hash fields. {@literal null} when used in pipeline / transaction.
 	 */
 	default ExpireChanges<HK> expire(Expiration expiration) {
-		return expire(expiration, Hash.FieldExpirationOptions.none());
+		return expire(expiration, ExpirationOptions.none());
 	}
 
 	/**
-	 * Apply {@link Expiration} to the bound hash key/hash fields given {@link Hash.FieldExpirationOptions expiration
-	 * options}.
+	 * Apply {@link Expiration} to the bound hash key/hash fields given {@link ExpirationOptions expiration options}.
 	 *
 	 * @param expiration the expiration definition.
 	 * @param options expiration options.
 	 * @return changes to the hash fields. {@literal null} when used in pipeline / transaction.
 	 */
-	ExpireChanges<HK> expire(Expiration expiration, Hash.FieldExpirationOptions options);
+	ExpireChanges<HK> expire(Expiration expiration, ExpirationOptions options);
 
 	/**
 	 * Set time to live for the bound hash key/hash fields.

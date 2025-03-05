@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
 import redis.clients.jedis.params.RestoreParams;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.ValueEncoding;
@@ -206,43 +208,69 @@ class JedisKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean expire(byte[] key, long seconds) {
+	public Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		if (seconds > Integer.MAX_VALUE) {
-			return pExpire(key, TimeUnit.SECONDS.toMillis(seconds));
+			return pExpire(key, TimeUnit.SECONDS.toMillis(seconds), condition);
 		}
 
-		return connection.invoke().from(JedisBinaryCommands::expire, PipelineBinaryCommands::expire, key, seconds)
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().from(JedisBinaryCommands::expire, PipelineBinaryCommands::expire, key, seconds)
+					.get(JedisConverters.longToBoolean());
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
+		return connection.invoke().from(JedisBinaryCommands::expire, PipelineBinaryCommands::expire, key, seconds, option)
 				.get(JedisConverters.longToBoolean());
 	}
 
 	@Override
-	public Boolean pExpire(byte[] key, long millis) {
+	public Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::pexpire, PipelineBinaryCommands::pexpire, key, millis)
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().from(JedisBinaryCommands::pexpire, PipelineBinaryCommands::pexpire, key, millis)
+					.get(JedisConverters.longToBoolean());
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
+		return connection.invoke().from(JedisBinaryCommands::pexpire, PipelineBinaryCommands::pexpire, key, millis, option)
 				.get(JedisConverters.longToBoolean());
 	}
 
 	@Override
-	public Boolean expireAt(byte[] key, long unixTime) {
+	public Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().from(JedisBinaryCommands::expireAt, PipelineBinaryCommands::expireAt, key, unixTime)
-				.get(JedisConverters.longToBoolean());
-	}
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke().from(JedisBinaryCommands::expireAt, PipelineBinaryCommands::expireAt, key, unixTime)
+					.get(JedisConverters.longToBoolean());
+		}
 
-	@Override
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-
-		Assert.notNull(key, "Key must not be null");
-
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
 		return connection.invoke()
-				.from(JedisBinaryCommands::pexpireAt, PipelineBinaryCommands::pexpireAt, key, unixTimeInMillis)
+				.from(JedisBinaryCommands::expireAt, PipelineBinaryCommands::expireAt, key, unixTime, option)
+				.get(JedisConverters.longToBoolean());
+	}
+
+	@Override
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
+			return connection.invoke()
+					.from(JedisBinaryCommands::pexpireAt, PipelineBinaryCommands::pexpireAt, key, unixTimeInMillis)
+					.get(JedisConverters.longToBoolean());
+		}
+
+		ExpiryOption option = ExpiryOption.valueOf(condition.name());
+		return connection.invoke()
+				.from(JedisBinaryCommands::pexpireAt, PipelineBinaryCommands::pexpireAt, key, unixTimeInMillis, option)
 				.get(JedisConverters.longToBoolean());
 	}
 

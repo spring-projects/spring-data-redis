@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
@@ -256,9 +256,9 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields) {
 
-		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().just(Jedis::hexpire, PipelineBinaryCommands::hexpire, key, seconds, fields);
 		}
 
@@ -267,9 +267,9 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields) {
 
-		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().just(Jedis::hpexpire, PipelineBinaryCommands::hpexpire, key, millis, fields);
 		}
 
@@ -278,9 +278,9 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields) {
 
-		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().just(Jedis::hexpireAt, PipelineBinaryCommands::hexpireAt, key, unixTime, fields);
 		}
 
@@ -289,10 +289,10 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			byte[]... fields) {
 
-		if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+		if (condition == ExpirationOptions.Condition.ALWAYS) {
 			return connection.invoke().just(Jedis::hpexpireAt, PipelineBinaryCommands::hpexpireAt, key, unixTimeInMillis,
 					fields);
 		}

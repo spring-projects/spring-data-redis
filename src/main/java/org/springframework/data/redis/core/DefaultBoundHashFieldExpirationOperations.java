@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import org.springframework.data.redis.connection.Hash;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
@@ -48,7 +48,7 @@ class DefaultBoundHashFieldExpirationOperations<H, HK> implements BoundHashField
 	}
 
 	@Override
-	public ExpireChanges<HK> expire(Expiration expiration, Hash.FieldExpirationOptions options) {
+	public ExpireChanges<HK> expire(Expiration expiration, ExpirationOptions options) {
 		return operations.expire(key, expiration, options, getHashKeys());
 	}
 

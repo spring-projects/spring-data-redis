@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -269,7 +269,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 	}
 
 	@Override
-	public Flux<NumericResponse<ExpireCommand, Long>> applyExpiration(Publisher<ExpireCommand> commands) {
+	public Flux<NumericResponse<HashExpireCommand, Long>> applyHashFieldExpiration(
+			Publisher<HashExpireCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
@@ -287,7 +288,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 				@Override
 				public <K, V> void build(CommandArgs<K, V> args) {
 					super.build(args);
-					if (ObjectUtils.nullSafeEquals(command.getOptions(), FieldExpirationOptions.none())) {
+					if (ObjectUtils.nullSafeEquals(command.getOptions(), ExpirationOptions.none())) {
 						return;
 					}
 

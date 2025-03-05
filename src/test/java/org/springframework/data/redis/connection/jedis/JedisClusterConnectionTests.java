@@ -15,37 +15,18 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.data.Offset.*;
 import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.create;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.INT_8;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.signed;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.unsigned;
-import static org.springframework.data.redis.connection.ClusterTestVariables.CLUSTER_HOST;
-import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_1;
-import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_2;
-import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_3;
-import static org.springframework.data.redis.connection.ClusterTestVariables.MASTER_NODE_1_PORT;
-import static org.springframework.data.redis.connection.ClusterTestVariables.MASTER_NODE_2_PORT;
-import static org.springframework.data.redis.connection.ClusterTestVariables.MASTER_NODE_3_PORT;
-import static org.springframework.data.redis.connection.ClusterTestVariables.REPLICAOF_NODE_1_PORT;
-import static org.springframework.data.redis.connection.ClusterTestVariables.SAME_SLOT_KEY_1;
-import static org.springframework.data.redis.connection.ClusterTestVariables.SAME_SLOT_KEY_2;
-import static org.springframework.data.redis.connection.ClusterTestVariables.SAME_SLOT_KEY_3;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_1;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_2;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_3;
-import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.KILOMETERS;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs;
-import static org.springframework.data.redis.connection.RedisListCommands.Direction;
-import static org.springframework.data.redis.connection.RedisListCommands.Position;
-import static org.springframework.data.redis.connection.RedisZSetCommands.Range;
-import static org.springframework.data.redis.core.ScanOptions.NONE;
-import static org.springframework.data.redis.core.ScanOptions.scanOptions;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisListCommands.*;
+import static org.springframework.data.redis.connection.RedisZSetCommands.*;
+import static org.springframework.data.redis.core.ScanOptions.*;
 
 import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
@@ -57,23 +38,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
@@ -81,21 +53,13 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.BitFieldSubCommands;
-import org.springframework.data.redis.connection.ClusterConnectionTests;
-import org.springframework.data.redis.connection.ClusterSlotHashUtil;
-import org.springframework.data.redis.connection.ClusterTopology;
-import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.DefaultSortParameters;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -472,12 +436,41 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
+	@Test // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	public void expireAtWithConditionShouldBeSetCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.expireAt(KEY_1_BYTES, System.currentTimeMillis() / 1000 + 5000,
+				ExpirationOptions.Condition.XX)).isFalse();
+		assertThat(clusterConnection.expireAt(KEY_1_BYTES, System.currentTimeMillis() / 1000 + 5000,
+				ExpirationOptions.Condition.NX)).isTrue();
+		assertThat(clusterConnection.expireAt(KEY_1_BYTES, System.currentTimeMillis() / 1000 + 15000,
+				ExpirationOptions.Condition.LT)).isFalse();
+
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
+	}
+
 	@Test // DATAREDIS-315
-	public void expireShouldBeSetCorreclty() {
+	public void expireShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
 		clusterConnection.expire(KEY_1_BYTES, 5);
+
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
+	}
+
+	@Test // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	public void expireWithConditionShouldBeSetCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.expire(KEY_1_BYTES, 15, ExpirationOptions.Condition.XX)).isFalse();
+		assertThat(clusterConnection.expire(KEY_1_BYTES, 15, ExpirationOptions.Condition.NX)).isTrue();
+		assertThat(clusterConnection.expire(KEY_1_BYTES, 15, ExpirationOptions.Condition.LT)).isFalse();
 
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
@@ -1597,12 +1590,44 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
+	@Test // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	public void pExpireAtWithConditionShouldBeSetCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(
+				clusterConnection.pExpireAt(KEY_1_BYTES, System.currentTimeMillis() + 5000, ExpirationOptions.Condition.XX))
+				.isFalse();
+		assertThat(
+				clusterConnection.pExpireAt(KEY_1_BYTES, System.currentTimeMillis() + 5000, ExpirationOptions.Condition.NX))
+				.isTrue();
+		assertThat(
+				clusterConnection.pExpireAt(KEY_1_BYTES, System.currentTimeMillis() + 15000, ExpirationOptions.Condition.LT))
+				.isFalse();
+
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
+	}
+
 	@Test // DATAREDIS-315
-	public void pExpireShouldBeSetCorreclty() {
+	public void pExpireShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 
 		clusterConnection.pExpire(KEY_1_BYTES, 5000);
+
+		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
+	}
+
+	@Test // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	public void pExpireWithConditionShouldBeSetCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.pExpire(KEY_1_BYTES, 15000, ExpirationOptions.Condition.XX)).isFalse();
+		assertThat(clusterConnection.pExpire(KEY_1_BYTES, 15000, ExpirationOptions.Condition.NX)).isTrue();
+		assertThat(clusterConnection.pExpire(KEY_1_BYTES, 15000, ExpirationOptions.Condition.LT)).isFalse();
 
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}

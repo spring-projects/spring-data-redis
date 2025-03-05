@@ -15,48 +15,24 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.within;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.condition.OS.MAC;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.create;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.INT_8;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.signed;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.unsigned;
-import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_1;
-import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_2;
-import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_3;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_1;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_2;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_3;
-import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_4;
-import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.KILOMETERS;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoSearchArgs;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs;
-import static org.springframework.data.redis.core.ScanOptions.scanOptions;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.awaitility.Awaitility.*;
+import static org.junit.jupiter.api.condition.OS.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.*;
+import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
@@ -213,6 +190,23 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		KeyExpired keyExpired = new KeyExpired("exp");
 		await().atMost(Duration.ofMillis(3000L)).until(keyExpired::passes);
+	}
+
+	@LongRunningTest // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void testExpireWithArgs() {
+
+		actual.add(connection.set("exp", "true"));
+		actual.add(
+				connection.applyExpiration("exp".getBytes(), Expiration.from(Duration.ofMinutes(1)), ExpirationOptions.none()));
+		actual.add(connection.applyExpiration("exp".getBytes(), Expiration.from(Duration.ofMinutes(1)),
+				ExpirationOptions.builder().nx().build()));
+		actual.add(connection.applyExpiration("exp".getBytes(), Expiration.from(Duration.ofMinutes(2)),
+				ExpirationOptions.builder().gt().build()));
+		actual.add(connection.applyExpiration("exp".getBytes(), Expiration.from(Duration.ofMinutes(3)),
+				ExpirationOptions.builder().lt().build()));
+
+		verifyResults(Arrays.asList(true, true, false, true, false));
 	}
 
 	@Test // DATAREDIS-1103
@@ -777,7 +771,25 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(stringSerializer.deserialize((byte[]) getResults().get(1))).isEqualTo("bar");
 	}
 
-	@Test // GH-
+	@Test // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void testExecuteExpirationWithConditions() {
+
+		actual.add(connection.set("foo", "bar"));
+		actual.add(connection.execute("TTL", "foo"));
+		actual.add(connection.execute("EXPIRE", "foo", "100", "NX"));
+		actual.add(connection.execute("PERSIST", "foo"));
+		actual.add(connection.execute("TTL", "foo"));
+
+		List<Object> results = getResults();
+
+		assertThat(results.get(1)).isEqualTo(-1L);
+		assertThat(results.get(2)).isIn(1L, true);
+		assertThat(results.get(3)).isIn(1L, true);
+		assertThat(results.get(4)).isEqualTo(-1L);
+	}
+
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExecuteHashFieldExpiration() {
 

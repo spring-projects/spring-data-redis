@@ -32,11 +32,15 @@ import java.util.List;
 
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisVersion;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -296,6 +300,35 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 		nativeCommands.set(KEY_1, VALUE_1);
 
 		connection.keyCommands().expire(KEY_1_BBUFFER, Duration.ofSeconds(10)).as(StepVerifier::create) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1)).isGreaterThan(8L);
+	}
+
+	@ParameterizedRedisTest // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void shouldExpireWithOptionsKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		connection.keyCommands()
+				.applyExpiration(
+						Mono.just(ReactiveKeyCommands.ExpireCommand.expire(KEY_1_BBUFFER, Expiration.from(Duration.ofSeconds(10)))
+								.withOptions(ExpirationOptions.builder().xx().build())))
+				.map(ReactiveRedisConnection.BooleanResponse::getOutput).as(StepVerifier::create) //
+				.expectNext(false) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1)).isEqualTo(-1L);
+
+		connection.keyCommands()
+				.applyExpiration(
+						Mono.just(ReactiveKeyCommands.ExpireCommand.expire(KEY_1_BBUFFER, Expiration.from(Duration.ofSeconds(10)))
+								.withOptions(ExpirationOptions.builder().nx().build())))
+				.map(ReactiveRedisConnection.BooleanResponse::getOutput).as(StepVerifier::create) //
 				.expectNext(true) //
 				.expectComplete() //
 				.verify();

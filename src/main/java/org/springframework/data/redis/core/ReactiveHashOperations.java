@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
@@ -263,7 +263,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
+	Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, ExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
 	 * Set the expiration for given {@code hashKey} as a {@literal date} timestamp.
