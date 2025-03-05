@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -31,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
@@ -107,8 +107,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER))
-				.as(StepVerifier::create)
-				.consumeNextWith(actual -> {
+				.as(StepVerifier::create).consumeNextWith(actual -> {
 
 					assertThat(actual).contains(VALUE_1_BBUFFER, VALUE_3_BBUFFER);
 
@@ -124,13 +123,11 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_1_BBUFFER)).as(StepVerifier::create)
 				.expectNext(Collections.singletonList(VALUE_1_BBUFFER)).verifyComplete();
 
-		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_2_BBUFFER))
-				.as(StepVerifier::create)
+		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_2_BBUFFER)).as(StepVerifier::create)
 				.expectNext(Collections.singletonList(null)).verifyComplete();
 
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER))
-				.as(StepVerifier::create)
-				.expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -197,8 +194,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
 		connection.hashCommands().hDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER))
-				.as(StepVerifier::create)
-				.expectNext(2L).verifyComplete();
+				.as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -293,62 +289,50 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void hExpireShouldHandleMultipleParametersCorrectly() {
+
 		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
 		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
 
 		connection.hashCommands().hExpire(KEY_1_BBUFFER, Duration.ofSeconds(1), fields).as(StepVerifier::create) //
-				.expectNext(1L)
-				.expectNext(1L)
-				.expectNext(-2L)
-				.expectComplete()
-				.verify();
+				.expectNext(1L).expectNext(1L).expectNext(-2L).expectComplete().verify();
 
 		assertThat(nativeCommands.httl(KEY_1, FIELD_1)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
 		assertThat(nativeCommands.httl(KEY_1, FIELD_2)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
 		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
-
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void hExpireAtShouldHandleMultipleParametersCorrectly() {
+
 		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
 		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
 
 		connection.hashCommands().hExpireAt(KEY_1_BBUFFER, Instant.now().plusSeconds(1), fields).as(StepVerifier::create) //
-				.expectNext(1L)
-				.expectNext(1L)
-				.expectNext(-2L)
-				.expectComplete()
-				.verify();
+				.expectNext(1L).expectNext(1L).expectNext(-2L).expectComplete().verify();
 
 		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isBetween(0L, 1000L));
 		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
-
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void hPersistShouldPersistFields() {
+
 		assertThat(nativeCommands.hset(KEY_1, FIELD_1, VALUE_1)).isTrue();
 		assertThat(nativeCommands.hset(KEY_1, FIELD_2, VALUE_2)).isTrue();
 
-		assertThat(nativeCommands.hexpire(KEY_1, 1000, FIELD_1))
-				.allSatisfy(it -> assertThat(it).isEqualTo(1L));
+		assertThat(nativeCommands.hexpire(KEY_1, 1000, FIELD_1)).allSatisfy(it -> assertThat(it).isEqualTo(1L));
 
 		final var fields = Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER);
 
 		connection.hashCommands().hPersist(KEY_1_BBUFFER, fields).as(StepVerifier::create) //
-				.expectNext(1L)
-				.expectNext(-1L)
-				.expectNext(-2L)
-				.expectComplete()
-				.verify();
+				.expectNext(1L).expectNext(-1L).expectNext(-2L).expectComplete().verify();
 
 		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isEqualTo(-1L));
 	}

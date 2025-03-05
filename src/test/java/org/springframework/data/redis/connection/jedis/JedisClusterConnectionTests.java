@@ -15,17 +15,37 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
-import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
-import static org.springframework.data.redis.connection.RedisListCommands.*;
-import static org.springframework.data.redis.connection.RedisZSetCommands.*;
-import static org.springframework.data.redis.core.ScanOptions.*;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.create;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.INT_8;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.signed;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.unsigned;
+import static org.springframework.data.redis.connection.ClusterTestVariables.CLUSTER_HOST;
+import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_1;
+import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_2;
+import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_3;
+import static org.springframework.data.redis.connection.ClusterTestVariables.MASTER_NODE_1_PORT;
+import static org.springframework.data.redis.connection.ClusterTestVariables.MASTER_NODE_2_PORT;
+import static org.springframework.data.redis.connection.ClusterTestVariables.MASTER_NODE_3_PORT;
+import static org.springframework.data.redis.connection.ClusterTestVariables.REPLICAOF_NODE_1_PORT;
+import static org.springframework.data.redis.connection.ClusterTestVariables.SAME_SLOT_KEY_1;
+import static org.springframework.data.redis.connection.ClusterTestVariables.SAME_SLOT_KEY_2;
+import static org.springframework.data.redis.connection.ClusterTestVariables.SAME_SLOT_KEY_3;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_1;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_2;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_3;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.KILOMETERS;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs;
+import static org.springframework.data.redis.connection.RedisListCommands.Direction;
+import static org.springframework.data.redis.connection.RedisListCommands.Position;
+import static org.springframework.data.redis.connection.RedisZSetCommands.Range;
+import static org.springframework.data.redis.core.ScanOptions.NONE;
+import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 import redis.clients.jedis.ConnectionPool;
 import redis.clients.jedis.HostAndPort;
@@ -37,14 +57,23 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range.Bound;
@@ -1040,9 +1069,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_1_BYTES)).isEqualTo(0L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 5L, KEY_2_BYTES)).contains(1L);
@@ -1050,9 +1080,10 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.allSatisfy(val -> assertThat(val).isBetween(0L, 5L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		// missing field
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 5L, KEY_1_BYTES)).contains(-2L);
@@ -1060,27 +1091,30 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_2_BYTES, 5L, KEY_2_BYTES)).contains(-2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsTwoWhenZeroProvided() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 0L, KEY_2_BYTES)).contains(2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_1_BYTES, 5000L, KEY_2_BYTES)).contains(1L);
-		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS,KEY_2_BYTES))
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS, KEY_2_BYTES))
 				.allSatisfy(val -> assertThat(val).isBetween(0L, 5000L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		// missing field
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_1_BYTES, 5L, KEY_1_BYTES)).contains(-2L);
@@ -1088,26 +1122,31 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_2_BYTES, 5L, KEY_2_BYTES)).contains(-2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireReturnsTwoWhenZeroProvided() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hpExpire(KEY_1_BYTES, 0L, KEY_2_BYTES)).contains(2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireAtReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
+
 		assertThat(clusterConnection.hashCommands().hExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(1L);
-		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES)).allSatisfy(val -> assertThat(val).isBetween(0L, 5L));
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES))
+				.allSatisfy(val -> assertThat(val).isBetween(0L, 5L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
 
@@ -1117,27 +1156,31 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hExpireAt(KEY_2_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(-2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireAdReturnsTwoWhenZeroProvided() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hExpireAt(KEY_1_BYTES, 0L, KEY_2_BYTES)).contains(2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireAtReturnsSuccessAndSetsTTL() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
+
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_1_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(1L);
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, TimeUnit.MILLISECONDS, KEY_2_BYTES))
 				.allSatisfy(val -> assertThat(val).isBetween(0L, 5000L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
 
@@ -1147,55 +1190,60 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_2_BYTES, inFiveSeconds, KEY_2_BYTES)).contains(-2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hpExpireAdReturnsTwoWhenZeroProvided() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hpExpireAt(KEY_1_BYTES, 0L, KEY_2_BYTES)).contains(2L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hPersistReturnsSuccessAndPersistsField() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
+
 		assertThat(clusterConnection.hashCommands().hExpire(KEY_1_BYTES, 5L, KEY_2_BYTES)).contains(1L);
-		assertThat(clusterConnection.hashCommands().hPersist(KEY_1_BYTES,  KEY_2_BYTES)).contains(1L);
+		assertThat(clusterConnection.hashCommands().hPersist(KEY_1_BYTES, KEY_2_BYTES)).contains(1L);
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES)).contains(-1L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 		assertThat(clusterConnection.hashCommands().hPersist(KEY_1_BYTES, KEY_2_BYTES)).contains(-1L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hPersist(KEY_1_BYTES, KEY_1_BYTES)).contains(-2L);
-		assertThat(clusterConnection.hashCommands().hPersist(KEY_3_BYTES,KEY_2_BYTES)).contains(-2L);
+		assertThat(clusterConnection.hashCommands().hPersist(KEY_3_BYTES, KEY_2_BYTES)).contains(-2L);
 
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
+
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
 
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES)).contains(-1L);
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
 
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_1_BYTES)).contains(-2L);
-		assertThat(clusterConnection.hashCommands().hTtl(KEY_3_BYTES,KEY_2_BYTES)).contains(-2L);
-
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_3_BYTES, KEY_2_BYTES)).contains(-2L);
 	}
 
 	@Test // DATAREDIS-315
@@ -1346,7 +1394,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isEqualTo(VALUE_2_BYTES);
 		assertThat(
 				clusterConnection.bLMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT, 0.01))
-						.isNull();
+				.isNull();
 
 		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).isEmpty();
 		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
@@ -2946,13 +2994,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(1L);
+				.containsExactly(1L);
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(2L);
+				.containsExactly(2L);
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(3L);
+				.containsExactly(3L);
 		assertThat(clusterConnection.stringCommands()
 				.bitField(JedisConverters.toBytes(KEY_1),
 						create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L))
@@ -2964,7 +3012,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(signed(5)).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
-						.containsExactly(1L, 0L);
+				.containsExactly(1L, 0L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2974,13 +3022,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 						create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L)
 								.set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L)))
-										.containsExactly(0L, 0L);
+				.containsExactly(0L, 0L);
 		assertThat(
 				clusterConnection.stringCommands()
 						.bitField(JedisConverters.toBytes(KEY_1),
 								create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
-										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()))).containsExactly(100L,
-												-56L);
+										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength())))
+				.containsExactly(100L, -56L);
 	}
 
 	@Test // DATAREDIS-1005
@@ -3125,7 +3173,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(topology).isInstanceOf(JedisClusterConnection.JedisClusterTopology.class);
 
 		assertThat(provider.shouldUseCachedValue(null)).isFalse();
-		assertThat(provider.shouldUseCachedValue(new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() - 101, 100))).isFalse();
+		assertThat(provider.shouldUseCachedValue(
+				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() - 101, 100))).isFalse();
 		assertThat(provider.shouldUseCachedValue(
 				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100, 100))).isTrue();
 	}

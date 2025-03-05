@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -29,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
@@ -212,7 +212,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(values).hasSize(2).containsEntry(key1, val1).containsEntry(key2, val2);
 	}
 
-	@EnabledOnCommand("HEXPIRE")
+	@EnabledOnCommand("HEXPIRE") // GH-3054
 	@ParameterizedRedisTest
 	void testExpireAndGetExpireMillis() {
 
@@ -237,7 +237,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAndGetExpireSeconds() {
 
@@ -268,7 +268,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 				});
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testBoundExpireAndGetExpireSeconds() {
 
@@ -300,7 +300,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
 
@@ -325,7 +325,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 				});
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void expireThrowsErrorOfNanoPrecision() {
 
@@ -336,7 +336,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 				.isThrownBy(() -> redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.NANOSECONDS, List.of(key1)));
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptionsNone() {
 
@@ -349,12 +349,13 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		ExpireChanges<Object> expire = redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1));
+		ExpireChanges<Object> expire = redisTemplate.opsForHash().expire(key,
+				org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1));
 
 		assertThat(expire.allOk()).isTrue();
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptions() {
 
@@ -367,16 +368,20 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1));
-		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), FieldExpirationOptions.none(), List.of(key2));
+		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20),
+				FieldExpirationOptions.none(), List.of(key1));
+		redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60),
+				FieldExpirationOptions.none(), List.of(key2));
 
-		ExpireChanges<Object> changes = redisTemplate.opsForHash().expire(key, org.springframework.data.redis.core.types.Expiration.seconds(30), FieldExpirationOptions.builder().gt().build(), List.of(key1, key2));
+		ExpireChanges<Object> changes = redisTemplate.opsForHash().expire(key,
+				org.springframework.data.redis.core.types.Expiration.seconds(30), FieldExpirationOptions.builder().gt().build(),
+				List.of(key1, key2));
 
 		assertThat(changes.ok()).containsExactly(key1);
 		assertThat(changes.skipped()).containsExactly(key2);
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testPersistAndGetExpireMillis() {
 

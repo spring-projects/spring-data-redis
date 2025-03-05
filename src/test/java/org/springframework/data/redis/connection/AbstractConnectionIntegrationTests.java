@@ -15,24 +15,48 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-import static org.awaitility.Awaitility.*;
-import static org.junit.jupiter.api.condition.OS.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
-import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.*;
-import static org.springframework.data.redis.core.ScanOptions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.condition.OS.MAC;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.create;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.FAIL;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.INT_8;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.signed;
+import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.unsigned;
+import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_1;
+import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_2;
+import static org.springframework.data.redis.connection.ClusterTestVariables.KEY_3;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_1;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_2;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_3;
+import static org.springframework.data.redis.connection.ClusterTestVariables.VALUE_4;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.KILOMETERS;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.newGeoSearchArgs;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs;
+import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -753,7 +777,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(stringSerializer.deserialize((byte[]) getResults().get(1))).isEqualTo("bar");
 	}
 
-	@Test
+	@Test // GH-
 	@EnabledOnCommand("HEXPIRE")
 	void testExecuteHashFieldExpiration() {
 
@@ -3473,7 +3497,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsSuccessAndSetsTTL() {
 
@@ -3484,10 +3508,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat((List) results.get(1)).contains(1L);
-		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5L));
+		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
 
@@ -3498,7 +3522,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	public void hExpireReturnsTwoWhenZeroProvided() {
 
@@ -3508,7 +3532,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIRE")
 	public void hpExpireReturnsSuccessAndSetsTTL() {
 
@@ -3519,10 +3543,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat((List) results.get(1)).contains(1L);
-		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5000L));
+		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5000L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIRE")
 	public void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
 
@@ -3533,7 +3557,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIRE")
 	public void hpExpireReturnsTwoWhenZeroProvided() {
 
@@ -3543,7 +3567,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
 	public void hExpireAtReturnsSuccessAndSetsTTL() {
 
@@ -3556,10 +3580,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat((List) results.get(1)).contains(1L);
-		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5L));
+		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
 	public void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
 
@@ -3572,7 +3596,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
 	public void hExpireAtReturnsTwoWhenZeroProvided() {
 
@@ -3584,7 +3608,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
 	public void hpExpireAtReturnsSuccessAndSetsTTL() {
 
@@ -3597,10 +3621,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertThat(results.get(0)).isEqualTo(Boolean.TRUE);
 		assertThat((List) results.get(1)).contains(1L);
-		assertThat((List) results.get(2)).allSatisfy( value -> assertThat((Long)value).isBetween(0L, 5L));
+		assertThat((List) results.get(2)).allSatisfy(value -> assertThat((Long) value).isBetween(0L, 5L));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
 	public void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
 
@@ -3613,7 +3637,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIREAT")
 	public void hpExpireAdReturnsTwoWhenZeroProvided() {
 
@@ -3625,7 +3649,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPERSIST")
 	public void hPersistReturnsSuccessAndPersistsField() {
 
@@ -3637,7 +3661,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(1L), List.of(1L), List.of(-1L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPERSIST")
 	public void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
 
@@ -3647,7 +3671,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-1L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HPERSIST")
 	public void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
 
@@ -3658,7 +3682,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-2L), List.of(-2L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HTTL")
 	public void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
 
@@ -3668,7 +3692,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-1L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HTTL")
 	public void hTtlReturnsMinusIndependendOfTimeUnitOneWhenFieldHasNoExpiration() {
 
@@ -3678,7 +3702,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(Boolean.TRUE, List.of(-1L)));
 	}
 
-	@Test
+	@Test // GH-3054
 	@EnabledOnCommand("HTTL")
 	public void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
 
