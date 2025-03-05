@@ -16,8 +16,10 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.CopyArgs;
+import io.lettuce.core.ExpireArgs;
 import io.lettuce.core.ScanStream;
 import io.lettuce.core.api.reactive.RedisKeyReactiveCommands;
+import io.lettuce.core.protocol.CommandArgs;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -25,9 +27,12 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveKeyCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -38,6 +43,7 @@ import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncoding;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -206,27 +212,45 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	}
 
 	@Override
-	public Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands) {
+	public Flux<BooleanResponse<ExpireCommand>> applyExpiration(Publisher<ExpireCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getTimeout(), "Timeout must not be null");
 
-			return cmd.expire(command.getKey(), command.getTimeout().getSeconds())
-					.map(value -> new BooleanResponse<>(command, value));
-		}));
-	}
+			if (command.getExpiration().isPersistent()) {
+				return cmd.persist(command.getKey()).map(value -> new BooleanResponse<>(command, value));
+			}
 
-	@Override
-	public Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands) {
+			ExpireArgs args = new ExpireArgs() {
 
-		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+				@Override
+				public <K, V> void build(CommandArgs<K, V> args) {
+					super.build(args);
+					if (ObjectUtils.nullSafeEquals(command.getOptions(), ExpirationOptions.none())) {
+						return;
+					}
 
-			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getTimeout(), "Timeout must not be null");
+					args.add(command.getOptions().getCondition().name());
+				}
+			};
 
-			return cmd.pexpire(command.getKey(), command.getTimeout().toMillis())
+			if (command.getExpiration().isUnixTimestamp()) {
+
+				if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+					return cmd.pexpireat(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args)
+							.map(value -> new BooleanResponse<>(command, value));
+				}
+				return cmd.expireat(command.getKey(), command.getExpiration().getExpirationTimeInSeconds(), args)
+						.map(value -> new BooleanResponse<>(command, value));
+			}
+
+			if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+				return cmd.pexpire(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args)
+						.map(value -> new BooleanResponse<>(command, value));
+			}
+
+			return cmd.expire(command.getKey(), command.getExpiration().getExpirationTimeInSeconds(), args)
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -239,7 +263,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getExpireAt(), "Expire at must not be null");
 
-			return cmd.expireat(command.getKey(), command.getExpireAt().getEpochSecond())
+			return cmd.expireat(command.getKey(), command.getExpireAt().getEpochSecond(), getExpireArgs(command.getOptions()))
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -252,7 +276,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getExpireAt(), "Expire at must not be null");
 
-			return cmd.pexpireat(command.getKey(), command.getExpireAt().toEpochMilli())
+			return cmd.pexpireat(command.getKey(), command.getExpireAt().toEpochMilli(), getExpireArgs(command.getOptions()))
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -319,4 +343,21 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	public Mono<Long> refcount(ByteBuffer key) {
 		return connection.execute(cmd -> cmd.objectRefcount(key)).next();
 	}
+
+	private static ExpireArgs getExpireArgs(ExpirationOptions options) {
+
+		return new ExpireArgs() {
+
+			@Override
+			public <K, V> void build(CommandArgs<K, V> args) {
+				super.build(args);
+				if (ObjectUtils.nullSafeEquals(options.getCondition(), ExpirationOptions.Condition.ALWAYS)) {
+					return;
+				}
+
+				args.add(options.getCondition().name());
+			}
+		};
+	}
+
 }

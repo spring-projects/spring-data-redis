@@ -223,7 +223,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundHashFieldExpirationOperations<HK> expiration() {
+	default BoundHashFieldExpirationOperations<HK> hashExpiration() {
 		return new DefaultBoundHashFieldExpirationOperations<>(getOperations().opsForHash(), getKey(), this::keys);
 	}
 
@@ -235,8 +235,8 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundHashFieldExpirationOperations<HK> expiration(HK... hashFields) {
-		return expiration(Arrays.asList(hashFields));
+	default BoundHashFieldExpirationOperations<HK> hashExpiration(HK... hashFields) {
+		return hashExpiration(Arrays.asList(hashFields));
 	}
 
 	/**
@@ -247,7 +247,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundHashFieldExpirationOperations<HK> expiration(Collection<HK> hashFields) {
+	default BoundHashFieldExpirationOperations<HK> hashExpiration(Collection<HK> hashFields) {
 		return new DefaultBoundHashFieldExpirationOperations<>(getOperations().opsForHash(), getKey(), () -> hashFields);
 	}
 

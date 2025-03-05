@@ -25,10 +25,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -365,6 +367,24 @@ public interface RedisOperations<K, V> {
 
 		return expireAt(key, Date.from(expireAt));
 	}
+
+	/**
+	 * Set the expiration for given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @return changes to the expiry. {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	ExpireChanges.ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options);
 
 	/**
 	 * Remove the expiration from given {@code key}.

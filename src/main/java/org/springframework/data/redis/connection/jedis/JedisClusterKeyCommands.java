@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.params.RestoreParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -35,6 +36,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.RedisNode;
@@ -274,48 +276,67 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean expire(byte[] key, long seconds) {
+	public Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().expire(key, seconds));
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
+				return JedisConverters.toBoolean(connection.getCluster().expire(key, seconds));
+			}
+
+			return JedisConverters
+					.toBoolean(connection.getCluster().expire(key, seconds, ExpiryOption.valueOf(condition.name())));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean pExpire(byte[] key, long millis) {
+	public Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().pexpire(key, millis));
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
+				return JedisConverters.toBoolean(connection.getCluster().pexpire(key, millis));
+			}
+			return JedisConverters
+					.toBoolean(connection.getCluster().pexpire(key, millis, ExpiryOption.valueOf(condition.name())));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean expireAt(byte[] key, long unixTime) {
+	public Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().expireAt(key, unixTime));
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
+				return JedisConverters.toBoolean(connection.getCluster().expireAt(key, unixTime));
+			}
+
+			return JedisConverters
+					.toBoolean(connection.getCluster().expireAt(key, unixTime, ExpiryOption.valueOf(condition.name())));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		try {
-			return JedisConverters.toBoolean(connection.getCluster().pexpireAt(key, unixTimeInMillis));
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
+				return JedisConverters.toBoolean(connection.getCluster().pexpireAt(key, unixTimeInMillis));
+			}
+
+			return JedisConverters
+					.toBoolean(connection.getCluster().pexpireAt(key, unixTimeInMillis, ExpiryOption.valueOf(condition.name())));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

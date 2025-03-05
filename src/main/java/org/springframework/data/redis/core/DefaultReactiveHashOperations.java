@@ -30,9 +30,9 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
-import org.springframework.data.redis.connection.ReactiveHashCommands.ExpireCommand;
+import org.springframework.data.redis.connection.ReactiveHashCommands.HashExpireCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
@@ -244,11 +244,11 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 	@Override
 	public Mono<ExpireChanges<HK>> expire(H key, Duration timeout, Collection<HK> hashKeys) {
-		return expire(key, Expiration.from(timeout), FieldExpirationOptions.none(), hashKeys);
+		return expire(key, Expiration.from(timeout), ExpirationOptions.none(), hashKeys);
 	}
 
 	@Override
-	public Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options,
+	public Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, ExpirationOptions options,
 			Collection<HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
@@ -257,7 +257,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Mono<List<Long>> raw = createFlux(connection -> {
 			return connection
-					.applyExpiration(Mono.just(ExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options)))
+					.applyHashFieldExpiration(
+							Mono.just(HashExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options)))
 					.map(NumericResponse::getOutput);
 		}).collectList();
 

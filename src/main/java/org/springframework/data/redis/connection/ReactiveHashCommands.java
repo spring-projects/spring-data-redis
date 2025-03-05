@@ -31,7 +31,6 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.Command;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -851,13 +850,13 @@ public interface ReactiveHashCommands {
 	/**
 	 * @since 3.5
 	 */
-	class ExpireCommand extends HashFieldsCommand {
+	class HashExpireCommand extends HashFieldsCommand {
 
 		private final Expiration expiration;
-		private final FieldExpirationOptions options;
+		private final ExpirationOptions options;
 
-		private ExpireCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields, Expiration expiration,
-				FieldExpirationOptions options) {
+		private HashExpireCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields, Expiration expiration,
+				ExpirationOptions options) {
 
 			super(key, fields);
 
@@ -866,52 +865,52 @@ public interface ReactiveHashCommands {
 		}
 
 		/**
-		 * Creates a new {@link ExpireCommand}.
+		 * Creates a new {@link HashExpireCommand}.
 		 *
 		 * @param fields the {@code field} names to apply expiration to
 		 * @param timeout the actual timeout
 		 * @param unit the unit of measure for the {@code timeout}.
-		 * @return new instance of {@link ExpireCommand}.
+		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public static ExpireCommand expire(List<ByteBuffer> fields, long timeout, TimeUnit unit) {
+		public static HashExpireCommand expire(List<ByteBuffer> fields, long timeout, TimeUnit unit) {
 
 			Assert.notNull(fields, "Field must not be null");
 			return expire(fields, Expiration.from(timeout, unit));
 		}
 
 		/**
-		 * Creates a new {@link ExpireCommand}.
+		 * Creates a new {@link HashExpireCommand}.
 		 *
 		 * @param fields the {@code field} names to apply expiration to.
 		 * @param ttl the actual timeout.
-		 * @return new instance of {@link ExpireCommand}.
+		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public static ExpireCommand expire(List<ByteBuffer> fields, Duration ttl) {
+		public static HashExpireCommand expire(List<ByteBuffer> fields, Duration ttl) {
 
 			Assert.notNull(fields, "Field must not be null");
 			return expire(fields, Expiration.from(ttl));
 		}
 
 		/**
-		 * Creates a new {@link ExpireCommand}.
+		 * Creates a new {@link HashExpireCommand}.
 		 *
 		 * @param fields the {@code field} names to apply expiration to
 		 * @param expiration the {@link Expiration} to apply to the given {@literal fields}.
-		 * @return new instance of {@link ExpireCommand}.
+		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public static ExpireCommand expire(List<ByteBuffer> fields, Expiration expiration) {
-			return new ExpireCommand(null, fields, expiration, FieldExpirationOptions.none());
+		public static HashExpireCommand expire(List<ByteBuffer> fields, Expiration expiration) {
+			return new HashExpireCommand(null, fields, expiration, ExpirationOptions.none());
 		}
 
 		/**
-		 * Creates a new {@link ExpireCommand}.
+		 * Creates a new {@link HashExpireCommand}.
 		 *
 		 * @param fields the {@code field} names to apply expiration to
 		 * @param ttl the unix point in time when to expire the given {@literal fields}.
 		 * @param precision can be {@link TimeUnit#SECONDS} or {@link TimeUnit#MILLISECONDS}.
-		 * @return new instance of {@link ExpireCommand}.
+		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public static ExpireCommand expireAt(List<ByteBuffer> fields, Instant ttl, TimeUnit precision) {
+		public static HashExpireCommand expireAt(List<ByteBuffer> fields, Instant ttl, TimeUnit precision) {
 
 			if (precision.compareTo(TimeUnit.MILLISECONDS) > 0) {
 				return expire(fields, Expiration.unixTimestamp(ttl.getEpochSecond(), TimeUnit.SECONDS));
@@ -922,25 +921,25 @@ public interface ReactiveHashCommands {
 
 		/**
 		 * @param key the {@literal key} from which to expire the {@literal fields} from.
-		 * @return new instance of {@link ExpireCommand}.
+		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public ExpireCommand from(ByteBuffer key) {
-			return new ExpireCommand(key, getFields(), expiration, options);
+		public HashExpireCommand from(ByteBuffer key) {
+			return new HashExpireCommand(key, getFields(), expiration, options);
 		}
 
 		/**
 		 * @param options additional options to be sent along with the command.
-		 * @return new instance of {@link ExpireCommand}.
+		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public ExpireCommand withOptions(FieldExpirationOptions options) {
-			return new ExpireCommand(getKey(), getFields(), getExpiration(), options);
+		public HashExpireCommand withOptions(ExpirationOptions options) {
+			return new HashExpireCommand(getKey(), getFields(), getExpiration(), options);
 		}
 
 		public Expiration getExpiration() {
 			return expiration;
 		}
 
-		public FieldExpirationOptions getOptions() {
+		public ExpirationOptions getOptions() {
 			return options;
 		}
 	}
@@ -983,7 +982,7 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(duration, "Duration must not be null");
 
-		return applyExpiration(Flux.just(ExpireCommand.expire(fields, duration).from(key)))
+		return applyHashFieldExpiration(Flux.just(HashExpireCommand.expire(fields, duration).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -999,7 +998,7 @@ public interface ReactiveHashCommands {
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/hexpire">Redis Documentation: HEXPIRE</a>
 	 */
-	Flux<NumericResponse<ExpireCommand, Long>> applyExpiration(Publisher<ExpireCommand> commands);
+	Flux<NumericResponse<HashExpireCommand, Long>> applyHashFieldExpiration(Publisher<HashExpireCommand> commands);
 
 	/**
 	 * Expire a given {@literal field} after a given {@link Duration} of time, measured in milliseconds, has passed.
@@ -1039,8 +1038,8 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(duration, "Duration must not be null");
 
-		return applyExpiration(Flux.just(new ExpireCommand(key, fields,
-				Expiration.from(duration.toMillis(), TimeUnit.MILLISECONDS), FieldExpirationOptions.none())))
+		return applyHashFieldExpiration(Flux.just(new HashExpireCommand(key, fields,
+				Expiration.from(duration.toMillis(), TimeUnit.MILLISECONDS), ExpirationOptions.none())))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -1083,7 +1082,7 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(expireAt, "Duration must not be null");
 
-		return applyExpiration(Flux.just(ExpireCommand.expireAt(fields, expireAt, TimeUnit.SECONDS).from(key)))
+		return applyHashFieldExpiration(Flux.just(HashExpireCommand.expireAt(fields, expireAt, TimeUnit.SECONDS).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 
@@ -1126,7 +1125,8 @@ public interface ReactiveHashCommands {
 
 		Assert.notNull(expireAt, "Duration must not be null");
 
-		return applyExpiration(Flux.just(ExpireCommand.expireAt(fields, expireAt, TimeUnit.MILLISECONDS).from(key)))
+		return applyHashFieldExpiration(
+				Flux.just(HashExpireCommand.expireAt(fields, expireAt, TimeUnit.MILLISECONDS).from(key)))
 				.mapNotNull(NumericResponse::getOutput);
 	}
 

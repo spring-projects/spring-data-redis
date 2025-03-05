@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
@@ -251,13 +251,13 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public ExpireChanges<HK> expire(K key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys) {
+	public ExpireChanges<HK> expire(K key, Expiration expiration, ExpirationOptions options, Collection<HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(orderedKeys.toArray());
 		List<Long> raw = execute(
-				connection -> connection.hashCommands().applyExpiration(rawKey, expiration, options, rawHashKeys));
+				connection -> connection.hashCommands().applyHashFieldExpiration(rawKey, expiration, options, rawHashKeys));
 
 		return raw != null ? ExpireChanges.of(orderedKeys, raw) : null;
 	}

@@ -273,28 +273,28 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testExpireBytes() {
-		doReturn(true).when(nativeConnection).expire(fooBytes, 1L);
+		doReturn(true).when(nativeConnection).expire(fooBytes, 1L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.expire(fooBytes, 1L));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testExpire() {
-		doReturn(true).when(nativeConnection).expire(fooBytes, 1L);
+		doReturn(true).when(nativeConnection).expire(fooBytes, 1L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.expire(foo, 1L));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testExpireAtBytes() {
-		doReturn(true).when(nativeConnection).expireAt(fooBytes, 1L);
+		doReturn(true).when(nativeConnection).expireAt(fooBytes, 1L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.expireAt(fooBytes, 1L));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testExpireAt() {
-		doReturn(true).when(nativeConnection).expireAt(fooBytes, 1L);
+		doReturn(true).when(nativeConnection).expireAt(fooBytes, 1L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.expireAt(foo, 1L));
 		verifyResults(Collections.singletonList(true));
 	}
@@ -1662,28 +1662,28 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testPExpireBytes() {
-		doReturn(true).when(nativeConnection).pExpire(fooBytes, 34L);
+		doReturn(true).when(nativeConnection).pExpire(fooBytes, 34L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.pExpire(fooBytes, 34L));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testPExpire() {
-		doReturn(true).when(nativeConnection).pExpire(fooBytes, 34L);
+		doReturn(true).when(nativeConnection).pExpire(fooBytes, 34L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.pExpire(foo, 34L));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testPExpireAtBytes() {
-		doReturn(true).when(nativeConnection).pExpireAt(fooBytes, 34L);
+		doReturn(true).when(nativeConnection).pExpireAt(fooBytes, 34L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.pExpireAt(fooBytes, 34L));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test
 	public void testPExpireAt() {
-		doReturn(true).when(nativeConnection).pExpireAt(fooBytes, 34L);
+		doReturn(true).when(nativeConnection).pExpireAt(fooBytes, 34L, ExpirationOptions.Condition.ALWAYS);
 		actual.add(connection.pExpireAt(foo, 34L));
 		verifyResults(Collections.singletonList(true));
 	}

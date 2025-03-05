@@ -224,7 +224,22 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @see RedisKeyCommands#expire(byte[], long)
 	 */
-	Boolean expire(String key, long seconds);
+	default Boolean expire(String key, long seconds) {
+		return expire(key, seconds, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set time to live for given {@code key} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param condition the condition for expiration, must not be {@literal null}.
+	 * @param seconds
+	 * @return
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see RedisKeyCommands#expire(byte[], long)
+	 */
+	Boolean expire(String key, long seconds, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set time to live for given {@code key} in milliseconds.
@@ -235,7 +250,22 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @see RedisKeyCommands#pExpire(byte[], long)
 	 */
-	Boolean pExpire(String key, long millis);
+	default Boolean pExpire(String key, long millis) {
+		return pExpire(key, millis, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set time to live for given {@code key} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param millis
+	 * @param condition the condition for expiration, must not be {@literal null}.
+	 * @return
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see RedisKeyCommands#pExpire(byte[], long)
+	 */
+	Boolean pExpire(String key, long millis, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
@@ -246,7 +276,22 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 * @see RedisKeyCommands#expireAt(byte[], long)
 	 */
-	Boolean expireAt(String key, long unixTime);
+	default Boolean expireAt(String key, long unixTime) {
+		return expireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTime
+	 * @param condition the condition for expiration, must not be {@literal null}.
+	 * @return
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see RedisKeyCommands#expireAt(byte[], long)
+	 */
+	Boolean expireAt(String key, long unixTime, ExpirationOptions.Condition condition);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
@@ -257,7 +302,22 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @see RedisKeyCommands#pExpireAt(byte[], long)
 	 */
-	Boolean pExpireAt(String key, long unixTimeInMillis);
+	default Boolean pExpireAt(String key, long unixTimeInMillis) {
+		return pExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param unixTimeInMillis
+	 * @param condition the condition for expiration, must not be {@literal null}.
+	 * @return
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see RedisKeyCommands#pExpireAt(byte[], long)
+	 */
+	Boolean pExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition);
 
 	/**
 	 * Remove the expiration from given {@code key}.
@@ -2348,7 +2408,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	default List<Long> hExpire(String key, long seconds, String... fields) {
-		return hExpire(key, seconds, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -2366,7 +2426,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpire(String key, long seconds, Hash.FieldExpirationOptions.Condition condition, String... fields);
+	List<Long> hExpire(String key, long seconds, ExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Set time to live for given {@code field} in milliseconds.
@@ -2383,7 +2443,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	default List<Long> hpExpire(String key, long millis, String... fields) {
-		return hpExpire(key, millis, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -2401,7 +2461,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpire(String key, long millis, Hash.FieldExpirationOptions.Condition condition, String... fields);
+	List<Long> hpExpire(String key, long millis, ExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
@@ -2418,7 +2478,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	default List<Long> hExpireAt(String key, long unixTime, String... fields) {
-		return hExpireAt(key, unixTime, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -2436,7 +2496,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpireAt(String key, long unixTime, Hash.FieldExpirationOptions.Condition condition, String... fields);
+	List<Long> hExpireAt(String key, long unixTime, ExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
@@ -2453,7 +2513,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	@Nullable
 	default List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
-		return hpExpireAt(key, unixTimeInMillis, Hash.FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -2471,7 +2531,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpireAt(String key, long unixTimeInMillis, Hash.FieldExpirationOptions.Condition condition,
+	List<Long> hpExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			String... fields);
 
 	/**

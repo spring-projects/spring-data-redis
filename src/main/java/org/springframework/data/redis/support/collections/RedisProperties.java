@@ -307,13 +307,13 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	public BoundHashFieldExpirationOperations<Object> expiration() {
-		return (BoundHashFieldExpirationOperations) delegate.expiration();
+	public BoundHashFieldExpirationOperations<Object> hashFieldExpiration() {
+		return (BoundHashFieldExpirationOperations) delegate.hashFieldExpiration();
 	}
 
 	@Override
-	public BoundHashFieldExpirationOperations<Object> expiration(Collection<Object> hashFields) {
-		return (BoundHashFieldExpirationOperations) delegate.expiration((Collection) hashFields);
+	public BoundHashFieldExpirationOperations<Object> hashFieldExpiration(Collection<Object> hashFields) {
+		return (BoundHashFieldExpirationOperations) delegate.hashFieldExpiration((Collection) hashFields);
 	}
 
 }

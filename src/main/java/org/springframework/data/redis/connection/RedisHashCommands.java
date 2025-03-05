@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
@@ -257,7 +256,7 @@ public interface RedisHashCommands {
 
 	/**
 	 * Apply a given {@link org.springframework.data.redis.core.types.Expiration} to the given {@literal fields}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param expiration the {@link org.springframework.data.redis.core.types.Expiration} to apply.
 	 * @param fields the names of the {@literal fields} to apply the {@literal expiration} to.
@@ -267,9 +266,9 @@ public interface RedisHashCommands {
 	 *         such field;
 	 * @since 3.5
 	 */
-	default @Nullable List<Long> applyExpiration(byte[] key,
+	default @Nullable List<Long> applyHashFieldExpiration(byte[] key,
 			org.springframework.data.redis.core.types.Expiration expiration, byte[]... fields) {
-		return applyExpiration(key, expiration, FieldExpirationOptions.none(), fields);
+		return applyHashFieldExpiration(key, expiration, ExpirationOptions.none(), fields);
 	}
 
 	/**
@@ -284,14 +283,14 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	default List<Long> applyExpiration(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
-			FieldExpirationOptions options, byte[]... fields) {
+	default List<Long> applyHashFieldExpiration(byte[] key,
+			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options, byte[]... fields) {
 
 		if (expiration.isPersistent()) {
 			return hPersist(key, fields);
 		}
 
-		if (ObjectUtils.nullSafeEquals(FieldExpirationOptions.none(), options)) {
+		if (ObjectUtils.nullSafeEquals(ExpirationOptions.none(), options)) {
 			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
 				if (expiration.isUnixTimestamp()) {
 					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
@@ -334,7 +333,7 @@ public interface RedisHashCommands {
 	 */
 	@Nullable
 	default List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-		return hExpire(key, seconds, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -372,7 +371,7 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields);
+	List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields);
 
 	/**
 	 * Set time to live for given {@code fields} in milliseconds.
@@ -390,7 +389,7 @@ public interface RedisHashCommands {
 	 */
 	@Nullable
 	default List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		return hpExpire(key, millis, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -429,7 +428,7 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields);
+	List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
@@ -446,7 +445,7 @@ public interface RedisHashCommands {
 	 */
 	@Nullable
 	default List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		return hExpireAt(key, unixTime, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -465,7 +464,7 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields);
+	List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
@@ -482,7 +481,7 @@ public interface RedisHashCommands {
 	 */
 	@Nullable
 	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		return hpExpireAt(key, unixTimeInMillis, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/**
@@ -501,7 +500,7 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			byte[]... fields);
 
 	/**

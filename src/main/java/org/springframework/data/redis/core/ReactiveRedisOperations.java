@@ -26,9 +26,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveSubscription.Message;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
@@ -372,6 +375,22 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @return
 	 */
 	Mono<Boolean> expireAt(K key, Instant expireAt);
+
+	/**
+	 * Set the expiration for given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration must not be {@literal null}.
+	 * @param options must not be {@literal null}.
+	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 * @since 3.5
+	 */
+	Mono<ExpireChanges.ExpiryChangeState> expire(K key, Expiration expiration, ExpirationOptions options);
 
 	/**
 	 * Remove the expiration from given {@code key}.
