@@ -387,6 +387,16 @@ public interface RedisOperations<K, V> {
 	ExpireChanges.ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options);
 
 	/**
+	 * Returns a bound operations object to perform expiration operations on the bound key.
+	 *
+	 * @return the bound operations object to perform operations on the hash field expiration.
+	 * @since 3.5
+	 */
+	default BoundKeyExpirationOperations expiration(K key) {
+		return new DefaultBoundKeyExpirationOperations<>(this, key);
+	}
+
+	/**
 	 * Remove the expiration from given {@code key}.
 	 *
 	 * @param key must not be {@literal null}.

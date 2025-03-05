@@ -397,6 +397,11 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	@Override
+	public RedisOperations<String, ?> getOperations() {
+		return generalOps;
+	}
+
+	@Override
 	public int intValue() {
 		return (int) get();
 	}
@@ -415,4 +420,5 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	public double doubleValue() {
 		return get();
 	}
+
 }

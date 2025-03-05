@@ -34,6 +34,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
@@ -42,11 +43,13 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
+import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
@@ -501,6 +504,46 @@ public class RedisTemplateIntegrationTests<K, V> {
 		redisTemplate.expire(key1, 500, TimeUnit.MILLISECONDS);
 
 		assertThat(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS)).isGreaterThan(0L);
+	}
+
+	@ParameterizedRedisTest // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void testBoundExpireAndGetExpireSeconds() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key).set(value1);
+
+		BoundKeyExpirationOperations exp = redisTemplate.expiration(key);
+
+		assertThat(exp.expire(Duration.ofSeconds(5))).isEqualTo(ExpireChanges.ExpiryChangeState.OK);
+
+		assertThat(exp.getTimeToLive(TimeUnit.SECONDS)).satisfies(ttl -> {
+			assertThat(ttl.isPersistent()).isFalse();
+			assertThat(ttl.value()).isGreaterThan(1);
+		});
+	}
+
+	@ParameterizedRedisTest // GH-3114
+	@EnabledOnCommand("SPUBLISH") // Redis 7.0
+	void testBoundExpireWithConditionsAndGetExpireSeconds() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key).set(value1);
+
+		BoundKeyExpirationOperations exp = redisTemplate.expiration(key);
+
+		assertThat(exp.expire(Duration.ofSeconds(5))).isEqualTo(ExpireChanges.ExpiryChangeState.OK);
+		assertThat(exp.expire(Expiration.from(Duration.ofSeconds(1)), ExpirationOptions.builder().gt().build()))
+				.isEqualTo(ExpireChanges.ExpiryChangeState.CONDITION_NOT_MET);
+		assertThat(exp.expire(Expiration.from(Duration.ofSeconds(10)), ExpirationOptions.builder().gt().build()))
+				.isEqualTo(ExpireChanges.ExpiryChangeState.OK);
+
+		assertThat(exp.getTimeToLive(TimeUnit.SECONDS)).satisfies(ttl -> {
+			assertThat(ttl.isPersistent()).isFalse();
+			assertThat(ttl.value()).isGreaterThan(5);
+		});
 	}
 
 	@ParameterizedRedisTest
