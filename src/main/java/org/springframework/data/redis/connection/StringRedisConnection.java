@@ -2341,9 +2341,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
-	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
-	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
-	 *         transaction.
+	 *         is set/updated; {@code 0} indicating the expiration time is not set; {@code -2} indicating there is no such
+	 *         field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
@@ -2377,9 +2376,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is 0; {@code 1} indicating expiration time
-	 *         is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX | GT | LT condition
-	 *         is not met); {@code -2} indicating there is no such field; {@literal null} when used in pipeline /
-	 *         transaction.
+	 *         is set/updated; {@code 0} indicating the expiration time is not set; {@code -2} indicating there is no such
+	 *         field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
@@ -2413,9 +2411,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
-	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
-	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
-	 *         pipeline / transaction.
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set; {@code -2} indicating
+	 *         there is no such field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
@@ -2449,9 +2446,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param fields must not be {@literal null}.
 	 * @return a list of {@link Long} values for each of the fields provided: {@code 2} indicating the specific field is
 	 *         deleted already due to expiration, or provided expiry interval is in the past; {@code 1} indicating
-	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set (a provided NX | XX |
-	 *         GT | LT condition is not met); {@code -2} indicating there is no such field; {@literal null} when used in
-	 *         pipeline / transaction.
+	 *         expiration time is set/updated; {@code 0} indicating the expiration time is not set; {@code -2} indicating
+	 *         there is no such field; {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */

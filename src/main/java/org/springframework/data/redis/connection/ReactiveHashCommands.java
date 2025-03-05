@@ -865,22 +865,52 @@ public interface ReactiveHashCommands {
 			this.options = options;
 		}
 
+		/**
+		 * Creates a new {@link ExpireCommand}.
+		 *
+		 * @param fields the {@code field} names to apply expiration to
+		 * @param timeout the actual timeout
+		 * @param unit the unit of measure for the {@code timeout}.
+		 * @return new instance of {@link ExpireCommand}.
+		 */
 		public static ExpireCommand expire(List<ByteBuffer> fields, long timeout, TimeUnit unit) {
 
 			Assert.notNull(fields, "Field must not be null");
 			return expire(fields, Expiration.from(timeout, unit));
 		}
 
+		/**
+		 * Creates a new {@link ExpireCommand}.
+		 *
+		 * @param fields the {@code field} names to apply expiration to.
+		 * @param ttl the actual timeout.
+		 * @return new instance of {@link ExpireCommand}.
+		 */
 		public static ExpireCommand expire(List<ByteBuffer> fields, Duration ttl) {
 
 			Assert.notNull(fields, "Field must not be null");
 			return expire(fields, Expiration.from(ttl));
 		}
 
+		/**
+		 * Creates a new {@link ExpireCommand}.
+		 *
+		 * @param fields the {@code field} names to apply expiration to
+		 * @param expiration the {@link Expiration} to apply to the given {@literal fields}.
+		 * @return new instance of {@link ExpireCommand}.
+		 */
 		public static ExpireCommand expire(List<ByteBuffer> fields, Expiration expiration) {
 			return new ExpireCommand(null, fields, expiration, FieldExpirationOptions.none());
 		}
 
+		/**
+		 * Creates a new {@link ExpireCommand}.
+		 *
+		 * @param fields the {@code field} names to apply expiration to
+		 * @param ttl the unix point in time when to expire the given {@literal fields}.
+		 * @param precision can be {@link TimeUnit#SECONDS} or {@link TimeUnit#MILLISECONDS}.
+		 * @return new instance of {@link ExpireCommand}.
+		 */
 		public static ExpireCommand expireAt(List<ByteBuffer> fields, Instant ttl, TimeUnit precision) {
 
 			if (precision.compareTo(TimeUnit.MILLISECONDS) > 0) {
@@ -890,10 +920,18 @@ public interface ReactiveHashCommands {
 			return expire(fields, Expiration.unixTimestamp(ttl.toEpochMilli(), TimeUnit.MILLISECONDS));
 		}
 
+		/**
+		 * @param key the {@literal key} from which to expire the {@literal fields} from.
+		 * @return new instance of {@link ExpireCommand}.
+		 */
 		public ExpireCommand from(ByteBuffer key) {
 			return new ExpireCommand(key, getFields(), expiration, options);
 		}
 
+		/**
+		 * @param options additional options to be sent along with the command.
+		 * @return new instance of {@link ExpireCommand}.
+		 */
 		public ExpireCommand withOptions(FieldExpirationOptions options) {
 			return new ExpireCommand(getKey(), getFields(), getExpiration(), options);
 		}

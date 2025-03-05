@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
@@ -249,13 +248,14 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	@Override
-	public Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys) {
+	public Mono<ExpireChanges<HK>> expire(H key, Expiration expiration, FieldExpirationOptions options,
+			Collection<HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 		ByteBuffer rawKey = rawKey(key);
 		List<ByteBuffer> rawHashKeys = orderedKeys.stream().map(this::rawHashKey).toList();
 
-		Mono<List<Long>> raw =createFlux(connection -> {
+		Mono<List<Long>> raw = createFlux(connection -> {
 			return connection
 					.applyExpiration(Mono.just(ExpireCommand.expire(rawHashKeys, expiration).from(rawKey).withOptions(options)))
 					.map(NumericResponse::getOutput);

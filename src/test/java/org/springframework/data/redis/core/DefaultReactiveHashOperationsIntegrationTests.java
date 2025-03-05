@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assumptions.*;
-import static org.junit.jupiter.api.condition.OS.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
+import static org.junit.jupiter.api.condition.OS.MAC;
 
 import reactor.test.StepVerifier;
 
@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.DisabledOnOs;
-
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
@@ -506,7 +505,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@EnabledOnCommand("HEXPIRE")
+	@EnabledOnCommand("HEXPIRE") // GH-3054
 	@ParameterizedRedisTest
 	void testExpireAndGetExpireMillis() {
 
@@ -531,7 +530,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptions() {
 
@@ -543,23 +542,32 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, key1, val1, key2, val2);
 
-		hashOperations.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(), List.of(key1)).as(StepVerifier::create)//
-			.assertNext(changes -> {
-				assertThat(changes.allOk()).isTrue();
-			}).verifyComplete();
-		hashOperations.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), FieldExpirationOptions.none(), List.of(key2)).as(StepVerifier::create)//
-			.assertNext(changes -> {
-				assertThat(changes.allOk()).isTrue();
-			}).verifyComplete();
+		hashOperations
+				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(20), FieldExpirationOptions.none(),
+						List.of(key1))
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
+		hashOperations
+				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(60), FieldExpirationOptions.none(),
+						List.of(key2))
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.allOk()).isTrue();
+				}).verifyComplete();
 
-		hashOperations.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(30), FieldExpirationOptions.builder().gt().build(), List.of(key1, key2)).as(StepVerifier::create)//
-			.assertNext(changes -> {
-				assertThat(changes.ok()).containsExactly(key1);
-				assertThat(changes.skipped()).containsExactly(key2);
-			}).verifyComplete();
+		hashOperations
+				.expire(key, org.springframework.data.redis.core.types.Expiration.seconds(30),
+						FieldExpirationOptions.builder().gt().build(), List.of(key1, key2))
+				.as(StepVerifier::create)//
+				.assertNext(changes -> {
+					assertThat(changes.ok()).containsExactly(key1);
+					assertThat(changes.skipped()).containsExactly(key2);
+				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAndGetExpireSeconds() {
 
@@ -583,10 +591,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 					assertThat(it.expirationOf(key1).raw()).isBetween(0L, 5L);
 					assertThat(it.expirationOf(key2).raw()).isBetween(0L, 5L);
 				}).verifyComplete();
-
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
 
@@ -611,7 +618,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testPersistAndGetExpireMillis() {
 
@@ -638,7 +645,6 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.assertNext(expirations -> {
 					assertThat(expirations.persistent()).contains(key1, key2);
 				}).verifyComplete();
-
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

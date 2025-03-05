@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.*;
-import static org.assertj.core.api.Assumptions.*;
+import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.assertThat;
+import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -35,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
@@ -197,7 +197,7 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		assertThat(map.increment(k1, 10)).isEqualTo(Long.valueOf(Long.valueOf((String) v1) + 10));
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpire() {
 
@@ -216,7 +216,7 @@ public abstract class AbstractRedisMapIntegrationTests<K, V> {
 		assertThat(ops.persist()).satisfies(ExpireChanges::allOk);
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAt() {
 
