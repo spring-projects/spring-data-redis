@@ -31,7 +31,6 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
@@ -359,13 +358,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean expire(byte[] key, long seconds) {
-		return convertAndReturn(delegate.expire(key, seconds), Converters.identityConverter());
+	public Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition) {
+		return convertAndReturn(delegate.expire(key, seconds, condition), Converters.identityConverter());
 	}
 
 	@Override
-	public Boolean expireAt(byte[] key, long unixTime) {
-		return convertAndReturn(delegate.expireAt(key, unixTime), Converters.identityConverter());
+	public Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition) {
+		return convertAndReturn(delegate.expireAt(key, unixTime, condition), Converters.identityConverter());
 	}
 
 	@Override
@@ -1308,13 +1307,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean pExpire(byte[] key, long millis) {
-		return convertAndReturn(delegate.pExpire(key, millis), Converters.identityConverter());
+	public Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition) {
+		return convertAndReturn(delegate.pExpire(key, millis, condition), Converters.identityConverter());
 	}
 
 	@Override
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		return convertAndReturn(delegate.pExpireAt(key, unixTimeInMillis), Converters.identityConverter());
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
+		return convertAndReturn(delegate.pExpireAt(key, unixTimeInMillis, condition), Converters.identityConverter());
 	}
 
 	@Override
@@ -1497,13 +1496,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean expire(String key, long seconds) {
-		return expire(serialize(key), seconds);
+	public Boolean expire(String key, long seconds, ExpirationOptions.Condition condition) {
+		return expire(serialize(key), seconds, condition);
 	}
 
 	@Override
-	public Boolean expireAt(String key, long unixTime) {
-		return expireAt(serialize(key), unixTime);
+	public Boolean expireAt(String key, long unixTime, ExpirationOptions.Condition condition) {
+		return expireAt(serialize(key), unixTime, condition);
 	}
 
 	@Override
@@ -2491,13 +2490,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean pExpire(String key, long millis) {
-		return pExpire(serialize(key), millis);
+	public Boolean pExpire(String key, long millis, ExpirationOptions.Condition condition) {
+		return pExpire(serialize(key), millis, condition);
 	}
 
 	@Override
-	public Boolean pExpireAt(String key, long unixTimeInMillis) {
-		return pExpireAt(serialize(key), unixTimeInMillis);
+	public Boolean pExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
+		return pExpireAt(serialize(key), unixTimeInMillis, condition);
 	}
 
 	@Override
@@ -2581,29 +2580,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.hStrLen(key, field), Converters.identityConverter());
 	}
 
-	public @Nullable List<Long> applyExpiration(byte[] key,
+	public @Nullable List<Long> applyHashFieldExpiration(byte[] key,
 			org.springframework.data.redis.core.types.Expiration expiration,
-		FieldExpirationOptions options, byte[]... fields) {
-		return this.delegate.applyExpiration(key, expiration, options, fields);
+			ExpirationOptions options, byte[]... fields) {
+		return this.delegate.applyHashFieldExpiration(key, expiration, options, fields);
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields) {
 		return this.delegate.hExpire(key, seconds, condition, fields);
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields) {
 		return this.delegate.hpExpire(key, millis, condition, fields);
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields) {
 		return this.delegate.hExpireAt(key, unixTime, condition, fields);
 	}
 
 	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			byte[]... fields) {
 		return this.delegate.hpExpireAt(key, unixTimeInMillis, condition, fields);
 	}
@@ -2630,27 +2629,27 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	public @Nullable List<Long> applyExpiration(String key,
 			org.springframework.data.redis.core.types.Expiration expiration,
-		FieldExpirationOptions options, String... fields) {
-		return applyExpiration(serialize(key), expiration, options, serializeMulti(fields));
+			ExpirationOptions options, String... fields) {
+		return this.applyHashFieldExpiration(serialize(key), expiration, options, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hExpire(String key, long seconds, FieldExpirationOptions.Condition condition, String... fields) {
+	public List<Long> hExpire(String key, long seconds, ExpirationOptions.Condition condition, String... fields) {
 		return hExpire(serialize(key), seconds, condition, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hpExpire(String key, long millis, FieldExpirationOptions.Condition condition, String... fields) {
+	public List<Long> hpExpire(String key, long millis, ExpirationOptions.Condition condition, String... fields) {
 		return hpExpire(serialize(key), millis, condition, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hExpireAt(String key, long unixTime, FieldExpirationOptions.Condition condition, String... fields) {
+	public List<Long> hExpireAt(String key, long unixTime, ExpirationOptions.Condition condition, String... fields) {
 		return hExpireAt(serialize(key), unixTime, condition, serializeMulti(fields));
 	}
 
 	@Override
-	public List<Long> hpExpireAt(String key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	public List<Long> hpExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			String... fields) {
 		return hpExpireAt(serialize(key), unixTimeInMillis, condition, serializeMulti(fields));
 	}

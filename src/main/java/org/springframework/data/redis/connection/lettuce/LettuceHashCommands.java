@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
@@ -215,25 +215,25 @@ class LettuceHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields) {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hexpire, key, seconds, getExpireArgs(condition), fields)
 				.toList();
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields) {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hpexpire, key, millis, getExpireArgs(condition), fields)
 				.toList();
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields) {
 		return connection.invoke()
 				.fromMany(RedisHashAsyncCommands::hexpireat, key, unixTime, getExpireArgs(condition), fields).toList();
 	}
 
 	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			byte[]... fields) {
 		return connection.invoke()
 				.fromMany(RedisHashAsyncCommands::hpexpireat, key, unixTimeInMillis, getExpireArgs(condition), fields).toList();
@@ -314,13 +314,13 @@ class LettuceHashCommands implements RedisHashCommands {
 		return value.hasValue() ? Converters.entryOf(value.getKey(), value.getValue()) : null;
 	}
 
-	private ExpireArgs getExpireArgs(FieldExpirationOptions.Condition condition) {
+	private static ExpireArgs getExpireArgs(ExpirationOptions.Condition condition) {
 
 		return new ExpireArgs() {
 			@Override
 			public <K, V> void build(CommandArgs<K, V> args) {
 
-				if (ObjectUtils.nullSafeEquals(condition, FieldExpirationOptions.Condition.ALWAYS)) {
+				if (ObjectUtils.nullSafeEquals(condition, ExpirationOptions.Condition.ALWAYS)) {
 					return;
 				}
 

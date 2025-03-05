@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
@@ -32,6 +33,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -513,13 +515,35 @@ public interface ReactiveKeyCommands {
 	 */
 	class ExpireCommand extends KeyCommand {
 
-		private @Nullable Duration timeout;
+		private final Expiration expiration;
+		private final ExpirationOptions options;
 
-		private ExpireCommand(ByteBuffer key, @Nullable Duration timeout) {
+		private ExpireCommand(ByteBuffer key, Duration timeout) {
+			this(key, Expiration.from(timeout), ExpirationOptions.none());
+		}
+
+		private ExpireCommand(@Nullable ByteBuffer key, Expiration expiration, ExpirationOptions options) {
 
 			super(key);
 
-			this.timeout = timeout;
+			this.expiration = expiration;
+			this.options = options;
+		}
+
+		/**
+		 * Creates a new {@link ExpireCommand} given a {@link ByteBuffer key} and {@link Expiration}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @param expiration must not be {@literal null}.
+		 * @return a new {@link ExpireCommand} for {@link ByteBuffer key} and {@link Expiration}.
+		 * @since 3.5
+		 */
+		public static ExpireCommand expire(ByteBuffer key, Expiration expiration) {
+
+			Assert.notNull(key, "Key must not be null");
+			Assert.notNull(expiration, "Expiration must not be null");
+
+			return new ExpireCommand(key, expiration, ExpirationOptions.none());
 		}
 
 		/**
@@ -532,7 +556,7 @@ public interface ReactiveKeyCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new ExpireCommand(key, null);
+			return new ExpireCommand(key, Expiration.persistent(), ExpirationOptions.none());
 		}
 
 		/**
@@ -545,7 +569,21 @@ public interface ReactiveKeyCommands {
 
 			Assert.notNull(timeout, "Timeout must not be null");
 
-			return new ExpireCommand(getKey(), timeout);
+			return new ExpireCommand(getKey(), Expiration.from(timeout), options);
+		}
+
+		/**
+		 * Applies the {@literal timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link ExpireCommand} with {@literal timeout} applied.
+		 * @since 3.5
+		 */
+		public ExpireCommand expire(Duration timeout) {
+
+			Assert.notNull(timeout, "Timeout must not be null");
+
+			return new ExpireCommand(getKey(), Expiration.from(timeout), options);
 		}
 
 		/**
@@ -553,9 +591,49 @@ public interface ReactiveKeyCommands {
 		 */
 		@Nullable
 		public Duration getTimeout() {
-			return timeout;
+
+			if (expiration.isUnixTimestamp() || expiration.isPersistent()) {
+				return null;
+			}
+
+			return Duration.ofMillis(expiration.getExpirationTimeInMilliseconds());
 		}
+
+		/**
+		 * @param options additional options to be sent along with the command.
+		 * @return new instance of {@link ExpireCommand}.
+		 * @since 3.5
+		 */
+		public ExpireCommand withOptions(ExpirationOptions options) {
+			return new ExpireCommand(getKey(), getExpiration(), options);
+		}
+
+		public Expiration getExpiration() {
+			return expiration;
+		}
+
+		public ExpirationOptions getOptions() {
+			return options;
+		}
+
 	}
+
+	/**
+	 * Expire a {@link List} of {@literal field} after a given {@link Duration} of time, measured in milliseconds, has
+	 * passed.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return a {@link Flux} emitting the expiration results one by one, {@literal true} if the timeout was set or
+	 *         {@literal false} if the timeout was not set; for example, the key doesn't exist, or the operation was
+	 *         skipped because of the provided arguments.
+	 * @since 3.5
+	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 */
+	Flux<BooleanResponse<ExpireCommand>> applyExpiration(Publisher<ExpireCommand> commands);
 
 	/**
 	 * Set time to live for given {@code key} in seconds.
@@ -581,7 +659,9 @@ public interface ReactiveKeyCommands {
 	 *         result.
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 */
-	Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands);
+	default Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands) {
+		return applyExpiration(commands);
+	}
 
 	/**
 	 * Set time to live for given {@code key} in milliseconds.
@@ -607,7 +687,9 @@ public interface ReactiveKeyCommands {
 	 *         result.
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
-	Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands);
+	default Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands) {
+		return applyExpiration(commands);
+	}
 
 	/**
 	 * {@code EXPIREAT}/{@code PEXPIREAT} command parameters.
@@ -619,12 +701,18 @@ public interface ReactiveKeyCommands {
 	class ExpireAtCommand extends KeyCommand {
 
 		private @Nullable Instant expireAt;
+		private final ExpirationOptions options;
 
-		private ExpireAtCommand(ByteBuffer key, @Nullable Instant expireAt) {
+		private ExpireAtCommand(ByteBuffer key, Instant expireAt) {
+			this(key, expireAt, ExpirationOptions.none());
+		}
+
+		private ExpireAtCommand(@Nullable ByteBuffer key, Instant expireAt, ExpirationOptions options) {
 
 			super(key);
 
 			this.expireAt = expireAt;
+			this.options = options;
 		}
 
 		/**
@@ -654,12 +742,26 @@ public interface ReactiveKeyCommands {
 		}
 
 		/**
+		 * @param options additional options to be sent along with the command.
+		 * @return new instance of {@link ExpireAtCommand}.
+		 * @since 3.5
+		 */
+		public ExpireAtCommand withOptions(ExpirationOptions options) {
+			return new ExpireAtCommand(getKey(), getExpireAt(), options);
+		}
+
+		/**
 		 * @return can be {@literal null}.
 		 */
 		@Nullable
 		public Instant getExpireAt() {
 			return expireAt;
 		}
+
+		public ExpirationOptions getOptions() {
+			return options;
+		}
+
 	}
 
 	/**

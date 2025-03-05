@@ -151,6 +151,10 @@ public class ExpireChanges<K> {
 		public static final ExpiryChangeState OK = new ExpiryChangeState(1L);
 		public static final ExpiryChangeState EXPIRED = new ExpiryChangeState(2L);
 
+		static ExpiryChangeState of(boolean value) {
+			return value ? OK : CONDITION_NOT_MET;
+		}
+
 		static ExpiryChangeState of(Number value) {
 			return switch (value.intValue()) {
 				case -2 -> DOES_NOT_EXIST;

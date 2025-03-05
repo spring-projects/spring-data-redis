@@ -33,6 +33,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisKeyCommands;
@@ -46,6 +47,7 @@ import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.DefaultScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.script.ScriptExecutor;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.ObjectHashMapper;
@@ -709,6 +711,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				return connection.expireAt(rawKey, date.getTime() / 1000);
 			}
 		});
+	}
+
+	@Nullable
+	@Override
+	public ExpireChanges.ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options) {
+
+		byte[] rawKey = rawKey(key);
+		Boolean raw = doWithKeys(connection -> connection.applyExpiration(rawKey, expiration, options));
+
+		return raw != null ? ExpireChanges.ExpiryChangeState.of(raw) : null;
 	}
 
 	@Override

@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
@@ -291,13 +291,13 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
 		try {
-			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
 				return connection.getCluster().hexpire(key, seconds, fields);
 			}
 
@@ -308,13 +308,13 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
 		try {
-			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
 				return connection.getCluster().hpexpire(key, millis, fields);
 			}
 
@@ -325,13 +325,13 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	public List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields) {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
 		try {
 
-			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
 				return connection.getCluster().hexpireAt(key, unixTime, fields);
 			}
 
@@ -342,7 +342,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	public List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			byte[]... fields) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -350,7 +350,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 		try {
 
-			if (condition == FieldExpirationOptions.Condition.ALWAYS) {
+			if (condition == ExpirationOptions.Condition.ALWAYS) {
 				return connection.getCluster().hpexpireAt(key, unixTimeInMillis, fields);
 			}
 

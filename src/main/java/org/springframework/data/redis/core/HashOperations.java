@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.lang.Nullable;
@@ -258,7 +258,7 @@ public interface HashOperations<H, HK, HV> {
 	ExpireChanges<HK> expireAt(H key, Instant expireAt, Collection<HK> hashKeys);
 
 	/**
-	 * Apply the expiration for given {@code hashKeys} as a {@literal date} timestamp.
+	 * Apply the expiration for given {@code hashKeys}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
@@ -266,11 +266,15 @@ public interface HashOperations<H, HK, HV> {
 	 * @param hashKeys must not be {@literal null}.
 	 * @return changes to the hash fields. {@literal null} when used in pipeline / transaction.
 	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
-	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIRE</a>
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
+	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
+	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
+	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
+	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */
 	@Nullable
-	ExpireChanges<HK> expire(H key, Expiration expiration, FieldExpirationOptions options, Collection<HK> hashKeys);
+	ExpireChanges<HK> expire(H key, Expiration expiration, ExpirationOptions options, Collection<HK> hashKeys);
 
 	/**
 	 * Remove the expiration from given {@code hashKeys} .

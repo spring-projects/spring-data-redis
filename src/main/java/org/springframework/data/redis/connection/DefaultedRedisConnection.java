@@ -28,7 +28,6 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.Hash.FieldExpirationOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -162,7 +161,14 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default Boolean expire(byte[] key, long seconds) {
-		return keyCommands().expire(key, seconds);
+		return keyCommands().expire(key, seconds, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition) {
+		return keyCommands().expire(key, seconds, condition);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
@@ -204,21 +210,42 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default Boolean pExpire(byte[] key, long millis) {
-		return keyCommands().pExpire(key, millis);
+		return keyCommands().pExpire(key, millis, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition) {
+		return keyCommands().pExpire(key, millis, condition);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
 	default Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		return keyCommands().pExpireAt(key, unixTimeInMillis);
+		return keyCommands().pExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
+		return keyCommands().pExpireAt(key, unixTimeInMillis, condition);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
 	@Override
 	@Deprecated
 	default Boolean expireAt(byte[] key, long unixTime) {
-		return keyCommands().expireAt(key, unixTime);
+		return keyCommands().expireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
+	@Override
+	@Deprecated
+	default Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition) {
+		return keyCommands().expireAt(key, unixTime, condition);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#keyCommands()}. */
@@ -1483,13 +1510,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
-		return hashCommands().hExpire(key, seconds, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hashCommands().hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default List<Long> hExpire(byte[] key, long seconds, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	default List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields) {
 		return hashCommands().hExpire(key, seconds, condition, fields);
 	}
 
@@ -1497,13 +1524,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
-		return hashCommands().hpExpire(key, millis, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hashCommands().hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default List<Long> hpExpire(byte[] key, long millis, FieldExpirationOptions.Condition condition, byte[]... fields) {
+	default List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields) {
 		return hashCommands().hpExpire(key, millis, condition, fields);
 	}
 
@@ -1511,13 +1538,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
-		return hashCommands().hExpireAt(key, unixTime, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hashCommands().hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default List<Long> hExpireAt(byte[] key, long unixTime, FieldExpirationOptions.Condition condition,
+	default List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition,
 			byte[]... fields) {
 		return hashCommands().hExpireAt(key, unixTime, condition, fields);
 	}
@@ -1526,13 +1553,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
-		return hashCommands().hpExpireAt(key, unixTimeInMillis, FieldExpirationOptions.Condition.ALWAYS, fields);
+		return hashCommands().hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, FieldExpirationOptions.Condition condition,
+	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
 			byte[]... fields) {
 		return hashCommands().hpExpireAt(key, unixTimeInMillis, condition, fields);
 	}
@@ -1568,10 +1595,10 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default @Nullable List<Long> applyExpiration(byte[] key,
-			org.springframework.data.redis.core.types.Expiration expiration, FieldExpirationOptions options,
+	default @Nullable List<Long> applyHashFieldExpiration(byte[] key,
+			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options,
 			byte[]... fields) {
-		return hashCommands().applyExpiration(key, expiration, options, fields);
+		return hashCommands().applyHashFieldExpiration(key, expiration, options, fields);
 	}
 
 	// GEO COMMANDS

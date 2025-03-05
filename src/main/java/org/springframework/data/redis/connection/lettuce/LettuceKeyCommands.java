@@ -16,12 +16,14 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.CopyArgs;
+import io.lettuce.core.ExpireArgs;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.RestoreArgs;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SortArgs;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;
+import io.lettuce.core.protocol.CommandArgs;
 
 import java.time.Duration;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.ValueEncoding;
@@ -39,6 +42,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -192,35 +196,35 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean expire(byte[] key, long seconds) {
+	public Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(RedisKeyAsyncCommands::expire, key, seconds);
+		return connection.invoke().just(RedisKeyAsyncCommands::expire, key, seconds, getExpireArgs(condition));
 	}
 
 	@Override
-	public Boolean pExpire(byte[] key, long millis) {
+	public Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(RedisKeyAsyncCommands::pexpire, key, millis);
+		return connection.invoke().just(RedisKeyAsyncCommands::pexpire, key, millis, getExpireArgs(condition));
 	}
 
 	@Override
-	public Boolean expireAt(byte[] key, long unixTime) {
+	public Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(RedisKeyAsyncCommands::expireat, key, unixTime);
+		return connection.invoke().just(RedisKeyAsyncCommands::expireat, key, unixTime, getExpireArgs(condition));
 	}
 
 	@Override
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return connection.invoke().just(RedisKeyAsyncCommands::pexpireat, key, unixTimeInMillis);
+		return connection.invoke().just(RedisKeyAsyncCommands::pexpireat, key, unixTimeInMillis, getExpireArgs(condition));
 	}
 
 	@Override
@@ -336,5 +340,20 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisKeyAsyncCommands::objectRefcount, key);
+	}
+
+	private static ExpireArgs getExpireArgs(ExpirationOptions.Condition condition) {
+
+		return new ExpireArgs() {
+			@Override
+			public <K, V> void build(CommandArgs<K, V> args) {
+
+				if (ObjectUtils.nullSafeEquals(condition, ExpirationOptions.Condition.ALWAYS)) {
+					return;
+				}
+
+				args.add(condition.name());
+			}
+		};
 	}
 }

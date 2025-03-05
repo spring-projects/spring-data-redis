@@ -77,8 +77,8 @@ public enum RedisCommand {
 	EVALSHA("rw", 2), //
 	EXEC("rw", 0, 0), //
 	EXISTS("r", 1, 1), //
-	EXPIRE("rw", 2, 2), //
-	EXPIREAT("rw", 2, 2), //
+	EXPIRE("rw", 2), //
+	EXPIREAT("rw", 2), //
 	// -- F
 	FLUSHALL("w", 0, 0), //
 	FLUSHDB("w", 0, 0), //
@@ -142,8 +142,8 @@ public enum RedisCommand {
 	MULTI("rw", 0, 0), //
 	// -- P
 	PERSIST("rw", 1, 1), //
-	PEXPIRE("rw", 2, 2), //
-	PEXPIREAT("rw", 2, 2), //
+	PEXPIRE("rw", 2), //
+	PEXPIREAT("rw", 2), //
 	PING("r", 0, 0), //
 	PSETEX("w", 3), //
 	PSUBSCRIBE("r", 1), //

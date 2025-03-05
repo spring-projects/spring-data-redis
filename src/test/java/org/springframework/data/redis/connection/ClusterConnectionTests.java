@@ -119,7 +119,7 @@ public interface ClusterConnectionTests {
 	void expireAtShouldBeSetCorrectly();
 
 	// DATAREDIS-315
-	void expireShouldBeSetCorreclty();
+	void expireShouldBeSetCorrectly();
 
 	// DATAREDIS-315
 	void flushDbOnSingleNodeShouldFlushOnlyGivenNodesDb();
@@ -386,7 +386,7 @@ public interface ClusterConnectionTests {
 	void pExpireAtShouldBeSetCorrectly();
 
 	// DATAREDIS-315
-	void pExpireShouldBeSetCorreclty();
+	void pExpireShouldBeSetCorrectly();
 
 	// DATAREDIS-315
 	void pSetExShouldSetValueCorrectly();
