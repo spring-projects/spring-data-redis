@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -223,10 +224,24 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
+	public PendingMessages pending(K key, String group, Range<?> range, long count, Duration idle) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xPending(rawKey, group, range, count, idle));
+	}
+
+	@Override
 	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xPending(rawKey, consumer, range, count));
+	}
+
+	@Override
+	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration idle) {
+
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.xPending(rawKey, consumer, range, count, idle));
 	}
 
 	@Override
