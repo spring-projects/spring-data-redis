@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.ReactiveStreamCommands.PendingR
  * Unit tests for {@link ReactiveStreamCommands}.
  *
  * @author jinkshower
+ * @author Jeonggyu Choi
  */
 class ReactiveStreamCommandsUnitTests {
 
@@ -52,5 +53,15 @@ class ReactiveStreamCommandsUnitTests {
 		Range<?> range = Range.closed("0", "10");
 
 		assertThatIllegalArgumentException().isThrownBy(() -> command.range(range, -1L));
+	}
+
+	@Test // GH-2046
+	void pendingRecordsCommandIdleShouldThrowExceptionWhenIdleIsNull() {
+		ByteBuffer key = ByteBuffer.wrap("my-stream".getBytes());
+		String groupName = "my-group";
+
+		PendingRecordsCommand command = PendingRecordsCommand.pending(key, groupName);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> command.minIdleTime(null));
 	}
 }

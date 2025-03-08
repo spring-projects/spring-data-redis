@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Marcin Zielinski
  * @author John Blum
  * @author jinkshower
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 @NullUnmarked
@@ -351,6 +352,22 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	PendingMessages pending(@NonNull K key, @NonNull String group, @NonNull Range<?> range, long count);
 
 	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} within a
+	 * {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param group the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	PendingMessages pending(K key, String group, Range<?> range, long count, Duration minIdleTime);
+
+	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
 	 * {@link Consumer} within a {@literal consumer group}.
 	 *
@@ -363,6 +380,21 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @since 2.3
 	 */
 	PendingMessages pending(@NonNull K key, @NonNull Consumer consumer, @NonNull Range<?> range, long count);
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@link Consumer} within a {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration minIdleTime);
 
 	/**
 	 * Get the length of a stream.

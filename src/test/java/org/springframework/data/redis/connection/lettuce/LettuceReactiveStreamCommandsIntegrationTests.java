@@ -21,6 +21,7 @@ import io.lettuce.core.XReadArgs;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 
 import org.assertj.core.data.Offset;
@@ -45,6 +46,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Christoph Strobl
  * @author Tugdual Grall
  * @author Dengliming
+ * @author Jeonggyu Choi
  */
 @ParameterizedClass
 @EnabledOnCommand("XADD")
@@ -339,6 +341,156 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.as(StepVerifier::create).assertNext(it -> {
 
 					assertThat(it.size()).isZero();
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2046
+	void xPendingShouldLoadPendingMessagesForGroupAndIdle() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		Duration exceededIdle = Duration.of(1, ChronoUnit.MILLIS);
+
+		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", Range.open("-", "+"), 10L, exceededIdle)
+				.delaySubscription(Duration.ofMillis(100)).as(StepVerifier::create).assertNext(it -> {
+					assertThat(it.size()).isOne();
+					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
+					assertThat(it.get(0).getGroupName()).isEqualTo("my-group");
+					assertThat(it.get(0).getTotalDeliveryCount()).isOne();
+					assertThat(it.get(0).getIdAsString()).isNotNull();
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2046
+	void xPendingShouldLoadEmptyPendingMessagesForGroupAndIdleWhenDurationNotExceeded() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		Duration notExceededIdle = Duration.ofMinutes(10);
+
+		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", Range.open("-", "+"), 10L, notExceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
+				.as(StepVerifier::create).assertNext(it -> {
+					assertThat(it.isEmpty()).isTrue();
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2046
+	void xPendingShouldLoadPendingMessagesForGroupNameAndConsumerNameAndIdle() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		Duration exceededIdle = Duration.ofMillis(1);
+
+		connection.streamCommands()
+				.xPending(KEY_1_BBUFFER, "my-group", "my-consumer", Range.open("-", "+"), 10L, exceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
+				.as(StepVerifier::create).assertNext(it -> {
+					assertThat(it.size()).isOne();
+					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
+					assertThat(it.get(0).getGroupName()).isEqualTo("my-group");
+					assertThat(it.get(0).getTotalDeliveryCount()).isOne();
+					assertThat(it.get(0).getIdAsString()).isNotNull();
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2046
+	void xPendingShouldLoadEmptyPendingMessagesForGroupNameAndConsumerNameAndIdleWhenDurationNotExceeded() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		Duration notExceededIdle = Duration.ofMinutes(10);
+
+		connection.streamCommands()
+				.xPending(KEY_1_BBUFFER, "my-group", "my-consumer", Range.open("-", "+"), 10L, notExceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
+				.as(StepVerifier::create).assertNext(it -> {
+					assertThat(it.isEmpty()).isTrue();
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2046
+	void xPendingShouldLoadPendingMessageesForConsumerAndIdle() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		Duration exceededIdle = Duration.ofMillis(1);
+
+		connection.streamCommands()
+				.xPending(KEY_1_BBUFFER, Consumer.from("my-group", "my-consumer"), Range.open("-", "+"), 10L, exceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
+				.as(StepVerifier::create).assertNext(it -> {
+					assertThat(it.size()).isOne();
+					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
+					assertThat(it.get(0).getGroupName()).isEqualTo("my-group");
+					assertThat(it.get(0).getTotalDeliveryCount()).isOne();
+					assertThat(it.get(0).getIdAsString()).isNotNull();
+				}).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2046
+	void xPendingShouldLoadEmptyPendingMessagesForConsumerAndIdleWhenDurationNotExceeded() {
+
+		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
+		nativeCommands.xgroupCreate(XReadArgs.StreamOffset.from(KEY_1, initialMessage), "my-group");
+
+		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		Duration notExceededIdle = Duration.ofMinutes(10);
+
+		connection.streamCommands()
+				.xPending(KEY_1_BBUFFER, Consumer.from("my-group", "my-consumer"), Range.open("-", "+"), 10L, notExceededIdle)
+				.delaySubscription(Duration.ofMillis(100)).as(StepVerifier::create).assertNext(it -> {
+					assertThat(it.isEmpty()).isTrue();
 				}).verifyComplete();
 	}
 
