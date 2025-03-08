@@ -46,4 +46,11 @@ class RedisStreamCommandsUnitTests {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> XPendingOptions.range(range, -1L));
 	}
+
+	@Test // GH-2046
+	void xPendingOptionsIdleShouldThrowExceptionWhenIdleIsNull() {
+		XPendingOptions xPendingOptions = XPendingOptions.unbounded();
+
+		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.idle(null));
+	}
 }
