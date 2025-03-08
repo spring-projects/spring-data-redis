@@ -55,6 +55,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  *
  * @author dengliming
  * @author Mark Paluch
+ * @author Jeonggyu Choi
  * @since 2.3
  */
 class StreamConverters {
@@ -305,6 +306,9 @@ class StreamConverters {
 
 		if (options.hasConsumer()) {
 			xPendingParams.consumer(options.getConsumerName());
+		}
+		if (options.hasIdle()) {
+			xPendingParams.idle(options.getIdleMillis());
 		}
 
 		return xPendingParams;
