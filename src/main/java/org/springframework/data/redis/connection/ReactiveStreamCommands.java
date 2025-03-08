@@ -60,6 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Dengliming
  * @author Mark John Moreno
  * @author jinkshower
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 public interface ReactiveStreamCommands {
@@ -744,6 +745,27 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} within a
+	 * {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count,
+			Duration minIdleTime) {
+		return xPending(
+				Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count).minIdleTime(minIdleTime))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
 	 * {@link Consumer} within a {@literal consumer group}.
 	 *
@@ -757,6 +779,24 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@link Consumer} within a {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count,
+			Duration minIdleTime) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, minIdleTime);
 	}
 
 	/**
@@ -780,6 +820,27 @@ public interface ReactiveStreamCommands {
 	}
 
 	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@literal consumer} within a {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer} in given {@literal consumer group} or {@literal null}
+	 *         when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
+			Long count, Duration minIdleTime) {
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count)
+				.minIdleTime(minIdleTime))).next().map(CommandResponse::getOutput);
+	}
+
+	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions
 	 * options}.
 	 *
@@ -794,24 +855,26 @@ public interface ReactiveStreamCommands {
 	 * Value Object holding parameters for obtaining pending messages.
 	 *
 	 * @author Christoph Strobl
+	 * @author Jeonggyu Choi
 	 * @since 2.3
 	 */
 	class PendingRecordsCommand extends KeyCommand {
 
 		private final String groupName;
-		private final @Nullable String consumerName;
-		private final Range<?> range;
-		private final @Nullable Long count;
+		private final XPendingOptions options;
 
 		private PendingRecordsCommand(@Nullable ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
-				@Nullable Long count) {
+				@Nullable Long count, @Nullable Duration minIdleTime) {
+
+			this(key, groupName, XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(minIdleTime));
+		}
+
+		private PendingRecordsCommand(ByteBuffer key, String groupName, XPendingOptions options) {
 
 			super(key);
 
 			this.groupName = groupName;
-			this.consumerName = consumerName;
-			this.range = range;
-			this.count = count;
+			this.options = options;
 		}
 
 		/**
@@ -822,7 +885,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		static PendingRecordsCommand pending(ByteBuffer key, String groupName) {
-			return new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null);
+			return new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null, null);
 		}
 
 		/**
@@ -837,7 +900,7 @@ public interface ReactiveStreamCommands {
 			Assert.notNull(range, "Range must not be null");
 			Assert.isTrue(count > -1, "Count must not be negative");
 
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
+			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.range(range, count));
 		}
 
 		/**
@@ -847,7 +910,20 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		public PendingRecordsCommand consumer(String consumerName) {
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count);
+			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.unbounded().consumer(consumerName));
+		}
+
+		/**
+		 * Append given minimum idle time.
+		 *
+		 * @param minIdleTime must not be {@literal null}.
+		 * @return new instance of {@link PendingRecordsCommand}.
+		 */
+		public PendingRecordsCommand minIdleTime(Duration minIdleTime) {
+
+			Assert.notNull(minIdleTime, "Idle must not be null");
+
+			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.unbounded().minIdleTime(minIdleTime));
 		}
 
 		public String getGroupName() {
@@ -858,35 +934,50 @@ public interface ReactiveStreamCommands {
 		 * @return can be {@literal null}.
 		 */
 		public @Nullable String getConsumerName() {
-			return consumerName;
+			return options.getConsumerName();
 		}
 
 		/**
 		 * @return never {@literal null}.
 		 */
 		public Range<?> getRange() {
-			return range;
+			return options.getRange();
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
 		public @Nullable Long getCount() {
-			return count;
+			return options.getCount();
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Duration getMinIdleTime() {
+			return options.getMinIdleTime();
 		}
 
 		/**
 		 * @return {@literal true} if a consumer name is present.
 		 */
 		public boolean hasConsumer() {
-			return StringUtils.hasText(consumerName);
+			return StringUtils.hasText(options.getConsumerName());
 		}
 
 		/**
 		 * @return {@literal true} count is set.
 		 */
 		public boolean isLimited() {
-			return count != null;
+			return options.getCount() != null;
+		}
+
+		/**
+		 * @return {@literal true} if idle is set.
+		 */
+		public boolean hasIdle() {
+			return options.getMinIdleTime() != null;
 		}
 	}
 

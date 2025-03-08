@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
+import io.lettuce.core.XPendingArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.api.async.RedisStreamAsyncCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
@@ -52,6 +53,7 @@ import org.springframework.util.Assert;
  * @author Dejan Jankov
  * @author Dengliming
  * @author Mark John Moreno
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 @NullUnmarked
@@ -224,15 +226,17 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		io.lettuce.core.Limit limit = options.isLimited() ? io.lettuce.core.Limit.from(options.getCount())
 				: io.lettuce.core.Limit.unlimited();
 
+		XPendingArgs<byte[]> xPendingArgs = XPendingArgs.Builder.xpending(group, range, limit);
 		if (options.hasConsumer()) {
-
-			return connection.invoke()
-					.from(RedisStreamAsyncCommands::xpending, key,
-							io.lettuce.core.Consumer.from(group, LettuceConverters.toBytes(options.getConsumerName())), range, limit)
-					.get(it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it));
+			io.lettuce.core.Consumer<byte[]> consumer = io.lettuce.core.Consumer.from(group,
+					LettuceConverters.toBytes(options.getConsumerName()));
+			xPendingArgs.consumer(consumer);
+		}
+		if (options.hasIdle()) {
+			xPendingArgs.idle(options.getMinIdleTime());
 		}
 
-		return connection.invoke().from(RedisStreamAsyncCommands::xpending, key, group, range, limit)
+		return connection.invoke().from(RedisStreamAsyncCommands::xpending, key, xPendingArgs)
 				.get(it -> StreamConverters.toPendingMessages(groupName, options.getRange(), it));
 	}
 
