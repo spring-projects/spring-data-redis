@@ -53,4 +53,14 @@ class ReactiveStreamCommandsUnitTests {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> command.range(range, -1L));
 	}
+
+	@Test // GH-2049
+	void pendingRecordsCommandIdleShouldThrowExceptionWhenIdleIsNull() {
+		ByteBuffer key = ByteBuffer.wrap("my-stream".getBytes());
+		String groupName = "my-group";
+
+		PendingRecordsCommand command = PendingRecordsCommand.pending(key, groupName);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> command.idle(null));
+	}
 }
