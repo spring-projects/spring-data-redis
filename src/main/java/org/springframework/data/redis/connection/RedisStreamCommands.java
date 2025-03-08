@@ -922,11 +922,17 @@ public interface RedisStreamCommands {
 			return consumerName;
 		}
 
+		/**
+		 * @return can be {@literal null}.
+		 */
 		@Nullable
 		public Duration getIdle() {
 			return idle;
 		}
 
+		/**
+		 * @return can be {@literal null}.
+		 */
 		@Nullable
 		public Long getIdleMillis() {
 			if (idle == null) {

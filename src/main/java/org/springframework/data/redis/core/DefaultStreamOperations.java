@@ -57,6 +57,7 @@ import org.springframework.util.ClassUtils;
  * @author Marcin Zielinski
  * @author John Blum
  * @author jinkshower
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> implements StreamOperations<K, HK, HV> {

@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Marcin Zielinski
  * @author John Blum
  * @author jinkshower
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
