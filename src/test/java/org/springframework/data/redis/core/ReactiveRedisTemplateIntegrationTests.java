@@ -24,10 +24,7 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -543,5 +540,25 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				}) //
 				.thenCancel() //
 				.verify(Duration.ofSeconds(3));
+	}
+
+	@ParameterizedRedisTest
+	void countExistingKeysIfValidKeyExists() {
+
+		K key = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		K key3 = keyFactory.instance();
+
+		redisTemplate.opsForValue().set(key, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key2, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
+		redisTemplate.opsForValue().set(key3, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.countExistingKeys(Arrays.asList(key, key2, key3)).as(StepVerifier::create).expectNext(3L).verifyComplete();
+	}
+
+	@ParameterizedRedisTest
+	void countExistingKeysIfNotValidKeyExists() {
+		K key = keyFactory.instance();
+		redisTemplate.countExistingKeys(List.of(key)).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 }
