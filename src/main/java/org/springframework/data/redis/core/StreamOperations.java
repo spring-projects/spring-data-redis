@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Marcin Zielinski
  * @author John Blum
  * @author jinkshower
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
@@ -376,6 +377,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 */
 	PendingMessages pending(K key, String group, Range<?> range, long count);
 
+	PendingMessages pending(K key, String group, Range<?> range, long count, Duration idle);
+
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
 	 * {@link Consumer} within a {@literal consumer group}.
@@ -389,6 +392,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @since 2.3
 	 */
 	PendingMessages pending(K key, Consumer consumer, Range<?> range, long count);
+
+	PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration idle);
 
 	/**
 	 * Get the length of a stream.

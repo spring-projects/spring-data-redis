@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Tugdual Grall
  * @author Dengliming
  * @author Mark John Moreno
+ * @author Jeonggyu Choi
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
  * @since 2.2
  */
@@ -707,6 +708,25 @@ public interface RedisStreamCommands {
 	}
 
 	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} within a
+	 * {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count, Duration idle) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).idle(idle));
+	}
+
+	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
 	 * {@link Consumer} within a {@literal consumer group}.
 	 *
@@ -721,6 +741,24 @@ public interface RedisStreamCommands {
 	@Nullable
 	default PendingMessages xPending(byte[] key, Consumer consumer, Range<?> range, Long count) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@link Consumer} within a {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, Consumer consumer, Range<?> range, Long count, Duration idle) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, idle);
 	}
 
 	/**
@@ -743,6 +781,27 @@ public interface RedisStreamCommands {
 	}
 
 	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
+	 * {@literal consumer} within a {@literal consumer group} and over a given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer} in given {@literal consumer group} or {@literal null}
+	 *         when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 3.5
+	 */
+	@Nullable
+	default PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count,
+			Duration idle) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).consumer(consumerName).idle(idle));
+	}
+
+	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions
 	 * options}.
 	 *
@@ -761,6 +820,7 @@ public interface RedisStreamCommands {
 	 * Value Object holding parameters for obtaining pending messages.
 	 *
 	 * @author Christoph Strobl
+	 * @author Jeonggyu Choi
 	 * @since 2.3
 	 */
 	class XPendingOptions {
@@ -768,12 +828,15 @@ public interface RedisStreamCommands {
 		private final @Nullable String consumerName;
 		private final Range<?> range;
 		private final @Nullable Long count;
+		private final @Nullable Duration idle;
 
-		private XPendingOptions(@Nullable String consumerName, Range<?> range, @Nullable Long count) {
+		private XPendingOptions(@Nullable String consumerName, Range<?> range, @Nullable Long count,
+				@Nullable Duration idle) {
 
 			this.range = range;
 			this.count = count;
 			this.consumerName = consumerName;
+			this.idle = idle;
 		}
 
 		/**
@@ -782,7 +845,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public static XPendingOptions unbounded() {
-			return new XPendingOptions(null, Range.unbounded(), null);
+			return new XPendingOptions(null, Range.unbounded(), null, null);
 		}
 
 		/**
@@ -795,7 +858,7 @@ public interface RedisStreamCommands {
 
 			Assert.isTrue(count > -1, "Count must not be negative");
 
-			return new XPendingOptions(null, Range.unbounded(), count);
+			return new XPendingOptions(null, Range.unbounded(), count, null);
 		}
 
 		/**
@@ -810,7 +873,7 @@ public interface RedisStreamCommands {
 			Assert.notNull(range, "Range must not be null");
 			Assert.isTrue(count > -1, "Count must not be negative");
 
-			return new XPendingOptions(null, range, count);
+			return new XPendingOptions(null, range, count, null);
 		}
 
 		/**
@@ -820,7 +883,20 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public XPendingOptions consumer(String consumerName) {
-			return new XPendingOptions(consumerName, range, count);
+			return new XPendingOptions(consumerName, range, count, idle);
+		}
+
+		/**
+		 * Append given idle time.
+		 *
+		 * @param idle must not be {@literal null}.
+		 * @return new instance of {@link} XPendingOptions}.
+		 */
+		public XPendingOptions idle(Duration idle) {
+
+			Assert.notNull(idle, "Idle must not be null");
+
+			return new XPendingOptions(consumerName, range, count, idle);
 		}
 
 		/**
@@ -847,6 +923,26 @@ public interface RedisStreamCommands {
 		}
 
 		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Duration getIdle() {
+			return idle;
+		}
+
+		/**
+		 * @return can be {@literal null}.
+		 */
+		@Nullable
+		public Long getIdleMillis() {
+			if (idle == null) {
+				return null;
+			}
+
+			return idle.toMillis();
+		}
+
+		/**
 		 * @return {@literal true} if a consumer name is present.
 		 */
 		public boolean hasConsumer() {
@@ -858,6 +954,13 @@ public interface RedisStreamCommands {
 		 */
 		public boolean isLimited() {
 			return count != null;
+		}
+
+		/**
+		 * @return {@literal true} if idle time is set.
+		 */
+		public boolean hasIdle() {
+			return idle != null;
 		}
 	}
 
