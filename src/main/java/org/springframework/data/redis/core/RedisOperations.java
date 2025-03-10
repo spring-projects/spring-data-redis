@@ -375,7 +375,7 @@ public interface RedisOperations<K, V> {
 	 * @param expiration must not be {@literal null}.
 	 * @param options must not be {@literal null}.
 	 * @return changes to the expiry. {@literal null} when used in pipeline / transaction.
-	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
+	 * @throws IllegalArgumentException any of the required arguments is {@literal null}.
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
