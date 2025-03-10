@@ -46,8 +46,8 @@ public class ExpirationOptions {
 	/**
 	 * @return builder for creating {@code FieldExpireOptionsBuilder}.
 	 */
-	public static FieldExpireOptionsBuilder builder() {
-		return new FieldExpireOptionsBuilder();
+	public static ExpirationOptionsBuilder builder() {
+		return new ExpirationOptionsBuilder();
 	}
 
 	public Condition getCondition() {
@@ -74,32 +74,44 @@ public class ExpirationOptions {
 	/**
 	 * Builder to build {@link ExpirationOptions}
 	 */
-	public static class FieldExpireOptionsBuilder {
+	public static class ExpirationOptionsBuilder {
 
 		private Condition condition = Condition.ALWAYS;
 
-		private FieldExpireOptionsBuilder() {}
+		private ExpirationOptionsBuilder() {}
 
+		/**
+		 * Apply to fields that have no expiration.
+		 */
 		@Contract("-> this")
-		public FieldExpireOptionsBuilder nx() {
+		public ExpirationOptionsBuilder nx() {
 			this.condition = Condition.NX;
 			return this;
 		}
 
+		/**
+		 * Apply to fields that have an existing expiration.
+		 */
 		@Contract("-> this")
-		public FieldExpireOptionsBuilder xx() {
+		public ExpirationOptionsBuilder xx() {
 			this.condition = Condition.XX;
 			return this;
 		}
 
+		/**
+		 * Apply to fields when the new expiration is greater than the current one.
+		 */
 		@Contract("-> this")
-		public FieldExpireOptionsBuilder gt() {
+		public ExpirationOptionsBuilder gt() {
 			this.condition = Condition.GT;
 			return this;
 		}
 
+		/**
+		 * Apply to fields when the new expiration is lower than the current one.
+		 */
 		@Contract("-> this")
-		public FieldExpireOptionsBuilder lt() {
+		public ExpirationOptionsBuilder lt() {
 			this.condition = Condition.LT;
 			return this;
 		}

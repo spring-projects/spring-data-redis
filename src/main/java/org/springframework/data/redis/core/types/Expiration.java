@@ -16,7 +16,6 @@
 package org.springframework.data.redis.core.types;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.TimeoutUtils;

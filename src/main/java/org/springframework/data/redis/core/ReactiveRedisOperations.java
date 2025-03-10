@@ -382,7 +382,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param expiration must not be {@literal null}.
 	 * @param options must not be {@literal null}.
-	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
+	 * @throws IllegalArgumentException any of required arguments is {@literal null}.
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
