@@ -232,7 +232,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 					LettuceConverters.toBytes(options.getConsumerName()));
 			xPendingArgs.consumer(consumer);
 		}
-		if (options.hasIdle()) {
+		if (options.hasMinIdleTime()) {
 			xPendingArgs.idle(options.getMinIdleTime());
 		}
 

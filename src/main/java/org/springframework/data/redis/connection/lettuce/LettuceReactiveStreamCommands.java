@@ -246,7 +246,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 						ByteUtils.getByteBuffer(command.getConsumerName()));
 				xPendingArgs.consumer(consumer);
 			}
-			if (command.hasIdle()) {
+			if (command.hasMinIdleTime()) {
 				xPendingArgs.idle(command.getMinIdleTime());
 			}
 
@@ -344,7 +344,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getGroupName(), "Command.getGroupName() must not be null");
-			
+
 			ByteBuffer groupName = ByteUtils.getByteBuffer(command.getGroupName());
 			return new CommandResponse<>(command, cmd.xinfoConsumers(command.getKey(), groupName)
 					.map(it -> new XInfoConsumer(command.getGroupName(), (List<Object>) it)));

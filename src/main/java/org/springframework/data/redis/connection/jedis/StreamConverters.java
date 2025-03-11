@@ -313,8 +313,8 @@ class StreamConverters {
 		if (options.hasConsumer()) {
 			xPendingParams.consumer(options.getConsumerName());
 		}
-		if (options.hasIdle()) {
-			xPendingParams.idle(options.getIdleMillis());
+		if (options.hasMinIdleTime()) {
+			xPendingParams.idle(options.getMinIdleTimeMillis());
 		}
 
 		return xPendingParams;

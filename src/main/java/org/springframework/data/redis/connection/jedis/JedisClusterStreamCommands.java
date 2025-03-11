@@ -284,8 +284,8 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 				pendingParams = pendingParams.consumer(consumerName);
 			}
 
-			if (options.hasIdle()) {
-				pendingParams = pendingParams.idle(options.getIdleMillis());
+			if (options.hasMinIdleTime()) {
+				pendingParams = pendingParams.idle(options.getMinIdleTimeMillis());
 			}
 
 			List<Object> response = connection.getCluster().xpending(key, group, pendingParams);

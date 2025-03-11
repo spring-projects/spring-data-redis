@@ -708,8 +708,8 @@ public interface RedisStreamCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count, Duration minIdleTime) {
-		return xPending(key, groupName, XPendingOptions.range(range, count).minIdleTime(minIdleTime));
+	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count, Duration idle) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).minIdleTime(idle));
 	}
 
 	/**
@@ -783,9 +783,8 @@ public interface RedisStreamCommands {
 	 */
 	@Nullable
 	default PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count,
-			Duration minIdleTime) {
-		return xPending(key, groupName,
-				XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(minIdleTime));
+			Duration idle) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(idle));
 	}
 
 	/**
@@ -889,6 +888,10 @@ public interface RedisStreamCommands {
 			return new XPendingOptions(consumerName, range, count, minIdleTime);
 		}
 
+		XPendingOptions withRange(Range<?> range, Long count) {
+			return new XPendingOptions(consumerName, range, count, minIdleTime);
+		}
+
 		/**
 		 * @return never {@literal null}.
 		 */
@@ -922,7 +925,7 @@ public interface RedisStreamCommands {
 		 * @return can be {@literal null}.
 		 */
 		@Nullable
-		public Long getIdleMillis() {
+		public Long getMinIdleTimeMillis() {
 			if (minIdleTime == null) {
 				return null;
 			}
@@ -947,7 +950,7 @@ public interface RedisStreamCommands {
 		/**
 		 * @return {@literal true} if idle time is set.
 		 */
-		public boolean hasIdle() {
+		public boolean hasMinIdleTime() {
 			return minIdleTime != null;
 		}
 	}

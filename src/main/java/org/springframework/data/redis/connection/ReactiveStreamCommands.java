@@ -49,7 +49,6 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Stream-specific Redis commands executed using reactive infrastructure.
@@ -885,7 +884,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		static PendingRecordsCommand pending(ByteBuffer key, String groupName) {
-			return new PendingRecordsCommand(key, groupName, null, Range.unbounded(), null, null);
+			return new PendingRecordsCommand(key, groupName, XPendingOptions.unbounded());
 		}
 
 		/**
@@ -900,7 +899,7 @@ public interface ReactiveStreamCommands {
 			Assert.notNull(range, "Range must not be null");
 			Assert.isTrue(count > -1, "Count must not be negative");
 
-			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.range(range, count));
+            return new PendingRecordsCommand(getKey(), groupName, options.withRange(range, count));
 		}
 
 		/**
@@ -910,7 +909,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		public PendingRecordsCommand consumer(String consumerName) {
-			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.unbounded().consumer(consumerName));
+            return new PendingRecordsCommand(getKey(), groupName, options.consumer(consumerName));
 		}
 
 		/**
@@ -918,12 +917,13 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @param minIdleTime must not be {@literal null}.
 		 * @return new instance of {@link PendingRecordsCommand}.
+		 * @since 3.5
 		 */
 		public PendingRecordsCommand minIdleTime(Duration minIdleTime) {
 
 			Assert.notNull(minIdleTime, "Idle must not be null");
 
-			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.unbounded().minIdleTime(minIdleTime));
+			return new PendingRecordsCommand(getKey(), groupName, options.minIdleTime(minIdleTime));
 		}
 
 		public String getGroupName() {
@@ -963,21 +963,21 @@ public interface ReactiveStreamCommands {
 		 * @return {@literal true} if a consumer name is present.
 		 */
 		public boolean hasConsumer() {
-			return StringUtils.hasText(options.getConsumerName());
+			return options.hasConsumer();
 		}
 
 		/**
 		 * @return {@literal true} count is set.
 		 */
 		public boolean isLimited() {
-			return options.getCount() != null;
+			return options.isLimited();
 		}
 
 		/**
 		 * @return {@literal true} if idle is set.
 		 */
-		public boolean hasIdle() {
-			return options.getMinIdleTime() != null;
+		public boolean hasMinIdleTime() {
+			return options.hasMinIdleTime();
 		}
 	}
 
