@@ -798,7 +798,8 @@ public interface RedisStreamCommands {
 	@Nullable
 	default PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count,
 			Duration minIdleTime) {
-		return xPending(key, groupName, XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(minIdleTime));
+		return xPending(key, groupName,
+				XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(minIdleTime));
 	}
 
 	/**

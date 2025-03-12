@@ -762,8 +762,10 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count, Duration minIdleTime) {
-		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count).minIdleTime(minIdleTime))).next()
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count,
+			Duration minIdleTime) {
+		return xPending(
+				Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count).minIdleTime(minIdleTime))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -796,7 +798,8 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count, Duration minIdleTime) {
+	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count,
+			Duration minIdleTime) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, minIdleTime);
 	}
 
@@ -837,9 +840,8 @@ public interface ReactiveStreamCommands {
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
 			Long count, Duration minIdleTime) {
-		return xPending(
-				Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count).minIdleTime(minIdleTime)))
-				.next().map(CommandResponse::getOutput);
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count)
+				.minIdleTime(minIdleTime))).next().map(CommandResponse::getOutput);
 	}
 
 	/**

@@ -487,8 +487,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 
 		connection.streamCommands()
 				.xPending(KEY_1_BBUFFER, Consumer.from("my-group", "my-consumer"), Range.open("-", "+"), 10L, notExceededIdle)
-				.delaySubscription(Duration.ofMillis(100))
-				.as(StepVerifier::create).assertNext(it -> {
+				.delaySubscription(Duration.ofMillis(100)).as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.isEmpty()).isTrue();
 				}).verifyComplete();
 	}
