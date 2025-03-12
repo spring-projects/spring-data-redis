@@ -863,21 +863,20 @@ public interface ReactiveStreamCommands {
 	class PendingRecordsCommand extends KeyCommand {
 
 		private final String groupName;
-		private final @Nullable String consumerName;
-		private final Range<?> range;
-		private final @Nullable Long count;
-		private final @Nullable Duration minIdleTime;
+		private final XPendingOptions options;
 
 		private PendingRecordsCommand(ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
 				@Nullable Long count, @Nullable Duration minIdleTime) {
 
+			this(key, groupName, XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(minIdleTime));
+		}
+
+		private PendingRecordsCommand(ByteBuffer key, String groupName, XPendingOptions options) {
+
 			super(key);
 
 			this.groupName = groupName;
-			this.consumerName = consumerName;
-			this.range = range;
-			this.count = count;
-			this.minIdleTime = minIdleTime;
+			this.options = options;
 		}
 
 		/**
@@ -903,7 +902,7 @@ public interface ReactiveStreamCommands {
 			Assert.notNull(range, "Range must not be null");
 			Assert.isTrue(count > -1, "Count must not be negative");
 
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, null);
+			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.range(range, count));
 		}
 
 		/**
@@ -913,7 +912,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		public PendingRecordsCommand consumer(String consumerName) {
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, minIdleTime);
+			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.unbounded().consumer(consumerName));
 		}
 
 		/**
@@ -926,7 +925,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(minIdleTime, "Idle must not be null");
 
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, minIdleTime);
+			return new PendingRecordsCommand(getKey(), groupName, XPendingOptions.unbounded().minIdleTime(minIdleTime));
 		}
 
 		public String getGroupName() {
@@ -938,14 +937,14 @@ public interface ReactiveStreamCommands {
 		 */
 		@Nullable
 		public String getConsumerName() {
-			return consumerName;
+			return options.getConsumerName();
 		}
 
 		/**
 		 * @return never {@literal null}.
 		 */
 		public Range<?> getRange() {
-			return range;
+			return options.getRange();
 		}
 
 		/**
@@ -953,7 +952,7 @@ public interface ReactiveStreamCommands {
 		 */
 		@Nullable
 		public Long getCount() {
-			return count;
+			return options.getCount();
 		}
 
 		/**
@@ -961,28 +960,28 @@ public interface ReactiveStreamCommands {
 		 */
 		@Nullable
 		public Duration getMinIdleTime() {
-			return minIdleTime;
+			return options.getMinIdleTime();
 		}
 
 		/**
 		 * @return {@literal true} if a consumer name is present.
 		 */
 		public boolean hasConsumer() {
-			return StringUtils.hasText(consumerName);
+			return StringUtils.hasText(options.getConsumerName());
 		}
 
 		/**
 		 * @return {@literal true} count is set.
 		 */
 		public boolean isLimited() {
-			return count != null;
+			return options.getCount() != null;
 		}
 
 		/**
 		 * @return {@literal true} if idle is set.
 		 */
 		public boolean hasIdle() {
-			return minIdleTime != null;
+			return options.getMinIdleTime() != null;
 		}
 	}
 
