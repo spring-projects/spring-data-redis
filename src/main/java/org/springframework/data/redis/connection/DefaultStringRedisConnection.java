@@ -2971,8 +2971,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	@Override
 	public PendingMessages xPending(String key, String groupName, String consumerName,
-			org.springframework.data.domain.Range<String> range, Long count, Duration idle) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumerName, range, count, idle),
+			org.springframework.data.domain.Range<String> range, Long count, Duration minIdleTime) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumerName, range, count, minIdleTime),
 				Converters.identityConverter());
 	}
 
@@ -2984,8 +2984,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	@Override
 	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
-			Long count, Duration idle) {
-		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count, idle),
+			Long count, Duration minIdleTime) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count, minIdleTime),
 				Converters.identityConverter());
 	}
 

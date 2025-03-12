@@ -385,13 +385,13 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param group the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	PendingMessages pending(K key, String group, Range<?> range, long count, Duration idle);
+	PendingMessages pending(K key, String group, Range<?> range, long count, Duration minIdleTime);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
@@ -415,12 +415,12 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration idle);
+	PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration minIdleTime);
 
 	/**
 	 * Get the length of a stream.

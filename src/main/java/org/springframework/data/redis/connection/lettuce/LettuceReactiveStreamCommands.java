@@ -244,7 +244,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 				xPendingArgs.consumer(consumer);
 			}
 			if (command.hasIdle()) {
-				xPendingArgs.idle(command.getIdle());
+				xPendingArgs.idle(command.getMinIdleTime());
 			}
 
 			Flux<PendingMessage> publisher = cmd.xpending(command.getKey(), xPendingArgs);

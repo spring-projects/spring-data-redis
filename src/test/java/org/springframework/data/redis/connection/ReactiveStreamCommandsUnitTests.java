@@ -62,6 +62,6 @@ class ReactiveStreamCommandsUnitTests {
 
 		PendingRecordsCommand command = PendingRecordsCommand.pending(key, groupName);
 
-		assertThatIllegalArgumentException().isThrownBy(() -> command.idle(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> command.minIdleTime(null));
 	}
 }

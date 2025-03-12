@@ -18,7 +18,7 @@ class StreamConvertersUnitTest {
 
 	@Test // GH-2046
 	void shouldConvertIdle() throws NoSuchFieldException, IllegalAccessException {
-		XPendingOptions options = XPendingOptions.unbounded(5L).idle(Duration.of(1, ChronoUnit.HOURS));
+		XPendingOptions options = XPendingOptions.unbounded(5L).minIdleTime(Duration.of(1, ChronoUnit.HOURS));
 
 		XPendingParams xPendingParams = StreamConverters.toXPendingParams(options);
 

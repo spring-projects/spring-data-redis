@@ -756,14 +756,14 @@ public interface ReactiveStreamCommands {
 	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count, Duration idle) {
-		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count).idle(idle))).next()
+	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, Range<?> range, Long count, Duration minIdleTime) {
+		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).range(range, count).minIdleTime(minIdleTime))).next()
 				.map(CommandResponse::getOutput);
 	}
 
@@ -791,13 +791,13 @@ public interface ReactiveStreamCommands {
 	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count, Duration idle) {
-		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, idle);
+	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer, Range<?> range, Long count, Duration minIdleTime) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, minIdleTime);
 	}
 
 	/**
@@ -829,16 +829,16 @@ public interface ReactiveStreamCommands {
 	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer} in given {@literal consumer group} or {@literal null}
 	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName, Range<?> range,
-			Long count, Duration idle) {
+			Long count, Duration minIdleTime) {
 		return xPending(
-				Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count).idle(idle)))
+				Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName).range(range, count).minIdleTime(minIdleTime)))
 				.next().map(CommandResponse::getOutput);
 	}
 
@@ -866,10 +866,10 @@ public interface ReactiveStreamCommands {
 		private final @Nullable String consumerName;
 		private final Range<?> range;
 		private final @Nullable Long count;
-		private final @Nullable Duration idle;
+		private final @Nullable Duration minIdleTime;
 
 		private PendingRecordsCommand(ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
-				@Nullable Long count, @Nullable Duration idle) {
+				@Nullable Long count, @Nullable Duration minIdleTime) {
 
 			super(key);
 
@@ -877,7 +877,7 @@ public interface ReactiveStreamCommands {
 			this.consumerName = consumerName;
 			this.range = range;
 			this.count = count;
-			this.idle = idle;
+			this.minIdleTime = minIdleTime;
 		}
 
 		/**
@@ -913,20 +913,20 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		public PendingRecordsCommand consumer(String consumerName) {
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, idle);
+			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, minIdleTime);
 		}
 
 		/**
-		 * Append given idle time.
+		 * Append given minimum idle time.
 		 *
-		 * @param idle must not be {@literal null}.
+		 * @param minIdleTime must not be {@literal null}.
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
-		public PendingRecordsCommand idle(Duration idle) {
+		public PendingRecordsCommand minIdleTime(Duration minIdleTime) {
 
-			Assert.notNull(idle, "Idle must not be null");
+			Assert.notNull(minIdleTime, "Idle must not be null");
 
-			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, idle);
+			return new PendingRecordsCommand(getKey(), groupName, consumerName, range, count, minIdleTime);
 		}
 
 		public String getGroupName() {
@@ -960,8 +960,8 @@ public interface ReactiveStreamCommands {
 		 * @return can be {@literal null}.
 		 */
 		@Nullable
-		public Duration getIdle() {
-			return idle;
+		public Duration getMinIdleTime() {
+			return minIdleTime;
 		}
 
 		/**
@@ -982,7 +982,7 @@ public interface ReactiveStreamCommands {
 		 * @return {@literal true} if idle is set.
 		 */
 		public boolean hasIdle() {
-			return idle != null;
+			return minIdleTime != null;
 		}
 	}
 

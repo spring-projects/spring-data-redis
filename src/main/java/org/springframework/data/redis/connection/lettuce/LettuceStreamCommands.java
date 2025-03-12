@@ -226,7 +226,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 			xPendingArgs.consumer(consumer);
 		}
 		if (options.hasIdle()) {
-			xPendingArgs.idle(options.getIdle());
+			xPendingArgs.idle(options.getMinIdleTime());
 		}
 
 		return connection.invoke().from(RedisStreamAsyncCommands::xpending, key, xPendingArgs)

@@ -225,10 +225,10 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public PendingMessages pending(K key, String group, Range<?> range, long count, Duration idle) {
+	public PendingMessages pending(K key, String group, Range<?> range, long count, Duration minIdleTime) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xPending(rawKey, group, range, count, idle));
+		return execute(connection -> connection.xPending(rawKey, group, range, count, minIdleTime));
 	}
 
 	@Override
@@ -239,10 +239,10 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration idle) {
+	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration minIdleTime) {
 
 		byte[] rawKey = rawKey(key);
-		return execute(connection -> connection.xPending(rawKey, consumer, range, count, idle));
+		return execute(connection -> connection.xPending(rawKey, consumer, range, count, minIdleTime));
 	}
 
 	@Override

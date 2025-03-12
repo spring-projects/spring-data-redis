@@ -52,6 +52,6 @@ class RedisStreamCommandsUnitTests {
 	void xPendingOptionsIdleShouldThrowExceptionWhenIdleIsNull() {
 		XPendingOptions xPendingOptions = XPendingOptions.unbounded();
 
-		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.idle(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.minIdleTime(null));
 	}
 }
