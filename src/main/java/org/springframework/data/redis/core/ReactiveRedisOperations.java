@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dahye Anne Lee
  * @since 2.0
  */
 public interface ReactiveRedisOperations<K, V> {
@@ -244,6 +245,16 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<Boolean> hasKey(K key);
 
 	/**
+	 * Get the number of given {@code keys} that exists.
+	 *
+	 * @param keys must not be {@literal null} or {@literal empty}.
+	 * @return the number of existing keys in redis. 0 if there are no existing keys.
+	 * @see <a href="https://redis.io/docs/commands/exists/">Redis Documentation: EXISTS</a>
+	 * @since 3.5
+	 */
+	Mono<Long> countExistingKeys(Collection<K> keys);
+
+	/**
 	 * Determine the type stored at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -421,15 +432,6 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 */
 	Mono<Duration> getExpire(K key);
-
-	/**
-	 * Get the number of given {@code keys} that exists.
-	 *
-	 * @param keys must not be {@literal null} or {@literal empty}.
-	 * @return the number of existing keys in redis. 0 if there are no existing keys.
-	 * @see <a href="https://redis.io/docs/commands/exists/">Redis Documentation: EXISTS</a>
-	 */
-	Mono<Long> countExistingKeys(Collection<K> keys);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Lua scripts

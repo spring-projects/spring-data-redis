@@ -22,6 +22,7 @@ import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -69,6 +70,7 @@ import org.springframework.util.ClassUtils;
  * @author Christoph Strobl
  * @author Petromir Dzhunev
  * @author John Blum
+ * @author Dahye Anne Lee
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @since 2.0
@@ -327,6 +329,14 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 	}
 
 	@Override
+	public Mono<Long> countExistingKeys(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		return doCreateMono(connection -> connection.keyCommands().exists(rawKeys(keys)));
+	}
+
+	@Override
 	public Mono<DataType> type(K key) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -504,14 +514,6 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 
 		return doCreateMono(connection -> connection.keyCommands().move(rawKey(key), dbIndex));
-	}
-
-	@Override
-	public Mono<Long> countExistingKeys(Collection<K> keys) {
-		Assert.notNull(keys, "Keys must not be null");
-
-		ByteBuffer[] rawKeys = rawKeys(keys);
-		return doCreateMono(connection -> connection.keyCommands().exists(Arrays.asList(rawKeys)));
 	}
 
 	// -------------------------------------------------------------------------
@@ -697,12 +699,12 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return getSerializationContext().getKeySerializationPair().getWriter().write(key);
 	}
 
-	private ByteBuffer[] rawKeys(Collection<K> keys) {
-		final ByteBuffer[] rawKeys = new ByteBuffer[keys.size()];
+	private List<ByteBuffer> rawKeys(Collection<K> keys) {
 
-		int i = 0;
+		List<ByteBuffer> rawKeys = new ArrayList<>(keys.size());
+
 		for (K key : keys) {
-			rawKeys[i++] = rawKey(key);
+			rawKeys.add(rawKey(key));
 		}
 
 		return rawKeys;

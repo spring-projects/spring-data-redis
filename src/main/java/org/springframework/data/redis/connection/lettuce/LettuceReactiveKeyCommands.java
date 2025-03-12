@@ -48,6 +48,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dahye Anne Lee
  * @since 2.0
  */
 class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
@@ -346,6 +347,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 	@Override
 	public Mono<Long> exists(List<ByteBuffer> keys) {
+
 		Assert.notNull(keys, "Key list must not be null");
 		Assert.notEmpty(keys, "Key list must not be empty");
 

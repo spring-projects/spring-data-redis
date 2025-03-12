@@ -50,6 +50,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Dahye Anne Lee
  */
 public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
 
@@ -70,8 +71,9 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 		connection.keyCommands().exists(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest
+	@ParameterizedRedisTest // GH-2883
 	void existsKeyReturnsKeyCount() {
+
 		nativeCommands.set(KEY_1, "1000");
 		nativeCommands.set(KEY_2, "2000");
 		nativeCommands.set(KEY_3, "3000");
@@ -80,8 +82,8 @@ public class LettuceReactiveKeyCommandsIntegrationTests extends LettuceReactiveC
 				.expectNext(3L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest
-	void existsKeyReturnsZeroWhenKeyDoesNotExist() {
+	@ParameterizedRedisTest // GH-2883
+	void existsKeyReturnsZeroWhenKeysDoNotExist() {
 		connection.keyCommands().exists(List.of(KEY_1_BBUFFER, KEY_2_BBUFFER, KEY_3_BBUFFER)).as(StepVerifier::create)
 				.expectNext(0L).verifyComplete();
 	}

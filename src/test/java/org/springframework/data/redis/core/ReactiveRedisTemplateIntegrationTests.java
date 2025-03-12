@@ -24,10 +24,16 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
@@ -60,6 +66,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Dahye Anne Lee
  */
 @MethodSource("testParams")
 public class ReactiveRedisTemplateIntegrationTests<K, V> {
@@ -125,6 +132,30 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 
 		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(true).verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2883
+	void countExistingKeysIfValidKeyExists() {
+
+		K key = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		K key3 = keyFactory.instance();
+
+		ReactiveValueOperations<K, V> ops = redisTemplate.opsForValue();
+
+		ops.set(key, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
+		ops.set(key2, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
+		ops.set(key3, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		redisTemplate.countExistingKeys(Arrays.asList(key, key2, key3)).as(StepVerifier::create).expectNext(3L)
+				.verifyComplete();
+	}
+
+	@ParameterizedRedisTest // GH-2883
+	void countExistingKeysIfNotValidKeyExists() {
+
+		K key = keyFactory.instance();
+		redisTemplate.countExistingKeys(List.of(key)).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-743
@@ -580,23 +611,4 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify(Duration.ofSeconds(3));
 	}
 
-	@ParameterizedRedisTest
-	void countExistingKeysIfValidKeyExists() {
-
-		K key = keyFactory.instance();
-		K key2 = keyFactory.instance();
-		K key3 = keyFactory.instance();
-
-		redisTemplate.opsForValue().set(key, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
-		redisTemplate.opsForValue().set(key2, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
-		redisTemplate.opsForValue().set(key3, valueFactory.instance()).as(StepVerifier::create).expectNext(true).verifyComplete();
-
-		redisTemplate.countExistingKeys(Arrays.asList(key, key2, key3)).as(StepVerifier::create).expectNext(3L).verifyComplete();
-	}
-
-	@ParameterizedRedisTest
-	void countExistingKeysIfNotValidKeyExists() {
-		K key = keyFactory.instance();
-		redisTemplate.countExistingKeys(List.of(key)).as(StepVerifier::create).expectNext(0L).verifyComplete();
-	}
 }
