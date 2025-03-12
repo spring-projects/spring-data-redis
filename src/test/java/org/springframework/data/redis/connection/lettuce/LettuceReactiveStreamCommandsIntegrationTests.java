@@ -358,7 +358,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		Duration exceededIdle = Duration.of(1, ChronoUnit.MILLIS);
 
 		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", Range.open("-", "+"), 10L, exceededIdle)
-				.as(StepVerifier::create).assertNext(it -> {
+				.delaySubscription(Duration.ofMillis(100)).as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.size()).isOne();
 					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
 					assertThat(it.get(0).getGroupName()).isEqualTo("my-group");
@@ -380,9 +380,11 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		Duration notExceededIdle = Duration.of(10, ChronoUnit.MINUTES);
+		Duration notExceededIdle = Duration.ofMinutes(10);
 
 		connection.streamCommands().xPending(KEY_1_BBUFFER, "my-group", Range.open("-", "+"), 10L, notExceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
 				.as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.isEmpty()).isTrue();
 				}).verifyComplete();
@@ -401,10 +403,12 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		Duration exceededIdle = Duration.of(1, ChronoUnit.MILLIS);
+		Duration exceededIdle = Duration.ofMillis(1);
 
 		connection.streamCommands()
 				.xPending(KEY_1_BBUFFER, "my-group", "my-consumer", Range.open("-", "+"), 10L, exceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
 				.as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.size()).isOne();
 					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
@@ -427,10 +431,12 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		Duration notExceededIdle = Duration.of(10, ChronoUnit.MINUTES);
+		Duration notExceededIdle = Duration.ofMinutes(10);
 
 		connection.streamCommands()
 				.xPending(KEY_1_BBUFFER, "my-group", "my-consumer", Range.open("-", "+"), 10L, notExceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
 				.as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.isEmpty()).isTrue();
 				}).verifyComplete();
@@ -449,10 +455,12 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		Duration exceededIdle = Duration.of(1, ChronoUnit.MILLIS);
+		Duration exceededIdle = Duration.ofMillis(1);
 
 		connection.streamCommands()
 				.xPending(KEY_1_BBUFFER, Consumer.from("my-group", "my-consumer"), Range.open("-", "+"), 10L, exceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
+
 				.as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.size()).isOne();
 					assertThat(it.get(0).getConsumerName()).isEqualTo("my-consumer");
@@ -475,10 +483,11 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
 				.then().as(StepVerifier::create).verifyComplete();
 
-		Duration notExceededIdle = Duration.of(10, ChronoUnit.MINUTES);
+		Duration notExceededIdle = Duration.ofMinutes(10);
 
 		connection.streamCommands()
 				.xPending(KEY_1_BBUFFER, Consumer.from("my-group", "my-consumer"), Range.open("-", "+"), 10L, notExceededIdle)
+				.delaySubscription(Duration.ofMillis(100))
 				.as(StepVerifier::create).assertNext(it -> {
 					assertThat(it.isEmpty()).isTrue();
 				}).verifyComplete();
