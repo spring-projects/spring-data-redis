@@ -883,6 +883,9 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XPendingOptions}.
 		 */
 		public XPendingOptions consumer(String consumerName) {
+
+			Assert.notNull(consumerName, "Consumer name must not be null");
+
 			return new XPendingOptions(consumerName, range, count, minIdleTime);
 		}
 
