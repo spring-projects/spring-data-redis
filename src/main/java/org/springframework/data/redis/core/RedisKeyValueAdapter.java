@@ -346,12 +346,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	@Override
-	public List<?> getAllOf(String keyspace) {
+	public List<Object> getAllOf(String keyspace) {
 		return getAllOf(keyspace, Object.class, -1, -1);
 	}
 
 	@Override
-	public <T> Iterable<T> getAllOf(String keyspace, Class<T> type) {
+	public <T> List<T> getAllOf(String keyspace, Class<T> type) {
 		return getAllOf(keyspace, type, -1, -1);
 	}
 
