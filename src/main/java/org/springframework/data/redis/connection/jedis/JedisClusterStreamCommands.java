@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Dengliming
+ * @author Jeonggyu Choi
  * @since 2.3
  */
 class JedisClusterStreamCommands implements RedisStreamCommands {
@@ -281,6 +282,10 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 			if (StringUtils.hasText(consumerName)) {
 				pendingParams = pendingParams.consumer(consumerName);
+			}
+
+			if (options.hasIdle()) {
+				pendingParams = pendingParams.idle(options.getIdleMillis());
 			}
 
 			List<Object> response = connection.getCluster().xpending(key, group, pendingParams);
