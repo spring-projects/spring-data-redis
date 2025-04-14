@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
 import java.io.IOException;
