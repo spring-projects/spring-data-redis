@@ -162,7 +162,7 @@ XML::
 ----
 ======
 
-NOTE: The listener topic can be either a channel (for example, `topic="chatroom"`) or a pattern (for example, `topic="*room"`)
+NOTE: The listener topic can be either a channel (for example, `topic="chatroom"`) or a pattern (for example, `topic="*room"`). For channels, you should use the `ChannelTopic` class, and for patterns, use the `PatternTopic` class.
 
 The preceding example uses the Redis namespace to declare the message listener container and automatically register the POJOs as listeners. The full-blown beans definition follows:
 
