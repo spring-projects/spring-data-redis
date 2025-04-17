@@ -23,12 +23,9 @@ import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -110,7 +107,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		container.receiveLater(ChannelTopic.of(CHANNEL1)) //
+		container.receiveLater(Topic.channel(CHANNEL1)) //
 				.doOnNext(it -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
 				.flatMapMany(Function.identity()) //
 				.as(StepVerifier::create) //
@@ -153,7 +150,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 			}
 		};
 
-		container.receive(Collections.singletonList(ChannelTopic.of(CHANNEL1)), listener) //
+		container.receive(Collections.singletonList(Topic.channel(CHANNEL1)), listener) //
 				.as(StepVerifier::create) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
 				.then(() -> doPublish(CHANNEL1.getBytes(), MESSAGE.getBytes())) //
@@ -220,7 +217,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 			}
 		};
 
-		container.receive(Collections.singletonList(PatternTopic.of(PATTERN1)), listener) //
+		container.receive(Collections.singletonList(Topic.pattern(PATTERN1)), listener) //
 				.cast(PatternMessage.class) //
 				.as(StepVerifier::create) //
 				.then(awaitSubscription(container::getActiveSubscriptions))
@@ -314,10 +311,10 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		ReactiveRedisMessageListenerContainer container = new ReactiveRedisMessageListenerContainer(connectionFactory);
 
-		Flux<? extends ReactiveSubscription.Message<String, String>> c1 = container.receiveLater(ChannelTopic.of(CHANNEL1))
+		Flux<? extends ReactiveSubscription.Message<String, String>> c1 = container.receiveLater(Topic.channel(CHANNEL1))
 				.block();
 		Flux<? extends ReactiveSubscription.Message<String, String>> c1p1 = container
-				.receiveLater(Arrays.asList(ChannelTopic.of(CHANNEL1), PatternTopic.of(PATTERN1)),
+				.receiveLater(Arrays.asList(Topic.channel(CHANNEL1), PatternTopic.of(PATTERN1)),
 						SerializationPair.fromSerializer(RedisSerializer.string()),
 						SerializationPair.fromSerializer(RedisSerializer.string()))
 				.block();

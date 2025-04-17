@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.data.redis.connection.DataType
 import org.springframework.data.redis.connection.ReactiveSubscription
 import org.springframework.data.redis.core.script.RedisScript
-import org.springframework.data.redis.listener.ChannelTopic
+import org.springframework.data.redis.listener.Topic
 import org.springframework.data.redis.serializer.RedisElementReader
 import org.springframework.data.redis.serializer.RedisElementWriter
 import reactor.core.publisher.Flux
@@ -167,8 +167,8 @@ class ReactiveRedisOperationsExtensionsUnitTests {
 	@Test // DATAREDIS-1033
 	fun listenTo() {
 
-		val topic1 = ChannelTopic.of("foo")
-		val topic2 = ChannelTopic.of("bar")
+		val topic1 = Topic.channel("foo")
+		val topic2 = Topic.channel("bar")
 		val message = ReactiveSubscription.ChannelMessage("a", "b")
 		val operations = mockk<ReactiveRedisOperations<String, String>>()
 		every { operations.listenTo(any(), any()) } returns Flux.just(message)
