@@ -38,6 +38,7 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
  * @author Christoph Strobl
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Junghoon Ban
  * @since 1.7
  */
 public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
@@ -73,6 +74,11 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 		super(keyValueOperations, queryCreator, repositoryQueryType);
 
 		this.operations = keyValueOperations;
+	}
+
+	@Override
+	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
+		return SimpleRedisRepository.class;
 	}
 
 	@Override
