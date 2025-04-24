@@ -23,6 +23,7 @@ import java.util.List;
  * Listener interface to receive delivery of {@link Record messages}.
  *
  * @author Mark Paluch
+ * @author Yongha Kwon
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
