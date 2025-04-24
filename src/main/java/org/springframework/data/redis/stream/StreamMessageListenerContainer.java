@@ -16,6 +16,7 @@
 package org.springframework.data.redis.stream;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
@@ -82,10 +83,10 @@ import org.springframework.util.ErrorHandler;
  * <p>
  * {@link StreamMessageListenerContainer} requires a {@link Executor} to fork long-running polling tasks on a different
  * {@link Thread}. This thread is used as event loop to poll for stream messages and invoke the
- * {@link StreamListener#onMessage(Record) listener callback}.
+ * {@link StreamListener#onMessage(List)}  listener callback}.
  * <p>
  * {@link StreamMessageListenerContainer} tasks propagate errors during stream reads and
- * {@link StreamListener#onMessage(Record) listener notification} to a configurable {@link ErrorHandler}. Errors stop a
+ * {@link StreamListener#onMessage(List)}  listener notification} to a configurable {@link ErrorHandler}. Errors stop a
  * {@link Subscription} by default. Configuring a {@link Predicate} for a {@link StreamReadRequest} allows conditional
  * subscription cancelling or continuing on all errors.
  * <p>

@@ -17,6 +17,8 @@ package org.springframework.data.redis.stream;
 
 import org.springframework.data.redis.connection.stream.Record;
 
+import java.util.List;
+
 /**
  * Listener interface to receive delivery of {@link Record messages}.
  *
@@ -33,5 +35,5 @@ public interface StreamListener<K, V extends Record<K, ?>> {
 	 *
 	 * @param message never {@literal null}.
 	 */
-	void onMessage(V message);
+	void onMessage(List<V> message);
 }
