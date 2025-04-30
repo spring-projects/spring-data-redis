@@ -637,6 +637,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return doWithKeys(connection -> connection.type(rawKey));
 	}
 
+	/**
+	 * Retrieve keys matching the given pattern via {@code KEYS} command.
+	 * <p>
+	 * Note: This command scans the entire keyspace and may cause performance issues
+	 * in production environments. Prefer using {@link #scan(ScanOptions)} for large datasets.
+	 *
+	 * @param pattern key pattern
+	 * @return set of matching keys
+	 * @see <a href="https://redis.io/commands/keys">Redis KEYS command</a>
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public Set<K> keys(K pattern) {
