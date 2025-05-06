@@ -260,11 +260,14 @@ public interface RedisOperations<K, V> {
 	DataType type(K key);
 
 	/**
-	 * Find all keys matching the given {@code pattern}.
+	 * Retrieve keys matching the given pattern via {@code KEYS} command.
+	 * <p>
+	 * Note: This command scans the entire keyspace and may cause performance issues
+	 * in production environments. Prefer using {@link #scan(ScanOptions)} for large datasets.
 	 *
-	 * @param pattern must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 * @param pattern key pattern
+	 * @return set of matching keys, or {@literal null} when used in pipeline / transaction
+	 * @see <a href="https://redis.io/commands/keys">Redis KEYS command</a>
 	 */
 	@Nullable
 	Set<K> keys(K pattern);
