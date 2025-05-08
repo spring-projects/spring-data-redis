@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author Kim Sumin
  */
 public interface ZSetOperations<K, V> {
 
@@ -1271,4 +1272,63 @@ public interface ZSetOperations<K, V> {
 	 * @return never {@literal null}.
 	 */
 	RedisOperations<K, V> getOperations();
+
+
+	/**
+	 * Get set of {@link TypedTuple}s where score is between the values defined by the
+	 * {@link Range} from sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @since 3.5 (or next version number)
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range) {
+		return rangeByScoreWithScores(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Get set of {@link TypedTuple}s where score is between the values defined by the
+	 * {@link Range} and limited by the {@link Limit} from sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
+	 * @since 3.5 (or next version number)
+	 */
+	@Nullable
+	Set<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit);
+
+	/**
+	 * Get set of {@link TypedTuple}s where score is between the values defined by the
+	 * {@link Range} from sorted set ordered from high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @since 3.5 (or next version number)
+	 */
+	@Nullable
+	default Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range) {
+		return reverseRangeByScoreWithScores(key, range, Limit.unlimited());
+	}
+
+	/**
+	 * Get set of {@link TypedTuple}s where score is between the values defined by the
+	 * {@link Range} and limited by the {@link Limit} from sorted set ordered from high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
+	 * @since 3.5 (or next version number)
+	 */
+	@Nullable
+	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit);
 }

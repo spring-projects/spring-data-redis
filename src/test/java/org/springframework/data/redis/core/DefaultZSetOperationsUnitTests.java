@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * Unit tests for {@link DefaultZSetOperations}.
  *
  * @author Christoph Strobl
+ * @author Kim Sumin
  */
 class DefaultZSetOperationsUnitTests {
 
@@ -68,5 +69,43 @@ class DefaultZSetOperationsUnitTests {
 		zSetOperations.addIfAbsent("key", Collections.singleton(TypedTuple.of("value", 1D)));
 
 		template.verify().zAdd(eq(template.serializeKey("key")), any(Set.class), eq(ZAddArgs.ifNotExists()));
+	}
+
+	@Test // GH-3139
+	void delegatesRangeByScoreWithScoresWithRange() {
+
+		Range<Double> range = Range.closed(1.0, 3.0);
+		zSetOperations.rangeByScoreWithScores("key", range);
+
+		template.verify().zRangeByScoreWithScores(eq(template.serializeKey("key")), eq(range));
+	}
+
+	@Test // GH-3139
+	void delegatesRangeByScoreWithScoresWithRangeAndLimit() {
+
+		Range<Double> range = Range.closed(1.0, 3.0);
+		org.springframework.data.redis.connection.Limit limit = org.springframework.data.redis.connection.Limit.limit().offset(1).count(2);
+		zSetOperations.rangeByScoreWithScores("key", range, limit);
+
+		template.verify().zRangeByScoreWithScores(eq(template.serializeKey("key")), eq(range), eq(limit));
+	}
+
+	@Test // GH-3139
+	void delegatesReverseRangeByScoreWithScoresWithRange() {
+
+		Range<Double> range = Range.closed(1.0, 3.0);
+		zSetOperations.reverseRangeByScoreWithScores("key", range);
+
+		template.verify().zRevRangeByScoreWithScores(eq(template.serializeKey("key")), eq(range));
+	}
+
+	@Test // GH-3139
+	void delegatesReverseRangeByScoreWithScoresWithRangeAndLimit() {
+
+		Range<Double> range = Range.closed(1.0, 3.0);
+		org.springframework.data.redis.connection.Limit limit = org.springframework.data.redis.connection.Limit.limit().offset(1).count(2);
+		zSetOperations.reverseRangeByScoreWithScores("key", range, limit);
+
+		template.verify().zRevRangeByScoreWithScores(eq(template.serializeKey("key")), eq(range), eq(limit));
 	}
 }

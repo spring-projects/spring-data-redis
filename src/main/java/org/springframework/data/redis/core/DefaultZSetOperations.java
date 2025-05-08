@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Kim Sumin
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -636,6 +637,48 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		Cursor<Tuple> cursor = template.executeWithStickyConnection(connection -> connection.zScan(rawKey, options));
 
 		return new ConvertingCursor<>(cursor, this::deserializeTuple);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		byte[] rawKey = rawKey(key);
+
+		return execute(connection -> {
+			Set<Tuple> result;
+
+			if (limit.isUnlimited()) {
+				result = connection.zRangeByScoreWithScores(rawKey, range);
+			} else {
+				result = connection.zRangeByScoreWithScores(rawKey, range, limit);
+			}
+
+			return deserializeTupleValues(result);
+		});
+	}
+
+	@Override
+	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		byte[] rawKey = rawKey(key);
+
+		return execute(connection -> {
+			Set<Tuple> result;
+
+			if (limit.isUnlimited()) {
+				result = connection.zRevRangeByScoreWithScores(rawKey, range);
+			} else {
+				result = connection.zRevRangeByScoreWithScores(rawKey, range, limit);
+			}
+
+			return deserializeTupleValues(result);
+		});
 	}
 
 	public Set<byte[]> rangeByScore(K key, String min, String max) {

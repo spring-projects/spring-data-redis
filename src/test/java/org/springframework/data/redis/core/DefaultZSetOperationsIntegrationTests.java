@@ -21,6 +21,7 @@ import static org.assertj.core.data.Offset.offset;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
+ * @author Kim Sumin
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -659,6 +661,102 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 				Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
+	}
+
+	@ParameterizedRedisTest // GH-3139
+	void testRangeByScoreWithScoresWithRange() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+
+		Range<Double> range = Range.of(Range.Bound.inclusive(1.5), Range.Bound.exclusive(5.0));
+
+		Set<TypedTuple<V>> results = zSetOps.rangeByScoreWithScores(key, range);
+
+		assertThat(results).hasSize(2)
+				.contains(new DefaultTypedTuple<>(value1, 1.9))
+				.contains(new DefaultTypedTuple<>(value2, 3.7));
+	}
+
+	@ParameterizedRedisTest // GH-3139
+	void testRangeByScoreWithScoresWithRangeAndLimit() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.0);
+		zSetOps.add(key, value2, 2.0);
+		zSetOps.add(key, value3, 3.0);
+		zSetOps.add(key, value4, 4.0);
+
+		Range<Double> range = Range.of(Range.Bound.unbounded(), Range.Bound.inclusive(4.0));
+		Limit limit = Limit.limit().offset(1).count(2);
+
+		Set<TypedTuple<V>> results = zSetOps.rangeByScoreWithScores(key, range, limit);
+
+		assertThat(results).hasSize(2)
+				.contains(new DefaultTypedTuple<>(value2, 2.0))
+				.contains(new DefaultTypedTuple<>(value3, 3.0));
+	}
+
+	@ParameterizedRedisTest // GH-3139
+	void testReverseRangeByScoreWithScoresWithRange() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+
+		Range<Double> range = Range.of(Range.Bound.inclusive(1.5), Range.Bound.exclusive(5.0));
+
+		Set<TypedTuple<V>> results = zSetOps.reverseRangeByScoreWithScores(key, range);
+
+		assertThat(results).hasSize(2)
+				.contains(new DefaultTypedTuple<>(value1, 1.9))
+				.contains(new DefaultTypedTuple<>(value2, 3.7));
+
+		assertThat(new ArrayList<>(results).get(0).getValue()).isEqualTo(value2);
+		assertThat(new ArrayList<>(results).get(1).getValue()).isEqualTo(value1);
+	}
+
+	@ParameterizedRedisTest // GH-3139
+	void testReverseRangeByScoreWithScoresWithRangeAndLimit() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		V value4 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.0);
+		zSetOps.add(key, value2, 2.0);
+		zSetOps.add(key, value3, 3.0);
+		zSetOps.add(key, value4, 4.0);
+
+		Range<Double> range = Range.of(Range.Bound.inclusive(1.0), Range.Bound.inclusive(4.0));
+		Limit limit = Limit.limit().offset(1).count(2);
+
+		Set<TypedTuple<V>> results = zSetOps.reverseRangeByScoreWithScores(key, range, limit);
+
+		assertThat(results).hasSize(2)
+				.contains(new DefaultTypedTuple<>(value2, 2.0))
+				.contains(new DefaultTypedTuple<>(value3, 3.0));
+
+		assertThat(new ArrayList<>(results).get(0).getValue()).isEqualTo(value3);
+		assertThat(new ArrayList<>(results).get(1).getValue()).isEqualTo(value2);
 	}
 
 }
