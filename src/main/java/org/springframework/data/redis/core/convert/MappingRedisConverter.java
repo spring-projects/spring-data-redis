@@ -109,6 +109,7 @@ import org.springframework.util.comparator.NullSafeComparator;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Golam Mazid Sajib
+ * @author Leehyoungwoo
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
