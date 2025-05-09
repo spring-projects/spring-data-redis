@@ -109,6 +109,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Golam Mazid Sajib
+ * @author Leehyoungwoo
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
@@ -399,6 +400,17 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		if (source instanceof PartialUpdate) {
 			writePartialUpdate((PartialUpdate) source, sink);
+			return;
+		}
+
+		if (source instanceof Collection) {
+			writeCollection(
+					sink.getKeyspace(),
+					"",
+					(List<?>) source,
+					TypeInformation.of(Object.class),
+					sink
+			);
 			return;
 		}
 
