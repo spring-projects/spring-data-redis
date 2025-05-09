@@ -404,6 +404,17 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return;
 		}
 
+		if (source instanceof Collection) {
+			writeCollection(
+					sink.getKeyspace(),
+					"",
+					(List<?>) source,
+					TypeInformation.of(Object.class),
+					sink
+			);
+			return;
+		}
+
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
 
 		if (!customConversions.hasCustomWriteTarget(source.getClass())) {
