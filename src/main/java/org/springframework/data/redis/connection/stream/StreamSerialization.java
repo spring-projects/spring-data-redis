@@ -59,12 +59,12 @@ class StreamSerialization {
 	}
 
 	/**
-	 * Returns whether the given {@link RedisSerializer} is capable of serializing the {@code value} to {@literal byte[]}.
+	 * Returns whether the given {@link RedisSerializer} is capable of serializing the {@code value} to {@code byte[]}.
 	 *
 	 * @param serializer the serializer. Can be {@literal null}.
 	 * @param value the value to serialize.
 	 * @return {@literal true} if the given {@link RedisSerializer} is capable of serializing the {@code value} to
-	 *         {@literal byte[]}.
+	 *         {@code byte[]}.
 	 */
 	private static boolean canSerialize(@Nullable RedisSerializer<?> serializer, @Nullable Object value) {
 		return serializer != null && (value == null || serializer.canSerialize(value.getClass()));

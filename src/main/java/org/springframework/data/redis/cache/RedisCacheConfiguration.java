@@ -437,12 +437,12 @@ public class RedisCacheConfiguration {
 	 * <p>
 	 * The following converters get registered:
 	 * <ul>
-	 * <li>{@link String} to {@link byte byte[]} using UTF-8 encoding.</li>
+	 * <li>{@link String} to {@code byte byte[]} using UTF-8 encoding.</li>
 	 * <li>{@link SimpleKey} to {@link String}</li>
 	 * </ul>
 	 *
-	 * @param registry {@link ConverterRegistry} in which the {@link Converter key converters} are registered;
-	 * must not be {@literal null}.
+	 * @param registry {@link ConverterRegistry} in which the {@link Converter key converters} are registered; must not be
+	 *          {@literal null}.
 	 * @see org.springframework.core.convert.converter.ConverterRegistry
 	 */
 	public static void registerDefaultConverters(ConverterRegistry registry) {

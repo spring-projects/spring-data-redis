@@ -471,9 +471,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 		}
 
 		/**
-		 * Return the {@link byte[] key} mapped to the value stored in Redis.
+		 * Return the {@code byte[] key} mapped to the value stored in Redis.
 		 *
-		 * @return a {@link byte[] byte array} of the key mapped to the value stored in Redis.
+		 * @return a {@code byte[] byte array} of the key mapped to the value stored in Redis.
 		 */
 		public byte[] getKey() {
 			return this.key.getArray();

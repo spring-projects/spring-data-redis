@@ -361,8 +361,8 @@ public interface ReactiveListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
-	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
-	 *          used to wait indefinitely. Durations between zero and one second are not supported.
+	 *          {@link Duration#ZERO} or greater {@literal 1 second}, must not be {@literal null}. A timeout of zero can
+	 *          be used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
@@ -394,8 +394,8 @@ public interface ReactiveListOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
-	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
-	 *          used to wait indefinitely. Durations between zero and one second are not supported.
+	 *          {@link Duration#ZERO} or greater {@literal 1 second}, must not be {@literal null}. A timeout of zero can
+	 *          be used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
@@ -418,8 +418,8 @@ public interface ReactiveListOperations<K, V> {
 	 * @param sourceKey must not be {@literal null}.
 	 * @param destinationKey must not be {@literal null}.
 	 * @param timeout maximal duration to wait until an entry in the list at {@code sourceKey} is available. Must be
-	 *          either {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero
-	 *          can be used to wait indefinitely. Durations between zero and one second are not supported.
+	 *          either {@link Duration#ZERO} or greater {@literal 1 second}, must not be {@literal null}. A timeout of
+	 *          zero can be used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */

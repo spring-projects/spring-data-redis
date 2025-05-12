@@ -178,7 +178,7 @@ public class Bucket {
 	 * Get all the keys matching a given path.
 	 *
 	 * @param path the path to look for. Can be {@literal null}.
-	 * @return all keys if path is {@null} or empty.
+	 * @return all keys if path is {@literal null} or empty.
 	 */
 	public Set<String> extractAllKeysFor(String path) {
 

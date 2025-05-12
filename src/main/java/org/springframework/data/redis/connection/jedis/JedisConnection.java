@@ -15,50 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.ExceptionTranslationStrategy;
-import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
-import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.AbstractRedisConnection;
-import org.springframework.data.redis.connection.FutureResult;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisCommands;
-import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.data.redis.connection.RedisHashCommands;
-import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
-import org.springframework.data.redis.connection.RedisKeyCommands;
-import org.springframework.data.redis.connection.RedisListCommands;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisPipelineException;
-import org.springframework.data.redis.connection.RedisScriptingCommands;
-import org.springframework.data.redis.connection.RedisServerCommands;
-import org.springframework.data.redis.connection.RedisSetCommands;
-import org.springframework.data.redis.connection.RedisStreamCommands;
-import org.springframework.data.redis.connection.RedisStringCommands;
-import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
-import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.convert.TransactionResultConverter;
-import org.springframework.data.redis.connection.jedis.JedisInvoker.ResponseCommands;
-import org.springframework.data.redis.connection.jedis.JedisResult.JedisResultBuilder;
-import org.springframework.data.redis.connection.jedis.JedisResult.JedisStatusResult;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.CommandObject;
@@ -73,6 +29,33 @@ import redis.clients.jedis.commands.ProtocolCommand;
 import redis.clients.jedis.commands.ServerCommands;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.util.Pool;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
+import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
+import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.connection.jedis.JedisInvoker.ResponseCommands;
+import org.springframework.data.redis.connection.jedis.JedisResult.JedisResultBuilder;
+import org.springframework.data.redis.connection.jedis.JedisResult.JedisStatusResult;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/redis/jedis">Jedis</a> library.
@@ -148,7 +131,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	/**
-	 * Constructs a new <{@link JedisConnection} backed by a Jedis {@link Pool}.
+	 * Constructs a new {@link JedisConnection} backed by a Jedis {@link Pool}.
 	 *
 	 * @param jedis {@link Jedis} client.
 	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
@@ -159,7 +142,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	/**
-	 * Constructs a new <{@link JedisConnection} backed by a Jedis {@link Pool}.
+	 * Constructs a new {@link JedisConnection} backed by a Jedis {@link Pool}.
 	 *
 	 * @param jedis {@link Jedis} client.
 	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
@@ -172,7 +155,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	/**
-	 * Constructs a new <{@link JedisConnection} backed by a Jedis {@link Pool}.
+	 * Constructs a new {@link JedisConnection} backed by a Jedis {@link Pool}.
 	 *
 	 * @param jedis {@link Jedis} client.
 	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.

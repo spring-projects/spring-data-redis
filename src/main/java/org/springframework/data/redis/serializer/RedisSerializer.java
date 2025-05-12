@@ -65,7 +65,7 @@ public interface RedisSerializer<T> {
 	}
 
 	/**
-	 * Obtain a simple {@link java.lang.String} to {@literal byte[]} (and back) serializer using
+	 * Obtain a simple {@link java.lang.String} to {@code byte[]} (and back) serializer using
 	 * {@link java.nio.charset.StandardCharsets#UTF_8 UTF-8} as the default {@link java.nio.charset.Charset}.
 	 *
 	 * @return never {@literal null}.

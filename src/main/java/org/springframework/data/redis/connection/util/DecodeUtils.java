@@ -30,8 +30,8 @@ import org.springframework.lang.Nullable;
  * Simple class containing various decoding utilities.
  *
  * @author Costin Leau
- * @auhtor Christoph Strobl
- * @auhtor Mark Paluch
+ * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public abstract class DecodeUtils {
 

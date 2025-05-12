@@ -646,7 +646,7 @@ public abstract class RedisConnectionUtils {
 		 * <p>
 		 * This will typically be the native driver {@link RedisConnection} or a wrapper from a connection pool.
 		 *
-		 * @return the underlying {@link RedisConnection} (never {@link null}).
+		 * @return the underlying {@link RedisConnection} (never {@literal null}).
 		 */
 		RedisConnection getTargetConnection();
 
