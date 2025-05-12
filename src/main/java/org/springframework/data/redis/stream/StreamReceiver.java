@@ -90,10 +90,10 @@ import org.springframework.util.Assert;
  * <pre class="code">
  * ReactiveRedisConnectionFactory factory = …;
  *
- * StreamReceiver<String, String, String> receiver = StreamReceiver.create(factory);
- * Flux<MapRecord<String, String, String>> records = receiver.receive(StreamOffset.fromStart("my-stream"));
+ * StreamReceiver&lt;String, String, String&gt; receiver = StreamReceiver.create(factory);
+ * Flux&lt;MapRecord&lt;String, String, String&gt;&gt; records = receiver.receive(StreamOffset.fromStart("my-stream"));
  *
- * recordFlux.doOnNext(record -> …);
+ * recordFlux.doOnNext(record -&gt; …);
  * </pre>
  *
  * @author Mark Paluch

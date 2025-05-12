@@ -571,11 +571,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
-	 * Creates a new {@link byte[] key} using the given {@link String keyspace} and {@link String id}.
+	 * Creates a new {@code byte[] key} using the given {@link String keyspace} and {@link String id}.
 	 *
 	 * @param keyspace {@link String name} of the Redis {@literal keyspace}.
 	 * @param id {@link String} identifying the key.
-	 * @return a {@link byte[]} constructed from the {@link String keyspace} and {@link String id}.
+	 * @return a {@code byte[]} constructed from the {@link String keyspace} and {@link String id}.
 	 */
 	public byte[] createKey(String keyspace, String id) {
 		return toBytes(keyspace + ":" + id);

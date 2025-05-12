@@ -7,7 +7,7 @@
  * For collections without duplicates the obvious candidate is
  * {@link org.springframework.data.redis.support.collections.RedisSet}. Use
  * {@link org.springframework.data.redis.support.collections.RedisZSet} if a certain order is required.
- * </p/>
+ * <p>
  * Lastly, for key/value associations {@link org.springframework.data.redis.support.collections.RedisMap} providing a
  * Map-like abstraction on top of a Redis hash.
  */

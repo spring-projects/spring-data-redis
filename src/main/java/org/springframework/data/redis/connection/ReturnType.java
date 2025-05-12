@@ -46,12 +46,12 @@ public enum ReturnType {
 	MULTI,
 
 	/**
-	 * Returned as {@literal byte[]}
+	 * Returned as {@code byte[]}
 	 */
 	STATUS,
 
 	/**
-	 * Returned as {@literal byte[]}
+	 * Returned as {@code byte[]}
 	 */
 	VALUE;
 

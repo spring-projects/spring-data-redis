@@ -1974,7 +1974,7 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
-	 * Get the size of sorted set with {@linByteBuffer keyCommand#getKey()}.
+	 * Get the size of sorted set with {@link ByteBuffer keyCommand#getKey()}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return

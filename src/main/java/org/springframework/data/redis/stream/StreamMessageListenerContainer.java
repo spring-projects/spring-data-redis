@@ -94,7 +94,7 @@ import org.springframework.util.ErrorHandler;
  * <pre class="code">
  * RedisConnectionFactory factory = …;
  *
- * StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer.create(factory);
+ * StreamMessageListenerContainer&lt;String, MapRecord&lt;String, String, String&gt;&gt; container = StreamMessageListenerContainer.create(factory);
  * Subscription subscription = container.receive(StreamOffset.fromStart("my-stream"), message -> …);
  *
  * container.start();

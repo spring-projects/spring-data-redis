@@ -22,7 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Simple {@link java.lang.String} to {@literal byte[]} (and back) serializer. Converts {@link java.lang.String Strings}
+ * Simple {@link java.lang.String} to {@code byte[]} (and back) serializer. Converts {@link java.lang.String Strings}
  * into bytes and vice-versa using the specified charset (by default {@literal UTF-8}).
  * <p>
  * Useful when the interaction with the Redis happens mainly through Strings.

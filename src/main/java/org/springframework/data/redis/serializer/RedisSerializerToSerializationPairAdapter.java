@@ -55,7 +55,7 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	}
 
 	/**
-	 * @return the {@link RedisSerializerToSerializationPairAdapter} for {@link byte[]}.
+	 * @return the {@link RedisSerializerToSerializationPairAdapter} for {@code byte[]}.
 	 * @since 2.2
 	 */
 	static SerializationPair<byte[]> byteArray() {

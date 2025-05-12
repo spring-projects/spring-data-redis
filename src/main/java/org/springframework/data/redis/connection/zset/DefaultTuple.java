@@ -36,7 +36,7 @@ public class DefaultTuple implements Tuple {
 	/**
 	 * Constructs a new {@link DefaultTuple}.
 	 *
-	 * @param value {@link byte[]} of the member's raw value.
+	 * @param value {@code byte[]} of the member's raw value.
 	 * @param score {@link Double score} of the raw value used in sorting.
 	 */
 	public DefaultTuple(byte[] value, Double score) {

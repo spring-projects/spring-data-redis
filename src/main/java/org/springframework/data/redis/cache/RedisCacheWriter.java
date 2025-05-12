@@ -182,13 +182,13 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
 	 * Asynchronously retrieves the {@link CompletableFuture value} to which the {@link RedisCache} maps the given
-	 * {@link byte[] key}.
+	 * {@code byte[] key}.
 	 * <p>
 	 * This operation is non-blocking.
 	 *
 	 * @param name {@link String} with the name of the {@link RedisCache}.
-	 * @param key {@link byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
-	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
+	 * @param key {@code byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
+	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@code byte[] key}.
 	 * @see #retrieve(String, byte[], Duration)
 	 * @since 3.2
 	 */
@@ -198,14 +198,14 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
 	 * Asynchronously retrieves the {@link CompletableFuture value} to which the {@link RedisCache} maps the given
-	 * {@link byte[] key} setting the {@link Duration TTL expiration} for the cache entry.
+	 * {@code byte[] key} setting the {@link Duration TTL expiration} for the cache entry.
 	 * <p>
 	 * This operation is non-blocking.
 	 *
 	 * @param name {@link String} with the name of the {@link RedisCache}.
-	 * @param key {@link byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
+	 * @param key {@code byte[] key} mapped to the {@link CompletableFuture value} in the {@link RedisCache}.
 	 * @param ttl {@link Duration} specifying the {@literal expiration timeout} for the cache entry.
-	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@link byte[] key}.
+	 * @return the {@link CompletableFuture value} to which the {@link RedisCache} maps the given {@code byte[] key}.
 	 * @since 3.2
 	 */
 	CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl);

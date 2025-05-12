@@ -565,7 +565,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * connection factory configuration. Eager initialization also prevents blocking connect while using reactive API and
 	 * is recommended for reactive API usage.
 	 *
-	 * @return {@link true} if the shared connection is initialized upon {@link #start()}.
+	 * @return {@literal true} if the shared connection is initialized upon {@link #start()}.
 	 * @since 2.2
 	 * @see #start()
 	 */
@@ -1239,7 +1239,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	/**
-	 * @return the shared connection using {@literal byte[]} encoding for imperative API use. {@literal null} if
+	 * @return the shared connection using {@code byte[]} encoding for imperative API use. {@literal null} if
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis Cluster.
 	 */
 	@Nullable
@@ -1251,7 +1251,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	/**
-	 * @return the shared cluster connection using {@literal byte[]} encoding for imperative API use. {@literal null} if
+	 * @return the shared cluster connection using {@code byte[]} encoding for imperative API use. {@literal null} if
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis
 	 *         Standalone/Sentinel/Master-Replica.
 	 * @since 2.5.7

@@ -242,7 +242,7 @@ public interface RedisSerializationContext<K, V> {
 		}
 
 		/**
-		 * Creates a pass through {@link SerializationPair} to pass-thru {@link byte} objects.
+		 * Creates a pass through {@link SerializationPair} to pass-thru {@code byte} objects.
 		 *
 		 * @return a pass through {@link SerializationPair}.
 		 * @since 2.2
