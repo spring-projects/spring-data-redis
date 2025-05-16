@@ -91,7 +91,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
-		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
+		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 
@@ -119,7 +119,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<ObjectRecord<String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
-		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
+		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 
@@ -143,7 +143,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<ObjectRecord<String, LoginEvent>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
-		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
+		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 
@@ -168,7 +168,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		container.start();
 		Subscription subscription = container.receive(Consumer.from("my-group", "my-consumer"),
-				StreamOffset.create("my-stream", ReadOffset.lastConsumed()), queue::add);
+				StreamOffset.create("my-stream", ReadOffset.lastConsumed()), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 
@@ -194,7 +194,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		container.start();
 		Subscription subscription = container.receiveAutoAck(Consumer.from("my-group", "my-consumer"),
-				StreamOffset.create("my-stream", ReadOffset.lastConsumed()), queue::add);
+				StreamOffset.create("my-stream", ReadOffset.lastConsumed()), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 
@@ -316,7 +316,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		redisTemplate.opsForStream().add("my-stream", Collections.singletonMap("payload", "3"));
 
 		container.start();
-		Subscription subscription = container.register(readRequest, records::add);
+		Subscription subscription = container.register(readRequest, records::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 
@@ -347,7 +347,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
-		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
+		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 		cancelAwait(subscription);
@@ -365,7 +365,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		BlockingQueue<MapRecord<String, String, String>> queue = new LinkedBlockingQueue<>();
 
 		container.start();
-		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::add);
+		Subscription subscription = container.receive(StreamOffset.create("my-stream", ReadOffset.from("0-0")), queue::addAll);
 
 		subscription.await(DEFAULT_TIMEOUT);
 

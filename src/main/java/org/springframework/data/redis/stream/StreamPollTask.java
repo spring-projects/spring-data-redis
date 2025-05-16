@@ -16,6 +16,7 @@
 package org.springframework.data.redis.stream;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -147,14 +148,14 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 	}
 
 	private void deserializeAndEmitRecords(List<ByteRecord> records) {
+		List<V> messages = new ArrayList<>();
 
 		for (ByteRecord raw : records) {
 
 			try {
-
 				pollState.updateReadOffset(raw.getId().getValue());
 				V record = convertRecord(raw);
-				listener.onMessage(record);
+				messages.add(record);
 			} catch (RuntimeException ex) {
 
 				if (cancelSubscriptionOnError.test(ex)) {
@@ -166,8 +167,11 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 				}
 
 				errorHandler.handleError(ex);
+				return;
 			}
 		}
+
+		listener.onMessage(messages);
 	}
 
 	private V convertRecord(ByteRecord record) {
