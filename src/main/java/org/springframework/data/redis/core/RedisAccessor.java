@@ -17,9 +17,9 @@ package org.springframework.data.redis.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -46,8 +46,7 @@ public abstract class RedisAccessor implements InitializingBean {
 	 * @return the configured {@link RedisConnectionFactory}. Can be {@literal null}.
 	 * @see RedisConnectionFactory
 	 */
-	@Nullable
-	public RedisConnectionFactory getConnectionFactory() {
+	public @Nullable RedisConnectionFactory getConnectionFactory() {
 		return this.connectionFactory;
 	}
 

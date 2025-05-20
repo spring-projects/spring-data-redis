@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
@@ -37,7 +38,6 @@ import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -110,9 +110,9 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hgetall, key);
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] hRandField(byte[] key) {
+	public byte @Nullable[] hRandField(byte[] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -309,8 +309,7 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().just(RedisHashAsyncCommands::hstrlen, key, field);
 	}
 
-	@Nullable
-	private static Entry<byte[], byte[]> toEntry(KeyValue<byte[], byte[]> value) {
+	private @Nullable static Entry<byte[], byte[]> toEntry(KeyValue<byte[], byte[]> value) {
 		return value.hasValue() ? Converters.entryOf(value.getKey(), value.getValue()) : null;
 	}
 

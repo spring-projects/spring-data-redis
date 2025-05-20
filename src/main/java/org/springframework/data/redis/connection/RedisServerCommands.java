@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.types.RedisClientInfo;
-import org.springframework.lang.Nullable;
 
 /**
  * Server-specific commands supported by Redis.
@@ -203,8 +203,7 @@ public interface RedisServerCommands {
 	 * @since 1.1
 	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
-	@Nullable
-	default Long time() {
+	default @Nullable Long time() {
 		return time(TimeUnit.MILLISECONDS);
 	}
 

@@ -21,12 +21,11 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.Map.Entry;
-
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.support.collections.CollectionUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;

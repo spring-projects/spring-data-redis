@@ -18,8 +18,8 @@ package org.springframework.data.redis.connection.stream;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link Record} within the stream backed by a collection of binary {@literal field/value} pairs.

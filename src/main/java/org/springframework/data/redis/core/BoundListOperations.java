@@ -19,8 +19,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -306,8 +306,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
-	@Nullable
-	default V leftPop(Duration timeout) {
+	default @Nullable V leftPop(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -357,8 +356,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
-	@Nullable
-	default V rightPop(Duration timeout) {
+	default @Nullable V rightPop(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");

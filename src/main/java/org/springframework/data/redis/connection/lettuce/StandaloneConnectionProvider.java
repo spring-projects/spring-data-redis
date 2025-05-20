@@ -34,9 +34,9 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link LettuceConnectionProvider} implementation for a standalone Redis setup.

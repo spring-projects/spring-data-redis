@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
@@ -55,7 +56,6 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -242,8 +242,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 *
 	 * @return template default serializer.
 	 */
-	@Nullable
-	public RedisSerializer<?> getDefaultSerializer() {
+	public @Nullable RedisSerializer<?> getDefaultSerializer() {
 		return defaultSerializer;
 	}
 
@@ -362,8 +361,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	@Nullable
-	public <T> T execute(RedisCallback<T> action) {
+	public <T> @Nullable T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
 
@@ -375,8 +373,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
 	 * @return object returned by the action
 	 */
-	@Nullable
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
+	public <T> @Nullable T execute(RedisCallback<T> action, boolean exposeConnection) {
 		return execute(action, exposeConnection, false);
 	}
 
@@ -390,8 +387,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param pipeline whether to pipeline or not the connection for the execution
 	 * @return object returned by the action
 	 */
-	@Nullable
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
+	public <T> @Nullable T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
@@ -552,8 +548,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return connection;
 	}
 
-	@Nullable
-	protected <T> T postProcessResult(@Nullable T result, RedisConnection conn, boolean existingConnection) {
+	protected @Nullable <T> T postProcessResult(@Nullable T result, RedisConnection conn, boolean existingConnection) {
 		return result;
 	}
 
@@ -713,9 +708,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	@Nullable
+
 	@Override
-	public ExpireChanges.ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options) {
+	public ExpireChanges.@Nullable ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options) {
 
 		byte[] rawKey = rawKey(key);
 		Boolean raw = doWithKeys(connection -> connection.applyExpiration(rawKey, expiration, options));
@@ -797,8 +792,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		});
 	}
 
-	@Nullable
-	private <T> T doWithKeys(Function<RedisKeyCommands, T> action) {
+	private @Nullable <T> T doWithKeys(Function<RedisKeyCommands, T> action) {
 		return execute((RedisCallback<? extends T>) connection -> action.apply(connection.keyCommands()), true);
 	}
 
@@ -1117,8 +1111,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Nullable
-	private List<Object> deserializeMixedResults(@Nullable List<Object> rawValues,
+	private @Nullable List<Object> deserializeMixedResults(@Nullable List<Object> rawValues,
 			@Nullable RedisSerializer valueSerializer, @Nullable RedisSerializer hashKeySerializer,
 			@Nullable RedisSerializer hashValueSerializer) {
 

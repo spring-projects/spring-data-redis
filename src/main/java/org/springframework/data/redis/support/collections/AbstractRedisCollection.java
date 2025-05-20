@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

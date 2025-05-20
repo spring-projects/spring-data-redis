@@ -20,11 +20,10 @@ import java.io.Serial;
 import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.KotlinDetector;
 import org.springframework.data.util.Lazy;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -276,8 +275,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	@Override
-	@Nullable
-	public Object deserialize(@Nullable byte[] source) throws SerializationException {
+	public @Nullable Object deserialize(byte @Nullable[] source) throws SerializationException {
 		return deserialize(source, Object.class);
 	}
 
@@ -296,7 +294,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
-	public <T> T deserialize(@Nullable byte[] source, Class<T> type) throws SerializationException {
+	public <T> T deserialize(byte @Nullable[] source, Class<T> type) throws SerializationException {
 
 		Assert.notNull(type, "Deserialization type must not be null;"
 				+ " Please provide Object.class to make use of Jackson2 default typing.");

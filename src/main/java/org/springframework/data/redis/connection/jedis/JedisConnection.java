@@ -41,7 +41,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -53,7 +53,6 @@ import org.springframework.data.redis.connection.convert.TransactionResultConver
 import org.springframework.data.redis.connection.jedis.JedisInvoker.ResponseCommands;
 import org.springframework.data.redis.connection.jedis.JedisResult.JedisResultBuilder;
 import org.springframework.data.redis.connection.jedis.JedisResult.JedisStatusResult;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -187,8 +186,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return DefaultJedisClientConfig.builder().database(dbIndex).clientName(clientName).build();
 	}
 
-	@Nullable
-	private Object doInvoke(boolean status, Function<Jedis, Object> directFunction,
+	private @Nullable Object doInvoke(boolean status, Function<Jedis, Object> directFunction,
 			Function<ResponseCommands, Response<Object>> pipelineFunction, Converter<Object, Object> converter,
 			Supplier<Object> nullDefault) {
 
@@ -479,8 +477,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@Nullable
-	public Pipeline getPipeline() {
+	public @Nullable Pipeline getPipeline() {
 		return this.pipeline;
 	}
 
@@ -493,8 +490,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return pipeline;
 	}
 
-	@Nullable
-	public Transaction getTransaction() {
+	public @Nullable Transaction getTransaction() {
 		return this.transaction;
 	}
 
@@ -686,8 +682,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return new Jedis(new HostAndPort(node.getHost(), node.getPort()), this.sentinelConfig);
 	}
 
-	@Nullable
-	private <T> T doWithJedis(Function<Jedis, T> callback) {
+	private @Nullable <T> T doWithJedis(Function<Jedis, T> callback) {
 
 		try {
 			return callback.apply(getJedis());

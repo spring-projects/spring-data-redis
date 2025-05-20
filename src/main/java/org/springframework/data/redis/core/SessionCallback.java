@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * Callback executing all operations against a surrogate 'session' (basically against the same underlying Redis

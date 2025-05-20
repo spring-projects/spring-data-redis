@@ -21,6 +21,7 @@ import io.lettuce.core.ScanArgs;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -29,7 +30,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceClusterConnectio
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -93,16 +93,15 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode");
 	}
 
-	@Nullable
-	public byte[] randomKey(RedisClusterNode node) {
+
+	public byte @Nullable[] randomKey(RedisClusterNode node) {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<byte[]>) client -> client.randomkey(), node)
 				.getValue();
 	}
 
-	@Nullable
-	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
+	public @Nullable Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 

@@ -18,9 +18,9 @@ package org.springframework.data.redis.core.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link SortCriterion}.

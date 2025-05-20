@@ -31,11 +31,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -548,8 +548,7 @@ class JedisInvoker {
 		 * @param <T> target type.
 		 * @return the converted result, can be {@literal null}.
 		 */
-		@Nullable
-		default <T> T orElse(Converter<S, T> converter, @Nullable T nullDefault) {
+		default <T> @Nullable T orElse(Converter<S, T> converter, @Nullable T nullDefault) {
 			return getOrElse(converter, () -> nullDefault);
 		}
 
@@ -562,8 +561,7 @@ class JedisInvoker {
 		 * @param <T> target type.
 		 * @return the converted result, can be {@literal null}.
 		 */
-		@Nullable
-		<T> T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault);
+		<T> @Nullable T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault);
 	}
 
 	/**

@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -130,16 +130,14 @@ public interface RedisZSetCommands {
 		/**
 		 * @return {@literal null} if not set.
 		 */
-		@Nullable
-		public Boundary getMin() {
+		public @Nullable Boundary getMin() {
 			return min;
 		}
 
 		/**
 		 * @return {@literal null} if not set.
 		 */
-		@Nullable
-		public Boundary getMax() {
+		public @Nullable Boundary getMax() {
 			return max;
 		}
 
@@ -161,8 +159,7 @@ public interface RedisZSetCommands {
 				this.including = including;
 			}
 
-			@Nullable
-			public Object getValue() {
+			public @Nullable Object getValue() {
 				return value;
 			}
 
@@ -374,8 +371,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@Nullable
-	default Boolean zAdd(byte[] key, double score, byte[] value) {
+	default @Nullable Boolean zAdd(byte[] key, double score, byte[] value) {
 		return zAdd(key, score, value, ZAddArgs.NONE);
 	}
 
@@ -402,8 +398,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@Nullable
-	default Long zAdd(byte[] key, Set<Tuple> tuples) {
+	default @Nullable Long zAdd(byte[] key, Set<Tuple> tuples) {
 		return zAdd(key, tuples, ZAddArgs.NONE);
 	}
 
@@ -451,8 +446,7 @@ public interface RedisZSetCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	byte[] zRandMember(byte[] key);
+	byte @Nullable[] zRandMember(byte[] key);
 
 	/**
 	 * Get {@code count} random elements from sorted set at {@code key}.
@@ -553,8 +547,7 @@ public interface RedisZSetCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
+	default @Nullable Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		return zRangeByScore(key, org.springframework.data.domain.Range.closed(min, max));
 	}
 
@@ -568,8 +561,7 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key,
+	default @Nullable Set<Tuple> zRangeByScoreWithScores(byte[] key,
 			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeByScoreWithScores(key, range, Limit.unlimited());
 	}
@@ -584,8 +576,7 @@ public interface RedisZSetCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
+	default @Nullable Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		return zRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max));
 	}
 
@@ -602,8 +593,7 @@ public interface RedisZSetCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
+	default @Nullable Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		return zRangeByScore(key, org.springframework.data.domain.Range.closed(min, max),
 				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
 						.count(Long.valueOf(count).intValue()));
@@ -622,8 +612,7 @@ public interface RedisZSetCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+	default @Nullable Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		return zRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max),
 				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
 						.count(Long.valueOf(count).intValue()));
@@ -681,8 +670,7 @@ public interface RedisZSetCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+	default @Nullable Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		return zRevRangeByScore(key, org.springframework.data.domain.Range.closed(min, max));
 	}
 
@@ -697,8 +685,7 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
+	default @Nullable Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return zRevRangeByScore(key, range, Limit.unlimited());
 	}
 
@@ -713,8 +700,7 @@ public interface RedisZSetCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+	default @Nullable Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		return zRevRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max), Limit.unlimited());
 	}
 
@@ -730,8 +716,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
+	default @Nullable Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 
 		return zRevRangeByScore(key, org.springframework.data.domain.Range.closed(min, max),
 				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
@@ -764,8 +749,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+	default @Nullable Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 
 		return zRevRangeByScoreWithScores(key, org.springframework.data.domain.Range.closed(min, max),
 				new org.springframework.data.redis.connection.Limit().offset(Long.valueOf(offset).intValue())
@@ -782,8 +766,7 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
+	default @Nullable Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
 			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRevRangeByScoreWithScores(key, range, Limit.unlimited());
 	}
@@ -812,8 +795,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
-	@Nullable
-	default Long zCount(byte[] key, double min, double max) {
+	default @Nullable Long zCount(byte[] key, double min, double max) {
 		return zCount(key, org.springframework.data.domain.Range.closed(min, max));
 	}
 
@@ -981,8 +963,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Long zRemRangeByScore(byte[] key, double min, double max) {
+	default @Nullable Long zRemRangeByScore(byte[] key, double min, double max) {
 		return zRemRangeByScore(key, org.springframework.data.domain.Range.closed(min, max));
 	}
 
@@ -1064,8 +1045,7 @@ public interface RedisZSetCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<Tuple> zInterWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
+	default @Nullable Set<Tuple> zInterWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
 		return zInterWithScores(aggregate, Weights.of(weights), sets);
 	}
 
@@ -1103,8 +1083,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
-	default Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	default @Nullable Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		return zInterStore(destKey, aggregate, Weights.of(weights), sets);
 	}
 
@@ -1154,8 +1133,7 @@ public interface RedisZSetCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<Tuple> zUnionWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
+	default @Nullable Set<Tuple> zUnionWithScores(Aggregate aggregate, int[] weights, byte[]... sets) {
 		return zUnionWithScores(aggregate, Weights.of(weights), sets);
 	}
 
@@ -1192,8 +1170,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
-	default Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	default @Nullable Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		return zUnionStore(destKey, aggregate, Weights.of(weights), sets);
 	}
 
@@ -1233,9 +1210,8 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @deprecated since 3.0, use {@link #zRangeByScore(byte[], org.springframework.data.domain.Range)} instead.
 	 */
-	@Nullable
 	@Deprecated
-	default Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+	default @Nullable Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
 		return zRangeByScore(key, new Range().gte(min).lte(max).toRange());
 	}
 
@@ -1248,8 +1224,7 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
+	default @Nullable Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeByScore(key, range, Limit.unlimited());
 	}
 
@@ -1292,8 +1267,7 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRangeByLex(byte[] key) {
+	default @Nullable Set<byte[]> zRangeByLex(byte[] key) {
 		return zRangeByLex(key, org.springframework.data.domain.Range.unbounded());
 	}
 
@@ -1307,8 +1281,7 @@ public interface RedisZSetCommands {
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
+	default @Nullable Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return zRangeByLex(key, range, Limit.unlimited());
 	}
 
@@ -1335,8 +1308,7 @@ public interface RedisZSetCommands {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRevRangeByLex(byte[] key) {
+	default @Nullable Set<byte[]> zRevRangeByLex(byte[] key) {
 		return zRevRangeByLex(key, org.springframework.data.domain.Range.unbounded());
 	}
 
@@ -1350,8 +1322,7 @@ public interface RedisZSetCommands {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
+	default @Nullable Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
 		return zRevRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -1380,8 +1351,7 @@ public interface RedisZSetCommands {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range) {
+	default @Nullable Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range) {
 		return zRangeStoreByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -1410,8 +1380,7 @@ public interface RedisZSetCommands {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreRevByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range) {
+	default @Nullable Long zRangeStoreRevByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range) {
 		return zRangeStoreRevByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -1440,8 +1409,7 @@ public interface RedisZSetCommands {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
+	default @Nullable Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
 			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
@@ -1471,8 +1439,7 @@ public interface RedisZSetCommands {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
+	default @Nullable Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
 			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreRevByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}

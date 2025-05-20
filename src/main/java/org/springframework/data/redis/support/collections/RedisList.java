@@ -24,10 +24,10 @@ import java.util.Queue;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.TimeoutUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -135,8 +135,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * @see Direction#first()
 	 * @see Direction#last()
 	 */
-	@Nullable
-	default E moveFirstTo(RedisList<E> destination, Direction destinationPosition, Duration timeout) {
+	default @Nullable E moveFirstTo(RedisList<E> destination, Direction destinationPosition, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -194,8 +193,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 * @see Direction#first()
 	 * @see Direction#last()
 	 */
-	@Nullable
-	default E moveLastTo(RedisList<E> destination, Direction destinationPosition, Duration timeout) {
+	default @Nullable E moveLastTo(RedisList<E> destination, Direction destinationPosition, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -263,8 +261,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @return the head of this {@link Deque}.
 	 */
-	@Nullable
-	default E getFirst() {
+	default @Nullable E getFirst() {
 		return peekFirst();
 	}
 
@@ -275,8 +272,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @return the tail of this {@link Deque}.
 	 */
-	@Nullable
-	default E getLast() {
+	default @Nullable E getLast() {
 		return peekLast();
 	}
 
@@ -287,8 +283,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @return the head of this {@link Deque}.
 	 */
-	@Nullable
-	default E removeFirst() {
+	default @Nullable E removeFirst() {
 		return pollFirst();
 	}
 
@@ -299,8 +294,7 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	 *
 	 * @return the tail of this {@link Deque}.
 	 */
-	@Nullable
-	default E removeLast() {
+	default @Nullable E removeLast() {
 		return pollLast();
 	}
 

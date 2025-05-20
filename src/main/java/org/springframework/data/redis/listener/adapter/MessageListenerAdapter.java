@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -31,7 +32,6 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -221,8 +221,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 *
 	 * @return message listening delegation
 	 */
-	@Nullable
-	public Object getDelegate() {
+	public @Nullable Object getDelegate() {
 		return this.delegate;
 	}
 
@@ -287,7 +286,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * @see #handleListenerException
 	 */
 	@Override
-	public void onMessage(Message message, @Nullable byte[] pattern) {
+	public void onMessage(Message message, byte @Nullable[] pattern) {
 		try {
 			// Check whether the delegate is a MessageListener impl itself.
 			// In that case, the adapter will simply act as a pass-through.

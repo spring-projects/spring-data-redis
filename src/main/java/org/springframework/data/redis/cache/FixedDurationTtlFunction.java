@@ -17,8 +17,8 @@ package org.springframework.data.redis.cache;
 
 import java.time.Duration;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.cache.RedisCacheWriter.TtlFunction;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link TtlFunction} implementation returning the given, predetermined {@link Duration} used for per cache entry

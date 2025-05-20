@@ -24,13 +24,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.lang.Nullable;
 
 /**
  * Reactive Redis operations for Sorted (ZSet) Commands.
@@ -379,8 +379,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Mono<Long> rangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range) {
+	default @Nullable Mono<Long> rangeAndStoreByScore(K srcKey, K dstKey, Range<Double> range) {
 		return rangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
 

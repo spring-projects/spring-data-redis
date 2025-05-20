@@ -3,6 +3,5 @@
  * <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#cache">cache
  * abstraction</a>.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package org.springframework.data.redis.cache;

@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -141,8 +141,7 @@ public interface RedisConfiguration {
 	 * @return can be {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
 	 */
-	@Nullable
-	static String getUsernameOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
+	static @Nullable String getUsernameOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
 
 		Assert.notNull(other, "Other must not be null");
 		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getUsername() : other.get();
@@ -227,7 +226,7 @@ public interface RedisConfiguration {
 		 *
 		 * @param password can be {@literal null}.
 		 */
-		default void setPassword(@Nullable char[] password) {
+		default void setPassword(char @Nullable[] password) {
 			setPassword(RedisPassword.of(password));
 		}
 
@@ -418,8 +417,7 @@ public interface RedisConfiguration {
 		 * @return can be {@literal null} if not set.
 		 * @since 2.4
 		 */
-		@Nullable
-		default String getDataNodeUsername() {
+		default @Nullable String getDataNodeUsername() {
 			return getUsername();
 		}
 
@@ -468,7 +466,7 @@ public interface RedisConfiguration {
 		 * @param password can be {@literal null}.
 		 * @since 2.2.2
 		 */
-		default void setSentinelPassword(@Nullable char[] password) {
+		default void setSentinelPassword(char @Nullable[] password) {
 			setSentinelPassword(RedisPassword.of(password));
 		}
 

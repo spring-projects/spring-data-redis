@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link PassThroughExceptionTranslationStrategy} returns {@literal null} for unknown {@link Exception}s.
@@ -34,9 +34,8 @@ public class PassThroughExceptionTranslationStrategy implements ExceptionTransla
 		this.converter = converter;
 	}
 
-	@Nullable
 	@Override
-	public DataAccessException translate(Exception e) {
+	public @Nullable DataAccessException translate(Exception e) {
 		return this.converter.convert(e);
 	}
 

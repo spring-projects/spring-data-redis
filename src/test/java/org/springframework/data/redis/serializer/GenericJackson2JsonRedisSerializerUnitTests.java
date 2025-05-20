@@ -29,14 +29,13 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
-import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -525,8 +524,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		assertThat(deserializedValue).isInstanceOf(NullValue.class);
 	}
 
-	@Nullable
-	private TypeResolverBuilder<?> extractTypeResolver(GenericJackson2JsonRedisSerializer serializer) {
+	private @Nullable TypeResolverBuilder<?> extractTypeResolver(GenericJackson2JsonRedisSerializer serializer) {
 
 		ObjectMapper mapper = (ObjectMapper) getField(serializer, "mapper");
 		return mapper.getSerializationConfig().getDefaultTyper(TypeFactory.defaultInstance().constructType(Object.class));

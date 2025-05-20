@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -31,7 +32,6 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -64,8 +64,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	@Nullable
-	default Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
+	default @Nullable Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(location, "Location must not be null");
@@ -175,8 +174,7 @@ public interface RedisGeoCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	@Nullable
-	default GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+	default @Nullable GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
 		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
 	}
 
@@ -263,7 +261,7 @@ public interface RedisGeoCommands {
 		 * @return can be {@literal null}.
 		 */
 		@Nullable
-		public Direction getSortDirection();
+		Direction getSortDirection();
 
 		/**
 		 * @return can be {@literal null}.
@@ -331,9 +329,9 @@ public interface RedisGeoCommands {
 
 		protected final Set<GeoCommandFlag> flags = new LinkedHashSet<>(2, 1);
 
-		@Nullable protected Long limit;
+		protected @Nullable Long limit;
 
-		@Nullable protected Direction sortDirection;
+		protected @Nullable Direction sortDirection;
 
 		private GeoSearchCommandArgs() {}
 
@@ -436,16 +434,14 @@ public interface RedisGeoCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getLimit() {
+		public @Nullable Long getLimit() {
 			return limit;
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Direction getSortDirection() {
+		public @Nullable Direction getSortDirection() {
 			return sortDirection;
 		}
 
@@ -568,16 +564,14 @@ public interface RedisGeoCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getLimit() {
+		public @Nullable Long getLimit() {
 			return limit;
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Direction getSortDirection() {
+		public @Nullable Direction getSortDirection() {
 			return sortDirection;
 		}
 

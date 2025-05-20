@@ -18,13 +18,13 @@ package org.springframework.data.redis.serializer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -92,8 +92,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
-	@Nullable
-	public T deserialize(@Nullable byte[] bytes) {
+	public @Nullable T deserialize(byte @Nullable[] bytes) {
 
 		if (bytes == null) {
 			return null;

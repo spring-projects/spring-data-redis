@@ -21,8 +21,8 @@ import java.io.ByteArrayOutputStream;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
@@ -104,7 +104,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 
 	@Nullable
 	@Override
-	public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
+	public Object deserialize(byte @Nullable[] bytes) throws SerializationException {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;

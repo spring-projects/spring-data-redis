@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -63,8 +63,8 @@ abstract class AbstractOperations<K, V> {
 			return deserializeValue(result);
 		}
 
-		@Nullable
-		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
+
+		protected abstract byte @Nullable[] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
 	private class FunctionalValueDeserializingRedisCallback extends ValueDeserializingRedisCallback {
@@ -76,8 +76,8 @@ abstract class AbstractOperations<K, V> {
 			this.function = function;
 		}
 
-		@Nullable
-		protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+
+		protected byte @Nullable[] inRedis(byte[] rawKey, RedisConnection connection) {
 			return function.apply(connection, rawKey);
 		}
 	}

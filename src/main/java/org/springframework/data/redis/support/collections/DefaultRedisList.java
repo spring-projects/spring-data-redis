@@ -24,11 +24,11 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -335,14 +335,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	@Nullable
-	public E peek() {
+	public @Nullable E peek() {
 		return listOps.getFirst();
 	}
 
 	@Override
-	@Nullable
-	public E poll() {
+	public @Nullable E poll() {
 		return listOps.leftPop();
 	}
 
@@ -406,26 +404,22 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	@Nullable
-	public E peekFirst() {
+	public @Nullable E peekFirst() {
 		return peek();
 	}
 
 	@Override
-	@Nullable
-	public E peekLast() {
+	public @Nullable E peekLast() {
 		return listOps.getLast();
 	}
 
 	@Override
-	@Nullable
-	public E pollFirst() {
+	public @Nullable E pollFirst() {
 		return poll();
 	}
 
 	@Override
-	@Nullable
-	public E pollLast() {
+	public @Nullable E pollLast() {
 		return listOps.rightPop();
 	}
 
@@ -499,8 +493,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	@Nullable
-	public E poll(long timeout, TimeUnit unit) throws InterruptedException {
+	public @Nullable E poll(long timeout, TimeUnit unit) throws InterruptedException {
 		return listOps.leftPop(timeout, unit);
 	}
 
@@ -515,8 +508,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	@Nullable
-	public E take() throws InterruptedException {
+	public @Nullable E take() throws InterruptedException {
 		return poll(0, TimeUnit.SECONDS);
 	}
 
@@ -535,14 +527,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	@Nullable
-	public E pollFirst(long timeout, TimeUnit unit) throws InterruptedException {
+	public @Nullable E pollFirst(long timeout, TimeUnit unit) throws InterruptedException {
 		return poll(timeout, unit);
 	}
 
 	@Override
-	@Nullable
-	public E pollLast(long timeout, TimeUnit unit) {
+	public @Nullable E pollLast(long timeout, TimeUnit unit) {
 		return listOps.rightPop(timeout, unit);
 	}
 
@@ -557,14 +547,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	@Nullable
-	public E takeFirst() throws InterruptedException {
+	public @Nullable E takeFirst() throws InterruptedException {
 		return take();
 	}
 
 	@Override
-	@Nullable
-	public E takeLast() {
+	public @Nullable E takeLast() {
 		return pollLast(0, TimeUnit.SECONDS);
 	}
 

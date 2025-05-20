@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Properties;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -229,8 +229,7 @@ public class RedisClientInfo {
 	 * @param key must not be {@literal null} or {@literal empty}.
 	 * @return {@literal null} if no entry found for requested {@code key}.
 	 */
-	@Nullable
-	public String get(String key) {
+	public @Nullable String get(String key) {
 
 		Assert.hasText(key, "Cannot get client information for 'empty' / 'null' key");
 		return this.clientProperties.getProperty(key);

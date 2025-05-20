@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -249,8 +249,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 */
-	@Nullable
-	default V move(MoveFrom<K> from, MoveTo<K> to) {
+	default @Nullable V move(MoveFrom<K> from, MoveTo<K> to) {
 
 		Assert.notNull(from, "Move from must not be null");
 		Assert.notNull(to, "Move to must not be null");
@@ -288,8 +287,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	default V move(MoveFrom<K> from, MoveTo<K> to, Duration timeout) {
+	default @Nullable V move(MoveFrom<K> from, MoveTo<K> to, Duration timeout) {
 
 		Assert.notNull(from, "Move from must not be null");
 		Assert.notNull(to, "Move to must not be null");
@@ -316,8 +314,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	default V move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
+	default @Nullable V move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -375,8 +372,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.4
 	 */
-	@Nullable
-	default V getFirst(K key) {
+	default @Nullable V getFirst(K key) {
 		return index(key, 0);
 	}
 
@@ -387,8 +383,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.4
 	 */
-	@Nullable
-	default V getLast(K key) {
+	default @Nullable V getLast(K key) {
 		return index(key, -1);
 	}
 
@@ -475,8 +470,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
-	@Nullable
-	default V leftPop(K key, Duration timeout) {
+	default @Nullable V leftPop(K key, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -529,8 +523,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
-	@Nullable
-	default V rightPop(K key, Duration timeout) {
+	default @Nullable V rightPop(K key, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -577,8 +570,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
-	@Nullable
-	default V rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout) {
+	default @Nullable V rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");

@@ -18,7 +18,7 @@ package org.springframework.data.redis.core;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -130,8 +130,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Boolean setIfAbsent(V value, Duration timeout) {
+	default @Nullable Boolean setIfAbsent(V value, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -178,8 +177,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Boolean setIfPresent(V value, Duration timeout) {
+	default @Nullable Boolean setIfPresent(V value, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 

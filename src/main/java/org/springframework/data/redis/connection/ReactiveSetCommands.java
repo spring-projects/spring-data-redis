@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
@@ -35,7 +36,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyScan
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -415,8 +415,7 @@ public interface ReactiveSetCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getDestination() {
+		public @Nullable ByteBuffer getDestination() {
 			return destination;
 		}
 
@@ -663,8 +662,7 @@ public interface ReactiveSetCommands {
 		}
 
 		@Override
-		@Nullable
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -805,8 +803,7 @@ public interface ReactiveSetCommands {
 		}
 
 		@Override
-		@Nullable
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -947,8 +944,7 @@ public interface ReactiveSetCommands {
 		}
 
 		@Override
-		@Nullable
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 

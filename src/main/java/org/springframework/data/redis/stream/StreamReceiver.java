@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.OptionalInt;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -37,7 +38,6 @@ import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -276,8 +276,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 			return hashValueSerializer;
 		}
 
-		@Nullable
-		public HashMapper<Object, Object, Object> getHashMapper() {
+		public @Nullable HashMapper<Object, Object, Object> getHashMapper() {
 			return hashMapper;
 		}
 

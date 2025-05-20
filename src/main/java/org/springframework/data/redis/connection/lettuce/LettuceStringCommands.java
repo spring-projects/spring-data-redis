@@ -21,12 +21,12 @@ import io.lettuce.core.api.async.RedisStringAsyncCommands;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -55,18 +55,18 @@ class LettuceStringCommands implements RedisStringCommands {
 		return connection.invoke().just(RedisStringAsyncCommands::get, key);
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] getDel(byte[] key) {
+	public byte @Nullable[] getDel(byte[] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisStringAsyncCommands::getdel, key);
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] getEx(byte[] key, Expiration expiration) {
+	public byte @Nullable[] getEx(byte[] key, Expiration expiration) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(expiration, "Expiration must not be null");
@@ -117,8 +117,7 @@ class LettuceStringCommands implements RedisStringCommands {
 	}
 
 	@Override
-	@Nullable
-	public byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+	public byte @Nullable[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");

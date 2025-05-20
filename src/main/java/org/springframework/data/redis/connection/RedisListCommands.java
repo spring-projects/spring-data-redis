@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -86,8 +86,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	@Nullable
-	default Long lPos(byte[] key, byte[] element) {
+	default @Nullable Long lPos(byte[] key, byte[] element) {
 		return CollectionUtils.firstElement(lPos(key, element, null, null));
 	}
 
@@ -181,8 +180,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when index is out of range or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
-	@Nullable
-	byte[] lIndex(byte[] key, long index);
+	byte @Nullable[] lIndex(byte[] key, long index);
 
 	/**
 	 * Insert {@code value} {@link Position#BEFORE} or {@link Position#AFTER} existing {@code pivot} for {@code key}.
@@ -211,8 +209,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
 	 */
-	@Nullable
-	byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to);
+	byte @Nullable[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -231,8 +228,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 * @see #lMove(byte[], byte[], Direction, Direction)
 	 */
-	@Nullable
-	byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout);
+	byte @Nullable[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
@@ -263,8 +259,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
-	@Nullable
-	byte[] lPop(byte[] key);
+	byte @Nullable[] lPop(byte[] key);
 
 	/**
 	 * Removes and returns first {@code} elements in list stored at {@code key}.
@@ -285,8 +280,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
-	@Nullable
-	byte[] rPop(byte[] key);
+	byte @Nullable[] rPop(byte[] key);
 
 	/**
 	 * Removes and returns last {@code} elements in list stored at {@code key}.
@@ -336,8 +330,7 @@ public interface RedisListCommands {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
-	@Nullable
-	byte[] rPopLPush(byte[] srcKey, byte[] dstKey);
+	byte @Nullable[] rPopLPush(byte[] srcKey, byte[] dstKey);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value. <br>
@@ -350,6 +343,5 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see #rPopLPush(byte[], byte[])
 	 */
-	@Nullable
-	byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey);
+	byte @Nullable[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey);
 }

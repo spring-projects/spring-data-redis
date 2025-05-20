@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -192,8 +192,7 @@ public class RedisNode implements NamedNode {
 	/**
 	 * @return can be {@literal null}.
 	 */
-	@Nullable
-	public String getHost() {
+	public @Nullable String getHost() {
 		return host;
 	}
 
@@ -208,8 +207,7 @@ public class RedisNode implements NamedNode {
 	/**
 	 * @return can be {@literal null}.
 	 */
-	@Nullable
-	public Integer getPort() {
+	public @Nullable Integer getPort() {
 		return port;
 	}
 
@@ -223,8 +221,7 @@ public class RedisNode implements NamedNode {
 	}
 
 	@Override
-	@Nullable
-	public String getName() {
+	public @Nullable String getName() {
 		return this.name;
 	}
 
@@ -236,8 +233,7 @@ public class RedisNode implements NamedNode {
 	 * @return can be {@literal null}.
 	 * @since 1.7
 	 */
-	@Nullable
-	public String getMasterId() {
+	public @Nullable String getMasterId() {
 		return masterId;
 	}
 
@@ -245,8 +241,7 @@ public class RedisNode implements NamedNode {
 	 * @return can be {@literal null}.
 	 * @since 1.7
 	 */
-	@Nullable
-	public String getId() {
+	public @Nullable String getId() {
 		return id;
 	}
 
@@ -262,8 +257,7 @@ public class RedisNode implements NamedNode {
 	 * @return can be {@literal null}.
 	 * @since 1.7
 	 */
-	@Nullable
-	public NodeType getType() {
+	public @Nullable NodeType getType() {
 		return type;
 	}
 

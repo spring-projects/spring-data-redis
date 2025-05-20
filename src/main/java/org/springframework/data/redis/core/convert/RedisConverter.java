@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.convert.EntityConverter;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
-import org.springframework.lang.Nullable;
 
 /**
  * Redis specific {@link EntityConverter}.

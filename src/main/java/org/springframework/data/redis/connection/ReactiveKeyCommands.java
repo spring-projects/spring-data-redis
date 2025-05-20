@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -117,8 +117,7 @@ public interface ReactiveKeyCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getTarget() {
+		public @Nullable ByteBuffer getTarget() {
 			return target;
 		}
 
@@ -129,8 +128,7 @@ public interface ReactiveKeyCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Integer getDatabase() {
+		public @Nullable Integer getDatabase() {
 			return database;
 		}
 
@@ -363,8 +361,7 @@ public interface ReactiveKeyCommands {
 		 * @return can be {@literal null}.
 		 * @since 2.5.7
 		 */
-		@Nullable
-		public ByteBuffer getNewKey() {
+		public @Nullable ByteBuffer getNewKey() {
 			return newKey;
 		}
 	}
@@ -600,8 +597,7 @@ public interface ReactiveKeyCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Duration getTimeout() {
+		public @Nullable Duration getTimeout() {
 
 			if (expiration.isUnixTimestamp() || expiration.isPersistent()) {
 				return null;
@@ -764,8 +760,7 @@ public interface ReactiveKeyCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Instant getExpireAt() {
+		public @Nullable Instant getExpireAt() {
 			return expireAt;
 		}
 
@@ -940,8 +935,7 @@ public interface ReactiveKeyCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Integer getDatabase() {
+		public @Nullable Integer getDatabase() {
 			return database;
 		}
 	}

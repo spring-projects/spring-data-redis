@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
@@ -57,7 +58,6 @@ import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -184,8 +184,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	}
 
-	@Nullable
-	private <R> R readInternal(String path, Class<R> type, RedisData source) {
+	private @Nullable <R> R readInternal(String path, Class<R> type, RedisData source) {
 		return source.getBucket().isEmpty() ? null : doReadInternal(path, type, source);
 	}
 
@@ -254,8 +253,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		return (R) accessor.getBean();
 	}
 
-	@Nullable
-	protected Object readProperty(String path, RedisData source, RedisPersistentProperty persistentProperty) {
+	protected @Nullable Object readProperty(String path, RedisData source, RedisPersistentProperty persistentProperty) {
 
 		String currentPath = !path.isEmpty() ? path + "." + persistentProperty.getName() : persistentProperty.getName();
 		TypeInformation<?> typeInformation = typeMapper.readType(source.getBucket().getPropertyPath(currentPath),
@@ -798,8 +796,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
-	@Nullable
-	private Object readCollectionOrArray(String path, Class<?> collectionType, Class<?> valueType, Bucket bucket) {
+	private @Nullable Object readCollectionOrArray(String path, Class<?> collectionType, Class<?> valueType, Bucket bucket) {
 
 		List<String> keys = new ArrayList<>(bucket.extractAllKeysFor(path));
 		keys.sort(listKeyComparator);
@@ -882,8 +879,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param source
 	 * @return
 	 */
-	@Nullable
-	private Map<?, ?> readMapOfSimpleTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
+	private @Nullable Map<?, ?> readMapOfSimpleTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
 			RedisData source) {
 
 		Bucket partial = source.getBucket().extract(path + ".[");
@@ -912,8 +908,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param source
 	 * @return
 	 */
-	@Nullable
-	private Map<?, ?> readMapOfComplexTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
+	private @Nullable Map<?, ?> readMapOfComplexTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
 			RedisData source) {
 
 		Set<String> keys = source.getBucket().extractAllKeysFor(path);
@@ -936,8 +931,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		return target.isEmpty() ? null : target;
 	}
 
-	@Nullable
-	private Object extractMapKeyForPath(String path, String key, Class<?> targetType) {
+	private @Nullable Object extractMapKeyForPath(String path, String key, Class<?> targetType) {
 
 		String regex = "^(" + Pattern.quote(path) + "\\.\\[)(.*?)(\\])";
 		Pattern pattern = Pattern.compile(regex);
@@ -1004,8 +998,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param valueType to be used for conversion before setting the actual value.
 	 * @return
 	 */
-	@Nullable
-	private Object toArray(Collection<Object> source, Class<?> arrayType, Class<?> valueType) {
+	private @Nullable Object toArray(Collection<Object> source, Class<?> arrayType, Class<?> valueType) {
 
 		if (source.isEmpty()) {
 			return null;

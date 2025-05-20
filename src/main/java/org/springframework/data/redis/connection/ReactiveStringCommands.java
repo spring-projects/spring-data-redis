@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
@@ -39,7 +40,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCo
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -129,8 +129,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return
 		 */
-		@Nullable
-		public ByteBuffer getValue() {
+		public @Nullable ByteBuffer getValue() {
 			return value;
 		}
 
@@ -208,7 +207,6 @@ public interface ReactiveStringCommands {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	@Nullable
 	default Mono<ByteBuffer> setGet(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -505,8 +503,7 @@ public interface ReactiveStringCommands {
 		}
 
 		@Override
-		@Nullable
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -625,8 +622,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getValue() {
+		public @Nullable ByteBuffer getValue() {
 			return value;
 		}
 	}
@@ -740,16 +736,14 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getValue() {
+		public @Nullable ByteBuffer getValue() {
 			return value;
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getOffset() {
+		public @Nullable Long getOffset() {
 			return offset;
 		}
 	}
@@ -825,8 +819,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getOffset() {
+		public @Nullable Long getOffset() {
 			return offset;
 		}
 	}
@@ -910,8 +903,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getOffset() {
+		public @Nullable Long getOffset() {
 			return offset;
 		}
 
@@ -1198,8 +1190,7 @@ public interface ReactiveStringCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getDestinationKey() {
+		public @Nullable ByteBuffer getDestinationKey() {
 			return destinationKey;
 		}
 	}

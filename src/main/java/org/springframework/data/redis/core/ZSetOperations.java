@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -480,8 +480,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	default TypedTuple<V> popMin(K key, Duration timeout) {
+	default @Nullable TypedTuple<V> popMin(K key, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -537,8 +536,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	default TypedTuple<V> popMax(K key, Duration timeout) {
+	default @Nullable TypedTuple<V> popMax(K key, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -652,8 +650,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	default Set<V> difference(K key, K otherKey) {
+	default @Nullable Set<V> difference(K key, K otherKey) {
 		return difference(key, Collections.singleton(otherKey));
 	}
 
@@ -678,8 +675,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> differenceWithScores(K key, K otherKey) {
+	default @Nullable Set<TypedTuple<V>> differenceWithScores(K key, K otherKey) {
 		return differenceWithScores(key, Collections.singleton(otherKey));
 	}
 
@@ -717,8 +713,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<V> intersect(K key, K otherKey) {
+	default @Nullable Set<V> intersect(K key, K otherKey) {
 		return intersect(key, Collections.singleton(otherKey));
 	}
 
@@ -743,8 +738,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> intersectWithScores(K key, K otherKey) {
+	default @Nullable Set<TypedTuple<V>> intersectWithScores(K key, K otherKey) {
 		return intersectWithScores(key, Collections.singleton(otherKey));
 	}
 
@@ -770,8 +764,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
+	default @Nullable Set<TypedTuple<V>> intersectWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
 		return intersectWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
@@ -824,8 +817,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
-	default Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+	default @Nullable Long intersectAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		return intersectAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
@@ -853,8 +845,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<V> union(K key, K otherKey) {
+	default @Nullable Set<V> union(K key, K otherKey) {
 		return union(key, Collections.singleton(otherKey));
 	}
 
@@ -879,8 +870,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> unionWithScores(K key, K otherKey) {
+	default @Nullable Set<TypedTuple<V>> unionWithScores(K key, K otherKey) {
 		return unionWithScores(key, Collections.singleton(otherKey));
 	}
 
@@ -906,8 +896,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
+	default @Nullable Set<TypedTuple<V>> unionWithScores(K key, Collection<K> otherKeys, Aggregate aggregate) {
 		return unionWithScores(key, otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
@@ -960,8 +949,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
-	default Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
+	default @Nullable Long unionAndStore(K key, Collection<K> otherKeys, K destKey, Aggregate aggregate) {
 		return unionAndStore(key, otherKeys, destKey, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
@@ -1021,8 +1009,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<V> rangeByLex(K key, Range<String> range) {
+	default @Nullable Set<V> rangeByLex(K key, Range<String> range) {
 		return rangeByLex(key, range, Limit.unlimited());
 	}
 
@@ -1090,8 +1077,7 @@ public interface ZSetOperations<K, V> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<V> reverseRangeByLex(K key, Range<String> range) {
+	default @Nullable Set<V> reverseRangeByLex(K key, Range<String> range) {
 		return reverseRangeByLex(key, range, Limit.unlimited());
 	}
 
@@ -1143,8 +1129,7 @@ public interface ZSetOperations<K, V> {
 	 * @see #rangeByLex(Object, Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
+	default @Nullable Long rangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
 		return rangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
 	}
 
@@ -1177,8 +1162,7 @@ public interface ZSetOperations<K, V> {
 	 * @see #reverseRangeByLex(Object, Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
+	default @Nullable Long reverseRangeAndStoreByLex(K srcKey, K dstKey, Range<String> range) {
 		return reverseRangeAndStoreByLex(srcKey, dstKey, range, Limit.unlimited());
 	}
 
@@ -1211,8 +1195,7 @@ public interface ZSetOperations<K, V> {
 	 * @see #rangeByScore(Object, double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long rangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
+	default @Nullable Long rangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
 		return rangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
 
@@ -1245,8 +1228,7 @@ public interface ZSetOperations<K, V> {
 	 * @see #reverseRangeByScore(Object, double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
+	default @Nullable Long reverseRangeAndStoreByScore(K srcKey, K dstKey, Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(srcKey, dstKey, range, Limit.unlimited());
 	}
 

@@ -17,11 +17,11 @@ package org.springframework.data.redis.core.convert;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.convert.BinaryConverters.StringToBytesConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -48,8 +48,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 	}
 
 	@Override
-	@Nullable
-	public Map<byte[], byte[]> resolveReference(Object id, String keyspace) {
+	public @Nullable Map<byte[], byte[]> resolveReference(Object id, String keyspace) {
 
 		byte[] key = converter.convert(keyspace + ":" + id);
 

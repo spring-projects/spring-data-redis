@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +53,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Nullable;
 
 /**
  * Base for testing Redis repository support in different configurations.
@@ -917,13 +917,11 @@ public abstract class RedisRepositoryIntegrationTestBase {
 			return new User(name);
 		}
 
-		@Nullable
-		public OffsetTime getExpiration() {
+		public @Nullable OffsetTime getExpiration() {
 			return this.expiration;
 		}
 
-		@Nullable
-		public OffsetDateTime getLastAccessed() {
+		public @Nullable OffsetDateTime getLastAccessed() {
 			return this.lastAccessed;
 		}
 

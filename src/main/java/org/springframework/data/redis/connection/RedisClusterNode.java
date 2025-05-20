@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -132,8 +132,7 @@ public class RedisClusterNode extends RedisNode {
 	/**
 	 * @return can be {@literal null}
 	 */
-	@Nullable
-	public LinkState getLinkState() {
+	public @Nullable LinkState getLinkState() {
 		return this.linkState;
 	}
 

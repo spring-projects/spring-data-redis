@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
@@ -48,7 +49,6 @@ import org.springframework.data.repository.query.ListQueryByExampleExecutor;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -122,8 +122,7 @@ public class QueryByExampleRedisExecutor<T>
 		return Optional.ofNullable(doFindOne(example));
 	}
 
-	@Nullable
-	private <S extends T> S doFindOne(Example<S> example) {
+	private @Nullable <S extends T> S doFindOne(Example<S> example) {
 
 		Iterator<S> iterator = doFind(example);
 

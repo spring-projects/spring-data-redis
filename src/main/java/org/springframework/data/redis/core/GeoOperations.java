@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -30,7 +31,6 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStore
 import org.springframework.data.redis.domain.geo.BoundingBox;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
-import org.springframework.lang.Nullable;
 
 /**
  * Redis operations for geo commands.
@@ -231,8 +231,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, Circle within) {
+	default @Nullable GeoResults<GeoLocation<M>> search(K key, Circle within) {
 		return search(key, GeoReference.fromCircle(within), GeoShape.byRadius(within.getRadius()),
 				GeoSearchCommandArgs.newGeoSearchArgs());
 	}
@@ -248,8 +247,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, Distance radius) {
+	default @Nullable GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, Distance radius) {
 		return search(key, reference, radius, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
@@ -265,8 +263,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, Distance radius,
+	default @Nullable GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, Distance radius,
 			GeoSearchCommandArgs args) {
 		return search(key, reference, GeoShape.byRadius(radius), args);
 	}
@@ -282,8 +279,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference,
+	default @Nullable GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference,
 			BoundingBox boundingBox) {
 		return search(key, reference, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
@@ -300,8 +296,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, BoundingBox boundingBox,
+	default @Nullable GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, BoundingBox boundingBox,
 			GeoSearchCommandArgs args) {
 		return search(key, reference, GeoShape.byBox(boundingBox), args);
 	}
@@ -331,8 +326,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	@Nullable
-	default Long searchAndStore(K key, K destKey, Circle within) {
+	default @Nullable Long searchAndStore(K key, K destKey, Circle within) {
 		return searchAndStore(key, destKey, GeoReference.fromCircle(within), GeoShape.byRadius(within.getRadius()),
 				GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
@@ -348,8 +342,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	@Nullable
-	default Long searchAndStore(K key, K destKey, GeoReference<M> reference, Distance radius) {
+	default @Nullable Long searchAndStore(K key, K destKey, GeoReference<M> reference, Distance radius) {
 		return searchAndStore(key, destKey, reference, radius, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
 
@@ -365,8 +358,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	@Nullable
-	default Long searchAndStore(K key, K destKey, GeoReference<M> reference, Distance radius,
+	default @Nullable Long searchAndStore(K key, K destKey, GeoReference<M> reference, Distance radius,
 			GeoSearchStoreCommandArgs args) {
 		return searchAndStore(key, destKey, reference, GeoShape.byRadius(radius), args);
 	}
@@ -382,8 +374,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	@Nullable
-	default Long searchAndStore(K key, K destKey, GeoReference<M> reference, BoundingBox boundingBox) {
+	default @Nullable Long searchAndStore(K key, K destKey, GeoReference<M> reference, BoundingBox boundingBox) {
 		return searchAndStore(key, destKey, reference, boundingBox, GeoSearchStoreCommandArgs.newGeoSearchStoreArgs());
 	}
 
@@ -399,8 +390,7 @@ public interface GeoOperations<K, M> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
-	@Nullable
-	default Long searchAndStore(K key, K destKey, GeoReference<M> reference, BoundingBox boundingBox,
+	default @Nullable Long searchAndStore(K key, K destKey, GeoReference<M> reference, BoundingBox boundingBox,
 			GeoSearchStoreCommandArgs args) {
 		return searchAndStore(key, destKey, reference, GeoShape.byBox(boundingBox), args);
 	}

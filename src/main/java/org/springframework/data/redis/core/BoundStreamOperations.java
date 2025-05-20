@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -26,7 +27,6 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.lang.Nullable;
 
 /**
  * Redis stream specific operations bound to a certain key.
@@ -126,8 +126,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
-	default List<MapRecord<K, HK, HV>> range(Range<String> range) {
+	default @Nullable List<MapRecord<K, HK, HV>> range(Range<String> range) {
 		return range(range, Limit.unlimited());
 	}
 
@@ -149,8 +148,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<MapRecord<K, HK, HV>> read(ReadOffset readOffset) {
+	default @Nullable List<MapRecord<K, HK, HV>> read(ReadOffset readOffset) {
 		return read(StreamReadOptions.empty(), readOffset);
 	}
 
@@ -173,8 +171,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<MapRecord<K, HK, HV>> read(Consumer consumer, ReadOffset readOffset) {
+	default @Nullable List<MapRecord<K, HK, HV>> read(Consumer consumer, ReadOffset readOffset) {
 		return read(consumer, StreamReadOptions.empty(), readOffset);
 	}
 
@@ -197,8 +194,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
-	default List<MapRecord<K, HK, HV>> reverseRange(Range<String> range) {
+	default @Nullable List<MapRecord<K, HK, HV>> reverseRange(Range<String> range) {
 		return reverseRange(range, Limit.unlimited());
 	}
 

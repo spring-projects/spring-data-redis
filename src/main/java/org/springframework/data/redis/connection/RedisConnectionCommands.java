@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Connection-specific commands supported by Redis.
@@ -41,8 +41,7 @@ public interface RedisConnectionCommands {
 	 * @return the message or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/echo">Redis Documentation: ECHO</a>
 	 */
-	@Nullable
-	byte[] echo(byte[] message);
+	byte @Nullable[] echo(byte[] message);
 
 	/**
 	 * Test connection.

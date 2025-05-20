@@ -17,8 +17,8 @@ package org.springframework.data.redis.core.index;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@literal HyperLogLog} specific commands supported by Redis.

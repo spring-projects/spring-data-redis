@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -37,7 +38,6 @@ import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl
@@ -107,14 +107,12 @@ class CacheTestParams {
 		}
 
 		@Override
-		@Nullable
-		public byte[] serialize(@Nullable Object value) throws SerializationException {
+		public byte @Nullable[] serialize(@Nullable Object value) throws SerializationException {
 			return serializer.serialize(value);
 		}
 
 		@Override
-		@Nullable
-		public Object deserialize(@Nullable byte[] bytes) throws SerializationException {
+		public @Nullable Object deserialize(byte @Nullable[] bytes) throws SerializationException {
 			return serializer.deserialize(bytes);
 		}
 

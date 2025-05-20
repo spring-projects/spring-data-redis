@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
@@ -37,7 +38,6 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -311,8 +311,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param value can be {@literal null}.
 	 * @return preprocessed value. Can be {@literal null}.
 	 */
-	@Nullable
-	protected Object preProcessCacheValue(@Nullable Object value) {
+	protected @Nullable Object preProcessCacheValue(@Nullable Object value) {
 		return value != null ? value : isAllowNullValues() ? NullValue.INSTANCE : null;
 	}
 
@@ -351,8 +350,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 *         {@link RedisSerializationContext.SerializationPair}; can be {@literal null}.
 	 * @see RedisCacheConfiguration#getValueSerializationPair()
 	 */
-	@Nullable
-	protected Object deserializeCacheValue(byte[] value) {
+	protected @Nullable Object deserializeCacheValue(byte[] value) {
 
 		if (isAllowNullValues() && ObjectUtils.nullSafeEquals(value, BINARY_NULL_VALUE)) {
 			return NullValue.INSTANCE;
@@ -425,8 +423,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 				.thenApply(this::toValueWrapper);
 	}
 
-	@Nullable
-	private Object nullSafeDeserializedStoreValue(@Nullable byte[] value) {
+	private @Nullable Object nullSafeDeserializedStoreValue(byte @Nullable[] value) {
 		return value != null ? fromStoreValue(deserializeCacheValue(value)) : null;
 	}
 

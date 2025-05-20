@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -47,7 +48,6 @@ import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -137,8 +137,7 @@ public interface ReactiveStreamCommands {
 			return new AcknowledgeCommand(getKey(), group, getRecordIds());
 		}
 
-		@Nullable
-		public String getGroup() {
+		public @Nullable String getGroup() {
 			return group;
 		}
 
@@ -327,8 +326,7 @@ public interface ReactiveStreamCommands {
 		 * @return can be {@literal null}.
 		 * @since 2.3
 		 */
-		@Nullable
-		public Long getMaxlen() {
+		public @Nullable Long getMaxlen() {
 			return maxlen;
 		}
 
@@ -352,8 +350,7 @@ public interface ReactiveStreamCommands {
 		 * @return the minimum record Id to retain during trimming.
 		 * @since 2.7
 		 */
-		@Nullable
-		public RecordId getMinId() {
+		public @Nullable RecordId getMinId() {
 			return minId;
 		}
 
@@ -709,7 +706,6 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
 	default Mono<PendingMessages> xPending(ByteBuffer key, Consumer consumer) {
 		return xPending(key, consumer.getGroup(), consumer.getName());
 	}
@@ -724,7 +720,6 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
 	default Mono<PendingMessages> xPending(ByteBuffer key, String groupName, String consumerName) {
 		return xPending(Mono.just(PendingRecordsCommand.pending(key, groupName).consumer(consumerName))).next()
 				.map(CommandResponse::getOutput);
@@ -861,8 +856,7 @@ public interface ReactiveStreamCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public String getConsumerName() {
+		public @Nullable String getConsumerName() {
 			return consumerName;
 		}
 
@@ -876,8 +870,7 @@ public interface ReactiveStreamCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getCount() {
+		public @Nullable Long getCount() {
 			return count;
 		}
 
@@ -1104,13 +1097,11 @@ public interface ReactiveStreamCommands {
 			return streamOffsets;
 		}
 
-		@Nullable
-		public StreamReadOptions getReadOptions() {
+		public @Nullable StreamReadOptions getReadOptions() {
 			return readOptions;
 		}
 
-		@Nullable
-		public Consumer getConsumer() {
+		public @Nullable Consumer getConsumer() {
 			return consumer;
 		}
 	}
@@ -1178,8 +1169,7 @@ public interface ReactiveStreamCommands {
 			return new XInfoCommand(getKey(), groupName);
 		}
 
-		@Nullable
-		public String getGroupName() {
+		public @Nullable String getGroupName() {
 			return groupName;
 		}
 	}
@@ -1308,18 +1298,15 @@ public interface ReactiveStreamCommands {
 			return this.mkStream;
 		}
 
-		@Nullable
-		public ReadOffset getReadOffset() {
+		public @Nullable ReadOffset getReadOffset() {
 			return this.offset;
 		}
 
-		@Nullable
-		public String getGroupName() {
+		public @Nullable String getGroupName() {
 			return groupName;
 		}
 
-		@Nullable
-		public String getConsumerName() {
+		public @Nullable String getConsumerName() {
 			return consumerName;
 		}
 
@@ -1369,7 +1356,6 @@ public interface ReactiveStreamCommands {
 	 * @param consumerName the name of the consumer to remove from the group.
 	 * @return the {@link Mono} emitting {@literal ok} if successful.
 	 */
-	@Nullable
 	default Mono<String> xGroupDelConsumer(ByteBuffer key, String groupName, String consumerName) {
 		return xGroupDelConsumer(key, Consumer.from(groupName, consumerName));
 	}
@@ -1392,7 +1378,6 @@ public interface ReactiveStreamCommands {
 	 * @param groupName name of the consumer group.
 	 * @return the {@link Mono} emitting {@literal ok} if successful.
 	 */
-	@Nullable
 	default Mono<String> xGroupDestroy(ByteBuffer key, String groupName) {
 		return xGroup(GroupCommand.destroyGroup(groupName).forStream(key));
 	}
@@ -1551,8 +1536,7 @@ public interface ReactiveStreamCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getCount() {
+		public @Nullable Long getCount() {
 			return count;
 		}
 

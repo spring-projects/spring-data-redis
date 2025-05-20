@@ -19,8 +19,8 @@ package org.springframework.data.redis.connection;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when executing/closing a pipeline that contains one or multiple invalid/incorrect statements. The

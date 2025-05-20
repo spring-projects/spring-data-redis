@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
@@ -114,8 +114,7 @@ public class RecordId {
 	 *
 	 * @return millisecondsTime of the {@literal entry-id}. Can be {@literal null}.
 	 */
-	@Nullable
-	public Long getTimestamp() {
+	public @Nullable Long getTimestamp() {
 		return value(0);
 	}
 
@@ -124,8 +123,7 @@ public class RecordId {
 	 *
 	 * @return sequenceNumber of the {@literal entry-id}. Can be {@literal null}.
 	 */
-	@Nullable
-	public Long getSequence() {
+	public @Nullable Long getSequence() {
 		return value(1);
 	}
 

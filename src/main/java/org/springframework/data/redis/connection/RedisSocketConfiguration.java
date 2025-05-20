@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisConfiguration.DomainSocketConfiguration;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -84,9 +84,8 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 		this.username = username;
 	}
 
-	@Nullable
 	@Override
-	public String getUsername() {
+	public @Nullable String getUsername() {
 		return this.username;
 	}
 

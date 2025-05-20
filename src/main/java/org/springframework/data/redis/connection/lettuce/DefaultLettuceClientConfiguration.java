@@ -23,7 +23,7 @@ import io.lettuce.core.resource.ClientResources;
 import java.time.Duration;
 import java.util.Optional;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of {@literal LettuceClientConfiguration}.

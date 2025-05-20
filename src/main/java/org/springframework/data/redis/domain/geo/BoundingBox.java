@@ -17,10 +17,10 @@ package org.springframework.data.redis.domain.geo;
 
 import java.io.Serial;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Shape;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 

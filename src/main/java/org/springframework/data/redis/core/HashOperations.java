@@ -24,10 +24,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
-import org.springframework.lang.Nullable;
 
 /**
  * Redis map specific operations working on a hash.
@@ -116,8 +116,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map.Entry<HK, HV> randomEntry(H key);
+	Map.@Nullable Entry<HK, HV> randomEntry(H key);
 
 	/**
 	 * Return random hash keys from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -297,8 +296,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default Expirations<HK> getTimeToLive(H key, Collection<HK> hashKeys) {
+	default @Nullable Expirations<HK> getTimeToLive(H key, Collection<HK> hashKeys) {
 		return getTimeToLive(key, TimeUnit.SECONDS, hashKeys);
 	}
 

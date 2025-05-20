@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -332,8 +332,7 @@ public interface RedisOperations<K, V> {
 	 * @throws IllegalArgumentException if the timeout is {@literal null}.
 	 * @since 2.3
 	 */
-	@Nullable
-	default Boolean expire(K key, Duration timeout) {
+	default @Nullable Boolean expire(K key, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -360,8 +359,7 @@ public interface RedisOperations<K, V> {
 	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
 	 * @since 2.3
 	 */
-	@Nullable
-	default Boolean expireAt(K key, Instant expireAt) {
+	default @Nullable Boolean expireAt(K key, Instant expireAt) {
 
 		Assert.notNull(expireAt, "Timestamp must not be null");
 
@@ -383,8 +381,7 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	ExpireChanges.ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options);
+	ExpireChanges.@Nullable ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options);
 
 	/**
 	 * Returns a bound operations object to perform expiration operations on the bound key.
@@ -445,8 +442,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/dump">Redis Documentation: DUMP</a>
 	 */
-	@Nullable
-	byte[] dump(K key);
+	byte @Nullable[] dump(K key);
 
 	/**
 	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
 import org.springframework.data.redis.core.BoundHashOperations;
@@ -29,7 +30,6 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation for {@link RedisMap}. Note that the current implementation doesn't provide the same locking
@@ -117,8 +117,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	@Nullable
-	public V get(Object key) {
+	public @Nullable V get(Object key) {
 		return hashOps.get(key);
 	}
 
@@ -146,8 +145,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	@Nullable
-	public V remove(Object key) {
+	public @Nullable V remove(Object key) {
 
 		V v = get(key);
 		hashOps.delete(key);
@@ -193,8 +191,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	@Nullable
-	public V putIfAbsent(K key, V value) {
+	public @Nullable V putIfAbsent(K key, V value) {
 		return (hashOps.putIfAbsent(key, value) ? null : get(key));
 	}
 
@@ -255,8 +252,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	@Nullable
-	public V replace(K key, V value) {
+	public @Nullable V replace(K key, V value) {
 
 		if (value == null) {
 			throw new NullPointerException();

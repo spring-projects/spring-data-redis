@@ -1,6 +1,5 @@
 /**
  * Commonly used stuff for data manipulation throughout different driver specific implementations.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package org.springframework.data.redis.util;

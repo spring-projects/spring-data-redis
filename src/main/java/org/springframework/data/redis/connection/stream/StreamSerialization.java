@@ -17,9 +17,9 @@ package org.springframework.data.redis.connection.stream;
 
 import java.nio.ByteBuffer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Utility methods for stream serialization.

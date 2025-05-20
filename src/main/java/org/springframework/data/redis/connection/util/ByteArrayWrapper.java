@@ -18,8 +18,8 @@ package org.springframework.data.redis.connection.util;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Simple wrapper class used for wrapping arrays so they can be used as keys inside maps.

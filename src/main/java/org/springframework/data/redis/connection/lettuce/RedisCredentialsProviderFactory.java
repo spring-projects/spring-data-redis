@@ -17,11 +17,12 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisCredentialsProvider;
+
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.lang.Nullable;
 
 /**
  * Factory interface to create {@link RedisCredentialsProvider} from a {@link RedisConfiguration}. Credentials can be
@@ -44,8 +45,7 @@ public interface RedisCredentialsProviderFactory {
 	 * @param redisConfiguration the {@link RedisConfiguration} object.
 	 * @return a {@link RedisCredentialsProvider} that emits {@link RedisCredentials} for data node authentication.
 	 */
-	@Nullable
-	default RedisCredentialsProvider createCredentialsProvider(RedisConfiguration redisConfiguration) {
+	default @Nullable RedisCredentialsProvider createCredentialsProvider(RedisConfiguration redisConfiguration) {
 
 		if (redisConfiguration instanceof RedisConfiguration.WithAuthentication
 				&& ((RedisConfiguration.WithAuthentication) redisConfiguration).getPassword().isPresent()) {
@@ -87,8 +87,7 @@ public interface RedisCredentialsProviderFactory {
 		ANONYMOUS;
 
 		@Override
-		@Nullable
-		public String getUsername() {
+		public @Nullable String getUsername() {
 			return null;
 		}
 
@@ -98,8 +97,7 @@ public interface RedisCredentialsProviderFactory {
 		}
 
 		@Override
-		@Nullable
-		public char[] getPassword() {
+		public char @Nullable[] getPassword() {
 			return null;
 		}
 

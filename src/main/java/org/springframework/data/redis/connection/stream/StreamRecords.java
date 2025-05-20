@@ -20,8 +20,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -321,7 +321,7 @@ public class StreamRecords {
 	 */
 	static class ByteMapBackedRecord extends MapBackedRecord<byte[], byte[], byte[]> implements ByteRecord {
 
-		ByteMapBackedRecord(@Nullable byte[] stream, RecordId recordId, Map<byte[], byte[]> map) {
+		ByteMapBackedRecord(byte @Nullable[] stream, RecordId recordId, Map<byte[], byte[]> map) {
 			super(stream, recordId, map);
 		}
 

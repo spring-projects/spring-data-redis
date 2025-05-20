@@ -21,8 +21,8 @@ import io.lettuce.core.codec.StringCodec;
 
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range.Bound;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 

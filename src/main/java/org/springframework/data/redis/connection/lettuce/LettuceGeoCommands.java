@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -36,7 +37,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -96,8 +96,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		return geoAdd(key, values);
 	}
 
-	@Nullable
-	private Long geoAdd(byte[] key, Collection<Object> values) {
+	private @Nullable Long geoAdd(byte[] key, Collection<Object> values) {
 		return connection.invoke().just(it -> it.geoadd(key, values.toArray()));
 	}
 

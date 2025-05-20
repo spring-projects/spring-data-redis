@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -91,8 +91,7 @@ public interface RedisSerializer<T> {
 	 * @param value object to serialize. Can be {@literal null}.
 	 * @return the equivalent binary data. Can be {@literal null}.
 	 */
-	@Nullable
-	byte[] serialize(@Nullable T value) throws SerializationException;
+	byte @Nullable[] serialize(@Nullable T value) throws SerializationException;
 
 	/**
 	 * Deserialize an object from the given binary data.
@@ -101,7 +100,7 @@ public interface RedisSerializer<T> {
 	 * @return the equivalent object instance. Can be {@literal null}.
 	 */
 	@Nullable
-	T deserialize(@Nullable byte[] bytes) throws SerializationException;
+	T deserialize(byte @Nullable[] bytes) throws SerializationException;
 
 	/**
 	 * Check whether the given value {@code type} can be serialized by this serializer.

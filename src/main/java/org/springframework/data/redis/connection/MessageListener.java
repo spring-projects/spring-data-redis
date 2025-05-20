@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Listener of messages published in Redis. A MessageListener can implement {@link SubscriptionListener} to receive
@@ -34,5 +34,5 @@ public interface MessageListener {
 	 * @param message message must not be {@literal null}.
 	 * @param pattern pattern matching the channel (if specified) - can be {@literal null}.
 	 */
-	void onMessage(Message message, @Nullable byte[] pattern);
+	void onMessage(Message message, byte @Nullable[] pattern);
 }

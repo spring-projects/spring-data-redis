@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.mapping;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.core.mapping.BasicKeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
@@ -22,7 +23,6 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -58,14 +58,12 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	}
 
 	@Override
-	@Nullable
-	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
+	public @Nullable RedisPersistentProperty getExplicitTimeToLiveProperty() {
 		return this.getPersistentProperty(TimeToLive.class);
 	}
 
 	@Override
-	@Nullable
-	protected RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
+	protected @Nullable RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
 
 		Assert.notNull(property, "Property must not be null");
 

@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -365,8 +365,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	default TypedTuple<V> popMin(Duration timeout) {
+	default @Nullable TypedTuple<V> popMin(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -418,8 +417,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	default TypedTuple<V> popMax(Duration timeout) {
+	default @Nullable TypedTuple<V> popMax(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -538,8 +536,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	default Set<V> difference(K otherKey) {
+	default @Nullable Set<V> difference(K otherKey) {
 		return difference(Collections.singleton(otherKey));
 	}
 
@@ -562,8 +559,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> differenceWithScores(K otherKey) {
+	default @Nullable Set<TypedTuple<V>> differenceWithScores(K otherKey) {
 		return differenceWithScores(Collections.singleton(otherKey));
 	}
 
@@ -587,8 +583,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
 	 */
-	@Nullable
-	default Long differenceAndStore(K otherKey, K destKey) {
+	default @Nullable Long differenceAndStore(K otherKey, K destKey) {
 		return differenceAndStore(Collections.singleton(otherKey), destKey);
 	}
 
@@ -612,8 +607,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<V> intersect(K otherKey) {
+	default @Nullable Set<V> intersect(K otherKey) {
 		return intersect(Collections.singleton(otherKey));
 	}
 
@@ -636,8 +630,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> intersectWithScores(K otherKey) {
+	default @Nullable Set<TypedTuple<V>> intersectWithScores(K otherKey) {
 		return intersectWithScores(Collections.singleton(otherKey));
 	}
 
@@ -722,8 +715,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<V> union(K otherKey) {
+	default @Nullable Set<V> union(K otherKey) {
 		return union(Collections.singleton(otherKey));
 	}
 
@@ -746,8 +738,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> unionWithScores(K otherKey) {
+	default @Nullable Set<TypedTuple<V>> unionWithScores(K otherKey) {
 		return unionWithScores(Collections.singleton(otherKey));
 	}
 
@@ -771,8 +762,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate) {
+	default @Nullable Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate) {
 		return unionWithScores(otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
@@ -861,8 +851,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<V> rangeByLex(Range<String> range) {
+	default @Nullable Set<V> rangeByLex(Range<String> range) {
 		return rangeByLex(range, Limit.unlimited());
 	}
 
@@ -925,8 +914,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
-	default Set<V> reverseRangeByLex(Range<String> range) {
+	default @Nullable Set<V> reverseRangeByLex(Range<String> range) {
 		return reverseRangeByLex(range, Limit.unlimited());
 	}
 
@@ -975,8 +963,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #rangeByLex(Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long rangeAndStoreByLex(K dstKey, Range<String> range) {
+	default @Nullable Long rangeAndStoreByLex(K dstKey, Range<String> range) {
 		return rangeAndStoreByLex(dstKey, range, Limit.unlimited());
 	}
 
@@ -1007,8 +994,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #reverseRangeByLex(Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long reverseRangeAndStoreByLex(K dstKey, Range<String> range) {
+	default @Nullable Long reverseRangeAndStoreByLex(K dstKey, Range<String> range) {
 		return reverseRangeAndStoreByLex(dstKey, range, Limit.unlimited());
 	}
 
@@ -1039,8 +1025,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #rangeByScore(double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long rangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
+	default @Nullable Long rangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
 		return rangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -1071,8 +1056,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #reverseRangeByScore(double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long reverseRangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
+	default @Nullable Long reverseRangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 

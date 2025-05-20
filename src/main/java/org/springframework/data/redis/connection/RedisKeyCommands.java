@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -58,8 +58,7 @@ public interface RedisKeyCommands {
 	 * @return {@literal true} if key exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
-	@Nullable
-	default Boolean exists(byte[] key) {
+	default @Nullable Boolean exists(byte[] key) {
 
 		Assert.notNull(key, "Key must not be null");
 		Long count = exists(new byte[][] { key });
@@ -159,8 +158,7 @@ public interface RedisKeyCommands {
 	 * @return {@literal null} if no keys available or when used in pipeline or transaction.
 	 * @see <a href="https://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
-	@Nullable
-	byte[] randomKey();
+	byte @Nullable[] randomKey();
 
 	/**
 	 * Rename key {@code oldKey} to {@code newKey}.
@@ -196,8 +194,7 @@ public interface RedisKeyCommands {
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
-	@Nullable
-	default Boolean applyExpiration(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
+	default @Nullable Boolean applyExpiration(byte[] key, org.springframework.data.redis.core.types.Expiration expiration,
 			ExpirationOptions options) {
 
 		if (expiration.isPersistent()) {
@@ -242,8 +239,7 @@ public interface RedisKeyCommands {
 	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 */
-	@Nullable
-	default Boolean expire(byte[] key, long seconds) {
+	default @Nullable Boolean expire(byte[] key, long seconds) {
 		return expire(key, seconds, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -272,8 +268,7 @@ public interface RedisKeyCommands {
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default Boolean expire(byte[] key, Duration duration) {
+	default @Nullable Boolean expire(byte[] key, Duration duration) {
 		return expire(key, duration.toSeconds());
 	}
 
@@ -287,8 +282,7 @@ public interface RedisKeyCommands {
 	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 */
-	@Nullable
-	default Boolean pExpire(byte[] key, long millis) {
+	default @Nullable Boolean pExpire(byte[] key, long millis) {
 		return pExpire(key, millis, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -317,8 +311,7 @@ public interface RedisKeyCommands {
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default Boolean pExpire(byte[] key, Duration duration) {
+	default @Nullable Boolean pExpire(byte[] key, Duration duration) {
 		return pExpire(key, duration.toMillis());
 	}
 
@@ -332,8 +325,7 @@ public interface RedisKeyCommands {
 	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 */
-	@Nullable
-	default Boolean expireAt(byte[] key, long unixTime) {
+	default @Nullable Boolean expireAt(byte[] key, long unixTime) {
 		return expireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -363,8 +355,7 @@ public interface RedisKeyCommands {
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default Boolean expireAt(byte[] key, Instant unixTime) {
+	default @Nullable Boolean expireAt(byte[] key, Instant unixTime) {
 		return expireAt(key, unixTime.getEpochSecond());
 	}
 
@@ -378,8 +369,7 @@ public interface RedisKeyCommands {
 	 *         skipped because of the provided arguments.
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 */
-	@Nullable
-	default Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+	default @Nullable Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 		return pExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -409,8 +399,7 @@ public interface RedisKeyCommands {
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default Boolean pExpireAt(byte[] key, Instant unixTime) {
+	default @Nullable Boolean pExpireAt(byte[] key, Instant unixTime) {
 		return pExpireAt(key, unixTime.toEpochMilli());
 	}
 
@@ -509,8 +498,7 @@ public interface RedisKeyCommands {
 	 * @return {@literal null} if key does not exist or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/dump">Redis Documentation: DUMP</a>
 	 */
-	@Nullable
-	byte[] dump(byte[] key);
+	byte @Nullable[] dump(byte[] key);
 
 	/**
 	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(byte[])}.

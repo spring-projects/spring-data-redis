@@ -19,10 +19,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
-import org.springframework.lang.Nullable;
 
 /**
  * Hash Field Expiration operations bound to a certain hash key and set of hash fields.

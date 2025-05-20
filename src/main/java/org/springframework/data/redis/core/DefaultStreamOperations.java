@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
@@ -44,7 +45,6 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.support.collections.CollectionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -363,7 +363,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 			return result;
 		}
 
-		@Nullable
-		abstract List<ByteRecord> inRedis(RedisConnection connection);
+		abstract @Nullable List<ByteRecord> inRedis(RedisConnection connection);
 	}
 }

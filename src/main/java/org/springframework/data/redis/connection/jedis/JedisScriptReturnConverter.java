@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection.jedis;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.lang.Nullable;
 
 /**
  * Converts the value returned by Jedis script eval to the expected {@link ReturnType}

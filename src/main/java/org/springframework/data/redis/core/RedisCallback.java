@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.lang.Nullable;
 
 /**
  * Callback interface for Redis 'low level' code. To be used with {@link RedisTemplate} execution methods, often as

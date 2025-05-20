@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.lang.Nullable;
 
 /**
  * String/Value-specific commands supported by Redis.
@@ -44,8 +44,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
-	@Nullable
-	byte[] get(byte[] key);
+	byte @Nullable[] get(byte[] key);
 
 	/**
 	 * Return the value at {@code key} and delete the key.
@@ -55,8 +54,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	byte[] getDel(byte[] key);
+	byte @Nullable[] getDel(byte[] key);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
@@ -71,8 +69,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	byte[] getEx(byte[] key, Expiration expiration);
+	byte @Nullable[] getEx(byte[] key, Expiration expiration);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -82,8 +79,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} if key did not exist before or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
-	@Nullable
-	byte[] getSet(byte[] key, byte[] value);
+	byte @Nullable[] getSet(byte[] key, byte[] value);
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys Absent field values are represented using
@@ -136,8 +132,7 @@ public interface RedisStringCommands {
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	@Nullable
-	byte[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option);
+	byte @Nullable[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -269,8 +264,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
-	@Nullable
-	byte[] getRange(byte[] key, long start, long end);
+	byte @Nullable[] getRange(byte[] key, long start, long end);
 
 	/**
 	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
@@ -362,8 +356,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Long bitPos(byte[] key, boolean bit) {
+	default @Nullable Long bitPos(byte[] key, boolean bit) {
 		return bitPos(key, bit, Range.unbounded());
 	}
 

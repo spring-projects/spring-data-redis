@@ -18,7 +18,7 @@ package org.springframework.data.redis.cache;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**

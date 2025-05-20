@@ -24,13 +24,12 @@ import java.util.function.Function;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -150,8 +149,7 @@ class BoundOperationsProxyFactory {
 			};
 		}
 
-		@Nullable
-		private Object doInvoke(MethodInvocation invocation, Method method, Object target, boolean considerKeyArgument) {
+		private @Nullable Object doInvoke(MethodInvocation invocation, Method method, Object target, boolean considerKeyArgument) {
 
 			Method backingMethod = lookupRequiredMethod(method, target.getClass(), considerKeyArgument);
 

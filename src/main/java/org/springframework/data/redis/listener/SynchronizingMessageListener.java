@@ -25,11 +25,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.SubscriptionListener;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
-import org.springframework.lang.Nullable;
 
 /**
  * Synchronizing {@link MessageListener} and {@link SubscriptionListener} that allows notifying a {@link Runnable}
@@ -59,7 +59,7 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 	}
 
 	@Override
-	public void onMessage(Message message, @Nullable byte[] pattern) {
+	public void onMessage(Message message, byte @Nullable[] pattern) {
 		messageListener.onMessage(message, pattern);
 	}
 

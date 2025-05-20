@@ -31,7 +31,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.comparator.NullSafeComparator;
@@ -77,7 +77,7 @@ public class Bucket {
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @param value can be {@literal null}.
 	 */
-	public void put(String path, @Nullable byte[] value) {
+	public void put(String path, byte @Nullable[] value) {
 
 		Assert.hasText(path, "Path to property must not be null or empty");
 		data.put(path, value);
@@ -94,14 +94,14 @@ public class Bucket {
 		data.remove(path);
 	}
 
+
 	/**
 	 * Get value assigned with path.
 	 *
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @return {@literal null} if not set.
 	 */
-	@Nullable
-	public byte[] get(String path) {
+	public byte @Nullable[] get(String path) {
 
 		Assert.hasText(path, "Path to property must not be null or empty");
 		return data.get(path);
@@ -301,8 +301,7 @@ public class Bucket {
 		}
 	}
 
-	@Nullable
-	private static String toUtf8String(byte[] raw) {
+	private @Nullable static String toUtf8String(byte[] raw) {
 
 		try {
 			return new String(raw, CHARSET);
@@ -354,14 +353,14 @@ public class Bucket {
 			return new BucketPropertyPath(bucket, prefix);
 		}
 
+
 		/**
 		 * Retrieve a value at {@code key} considering top-level/nesting.
 		 *
 		 * @param key must not be {@literal null} or empty.
 		 * @return the resulting value, may be {@literal null}.
 		 */
-		@Nullable
-		public byte[] get(String key) {
+		public byte @Nullable[] get(String key) {
 			return bucket.get(getPath(key));
 		}
 
@@ -383,8 +382,7 @@ public class Bucket {
 			return this.bucket;
 		}
 
-		@Nullable
-		public String getPrefix() {
+		public @Nullable String getPrefix() {
 			return this.prefix;
 		}
 	}

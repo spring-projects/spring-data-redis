@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -133,8 +133,7 @@ public class Expirations<K> {
 	 * @return the {@link Expirations expirations} where the {@link TimeToLive#value()} is using the {@link TimeUnit}
 	 *         defined in {@link #timeUnit()} or {@literal null} if no entry could be found.
 	 */
-	@Nullable
-	public TimeToLive expirationOf(K key) {
+	public @Nullable TimeToLive expirationOf(K key) {
 
 		TimeToLive timeToLive = expirations.get(key);
 
@@ -151,8 +150,7 @@ public class Expirations<K> {
 	 *         {@link TimeToLive#isMissing() missing} nor {@link TimeToLive#isPersistent() persistent}, {@literal null}
 	 *         otherwise.
 	 */
-	@Nullable
-	public Duration ttlOf(K key) {
+	public @Nullable Duration ttlOf(K key) {
 		return toDuration(expirationOf(key));
 	}
 

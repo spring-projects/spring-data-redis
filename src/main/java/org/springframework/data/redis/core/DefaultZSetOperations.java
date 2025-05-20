@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -71,8 +71,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 * @return can be {@literal null}.
 	 * @since 2.5
 	 */
-	@Nullable
-	protected Boolean add(K key, V value, double score, ZAddArgs args) {
+	protected @Nullable Boolean add(K key, V value, double score, ZAddArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -101,8 +100,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 * @return can be {@literal null}.
 	 * @since 2.5
 	 */
-	@Nullable
-	protected Long add(K key, Set<TypedTuple<V>> tuples, ZAddArgs args) {
+	protected @Nullable Long add(K key, Set<TypedTuple<V>> tuples, ZAddArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		Set<Tuple> rawValues = rawTupleValues(tuples);

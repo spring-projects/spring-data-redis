@@ -17,8 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 
 /**
  * The result of an asynchronous operation
@@ -95,8 +95,7 @@ public abstract class FutureResult<T> {
 	 * @return The converted result or {@literal null}.
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
-	public Object convert(@Nullable Object result) {
+	public @Nullable Object convert(@Nullable Object result) {
 
 		if (result == null) {
 			return computeDefaultResult(null);
@@ -105,8 +104,7 @@ public abstract class FutureResult<T> {
 		return computeDefaultResult(converter.convert(result));
 	}
 
-	@Nullable
-	private Object computeDefaultResult(@Nullable Object source) {
+	private @Nullable Object computeDefaultResult(@Nullable Object source) {
 		return source != null ? source : defaultConversionResult.get();
 	}
 
@@ -134,8 +132,7 @@ public abstract class FutureResult<T> {
 	/**
 	 * @return The result of the operation. Can be {@literal null}.
 	 */
-	@Nullable
-	public abstract Object get();
+	public abstract @Nullable Object get();
 
 	/**
 	 * Indicate whether or not the actual result needs to be {@link #convert(Object) converted} before handing over.

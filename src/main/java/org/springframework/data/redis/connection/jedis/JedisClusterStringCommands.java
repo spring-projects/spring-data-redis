@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.connection.jedis.JedisClusterConnection.Je
 import org.springframework.data.redis.connection.lettuce.LettuceConverters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -65,9 +65,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] getDel(byte[] key) {
+	public byte @Nullable[] getDel(byte[] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -78,9 +78,9 @@ class JedisClusterStringCommands implements RedisStringCommands {
 		}
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] getEx(byte[] key, Expiration expiration) {
+	public byte @Nullable[] getEx(byte[] key, Expiration expiration) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(expiration, "Expiration must not be null");

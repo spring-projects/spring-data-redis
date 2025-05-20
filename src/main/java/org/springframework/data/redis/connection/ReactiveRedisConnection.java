@@ -21,10 +21,10 @@ import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -360,8 +360,7 @@ public interface ReactiveRedisConnection extends Closeable {
 			return this.input;
 		}
 
-		@Nullable
-		public O getOutput() {
+		public @Nullable O getOutput() {
 			return this.output;
 		}
 

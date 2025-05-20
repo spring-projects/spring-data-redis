@@ -20,6 +20,7 @@ import java.util.OptionalInt;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.hash.ObjectHashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.stream.DefaultStreamMessageListenerContainer.LoggingErrorHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -289,8 +289,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return streamOffset;
 		}
 
-		@Nullable
-		public ErrorHandler getErrorHandler() {
+		public @Nullable ErrorHandler getErrorHandler() {
 			return errorHandler;
 		}
 
@@ -553,8 +552,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return hashValueSerializer;
 		}
 
-		@Nullable
-		public HashMapper<Object, Object, Object> getHashMapper() {
+		public @Nullable HashMapper<Object, Object, Object> getHashMapper() {
 			return hashMapper;
 		}
 

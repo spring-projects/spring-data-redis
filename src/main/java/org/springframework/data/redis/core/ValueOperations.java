@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -142,8 +142,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Boolean setIfAbsent(K key, V value, Duration timeout) {
+	default @Nullable Boolean setIfAbsent(K key, V value, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -193,8 +192,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Boolean setIfPresent(K key, V value, Duration timeout) {
+	default @Nullable Boolean setIfPresent(K key, V value, Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 

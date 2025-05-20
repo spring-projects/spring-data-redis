@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
@@ -33,7 +34,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -399,18 +399,15 @@ public interface ReactiveListCommands {
 			return new LPosCommand(getKey(), element, count, rank);
 		}
 
-		@Nullable
-		public Integer getCount() {
+		public @Nullable Integer getCount() {
 			return count;
 		}
 
-		@Nullable
-		public Integer getRank() {
+		public @Nullable Integer getRank() {
 			return rank;
 		}
 
-		@Nullable
-		public ByteBuffer getElement() {
+		public @Nullable ByteBuffer getElement() {
 			return element;
 		}
 	}
@@ -608,16 +605,14 @@ public interface ReactiveListCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Position getPosition() {
+		public @Nullable Position getPosition() {
 			return position;
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getPivot() {
+		public @Nullable ByteBuffer getPivot() {
 			return pivot;
 		}
 	}
@@ -723,18 +718,15 @@ public interface ReactiveListCommands {
 			return new BLMoveCommand(getKey(), destinationKey, from, to, timeout);
 		}
 
-		@Nullable
-		public ByteBuffer getDestinationKey() {
+		public @Nullable ByteBuffer getDestinationKey() {
 			return destinationKey;
 		}
 
-		@Nullable
-		public Direction getFrom() {
+		public @Nullable Direction getFrom() {
 			return from;
 		}
 
-		@Nullable
-		public Direction getTo() {
+		public @Nullable Direction getTo() {
 			return to;
 		}
 	}
@@ -756,8 +748,7 @@ public interface ReactiveListCommands {
 			this.timeout = timeout;
 		}
 
-		@Nullable
-		public Duration getTimeout() {
+		public @Nullable Duration getTimeout() {
 			return timeout;
 		}
 	}
@@ -897,8 +888,7 @@ public interface ReactiveListCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getValue() {
+		public @Nullable ByteBuffer getValue() {
 			return value;
 		}
 
@@ -1020,8 +1010,7 @@ public interface ReactiveListCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getValue() {
+		public @Nullable ByteBuffer getValue() {
 			return value;
 		}
 	}
@@ -1443,8 +1432,7 @@ public interface ReactiveListCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getDestination() {
+		public @Nullable ByteBuffer getDestination() {
 			return destination;
 		}
 	}
@@ -1539,8 +1527,7 @@ public interface ReactiveListCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getDestination() {
+		public @Nullable ByteBuffer getDestination() {
 			return destination;
 		}
 

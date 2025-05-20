@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -61,7 +62,6 @@ import org.springframework.data.redis.domain.geo.BoxShape;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.domain.geo.RadiusShape;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -177,7 +177,7 @@ public abstract class LettuceConverters extends Converters {
 				: null;
 	}
 
-	public static String toString(@Nullable byte[] source) {
+	public static String toString(byte @Nullable[] source) {
 
 		if (source == null || Arrays.equals(source, new byte[0])) {
 			return null;
@@ -888,7 +888,7 @@ public abstract class LettuceConverters extends Converters {
 		throw new IllegalArgumentException("Cannot convert %s to Lettuce GeoRef".formatted(reference));
 	}
 
-	static FlushMode toFlushMode(@Nullable RedisServerCommands.FlushOption option) {
+	static FlushMode toFlushMode(RedisServerCommands.@Nullable FlushOption option) {
 
 		if (option == null) {
 			return FlushMode.SYNC;

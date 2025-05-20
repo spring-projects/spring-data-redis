@@ -21,9 +21,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -68,8 +68,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when key or field do not exists or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
-	@Nullable
-	byte[] hGet(byte[] key, byte[] field);
+	byte @Nullable[] hGet(byte[] key, byte[] field);
 
 	/**
 	 * Get values for given {@code fields} from hash at {@code key}. Values are in the order of the requested keys Absent
@@ -186,8 +185,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	byte[] hRandField(byte[] key);
+	byte @Nullable[] hRandField(byte[] key);
 
 	/**
 	 * Return a random field from the hash along with its value stored at {@code key}.
@@ -197,8 +195,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map.Entry<byte[], byte[]> hRandFieldWithValues(byte[] key);
+	Map.@Nullable Entry<byte[], byte[]> hRandFieldWithValues(byte[] key);
 
 	/**
 	 * Return a random field from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -282,8 +279,7 @@ public interface RedisHashCommands {
 	 *         condition is not met); {@code -2} indicating there is no such field;
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> applyHashFieldExpiration(byte[] key,
+	default @Nullable List<Long> applyHashFieldExpiration(byte[] key,
 			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options, byte[]... fields) {
 
 		if (expiration.isPersistent()) {
@@ -331,8 +327,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+	default @Nullable List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
 		return hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -350,8 +345,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpire(byte[] key, Duration ttl, byte[]... fields) {
+	default @Nullable List<Long> hExpire(byte[] key, Duration ttl, byte[]... fields) {
 		return hExpire(key, ttl.toSeconds(), fields);
 	}
 
@@ -387,8 +381,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+	default @Nullable List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
 		return hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -406,8 +399,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpire(byte[] key, Duration ttl, byte[]... fields) {
+	default @Nullable List<Long> hpExpire(byte[] key, Duration ttl, byte[]... fields) {
 		return hpExpire(key, ttl.toMillis(), fields);
 	}
 
@@ -443,8 +435,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+	default @Nullable List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
 		return hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -479,8 +470,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+	default @Nullable List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
 		return hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 

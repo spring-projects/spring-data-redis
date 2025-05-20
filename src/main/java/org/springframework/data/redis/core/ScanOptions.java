@@ -17,8 +17,8 @@ package org.springframework.data.redis.core;
 
 import java.util.StringJoiner;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -40,9 +40,9 @@ public class ScanOptions {
 
 	private final @Nullable Long count;
 	private final @Nullable String pattern;
-	private final @Nullable byte[] bytePattern;
+	private final byte @Nullable[] bytePattern;
 
-	ScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern) {
+	ScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable[] bytePattern) {
 
 		this.count = count;
 		this.pattern = pattern;
@@ -58,13 +58,11 @@ public class ScanOptions {
 		return new ScanOptionsBuilder();
 	}
 
-	@Nullable
-	public Long getCount() {
+	public @Nullable Long getCount() {
 		return count;
 	}
 
-	@Nullable
-	public String getPattern() {
+	public @Nullable String getPattern() {
 
 		if (bytePattern != null && pattern == null) {
 			return new String(bytePattern);
@@ -73,8 +71,8 @@ public class ScanOptions {
 		return pattern;
 	}
 
-	@Nullable
-	public byte[] getBytePattern() {
+
+	public byte @Nullable[] getBytePattern() {
 
 		if (bytePattern == null && pattern != null) {
 			return pattern.getBytes();
@@ -112,7 +110,7 @@ public class ScanOptions {
 
 		@Nullable Long count;
 		@Nullable String pattern;
-		@Nullable byte[] bytePattern;
+		byte @Nullable[] bytePattern;
 		@Nullable DataType type;
 
 		ScanOptionsBuilder() {}

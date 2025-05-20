@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -55,8 +55,7 @@ public interface RedisStreamCommands {
 	 * @return length of acknowledged messages. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	@Nullable
-	default Long xAck(byte[] key, String group, String... recordIds) {
+	default @Nullable Long xAck(byte[] key, String group, String... recordIds) {
 		return xAck(key, group, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 	}
 
@@ -80,8 +79,7 @@ public interface RedisStreamCommands {
 	 * @return the server generated {@link RecordId id}. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	@Nullable
-	default RecordId xAdd(byte[] key, Map<byte[], byte[]> content) {
+	default @Nullable RecordId xAdd(byte[] key, Map<byte[], byte[]> content) {
 		return xAdd(StreamRecords.newRecord().in(key).ofMap(content));
 	}
 
@@ -92,8 +90,7 @@ public interface RedisStreamCommands {
 	 * @param record the {@link MapRecord record} to append.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	default RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
+	default @Nullable RecordId xAdd(MapRecord<byte[], byte[], byte[]> record) {
 		return xAdd(record, XAddOptions.none());
 	}
 
@@ -205,8 +202,7 @@ public interface RedisStreamCommands {
 		 *
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getMaxlen() {
+		public @Nullable Long getMaxlen() {
 			return maxlen;
 		}
 
@@ -228,8 +224,7 @@ public interface RedisStreamCommands {
 		 * @return the minimum record Id to retain during trimming.
 		 * @since 2.7
 		 */
-		@Nullable
-		public RecordId getMinId() {
+		public @Nullable RecordId getMinId() {
 			return minId;
 		}
 
@@ -298,8 +293,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	default List<ByteRecord> xClaim(byte[] key, String group, String newOwner, Duration minIdleTime,
+	default @Nullable List<ByteRecord> xClaim(byte[] key, String group, String newOwner, Duration minIdleTime,
 			RecordId... recordIds) {
 		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
 	}
@@ -438,8 +432,7 @@ public interface RedisStreamCommands {
 		 *
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Duration getIdleTime() {
+		public @Nullable Duration getIdleTime() {
 			return idleTime;
 		}
 
@@ -448,8 +441,7 @@ public interface RedisStreamCommands {
 		 *
 		 * @return
 		 */
-		@Nullable
-		public Instant getUnixTime() {
+		public @Nullable Instant getUnixTime() {
 			return unixTime;
 		}
 
@@ -458,8 +450,7 @@ public interface RedisStreamCommands {
 		 *
 		 * @return
 		 */
-		@Nullable
-		public Long getRetryCount() {
+		public @Nullable Long getRetryCount() {
 			return retryCount;
 		}
 
@@ -529,8 +520,7 @@ public interface RedisStreamCommands {
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	@Nullable
-	default Long xDel(byte[] key, String... recordIds) {
+	default @Nullable Long xDel(byte[] key, String... recordIds) {
 		return xDel(key, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 	}
 
@@ -578,8 +568,7 @@ public interface RedisStreamCommands {
 	 * @param consumerName the name of the consumer to remove from the group.
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	default Boolean xGroupDelConsumer(byte[] key, String groupName, String consumerName) {
+	default @Nullable Boolean xGroupDelConsumer(byte[] key, String groupName, String consumerName) {
 		return xGroupDelConsumer(key, Consumer.from(groupName, consumerName));
 	}
 
@@ -668,8 +657,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	default PendingMessages xPending(byte[] key, Consumer consumer) {
+	default @Nullable PendingMessages xPending(byte[] key, Consumer consumer) {
 		return xPending(key, consumer.getGroup(), consumer.getName());
 	}
 
@@ -683,8 +671,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	default PendingMessages xPending(byte[] key, String groupName, String consumerName) {
+	default @Nullable PendingMessages xPending(byte[] key, String groupName, String consumerName) {
 		return xPending(key, groupName, XPendingOptions.unbounded().consumer(consumerName));
 	}
 
@@ -701,8 +688,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count) {
+	default @Nullable PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count) {
 		return xPending(key, groupName, XPendingOptions.range(range, count));
 	}
 
@@ -718,8 +704,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	default PendingMessages xPending(byte[] key, Consumer consumer, Range<?> range, Long count) {
+	default @Nullable PendingMessages xPending(byte[] key, Consumer consumer, Range<?> range, Long count) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
 	}
 
@@ -737,8 +722,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	default PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count) {
+	default @Nullable PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count) {
 		return xPending(key, groupName, XPendingOptions.range(range, count).consumer(consumerName));
 	}
 
@@ -833,16 +817,14 @@ public interface RedisStreamCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Long getCount() {
+		public @Nullable Long getCount() {
 			return count;
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public String getConsumerName() {
+		public @Nullable String getConsumerName() {
 			return consumerName;
 		}
 
@@ -871,8 +853,7 @@ public interface RedisStreamCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
-	default List<ByteRecord> xRange(byte[] key, Range<String> range) {
+	default @Nullable List<ByteRecord> xRange(byte[] key, Range<String> range) {
 		return xRange(key, range, Limit.unlimited());
 	}
 
@@ -898,8 +879,7 @@ public interface RedisStreamCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<ByteRecord> xRead(StreamOffset<byte[]>... streams) {
+	default @Nullable List<ByteRecord> xRead(StreamOffset<byte[]>... streams) {
 		return xRead(StreamReadOptions.empty(), streams);
 	}
 
@@ -922,8 +902,7 @@ public interface RedisStreamCommands {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<ByteRecord> xReadGroup(Consumer consumer, StreamOffset<byte[]>... streams) {
+	default @Nullable List<ByteRecord> xReadGroup(Consumer consumer, StreamOffset<byte[]>... streams) {
 		return xReadGroup(consumer, StreamReadOptions.empty(), streams);
 	}
 
@@ -947,8 +926,7 @@ public interface RedisStreamCommands {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
-	default List<ByteRecord> xRevRange(byte[] key, Range<String> range) {
+	default @Nullable List<ByteRecord> xRevRange(byte[] key, Range<String> range) {
 		return xRevRange(key, range, Limit.unlimited());
 	}
 

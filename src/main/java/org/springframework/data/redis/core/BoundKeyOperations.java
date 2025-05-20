@@ -20,8 +20,8 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -78,8 +78,7 @@ public interface BoundKeyOperations<K> {
 	 * @throws IllegalArgumentException if the timeout is {@literal null}.
 	 * @since 2.3
 	 */
-	@Nullable
-	default Boolean expire(Duration timeout) {
+	default @Nullable Boolean expire(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -114,8 +113,7 @@ public interface BoundKeyOperations<K> {
 	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
 	 * @since 2.3
 	 */
-	@Nullable
-	default Boolean expireAt(Instant expireAt) {
+	default @Nullable Boolean expireAt(Instant expireAt) {
 
 		Assert.notNull(expireAt, "ExpireAt must not be null");
 

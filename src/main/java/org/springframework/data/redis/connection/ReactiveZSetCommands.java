@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
@@ -42,7 +43,6 @@ import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -473,8 +473,7 @@ public interface ReactiveZSetCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Number getIncrement() {
+		public @Nullable Number getIncrement() {
 			return increment;
 		}
 	}
@@ -1832,13 +1831,11 @@ public interface ReactiveZSetCommands {
 			return direction;
 		}
 
-		@Nullable
-		public Long getTimeout() {
+		public @Nullable Long getTimeout() {
 			return timeout;
 		}
 
-		@Nullable
-		public TimeUnit getTimeUnit() {
+		public @Nullable TimeUnit getTimeUnit() {
 			return timeUnit;
 		}
 
@@ -2404,8 +2401,7 @@ public interface ReactiveZSetCommands {
 		}
 
 		@Override
-		@Nullable
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -2610,9 +2606,8 @@ public interface ReactiveZSetCommands {
 			return new ZAggregateCommand(sourceKeys, weights, aggregateFunction);
 		}
 
-		@Nullable
 		@Override
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 

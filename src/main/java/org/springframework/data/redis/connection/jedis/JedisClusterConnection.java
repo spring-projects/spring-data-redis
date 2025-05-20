@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.dao.DataAccessException;
@@ -55,7 +56,6 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -177,10 +177,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(commandCallback).getValue();
 	}
 
-	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+	public <T> @Nullable T execute(String command, byte[] key, Collection<byte[]> args) {
 
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(key, "Key must not be null");
@@ -418,8 +417,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		throw new InvalidDataAccessApiUsageException("Echo not supported in cluster mode");
 	}
 
-	@Override @Nullable
-	public String ping() {
+	@Override
+	public @Nullable String ping() {
 
 		JedisClusterCommandCallback<String> command = Jedis::ping;
 
@@ -566,8 +565,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		return this.topologyProvider.getTopology().getKeyServingMasterNode(key);
 	}
 
-	@Override @Nullable
-	public RedisClusterNode clusterGetNodeForSlot(int slot) {
+	@Override
+	public @Nullable RedisClusterNode clusterGetNodeForSlot(int slot) {
 
 		for (RedisClusterNode node : topologyProvider.getTopology().getSlotServingNodes(slot)) {
 			if (node.isMaster()) {
@@ -766,8 +765,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new DataAccessResourceFailureException("Node %s is unknown to cluster".formatted(node));
 		}
 
-		@Nullable
-		private ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
+		private @Nullable ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
 
 			Map<String, ConnectionPool> clusterNodes = cluster.getClusterNodes();
 			HostAndPort hap = new HostAndPort(node.getHost(),

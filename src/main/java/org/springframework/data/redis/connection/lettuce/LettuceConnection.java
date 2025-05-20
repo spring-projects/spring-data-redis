@@ -59,7 +59,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -75,7 +75,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceRe
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
 import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.RedisCommand;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -999,8 +998,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 				getRedisURI(sentinel));
 	}
 
-	@Nullable
-	private <T> T await(RedisFuture<T> cmd) {
+	private @Nullable <T> T await(RedisFuture<T> cmd) {
 
 		if (this.isMulti) {
 			return null;
@@ -1073,7 +1071,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private void validateCommand(ProtocolKeyword command, @Nullable byte[]... args) {
+	private void validateCommand(ProtocolKeyword command, byte @Nullable[]... args) {
 
 		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(command.toString());
 

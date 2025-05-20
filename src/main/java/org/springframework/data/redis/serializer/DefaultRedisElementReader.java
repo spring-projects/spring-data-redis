@@ -17,8 +17,8 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link RedisElementReader}.

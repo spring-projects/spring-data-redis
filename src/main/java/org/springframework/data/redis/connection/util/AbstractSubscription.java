@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -53,7 +53,7 @@ public abstract class AbstractSubscription implements Subscription {
 	 * @param channels can be {@literal null}.
 	 * @param patterns can be {@literal null}.
 	 */
-	protected AbstractSubscription(MessageListener listener, @Nullable byte[][] channels, @Nullable byte[][] patterns) {
+	protected AbstractSubscription(MessageListener listener, byte @Nullable[][] channels, byte @Nullable[][] patterns) {
 
 		Assert.notNull(listener, "MessageListener must not be null");
 
@@ -175,7 +175,7 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	@Override
-	public void pUnsubscribe(@Nullable byte[]... patts) {
+	public void pUnsubscribe(byte @Nullable[]... patts) {
 		if (!isAlive()) {
 			return;
 		}
@@ -203,7 +203,7 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	@Override
-	public void unsubscribe(@Nullable byte[]... chans) {
+	public void unsubscribe(byte @Nullable[]... chans) {
 		if (!isAlive()) {
 			return;
 		}
@@ -255,7 +255,7 @@ public abstract class AbstractSubscription implements Subscription {
 		return list;
 	}
 
-	private static void add(Collection<ByteArrayWrapper> col, @Nullable byte[]... bytes) {
+	private static void add(Collection<ByteArrayWrapper> col, byte @Nullable[]... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {
 			for (byte[] bs : bytes) {
 				col.add(new ByteArrayWrapper(bs));
@@ -263,7 +263,7 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
-	private static void remove(Collection<ByteArrayWrapper> col, @Nullable byte[]... bytes) {
+	private static void remove(Collection<ByteArrayWrapper> col, byte @Nullable[]... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {
 			for (byte[] bs : bytes) {
 				col.remove(new ByteArrayWrapper(bs));

@@ -18,9 +18,9 @@ package org.springframework.data.redis.core;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.data.redis.core.convert.MappingRedisConverter.BinaryKeyspaceIdentifier;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link RedisKeyExpiredEvent} is a Redis specific {@link ApplicationEvent} published when a particular key in Redis
@@ -102,8 +102,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 *
 	 * @return {@literal null} if not present.
 	 */
-	@Nullable
-	public Object getValue() {
+	public @Nullable Object getValue() {
 		return value;
 	}
 

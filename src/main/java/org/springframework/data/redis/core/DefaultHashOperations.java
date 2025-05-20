@@ -26,13 +26,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.data.redis.core.types.Expirations.Timeouts;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

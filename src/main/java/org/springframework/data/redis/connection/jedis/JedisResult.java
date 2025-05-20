@@ -19,9 +19,9 @@ import redis.clients.jedis.Response;
 
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.FutureResult;
-import org.springframework.lang.Nullable;
 
 /**
  * Jedis specific {@link FutureResult} implementation. <br />

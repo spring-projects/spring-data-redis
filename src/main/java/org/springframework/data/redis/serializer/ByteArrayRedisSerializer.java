@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Raw {@link RedisSerializer} using {@code byte[]}.
@@ -27,15 +27,15 @@ enum ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
 
 	INSTANCE;
 
-	@Nullable
+
 	@Override
-	public byte[] serialize(@Nullable byte[] value) throws SerializationException {
+	public byte @Nullable[] serialize(byte @Nullable[] value) throws SerializationException {
 		return value;
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] deserialize(@Nullable byte[] bytes) throws SerializationException {
+	public byte @Nullable[] deserialize(byte @Nullable[] bytes) throws SerializationException {
 		return bytes;
 	}
 }

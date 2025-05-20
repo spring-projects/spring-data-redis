@@ -18,6 +18,7 @@ package org.springframework.data.redis.aot;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -50,7 +51,6 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.repository.query.RedisPartTreeQuery;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**

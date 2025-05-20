@@ -22,9 +22,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -80,8 +80,7 @@ public class RedisOperationChain {
 		this.near = near;
 	}
 
-	@Nullable
-	public NearPath getNear() {
+	public @Nullable NearPath getNear() {
 		return near;
 	}
 
@@ -114,8 +113,7 @@ public class RedisOperationChain {
 			return values;
 		}
 
-		@Nullable
-		public Object getFirstValue() {
+		public @Nullable Object getFirstValue() {
 			return values.isEmpty() ? null : values.iterator().next();
 		}
 

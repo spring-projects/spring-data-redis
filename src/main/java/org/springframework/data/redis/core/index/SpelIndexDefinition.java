@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.core.index;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.convert.SpelIndexResolver;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**

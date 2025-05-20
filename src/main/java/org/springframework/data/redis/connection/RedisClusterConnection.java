@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection;
 import java.util.Collection;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -72,8 +72,7 @@ public interface RedisClusterConnection
 	 * @return {@literal null} when no keys stored at node or when used in pipeline / transaction.
 	 * @see RedisKeyCommands#randomKey()
 	 */
-	@Nullable
-	byte[] randomKey(RedisClusterNode node);
+	byte @Nullable[] randomKey(RedisClusterNode node);
 
 	/**
 	 * Execute the given command for the {@code key} provided potentially appending args. <br />
@@ -93,8 +92,7 @@ public interface RedisClusterConnection
 	 * @return command result as delivered by the underlying Redis driver. Can be {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
-	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+	default <T> @Nullable T execute(String command, byte[] key, Collection<byte[]> args) {
 
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(key, "Key must not be null");

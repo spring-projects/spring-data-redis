@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.serializer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -84,9 +84,9 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		this.deserializer = deserializer;
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] serialize(@Nullable Object value) {
+	public byte @Nullable[] serialize(@Nullable Object value) {
 
 		if (value == null) {
 			return SerializationUtils.EMPTY_ARRAY;
@@ -101,7 +101,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 	@Nullable
 	@Override
-	public Object deserialize(@Nullable byte[] bytes) {
+	public Object deserialize(byte @Nullable[] bytes) {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;

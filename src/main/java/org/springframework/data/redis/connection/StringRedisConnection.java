@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -53,7 +54,6 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -801,8 +801,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	@Nullable
-	default Long lPos(String key, String element) {
+	default @Nullable Long lPos(String key, String element) {
 		return CollectionUtils.firstElement(lPos(key, element, null, null));
 	}
 
@@ -1809,8 +1808,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<StringTuple> zInterWithScores(Aggregate aggregate, int[] weights, String... sets) {
+	default @Nullable Set<StringTuple> zInterWithScores(Aggregate aggregate, int[] weights, String... sets) {
 		return zInterWithScores(aggregate, Weights.of(weights), sets);
 	}
 
@@ -1883,8 +1881,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<StringTuple> zUnionWithScores(Aggregate aggregate, int[] weights, String... sets) {
+	default @Nullable Set<StringTuple> zUnionWithScores(Aggregate aggregate, int[] weights, String... sets) {
 		return zUnionWithScores(aggregate, Weights.of(weights), sets);
 	}
 
@@ -2058,8 +2055,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range) {
+	default @Nullable Long zRangeStoreByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range) {
 		return zRangeStoreByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2088,8 +2084,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreRevByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range) {
+	default @Nullable Long zRangeStoreRevByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range) {
 		return zRangeStoreRevByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2118,8 +2113,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreByScore(String dstKey, String srcKey,
+	default @Nullable Long zRangeStoreByScore(String dstKey, String srcKey,
 			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
@@ -2149,8 +2143,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreRevByScore(String dstKey, String srcKey,
+	default @Nullable Long zRangeStoreRevByScore(String dstKey, String srcKey,
 			org.springframework.data.domain.Range<? extends Number> range) {
 		return zRangeStoreRevByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
@@ -2274,8 +2267,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map.Entry<String, String> hRandFieldWithValues(String key);
+	Map.@Nullable Entry<String, String> hRandFieldWithValues(String key);
 
 	/**
 	 * Return a random field from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -2406,8 +2398,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpire(String key, long seconds, String... fields) {
+	default @Nullable List<Long> hExpire(String key, long seconds, String... fields) {
 		return hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2441,8 +2432,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpire(String key, long millis, String... fields) {
+	default @Nullable List<Long> hpExpire(String key, long millis, String... fields) {
 		return hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2476,8 +2466,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpireAt(String key, long unixTime, String... fields) {
+	default @Nullable List<Long> hExpireAt(String key, long unixTime, String... fields) {
 		return hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2511,8 +2500,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
+	default @Nullable List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
 		return hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2984,8 +2972,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	@Nullable
-	default Long xAck(String key, String group, String... entryIds) {
+	default @Nullable Long xAck(String key, String group, String... entryIds) {
 		return xAck(key, group, entryIds(entryIds));
 	}
 
@@ -3000,8 +2987,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	@Nullable
-	default RecordId xAdd(String key, Map<String, String> body) {
+	default @Nullable RecordId xAdd(String key, Map<String, String> body) {
 		return xAdd(StreamRecords.newRecord().in(key).ofStrings(body));
 	}
 
@@ -3012,8 +2998,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @since 2.2
 	 */
-	@Nullable
-	default RecordId xAdd(StringRecord record) {
+	default @Nullable RecordId xAdd(StringRecord record) {
 		return xAdd(record, XAddOptions.none());
 	}
 
@@ -3082,8 +3067,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	@Nullable
-	default Long xDel(String key, String... entryIds) {
+	default @Nullable Long xDel(String key, String... entryIds) {
 		return xDel(key, entryIds(entryIds));
 	}
 
@@ -3253,8 +3237,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
-	default List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range) {
+	default @Nullable List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range) {
 		return xRange(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -3281,8 +3264,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadAsString(StreamOffset<String> stream) {
+	default @Nullable List<StringRecord> xReadAsString(StreamOffset<String> stream) {
 		return xReadAsString(StreamReadOptions.empty(), new StreamOffset[] { stream });
 	}
 
@@ -3294,8 +3276,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadAsString(StreamOffset<String>... streams) {
+	default @Nullable List<StringRecord> xReadAsString(StreamOffset<String>... streams) {
 		return xReadAsString(StreamReadOptions.empty(), streams);
 	}
 
@@ -3308,8 +3289,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadAsString(StreamReadOptions readOptions, StreamOffset<String> stream) {
+	default @Nullable List<StringRecord> xReadAsString(StreamReadOptions readOptions, StreamOffset<String> stream) {
 		return xReadAsString(readOptions, new StreamOffset[] { stream });
 	}
 
@@ -3334,8 +3314,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadGroupAsString(Consumer consumer, StreamOffset<String> stream) {
+	default @Nullable List<StringRecord> xReadGroupAsString(Consumer consumer, StreamOffset<String> stream) {
 		return xReadGroupAsString(consumer, StreamReadOptions.empty(), new StreamOffset[] { stream });
 	}
 
@@ -3348,8 +3327,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadGroupAsString(Consumer consumer, StreamOffset<String>... streams) {
+	default @Nullable List<StringRecord> xReadGroupAsString(Consumer consumer, StreamOffset<String>... streams) {
 		return xReadGroupAsString(consumer, StreamReadOptions.empty(), streams);
 	}
 
@@ -3363,8 +3341,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
+	default @Nullable List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
 			StreamOffset<String> stream) {
 		return xReadGroupAsString(consumer, readOptions, new StreamOffset[] { stream });
 	}
@@ -3392,8 +3369,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
-	default List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range) {
+	default @Nullable List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range) {
 		return xRevRange(key, range, Limit.unlimited());
 	}
 

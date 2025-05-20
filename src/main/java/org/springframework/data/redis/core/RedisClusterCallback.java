@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.lang.Nullable;
 
 /**
  * Callback interface for low level operations executed against a clustered Redis environment.

@@ -15,11 +15,11 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.index.GeoIndexDefinition;
 import org.springframework.data.redis.core.index.IndexDefinition;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl

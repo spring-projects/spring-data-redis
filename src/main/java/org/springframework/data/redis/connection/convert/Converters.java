@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -44,7 +44,6 @@ import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -352,8 +351,7 @@ public abstract class Converters {
 	 * @return given {@literal seconds} as {@link Duration} or {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
-	public static Duration secondsToDuration(@Nullable Long seconds) {
+	public static @Nullable Duration secondsToDuration(@Nullable Long seconds) {
 		return seconds != null ? Duration.ofSeconds(seconds) : null;
 	}
 

@@ -43,6 +43,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -58,7 +59,6 @@ import org.springframework.data.redis.connection.RedisConfiguration.SentinelConf
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -353,13 +353,11 @@ public class JedisConnectionFactory
 	 *
 	 * @return password for authentication.
 	 */
-	@Nullable
-	public String getPassword() {
+	public @Nullable String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
 	}
 
-	@Nullable
-	private String getRedisUsername() {
+	private @Nullable String getRedisUsername() {
 		return RedisConfiguration.getUsernameOrElse(this.configuration, standaloneConfig::getUsername);
 	}
 
@@ -466,8 +464,7 @@ public class JedisConnectionFactory
 	 *
 	 * @return the poolConfig
 	 */
-	@Nullable
-	public <T> GenericObjectPoolConfig<T> getPoolConfig() {
+	public <T> @Nullable GenericObjectPoolConfig<T> getPoolConfig() {
 		return clientConfiguration.getPoolConfig().orElse(null);
 	}
 
@@ -519,8 +516,7 @@ public class JedisConnectionFactory
 	 * @return the client name.
 	 * @since 1.8
 	 */
-	@Nullable
-	public String getClientName() {
+	public @Nullable String getClientName() {
 		return clientConfiguration.getClientName().orElse(null);
 	}
 
@@ -549,8 +545,7 @@ public class JedisConnectionFactory
 	 * @return the {@link RedisStandaloneConfiguration}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisStandaloneConfiguration getStandaloneConfiguration() {
+	public @Nullable RedisStandaloneConfiguration getStandaloneConfiguration() {
 		return this.standaloneConfig;
 	}
 
@@ -558,8 +553,7 @@ public class JedisConnectionFactory
 	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisSentinelConfiguration getSentinelConfiguration() {
+	public @Nullable RedisSentinelConfiguration getSentinelConfiguration() {
 		return RedisConfiguration.isSentinelConfiguration(configuration) ? (RedisSentinelConfiguration) configuration
 				: null;
 	}
@@ -568,8 +562,7 @@ public class JedisConnectionFactory
 	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisClusterConfiguration getClusterConfiguration() {
+	public @Nullable RedisClusterConfiguration getClusterConfiguration() {
 		return RedisConfiguration.isClusterConfiguration(configuration) ? (RedisClusterConfiguration) configuration : null;
 	}
 

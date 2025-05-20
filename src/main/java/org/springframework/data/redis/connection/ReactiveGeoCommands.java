@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Sort.Direction;
@@ -43,7 +44,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -280,16 +280,14 @@ public interface ReactiveGeoCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getFrom() {
+		public @Nullable ByteBuffer getFrom() {
 			return from;
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getTo() {
+		public @Nullable ByteBuffer getTo() {
 			return to;
 		}
 
@@ -828,8 +826,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * @return  can be {@literal null}.
 		 */
-		@Nullable
-		public Point getPoint() {
+		public @Nullable Point getPoint() {
 			return point;
 		}
 
@@ -1161,8 +1158,7 @@ public interface ReactiveGeoCommands {
 		/**
 		 * @return  can be {@literal null}.
 		 */
-		@Nullable
-		public ByteBuffer getMember() {
+		public @Nullable ByteBuffer getMember() {
 			return member;
 		}
 
@@ -1319,13 +1315,11 @@ public interface ReactiveGeoCommands {
 			return Optional.ofNullable(args);
 		}
 
-		@Nullable
-		public GeoReference<ByteBuffer> getReference() {
+		public @Nullable GeoReference<ByteBuffer> getReference() {
 			return reference;
 		}
 
-		@Nullable
-		public GeoShape getShape() {
+		public @Nullable GeoShape getShape() {
 			return shape;
 		}
 	}
@@ -1419,8 +1413,7 @@ public interface ReactiveGeoCommands {
 			return new GeoSearchStoreCommand(getKey(), getDestKey(), getReference(), getShape(), args);
 		}
 
-		@Nullable
-		public ByteBuffer getDestKey() {
+		public @Nullable ByteBuffer getDestKey() {
 			return destKey;
 		}
 
@@ -1428,13 +1421,11 @@ public interface ReactiveGeoCommands {
 			return Optional.ofNullable(args);
 		}
 
-		@Nullable
-		public GeoReference<ByteBuffer> getReference() {
+		public @Nullable GeoReference<ByteBuffer> getReference() {
 			return reference;
 		}
 
-		@Nullable
-		public GeoShape getShape() {
+		public @Nullable GeoShape getShape() {
 			return shape;
 		}
 	}

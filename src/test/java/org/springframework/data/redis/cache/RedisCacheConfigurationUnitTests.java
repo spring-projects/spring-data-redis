@@ -26,12 +26,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.time.Duration;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
-import org.springframework.lang.Nullable;
 
 /**
  * Unit tests for {@link RedisCacheConfiguration}.
@@ -122,9 +122,8 @@ class RedisCacheConfigurationUnitTests {
 
 	static class DomainTypeConverter implements Converter<DomainType, String> {
 
-		@Nullable
 		@Override
-		public String convert(DomainType source) {
+		public @Nullable String convert(DomainType source) {
 			return null;
 		}
 	}

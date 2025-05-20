@@ -17,6 +17,7 @@ package org.springframework.data.redis.listener;
 
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.Message;
@@ -24,7 +25,6 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisServerCommands;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -76,7 +76,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	}
 
 	@Override
-	public void onMessage(Message message, @Nullable byte[] pattern) {
+	public void onMessage(Message message, byte @Nullable[] pattern) {
 
 		if (ObjectUtils.isEmpty(message.getChannel()) || ObjectUtils.isEmpty(message.getBody())) {
 			return;

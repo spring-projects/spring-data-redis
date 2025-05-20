@@ -29,11 +29,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link Properties} extension for a Redis back-store. Useful for reading (and storing) properties inside a Redis hash.

@@ -16,10 +16,9 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.BinaryJedisPubSub;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
-import org.springframework.lang.Nullable;
 
 /**
  * Jedis specific subscription.
@@ -30,8 +29,8 @@ class JedisSubscription extends AbstractSubscription {
 
 	private final BinaryJedisPubSub jedisPubSub;
 
-	JedisSubscription(MessageListener listener, BinaryJedisPubSub jedisPubSub, @Nullable byte[][] channels,
-			@Nullable byte[][] patterns) {
+	JedisSubscription(MessageListener listener, BinaryJedisPubSub jedisPubSub, byte @Nullable[][] channels,
+			byte @Nullable[][] patterns) {
 		super(listener, channels, patterns);
 		this.jedisPubSub = jedisPubSub;
 	}

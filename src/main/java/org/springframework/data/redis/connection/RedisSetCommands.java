@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 
 /**
  * Set-specific commands supported by Redis.
@@ -60,8 +60,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
-	@Nullable
-	byte[] sPop(byte[] key);
+	byte @Nullable[] sPop(byte[] key);
 
 	/**
 	 * Remove and return {@code count} random members from set at {@code key}.
@@ -201,8 +200,7 @@ public interface RedisSetCommands {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	@Nullable
-	byte[] sRandMember(byte[] key);
+	byte @Nullable[] sRandMember(byte[] key);
 
 	/**
 	 * Get {@code count} random elements from set at {@code key}.

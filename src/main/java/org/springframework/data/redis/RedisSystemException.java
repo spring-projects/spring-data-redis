@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.UncategorizedDataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when we can't classify a Redis exception into one of Spring generic data access exceptions.

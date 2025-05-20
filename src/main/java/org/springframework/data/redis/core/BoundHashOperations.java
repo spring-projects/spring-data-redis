@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Hash operations bound to a certain key.
@@ -108,8 +108,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map.Entry<HK, HV> randomEntry();
+	Map.@Nullable Entry<HK, HV> randomEntry();
 
 	/**
 	 * Return a random keys from the hash stored at the bound key. If the provided {@code count} argument is positive,

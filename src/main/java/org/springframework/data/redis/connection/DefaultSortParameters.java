@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation for {@link SortParameters}.
@@ -28,7 +28,7 @@ import org.springframework.lang.Nullable;
  */
 public class DefaultSortParameters implements SortParameters {
 
-	private @Nullable byte[] byPattern;
+	private byte @Nullable[] byPattern;
 	private @Nullable Range limit;
 	private final List<byte[]> getPattern = new ArrayList<>(4);
 	private @Nullable Order order;
@@ -61,7 +61,7 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param order
 	 * @param alphabetic
 	 */
-	public DefaultSortParameters(@Nullable byte[] byPattern, @Nullable Range limit, @Nullable byte[][] getPattern,
+	public DefaultSortParameters(byte @Nullable[] byPattern, @Nullable Range limit, byte @Nullable[][] getPattern,
 			@Nullable Order order, @Nullable Boolean alphabetic) {
 		super();
 		this.byPattern = byPattern;
@@ -71,8 +71,8 @@ public class DefaultSortParameters implements SortParameters {
 		setGetPattern(getPattern);
 	}
 
-	@Nullable
-	public byte[] getByPattern() {
+
+	public byte @Nullable[] getByPattern() {
 		return byPattern;
 	}
 
@@ -92,12 +92,11 @@ public class DefaultSortParameters implements SortParameters {
 		return getPattern.toArray(new byte[getPattern.size()][]);
 	}
 
-	@Nullable
-	public void addGetPattern(byte[] gPattern) {
+	public void addGetPattern(byte @Nullable[] gPattern) {
 		getPattern.add(gPattern);
 	}
 
-	public void setGetPattern(@Nullable byte[][] gPattern) {
+	public void setGetPattern(byte @Nullable[][] gPattern) {
 		getPattern.clear();
 
 		if (gPattern == null) {
@@ -107,8 +106,7 @@ public class DefaultSortParameters implements SortParameters {
 		Collections.addAll(getPattern, gPattern);
 	}
 
-	@Nullable
-	public Order getOrder() {
+	public @Nullable Order getOrder() {
 		return order;
 	}
 
@@ -116,8 +114,7 @@ public class DefaultSortParameters implements SortParameters {
 		this.order = order;
 	}
 
-	@Nullable
-	public Boolean isAlphabetic() {
+	public @Nullable Boolean isAlphabetic() {
 		return alphabetic;
 	}
 
