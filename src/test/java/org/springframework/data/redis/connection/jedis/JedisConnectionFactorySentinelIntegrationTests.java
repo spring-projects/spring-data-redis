@@ -19,13 +19,13 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.test.condition.EnabledOnRedisSentinelAvailable;
-import org.springframework.lang.Nullable;
 
 /**
  * Sentinel integration tests for {@link JedisConnectionFactory}.

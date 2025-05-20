@@ -21,8 +21,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -573,10 +574,11 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@NullUnmarked
 	public static abstract class AbstractBitFieldSubCommand implements BitFieldSubCommand {
 
-		BitFieldType type;
-		Offset offset;
+		 BitFieldType type;
+		 Offset offset;
 
 		@Override
 		public BitFieldType getType() {
@@ -809,8 +811,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 		 *
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Overflow getOverflow() {
+		public @Nullable Overflow getOverflow() {
 			return overflow;
 		}
 

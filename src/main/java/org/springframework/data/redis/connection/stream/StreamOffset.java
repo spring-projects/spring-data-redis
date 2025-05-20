@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.stream;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -84,6 +84,7 @@ public final class StreamOffset<K> {
 	public static <K> StreamOffset<K> from(Record<K, ?> reference) {
 
 		Assert.notNull(reference, "Reference record must not be null");
+		Assert.notNull(reference.getStream(), "Reference.getStream() must not be null");
 
 		return create(reference.getStream(), ReadOffset.from(reference.getId()));
 	}

@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -26,7 +27,6 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RemoveIndexedData;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -278,6 +278,7 @@ class IndexWriter {
 		return ByteUtils.concatAll(arrays);
 	}
 
+	@SuppressWarnings("NullAway")
 	private byte[] toBytes(@Nullable Object source) {
 
 		if (source == null) {

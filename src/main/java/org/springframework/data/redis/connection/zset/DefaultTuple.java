@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection.zset;
 
 import java.util.Arrays;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation for {@link Tuple} interface.

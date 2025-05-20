@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * {@literal HyperLogLog} specific commands supported by Redis.
@@ -24,6 +25,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @since 1.5
  */
+@NullUnmarked
 public interface RedisHyperLogLogCommands {
 
 	/**
@@ -34,8 +36,7 @@ public interface RedisHyperLogLogCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
-	@Nullable
-	Long pfAdd(byte[] key, byte[]... values);
+	Long pfAdd(byte @NonNull [] key, byte @NonNull [] @NonNull... values);
 
 	/**
 	 * Return the approximated cardinality of the structures observed by the HyperLogLog at {@literal key(s)}.
@@ -44,8 +45,7 @@ public interface RedisHyperLogLogCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
-	@Nullable
-	Long pfCount(byte[]... keys);
+	Long pfCount(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Merge N different HyperLogLogs at {@literal sourceKeys} into a single {@literal destinationKey}.
@@ -54,6 +54,6 @@ public interface RedisHyperLogLogCommands {
 	 * @param sourceKeys must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 */
-	void pfMerge(byte[] destinationKey, byte[]... sourceKeys);
+	void pfMerge(byte @NonNull [] destinationKey, byte @NonNull [] @NonNull... sourceKeys);
 
 }

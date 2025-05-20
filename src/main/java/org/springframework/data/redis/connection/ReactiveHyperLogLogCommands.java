@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,7 +51,7 @@ public interface ReactiveHyperLogLogCommands {
 
 		private final List<ByteBuffer> values;
 
-		private PfAddCommand(ByteBuffer key, List<ByteBuffer> values) {
+		private PfAddCommand(@Nullable ByteBuffer key, List<ByteBuffer> values) {
 
 			super(key);
 			this.values = values;
@@ -193,7 +194,7 @@ public interface ReactiveHyperLogLogCommands {
 		}
 
 		@Override
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 	}
@@ -245,7 +246,7 @@ public interface ReactiveHyperLogLogCommands {
 
 		private final List<ByteBuffer> sourceKeys;
 
-		private PfMergeCommand(ByteBuffer key, List<ByteBuffer> sourceKeys) {
+		private PfMergeCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys) {
 
 			super(key);
 			this.sourceKeys = sourceKeys;

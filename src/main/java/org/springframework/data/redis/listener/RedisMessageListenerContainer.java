@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -59,7 +60,7 @@ import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.lang.Nullable;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -205,15 +206,15 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 *
 	 * @return Returns the connectionFactory
 	 */
-	@Nullable
-	public RedisConnectionFactory getConnectionFactory() {
+	public @Nullable RedisConnectionFactory getConnectionFactory() {
 		return this.connectionFactory;
 	}
 
 	/**
 	 * @param connectionFactory The connectionFactory to set.
 	 */
-	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
+	@Contract("null -> fail")
+	public void setConnectionFactory(@Nullable RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
@@ -365,6 +366,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * Lazily initiate subscriptions if the container has listeners.
 	 */
+	@SuppressWarnings("NullAway")
 	private void lazyListen() {
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
@@ -409,6 +411,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return containerListenFuture;
 	}
 
+	@SuppressWarnings("NullAway")
 	private boolean doSubscribe(BackOffExecution backOffExecution) {
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
@@ -496,6 +499,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private boolean doUnsubscribe() {
 
 		CompletableFuture<Void> listenFuture = this.listenFuture;
@@ -540,6 +544,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return this.started.get();
 	}
 
+	@SuppressWarnings("NullAway")
 	public boolean isListening() {
 		return this.state.get().isListening();
 	}
@@ -969,7 +974,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	private void dispatchMessage(Collection<MessageListener> listeners, Message message, @Nullable byte[] pattern) {
+	private void dispatchMessage(Collection<MessageListener> listeners, Message message, byte @Nullable[] pattern) {
 
 		byte[] source = (pattern != null ? pattern.clone() : message.getChannel());
 		Executor executor = getRequiredTaskExecutor();
@@ -998,7 +1003,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return this.taskExecutor;
 	}
 
-	@SuppressWarnings("ConstantConditions")
+	@SuppressWarnings({"ConstantConditions", "NullAway"})
 	private byte[] serialize(Topic topic) {
 		return serializer.serialize(topic.getTopic());
 	}
@@ -1147,7 +1152,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private class DispatchMessageListener implements MessageListener, SubscriptionListener {
 
 		@Override
-		public void onMessage(Message message, @Nullable byte[] pattern) {
+		public void onMessage(Message message, byte @Nullable[] pattern) {
 			Collection<MessageListener> listeners = null;
 
 			// if it's a pattern, disregard channel

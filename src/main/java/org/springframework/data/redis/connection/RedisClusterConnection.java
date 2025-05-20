@@ -18,9 +18,10 @@ package org.springframework.data.redis.connection;
 import java.util.Collection;
 import java.util.Set;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -36,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 1.7
  */
+@NullUnmarked
 public interface RedisClusterConnection
 		extends RedisConnection, DefaultedRedisClusterConnection, RedisClusterCommandsProvider {
 
@@ -44,8 +46,7 @@ public interface RedisClusterConnection
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see RedisConnectionCommands#ping()
 	 */
-	@Nullable
-	String ping(RedisClusterNode node);
+	String ping(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -53,8 +54,7 @@ public interface RedisClusterConnection
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see RedisKeyCommands#keys(byte[])
 	 */
-	@Nullable
-	Set<byte[]> keys(RedisClusterNode node, byte[] pattern);
+	Set<byte @NonNull []> keys(@NonNull RedisClusterNode node, byte @NonNull [] pattern);
 
 	/**
 	 * Use a {@link Cursor} to iterate over keys.
@@ -65,15 +65,14 @@ public interface RedisClusterConnection
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
-	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options);
+	Cursor<byte @NonNull []> scan(@NonNull RedisClusterNode node, @NonNull ScanOptions options);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return {@literal null} when no keys stored at node or when used in pipeline / transaction.
 	 * @see RedisKeyCommands#randomKey()
 	 */
-	@Nullable
-	byte[] randomKey(RedisClusterNode node);
+	byte[] randomKey(@NonNull RedisClusterNode node);
 
 	/**
 	 * Execute the given command for the {@code key} provided potentially appending args. <br />
@@ -93,8 +92,7 @@ public interface RedisClusterConnection
 	 * @return command result as delivered by the underlying Redis driver. Can be {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
-	default <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+	default <T> T execute(@NonNull String command, byte @NonNull [] key, @NonNull Collection<byte @NonNull []> args) {
 
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(key, "Key must not be null");

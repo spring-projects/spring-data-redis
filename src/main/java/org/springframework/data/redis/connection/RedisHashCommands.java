@@ -21,9 +21,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Tihomir Mateev
  */
+@NullUnmarked
 public interface RedisHashCommands {
 
 	/**
@@ -45,8 +47,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hset">Redis Documentation: HSET</a>
 	 */
-	@Nullable
-	Boolean hSet(byte[] key, byte[] field, byte[] value);
+	Boolean hSet(byte @NonNull [] key, byte @NonNull [] field, byte @NonNull [] value);
 
 	/**
 	 * Set the {@code value} of a hash {@code field} only if {@code field} does not exist.
@@ -57,8 +58,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hsetnx">Redis Documentation: HSETNX</a>
 	 */
-	@Nullable
-	Boolean hSetNX(byte[] key, byte[] field, byte[] value);
+	Boolean hSetNX(byte @NonNull [] key, byte @NonNull [] field, byte @NonNull [] value);
 
 	/**
 	 * Get value for given {@code field} from hash at {@code key}.
@@ -68,8 +68,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when key or field do not exists or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 */
-	@Nullable
-	byte[] hGet(byte[] key, byte[] field);
+	byte[] hGet(byte @NonNull [] key, byte @NonNull [] field);
 
 	/**
 	 * Get values for given {@code fields} from hash at {@code key}. Values are in the order of the requested keys Absent
@@ -80,8 +79,7 @@ public interface RedisHashCommands {
 	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 */
-	@Nullable
-	List<byte[]> hMGet(byte[] key, byte[]... fields);
+	List<byte[]> hMGet(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Set multiple hash fields to multiple values using data provided in {@code hashes}
@@ -90,7 +88,7 @@ public interface RedisHashCommands {
 	 * @param hashes must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/hmset">Redis Documentation: HMSET</a>
 	 */
-	void hMSet(byte[] key, Map<byte[], byte[]> hashes);
+	void hMSet(byte @NonNull [] key, Map<byte[], byte[]> hashes);
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
@@ -101,8 +99,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 */
-	@Nullable
-	Long hIncrBy(byte[] key, byte[] field, long delta);
+	Long hIncrBy(byte @NonNull [] key, byte @NonNull [] field, long delta);
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
@@ -113,8 +110,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hincrbyfloat">Redis Documentation: HINCRBYFLOAT</a>
 	 */
-	@Nullable
-	Double hIncrBy(byte[] key, byte[] field, double delta);
+	Double hIncrBy(byte @NonNull [] key, byte @NonNull [] field, double delta);
 
 	/**
 	 * Determine if given hash {@code field} exists.
@@ -124,8 +120,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hexits">Redis Documentation: HEXISTS</a>
 	 */
-	@Nullable
-	Boolean hExists(byte[] key, byte[] field);
+	Boolean hExists(byte @NonNull [] key, byte @NonNull [] field);
 
 	/**
 	 * Delete given hash {@code fields}.
@@ -135,8 +130,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hdel">Redis Documentation: HDEL</a>
 	 */
-	@Nullable
-	Long hDel(byte[] key, byte[]... fields);
+	Long hDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Get size of hash at {@code key}.
@@ -145,8 +139,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hlen">Redis Documentation: HLEN</a>
 	 */
-	@Nullable
-	Long hLen(byte[] key);
+	Long hLen(byte @NonNull [] key);
 
 	/**
 	 * Get key set (fields) of hash at {@code key}.
@@ -155,8 +148,7 @@ public interface RedisHashCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
 	 */
-	@Nullable
-	Set<byte[]> hKeys(byte[] key);
+	Set<byte @NonNull []> hKeys(byte @NonNull [] key);
 
 	/**
 	 * Get entry set (values) of hash at {@code field}.
@@ -165,8 +157,7 @@ public interface RedisHashCommands {
 	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 */
-	@Nullable
-	List<byte[]> hVals(byte[] key);
+	List<byte @NonNull []> hVals(byte @NonNull [] key);
 
 	/**
 	 * Get entire hash stored at {@code key}.
@@ -175,8 +166,7 @@ public interface RedisHashCommands {
 	 * @return empty {@link Map} if key does not exist or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 */
-	@Nullable
-	Map<byte[], byte[]> hGetAll(byte[] key);
+	Map<byte @NonNull [], byte @NonNull []> hGetAll(byte @NonNull [] key);
 
 	/**
 	 * Return a random field from the hash stored at {@code key}.
@@ -186,8 +176,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	byte[] hRandField(byte[] key);
+	byte[] hRandField(byte @NonNull [] key);
 
 	/**
 	 * Return a random field from the hash along with its value stored at {@code key}.
@@ -197,8 +186,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map.Entry<byte[], byte[]> hRandFieldWithValues(byte[] key);
+	Map.Entry<byte @NonNull [], byte @NonNull []> hRandFieldWithValues(byte @NonNull [] key);
 
 	/**
 	 * Return a random field from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -212,8 +200,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	List<byte[]> hRandField(byte[] key, long count);
+	List<byte @NonNull []> hRandField(byte @NonNull [] key, long count);
 
 	/**
 	 * Return a random field from the hash along with its value stored at {@code key}. If the provided {@code count}
@@ -227,8 +214,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	List<Map.Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count);
+	List<Map. @NonNull Entry<byte @NonNull [], byte @NonNull []>> hRandFieldWithValues(byte @NonNull [] key, long count);
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
@@ -239,7 +225,7 @@ public interface RedisHashCommands {
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 */
-	Cursor<Map.Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options);
+	Cursor<Map. @NonNull Entry<byte @NonNull [], byte @NonNull []>> hScan(byte @NonNull [] key, ScanOptions options);
 
 	/**
 	 * Returns the length of the value associated with {@code field} in the hash stored at {@code key}. If the {@code key}
@@ -251,8 +237,7 @@ public interface RedisHashCommands {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/hstrlen">Redis Documentation: HSTRLEN</a>
 	 */
-	@Nullable
-	Long hStrLen(byte[] key, byte[] field);
+	Long hStrLen(byte @NonNull [] key, byte @NonNull [] field);
 
 	/**
 	 * Apply a given {@link org.springframework.data.redis.core.types.Expiration} to the given {@literal fields}.
@@ -266,8 +251,8 @@ public interface RedisHashCommands {
 	 *         such field;
 	 * @since 3.5
 	 */
-	default @Nullable List<Long> applyHashFieldExpiration(byte[] key,
-			org.springframework.data.redis.core.types.Expiration expiration, byte[]... fields) {
+	default List<@NonNull Long> applyHashFieldExpiration(byte @NonNull [] key,
+			org.springframework.data.redis.core.types.@NonNull Expiration expiration, byte @NonNull [] @NonNull... fields) {
 		return applyHashFieldExpiration(key, expiration, ExpirationOptions.none(), fields);
 	}
 
@@ -282,9 +267,9 @@ public interface RedisHashCommands {
 	 *         condition is not met); {@code -2} indicating there is no such field;
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> applyHashFieldExpiration(byte[] key,
-			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options, byte[]... fields) {
+	default List<@NonNull Long> applyHashFieldExpiration(byte @NonNull [] key,
+			org.springframework.data.redis.core.types.@NonNull Expiration expiration, @NonNull ExpirationOptions options,
+			byte @NonNull [] @NonNull... fields) {
 
 		if (expiration.isPersistent()) {
 			return hPersist(key, fields);
@@ -331,8 +316,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpire(byte[] key, long seconds, byte[]... fields) {
+	default List<@NonNull Long> hExpire(byte @NonNull [] key, long seconds, byte @NonNull [] @NonNull... fields) {
 		return hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -350,8 +334,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpire(byte[] key, Duration ttl, byte[]... fields) {
+	default List<@NonNull Long> hExpire(byte @NonNull [] key, @NonNull Duration ttl,
+			byte @NonNull [] @NonNull... fields) {
 		return hExpire(key, ttl.toSeconds(), fields);
 	}
 
@@ -370,8 +354,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hExpire(byte[] key, long seconds, ExpirationOptions.Condition condition, byte[]... fields);
+	List<@NonNull Long> hExpire(byte @NonNull [] key, long seconds, ExpirationOptions.@NonNull Condition condition,
+			byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Set time to live for given {@code fields} in milliseconds.
@@ -387,8 +371,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpire(byte[] key, long millis, byte[]... fields) {
+	default List<@NonNull Long> hpExpire(byte @NonNull [] key, long millis, byte @NonNull [] @NonNull... fields) {
 		return hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -406,8 +389,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpire(byte[] key, Duration ttl, byte[]... fields) {
+	default List<@NonNull Long> hpExpire(byte @NonNull [] key, @NonNull Duration ttl,
+			byte @NonNull [] @NonNull... fields) {
 		return hpExpire(key, ttl.toMillis(), fields);
 	}
 
@@ -427,8 +410,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hpExpire(byte[] key, long millis, ExpirationOptions.Condition condition, byte[]... fields);
+	List<@NonNull Long> hpExpire(byte @NonNull [] key, long millis, ExpirationOptions.@NonNull Condition condition,
+			byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
@@ -443,8 +426,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpireAt(byte[] key, long unixTime, byte[]... fields) {
+	default List<Long> hExpireAt(byte @NonNull [] key, long unixTime, byte @NonNull [] @NonNull... fields) {
 		return hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -463,8 +445,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields);
+	List<@NonNull Long> hExpireAt(byte @NonNull [] key, long unixTime, ExpirationOptions.@NonNull Condition condition,
+			byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
@@ -479,8 +461,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, byte[]... fields) {
+	default List<@NonNull Long> hpExpireAt(byte @NonNull [] key, long unixTimeInMillis,
+			byte @NonNull [] @NonNull... fields) {
 		return hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -499,9 +481,8 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
-			byte[]... fields);
+	List<@NonNull Long> hpExpireAt(byte @NonNull [] key, long unixTimeInMillis,
+			ExpirationOptions.@NonNull Condition condition, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Remove the expiration from given {@code field}.
@@ -515,8 +496,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hPersist(byte[] key, byte[]... fields);
+	List<@NonNull Long> hPersist(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Get the time to live for {@code fields} in seconds.
@@ -530,8 +510,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hTtl(byte[] key, byte[]... fields);
+	List<@NonNull Long> hTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Get the time to live for {@code fields} in and convert it to the given {@link TimeUnit}.
@@ -546,8 +525,7 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields);
+	List<@NonNull Long> hTtl(byte @NonNull [] key, @NonNull TimeUnit timeUnit, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Get the time to live for {@code fields} in milliseconds.
@@ -561,6 +539,5 @@ public interface RedisHashCommands {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hpTtl(byte[] key, byte[]... fields);
+	List<@NonNull Long> hpTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 }

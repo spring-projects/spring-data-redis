@@ -17,8 +17,8 @@ package org.springframework.data.redis.core;
 
 import java.util.Arrays;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of TypedTuple.
@@ -41,13 +41,11 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		this.value = value;
 	}
 
-	@Nullable
-	public Double getScore() {
+	public @Nullable Double getScore() {
 		return score;
 	}
 
-	@Nullable
-	public V getValue() {
+	public @Nullable V getValue() {
 		return value;
 	}
 
@@ -84,7 +82,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return true;
 	}
 
-	public int compareTo(Double o) {
+	public int compareTo(@Nullable Double o) {
 
 		double thisScore = (score == null ? 0.0 : score);
 		double otherScore = (o == null ? 0.0 : o);
@@ -93,7 +91,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 	}
 
 	@Override
-	public int compareTo(TypedTuple<V> o) {
+	public int compareTo(@Nullable TypedTuple<V> o) {
 
 		if (o == null) {
 			return compareTo(Double.valueOf(0));

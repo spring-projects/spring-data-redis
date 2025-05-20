@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * Potentially translates an {@link Exception} into appropriate {@link DataAccessException}.

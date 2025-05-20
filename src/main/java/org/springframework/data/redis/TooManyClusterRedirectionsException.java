@@ -17,6 +17,7 @@ package org.springframework.data.redis;
 
 import java.io.Serial;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataRetrievalFailureException;
 
 /**
@@ -35,7 +36,7 @@ public class TooManyClusterRedirectionsException extends DataRetrievalFailureExc
 	 *
 	 * @param msg the detail message.
 	 */
-	public TooManyClusterRedirectionsException(String msg) {
+	public TooManyClusterRedirectionsException(@Nullable String msg) {
 		super(msg);
 	}
 
@@ -45,7 +46,7 @@ public class TooManyClusterRedirectionsException extends DataRetrievalFailureExc
 	 * @param msg the detail message.
 	 * @param cause the root cause from the data access API in use.
 	 */
-	public TooManyClusterRedirectionsException(String msg, Throwable cause) {
+	public TooManyClusterRedirectionsException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

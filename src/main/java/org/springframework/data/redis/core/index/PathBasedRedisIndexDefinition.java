@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core.index;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link IndexDefinition} that is based on a property paths.

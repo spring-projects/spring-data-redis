@@ -24,9 +24,9 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.ListOperations.MoveFrom;
 import org.springframework.data.redis.core.ListOperations.MoveTo;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -284,8 +284,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @return
 	 * @since 3.4
 	 */
-	@Nullable
-	default Mono<V> getFirst(K key) {
+	default @Nullable Mono<V> getFirst(K key) {
 		return index(key, 0);
 	}
 
@@ -296,8 +295,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @return
 	 * @since 3.4
 	 */
-	@Nullable
-	default Mono<V> getLast(K key) {
+	default @Nullable Mono<V> getLast(K key) {
 		return index(key, -1);
 	}
 

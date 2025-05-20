@@ -59,6 +59,7 @@ public interface ObjectRecord<S, V> extends Record<S, V> {
 	 * @param <HV> the value type of the resulting {@link MapRecord}.
 	 * @return new instance of {@link MapRecord}.
 	 */
+	@SuppressWarnings("NullAway")
 	default <HK, HV> MapRecord<S, HK, HV> toMapRecord(HashMapper<? super V, HK, HV> mapper) {
 		return Record.<S, HK, HV> of(mapper.toHash(getValue())).withId(getId()).withStreamKey(getStream());
 	}

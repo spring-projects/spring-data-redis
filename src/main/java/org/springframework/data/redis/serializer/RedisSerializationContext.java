@@ -17,7 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -272,8 +272,7 @@ public interface RedisSerializationContext<K, V> {
 		 * @param buffer must not be {@literal null}.
 		 * @return the deserialized value. Can be {@literal null}.
 		 */
-		@Nullable
-		default T read(ByteBuffer buffer) {
+		default @Nullable T read(ByteBuffer buffer) {
 			return getReader().read(buffer);
 		}
 

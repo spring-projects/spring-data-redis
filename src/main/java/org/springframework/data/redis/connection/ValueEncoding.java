@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.Optional;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -104,11 +104,10 @@ public interface ValueEncoding {
 		}
 
 		@Override
-		public String raw() {
+		public @Nullable String raw() {
 			return raw;
 		}
 
-		@Nullable
 		static Optional<ValueEncoding> lookup(@Nullable String encoding) {
 
 			for (ValueEncoding valueEncoding : values()) {

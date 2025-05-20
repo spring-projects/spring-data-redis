@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Connection-specific commands supported by Redis.
@@ -24,6 +25,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@NullUnmarked
 public interface RedisConnectionCommands {
 
 	/**
@@ -41,8 +43,7 @@ public interface RedisConnectionCommands {
 	 * @return the message or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/echo">Redis Documentation: ECHO</a>
 	 */
-	@Nullable
-	byte[] echo(byte[] message);
+	byte[] echo(byte @NonNull [] message);
 
 	/**
 	 * Test connection.
@@ -50,6 +51,5 @@ public interface RedisConnectionCommands {
 	 * @return Server response message - usually {@literal PONG}. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/ping">Redis Documentation: PING</a>
 	 */
-	@Nullable
 	String ping();
 }

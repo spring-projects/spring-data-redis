@@ -28,8 +28,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,8 +47,7 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 
 	private final Lock lock = new ReentrantLock();
 
-	@Nullable
-	private final ReadFrom readFrom;
+	private @Nullable final ReadFrom readFrom;
 
 	private final RedisClusterClient client;
 

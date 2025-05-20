@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Simple class containing various decoding utilities.
@@ -47,8 +47,8 @@ public abstract class DecodeUtils {
 		return result;
 	}
 
-	@Nullable
-	public static byte[] encode(@Nullable String string) {
+
+	public static byte @Nullable[] encode(@Nullable String string) {
 		return (string == null ? null : Base64.getEncoder().encode(string.getBytes()));
 	}
 

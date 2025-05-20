@@ -17,8 +17,8 @@ package org.springframework.data.redis.core.convert;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Reference;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link ReferenceResolver} retrieves Objects marked with {@link Reference} from Redis.

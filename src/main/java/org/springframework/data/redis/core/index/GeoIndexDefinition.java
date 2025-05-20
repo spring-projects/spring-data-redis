@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.core.index;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl
@@ -55,7 +55,7 @@ public class GeoIndexDefinition extends RedisIndexDefinition implements PathBase
 	static class PointValueTransformer implements IndexValueTransformer {
 
 		@Override
-		public Point convert(@Nullable Object source) {
+		public @Nullable Point convert(@Nullable Object source) {
 
 			if (source == null || source instanceof Point) {
 				return (Point) source;

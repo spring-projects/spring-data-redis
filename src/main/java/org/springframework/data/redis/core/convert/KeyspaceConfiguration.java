@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -83,7 +83,7 @@ public class KeyspaceConfiguration {
 	 * @param type must not be {@literal null}
 	 * @return {@literal null} if no settings configured.
 	 */
-	public KeyspaceSettings getKeyspaceSettings(Class<?> type) {
+	public @Nullable KeyspaceSettings getKeyspaceSettings(Class<?> type) {
 
 		if (!hasSettingsFor(type)) {
 			return null;
@@ -157,8 +157,7 @@ public class KeyspaceConfiguration {
 			this.timeToLive = timeToLive;
 		}
 
-		@Nullable
-		public Long getTimeToLive() {
+		public @Nullable Long getTimeToLive() {
 			return timeToLive;
 		}
 
@@ -166,8 +165,7 @@ public class KeyspaceConfiguration {
 			timeToLivePropertyName = propertyName;
 		}
 
-		@Nullable
-		public String getTimeToLivePropertyName() {
+		public @Nullable String getTimeToLivePropertyName() {
 			return timeToLivePropertyName;
 		}
 	}

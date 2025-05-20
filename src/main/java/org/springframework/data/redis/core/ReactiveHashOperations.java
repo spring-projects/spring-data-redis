@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
-import org.springframework.lang.Nullable;
 
 /**
  * Reactive Redis operations for Hash Commands.
@@ -300,8 +300,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @see <a href="https://redis.io/docs/latest/commands/httl/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default Mono<Expirations<HK>> getTimeToLive(H key, Collection<HK> hashKeys) {
+	default @Nullable Mono<Expirations<HK>> getTimeToLive(H key, Collection<HK> hashKeys) {
 		return getTimeToLive(key, TimeUnit.SECONDS, hashKeys);
 	}
 

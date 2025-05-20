@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -53,7 +56,6 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -75,6 +77,7 @@ import org.springframework.util.CollectionUtils;
  * @see RedisSerializer
  * @see StringRedisTemplate
  */
+@NullUnmarked
 public interface StringRedisConnection extends RedisConnection {
 
 	/**
@@ -94,7 +97,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return execution result.
 	 * @see RedisCommands#execute(String, byte[]...)
 	 */
-	Object execute(String command, String... args);
+	Object execute(@NonNull String command, String... args);
 
 	/**
 	 * 'Native' or 'raw' execution of the given command along-side the given arguments. The command is executed as is,
@@ -105,7 +108,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return execution result.
 	 * @see RedisCommands#execute(String, byte[]...)
 	 */
-	Object execute(String command);
+	Object execute(@NonNull String command);
 
 	/**
 	 * Determine if given {@code key} exists.
@@ -115,7 +118,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 * @see RedisKeyCommands#exists(byte[])
 	 */
-	Boolean exists(String key);
+	Boolean exists(@NonNull String key);
 
 	/**
 	 * Count how many of the given {@code keys} exist.
@@ -126,8 +129,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisKeyCommands#exists(byte[][])
 	 * @since 2.1
 	 */
-	@Nullable
-	Long exists(String... keys);
+	Long exists(@NonNull String @NonNull... keys);
 
 	/**
 	 * Delete given {@code keys}.
@@ -137,7 +139,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 * @see RedisKeyCommands#del(byte[]...)
 	 */
-	Long del(String... keys);
+	Long del(@NonNull String @NonNull... keys);
 
 	/**
 	 * Copy given {@code sourceKey} to {@code targetKey}.
@@ -149,7 +151,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @see RedisKeyCommands#copy(byte[], byte[], boolean)
 	 */
-	Boolean copy(String sourceKey, String targetKey, boolean replace);
+	Boolean copy(@NonNull String sourceKey, @NonNull String targetKey, boolean replace);
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #del(String...)} the actual memory reclaiming here
@@ -160,8 +162,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Long unlink(String... keys);
+	Long unlink(@NonNull String @NonNull... keys);
 
 	/**
 	 * Determine the type stored at {@code key}.
@@ -171,7 +172,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 * @see RedisKeyCommands#type(byte[])
 	 */
-	DataType type(String key);
+	DataType type(@NonNull String key);
 
 	/**
 	 * Alter the last access time of given {@code key(s)}.
@@ -181,8 +182,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/touch">Redis Documentation: TOUCH</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Long touch(String... keys);
+	Long touch(@NonNull String @NonNull... keys);
 
 	/**
 	 * Find all keys matching the given {@code pattern}.
@@ -192,7 +192,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 * @see RedisKeyCommands#keys(byte[])
 	 */
-	Collection<String> keys(String pattern);
+	Collection<String> keys(@NonNull String pattern);
 
 	/**
 	 * Rename key {@code oldKey} to {@code newKey}.
@@ -202,7 +202,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 * @see RedisKeyCommands#rename(byte[], byte[])
 	 */
-	void rename(String oldKey, String newKey);
+	void rename(@NonNull String oldKey, @NonNull String newKey);
 
 	/**
 	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
@@ -213,7 +213,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 * @see RedisKeyCommands#renameNX(byte[], byte[])
 	 */
-	Boolean renameNX(String oldKey, String newKey);
+	Boolean renameNX(@NonNull String oldKey, @NonNull String newKey);
 
 	/**
 	 * Set time to live for given {@code key} in seconds.
@@ -224,7 +224,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @see RedisKeyCommands#expire(byte[], long)
 	 */
-	default Boolean expire(String key, long seconds) {
+	default Boolean expire(@NonNull String key, long seconds) {
 		return expire(key, seconds, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -239,7 +239,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
 	 * @see RedisKeyCommands#expire(byte[], long)
 	 */
-	Boolean expire(String key, long seconds, ExpirationOptions.Condition condition);
+	Boolean expire(@NonNull String key, long seconds, ExpirationOptions.@NonNull Condition condition);
 
 	/**
 	 * Set time to live for given {@code key} in milliseconds.
@@ -250,7 +250,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @see RedisKeyCommands#pExpire(byte[], long)
 	 */
-	default Boolean pExpire(String key, long millis) {
+	default Boolean pExpire(@NonNull String key, long millis) {
 		return pExpire(key, millis, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -265,7 +265,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
 	 * @see RedisKeyCommands#pExpire(byte[], long)
 	 */
-	Boolean pExpire(String key, long millis, ExpirationOptions.Condition condition);
+	Boolean pExpire(@NonNull String key, long millis, ExpirationOptions.@NonNull Condition condition);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
@@ -276,7 +276,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 * @see RedisKeyCommands#expireAt(byte[], long)
 	 */
-	default Boolean expireAt(String key, long unixTime) {
+	default Boolean expireAt(@NonNull String key, long unixTime) {
 		return expireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -291,7 +291,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
 	 * @see RedisKeyCommands#expireAt(byte[], long)
 	 */
-	Boolean expireAt(String key, long unixTime, ExpirationOptions.Condition condition);
+	Boolean expireAt(@NonNull String key, long unixTime, ExpirationOptions.@NonNull Condition condition);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
@@ -302,7 +302,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @see RedisKeyCommands#pExpireAt(byte[], long)
 	 */
-	default Boolean pExpireAt(String key, long unixTimeInMillis) {
+	default Boolean pExpireAt(@NonNull String key, long unixTimeInMillis) {
 		return pExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS);
 	}
 
@@ -317,7 +317,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
 	 * @see RedisKeyCommands#pExpireAt(byte[], long)
 	 */
-	Boolean pExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition);
+	Boolean pExpireAt(@NonNull String key, long unixTimeInMillis, ExpirationOptions.@NonNull Condition condition);
 
 	/**
 	 * Remove the expiration from given {@code key}.
@@ -327,7 +327,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 * @see RedisKeyCommands#persist(byte[])
 	 */
-	Boolean persist(String key);
+	Boolean persist(@NonNull String key);
 
 	/**
 	 * Move given {@code key} to database with {@code index}.
@@ -338,7 +338,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 * @see RedisKeyCommands#move(byte[], int)
 	 */
-	Boolean move(String key, int dbIndex);
+	Boolean move(@NonNull String key, int dbIndex);
 
 	/**
 	 * Get the time to live for {@code key} in seconds.
@@ -348,7 +348,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 * @see RedisKeyCommands#ttl(byte[])
 	 */
-	Long ttl(String key);
+	Long ttl(@NonNull String key);
 
 	/**
 	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
@@ -360,7 +360,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 * @see RedisKeyCommands#ttl(byte[], TimeUnit)
 	 */
-	Long ttl(String key, TimeUnit timeUnit);
+	Long ttl(@NonNull String key, @NonNull TimeUnit timeUnit);
 
 	/**
 	 * Get the precise time to live for {@code key} in milliseconds.
@@ -370,7 +370,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 * @see RedisKeyCommands#pTtl(byte[])
 	 */
-	Long pTtl(String key);
+	Long pTtl(@NonNull String key);
 
 	/**
 	 * Get the precise time to live for {@code key} in and convert it to the given {@link TimeUnit}.
@@ -382,7 +382,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pttl">Redis Documentation: PTTL</a>
 	 * @see RedisKeyCommands#pTtl(byte[], TimeUnit)
 	 */
-	Long pTtl(String key, TimeUnit timeUnit);
+	Long pTtl(@NonNull String key, @NonNull TimeUnit timeUnit);
 
 	/**
 	 * Returns {@code message} via server roundtrip.
@@ -392,7 +392,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/echo">Redis Documentation: ECHO</a>
 	 * @see RedisConnectionCommands#echo(byte[])
 	 */
-	String echo(String message);
+	String echo(@NonNull String message);
 
 	/**
 	 * Sort the elements for {@code key}.
@@ -402,7 +402,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	List<String> sort(String key, SortParameters params);
+	List<String> sort(@NonNull String key, @NonNull SortParameters params);
 
 	/**
 	 * Sort the elements for {@code key} and store result in {@code storeKey}.
@@ -413,7 +413,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	Long sort(String key, SortParameters params, String storeKey);
+	Long sort(@NonNull String key, @NonNull SortParameters params, @NonNull String storeKey);
 
 	/**
 	 * Get the type of internal representation used for storing the value at the given {@code key}.
@@ -423,8 +423,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
-	ValueEncoding encodingOf(String key);
+	ValueEncoding encodingOf(@NonNull String key);
 
 	/**
 	 * Get the {@link Duration} since the object stored at the given {@code key} is idle.
@@ -434,8 +433,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
-	Duration idletime(String key);
+	Duration idletime(@NonNull String key);
 
 	/**
 	 * Get the number of references of the value associated with the specified {@code key}.
@@ -445,8 +443,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @throws IllegalArgumentException if {@code key} is {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
-	Long refcount(String key);
+	Long refcount(@NonNull String key);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with values/Redis strings
@@ -460,7 +457,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 * @see RedisStringCommands#get(byte[])
 	 */
-	String get(String key);
+	String get(@NonNull String key);
 
 	/**
 	 * Return the value at {@code key} and delete the key.
@@ -470,8 +467,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	String getDel(String key);
+	String getDel(@NonNull String key);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
@@ -482,8 +478,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	String getEx(String key, Expiration expiration);
+	String getEx(@NonNull String key, @NonNull Expiration expiration);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -494,7 +489,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 * @see RedisStringCommands#getSet(byte[], byte[])
 	 */
-	String getSet(String key, String value);
+	String getSet(@NonNull String key, String value);
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys.
@@ -504,7 +499,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 * @see RedisStringCommands#mGet(byte[]...)
 	 */
-	List<String> mGet(String... keys);
+	List<String> mGet(@NonNull String @NonNull... keys);
 
 	/**
 	 * Set {@code value} for {@code key}.
@@ -514,8 +509,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[])
 	 */
-	@Nullable
-	Boolean set(String key, String value);
+	Boolean set(@NonNull String key, @NonNull String value);
 
 	/**
 	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
@@ -530,8 +524,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @see RedisStringCommands#set(byte[], byte[], Expiration, SetOption)
 	 */
-	@Nullable
-	Boolean set(String key, String value, Expiration expiration, SetOption option);
+	Boolean set(@NonNull String key, @NonNull String value, @Nullable Expiration expiration, @Nullable SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -542,8 +535,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 * @see RedisStringCommands#setNX(byte[], byte[])
 	 */
-	@Nullable
-	Boolean setNX(String key, String value);
+	Boolean setNX(@NonNull String key, @NonNull String value);
 
 	/**
 	 * Set the {@code value} and expiration in {@code seconds} for {@code key}.
@@ -554,8 +546,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 * @see RedisStringCommands#setEx(byte[], long, byte[])
 	 */
-	@Nullable
-	Boolean setEx(String key, long seconds, String value);
+	Boolean setEx(@NonNull String key, long seconds, @NonNull String value);
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
@@ -567,8 +558,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 * @see RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
-	@Nullable
-	Boolean pSetEx(String key, long milliseconds, String value);
+	Boolean pSetEx(@NonNull String key, long milliseconds, @NonNull String value);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
@@ -577,8 +567,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 * @see RedisStringCommands#mSet(Map)
 	 */
-	@Nullable
-	Boolean mSetString(Map<String, String> tuple);
+	Boolean mSetString(@NonNull Map<@NonNull String, String> tuple);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
@@ -588,7 +577,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 * @see RedisStringCommands#mSetNX(Map)
 	 */
-	Boolean mSetNXString(Map<String, String> tuple);
+	Boolean mSetNXString(@NonNull Map<@NonNull String, String> tuple);
 
 	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.
@@ -598,7 +587,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 * @see RedisStringCommands#incr(byte[])
 	 */
-	Long incr(String key);
+	Long incr(@NonNull String key);
 
 	/**
 	 * Increment an integer value stored of {@code key} by {@code delta}.
@@ -609,7 +598,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 * @see RedisStringCommands#incrBy(byte[], long)
 	 */
-	Long incrBy(String key, long value);
+	Long incrBy(@NonNull String key, long value);
 
 	/**
 	 * Increment a floating point number value of {@code key} by {@code delta}.
@@ -620,7 +609,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 * @see RedisStringCommands#incrBy(byte[], double)
 	 */
-	Double incrBy(String key, double value);
+	Double incrBy(@NonNull String key, double value);
 
 	/**
 	 * Decrement an integer value stored as string value of {@code key} by 1.
@@ -630,7 +619,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 * @see RedisStringCommands#decr(byte[])
 	 */
-	Long decr(String key);
+	Long decr(@NonNull String key);
 
 	/**
 	 * Decrement an integer value stored as string value of {@code key} by {@code value}.
@@ -641,7 +630,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 * @see RedisStringCommands#decrBy(byte[], long)
 	 */
-	Long decrBy(String key, long value);
+	Long decrBy(@NonNull String key, long value);
 
 	/**
 	 * Append a {@code value} to {@code key}.
@@ -652,7 +641,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 * @see RedisStringCommands#append(byte[], byte[])
 	 */
-	Long append(String key, String value);
+	Long append(@NonNull String key, String value);
 
 	/**
 	 * Get a substring of value of {@code key} between {@code start} and {@code end}.
@@ -664,7 +653,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 * @see RedisStringCommands#getRange(byte[], long, long)
 	 */
-	String getRange(String key, long start, long end);
+	String getRange(@NonNull String key, long start, long end);
 
 	/**
 	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
@@ -675,7 +664,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 * @see RedisStringCommands#setRange(byte[], byte[], long)
 	 */
-	void setRange(String key, String value, long offset);
+	void setRange(@NonNull String key, String value, long offset);
 
 	/**
 	 * Get the bit value at {@code offset} of value at {@code key}.
@@ -686,7 +675,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 * @see RedisStringCommands#getBit(byte[], long)
 	 */
-	Boolean getBit(String key, long offset);
+	Boolean getBit(@NonNull String key, long offset);
 
 	/**
 	 * Sets the bit at {@code offset} in value stored at {@code key}.
@@ -698,7 +687,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 * @see RedisStringCommands#setBit(byte[], long, boolean)
 	 */
-	Boolean setBit(String key, long offset, boolean value);
+	Boolean setBit(@NonNull String key, long offset, boolean value);
 
 	/**
 	 * Count the number of set bits (population counting) in value stored at {@code key}.
@@ -708,7 +697,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 * @see RedisStringCommands#bitCount(byte[])
 	 */
-	Long bitCount(String key);
+	Long bitCount(@NonNull String key);
 
 	/**
 	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code start} and
@@ -721,7 +710,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 * @see RedisStringCommands#bitCount(byte[], long, long)
 	 */
-	Long bitCount(String key, long start, long end);
+	Long bitCount(@NonNull String key, long start, long end);
 
 	/**
 	 * Perform bitwise operations between strings.
@@ -733,7 +722,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 * @see RedisStringCommands#bitOp(BitOperation, byte[], byte[]...)
 	 */
-	Long bitOp(BitOperation op, String destination, String... keys);
+	Long bitOp(@NonNull BitOperation op, @NonNull String destination, @NonNull String @NonNull... keys);
 
 	/**
 	 * Return the position of the first bit set to given {@code bit} in a string.
@@ -745,7 +734,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
-	default Long bitPos(String key, boolean bit) {
+	default Long bitPos(@NonNull String key, boolean bit) {
 		return bitPos(key, bit, org.springframework.data.domain.Range.unbounded());
 	}
 
@@ -763,8 +752,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range);
+	Long bitPos(@NonNull String key, boolean bit, org.springframework.data.domain.@NonNull Range<Long> range);
 
 	/**
 	 * Get the length of the value stored at {@code key}.
@@ -774,7 +762,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 * @see RedisStringCommands#strLen(byte[])
 	 */
-	Long strLen(String key);
+	Long strLen(@NonNull String key);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Lists
@@ -789,7 +777,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 * @see RedisListCommands#rPush(byte[], byte[]...)
 	 */
-	Long rPush(String key, String... values);
+	Long rPush(@NonNull String key, @NonNull String @NonNull... values);
 
 	/**
 	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
@@ -801,8 +789,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	@Nullable
-	default Long lPos(String key, String element) {
+	default Long lPos(@NonNull String key, @NonNull String element) {
 		return CollectionUtils.firstElement(lPos(key, element, null, null));
 	}
 
@@ -819,7 +806,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	List<Long> lPos(String key, String element, @Nullable Integer rank, @Nullable Integer count);
+	List<Long> lPos(@NonNull String key, @NonNull String element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
@@ -830,7 +817,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 * @see RedisListCommands#lPush(byte[], byte[]...)
 	 */
-	Long lPush(String key, String... values);
+	Long lPush(@NonNull String key, @NonNull String @NonNull... values);
 
 	/**
 	 * Append {@code values} to {@code key} only if the list exists.
@@ -841,7 +828,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 * @see RedisListCommands#rPushX(byte[], byte[])
 	 */
-	Long rPushX(String key, String value);
+	Long rPushX(@NonNull String key, @NonNull String value);
 
 	/**
 	 * Prepend {@code values} to {@code key} only if the list exists.
@@ -852,7 +839,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 * @see RedisListCommands#lPushX(byte[], byte[])
 	 */
-	Long lPushX(String key, String value);
+	Long lPushX(@NonNull String key, @NonNull String value);
 
 	/**
 	 * Get the size of list stored at {@code key}.
@@ -862,7 +849,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 * @see RedisListCommands#lLen(byte[])
 	 */
-	Long lLen(String key);
+	Long lLen(@NonNull String key);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from list at {@code key}.
@@ -874,7 +861,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 * @see RedisListCommands#lRange(byte[], long, long)
 	 */
-	List<String> lRange(String key, long start, long end);
+	List<String> lRange(@NonNull String key, long start, long end);
 
 	/**
 	 * Trim list at {@code key} to elements between {@code start} and {@code end}.
@@ -885,7 +872,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 * @see RedisListCommands#lTrim(byte[], long, long)
 	 */
-	void lTrim(String key, long start, long end);
+	void lTrim(@NonNull String key, long start, long end);
 
 	/**
 	 * Get element at {@code index} form list at {@code key}.
@@ -896,7 +883,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 * @see RedisListCommands#lIndex(byte[], long)
 	 */
-	String lIndex(String key, long index);
+	String lIndex(@NonNull String key, long index);
 
 	/**
 	 * Insert {@code value} {@link Position#BEFORE} or {@link Position#AFTER} existing {@code pivot} for {@code key}.
@@ -909,7 +896,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 * @see RedisListCommands#lIndex(byte[], long)
 	 */
-	Long lInsert(String key, Position where, String pivot, String value);
+	Long lInsert(@NonNull String key, @NonNull Position where, @NonNull String pivot, String value);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -926,8 +913,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
 	 * @see #lMove(byte[], byte[], Direction, Direction)
 	 */
-	@Nullable
-	String lMove(String sourceKey, String destinationKey, Direction from, Direction to);
+	String lMove(@NonNull String sourceKey, @NonNull String destinationKey, @NonNull Direction from,
+			@NonNull Direction to);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -945,8 +932,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see #lMove(byte[], byte[], Direction, Direction)
 	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
 	 */
-	@Nullable
-	String bLMove(String sourceKey, String destinationKey, Direction from, Direction to, double timeout);
+	String bLMove(@NonNull String sourceKey, @NonNull String destinationKey, @NonNull Direction from,
+			@NonNull Direction to, double timeout);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
@@ -957,7 +944,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 * @see RedisListCommands#lSet(byte[], long, byte[])
 	 */
-	void lSet(String key, long index, String value);
+	void lSet(@NonNull String key, long index, String value);
 
 	/**
 	 * Removes the first {@code count} occurrences of {@code value} from the list stored at {@code key}.
@@ -969,7 +956,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 * @see RedisListCommands#lRem(byte[], long, byte[])
 	 */
-	Long lRem(String key, long count, String value);
+	Long lRem(@NonNull String key, long count, String value);
 
 	/**
 	 * Removes and returns first element in list stored at {@code key}.
@@ -979,7 +966,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 * @see RedisListCommands#lPop(byte[])
 	 */
-	String lPop(String key);
+	String lPop(@NonNull String key);
 
 	/**
 	 * Removes and returns first {@code} elements in list stored at {@code key}.
@@ -991,7 +978,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisListCommands#lPop(byte[], long)
 	 * @since 2.6
 	 */
-	List<String> lPop(String key, long count);
+	List<String> lPop(@NonNull String key, long count);
 
 	/**
 	 * Removes and returns last element in list stored at {@code key}.
@@ -1001,7 +988,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @see RedisListCommands#rPop(byte[])
 	 */
-	String rPop(String key);
+	String rPop(@NonNull String key);
 
 	/**
 	 * Removes and returns last {@code} elements in list stored at {@code key}.
@@ -1013,7 +1000,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisListCommands#rPop(byte[], long)
 	 * @since 2.6
 	 */
-	List<String> rPop(String key, long count);
+	List<String> rPop(@NonNull String key, long count);
 
 	/**
 	 * Removes and returns first element from lists stored at {@code keys} (see: {@link #lPop(byte[])}). <br>
@@ -1025,7 +1012,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 * @see RedisListCommands#bLPop(int, byte[]...)
 	 */
-	List<String> bLPop(int timeout, String... keys);
+	List<String> bLPop(int timeout, @NonNull String @NonNull... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys} (see: {@link #rPop(byte[])}). <br>
@@ -1037,7 +1024,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see RedisListCommands#bRPop(int, byte[]...)
 	 */
-	List<String> bRPop(int timeout, String... keys);
+	List<String> bRPop(int timeout, @NonNull String @NonNull... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.
@@ -1048,7 +1035,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 * @see RedisListCommands#rPopLPush(byte[], byte[])
 	 */
-	String rPopLPush(String srcKey, String dstKey);
+	String rPopLPush(@NonNull String srcKey, @NonNull String dstKey);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value (see
@@ -1062,7 +1049,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see RedisListCommands#bRPopLPush(int, byte[], byte[])
 	 */
-	String bRPopLPush(int timeout, String srcKey, String dstKey);
+	String bRPopLPush(int timeout, @NonNull String srcKey, @NonNull String dstKey);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Sets
@@ -1077,7 +1064,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 * @see RedisSetCommands#sAdd(byte[], byte[]...)
 	 */
-	Long sAdd(String key, String... values);
+	Long sAdd(@NonNull String key, String... values);
 
 	/**
 	 * Remove given {@code values} from set at {@code key} and return the number of removed elements.
@@ -1088,7 +1075,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 * @see RedisSetCommands#sRem(byte[], byte[]...)
 	 */
-	Long sRem(String key, String... values);
+	Long sRem(@NonNull String key, String... values);
 
 	/**
 	 * Remove and return a random member from set at {@code key}.
@@ -1098,7 +1085,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @see RedisSetCommands#sPop(byte[])
 	 */
-	String sPop(String key);
+	String sPop(@NonNull String key);
 
 	/**
 	 * Remove and return {@code count} random members from set at {@code key}.
@@ -1110,7 +1097,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisSetCommands#sPop(byte[], long)
 	 * @since 2.0
 	 */
-	List<String> sPop(String key, long count);
+	List<String> sPop(@NonNull String key, long count);
 
 	/**
 	 * Move {@code value} from {@code srcKey} to {@code destKey}
@@ -1122,7 +1109,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 * @see RedisSetCommands#sMove(byte[], byte[], byte[])
 	 */
-	Boolean sMove(String srcKey, String destKey, String value);
+	Boolean sMove(@NonNull String srcKey, @NonNull String destKey, String value);
 
 	/**
 	 * Get size of set at {@code key}.
@@ -1132,7 +1119,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 * @see RedisSetCommands#sCard(byte[])
 	 */
-	Long sCard(String key);
+	Long sCard(@NonNull String key);
 
 	/**
 	 * Check if set at {@code key} contains {@code value}.
@@ -1143,7 +1130,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 * @see RedisSetCommands#sIsMember(byte[], byte[])
 	 */
-	Boolean sIsMember(String key, String value);
+	Boolean sIsMember(@NonNull String key, String value);
 
 	/**
 	 * Check if set at {@code key} contains one or more {@code values}.
@@ -1155,8 +1142,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
 	 * @see RedisSetCommands#sMIsMember(byte[], byte[]...)
 	 */
-	@Nullable
-	List<Boolean> sMIsMember(String key, String... values);
+	List<Boolean> sMIsMember(@NonNull String key, String... values);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
@@ -1166,7 +1152,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 * @see RedisSetCommands#sInter(byte[]...)
 	 */
-	Set<String> sInter(String... keys);
+	Set<String> sInter(@NonNull String @NonNull... keys);
 
 	/**
 	 * Intersect all given sets at {@code keys} and store result in {@code destKey}.
@@ -1177,7 +1163,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 * @see RedisSetCommands#sInterStore(byte[], byte[]...)
 	 */
-	Long sInterStore(String destKey, String... keys);
+	Long sInterStore(@NonNull String destKey, @NonNull String @NonNull... keys);
 
 	/**
 	 * Union all sets at given {@code keys}.
@@ -1229,7 +1215,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 * @see RedisSetCommands#sMembers(byte[])
 	 */
-	Set<String> sMembers(String key);
+	Set<String> sMembers(@NonNull String key);
 
 	/**
 	 * Get random element from set at {@code key}.
@@ -1239,7 +1225,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 * @see RedisSetCommands#sRandMember(byte[])
 	 */
-	String sRandMember(String key);
+	String sRandMember(@NonNull String key);
 
 	/**
 	 * Get {@code count} random elements from set at {@code key}.
@@ -1250,7 +1236,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 * @see RedisSetCommands#sRem(byte[], byte[]...)
 	 */
-	List<String> sRandMember(String key, long count);
+	List<String> sRandMember(@NonNull String key, long count);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in set at {@code key}.
@@ -1262,7 +1248,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 * @see RedisSetCommands#sScan(byte[], ScanOptions)
 	 */
-	Cursor<String> sScan(String key, ScanOptions options);
+	Cursor<String> sScan(@NonNull String key, ScanOptions options);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Sorted Sets
@@ -1278,7 +1264,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], double, byte[])
 	 */
-	Boolean zAdd(String key, double score, String value);
+	Boolean zAdd(@NonNull String key, double score, String value);
 
 	/**
 	 * Add the {@code value} to a sorted set at {@code key}, or update its {@code score} depending on the given
@@ -1293,7 +1279,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], double, byte[], ZAddArgs)
 	 */
-	Boolean zAdd(String key, double score, String value, ZAddArgs args);
+	Boolean zAdd(@NonNull String key, double score, String value, ZAddArgs args);
 
 	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} if it already exists.
@@ -1304,7 +1290,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], Set)
 	 */
-	Long zAdd(String key, Set<StringTuple> tuples);
+	Long zAdd(@NonNull String key, Set<StringTuple> tuples);
 
 	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} depending on the given
@@ -1318,8 +1304,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 * @see RedisZSetCommands#zAdd(byte[], Set, ZAddArgs)
 	 */
-	@Nullable
-	Long zAdd(String key, Set<StringTuple> tuples, ZAddArgs args);
+	Long zAdd(@NonNull String key, Set<StringTuple> tuples, ZAddArgs args);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
@@ -1330,7 +1315,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 * @see RedisZSetCommands#zRem(byte[], byte[]...)
 	 */
-	Long zRem(String key, String... values);
+	Long zRem(@NonNull String key, String... values);
 
 	/**
 	 * Increment the score of element with {@code value} in sorted set by {@code increment}.
@@ -1342,7 +1327,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 * @see RedisZSetCommands#zIncrBy(byte[], double, byte[])
 	 */
-	Double zIncrBy(String key, double increment, String value);
+	Double zIncrBy(@NonNull String key, double increment, String value);
 
 	/**
 	 * Get random element from sorted set at {@code key}.
@@ -1352,8 +1337,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	String zRandMember(String key);
+	String zRandMember(@NonNull String key);
 
 	/**
 	 * Get {@code count} random elements from sorted set at {@code key}.
@@ -1367,8 +1351,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	List<String> zRandMember(String key, long count);
+	List<String> zRandMember(@NonNull String key, long count);
 
 	/**
 	 * Get random element from sorted set at {@code key}.
@@ -1378,8 +1361,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	StringTuple zRandMemberWithScore(String key);
+	StringTuple zRandMemberWithScore(@NonNull String key);
 
 	/**
 	 * Get {@code count} random elements from sorted set at {@code key}.
@@ -1393,8 +1375,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	List<StringTuple> zRandMemberWithScores(String key, long count);
+	List<StringTuple> zRandMemberWithScores(@NonNull String key, long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
@@ -1405,7 +1386,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 * @see RedisZSetCommands#zRank(byte[], byte[])
 	 */
-	Long zRank(String key, String value);
+	Long zRank(@NonNull String key, String value);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
@@ -1416,7 +1397,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 * @see RedisZSetCommands#zRevRank(byte[], byte[])
 	 */
-	Long zRevRank(String key, String value);
+	Long zRevRank(@NonNull String key, String value);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.
@@ -1428,7 +1409,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 * @see RedisZSetCommands#zRange(byte[], long, long)
 	 */
-	Set<String> zRange(String key, long start, long end);
+	Set<String> zRange(@NonNull String key, long start, long end);
 
 	/**
 	 * Get set of {@link Tuple}s between {@code start} and {@code end} from sorted set.
@@ -1440,7 +1421,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 * @see RedisZSetCommands#zRangeWithScores(byte[], long, long)
 	 */
-	Set<StringTuple> zRangeWithScores(String key, long start, long end);
+	Set<StringTuple> zRangeWithScores(@NonNull String key, long start, long end);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
@@ -1452,7 +1433,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double)
 	 */
-	Set<String> zRangeByScore(String key, double min, double max);
+	Set<String> zRangeByScore(@NonNull String key, double min, double max);
 
 	/**
 	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set.
@@ -1464,7 +1445,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScoreWithScores(byte[], double, double)
 	 */
-	Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max);
+	Set<StringTuple> zRangeByScoreWithScores(@NonNull String key, double min, double max);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -1479,7 +1460,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double, long, long)
 	 */
-	Set<String> zRangeByScore(String key, double min, double max, long offset, long count);
+	Set<String> zRangeByScore(@NonNull String key, double min, double max, long offset, long count);
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} where score is between {@code min} and
@@ -1494,7 +1475,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScoreWithScores(byte[], double, double, long, long)
 	 */
-	Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max, long offset, long count);
+	Set<StringTuple> zRangeByScoreWithScores(@NonNull String key, double min, double max, long offset, long count);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} from sorted set ordered from high to low.
@@ -1506,7 +1487,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 * @see RedisZSetCommands#zRevRange(byte[], long, long)
 	 */
-	Set<String> zRevRange(String key, long start, long end);
+	Set<String> zRevRange(@NonNull String key, long start, long end);
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} from sorted set ordered from high to low.
@@ -1518,7 +1499,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 * @see RedisZSetCommands#zRevRangeWithScores(byte[], long, long)
 	 */
-	Set<StringTuple> zRevRangeWithScores(String key, long start, long end);
+	Set<StringTuple> zRevRangeWithScores(@NonNull String key, long start, long end);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered from high to low.
@@ -1530,7 +1511,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 * @see RedisZSetCommands#zRevRangeByScore(byte[], double, double)
 	 */
-	Set<String> zRevRangeByScore(String key, double min, double max);
+	Set<String> zRevRangeByScore(@NonNull String key, double min, double max);
 
 	/**
 	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered from high to
@@ -1543,7 +1524,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRevRangeByScoreWithScores(byte[], double, double)
 	 */
-	Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max);
+	Set<StringTuple> zRevRangeByScoreWithScores(@NonNull String key, double min, double max);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -1558,7 +1539,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRevRangeByScore(byte[], double, double, long, long)
 	 */
-	Set<String> zRevRangeByScore(String key, double min, double max, long offset, long count);
+	Set<String> zRevRangeByScore(@NonNull String key, double min, double max, long offset, long count);
 
 	/**
 	 * Get set of {@link Tuple} in range from {@code start} to {@code end} where score is between {@code min} and
@@ -1573,7 +1554,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRevRangeByScoreWithScores(byte[], double, double, long, long)
 	 */
-	Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max, long offset, long count);
+	Set<StringTuple> zRevRangeByScoreWithScores(@NonNull String key, double min, double max, long offset, long count);
 
 	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
@@ -1585,7 +1566,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 * @see RedisZSetCommands#zCount(byte[], double, double)
 	 */
-	Long zCount(String key, double min, double max);
+	Long zCount(@NonNull String key, double min, double max);
 
 	/**
 	 * Count number of elements within sorted set with value between {@code Range#min} and {@code Range#max} applying
@@ -1598,8 +1579,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 * @see RedisZSetCommands#zLexCount(byte[], org.springframework.data.domain.Range)
 	 */
-	@Nullable
-	Long zLexCount(String key, org.springframework.data.domain.Range<String> range);
+	Long zLexCount(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}.
@@ -1609,8 +1589,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	Tuple zPopMin(String key);
+	Tuple zPopMin(@NonNull String key);
 
 	/**
 	 * Remove and return {@code count} values with their score having the lowest score from sorted set at {@code key}.
@@ -1621,8 +1600,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	Set<StringTuple> zPopMin(String key, long count);
+	Set<StringTuple> zPopMin(@NonNull String key, long count);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at {@code key}. <b>Blocks
@@ -1635,8 +1613,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	StringTuple bZPopMin(String key, long timeout, TimeUnit unit);
+	StringTuple bZPopMin(@NonNull String key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
@@ -1646,8 +1623,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	StringTuple zPopMax(String key);
+	StringTuple zPopMax(@NonNull String key);
 
 	/**
 	 * Remove and return {@code count} values with their score having the highest score from sorted set at {@code key}.
@@ -1658,8 +1634,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	Set<StringTuple> zPopMax(String key, long count);
+	Set<StringTuple> zPopMax(@NonNull String key, long count);
 
 	/**
 	 * Remove and return the value with its score having the highest score from sorted set at {@code key}. <b>Blocks
@@ -1672,8 +1647,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	StringTuple bZPopMax(String key, long timeout, TimeUnit unit);
+	StringTuple bZPopMax(@NonNull String key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Get the size of sorted set with {@code key}.
@@ -1683,7 +1657,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 * @see RedisZSetCommands#zCard(byte[])
 	 */
-	Long zCard(String key);
+	Long zCard(@NonNull String key);
 
 	/**
 	 * Get the score of element with {@code value} from sorted set with key {@code key}.
@@ -1694,7 +1668,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 * @see RedisZSetCommands#zScore(byte[], byte[])
 	 */
-	Double zScore(String key, String value);
+	Double zScore(@NonNull String key, String value);
 
 	/**
 	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
@@ -1706,7 +1680,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zMScore(byte[], byte[][])
 	 * @since 2.6
 	 */
-	List<Double> zMScore(String key, String... values);
+	List<Double> zMScore(@NonNull String key, String... values);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with {@code key}.
@@ -1718,7 +1692,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 * @see RedisZSetCommands#zRemRange(byte[], long, long)
 	 */
-	Long zRemRange(String key, long start, long end);
+	Long zRemRange(@NonNull String key, long start, long end);
 
 	/**
 	 * Remove all elements between the lexicographical {@link Range}.
@@ -1729,7 +1703,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
-	Long zRemRangeByLex(String key, org.springframework.data.domain.Range<String> range);
+	Long zRemRangeByLex(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with {@code key}.
@@ -1741,7 +1715,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRemRangeByScore(byte[], double, double)
 	 */
-	Long zRemRangeByScore(String key, double min, double max);
+	Long zRemRangeByScore(@NonNull String key, double min, double max);
 
 	/**
 	 * Diff sorted {@code sets}.
@@ -1751,8 +1725,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	Set<String> zDiff(String... sets);
+	Set<String> zDiff(@NonNull String @NonNull... sets);
 
 	/**
 	 * Diff sorted {@code sets}.
@@ -1762,8 +1735,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	Set<StringTuple> zDiffWithScores(String... sets);
+	Set<StringTuple> zDiffWithScores(@NonNull String @NonNull... sets);
 
 	/**
 	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
@@ -1774,8 +1746,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
 	 */
-	@Nullable
-	Long zDiffStore(String destKey, String... sets);
+	Long zDiffStore(@NonNull String destKey, @NonNull String @NonNull... sets);
 
 	/**
 	 * Intersect sorted {@code sets}.
@@ -1785,8 +1756,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	Set<String> zInter(String... sets);
+	Set<String> zInter(@NonNull String @NonNull... sets);
 
 	/**
 	 * Intersect sorted {@code sets}.
@@ -1796,8 +1766,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	Set<StringTuple> zInterWithScores(String... sets);
+	Set<StringTuple> zInterWithScores(@NonNull String @NonNull... sets);
 
 	/**
 	 * Intersect sorted {@code sets}.
@@ -1809,8 +1778,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	default Set<StringTuple> zInterWithScores(Aggregate aggregate, int[] weights, String... sets) {
+	default Set<StringTuple> zInterWithScores(@NonNull Aggregate aggregate, int @NonNull [] weights,
+			@NonNull String @NonNull... sets) {
 		return zInterWithScores(aggregate, Weights.of(weights), sets);
 	}
 
@@ -1824,8 +1793,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	Set<StringTuple> zInterWithScores(Aggregate aggregate, Weights weights, String... sets);
+	Set<StringTuple> zInterWithScores(@NonNull Aggregate aggregate, @NonNull Weights weights,
+			@NonNull String @NonNull... sets);
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
@@ -1836,7 +1805,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 * @see RedisZSetCommands#zInterStore(byte[], byte[]...)
 	 */
-	Long zInterStore(String destKey, String... sets);
+	Long zInterStore(@NonNull String destKey, @NonNull String @NonNull... sets);
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
@@ -1849,7 +1818,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 * @see RedisZSetCommands#zInterStore(byte[], Aggregate, int[], byte[]...)
 	 */
-	Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	Long zInterStore(@NonNull String destKey, @NonNull Aggregate aggregate, int @NonNull [] weights,
+			@NonNull String @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets}.
@@ -1859,8 +1829,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	Set<String> zUnion(String... sets);
+	Set<String> zUnion(@NonNull String @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets}.
@@ -1870,8 +1839,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	Set<StringTuple> zUnionWithScores(String... sets);
+	Set<StringTuple> zUnionWithScores(@NonNull String @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets}.
@@ -1883,8 +1851,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	default Set<StringTuple> zUnionWithScores(Aggregate aggregate, int[] weights, String... sets) {
+	default Set<StringTuple> zUnionWithScores(@NonNull Aggregate aggregate, int @NonNull [] weights,
+			@NonNull String @NonNull... sets) {
 		return zUnionWithScores(aggregate, Weights.of(weights), sets);
 	}
 
@@ -1898,8 +1866,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	Set<StringTuple> zUnionWithScores(Aggregate aggregate, Weights weights, String... sets);
+	Set<StringTuple> zUnionWithScores(@NonNull Aggregate aggregate, @NonNull Weights weights,
+			@NonNull String @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets} and store result in destination {@code key}.
@@ -1910,7 +1878,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 * @see RedisZSetCommands#zUnionStore(byte[], byte[]...)
 	 */
-	Long zUnionStore(String destKey, String... sets);
+	Long zUnionStore(@NonNull String destKey, @NonNull String @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets} and store result in destination {@code key}.
@@ -1923,19 +1891,20 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 * @see RedisZSetCommands#zUnionStore(byte[], Aggregate, int[], byte[]...)
 	 */
-	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	Long zUnionStore(@NonNull String destKey, @NonNull Aggregate aggregate, int @NonNull [] weights,
+			@NonNull String @NonNull... sets);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
+	 * @param options can be {@literal null}.
 	 * @return
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @see RedisZSetCommands#zScan(byte[], ScanOptions)
 	 */
-	Cursor<StringTuple> zScan(String key, ScanOptions options);
+	Cursor<StringTuple> zScan(@NonNull String key, ScanOptions options);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
@@ -1948,7 +1917,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], String, String)
 	 */
-	Set<String> zRangeByScore(String key, String min, String max);
+	Set<String> zRangeByScore(@NonNull String key, @NonNull String min, @NonNull String max);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -1964,7 +1933,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see RedisZSetCommands#zRangeByScore(byte[], double, double, long, long)
 	 */
-	Set<String> zRangeByScore(String key, String min, String max, long offset, long count);
+	Set<String> zRangeByScore(@NonNull String key, @NonNull String min, @NonNull String max, long offset, long count);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in lexicographical ordering.
@@ -1975,7 +1944,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[])
 	 */
-	Set<String> zRangeByLex(String key);
+	Set<String> zRangeByLex(@NonNull String key);
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering.
@@ -1987,7 +1956,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.domain.Range)
 	 */
-	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range);
+	Set<String> zRangeByLex(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range);
 
 	/**
 	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is
@@ -1995,15 +1964,15 @@ public interface StringRedisConnection extends RedisConnection {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
+	 * @param limit must not be {@literal null}.
 	 * @return
 	 * @since 1.6
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.domain.Range,
 	 *      org.springframework.data.redis.connection.Limit)
 	 */
-	Set<String> zRangeByLex(String key, org.springframework.data.domain.Range<String> range,
-			org.springframework.data.redis.connection.Limit limit);
+	Set<String> zRangeByLex(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in reversed lexicographical ordering.
@@ -2014,7 +1983,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[])
 	 */
-	default Set<String> zRevRangeByLex(String key) {
+	default Set<String> zRevRangeByLex(@NonNull String key) {
 		return zRevRangeByLex(key, org.springframework.data.domain.Range.unbounded());
 	}
 
@@ -2028,7 +1997,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.domain.Range)
 	 */
-	default Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range) {
+	default Set<String> zRevRangeByLex(@NonNull String key,
+			org.springframework.data.domain.@NonNull Range<String> range) {
 		return zRevRangeByLex(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2045,8 +2015,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zRevRangeByLex(byte[], org.springframework.data.domain.Range,
 	 *      org.springframework.data.redis.connection.Limit)
 	 */
-	Set<String> zRevRangeByLex(String key, org.springframework.data.domain.Range<String> range,
-			org.springframework.data.redis.connection.Limit limit);
+	Set<String> zRevRangeByLex(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * This command is like ZRANGE , but stores the result in the {@literal dstKey} destination key.
@@ -2058,8 +2028,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range) {
+	default Long zRangeStoreByLex(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<String> range) {
 		return zRangeStoreByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2074,9 +2044,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long zRangeStoreByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range,
-			org.springframework.data.redis.connection.Limit limit);
+	Long zRangeStoreByLex(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<String> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * This command is like ZRANGE … REV , but stores the result in the {@literal dstKey} destination key.
@@ -2088,8 +2058,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreRevByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range) {
+	default Long zRangeStoreRevByLex(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<String> range) {
 		return zRangeStoreRevByLex(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2104,9 +2074,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long zRangeStoreRevByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range,
-			org.springframework.data.redis.connection.Limit limit);
+	Long zRangeStoreRevByLex(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<String> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * This command is like ZRANGE, but stores the result in the {@literal dstKey} destination key.
@@ -2118,9 +2088,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreByScore(String dstKey, String srcKey,
-			org.springframework.data.domain.Range<? extends Number> range) {
+	default Long zRangeStoreByScore(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range) {
 		return zRangeStoreByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2135,9 +2104,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long zRangeStoreByScore(String dstKey, String srcKey, org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit);
+	Long zRangeStoreByScore(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * This command is like ZRANGE … REV, but stores the result in the {@literal dstKey} destination key.
@@ -2149,9 +2118,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	default Long zRangeStoreRevByScore(String dstKey, String srcKey,
-			org.springframework.data.domain.Range<? extends Number> range) {
+	default Long zRangeStoreRevByScore(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range) {
 		return zRangeStoreRevByScore(dstKey, srcKey, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -2166,10 +2134,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long zRangeStoreRevByScore(String dstKey, String srcKey,
-			org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit);
+	Long zRangeStoreRevByScore(@NonNull String dstKey, @NonNull String srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Hashes
@@ -2185,7 +2152,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hset">Redis Documentation: HSET</a>
 	 * @see RedisHashCommands#hSet(byte[], byte[], byte[])
 	 */
-	Boolean hSet(String key, String field, String value);
+	Boolean hSet(@NonNull String key, @NonNull String field, String value);
 
 	/**
 	 * Set the {@code value} of a hash {@code field} only if {@code field} does not exist.
@@ -2197,7 +2164,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hsetnx">Redis Documentation: HSETNX</a>
 	 * @see RedisHashCommands#hSetNX(byte[], byte[], byte[])
 	 */
-	Boolean hSetNX(String key, String field, String value);
+	Boolean hSetNX(@NonNull String key, @NonNull String field, String value);
 
 	/**
 	 * Get value for given {@code field} from hash at {@code key}.
@@ -2208,7 +2175,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hget">Redis Documentation: HGET</a>
 	 * @see RedisHashCommands#hGet(byte[], byte[])
 	 */
-	String hGet(String key, String field);
+	String hGet(@NonNull String key, @NonNull String field);
 
 	/**
 	 * Get values for given {@code fields} from hash at {@code key}.
@@ -2219,7 +2186,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 * @see RedisHashCommands#hMGet(byte[], byte[]...)
 	 */
-	List<String> hMGet(String key, String... fields);
+	List<String> hMGet(@NonNull String key, @NonNull String @NonNull... fields);
 
 	/**
 	 * Set multiple hash fields to multiple values using data provided in {@code hashes}
@@ -2229,7 +2196,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hmset">Redis Documentation: HMSET</a>
 	 * @see RedisHashCommands#hMGet(byte[], byte[]...)
 	 */
-	void hMSet(String key, Map<String, String> hashes);
+	void hMSet(@NonNull String key, @NonNull Map<@NonNull String, String> hashes);
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
@@ -2241,7 +2208,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 * @see RedisHashCommands#hIncrBy(byte[], byte[], long)
 	 */
-	Long hIncrBy(String key, String field, long delta);
+	Long hIncrBy(@NonNull String key, @NonNull String field, long delta);
 
 	/**
 	 * Increment {@code value} of a hash {@code field} by the given {@code delta}.
@@ -2253,7 +2220,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hincrbyfloat">Redis Documentation: HINCRBYFLOAT</a>
 	 * @see RedisHashCommands#hIncrBy(byte[], byte[], double)
 	 */
-	Double hIncrBy(String key, String field, double delta);
+	Double hIncrBy(@NonNull String key, @NonNull String field, double delta);
 
 	/**
 	 * Return a random field from the hash stored at {@code key}.
@@ -2263,8 +2230,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	String hRandField(String key);
+	String hRandField(@NonNull String key);
 
 	/**
 	 * Return a random field from the hash along with its value stored at {@code key}.
@@ -2274,8 +2240,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map.Entry<String, String> hRandFieldWithValues(String key);
+	Map.@Nullable Entry<String, String> hRandFieldWithValues(@NonNull String key);
 
 	/**
 	 * Return a random field from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -2289,8 +2254,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	List<String> hRandField(String key, long count);
+	List<String> hRandField(@NonNull String key, long count);
 
 	/**
 	 * Return a random field from the hash along with its value stored at {@code key}. If the provided {@code count}
@@ -2304,8 +2268,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	List<Map.Entry<String, String>> hRandFieldWithValues(String key, long count);
+	List<Map.Entry<String, String>> hRandFieldWithValues(@NonNull String key, long count);
 
 	/**
 	 * Determine if given hash {@code field} exists.
@@ -2316,7 +2279,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hexits">Redis Documentation: HEXISTS</a>
 	 * @see RedisHashCommands#hExists(byte[], byte[])
 	 */
-	Boolean hExists(String key, String field);
+	Boolean hExists(@NonNull String key, @NonNull String field);
 
 	/**
 	 * Delete given hash {@code fields}.
@@ -2327,7 +2290,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hdel">Redis Documentation: HDEL</a>
 	 * @see RedisHashCommands#hDel(byte[], byte[]...)
 	 */
-	Long hDel(String key, String... fields);
+	Long hDel(@NonNull String key, @NonNull String @NonNull... fields);
 
 	/**
 	 * Get size of hash at {@code key}.
@@ -2337,7 +2300,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hlen">Redis Documentation: HLEN</a>
 	 * @see RedisHashCommands#hLen(byte[])
 	 */
-	Long hLen(String key);
+	Long hLen(@NonNull String key);
 
 	/**
 	 * Get key set (fields) of hash at {@code key}.
@@ -2347,7 +2310,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
 	 * @see RedisHashCommands#hKeys(byte[])
 	 */
-	Set<String> hKeys(String key);
+	Set<String> hKeys(@NonNull String key);
 
 	/**
 	 * Get entry set (values) of hash at {@code field}.
@@ -2357,7 +2320,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 * @see RedisHashCommands#hVals(byte[])
 	 */
-	List<String> hVals(String key);
+	List<String> hVals(@NonNull String key);
 
 	/**
 	 * Get entire hash stored at {@code key}.
@@ -2367,7 +2330,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 * @see RedisHashCommands#hGetAll(byte[])
 	 */
-	Map<String, String> hGetAll(String key);
+	Map<String, String> hGetAll(@NonNull String key);
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
@@ -2379,7 +2342,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @see RedisHashCommands#hScan(byte[], ScanOptions)
 	 */
-	Cursor<Map.Entry<String, String>> hScan(String key, ScanOptions options);
+	Cursor<Map.Entry<String, String>> hScan(@NonNull String key, ScanOptions options);
 
 	/**
 	 * Returns the length of the value associated with {@code field} in the hash stored at {@code key}. If the key or the
@@ -2390,8 +2353,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 */
-	@Nullable
-	Long hStrLen(String key, String field);
+	Long hStrLen(@NonNull String key, @NonNull String field);
 
 	/**
 	 * Set time to live for given {@code field} in seconds.
@@ -2406,8 +2368,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpire(String key, long seconds, String... fields) {
+	default List<Long> hExpire(@NonNull String key, long seconds, @NonNull String @NonNull... fields) {
 		return hExpire(key, seconds, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2425,8 +2386,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hExpire(String key, long seconds, ExpirationOptions.Condition condition, String... fields);
+	List<Long> hExpire(@NonNull String key, long seconds, ExpirationOptions.@NonNull Condition condition,
+			@NonNull String @NonNull... fields);
 
 	/**
 	 * Set time to live for given {@code field} in milliseconds.
@@ -2441,8 +2402,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpire(String key, long millis, String... fields) {
+	default List<Long> hpExpire(@NonNull String key, long millis, @NonNull String @NonNull... fields) {
 		return hpExpire(key, millis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2460,8 +2420,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">Redis Documentation: HPEXPIRE</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hpExpire(String key, long millis, ExpirationOptions.Condition condition, String... fields);
+	List<Long> hpExpire(@NonNull String key, long millis, ExpirationOptions.@NonNull Condition condition,
+			@NonNull String @NonNull... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp.
@@ -2476,8 +2436,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hExpireAt(String key, long unixTime, String... fields) {
+	default List<Long> hExpireAt(@NonNull String key, long unixTime, @NonNull String @NonNull... fields) {
 		return hExpireAt(key, unixTime, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2495,8 +2454,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpireat/">Redis Documentation: HEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hExpireAt(String key, long unixTime, ExpirationOptions.Condition condition, String... fields);
+	List<Long> hExpireAt(@NonNull String key, long unixTime, ExpirationOptions.@NonNull Condition condition,
+			@NonNull String @NonNull... fields);
 
 	/**
 	 * Set the expiration for given {@code field} as a {@literal UNIX} timestamp in milliseconds.
@@ -2511,8 +2470,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	default List<Long> hpExpireAt(String key, long unixTimeInMillis, String... fields) {
+	default List<Long> hpExpireAt(@NonNull String key, long unixTimeInMillis, @NonNull String @NonNull... fields) {
 		return hpExpireAt(key, unixTimeInMillis, ExpirationOptions.Condition.ALWAYS, fields);
 	}
 
@@ -2530,9 +2488,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpexpireat/">Redis Documentation: HPEXPIREAT</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hpExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition,
-			String... fields);
+	List<Long> hpExpireAt(@NonNull String key, long unixTimeInMillis, ExpirationOptions.@NonNull Condition condition,
+			@NonNull String @NonNull... fields);
 
 	/**
 	 * Remove the expiration from given {@code field}.
@@ -2546,8 +2503,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hpersist/">Redis Documentation: HPERSIST</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hPersist(String key, String... fields);
+	List<Long> hPersist(@NonNull String key, @NonNull String @NonNull... fields);
 
 	/**
 	 * Get the time to live for {@code fields} in seconds.
@@ -2561,8 +2517,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hTtl(String key, String... fields);
+	List<Long> hTtl(@NonNull String key, @NonNull String @NonNull... fields);
 
 	/**
 	 * Get the time to live for {@code fields} in and convert it to the given {@link TimeUnit}.
@@ -2577,8 +2532,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hTtl(String key, TimeUnit timeUnit, String... fields);
+	List<Long> hTtl(@NonNull String key, @NonNull TimeUnit timeUnit, @NonNull String @NonNull... fields);
 
 	/**
 	 * Get the time to live for {@code fields} in seconds.
@@ -2592,8 +2546,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/docs/latest/commands/hexpire/">Redis Documentation: HTTL</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	List<Long> hpTtl(String key, String... fields);
+	List<Long> hpTtl(@NonNull String key, @NonNull String @NonNull... fields);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog
@@ -2609,7 +2562,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 * @see RedisHyperLogLogCommands#pfAdd(byte[], byte[]...)
 	 */
-	Long pfAdd(String key, String... values);
+	Long pfAdd(@NonNull String key, String... values);
 
 	/**
 	 * Return the approximated cardinality of the structures observed by the HyperLogLog at {@literal key(s)}.
@@ -2619,7 +2572,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 * @see RedisHyperLogLogCommands#pfCount(byte[]...)
 	 */
-	Long pfCount(String... keys);
+	Long pfCount(@NonNull String @NonNull... keys);
 
 	/**
 	 * Merge N different HyperLogLogs at {@literal sourceKeys} into a single {@literal destinationKey}.
@@ -2629,7 +2582,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 * @see RedisHyperLogLogCommands#pfMerge(byte[], byte[]...)
 	 */
-	void pfMerge(String destinationKey, String... sourceKeys);
+	void pfMerge(@NonNull String destinationKey, @NonNull String @NonNull... sourceKeys);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Geo-Indexes
@@ -2646,7 +2599,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Point, byte[])
 	 */
-	Long geoAdd(String key, Point point, String member);
+	Long geoAdd(@NonNull String key, @NonNull Point point, @NonNull String member);
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
@@ -2658,7 +2611,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], GeoLocation)
 	 */
-	Long geoAdd(String key, GeoLocation<String> location);
+	Long geoAdd(@NonNull String key, @NonNull GeoLocation<String> location);
 
 	/**
 	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
@@ -2670,7 +2623,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Map)
 	 */
-	Long geoAdd(String key, Map<String, Point> memberCoordinateMap);
+	Long geoAdd(@NonNull String key, @NonNull Map<@NonNull String, @NonNull Point> memberCoordinateMap);
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
@@ -2682,7 +2635,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Iterable)
 	 */
-	Long geoAdd(String key, Iterable<GeoLocation<String>> locations);
+	Long geoAdd(@NonNull String key, @NonNull Iterable<@NonNull GeoLocation<String>> locations);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
@@ -2695,7 +2648,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 * @see RedisGeoCommands#geoDist(byte[], byte[], byte[])
 	 */
-	Distance geoDist(String key, String member1, String member2);
+	Distance geoDist(@NonNull String key, @NonNull String member1, @NonNull String member2);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
@@ -2709,7 +2662,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 * @see RedisGeoCommands#geoDist(byte[], byte[], byte[], Metric)
 	 */
-	Distance geoDist(String key, String member1, String member2, Metric metric);
+	Distance geoDist(@NonNull String key, @NonNull String member1, @NonNull String member2, @NonNull Metric metric);
 
 	/**
 	 * Get geohash representation of the position for one or more {@literal member}s.
@@ -2721,7 +2674,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 * @see RedisGeoCommands#geoHash(byte[], byte[]...)
 	 */
-	List<String> geoHash(String key, String... members);
+	List<String> geoHash(@NonNull String key, @NonNull String @NonNull... members);
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
@@ -2733,7 +2686,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 * @see RedisGeoCommands#geoPos(byte[], byte[]...)
 	 */
-	List<Point> geoPos(String key, String... members);
+	List<Point> geoPos(@NonNull String key, @NonNull String @NonNull... members);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
@@ -2745,7 +2698,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @see RedisGeoCommands#geoRadius(byte[], Circle)
 	 */
-	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within);
+	GeoResults<GeoLocation<String>> geoRadius(@NonNull String key, @NonNull Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -2758,7 +2711,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @see RedisGeoCommands#geoRadius(byte[], Circle, GeoRadiusCommandArgs)
 	 */
-	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within, GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<String>> geoRadius(@NonNull String key, @NonNull Circle within,
+			@NonNull GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -2772,7 +2726,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], double)
 	 */
-	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, double radius);
+	GeoResults<GeoLocation<String>> geoRadiusByMember(@NonNull String key, @NonNull String member, double radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -2786,7 +2740,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], Distance)
 	 */
-	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius);
+	GeoResults<GeoLocation<String>> geoRadiusByMember(@NonNull String key, @NonNull String member,
+			@NonNull Distance radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -2801,8 +2756,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], Distance, GeoRadiusCommandArgs)
 	 */
-	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius,
-			GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<String>> geoRadiusByMember(@NonNull String key, @NonNull String member,
+			@NonNull Distance radius, @NonNull GeoRadiusCommandArgs args);
 
 	/**
 	 * Remove the {@literal member}s.
@@ -2814,7 +2769,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 * @see RedisGeoCommands#geoRemove(byte[], byte[]...)
 	 */
-	Long geoRemove(String key, String... members);
+	Long geoRemove(@NonNull String key, @NonNull String @NonNull... members);
 
 	/**
 	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
@@ -2828,9 +2783,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	GeoResults<GeoLocation<String>> geoSearch(String key, GeoReference<String> reference, GeoShape predicate,
-			GeoSearchCommandArgs args);
+	GeoResults<GeoLocation<String>> geoSearch(@NonNull String key, @NonNull GeoReference<String> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchCommandArgs args);
 
 	/**
 	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
@@ -2844,9 +2798,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	Long geoSearchStore(String destKey, String key, GeoReference<String> reference, GeoShape predicate,
-			GeoSearchStoreCommandArgs args);
+	Long geoSearchStore(String destKey, @NonNull String key, @NonNull GeoReference<String> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchStoreCommandArgs args);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Pub/Sub
@@ -2861,7 +2814,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 * @see RedisPubSubCommands#publish(byte[], byte[])
 	 */
-	Long publish(String channel, String message);
+	Long publish(@NonNull String channel, @NonNull String message);
 
 	/**
 	 * Subscribes the connection to the given channels. Once subscribed, a connection enters listening mode and can only
@@ -2874,7 +2827,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
 	 * @see RedisPubSubCommands#subscribe(MessageListener, byte[]...)
 	 */
-	void subscribe(MessageListener listener, String... channels);
+	void subscribe(@NonNull MessageListener listener, @NonNull String @NonNull... channels);
 
 	/**
 	 * Subscribes the connection to all channels matching the given patterns. Once subscribed, a connection enters
@@ -2888,7 +2841,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
 	 * @see RedisPubSubCommands#pSubscribe(MessageListener, byte[]...)
 	 */
-	void pSubscribe(MessageListener listener, String... patterns);
+	void pSubscribe(@NonNull MessageListener listener, @NonNull String @NonNull... patterns);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Lua Scripting
@@ -2903,7 +2856,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
 	 * @see RedisScriptingCommands#scriptLoad(byte[])
 	 */
-	String scriptLoad(String script);
+	String scriptLoad(@NonNull String script);
 
 	/**
 	 * Evaluate given {@code script}.
@@ -2916,7 +2869,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/eval">Redis Documentation: EVAL</a>
 	 * @see RedisScriptingCommands#eval(byte[], ReturnType, int, byte[]...)
 	 */
-	<T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs);
+	<T> T eval(@NonNull String script, @NonNull ReturnType returnType, int numKeys,
+			@NonNull String @NonNull... keysAndArgs);
 
 	/**
 	 * Evaluate given {@code scriptSha}.
@@ -2929,7 +2883,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 * @see RedisScriptingCommands#evalSha(String, ReturnType, int, byte[]...)
 	 */
-	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, String... keysAndArgs);
+	<T> T evalSha(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
+			@NonNull String @NonNull... keysAndArgs);
 
 	/**
 	 * Assign given name to current connection.
@@ -2939,7 +2894,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
 	 * @see RedisServerCommands#setClientName(byte[])
 	 */
-	void setClientName(String name);
+	void setClientName(@NonNull String name);
 
 	/**
 	 * Request information and statistics about connected clients.
@@ -2959,7 +2914,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param command must not be {@literal null}.
 	 * @return
 	 */
-	List<Long> bitfield(String key, BitFieldSubCommands command);
+	List<Long> bitfield(@NonNull String key, @NonNull BitFieldSubCommands command);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Streams
@@ -2984,12 +2939,11 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	@Nullable
-	default Long xAck(String key, String group, String... entryIds) {
+	default Long xAck(@NonNull String key, @NonNull String group, @NonNull String @NonNull... entryIds) {
 		return xAck(key, group, entryIds(entryIds));
 	}
 
-	Long xAck(String key, String group, RecordId... recordIds);
+	Long xAck(@NonNull String key, @NonNull String group, @NonNull RecordId @NonNull... recordIds);
 
 	/**
 	 * Append a record to the stream {@code key}.
@@ -3000,8 +2954,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	@Nullable
-	default RecordId xAdd(String key, Map<String, String> body) {
+	default RecordId xAdd(@NonNull String key, @NonNull Map<@NonNull String, String> body) {
 		return xAdd(StreamRecords.newRecord().in(key).ofStrings(body));
 	}
 
@@ -3012,8 +2965,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @since 2.2
 	 */
-	@Nullable
-	default RecordId xAdd(StringRecord record) {
+	default RecordId xAdd(@NonNull StringRecord record) {
 		return xAdd(record, XAddOptions.none());
 	}
 
@@ -3025,8 +2977,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	@Nullable
-	RecordId xAdd(StringRecord record, XAddOptions options);
+	RecordId xAdd(@NonNull StringRecord record, @NonNull XAddOptions options);
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer} without increasing the delivered
@@ -3040,7 +2991,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
-	List<RecordId> xClaimJustId(String key, String group, String newOwner, XClaimOptions options);
+	List<RecordId> xClaimJustId(@NonNull String key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XClaimOptions options);
 
 	/**
 	 * Change the ownership of a pending message to the given new {@literal consumer}.
@@ -3054,8 +3006,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
-	default List<StringRecord> xClaim(String key, String group, String newOwner, Duration minIdleTime,
-			RecordId... recordIds) {
+	default List<StringRecord> xClaim(@NonNull String key, @NonNull String group, @NonNull String newOwner,
+			@NonNull Duration minIdleTime, @NonNull RecordId @NonNull... recordIds) {
 		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
 	}
 
@@ -3070,7 +3022,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
-	List<StringRecord> xClaim(String key, String group, String newOwner, XClaimOptions options);
+	List<StringRecord> xClaim(@NonNull String key, @NonNull String group, @NonNull String newOwner,
+			@NonNull XClaimOptions options);
 
 	/**
 	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the
@@ -3082,12 +3035,11 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	@Nullable
-	default Long xDel(String key, String... entryIds) {
+	default Long xDel(@NonNull String key, @NonNull String @NonNull... entryIds) {
 		return xDel(key, entryIds(entryIds));
 	}
 
-	Long xDel(String key, RecordId... recordIds);
+	Long xDel(@NonNull String key, @NonNull RecordId @NonNull... recordIds);
 
 	/**
 	 * Create a consumer group.
@@ -3098,8 +3050,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	String xGroupCreate(String key, ReadOffset readOffset, String group);
+	String xGroupCreate(@NonNull String key, @NonNull ReadOffset readOffset, @NonNull String group);
 
 	/**
 	 * Create a consumer group.
@@ -3112,8 +3063,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	@Nullable
-	String xGroupCreate(String key, ReadOffset readOffset, String group, boolean mkStream);
+	String xGroupCreate(@NonNull String key, @NonNull ReadOffset readOffset, @NonNull String group, boolean mkStream);
 
 	/**
 	 * Delete a consumer from a consumer group.
@@ -3123,8 +3073,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean xGroupDelConsumer(String key, Consumer consumer);
+	Boolean xGroupDelConsumer(@NonNull String key, @NonNull Consumer consumer);
 
 	/**
 	 * Destroy a consumer group.
@@ -3134,8 +3083,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 * @since 2.2
 	 */
-	@Nullable
-	Boolean xGroupDestroy(String key, String group);
+	Boolean xGroupDestroy(@NonNull String key, String group);
 
 	/**
 	 * Obtain general information about the stream stored at the specified {@literal key}.
@@ -3144,8 +3092,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	@Nullable
-	XInfoStream xInfo(String key);
+	XInfoStream xInfo(@NonNull String key);
 
 	/**
 	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
@@ -3155,8 +3102,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	@Nullable
-	XInfoGroups xInfoGroups(String key);
+	XInfoGroups xInfoGroups(@NonNull String key);
 
 	/**
 	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
@@ -3167,8 +3113,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	@Nullable
-	XInfoConsumers xInfoConsumers(String key, String groupName);
+	XInfoConsumers xInfoConsumers(@NonNull String key, @NonNull String groupName);
 
 	/**
 	 * Get the length of a stream.
@@ -3178,8 +3123,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
-	@Nullable
-	Long xLen(String key);
+	Long xLen(@NonNull String key);
 
 	/**
 	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
@@ -3191,8 +3135,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	PendingMessagesSummary xPending(String key, String groupName);
+	PendingMessagesSummary xPending(@NonNull String key, @NonNull String groupName);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
@@ -3208,9 +3151,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	PendingMessages xPending(String key, String groupName, String consumerName,
-			org.springframework.data.domain.Range<String> range, Long count);
+	PendingMessages xPending(@NonNull String key, @NonNull String groupName, @NonNull String consumerName,
+			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
@@ -3225,9 +3167,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
-			Long count);
+	PendingMessages xPending(@NonNull String key, @NonNull String groupName,
+			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions
@@ -3241,8 +3182,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	PendingMessages xPending(String key, String groupName, XPendingOptions options);
+	PendingMessages xPending(@NonNull String key, @NonNull String groupName, @NonNull XPendingOptions options);
 
 	/**
 	 * Read records from a stream within a specific {@link Range}.
@@ -3253,8 +3193,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
-	default List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range) {
+	default List<StringRecord> xRange(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range) {
 		return xRange(key, range, org.springframework.data.redis.connection.Limit.unlimited());
 	}
 
@@ -3269,9 +3208,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
-	List<StringRecord> xRange(String key, org.springframework.data.domain.Range<String> range,
-			org.springframework.data.redis.connection.Limit limit);
+	List<StringRecord> xRange(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s.
@@ -3281,8 +3219,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadAsString(StreamOffset<String> stream) {
+	default List<StringRecord> xReadAsString(@NonNull StreamOffset<String> stream) {
 		return xReadAsString(StreamReadOptions.empty(), new StreamOffset[] { stream });
 	}
 
@@ -3294,8 +3231,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadAsString(StreamOffset<String>... streams) {
+	default List<StringRecord> xReadAsString(@NonNull StreamOffset<String>... streams) {
 		return xReadAsString(StreamReadOptions.empty(), streams);
 	}
 
@@ -3308,8 +3244,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadAsString(StreamReadOptions readOptions, StreamOffset<String> stream) {
+	default List<StringRecord> xReadAsString(@NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<String> stream) {
 		return xReadAsString(readOptions, new StreamOffset[] { stream });
 	}
 
@@ -3322,8 +3258,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	List<StringRecord> xReadAsString(StreamReadOptions readOptions, StreamOffset<String>... streams);
+	List<StringRecord> xReadAsString(@NonNull StreamReadOptions readOptions, @NonNull StreamOffset<String>... streams);
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s using a consumer group.
@@ -3334,8 +3269,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadGroupAsString(Consumer consumer, StreamOffset<String> stream) {
+	default List<StringRecord> xReadGroupAsString(@NonNull Consumer consumer, @NonNull StreamOffset<String> stream) {
 		return xReadGroupAsString(consumer, StreamReadOptions.empty(), new StreamOffset[] { stream });
 	}
 
@@ -3348,8 +3282,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadGroupAsString(Consumer consumer, StreamOffset<String>... streams) {
+	default List<StringRecord> xReadGroupAsString(@NonNull Consumer consumer,
+			@NonNull StreamOffset<String> @NonNull... streams) {
 		return xReadGroupAsString(consumer, StreamReadOptions.empty(), streams);
 	}
 
@@ -3363,9 +3297,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	default List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<String> stream) {
+	default List<StringRecord> xReadGroupAsString(@NonNull Consumer consumer, @NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<String> stream) {
 		return xReadGroupAsString(consumer, readOptions, new StreamOffset[] { stream });
 	}
 
@@ -3379,9 +3312,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	List<StringRecord> xReadGroupAsString(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<String>... streams);
+	List<StringRecord> xReadGroupAsString(@NonNull Consumer consumer, @NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<String> @NonNull... streams);
 
 	/**
 	 * Read records from a stream within a specific {@link Range} in reverse order.
@@ -3392,8 +3324,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
-	default List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range) {
+	default List<StringRecord> xRevRange(@NonNull String key,
+			org.springframework.data.domain.@NonNull Range<String> range) {
 		return xRevRange(key, range, Limit.unlimited());
 	}
 
@@ -3408,9 +3340,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
-	List<StringRecord> xRevRange(String key, org.springframework.data.domain.Range<String> range,
-			org.springframework.data.redis.connection.Limit limit);
+	List<StringRecord> xRevRange(@NonNull String key, org.springframework.data.domain.@NonNull Range<String> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit);
 
 	/**
 	 * Trims the stream to {@code count} elements.
@@ -3421,8 +3352,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.2
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	@Nullable
-	Long xTrim(String key, long count);
+	Long xTrim(@NonNull String key, long count);
 
 	/**
 	 * Trims the stream to {@code count} elements.
@@ -3434,6 +3364,5 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	@Nullable
-	Long xTrim(String key, long count, boolean approximateTrimming);
+	Long xTrim(@NonNull String key, long count, boolean approximateTrimming);
 }

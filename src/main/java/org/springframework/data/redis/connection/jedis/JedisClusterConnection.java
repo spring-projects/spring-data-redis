@@ -37,6 +37,10 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.dao.DataAccessException;
@@ -46,16 +50,39 @@ import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
+import org.springframework.data.redis.connection.ClusterInfo;
+import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
+import org.springframework.data.redis.connection.ClusterTopology;
+import org.springframework.data.redis.connection.ClusterTopologyProvider;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisClusterCommands;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
+import org.springframework.data.redis.connection.RedisClusterServerCommands;
+import org.springframework.data.redis.connection.RedisCommands;
+import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
+import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.RedisScriptingCommands;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisSetCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -75,6 +102,7 @@ import org.springframework.util.Assert;
  * @author John Blum
  * @since 1.7
  */
+@NullUnmarked
 public class JedisClusterConnection implements RedisClusterConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
@@ -107,7 +135,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 *
 	 * @param cluster must not be {@literal null}.
 	 */
-	public JedisClusterConnection(JedisCluster cluster) {
+	public JedisClusterConnection(@NonNull JedisCluster cluster) {
 
 		Assert.notNull(cluster, "JedisCluster must not be null");
 
@@ -137,7 +165,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 * @param cluster must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
 	 */
-	public JedisClusterConnection(JedisCluster cluster, ClusterCommandExecutor executor) {
+	public JedisClusterConnection(@NonNull JedisCluster cluster, @NonNull ClusterCommandExecutor executor) {
 		this(cluster, executor, new JedisClusterTopologyProvider(cluster));
 	}
 
@@ -150,8 +178,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 * @param topologyProvider must not be {@literal null}.
 	 * @since 2.2
 	 */
-	public JedisClusterConnection(JedisCluster cluster, ClusterCommandExecutor executor,
-			ClusterTopologyProvider topologyProvider) {
+	public JedisClusterConnection(@NonNull JedisCluster cluster, @NonNull ClusterCommandExecutor executor,
+			@NonNull ClusterTopologyProvider topologyProvider) {
 
 		Assert.notNull(cluster, "JedisCluster must not be null");
 		Assert.notNull(executor, "ClusterCommandExecutor must not be null");
@@ -164,23 +192,21 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
-	@Nullable
 	@Override
-	public Object execute(String command, byte[]... args) {
+	public Object execute(@NonNull String command, byte @NonNull [] @NonNull... args) {
 
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(args, "Args must not be null");
 
-		JedisClusterCommandCallback<Object> commandCallback = jedis ->
-				jedis.sendCommand(JedisClientUtils.getCommand(command), args);
+		JedisClusterCommandCallback<Object> commandCallback = jedis -> jedis
+				.sendCommand(JedisClientUtils.getCommand(command), args);
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(commandCallback).getValue();
 	}
 
-	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T execute(String command, byte[] key, Collection<byte[]> args) {
+	public <T> T execute(@NonNull String command, byte @NonNull [] key, @NonNull Collection<byte @NonNull []> args) {
 
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(key, "Key must not be null");
@@ -190,8 +216,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		RedisClusterNode keyMaster = this.topologyProvider.getTopology().getKeyServingMasterNode(key);
 
-		JedisClusterCommandCallback<T> commandCallback = jedis ->
-			(T) jedis.sendCommand(JedisClientUtils.getCommand(command), commandArgs);
+		JedisClusterCommandCallback<T> commandCallback = jedis -> (T) jedis
+				.sendCommand(JedisClientUtils.getCommand(command), commandArgs);
 
 		return this.clusterCommandExecutor.executeCommandOnSingleNode(commandCallback, keyMaster).getValue();
 	}
@@ -232,16 +258,16 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 * @return command result as delivered by the underlying Redis driver. Can be {@literal null}.
 	 * @since 2.1
 	 */
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public <T> List<T> execute(String command, Collection<byte[]> keys, Collection<byte[]> args) {
+	public <T> List<T> execute(@NonNull String command, @NonNull Collection<byte @NonNull []> keys,
+			@NonNull Collection<byte @NonNull []> args) {
 
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(keys, "Key must not be null");
 		Assert.notNull(args, "Args must not be null");
 
-		JedisMultiKeyClusterCommandCallback<T> commandCallback = (jedis, key) ->
-			(T) jedis.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
+		JedisMultiKeyClusterCommandCallback<T> commandCallback = (jedis,
+				key) -> (T) jedis.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
 
 		return this.clusterCommandExecutor.executeMultiKeyCommand(commandCallback, keys).resultsAsList();
 
@@ -363,7 +389,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Long publish(byte[] channel, byte[] message) {
+	public Long publish(byte @NonNull [] channel, byte @NonNull [] message) {
 
 		try {
 			return this.cluster.publish(channel, message);
@@ -373,7 +399,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void subscribe(MessageListener listener, byte[]... channels) {
+	public void subscribe(@NonNull MessageListener listener, byte @NonNull [] @NonNull... channels) {
 
 		if (isSubscribed()) {
 			String message = "Connection already subscribed; use the connection Subscription to cancel or add new channels";
@@ -389,7 +415,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+	public void pSubscribe(@NonNull MessageListener listener, byte @NonNull [] @NonNull... patterns) {
 
 		if (isSubscribed()) {
 			String message = "Connection already subscribed; use the connection Subscription to cancel or add new channels";
@@ -414,11 +440,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public byte[] echo(byte[] message) {
+	public byte[] echo(byte @NonNull [] message) {
 		throw new InvalidDataAccessApiUsageException("Echo not supported in cluster mode");
 	}
 
-	@Override @Nullable
+	@Override
 	public String ping() {
 
 		JedisClusterCommandCallback<String> command = Jedis::ping;
@@ -427,7 +453,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public String ping(RedisClusterNode node) {
+	public String ping(@NonNull RedisClusterNode node) {
 
 		JedisClusterCommandCallback<String> command = Jedis::ping;
 
@@ -439,7 +465,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 */
 
 	@Override
-	public void clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode) {
+	public void clusterSetSlot(@NonNull RedisClusterNode node, int slot, @NonNull AddSlots mode) {
 
 		Assert.notNull(node, "Node must not be null");
 		Assert.notNull(mode, "AddSlots mode must not be null");
@@ -458,12 +484,12 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public List<byte[]> clusterGetKeysInSlot(int slot, Integer count) {
+	public List<byte[]> clusterGetKeysInSlot(int slot, @NonNull Integer count) {
 
 		RedisClusterNode node = clusterGetNodeForSlot(slot);
 
-		JedisClusterCommandCallback<List<byte[]>> command = jedis ->
-				JedisConverters.stringListToByteList().convert(jedis.clusterGetKeysInSlot(slot, nullSafeIntValue(count)));
+		JedisClusterCommandCallback<List<byte[]>> command = jedis -> JedisConverters.stringListToByteList()
+				.convert(jedis.clusterGetKeysInSlot(slot, nullSafeIntValue(count)));
 
 		NodeResult<List<byte[]>> result = this.clusterCommandExecutor.executeCommandOnSingleNode(command, node);
 
@@ -475,7 +501,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void clusterAddSlots(RedisClusterNode node, int... slots) {
+	public void clusterAddSlots(@NonNull RedisClusterNode node, int @NonNull... slots) {
 
 		JedisClusterCommandCallback<String> command = jedis -> jedis.clusterAddSlots(slots);
 
@@ -483,7 +509,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void clusterAddSlots(RedisClusterNode node, SlotRange range) {
+	public void clusterAddSlots(@NonNull RedisClusterNode node, @NonNull SlotRange range) {
 
 		Assert.notNull(range, "Range must not be null");
 
@@ -501,7 +527,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void clusterDeleteSlots(RedisClusterNode node, int... slots) {
+	public void clusterDeleteSlots(@NonNull RedisClusterNode node, int @NonNull... slots) {
 
 		JedisClusterCommandCallback<String> command = jedis -> jedis.clusterDelSlots(slots);
 
@@ -509,7 +535,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void clusterDeleteSlotsInRange(RedisClusterNode node, SlotRange range) {
+	public void clusterDeleteSlotsInRange(@NonNull RedisClusterNode node, @NonNull SlotRange range) {
 
 		Assert.notNull(range, "Range must not be null");
 
@@ -517,7 +543,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void clusterForget(RedisClusterNode node) {
+	public void clusterForget(@NonNull RedisClusterNode node) {
 
 		Set<RedisClusterNode> nodes = new LinkedHashSet<>(this.topologyProvider.getTopology().getActiveMasterNodes());
 		RedisClusterNode nodeToRemove = this.topologyProvider.getTopology().lookup(node);
@@ -531,7 +557,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	@SuppressWarnings("all")
-	public void clusterMeet(RedisClusterNode node) {
+	public void clusterMeet(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command");
 		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
@@ -543,7 +569,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public void clusterReplicate(RedisClusterNode master, RedisClusterNode replica) {
+	public void clusterReplicate(@NonNull RedisClusterNode master, @NonNull RedisClusterNode replica) {
 
 		RedisClusterNode masterNode = this.topologyProvider.getTopology().lookup(master);
 
@@ -553,20 +579,20 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Integer clusterGetSlotForKey(byte[] key) {
+	public Integer clusterGetSlotForKey(byte @NonNull [] key) {
 
-		JedisClusterCommandCallback<Integer> command = jedis ->
-				Long.valueOf(jedis.clusterKeySlot(JedisConverters.toString(key))).intValue();
+		JedisClusterCommandCallback<Integer> command = jedis -> Long
+				.valueOf(jedis.clusterKeySlot(JedisConverters.toString(key))).intValue();
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
 	}
 
 	@Override
-	public RedisClusterNode clusterGetNodeForKey(byte[] key) {
+	public RedisClusterNode clusterGetNodeForKey(byte @NonNull [] key) {
 		return this.topologyProvider.getTopology().getKeyServingMasterNode(key);
 	}
 
-	@Override @Nullable
+	@Override
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
 		for (RedisClusterNode node : topologyProvider.getTopology().getSlotServingNodes(slot)) {
@@ -584,7 +610,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Set<RedisClusterNode> clusterGetReplicas(RedisClusterNode master) {
+	public Set<RedisClusterNode> clusterGetReplicas(@NonNull RedisClusterNode master) {
 
 		Assert.notNull(master, "Master cannot be null");
 
@@ -600,14 +626,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterReplicaMap() {
 
-		JedisClusterCommandCallback<Collection<RedisClusterNode>> command = jedis ->
-				JedisConverters.toSetOfRedisClusterNodes(jedis.clusterSlaves(jedis.clusterMyId()));
+		JedisClusterCommandCallback<Collection<RedisClusterNode>> command = jedis -> JedisConverters
+				.toSetOfRedisClusterNodes(jedis.clusterSlaves(jedis.clusterMyId()));
 
 		Set<RedisClusterNode> activeMasterNodes = this.topologyProvider.getTopology().getActiveMasterNodes();
 
-		List<NodeResult<Collection<RedisClusterNode>>> nodeResults =
-				this.clusterCommandExecutor.executeCommandAsyncOnNodes(command,activeMasterNodes)
-						.getResults();
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = this.clusterCommandExecutor
+				.executeCommandAsyncOnNodes(command, activeMasterNodes).getResults();
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<>();
 
@@ -631,7 +656,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	/*
 	 * Little helpers to make it work
 	 */
-
 	protected DataAccessException convertJedisAccessException(Exception cause) {
 
 		DataAccessException translated = EXCEPTION_TRANSLATION.translate(cause);
@@ -718,16 +742,17 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
+	@NullMarked
 	static class JedisClusterNodeResourceProvider implements ClusterNodeResourceProvider {
 
 		private final JedisCluster cluster;
 		private final ClusterTopologyProvider topologyProvider;
-		private final ClusterConnectionProvider connectionHandler;
+		private final @Nullable ClusterConnectionProvider connectionHandler;
 
 		/**
 		 * Creates new {@link JedisClusterNodeResourceProvider}.
 		 *
-		 * @param cluster must not be {@literal null}.
+		 * @param cluster should not be {@literal null}.
 		 * @param topologyProvider must not be {@literal null}.
 		 */
 		JedisClusterNodeResourceProvider(JedisCluster cluster, ClusterTopologyProvider topologyProvider) {
@@ -735,15 +760,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			this.cluster = cluster;
 			this.topologyProvider = topologyProvider;
 
-			if (cluster != null) {
+			PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
+			this.connectionHandler = accessor.isReadableProperty("connectionHandler")
+					? (ClusterConnectionProvider) accessor.getPropertyValue("connectionHandler")
+					: null;
 
-				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
-				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
-						? (ClusterConnectionProvider) accessor.getPropertyValue("connectionHandler")
-						: null;
-			} else {
-				this.connectionHandler = null;
-			}
 		}
 
 		@Override
@@ -766,8 +787,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new DataAccessResourceFailureException("Node %s is unknown to cluster".formatted(node));
 		}
 
-		@Nullable
-		private ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
+		private @Nullable ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
 
 			Map<String, ConnectionPool> clusterNodes = cluster.getClusterNodes();
 			HostAndPort hap = new HostAndPort(node.getHost(),
@@ -781,7 +801,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			return null;
 		}
 
-		private Connection getConnectionForSpecificNode(RedisClusterNode node) {
+		private @Nullable Connection getConnectionForSpecificNode(RedisClusterNode node) {
 
 			RedisClusterNode member = topologyProvider.getTopology().lookup(node);
 
@@ -798,7 +818,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		@Override
-		public void returnResourceForSpecificNode(RedisClusterNode node, Object client) {
+		public void returnResourceForSpecificNode(@NonNull RedisClusterNode node, @NonNull Object client) {
 			((Jedis) client).close();
 		}
 	}
@@ -810,6 +830,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 * @author Mark Paluch
 	 * @since 1.7
 	 */
+	@NullMarked
 	public static class JedisClusterTopologyProvider implements ClusterTopologyProvider {
 
 		private final JedisCluster cluster;
@@ -845,6 +866,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public ClusterTopology getTopology() {
 
 			JedisClusterTopology topology = cached;

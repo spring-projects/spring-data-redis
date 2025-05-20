@@ -89,6 +89,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Flux<CommandResponse<AddStreamRecord, RecordId>> xAdd(Publisher<AddStreamRecord> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
@@ -182,6 +183,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			if (command.getAction().equals(GroupCommandAction.DELETE_CONSUMER)) {
 
+				Assert.notNull(command.getConsumerName(), "Command.getConsumerName() must not be null");
 				return cmd
 						.xgroupDelconsumer(command.getKey(),
 								io.lettuce.core.Consumer.from(ByteUtils.getByteBuffer(command.getGroupName()),
@@ -224,6 +226,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Flux<CommandResponse<PendingRecordsCommand, PendingMessages>> xPending(
 			Publisher<PendingRecordsCommand> commands) {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
@@ -324,12 +327,14 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Flux<CommandResponse<XInfoCommand, Flux<XInfoConsumer>>> xInfoConsumers(Publisher<XInfoCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).map(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
-
+			Assert.notNull(command.getGroupName(), "Command.getGroupName() must not be null");
+			
 			ByteBuffer groupName = ByteUtils.getByteBuffer(command.getGroupName());
 			return new CommandResponse<>(command, cmd.xinfoConsumers(command.getKey(), groupName)
 					.map(it -> new XInfoConsumer(command.getGroupName(), (List<Object>) it)));

@@ -17,9 +17,9 @@ package org.springframework.data.redis.core.convert;
 
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link IndexResolver} extracts secondary index structures to be applied on a given path, {@link PersistentProperty}

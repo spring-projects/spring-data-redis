@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.cache.Cache.ValueWrapper;
@@ -50,7 +51,6 @@ import org.springframework.data.redis.test.condition.EnabledOnRedisDriver.Driver
 import org.springframework.data.redis.test.condition.RedisDriver;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
-import org.springframework.lang.Nullable;
 
 /**
  * Tests for {@link RedisCache} with {@link DefaultRedisCacheWriter} using different {@link RedisSerializer} and
@@ -697,8 +697,7 @@ public class RedisCacheTests {
 		return RedisCacheWriter.nonLockingRedisCacheWriter(this.connectionFactory);
 	}
 
-	@Nullable
-	private Object unwrap(@Nullable Object value) {
+	private @Nullable Object unwrap(@Nullable Object value) {
 		return value instanceof ValueWrapper wrapper ? wrapper.get() : value;
 	}
 

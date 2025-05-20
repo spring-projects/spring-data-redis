@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
@@ -48,7 +49,6 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -710,8 +710,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return rawKeys;
 	}
 
-	@Nullable
-	private K readKey(ByteBuffer buffer) {
+	private @Nullable K readKey(ByteBuffer buffer) {
 		return getSerializationContext().getKeySerializationPair().getReader().read(buffer);
 	}
 

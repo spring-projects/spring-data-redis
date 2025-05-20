@@ -17,6 +17,10 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 /**
  * Transaction/Batch specific commands supported by Redis.
  *
@@ -24,6 +28,7 @@ import java.util.List;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@NullUnmarked
 public interface RedisTxCommands {
 
 	/**
@@ -41,7 +46,7 @@ public interface RedisTxCommands {
 	 * @return List of replies for each executed command.
 	 * @see <a href="https://redis.io/commands/exec">Redis Documentation: EXEC</a>
 	 */
-	List<Object> exec();
+	List<@Nullable Object> exec();
 
 	/**
 	 * Discard all commands issued after {@link #multi()}.
@@ -56,7 +61,7 @@ public interface RedisTxCommands {
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/watch">Redis Documentation: WATCH</a>
 	 */
-	void watch(byte[]... keys);
+	void watch(byte @NonNull []... keys);
 
 	/**
 	 * Flushes all the previously {@link #watch(byte[]...)} keys.

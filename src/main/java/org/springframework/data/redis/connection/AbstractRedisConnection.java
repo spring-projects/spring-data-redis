@@ -21,11 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -64,6 +63,7 @@ public abstract class AbstractRedisConnection implements RedisConnection {
 		return this.sentinelConfiguration != null;
 	}
 
+	@SuppressWarnings("NullAway")
 	private RedisNode selectActiveSentinel() {
 
 		Assert.state(hasRedisSentinelConfigured(), "Sentinel configuration missing");

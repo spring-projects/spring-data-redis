@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -132,8 +132,7 @@ public class RedisClusterNode extends RedisNode {
 	/**
 	 * @return can be {@literal null}
 	 */
-	@Nullable
-	public LinkState getLinkState() {
+	public @Nullable LinkState getLinkState() {
 		return this.linkState;
 	}
 
@@ -216,8 +215,8 @@ public class RedisClusterNode extends RedisNode {
 		}
 
 		/**
-		 * Determines whether this {@link SlotRange} contains the given {@link Integer slot}, which implies
-		 * this cluster nodes manages the slot holding data stored in Redis.
+		 * Determines whether this {@link SlotRange} contains the given {@link Integer slot}, which implies this cluster
+		 * nodes manages the slot holding data stored in Redis.
 		 *
 		 * @param slot {@link Integer slot} to evaluate.
 		 * @return true when slot is part of the range.
@@ -286,14 +285,8 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	public enum Flag {
 
-		MYSELF("myself"),
-		MASTER("master"),
-		REPLICA("slave"),
-		FAIL("fail"),
-		PFAIL("fail?"),
-		HANDSHAKE("handshake"),
-		NOADDR("noaddr"),
-		NOFLAGS("noflags");
+		MYSELF("myself"), MASTER("master"), REPLICA("slave"), FAIL("fail"), PFAIL("fail?"), HANDSHAKE("handshake"), NOADDR(
+				"noaddr"), NOFLAGS("noflags");
 
 		private String raw;
 
@@ -388,12 +381,13 @@ public class RedisClusterNode extends RedisNode {
 		}
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public RedisClusterNode build() {
 
 			RedisNode base = super.build();
 
 			RedisClusterNode node;
-			if (base.host != null) {
+			if (base.getHost() != null) {
 				node = new RedisClusterNode(base.getHost(), base.getPort(), slotRange);
 			} else {
 				node = new RedisClusterNode(slotRange);
@@ -402,7 +396,7 @@ public class RedisClusterNode extends RedisNode {
 			node.type = base.type;
 			node.masterId = base.masterId;
 			node.name = base.name;
-			node.flags = flags;
+			node.flags = flags != null ? flags : Collections.emptySet();
 			node.linkState = linkState;
 			return node;
 		}

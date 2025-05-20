@@ -17,6 +17,7 @@ package org.springframework.data.redis;
 
 import java.io.Serial;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 /**
@@ -38,7 +39,7 @@ public class ClusterStateFailureException extends DataAccessResourceFailureExcep
 	 *
 	 * @param msg the detail message.
 	 */
-	public ClusterStateFailureException(String msg) {
+	public ClusterStateFailureException(@Nullable String msg) {
 		super(msg);
 	}
 
@@ -48,7 +49,7 @@ public class ClusterStateFailureException extends DataAccessResourceFailureExcep
 	 * @param msg the detail message.
 	 * @param cause the nested exception.
 	 */
-	public ClusterStateFailureException(String msg, Throwable cause) {
+	public ClusterStateFailureException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

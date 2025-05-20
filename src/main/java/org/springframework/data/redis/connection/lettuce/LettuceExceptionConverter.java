@@ -25,6 +25,7 @@ import io.netty.channel.ChannelException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.QueryTimeoutException;
@@ -42,7 +43,7 @@ public class LettuceExceptionConverter implements Converter<Exception, DataAcces
 
 	static final LettuceExceptionConverter INSTANCE = new LettuceExceptionConverter();
 
-	public DataAccessException convert(Exception ex) {
+	public @Nullable DataAccessException convert(@Nullable Exception ex) {
 
 		if (ex instanceof ExecutionException || ex instanceof RedisCommandExecutionException) {
 

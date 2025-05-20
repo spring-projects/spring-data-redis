@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.NamedNode;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 1.5
  */
+@NullUnmarked
 public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
@@ -55,7 +57,12 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	 * @param sentinel The sentinel to connect to.
 	 */
 	public LettuceSentinelConnection(RedisNode sentinel) {
-		this(sentinel.getHost(), sentinel.getPort());
+
+		Assert.notNull(sentinel.getHost(), "Sentinel.getHost() must not be null");
+		Assert.notNull(sentinel.getPort(), "Sentinel.getPort() must not be null");
+
+		this.provider = new DedicatedClientConnectionProvider(sentinel.getHost(), sentinel.getPort());
+		this.init();
 	}
 
 	/**

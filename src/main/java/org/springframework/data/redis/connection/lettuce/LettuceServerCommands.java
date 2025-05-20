@@ -26,10 +26,12 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.core.types.RedisClientInfo;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -37,11 +39,12 @@ import org.springframework.util.Assert;
  * @author Dennis Neufeld
  * @since 2.0
  */
+@NullUnmarked
 class LettuceServerCommands implements RedisServerCommands {
 
 	private final LettuceConnection connection;
 
-	LettuceServerCommands(LettuceConnection connection) {
+	LettuceServerCommands(@NonNull LettuceConnection connection) {
 		this.connection = connection;
 	}
 
@@ -76,7 +79,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void flushDb(FlushOption option) {
+	public void flushDb(@NonNull FlushOption option) {
 		connection.invokeStatus().just(RedisServerAsyncCommands::flushdb, LettuceConverters.toFlushMode(option));
 	}
 
@@ -86,7 +89,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void flushAll(FlushOption option) {
+	public void flushAll(@NonNull FlushOption option) {
 		connection.invokeStatus().just(RedisServerAsyncCommands::flushall, LettuceConverters.toFlushMode(option));
 	}
 
@@ -96,7 +99,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public Properties info(String section) {
+	public Properties info(@NonNull String section) {
 
 		Assert.hasText(section, "Section must not be null or empty");
 
@@ -114,7 +117,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void shutdown(ShutdownOption option) {
+	public void shutdown(@Nullable ShutdownOption option) {
 
 		if (option == null) {
 			shutdown();
@@ -132,7 +135,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public Properties getConfig(String pattern) {
+	public Properties getConfig(@NonNull String pattern) {
 
 		Assert.hasText(pattern, "Pattern must not be null or empty");
 
@@ -141,7 +144,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void setConfig(String param, String value) {
+	public void setConfig(@NonNull String param, @NonNull String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
 		Assert.notNull(value, "Value must not be null");
@@ -160,7 +163,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public Long time(TimeUnit timeUnit) {
+	public Long time(@NonNull TimeUnit timeUnit) {
 
 		Assert.notNull(timeUnit, "TimeUnit must not be null");
 
@@ -168,7 +171,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void killClient(String host, int port) {
+	public void killClient(@NonNull String host, int port) {
 
 		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'");
 
@@ -178,7 +181,7 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void setClientName(byte[] name) {
+	public void setClientName(byte @NonNull [] name) {
 
 		Assert.notNull(name, "Name must not be null");
 
@@ -191,13 +194,13 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public List<RedisClientInfo> getClientList() {
+	public List<@NonNull RedisClientInfo> getClientList() {
 		return connection.invoke().from(RedisServerAsyncCommands::clientList)
 				.get(LettuceConverters.stringToRedisClientListConverter());
 	}
 
 	@Override
-	public void replicaOf(String host, int port) {
+	public void replicaOf(@NonNull String host, int port) {
 
 		Assert.hasText(host, "Host must not be null for 'REPLICAOF' command");
 
@@ -210,12 +213,13 @@ class LettuceServerCommands implements RedisServerCommands {
 	}
 
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option) {
+	public void migrate(byte @NonNull [] key, @NonNull RedisNode target, int dbIndex, @Nullable MigrateOption option) {
 		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
 	}
 
 	@Override
-	public void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout) {
+	public void migrate(byte @NonNull [] key, @NonNull RedisNode target, int dbIndex, @Nullable MigrateOption option,
+			long timeout) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(target, "Target node must not be null");

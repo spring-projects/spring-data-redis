@@ -21,10 +21,10 @@ import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -205,7 +205,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		}
 
 		@Override
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return key;
 		}
 	}
@@ -273,7 +273,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		 * @param key must not be {@literal null}.
 		 * @param range must not be {@literal null}.
 		 */
-		private RangeCommand(ByteBuffer key, Range<Long> range) {
+		private RangeCommand(@Nullable ByteBuffer key, Range<Long> range) {
 
 			super(key);
 			this.range = range;
@@ -360,8 +360,7 @@ public interface ReactiveRedisConnection extends Closeable {
 			return this.input;
 		}
 
-		@Nullable
-		public O getOutput() {
+		public @Nullable O getOutput() {
 			return this.output;
 		}
 

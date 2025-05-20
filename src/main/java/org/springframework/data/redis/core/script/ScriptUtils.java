@@ -19,10 +19,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.NonTransientDataAccessException;
 import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 
 /**
  * Utilities for Lua script execution and result deserialization.
@@ -44,7 +44,7 @@ class ScriptUtils {
 	 * @return the deserialized result.
 	 */
 	@SuppressWarnings({ "unchecked" })
-	static <T> T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
+	static <T> @Nullable T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
 
 		if (result instanceof byte[] resultBytes) {
 			return resultSerializer.deserialize(resultBytes);
@@ -72,9 +72,8 @@ class ScriptUtils {
 	 * @param result must not be {@literal null}.
 	 * @return the deserialized result.
 	 */
-	@Nullable
 	@SuppressWarnings({ "unchecked" })
-	static <T> T deserializeResult(RedisElementReader<T> reader, Object result) {
+	static <T> @Nullable T deserializeResult(RedisElementReader<T> reader, Object result) {
 
 		if (result instanceof ByteBuffer byteBuffer) {
 			return reader.read(byteBuffer);

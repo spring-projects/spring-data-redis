@@ -18,7 +18,7 @@ package org.springframework.data.redis.serializer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -80,15 +80,15 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 		this.charset = charset;
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] serialize(@Nullable String value) {
+	public byte @Nullable[] serialize(@Nullable String value) {
 		return (value == null ? null : value.getBytes(charset));
 	}
 
 	@Nullable
 	@Override
-	public String deserialize(@Nullable byte[] bytes) {
+	public String deserialize(byte @Nullable[] bytes) {
 		return (bytes == null ? null : new String(bytes, charset));
 	}
 

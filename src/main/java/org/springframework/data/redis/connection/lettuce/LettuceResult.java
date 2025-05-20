@@ -19,9 +19,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.FutureResult;
-import org.springframework.lang.Nullable;
 
 /**
  * Lettuce specific {@link FutureResult} implementation. <br />

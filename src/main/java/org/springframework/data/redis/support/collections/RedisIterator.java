@@ -17,7 +17,7 @@ package org.springframework.data.redis.support.collections;
 
 import java.util.Iterator;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Iterator extension for Redis collection removal.

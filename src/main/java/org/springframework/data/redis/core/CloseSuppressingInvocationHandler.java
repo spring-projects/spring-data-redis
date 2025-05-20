@@ -19,8 +19,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.lang.Nullable;
 
 /**
  * Invocation handler that suppresses close calls on {@link RedisConnection}.
@@ -42,8 +42,7 @@ class CloseSuppressingInvocationHandler implements InvocationHandler {
 	}
 
 	@Override
-	@Nullable
-	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+	public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
 		if (method.getName().equals(EQUALS)) {
 			// Only consider equal when proxies are identical.

@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.api.async.RedisHLLAsyncCommands;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
 import org.springframework.util.Assert;
 
@@ -25,16 +27,17 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 
 	private final LettuceConnection connection;
 
-	LettuceHyperLogLogCommands(LettuceConnection connection) {
+	LettuceHyperLogLogCommands(@NonNull LettuceConnection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public Long pfAdd(byte[] key, byte[]... values) {
+	public Long pfAdd(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
 		Assert.noNullElements(values, "Values for PFADD must not contain 'null'");
@@ -43,7 +46,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 	}
 
 	@Override
-	public Long pfCount(byte[]... keys) {
+	public Long pfCount(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'");
@@ -52,7 +55,7 @@ class LettuceHyperLogLogCommands implements RedisHyperLogLogCommands {
 	}
 
 	@Override
-	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+	public void pfMerge(byte @NonNull [] destinationKey, byte @NonNull [] @NonNull... sourceKeys) {
 
 		Assert.notNull(destinationKey, "Destination key must not be null");
 		Assert.notNull(sourceKeys, "Source keys must not be null");

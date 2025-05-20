@@ -21,8 +21,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.BoundHashFieldExpirationOperations;
-import org.springframework.lang.Nullable;
 
 /**
  * Map view of a Redis hash.
@@ -68,8 +68,7 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @return {@literal null} if the hash does not exist.
 	 * @since 2.6
 	 */
-	@Nullable
-	Map.Entry<K, V> randomEntry();
+	Map.@Nullable Entry<K, V> randomEntry();
 
 	/**
 	 * @since 1.4

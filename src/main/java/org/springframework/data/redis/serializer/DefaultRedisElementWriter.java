@@ -17,7 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -31,7 +31,7 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 
 	private final @Nullable RedisSerializer<T> serializer;
 
-	DefaultRedisElementWriter(RedisSerializer<T> serializer) {
+	DefaultRedisElementWriter(@Nullable RedisSerializer<T> serializer) {
 		this.serializer = serializer;
 	}
 

@@ -17,10 +17,10 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 
 /**
  * Lettuce-specific {@link ScanCursor} extension that maintains the cursor state that is required for stateful-scanning
@@ -34,7 +34,7 @@ import org.springframework.lang.Nullable;
  */
 abstract class LettuceScanCursor<T> extends ScanCursor<T> {
 
-	private @Nullable io.lettuce.core.ScanCursor state;
+	private io.lettuce.core.@Nullable ScanCursor state;
 
 	/**
 	 * Creates a new {@link LettuceScanCursor} given {@link ScanOptions}.

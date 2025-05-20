@@ -20,6 +20,8 @@ import redis.clients.jedis.JedisCluster;
 
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
@@ -31,11 +33,12 @@ import org.springframework.util.Assert;
  * @author Pavel Khokhlov
  * @since 2.0
  */
+@NullUnmarked
 class JedisClusterScriptingCommands implements RedisScriptingCommands {
 
 	private final JedisClusterConnection connection;
 
-	JedisClusterScriptingCommands(JedisClusterConnection connection) {
+	JedisClusterScriptingCommands(@NonNull JedisClusterConnection connection) {
 		this.connection = connection;
 	}
 
@@ -62,7 +65,7 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public String scriptLoad(byte[] script) {
+	public String scriptLoad(byte @NonNull [] script) {
 
 		Assert.notNull(script, "Script must not be null");
 
@@ -78,13 +81,14 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public List<Boolean> scriptExists(String... scriptShas) {
+	public List<Boolean> scriptExists(@NonNull String @NonNull... scriptShas) {
 		throw new InvalidDataAccessApiUsageException("ScriptExists is not supported in cluster environment");
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T eval(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
 
 		Assert.notNull(script, "Script must not be null");
 
@@ -96,13 +100,15 @@ class JedisClusterScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public <T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T evalSha(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
 		return evalSha(JedisConverters.toBytes(scriptSha), returnType, numKeys, keysAndArgs);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T evalSha(byte @NonNull [] scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
 
 		Assert.notNull(scriptSha, "Script digest must not be null");
 

@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.lettuce.LettuceClusterConnection.LettuceMultiKeyClusterCommandCallback;
 import org.springframework.util.Assert;
@@ -31,18 +33,19 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceClusterListCommands extends LettuceListCommands {
 
 	private final LettuceClusterConnection connection;
 
-	LettuceClusterListCommands(LettuceClusterConnection connection) {
+	LettuceClusterListCommands(@NonNull LettuceClusterConnection connection) {
 
 		super(connection);
 		this.connection = connection;
 	}
 
 	@Override
-	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+	public List<byte[]> bLPop(int timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -65,7 +68,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	@Override
-	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+	public List<byte[]> bRPop(int timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -88,7 +91,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	@Override
-	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
+	public byte[] rPopLPush(byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
@@ -103,7 +106,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+	public byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");

@@ -17,9 +17,10 @@ package org.springframework.data.redis.connection.stream;
 
 import java.nio.ByteBuffer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
+import org.springframework.lang.Contract;
 
 /**
  * Utility methods for stream serialization.
@@ -37,8 +38,8 @@ class StreamSerialization {
 	 * @param value the value to serialize.
 	 * @return the serialized (binary) representation of {@code value}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	static byte[] serialize(@Nullable RedisSerializer<?> serializer, Object value) {
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
+	static byte@Nullable[] serialize(@Nullable RedisSerializer<?> serializer, Object value) {
 		return canSerialize(serializer, value) ? ((RedisSerializer) serializer).serialize(value) : (byte[]) value;
 	}
 
@@ -46,7 +47,7 @@ class StreamSerialization {
 	 * Deserialize the {@code value using the optional {@link RedisSerializer}. If no conversion is possible, return
 	 * {@code value}. @param serializer @param value @param <T> @return
 	 */
-	static <T> T deserialize(@Nullable RedisSerializer<? extends T> serializer, ByteBuffer value) {
+	static <T> @Nullable T deserialize(@Nullable RedisSerializer<? extends T> serializer, ByteBuffer value) {
 		return deserialize(serializer, ByteUtils.getBytes(value));
 	}
 
@@ -54,7 +55,7 @@ class StreamSerialization {
 	 * Deserialize the {@code value using the optional {@link RedisSerializer}. If no conversion is possible, return
 	 * {@code value}. @param serializer @param value @param <T> @return
 	 */
-	static <T> T deserialize(@Nullable RedisSerializer<? extends T> serializer, byte[] value) {
+	static <T> @Nullable T deserialize(@Nullable RedisSerializer<? extends T> serializer, byte[] value) {
 		return serializer != null ? serializer.deserialize(value) : (T) value;
 	}
 

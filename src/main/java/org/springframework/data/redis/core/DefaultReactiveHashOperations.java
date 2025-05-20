@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ExpirationOptions;
@@ -39,7 +40,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.data.redis.core.types.Expirations.Timeouts;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -353,8 +353,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	private HK readHashKey(ByteBuffer value) {
+	private @Nullable HK readHashKey(ByteBuffer value) {
 		return (HK) serializationContext.getHashKeySerializationPair().read(value);
 	}
 
@@ -370,8 +369,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	private HV readHashValue(@Nullable ByteBuffer value) {
+	private @Nullable HV readHashValue(@Nullable ByteBuffer value) {
 		return value != null ? (HV) serializationContext.getHashValueSerializationPair().read(value) : null;
 	}
 

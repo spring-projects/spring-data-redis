@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.listener.adapter;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
@@ -31,7 +32,7 @@ public class RedisListenerExecutionFailedException extends InvalidDataAccessApiU
 	 * @param msg
 	 * @param cause
 	 */
-	public RedisListenerExecutionFailedException(String msg, Throwable cause) {
+	public RedisListenerExecutionFailedException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

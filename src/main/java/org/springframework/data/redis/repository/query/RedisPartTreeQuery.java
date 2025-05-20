@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.DtoInstantiatingConverter;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
@@ -61,7 +62,7 @@ public class RedisPartTreeQuery extends KeyValuePartTreeQuery {
 	}
 
 	@Override
-	public Object execute(Object[] parameters) {
+	public @Nullable Object execute(Object[] parameters) {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), parameters);
 		KeyValueQuery<?> query = prepareQuery(parameters);
@@ -104,7 +105,7 @@ public class RedisPartTreeQuery extends KeyValuePartTreeQuery {
 		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 		 */
 		@Override
-		public Object convert(Object source) {
+		public @Nullable Object convert(Object source) {
 
 			if (source instanceof Set<?> s) {
 

@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.lang.Nullable;
 
 /**
  * Redis specific {@link ApplicationEvent} published when a key expires in Redis.
@@ -58,8 +58,7 @@ public class RedisKeyspaceEvent extends ApplicationEvent {
 	 * @return can be {@literal null}.
 	 * @since 1.8
 	 */
-	@Nullable
-	public String getChannel() {
+	public @Nullable String getChannel() {
 		return this.channel;
 	}
 

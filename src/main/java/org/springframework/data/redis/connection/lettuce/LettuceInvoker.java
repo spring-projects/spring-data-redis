@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -72,8 +72,7 @@ class LettuceInvoker {
 	 *
 	 * @param function must not be {@literal null}.
 	 */
-	@Nullable
-	<R> R just(ConnectionFunction0<R> function) {
+	<R> @Nullable R just(ConnectionFunction0<@Nullable R> function) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -86,8 +85,7 @@ class LettuceInvoker {
 	 * @param function must not be {@literal null}.
 	 * @param t1 first argument.
 	 */
-	@Nullable
-	<R, T1> R just(ConnectionFunction1<T1, R> function, T1 t1) {
+	<R, T1> @Nullable R just(ConnectionFunction1<T1, @Nullable R> function, T1 t1) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -101,8 +99,7 @@ class LettuceInvoker {
 	 * @param t1 first argument.
 	 * @param t2 second argument.
 	 */
-	@Nullable
-	<R, T1, T2> R just(ConnectionFunction2<T1, T2, R> function, T1 t1, T2 t2) {
+	<R, T1, T2> @Nullable R just(ConnectionFunction2<T1, T2, @Nullable R> function, T1 t1, T2 t2) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -117,8 +114,7 @@ class LettuceInvoker {
 	 * @param t2 second argument.
 	 * @param t3 third argument.
 	 */
-	@Nullable
-	<R, T1, T2, T3> R just(ConnectionFunction3<T1, T2, T3, R> function, T1 t1, T2 t2, T3 t3) {
+	<R, T1, T2, T3> @Nullable R just(ConnectionFunction3<T1, T2, T3, @Nullable R> function, T1 t1, T2 t2, T3 t3) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -134,8 +130,8 @@ class LettuceInvoker {
 	 * @param t3 third argument.
 	 * @param t4 fourth argument.
 	 */
-	@Nullable
-	<R, T1, T2, T3, T4> R just(ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
+	<R, T1, T2, T3, T4> @Nullable R just(ConnectionFunction4<T1, T2, T3, T4, @Nullable R> function, T1 t1, T2 t2, T3 t3,
+			T4 t4) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -152,9 +148,8 @@ class LettuceInvoker {
 	 * @param t4 fourth argument.
 	 * @param t5 fifth argument.
 	 */
-	@Nullable
-	<R, T1, T2, T3, T4, T5> R just(ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1, T2 t2, T3 t3, T4 t4,
-			T5 t5) {
+	<R, T1, T2, T3, T4, T5> @Nullable R just(ConnectionFunction5<T1, T2, T3, T4, T5, @Nullable R> function, T1 t1, T2 t2,
+			T3 t3, T4 t4, T5 t5) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -167,7 +162,7 @@ class LettuceInvoker {
 	 *
 	 * @param function must not be {@literal null}.
 	 */
-	<R> SingleInvocationSpec<R> from(ConnectionFunction0<R> function) {
+	<R> SingleInvocationSpec<@Nullable R> from(ConnectionFunction0<@Nullable R> function) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -181,7 +176,7 @@ class LettuceInvoker {
 	 * @param function must not be {@literal null}.
 	 * @param t1 first argument.
 	 */
-	<R, T1> SingleInvocationSpec<R> from(ConnectionFunction1<T1, R> function, T1 t1) {
+	<R, T1> SingleInvocationSpec<@Nullable R> from(ConnectionFunction1<T1, @Nullable R> function, T1 t1) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -196,7 +191,7 @@ class LettuceInvoker {
 	 * @param t1 first argument.
 	 * @param t2 second argument.
 	 */
-	<R, T1, T2> SingleInvocationSpec<R> from(ConnectionFunction2<T1, T2, R> function, T1 t1, T2 t2) {
+	<R, T1, T2> SingleInvocationSpec<@Nullable R> from(ConnectionFunction2<T1, T2, @Nullable R> function, T1 t1, T2 t2) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -212,7 +207,8 @@ class LettuceInvoker {
 	 * @param t2 second argument.
 	 * @param t3 third argument.
 	 */
-	<R, T1, T2, T3> SingleInvocationSpec<R> from(ConnectionFunction3<T1, T2, T3, R> function, T1 t1, T2 t2, T3 t3) {
+	<R, T1, T2, T3> SingleInvocationSpec<@Nullable R> from(ConnectionFunction3<T1, T2, T3, @Nullable R> function, T1 t1,
+			T2 t2, T3 t3) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -229,8 +225,8 @@ class LettuceInvoker {
 	 * @param t3 third argument.
 	 * @param t4 fourth argument.
 	 */
-	<R, T1, T2, T3, T4> SingleInvocationSpec<R> from(ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3,
-			T4 t4) {
+	<R, T1, T2, T3, T4> SingleInvocationSpec<@Nullable R> from(ConnectionFunction4<T1, T2, T3, T4, @Nullable R> function,
+			T1 t1, T2 t2, T3 t3, T4 t4) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -248,8 +244,8 @@ class LettuceInvoker {
 	 * @param t4 fourth argument.
 	 * @param t5 fifth argument.
 	 */
-	<R, T1, T2, T3, T4, T5> SingleInvocationSpec<R> from(ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1,
-			T2 t2, T3 t3, T4 t4, T5 t5) {
+	<R, T1, T2, T3, T4, T5> SingleInvocationSpec<@Nullable R> from(
+			ConnectionFunction5<T1, T2, T3, T4, T5, @Nullable R> function, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -262,7 +258,7 @@ class LettuceInvoker {
 	 *
 	 * @param function must not be {@literal null}.
 	 */
-	<R extends Collection<E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function) {
+	<R extends Collection<@Nullable E>, E> ManyInvocationSpec<@Nullable E> fromMany(ConnectionFunction0<R> function) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -276,7 +272,8 @@ class LettuceInvoker {
 	 * @param function must not be {@literal null}.
 	 * @param t1 first argument.
 	 */
-	<R extends Collection<E>, E, T1> ManyInvocationSpec<E> fromMany(ConnectionFunction1<T1, R> function, T1 t1) {
+	<R extends Collection<@Nullable E>, E, T1> ManyInvocationSpec<@Nullable E> fromMany(
+			ConnectionFunction1<T1, @Nullable R> function, T1 t1) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -291,8 +288,8 @@ class LettuceInvoker {
 	 * @param t1 first argument.
 	 * @param t2 second argument.
 	 */
-	<R extends Collection<E>, E, T1, T2> ManyInvocationSpec<E> fromMany(ConnectionFunction2<T1, T2, R> function, T1 t1,
-			T2 t2) {
+	<R extends Collection<@Nullable E>, E, T1, T2> ManyInvocationSpec<@Nullable E> fromMany(
+			ConnectionFunction2<T1, T2, @Nullable R> function, T1 t1, T2 t2) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -308,8 +305,8 @@ class LettuceInvoker {
 	 * @param t2 second argument.
 	 * @param t3 third argument.
 	 */
-	<R extends Collection<E>, E, T1, T2, T3> ManyInvocationSpec<E> fromMany(ConnectionFunction3<T1, T2, T3, R> function,
-			T1 t1, T2 t2, T3 t3) {
+	<R extends Collection<@Nullable E>, E, T1, T2, T3> ManyInvocationSpec<@Nullable E> fromMany(
+			ConnectionFunction3<T1, T2, T3, @Nullable R> function, T1 t1, T2 t2, T3 t3) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -326,8 +323,8 @@ class LettuceInvoker {
 	 * @param t3 third argument.
 	 * @param t4 fourth argument.
 	 */
-	<R extends Collection<E>, E, T1, T2, T3, T4> ManyInvocationSpec<E> fromMany(
-			ConnectionFunction4<T1, T2, T3, T4, R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
+	<R extends Collection<@Nullable E>, E, T1, T2, T3, T4> ManyInvocationSpec<@Nullable E> fromMany(
+			ConnectionFunction4<T1, T2, T3, T4, @Nullable R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -345,8 +342,8 @@ class LettuceInvoker {
 	 * @param t4 fourth argument.
 	 * @param t5 fifth argument.
 	 */
-	<R extends Collection<E>, E, T1, T2, T3, T4, T5> ManyInvocationSpec<E> fromMany(
-			ConnectionFunction5<T1, T2, T3, T4, T5, R> function, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
+	<R extends Collection<@Nullable E>, E, T1, T2, T3, T4, T5> ManyInvocationSpec<@Nullable E> fromMany(
+			ConnectionFunction5<T1, T2, T3, T4, T5, @Nullable R> function, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -368,8 +365,7 @@ class LettuceInvoker {
 		 * @param <T> target type.
 		 * @return the converted result, can be {@literal null}.
 		 */
-		@Nullable
-		<T> T get(Converter<S, T> converter);
+		<T> @Nullable T get(Converter<S, T> converter);
 
 		/**
 		 * Materialize the pipeline by invoking the {@code ConnectionFunction} and returning the result after applying
@@ -380,8 +376,7 @@ class LettuceInvoker {
 		 * @param <T> target type.
 		 * @return the converted result, can be {@literal null}.
 		 */
-		@Nullable
-		default <T> T orElse(Converter<S, T> converter, @Nullable T nullDefault) {
+		default <T> @Nullable T orElse(Converter<S, T> converter, @Nullable T nullDefault) {
 			return getOrElse(converter, () -> nullDefault);
 		}
 
@@ -394,12 +389,11 @@ class LettuceInvoker {
 		 * @param <T> target type.
 		 * @return the converted result, can be {@literal null}.
 		 */
-		@Nullable
-		<T> T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault);
+		<T> @Nullable T getOrElse(Converter<S, T> converter, Supplier<@Nullable T> nullDefault);
 	}
 
 	/**
-	 * Represents an element in the invocation pipleline for methods returning {@link Collection}-like results allowing
+	 * Represents an element in the invocation pipeline for methods returning {@link Collection}-like results allowing
 	 * consuming the result by applying a {@link Converter}.
 	 *
 	 * @param <S>
@@ -411,7 +405,7 @@ class LettuceInvoker {
 		 *
 		 * @return the result as {@link List}.
 		 */
-		default List<S> toList() {
+		default List<@Nullable S> toList() {
 			return toList(Converters.identityConverter());
 		}
 
@@ -423,14 +417,14 @@ class LettuceInvoker {
 		 * @param <T> target type.
 		 * @return the converted {@link List}.
 		 */
-		<T> List<T> toList(Converter<S, T> converter);
+		<T> List<@Nullable T> toList(Converter<S, @Nullable T> converter);
 
 		/**
 		 * Materialize the pipeline by invoking the {@code ConnectionFunction} and returning the result.
 		 *
 		 * @return the result as {@link Set}.
 		 */
-		default Set<S> toSet() {
+		default Set<@Nullable S> toSet() {
 			return toSet(Converters.identityConverter());
 		}
 
@@ -442,7 +436,7 @@ class LettuceInvoker {
 		 * @param <T> target type.
 		 * @return the converted {@link Set}.
 		 */
-		<T> Set<T> toSet(Converter<S, T> converter);
+		<T> Set<@Nullable T> toSet(Converter<S, @Nullable T> converter);
 	}
 
 	/**
@@ -582,16 +576,15 @@ class LettuceInvoker {
 		}
 
 		@Override
-		public <T> T get(Converter<S, T> converter) {
+		public <T> @Nullable T get(Converter<S, @Nullable T> converter) {
 
 			Assert.notNull(converter, "Converter must not be null");
 
 			return synchronizer.invoke(parent, converter, () -> null);
 		}
 
-		@Nullable
 		@Override
-		public <T> T getOrElse(Converter<S, T> converter, Supplier<T> nullDefault) {
+		public <T> @Nullable T getOrElse(Converter<S, @Nullable T> converter, Supplier<@Nullable T> nullDefault) {
 
 			Assert.notNull(converter, "Converter must not be null");
 
@@ -611,7 +604,8 @@ class LettuceInvoker {
 		}
 
 		@Override
-		public <T> List<T> toList(Converter<S, T> converter) {
+		@SuppressWarnings("NullAway")
+		public <T> List<@Nullable T> toList(Converter<S, @Nullable T> converter) {
 
 			Assert.notNull(converter, "Converter must not be null");
 
@@ -631,8 +625,8 @@ class LettuceInvoker {
 			}, Collections::emptyList);
 		}
 
-		@Override
-		public <T> Set<T> toSet(Converter<S, T> converter) {
+		@SuppressWarnings("NullAway")
+		public <T> Set<@Nullable T> toSet(Converter<S, @Nullable T> converter) {
 
 			Assert.notNull(converter, "Converter must not be null");
 
@@ -659,23 +653,21 @@ class LettuceInvoker {
 	@FunctionalInterface
 	interface Synchronizer {
 
-		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> T invoke(Supplier<RedisFuture<I>> futureSupplier) {
+		default <I, T> @Nullable T invoke(Supplier<RedisFuture<I>> futureSupplier) {
 			return (T) doInvoke((Supplier) futureSupplier, Converters.identityConverter(), () -> null);
 		}
 
-		@Nullable
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> T invoke(Supplier<RedisFuture<I>> futureSupplier, Converter<I, T> converter,
-				Supplier<T> nullDefault) {
+		default <I, T> @Nullable T invoke(Supplier<RedisFuture<I>> futureSupplier, Converter<I, @Nullable T> converter,
+				Supplier<@Nullable T> nullDefault) {
 
 			return (T) doInvoke((Supplier) futureSupplier, (Converter<Object, Object>) converter,
 					(Supplier<Object>) nullDefault);
 		}
 
 		@Nullable
-		Object doInvoke(Supplier<RedisFuture<Object>> futureSupplier, Converter<Object, Object> converter,
-				Supplier<Object> nullDefault);
+		Object doInvoke(Supplier<RedisFuture<Object>> futureSupplier, Converter<Object, @Nullable Object> converter,
+				Supplier<@Nullable Object> nullDefault);
 	}
 }

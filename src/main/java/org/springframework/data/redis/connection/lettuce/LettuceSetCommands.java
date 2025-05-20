@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.core.Cursor;
@@ -38,16 +41,17 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceSetCommands implements RedisSetCommands {
 
 	private final LettuceConnection connection;
 
-	LettuceSetCommands(LettuceConnection connection) {
+	LettuceSetCommands(@NonNull LettuceConnection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public Long sAdd(byte[] key, byte[]... values) {
+	public Long sAdd(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Values must not be null");
@@ -57,7 +61,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Long sCard(byte[] key) {
+	public Long sCard(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -65,7 +69,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> sDiff(byte[]... keys) {
+	public Set<byte @NonNull []> sDiff(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -74,7 +78,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Long sDiffStore(byte[] destKey, byte[]... keys) {
+	public Long sDiffStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(keys, "Source keys must not be null");
@@ -84,7 +88,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> sInter(byte[]... keys) {
+	public Set<byte @NonNull []> sInter(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -93,7 +97,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Long sInterStore(byte[] destKey, byte[]... keys) {
+	public Long sInterStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(keys, "Source keys must not be null");
@@ -103,7 +107,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Boolean sIsMember(byte[] key, byte[] value) {
+	public Boolean sIsMember(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -112,7 +116,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public List<Boolean> sMIsMember(byte[] key, byte[]... values) {
+	public List<@NonNull Boolean> sMIsMember(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Values must not be null");
@@ -122,7 +126,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> sMembers(byte[] key) {
+	public Set<byte @NonNull []> sMembers(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -130,7 +134,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
+	public Boolean sMove(byte @NonNull [] srcKey, byte @NonNull [] destKey, byte @NonNull [] value) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(destKey, "Destination key must not be null");
@@ -140,7 +144,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public byte[] sPop(byte[] key) {
+	public byte[] sPop(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -148,7 +152,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public List<byte[]> sPop(byte[] key, long count) {
+	public List<byte @NonNull []> sPop(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -156,7 +160,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public byte[] sRandMember(byte[] key) {
+	public byte[] sRandMember(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -164,7 +168,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public List<byte[]> sRandMember(byte[] key, long count) {
+	public List<byte @NonNull []> sRandMember(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -172,7 +176,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Long sRem(byte[] key, byte[]... values) {
+	public Long sRem(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Values must not be null");
@@ -182,7 +186,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> sUnion(byte[]... keys) {
+	public Set<byte @NonNull []> sUnion(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -191,7 +195,7 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Long sUnionStore(byte[] destKey, byte[]... keys) {
+	public Long sUnionStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(keys, "Source keys must not be null");
@@ -201,8 +205,8 @@ class LettuceSetCommands implements RedisSetCommands {
 	}
 
 	@Override
-	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
-		return sScan(key, CursorId.initial(), options);
+	public Cursor<byte[]> sScan(byte @NonNull [] key, @Nullable ScanOptions options) {
+		return sScan(key, CursorId.initial(), options != null ? options : ScanOptions.NONE);
 	}
 
 	/**
@@ -212,14 +216,14 @@ class LettuceSetCommands implements RedisSetCommands {
 	 * @return
 	 * @since 1.4
 	 */
-	public Cursor<byte[]> sScan(byte[] key, CursorId cursorId, ScanOptions options) {
+	public Cursor<byte[]> sScan(byte @NonNull [] key, @NonNull CursorId cursorId, @NonNull ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<byte[]> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(byte @NonNull [] key, CursorId cursorId, ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");

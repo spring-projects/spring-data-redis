@@ -17,7 +17,7 @@ package org.springframework.data.redis;
 
 import java.io.Serializable;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Simple serializable class.

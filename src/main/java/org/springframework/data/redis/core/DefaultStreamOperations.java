@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
@@ -44,7 +47,6 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.support.collections.CollectionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -58,13 +60,14 @@ import org.springframework.util.ClassUtils;
  * @author jinkshower
  * @since 2.2
  */
+@NullUnmarked
 class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> implements StreamOperations<K, HK, HV> {
 
 	private final StreamObjectMapper objectMapper;
 
 	@SuppressWarnings("unchecked")
-	DefaultStreamOperations(RedisTemplate<K, ?> template,
-			@Nullable HashMapper<? super K, ? super HK, ? super HV> mapper) {
+	DefaultStreamOperations(@NonNull RedisTemplate<K, ?> template,
+			@NonNull HashMapper<? super K, ? super HK, ? super HV> mapper) {
 
 		super((RedisTemplate<K, Object>) template);
 
@@ -118,16 +121,15 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public Long acknowledge(K key, String group, String... recordIds) {
+	public Long acknowledge(@NonNull K key, @NonNull String group, @NonNull String @NonNull... recordIds) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xAck(rawKey, group, recordIds));
 	}
 
-	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public RecordId add(Record<K, ?> record) {
+	public RecordId add(@NonNull Record<K, ?> record) {
 
 		Assert.notNull(record, "Record must not be null");
 
@@ -138,10 +140,9 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 		return execute(connection -> connection.xAdd(binaryRecord));
 	}
 
-	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public RecordId add(Record<K , ?> record, XAddOptions options) {
+	public RecordId add(@NonNull Record<K, ?> record, @NonNull XAddOptions options) {
 
 		Assert.notNull(record, "Record must not be null");
 		Assert.notNull(options, "XAddOptions must not be null");
@@ -154,7 +155,8 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public List<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions) {
+	public List<MapRecord<K, HK, HV>> claim(@NonNull K key, @NonNull String consumerGroup, @NonNull String newOwner,
+			@NonNull XClaimOptions xClaimOptions) {
 
 		return CollectionUtils.nullSafeList(execute(new RecordDeserializingRedisCallback() {
 
@@ -167,84 +169,84 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public Long delete(K key, RecordId... recordIds) {
+	public Long delete(@NonNull K key, @NonNull RecordId @NonNull... recordIds) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xDel(rawKey, recordIds));
 	}
 
 	@Override
-	public String createGroup(K key, ReadOffset readOffset, String group) {
+	public String createGroup(@NonNull K key, @NonNull ReadOffset readOffset, @NonNull String group) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xGroupCreate(rawKey, group, readOffset, true));
 	}
 
 	@Override
-	public Boolean deleteConsumer(K key, Consumer consumer) {
+	public Boolean deleteConsumer(@NonNull K key, @NonNull Consumer consumer) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xGroupDelConsumer(rawKey, consumer));
 	}
 
 	@Override
-	public Boolean destroyGroup(K key, String group) {
+	public Boolean destroyGroup(@NonNull K key, @NonNull String group) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xGroupDestroy(rawKey, group));
 	}
 
 	@Override
-	public XInfoStream info(K key) {
+	public XInfoStream info(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xInfo(rawKey));
 	}
 
 	@Override
-	public XInfoConsumers consumers(K key, String group) {
+	public XInfoConsumers consumers(@NonNull K key, @NonNull String group) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xInfoConsumers(rawKey, group));
 	}
 
 	@Override
-	public XInfoGroups groups(K key) {
+	public XInfoGroups groups(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xInfoGroups(rawKey));
 	}
 
 	@Override
-	public PendingMessages pending(K key, String group, Range<?> range, long count) {
+	public PendingMessages pending(@NonNull K key, @NonNull String group, @NonNull Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xPending(rawKey, group, range, count));
 	}
 
 	@Override
-	public PendingMessages pending(K key, Consumer consumer, Range<?> range, long count) {
+	public PendingMessages pending(@NonNull K key, @NonNull Consumer consumer, @NonNull Range<?> range, long count) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xPending(rawKey, consumer, range, count));
 	}
 
 	@Override
-	public PendingMessagesSummary pending(K key, String group) {
+	public PendingMessagesSummary pending(@NonNull K key, @NonNull String group) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xPending(rawKey, group));
 	}
 
 	@Override
-	public Long size(K key) {
+	public Long size(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xLen(rawKey));
 	}
 
 	@Override
-	public List<MapRecord<K, HK, HV>> range(K key, Range<String> range, Limit limit) {
+	public List<MapRecord<K, HK, HV>> range(@NonNull K key, @NonNull Range<String> range, @NonNull Limit limit) {
 
 		return execute(new RecordDeserializingRedisCallback() {
 
@@ -257,7 +259,8 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams) {
+	public List<MapRecord<K, HK, HV>> read(@NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<K> @NonNull... streams) {
 
 		return execute(new RecordDeserializingRedisCallback() {
 
@@ -270,7 +273,8 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams) {
+	public List<MapRecord<K, HK, HV>> read(@NonNull Consumer consumer, @NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<K> @NonNull... streams) {
 
 		return execute(new RecordDeserializingRedisCallback() {
 
@@ -283,7 +287,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public List<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range, Limit limit) {
+	public List<MapRecord<K, HK, HV>> reverseRange(@NonNull K key, @NonNull Range<String> range, @NonNull Limit limit) {
 
 		return execute(new RecordDeserializingRedisCallback() {
 
@@ -296,25 +300,26 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	@Override
-	public Long trim(K key, long count) {
+	public Long trim(@NonNull K key, long count) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xTrim(rawKey, count));
 	}
 
 	@Override
-	public Long trim(K key, long count, boolean approximateTrimming) {
+	public Long trim(@NonNull K key, long count, boolean approximateTrimming) {
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xTrim(rawKey, count, approximateTrimming));
 	}
 
 	@Override
-	public <V> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType) {
+	public <V> HashMapper<V, HK, HV> getHashMapper(@NonNull Class<V> targetType) {
 		return objectMapper.getHashMapper(targetType);
 	}
 
 	@Override
-	public MapRecord<K, HK, HV> deserializeRecord(ByteRecord record) {
+	@SuppressWarnings("unchecked")
+	public MapRecord<K, HK, HV> deserializeRecord(@NonNull ByteRecord record) {
 		return record.deserialize(keySerializer(), hashKeySerializer(), hashValueSerializer());
 	}
 
@@ -342,13 +347,12 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 		return Arrays.stream(streams) //
 				.map(it -> StreamOffset.create(rawKey(it.getKey()), it.getOffset())) //
-				.toArray(it -> new StreamOffset[it]);
+				.toArray(StreamOffset[]::new);
 	}
 
 	abstract class RecordDeserializingRedisCallback implements RedisCallback<List<MapRecord<K, HK, HV>>> {
 
-		@SuppressWarnings("unchecked")
-		public final List<MapRecord<K, HK, HV>> doInRedis(RedisConnection connection) {
+		public final List<MapRecord<K, HK, HV>> doInRedis(@NonNull RedisConnection connection) {
 
 			List<ByteRecord> raw = inRedis(connection);
 			if (raw == null) {
@@ -363,7 +367,6 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 			return result;
 		}
 
-		@Nullable
 		abstract List<ByteRecord> inRedis(RedisConnection connection);
 	}
 }

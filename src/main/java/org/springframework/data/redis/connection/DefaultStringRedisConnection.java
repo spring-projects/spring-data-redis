@@ -23,7 +23,8 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -62,7 +63,6 @@ import org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -82,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  */
+@NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -103,9 +104,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<String>>> byteGeoResultsToStringGeoResults;
 	private Converter<ByteRecord, StringRecord> byteMapRecordToStringMapRecordConverter = new Converter<ByteRecord, StringRecord>() {
 
-		@Nullable
 		@Override
-		public StringRecord convert(ByteRecord source) {
+		public @Nullable StringRecord convert(ByteRecord source) {
 			return StringRecord.of(source.deserialize(serializer));
 		}
 	};
@@ -129,9 +129,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	private class SerializingConverter implements Converter<String, byte[]> {
 
-		@Nullable
 		@Override
-		public byte[] convert(String source) {
+		public byte @Nullable[] convert(String source) {
 			return serializer.serialize(source);
 		}
 	}
@@ -392,27 +391,25 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.get(key), Converters.identityConverter());
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] getDel(byte[] key) {
+	public byte @Nullable[] getDel(byte[] key) {
 		return convertAndReturn(delegate.getDel(key), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public String getDel(String key) {
+	public @Nullable String getDel(String key) {
 		return convertAndReturn(delegate.getDel(serialize(key)), bytesToString);
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] getEx(byte[] key, Expiration expiration) {
+	public byte @Nullable[] getEx(byte[] key, Expiration expiration) {
 		return convertAndReturn(delegate.getEx(key, expiration), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public String getEx(String key, Expiration expiration) {
+	public @Nullable String getEx(String key, Expiration expiration) {
 		return convertAndReturn(delegate.getEx(serialize(key), expiration), bytesToString);
 	}
 
@@ -925,9 +922,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.bitOp(op, destination, keys), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Long bitPos(byte[] key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+	public @Nullable Long bitPos(byte[] key, boolean bit, org.springframework.data.domain.Range<Long> range) {
 		return convertAndReturn(delegate.bitPos(key, bit, range), Converters.identityConverter());
 	}
 
@@ -1006,82 +1002,69 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zIncrBy(key, increment, value), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<byte[]> zDiff(byte[]... sets) {
+	public @Nullable Set<byte[]> zDiff(byte[]... sets) {
 		return convertAndReturn(delegate.zDiff(sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zDiffWithScores(byte[]... sets) {
+	public @Nullable Set<Tuple> zDiffWithScores(byte[]... sets) {
 		return convertAndReturn(delegate.zDiffWithScores(sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Long zDiffStore(byte[] destKey, byte[]... sets) {
+	public @Nullable Long zDiffStore(byte[] destKey, byte[]... sets) {
 		return convertAndReturn(delegate.zDiffStore(destKey, sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<String> zDiff(String... sets) {
+	public @Nullable Set<String> zDiff(String... sets) {
 		return convertAndReturn(delegate.zDiff(serializeMulti(sets)), byteSetToStringSet);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zDiffWithScores(String... sets) {
+	public @Nullable Set<StringTuple> zDiffWithScores(String... sets) {
 		return convertAndReturn(delegate.zDiffWithScores(serializeMulti(sets)), tupleToStringTuple);
 	}
 
-	@Nullable
 	@Override
-	public Long zDiffStore(String destKey, String... sets) {
+	public @Nullable Long zDiffStore(String destKey, String... sets) {
 		return convertAndReturn(delegate.zDiffStore(serialize(destKey), serializeMulti(sets)),
 				Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<byte[]> zInter(byte[]... sets) {
+	public @Nullable Set<byte[]> zInter(byte[]... sets) {
 		return convertAndReturn(delegate.zInter(sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zInterWithScores(byte[]... sets) {
+	public @Nullable Set<Tuple> zInterWithScores(byte[]... sets) {
 		return convertAndReturn(delegate.zInterWithScores(sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+	public @Nullable Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
 		return convertAndReturn(delegate.zInterWithScores(aggregate, weights, sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<String> zInter(String... sets) {
+	public @Nullable Set<String> zInter(String... sets) {
 		return convertAndReturn(delegate.zInter(serializeMulti(sets)), byteSetToStringSet);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zInterWithScores(String... sets) {
+	public @Nullable Set<StringTuple> zInterWithScores(String... sets) {
 		return convertAndReturn(delegate.zInterWithScores(serializeMulti(sets)), tupleToStringTuple);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zInterWithScores(Aggregate aggregate, Weights weights, String... sets) {
+	public @Nullable Set<StringTuple> zInterWithScores(Aggregate aggregate, Weights weights, String... sets) {
 		return convertAndReturn(delegate.zInterWithScores(aggregate, weights, serializeMulti(sets)), tupleToStringTuple);
 	}
 
-	@Nullable
 	@Override
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public @Nullable Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		return convertAndReturn(delegate.zInterStore(destKey, aggregate, Weights.of(weights), sets),
 				Converters.identityConverter());
 	}
@@ -1249,39 +1232,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zMScore(key, values), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<byte[]> zUnion(byte[]... sets) {
+	public @Nullable Set<byte[]> zUnion(byte[]... sets) {
 		return convertAndReturn(delegate.zUnion(sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zUnionWithScores(byte[]... sets) {
+	public @Nullable Set<Tuple> zUnionWithScores(byte[]... sets) {
 		return convertAndReturn(delegate.zUnionWithScores(sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+	public @Nullable Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
 		return convertAndReturn(delegate.zUnionWithScores(aggregate, weights, sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Set<String> zUnion(String... sets) {
+	public @Nullable Set<String> zUnion(String... sets) {
 		return convertAndReturn(delegate.zUnion(serializeMulti(sets)), byteSetToStringSet);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zUnionWithScores(String... sets) {
+	public @Nullable Set<StringTuple> zUnionWithScores(String... sets) {
 		return convertAndReturn(delegate.zUnionWithScores(serializeMulti(sets)), tupleToStringTuple);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zUnionWithScores(Aggregate aggregate, Weights weights, String... sets) {
+	public @Nullable Set<StringTuple> zUnionWithScores(Aggregate aggregate, Weights weights, String... sets) {
 		return convertAndReturn(delegate.zUnionWithScores(aggregate, weights, serializeMulti(sets)), tupleToStringTuple);
 	}
 
@@ -1290,9 +1267,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, weights, sets), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public @Nullable Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		return convertAndReturn(delegate.zUnionStore(destKey, aggregate, Weights.of(weights), sets),
 				Converters.identityConverter());
 	}
@@ -1555,52 +1531,45 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return hIncrBy(serialize(key), serialize(field), delta);
 	}
 
-	@Nullable
+
 	@Override
-	public byte[] hRandField(byte[] key) {
+	public byte @Nullable[] hRandField(byte[] key) {
 		return convertAndReturn(delegate.hRandField(key), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
+	public @Nullable Entry<byte[], byte[]> hRandFieldWithValues(byte[] key) {
 		return convertAndReturn(delegate.hRandFieldWithValues(key), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public List<byte[]> hRandField(byte[] key, long count) {
+	public @Nullable List<byte[]> hRandField(byte[] key, long count) {
 		return convertAndReturn(delegate.hRandField(key, count), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
+	public @Nullable List<Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
 		return convertAndReturn(delegate.hRandFieldWithValues(key, count), Converters.identityConverter());
 	}
 
-	@Nullable
 	@Override
-	public String hRandField(String key) {
+	public @Nullable String hRandField(String key) {
 		return convertAndReturn(delegate.hRandField(serialize(key)), bytesToString);
 	}
 
-	@Nullable
 	@Override
-	public Entry<String, String> hRandFieldWithValues(String key) {
+	public @Nullable Entry<String, String> hRandFieldWithValues(String key) {
 		return convertAndReturn(delegate.hRandFieldWithValues(serialize(key)),
 				(Converter<Entry<byte[], byte[]>, Entry<String, String>>) this::convertEntry);
 	}
 
-	@Nullable
 	@Override
-	public List<String> hRandField(String key, long count) {
+	public @Nullable List<String> hRandField(String key, long count) {
 		return convertAndReturn(delegate.hRandField(serialize(key), count), byteListToStringList);
 	}
 
-	@Nullable
 	@Override
-	public List<Entry<String, String>> hRandFieldWithValues(String key, long count) {
+	public @Nullable List<Entry<String, String>> hRandFieldWithValues(String key, long count) {
 		return convertAndReturn(delegate.hRandFieldWithValues(serialize(key), count),
 				new ListConverter<>(this::convertEntry));
 	}
@@ -1945,9 +1914,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return bitOp(op, serialize(destination), serializeMulti(keys));
 	}
 
-	@Nullable
 	@Override
-	public Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range) {
+	public @Nullable Long bitPos(String key, boolean bit, org.springframework.data.domain.Range<Long> range) {
 		return bitPos(serialize(key), bit, range);
 	}
 
@@ -1981,9 +1949,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return type(serialize(key));
 	}
 
-	@Nullable
 	@Override
-	public Long touch(String... keys) {
+	public @Nullable Long touch(String... keys) {
 		return touch(serializeMulti(keys));
 	}
 
@@ -2022,75 +1989,63 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return delegate.zLexCount(key, range);
 	}
 
-	@Nullable
 	@Override
-	public Tuple zPopMin(byte[] key) {
+	public @Nullable Tuple zPopMin(byte[] key) {
 		return delegate.zPopMin(key);
 	}
 
-	@Nullable
 	@Override
-	public StringTuple zPopMin(String key) {
+	public @Nullable StringTuple zPopMin(String key) {
 		return convertAndReturn(delegate.zPopMin(serialize(key)), tupleConverter);
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zPopMin(byte[] key, long count) {
+	public @Nullable Set<Tuple> zPopMin(byte[] key, long count) {
 		return delegate.zPopMin(key, count);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zPopMin(String key, long count) {
+	public @Nullable Set<StringTuple> zPopMin(String key, long count) {
 		return convertAndReturn(delegate.zPopMin(serialize(key), count), tupleToStringTuple);
 	}
 
-	@Nullable
 	@Override
-	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+	public @Nullable Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
 		return delegate.bZPopMin(key, timeout, unit);
 	}
 
-	@Nullable
 	@Override
-	public StringTuple bZPopMin(String key, long timeout, TimeUnit unit) {
+	public @Nullable StringTuple bZPopMin(String key, long timeout, TimeUnit unit) {
 		return convertAndReturn(delegate.bZPopMin(serialize(key), timeout, unit), tupleConverter);
 	}
 
-	@Nullable
 	@Override
-	public Tuple zPopMax(byte[] key) {
+	public @Nullable Tuple zPopMax(byte[] key) {
 		return delegate.zPopMax(key);
 	}
 
-	@Nullable
 	@Override
-	public StringTuple zPopMax(String key) {
+	public @Nullable StringTuple zPopMax(String key) {
 		return convertAndReturn(delegate.zPopMax(serialize(key)), tupleConverter);
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zPopMax(byte[] key, long count) {
+	public @Nullable Set<Tuple> zPopMax(byte[] key, long count) {
 		return delegate.zPopMax(key, count);
 	}
 
-	@Nullable
 	@Override
-	public Set<StringTuple> zPopMax(String key, long count) {
+	public @Nullable Set<StringTuple> zPopMax(String key, long count) {
 		return convertAndReturn(delegate.zPopMax(serialize(key), count), tupleToStringTuple);
 	}
 
-	@Nullable
 	@Override
-	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+	public @Nullable Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
 		return delegate.bZPopMax(key, timeout, unit);
 	}
 
-	@Nullable
 	@Override
-	public StringTuple bZPopMax(String key, long timeout, TimeUnit unit) {
+	public @Nullable StringTuple bZPopMax(String key, long timeout, TimeUnit unit) {
 		return convertAndReturn(delegate.bZPopMax(serialize(key), timeout, unit), tupleConverter);
 	}
 
@@ -3135,8 +3090,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
-	private <T> T convertAndReturn(@Nullable Object value, Converter converter) {
+	private <T> @Nullable T convertAndReturn(@Nullable Object value, Converter converter) {
 
 		if (isFutureConversion()) {
 

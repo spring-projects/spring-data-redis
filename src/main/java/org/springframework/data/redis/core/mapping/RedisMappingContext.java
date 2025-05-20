@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
@@ -41,7 +42,6 @@ import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
@@ -122,7 +122,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		}
 
 		@Override
-		public String resolveKeySpace(Class<?> type) {
+		@SuppressWarnings("NullAway")
+		public @Nullable String resolveKeySpace(Class<?> type) {
 
 			Assert.notNull(type, "Type must not be null");
 			if (keyspaceConfig.hasSettingsFor(type)) {
@@ -188,8 +189,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		}
 
 		@Override
-		@SuppressWarnings({ "rawtypes" })
-		public Long getTimeToLive(Object source) {
+		@SuppressWarnings({ "rawtypes", "NullAway" })
+		public @Nullable Long getTimeToLive(Object source) {
 
 			Assert.notNull(source, "Source must not be null");
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source
@@ -273,8 +274,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return resolveTimeMethod(type) != null;
 		}
 
-		@Nullable
-		private Long resolveDefaultTimeOut(Class<?> type) {
+		@SuppressWarnings("NullAway")
+		private @Nullable Long resolveDefaultTimeOut(Class<?> type) {
 
 			if (this.defaultTimeouts.containsKey(type)) {
 				return defaultTimeouts.get(type);
@@ -295,8 +296,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return defaultTimeout;
 		}
 
-		@Nullable
-		private PersistentProperty<?> resolveTtlProperty(Class<?> type) {
+		@SuppressWarnings("NullAway")
+		private @Nullable PersistentProperty<?> resolveTtlProperty(Class<?> type) {
 
 			if (timeoutProperties.containsKey(type)) {
 				return timeoutProperties.get(type);
@@ -328,8 +329,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return null;
 		}
 
-		@Nullable
-		private Method resolveTimeMethod(Class<?> type) {
+		private @Nullable Method resolveTimeMethod(Class<?> type) {
 
 			if (timeoutMethods.containsKey(type)) {
 				return timeoutMethods.get(type);

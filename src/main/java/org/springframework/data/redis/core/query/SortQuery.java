@@ -17,12 +17,12 @@ package org.springframework.data.redis.core.query;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.lang.Nullable;
 
 /**
  * High-level abstraction over a Redis SORT (generified equivalent of {@link SortParameters}). To be used with

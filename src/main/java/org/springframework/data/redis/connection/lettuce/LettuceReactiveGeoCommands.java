@@ -228,6 +228,7 @@ class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 		}));
 	}
 
+	@SuppressWarnings("NullAway")
 	private Converter<GeoWithin<ByteBuffer>, GeoResult<GeoLocation<ByteBuffer>>> converter(Metric metric) {
 
 		return (source) -> {

@@ -17,9 +17,9 @@ package org.springframework.data.redis.core.query;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
-import org.springframework.lang.Nullable;
 
 /**
  * Default SortQuery implementation.
@@ -36,7 +36,7 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 	private final @Nullable String by;
 	private final List<String> getPattern;
 
-	DefaultSortQuery(K key, Order order, Boolean alpha, Range limit, String by, List<String> getPattern) {
+	DefaultSortQuery(K key, @Nullable Order order, @Nullable Boolean alpha, @Nullable Range limit, @Nullable String by, List<String> getPattern) {
 		this.key = key;
 		this.order = order;
 		this.alpha = alpha;
@@ -46,7 +46,7 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 	}
 
 	@Override
-	public Boolean isAlphabetic() {
+	public @Nullable Boolean isAlphabetic() {
 		return alpha;
 	}
 
@@ -55,26 +55,22 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 		return this.key;
 	}
 
-	@Nullable
 	@Override
-	public Order getOrder() {
+	public @Nullable Order getOrder() {
 		return this.order;
 	}
 
-	@Nullable
-	public Boolean getAlpha() {
+	public @Nullable Boolean getAlpha() {
 		return this.alpha;
 	}
 
-	@Nullable
 	@Override
-	public Range getLimit() {
+	public @Nullable Range getLimit() {
 		return this.limit;
 	}
 
-	@Nullable
 	@Override
-	public String getBy() {
+	public @Nullable String getBy() {
 		return this.by;
 	}
 

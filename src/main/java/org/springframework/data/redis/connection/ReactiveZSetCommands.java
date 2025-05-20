@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
@@ -42,7 +43,6 @@ import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -264,6 +264,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@SuppressWarnings("NullAway")
 	default Mono<Long> zAdd(ByteBuffer key, Double score, ByteBuffer value) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -282,6 +283,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@SuppressWarnings("NullAway")
 	default Mono<Long> zAdd(ByteBuffer key, Collection<? extends Tuple> tuples) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -473,8 +475,7 @@ public interface ReactiveZSetCommands {
 		/**
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		public Number getIncrement() {
+		public @Nullable Number getIncrement() {
 			return increment;
 		}
 	}
@@ -942,7 +943,7 @@ public interface ReactiveZSetCommands {
 	 */
 	class ZRangeStoreCommand extends KeyCommand {
 
-		private final ByteBuffer destKey;
+		private final @Nullable ByteBuffer destKey;
 		private final RangeMode rangeMode;
 		private final Range<?> range;
 		private final Direction direction;
@@ -1054,7 +1055,7 @@ public interface ReactiveZSetCommands {
 			return new ZRangeStoreCommand(getKey(), getDestKey(), rangeMode, range, direction, limit);
 		}
 
-		public ByteBuffer getDestKey() {
+		public @Nullable ByteBuffer getDestKey() {
 			return destKey;
 		}
 
@@ -1832,13 +1833,11 @@ public interface ReactiveZSetCommands {
 			return direction;
 		}
 
-		@Nullable
-		public Long getTimeout() {
+		public @Nullable Long getTimeout() {
 			return timeout;
 		}
 
-		@Nullable
-		public TimeUnit getTimeUnit() {
+		public @Nullable TimeUnit getTimeUnit() {
 			return timeUnit;
 		}
 
@@ -2161,7 +2160,7 @@ public interface ReactiveZSetCommands {
 
 		private final Range<Long> range;
 
-		private ZRemRangeByRankCommand(ByteBuffer key, Range<Long> range) {
+		private ZRemRangeByRankCommand(@Nullable ByteBuffer key, Range<Long> range) {
 			super(key);
 			this.range = range;
 		}
@@ -2404,8 +2403,7 @@ public interface ReactiveZSetCommands {
 		}
 
 		@Override
-		@Nullable
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -2610,9 +2608,8 @@ public interface ReactiveZSetCommands {
 			return new ZAggregateCommand(sourceKeys, weights, aggregateFunction);
 		}
 
-		@Nullable
 		@Override
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -2865,7 +2862,7 @@ public interface ReactiveZSetCommands {
 	 */
 	class ZInterStoreCommand extends ZAggregateStoreCommand {
 
-		private ZInterStoreCommand(ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
+		private ZInterStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
 				@Nullable Aggregate aggregate) {
 			super(key, sourceKeys, weights, aggregate);
 		}

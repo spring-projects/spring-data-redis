@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link TimeToLiveAccessor} extracts the objects time to live used for {@code EXPIRE}.

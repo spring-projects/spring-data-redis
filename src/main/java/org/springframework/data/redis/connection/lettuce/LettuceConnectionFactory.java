@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -65,7 +65,6 @@ import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfi
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.util.Optionals;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -621,8 +620,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return the client name or {@literal null} if not set.
 	 * @since 2.1
 	 */
-	@Nullable
-	public String getClientName() {
+	public @Nullable String getClientName() {
 		return clientConfiguration.getClientName().orElse(null);
 	}
 
@@ -650,8 +648,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @since 2.5
 	 * @see #afterPropertiesSet()
 	 */
-	@Nullable
-	public AbstractRedisClient getNativeClient() {
+	public @Nullable AbstractRedisClient getNativeClient() {
 		assertStarted();
 		return this.client;
 	}
@@ -677,8 +674,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		return client;
 	}
 
-	@Nullable
-	private String getRedisUsername() {
+	private @Nullable String getRedisUsername() {
 		return RedisConfiguration.getUsernameOrElse(configuration, standaloneConfig::getUsername);
 	}
 
@@ -687,8 +683,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 *
 	 * @return password for authentication or {@literal null} if not set.
 	 */
-	@Nullable
-	public String getPassword() {
+	public @Nullable String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
 	}
 
@@ -743,8 +738,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return {@literal null} if not set.
 	 * @since 1.7
 	 */
-	@Nullable
-	public ClientResources getClientResources() {
+	public @Nullable ClientResources getClientResources() {
 		return clientConfiguration.getClientResources().orElse(null);
 	}
 
@@ -782,8 +776,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return the {@link RedisSocketConfiguration} or {@literal null} if not set.
 	 * @since 2.1
 	 */
-	@Nullable
-	public RedisSocketConfiguration getSocketConfiguration() {
+	public @Nullable RedisSocketConfiguration getSocketConfiguration() {
 		return isDomainSocketAware() ? (RedisSocketConfiguration) this.configuration : null;
 	}
 
@@ -791,8 +784,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return the {@link RedisSentinelConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisSentinelConfiguration getSentinelConfiguration() {
+	public @Nullable RedisSentinelConfiguration getSentinelConfiguration() {
 		return isRedisSentinelAware() ? (RedisSentinelConfiguration) this.configuration : null;
 	}
 
@@ -800,8 +792,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisClusterConfiguration getClusterConfiguration() {
+	public @Nullable RedisClusterConfiguration getClusterConfiguration() {
 		return isClusterAware() ? (RedisClusterConfiguration) this.configuration : null;
 	}
 
@@ -1052,6 +1043,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisConnection getConnection() {
 
 		assertStarted();
@@ -1069,6 +1061,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisClusterConnection getClusterConnection() {
 
 		assertStarted();
@@ -1088,6 +1081,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisSentinelConnection getSentinelConnection() {
 
 		assertStarted();
@@ -1145,6 +1139,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public LettuceReactiveRedisConnection getReactiveConnection() {
 
 		assertStarted();
@@ -1159,6 +1154,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
 
 		assertStarted();
@@ -1217,6 +1213,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		getOrCreateSharedReactiveConnection().validateConnection();
 	}
 
+	@SuppressWarnings("NullAway")
 	private SharedConnection<byte[]> getOrCreateSharedConnection() {
 
 		return doInLock(() -> {
@@ -1229,6 +1226,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		});
 	}
 
+	@SuppressWarnings("NullAway")
 	private SharedConnection<ByteBuffer> getOrCreateSharedReactiveConnection() {
 
 		return doInLock(() -> {
@@ -1242,7 +1240,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
-	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+	public @Nullable DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
@@ -1250,8 +1248,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 * @return the shared connection using {@code byte[]} encoding for imperative API use. {@literal null} if
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled or when connected to Redis Cluster.
 	 */
-	@Nullable
-	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
+	protected @Nullable StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
 
 		return shareNativeConnection && !isClusterAware()
 				? (StatefulRedisConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
@@ -1264,8 +1261,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 *         Standalone/Sentinel/Master-Replica.
 	 * @since 2.5.7
 	 */
-	@Nullable
-	protected StatefulRedisClusterConnection<byte[], byte[]> getSharedClusterConnection() {
+	protected @Nullable StatefulRedisClusterConnection<byte[], byte[]> getSharedClusterConnection() {
 
 		return shareNativeConnection && isClusterAware()
 				? (StatefulRedisClusterConnection<byte[], byte[]>) getOrCreateSharedConnection().getConnection()
@@ -1277,8 +1273,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	 *         {@link #getShareNativeConnection() connection sharing} is disabled.
 	 * @since 2.0.1
 	 */
-	@Nullable
-	protected StatefulConnection<ByteBuffer, ByteBuffer> getSharedReactiveConnection() {
+	protected @Nullable StatefulConnection<ByteBuffer, ByteBuffer> getSharedReactiveConnection() {
 		return shareNativeConnection ? getOrCreateSharedReactiveConnection().getConnection() : null;
 	}
 
@@ -1444,6 +1439,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		return redisClient;
 	}
 
+	@SuppressWarnings("NullAway")
 	private void assertStarted() {
 
 		State current = this.state.get();
@@ -1490,6 +1486,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 				.withTimeout(this.clientConfiguration.getCommandTimeout()).withDatabase(getDatabase()).build();
 	}
 
+	@SuppressWarnings("NullAway")
 	private RedisURI.Builder applyAuthentication(RedisURI.Builder builder) {
 
 		String username = getRedisUsername();

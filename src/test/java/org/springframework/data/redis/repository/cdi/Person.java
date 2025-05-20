@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.repository.cdi;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Mark Paluch

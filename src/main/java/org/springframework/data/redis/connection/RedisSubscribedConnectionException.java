@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when issuing commands on a connection that is subscribed and waiting for events.

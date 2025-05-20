@@ -17,8 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -161,7 +160,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
+	public T deserialize(byte @Nullable[] bytes) throws SerializationException {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;

@@ -18,8 +18,8 @@ package org.springframework.data.redis.connection.stream;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link Record} within the stream backed by a collection of binary {@literal field/value} pairs.
@@ -61,6 +61,7 @@ public interface ByteRecord extends MapRecord<byte[], byte[], byte[]> {
 	 * @param valueSerializer can be {@literal null} if the values suite already the target format.
 	 * @return new {@link MapRecord} holding the deserialized values.
 	 */
+	@SuppressWarnings("NullAway")
 	default <K, HK, HV> MapRecord<K, HK, HV> deserialize(@Nullable RedisSerializer<? extends K> streamSerializer,
 			@Nullable RedisSerializer<? extends HK> fieldSerializer,
 			@Nullable RedisSerializer<? extends HV> valueSerializer) {

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -30,7 +31,6 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.convert.RedisCustomConversions;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.ObjectHashMapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -65,7 +65,7 @@ class StreamObjectMapper {
 	 *
 	 * @param mapper the configured {@link HashMapper}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
 	StreamObjectMapper(HashMapper<?, ?, ?> mapper) {
 
 		Assert.notNull(mapper, "HashMapper must not be null");
@@ -103,7 +103,7 @@ class StreamObjectMapper {
 	 * @param source the source value.
 	 * @return the converted {@link MapRecord}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
 	static <K, V, HK, HV> MapRecord<K, HK, HV> toMapRecord(HashMapperProvider<HK, HV> provider, Record<K, V> source) {
 
 		if (source instanceof ObjectRecord entry) {

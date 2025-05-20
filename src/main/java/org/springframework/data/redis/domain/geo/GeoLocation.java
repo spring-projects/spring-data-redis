@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.domain.geo;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Point;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**

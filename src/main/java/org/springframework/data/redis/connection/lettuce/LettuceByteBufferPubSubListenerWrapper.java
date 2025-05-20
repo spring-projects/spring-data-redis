@@ -19,8 +19,8 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
 
 import java.nio.ByteBuffer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

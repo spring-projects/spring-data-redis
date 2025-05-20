@@ -17,7 +17,9 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -28,6 +30,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author dengliming
  */
+@NullUnmarked
 public interface RedisListCommands {
 
 	/**
@@ -73,8 +76,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
-	Long rPush(byte[] key, byte[]... values);
+	Long rPush(byte @NonNull [] key, byte @NonNull [] @NonNull... values);
 
 	/**
 	 * Returns the index of matching elements inside the list stored at given {@literal key}. <br />
@@ -86,8 +88,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	@Nullable
-	default Long lPos(byte[] key, byte[] element) {
+	default Long lPos(byte @NonNull [] key, byte @NonNull [] element) {
 		return CollectionUtils.firstElement(lPos(key, element, null, null));
 	}
 
@@ -104,8 +105,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	@Nullable
-	List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count);
+	List<Long> lPos(byte @NonNull [] key, byte @NonNull[] element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
@@ -115,8 +115,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
-	Long lPush(byte[] key, byte[]... values);
+	Long lPush(byte @NonNull [] key, byte @NonNull [] @NonNull... values);
 
 	/**
 	 * Append {@code values} to {@code key} only if the list exists.
@@ -126,8 +125,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
-	@Nullable
-	Long rPushX(byte[] key, byte[] value);
+	Long rPushX(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
 	 * Prepend {@code values} to {@code key} only if the list exists.
@@ -137,8 +135,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
-	@Nullable
-	Long lPushX(byte[] key, byte[] value);
+	Long lPushX(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
 	 * Get the size of list stored at {@code key}.
@@ -147,8 +144,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
-	@Nullable
-	Long lLen(byte[] key);
+	Long lLen(byte @NonNull [] key);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from list at {@code key}.
@@ -160,8 +156,7 @@ public interface RedisListCommands {
 	 *         pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	@Nullable
-	List<byte[]> lRange(byte[] key, long start, long end);
+	List<byte @NonNull []> lRange(byte @NonNull [] key, long start, long end);
 
 	/**
 	 * Trim list at {@code key} to elements between {@code start} and {@code end}.
@@ -171,7 +166,7 @@ public interface RedisListCommands {
 	 * @param end
 	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
-	void lTrim(byte[] key, long start, long end);
+	void lTrim(byte @NonNull [] key, long start, long end);
 
 	/**
 	 * Get element at {@code index} form list at {@code key}.
@@ -181,8 +176,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when index is out of range or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
-	@Nullable
-	byte[] lIndex(byte[] key, long index);
+	byte[] lIndex(byte @NonNull [] key, long index);
 
 	/**
 	 * Insert {@code value} {@link Position#BEFORE} or {@link Position#AFTER} existing {@code pivot} for {@code key}.
@@ -194,8 +188,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
-	@Nullable
-	Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value);
+	Long lInsert(byte @NonNull [] key, @NonNull Position where, byte @NonNull [] pivot, byte @NonNull [] value);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -211,8 +204,8 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 * @see #bLMove(byte[], byte[], Direction, Direction, double)
 	 */
-	@Nullable
-	byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to);
+	byte[] lMove(byte @NonNull [] sourceKey, byte @NonNull [] destinationKey, @NonNull Direction from,
+			@NonNull Direction to);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -231,8 +224,8 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 * @see #lMove(byte[], byte[], Direction, Direction)
 	 */
-	@Nullable
-	byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout);
+	byte[] bLMove(byte @NonNull [] sourceKey, byte @NonNull [] destinationKey, @NonNull Direction from,
+			@NonNull Direction to, double timeout);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
@@ -242,7 +235,7 @@ public interface RedisListCommands {
 	 * @param value
 	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
-	void lSet(byte[] key, long index, byte[] value);
+	void lSet(byte @NonNull [] key, long index, byte @NonNull [] value);
 
 	/**
 	 * Removes the first {@code count} occurrences of {@code value} from the list stored at {@code key}.
@@ -253,8 +246,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
-	@Nullable
-	Long lRem(byte[] key, long count, byte[] value);
+	Long lRem(byte @NonNull [] key, long count, byte @NonNull [] value);
 
 	/**
 	 * Removes and returns first element in list stored at {@code key}.
@@ -263,8 +255,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
-	@Nullable
-	byte[] lPop(byte[] key);
+	byte[] lPop(byte @NonNull [] key);
 
 	/**
 	 * Removes and returns first {@code} elements in list stored at {@code key}.
@@ -275,8 +266,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	List<byte[]> lPop(byte[] key, long count);
+	List<byte @NonNull []> lPop(byte @NonNull [] key, long count);
 
 	/**
 	 * Removes and returns last element in list stored at {@code key}.
@@ -285,8 +275,7 @@ public interface RedisListCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
-	@Nullable
-	byte[] rPop(byte[] key);
+	byte[] rPop(byte @NonNull [] key);
 
 	/**
 	 * Removes and returns last {@code} elements in list stored at {@code key}.
@@ -297,8 +286,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	List<byte[]> rPop(byte[] key, long count);
+	List<byte @NonNull []> rPop(byte @NonNull [] key, long count);
 
 	/**
 	 * Removes and returns first element from lists stored at {@code keys}. <br>
@@ -312,7 +300,7 @@ public interface RedisListCommands {
 	 * @see #lPop(byte[])
 	 */
 	@Nullable
-	List<byte[]> bLPop(int timeout, byte[]... keys);
+	List<byte @NonNull []> bLPop(int timeout, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys}. <br>
@@ -325,8 +313,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see #rPop(byte[])
 	 */
-	@Nullable
-	List<byte[]> bRPop(int timeout, byte[]... keys);
+	List<byte @NonNull []> bRPop(int timeout, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.
@@ -336,8 +323,7 @@ public interface RedisListCommands {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
-	@Nullable
-	byte[] rPopLPush(byte[] srcKey, byte[] dstKey);
+	byte[] rPopLPush(byte @NonNull [] srcKey, byte @NonNull [] dstKey);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value. <br>
@@ -350,6 +336,5 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see #rPopLPush(byte[], byte[])
 	 */
-	@Nullable
-	byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey);
+	byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey);
 }

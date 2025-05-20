@@ -17,8 +17,8 @@ package org.springframework.data.redis.core;
 
 import java.util.StringJoiner;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -37,7 +37,7 @@ public class KeyScanOptions extends ScanOptions {
 
 	private final @Nullable String type;
 
-	KeyScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern,
+	KeyScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable[] bytePattern,
 			@Nullable String type) {
 
 		super(count, pattern, bytePattern);
@@ -54,8 +54,7 @@ public class KeyScanOptions extends ScanOptions {
 		return new ScanOptionsBuilder().type(type);
 	}
 
-	@Nullable
-	public String getType() {
+	public @Nullable String getType() {
 		return type;
 	}
 

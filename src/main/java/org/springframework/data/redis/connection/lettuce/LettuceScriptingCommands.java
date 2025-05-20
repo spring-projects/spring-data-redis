@@ -20,6 +20,8 @@ import io.lettuce.core.api.async.RedisScriptingAsyncCommands;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisScriptingCommands;
@@ -30,11 +32,12 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceScriptingCommands implements RedisScriptingCommands {
 
 	private final LettuceConnection connection;
 
-	LettuceScriptingCommands(LettuceConnection connection) {
+	LettuceScriptingCommands(@NonNull LettuceConnection connection) {
 		this.connection = connection;
 	}
 
@@ -54,7 +57,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public String scriptLoad(byte[] script) {
+	public String scriptLoad(byte @NonNull [] script) {
 
 		Assert.notNull(script, "Script must not be null");
 
@@ -62,7 +65,7 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public List<Boolean> scriptExists(String... scriptSha1) {
+	public List<Boolean> scriptExists(@NonNull String @NonNull... scriptSha1) {
 
 		Assert.notNull(scriptSha1, "Script digests must not be null");
 		Assert.noNullElements(scriptSha1, "Script digests must not contain null elements");
@@ -71,7 +74,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T eval(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
 
 		Assert.notNull(script, "Script must not be null");
 
@@ -86,7 +90,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T evalSha(@NonNull String scriptSha1, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
 
 		Assert.notNull(scriptSha1, "Script digest must not be null");
 
@@ -100,7 +105,8 @@ class LettuceScriptingCommands implements RedisScriptingCommands {
 	}
 
 	@Override
-	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+	public <T> T evalSha(byte @NonNull [] scriptSha1, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs) {
 
 		Assert.notNull(scriptSha1, "Script digest must not be null");
 

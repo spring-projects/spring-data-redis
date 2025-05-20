@@ -21,6 +21,9 @@ import io.lettuce.core.ScanArgs;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -29,7 +32,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceClusterConnectio
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -37,18 +39,19 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceClusterKeyCommands extends LettuceKeyCommands {
 
 	private final LettuceClusterConnection connection;
 
-	LettuceClusterKeyCommands(LettuceClusterConnection connection) {
+	LettuceClusterKeyCommands(@NonNull LettuceClusterConnection connection) {
 
 		super(connection);
 		this.connection = connection;
 	}
 
 	@Override
-	public void rename(byte[] oldKey, byte[] newKey) {
+	public void rename(byte @NonNull [] oldKey, byte @NonNull [] newKey) {
 
 		Assert.notNull(oldKey, "Old key must not be null");
 		Assert.notNull(newKey, "New key must not be null");
@@ -68,7 +71,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	}
 
 	@Override
-	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
+	public Boolean renameNX(byte @NonNull [] sourceKey, byte @NonNull [] targetKey) {
 
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(targetKey, "Target key must not be null");
@@ -89,20 +92,18 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	}
 
 	@Override
-	public Boolean move(byte[] key, int dbIndex) {
+	public Boolean move(byte @NonNull [] key, int dbIndex) {
 		throw new InvalidDataAccessApiUsageException("MOVE not supported in CLUSTER mode");
 	}
 
-	@Nullable
-	public byte[] randomKey(RedisClusterNode node) {
+	public byte @Nullable [] randomKey(@NonNull RedisClusterNode node) {
 
 		return connection.getClusterCommandExecutor()
 				.executeCommandOnSingleNode((LettuceClusterCommandCallback<byte[]>) client -> client.randomkey(), node)
 				.getValue();
 	}
 
-	@Nullable
-	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
+	public Set<byte @NonNull []> keys(@NonNull RedisClusterNode node, byte @NonNull [] pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
@@ -119,7 +120,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	 * @return never {@literal null}.
 	 * @since 2.1
 	 */
-	Cursor<byte[]> scan(RedisClusterNode node, ScanOptions options) {
+	Cursor<byte @NonNull []> scan(@NonNull RedisClusterNode node, @NonNull ScanOptions options) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null");
 		Assert.notNull(options, "Options must not be null");
@@ -144,7 +145,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 	}
 
 	@Override
-	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
+	public Long sort(byte @NonNull [] key, @NonNull SortParameters params, byte @NonNull [] storeKey) {
 
 		Assert.notNull(key, "Key must not be null");
 

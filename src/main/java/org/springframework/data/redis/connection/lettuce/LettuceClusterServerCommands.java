@@ -24,6 +24,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiNodeResult;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
@@ -39,63 +41,64 @@ import org.springframework.util.Assert;
  * @author Dennis Neufeld
  * @since 2.0
  */
+@NullUnmarked
 class LettuceClusterServerCommands extends LettuceServerCommands implements RedisClusterServerCommands {
 
 	private final LettuceClusterConnection connection;
 
-	LettuceClusterServerCommands(LettuceClusterConnection connection) {
+	LettuceClusterServerCommands(@NonNull LettuceClusterConnection connection) {
 
 		super(connection);
 		this.connection = connection;
 	}
 
 	@Override
-	public void bgReWriteAof(RedisClusterNode node) {
+	public void bgReWriteAof(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::bgrewriteaof, node);
 	}
 
 	@Override
-	public void bgSave(RedisClusterNode node) {
+	public void bgSave(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::bgsave, node);
 	}
 
 	@Override
-	public Long lastSave(RedisClusterNode node) {
+	public Long lastSave(@NonNull RedisClusterNode node) {
 		return executeCommandOnSingleNode(client -> client.lastsave().getTime(), node).getValue();
 	}
 
 	@Override
-	public void save(RedisClusterNode node) {
+	public void save(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::save, node);
 	}
 
 	@Override
-	public Long dbSize(RedisClusterNode node) {
+	public Long dbSize(@NonNull RedisClusterNode node) {
 		return executeCommandOnSingleNode(RedisServerCommands::dbsize, node).getValue();
 	}
 
 	@Override
-	public void flushDb(RedisClusterNode node) {
+	public void flushDb(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::flushdb, node);
 	}
 
 	@Override
-	public void flushDb(RedisClusterNode node, FlushOption option) {
+	public void flushDb(@NonNull RedisClusterNode node, @NonNull FlushOption option) {
 		executeCommandOnSingleNode(it -> it.flushdb(LettuceConverters.toFlushMode(option)), node);
 	}
 
 	@Override
-	public void flushAll(RedisClusterNode node) {
+	public void flushAll(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::flushall, node);
 	}
 
 	@Override
-	public void flushAll(RedisClusterNode node, FlushOption option) {
+	public void flushAll(@NonNull RedisClusterNode node, @NonNull FlushOption option) {
 		executeCommandOnSingleNode(it -> it.flushall(LettuceConverters.toFlushMode(option)), node);
 	}
 
 	@Override
-	public Properties info(RedisClusterNode node) {
+	public Properties info(@NonNull RedisClusterNode node) {
 		return LettuceConverters.toProperties(executeCommandOnSingleNode(RedisServerCommands::info, node).getValue());
 	}
 
@@ -117,7 +120,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public Properties info(String section) {
+	public Properties info(@NonNull String section) {
 
 		Assert.hasText(section, "Section must not be null or empty");
 
@@ -135,7 +138,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public Properties info(RedisClusterNode node, String section) {
+	public Properties info(@NonNull RedisClusterNode node, @NonNull String section) {
 
 		Assert.hasText(section, "Section must not be null or empty");
 
@@ -143,7 +146,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public void shutdown(RedisClusterNode node) {
+	public void shutdown(@NonNull RedisClusterNode node) {
 
 		executeCommandOnSingleNode((LettuceClusterCommandCallback<Void>) client -> {
 			client.shutdown(true);
@@ -152,7 +155,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public Properties getConfig(String pattern) {
+	public Properties getConfig(@NonNull String pattern) {
 
 		Assert.hasText(pattern, "Pattern must not be null or empty");
 
@@ -171,7 +174,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public Properties getConfig(RedisClusterNode node, String pattern) {
+	public Properties getConfig(@NonNull RedisClusterNode node, @NonNull String pattern) {
 
 		Assert.hasText(pattern, "Pattern must not be null or empty");
 
@@ -179,7 +182,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public void setConfig(String param, String value) {
+	public void setConfig(@NonNull String param, @NonNull String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
 		Assert.notNull(value, "Value must not be null");
@@ -188,7 +191,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public void setConfig(RedisClusterNode node, String param, String value) {
+	public void setConfig(@NonNull RedisClusterNode node, @NonNull String param, @NonNull String value) {
 
 		Assert.hasText(param, "Parameter must not be null or empty");
 		Assert.hasText(value, "Value must not be null or empty");
@@ -202,7 +205,7 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public void resetConfigStats(RedisClusterNode node) {
+	public void resetConfigStats(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::configResetstat, node);
 	}
 
@@ -212,12 +215,12 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public void rewriteConfig(RedisClusterNode node) {
+	public void rewriteConfig(@NonNull RedisClusterNode node) {
 		executeCommandOnSingleNode(RedisServerCommands::configRewrite, node);
 	}
 
 	@Override
-	public Long time(RedisClusterNode node, TimeUnit timeUnit) {
+	public Long time(@NonNull RedisClusterNode node, @NonNull TimeUnit timeUnit) {
 		return convertListOfStringToTime(executeCommandOnSingleNode(RedisServerCommands::time, node).getValue(), timeUnit);
 	}
 
@@ -234,14 +237,14 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	}
 
 	@Override
-	public List<RedisClientInfo> getClientList(RedisClusterNode node) {
+	public List<RedisClientInfo> getClientList(@NonNull RedisClusterNode node) {
 
 		return LettuceConverters
 				.toListOfRedisClientInformation(executeCommandOnSingleNode(RedisServerCommands::clientList, node).getValue());
 	}
 
 	@Override
-	public void replicaOf(String host, int port) {
+	public void replicaOf(@NonNull String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
 				"REPLICAOF is not supported in cluster environment; Please use CLUSTER REPLICATE.");
 	}

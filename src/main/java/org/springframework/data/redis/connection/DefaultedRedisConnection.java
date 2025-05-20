@@ -23,6 +23,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -49,7 +51,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link DefaultedRedisConnection} provides method delegates to {@code Redis*Command} interfaces accessible via
@@ -69,6 +70,7 @@ import org.springframework.lang.Nullable;
  * @since 2.0
  */
 @Deprecated
+@NullUnmarked
 public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsProvider {
 
 	// KEY COMMANDS

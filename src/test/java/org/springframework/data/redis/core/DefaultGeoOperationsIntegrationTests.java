@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.data.Offset;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.dao.DataAccessException;
@@ -44,7 +45,6 @@ import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
-import org.springframework.lang.Nullable;
 
 /**
  * Integration test of {@link org.springframework.data.redis.core.DefaultGeoOperations}

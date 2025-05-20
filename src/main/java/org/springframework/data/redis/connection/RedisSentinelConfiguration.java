@@ -23,10 +23,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -205,8 +205,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.master = master;
 	}
 
-	@Nullable
-	public NamedNode getMaster() {
+	public @Nullable NamedNode getMaster() {
 		return master;
 	}
 
@@ -275,9 +274,8 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.dataNodeUsername = username;
 	}
 
-	@Nullable
 	@Override
-	public String getUsername() {
+	public @Nullable String getUsername() {
 		return this.dataNodeUsername;
 	}
 
@@ -294,9 +292,8 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 		this.dataNodePassword = password;
 	}
 
-	@Nullable
 	@Override
-	public String getSentinelUsername() {
+	public @Nullable String getSentinelUsername() {
 		return this.sentinelUsername;
 	}
 

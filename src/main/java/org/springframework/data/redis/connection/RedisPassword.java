@@ -20,7 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -66,7 +66,7 @@ public class RedisPassword {
 	 * @param passwordAsChars the password as char array.
 	 * @return the {@link RedisPassword} for {@code passwordAsChars}.
 	 */
-	public static RedisPassword of(@Nullable char[] passwordAsChars) {
+	public static RedisPassword of(char @Nullable[] passwordAsChars) {
 
 		return Optional.ofNullable(passwordAsChars) //
 				.filter(it -> !ObjectUtils.isEmpty(passwordAsChars)) //

@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -84,7 +85,7 @@ public class ExpireChanges<K> {
 	 * @return the status change for the given {@literal key}, or {@literal null} if {@link ExpiryChangeState} does not
 	 *         contain an entry for it.
 	 */
-	public ExpiryChangeState stateOf(K key) {
+	public @Nullable ExpiryChangeState stateOf(K key) {
 		return changes.get(key);
 	}
 

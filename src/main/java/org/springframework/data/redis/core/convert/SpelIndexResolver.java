@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider;
 import org.springframework.data.redis.core.index.IndexDefinition;
@@ -32,7 +33,6 @@ import org.springframework.expression.BeanResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -75,6 +75,7 @@ public class SpelIndexResolver implements IndexResolver {
 		this.parser = parser;
 	}
 
+	@SuppressWarnings("NullAway")
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 
 		if (value == null) {
@@ -117,7 +118,7 @@ public class SpelIndexResolver implements IndexResolver {
 
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-			Object value) {
+			@Nullable Object value) {
 		return Collections.emptySet();
 	}
 

@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -75,8 +75,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		return indexName;
 	}
 
-	@Nullable
-	public String getPath() {
+	public @Nullable String getPath() {
 		return this.path;
 	}
 
@@ -160,7 +159,8 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		}
 
 		@Override
-		public Object convert(Object source) {
+		@SuppressWarnings("NullAway")
+		public @Nullable Object convert(Object source) {
 
 			Object tmp = source;
 			for (IndexValueTransformer transformer : transformers) {

@@ -17,7 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Scripting commands.
@@ -27,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @author David Liu
  * @author Mark Paluch
  */
+@NullUnmarked
 public interface RedisScriptingCommands {
 
 	/**
@@ -51,8 +53,7 @@ public interface RedisScriptingCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
 	 */
-	@Nullable
-	String scriptLoad(byte[] script);
+	String scriptLoad(byte @NonNull [] script);
 
 	/**
 	 * Check if given {@code scriptShas} exist in script cache.
@@ -62,8 +63,7 @@ public interface RedisScriptingCommands {
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/script-exists">Redis Documentation: SCRIPT EXISTS</a>
 	 */
-	@Nullable
-	List<Boolean> scriptExists(String... scriptShas);
+	List<@NonNull Boolean> scriptExists(@NonNull String @NonNull... scriptShas);
 
 	/**
 	 * Evaluate given {@code script}.
@@ -75,8 +75,8 @@ public interface RedisScriptingCommands {
 	 * @return script result. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/eval">Redis Documentation: EVAL</a>
 	 */
-	@Nullable
-	<T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
+	<T> T eval(byte @NonNull [] script, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs);
 
 	/**
 	 * Evaluate given {@code scriptSha}.
@@ -88,8 +88,8 @@ public interface RedisScriptingCommands {
 	 * @return script result. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 */
-	@Nullable
-	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
+	<T> T evalSha(@NonNull String scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs);
 
 	/**
 	 * Evaluate given {@code scriptSha}.
@@ -102,6 +102,6 @@ public interface RedisScriptingCommands {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 */
-	@Nullable
-	<T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
+	<T> T evalSha(byte @NonNull [] scriptSha, @NonNull ReturnType returnType, int numKeys,
+			byte @NonNull [] @NonNull... keysAndArgs);
 }

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Entity containing the parameters for the SORT operation.
@@ -76,16 +76,14 @@ public interface SortParameters {
 	 *
 	 * @return {@code BY} pattern. {@literal null} if not set.
 	 */
-	@Nullable
-	byte[] getByPattern();
+	byte @Nullable[] getByPattern();
 
 	/**
 	 * Returns the pattern (if set) for retrieving external keys ({@code GET}). Can be null if nothing is specified.
 	 *
 	 * @return {@code GET} pattern. {@literal null} if not set.
 	 */
-	@Nullable
-	byte[][] getGetPattern();
+	byte @Nullable[][] getGetPattern();
 
 	/**
 	 * Returns the sorting limit (range or pagination). Can be null if nothing is specified.

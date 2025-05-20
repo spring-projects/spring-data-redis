@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -64,7 +64,6 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -134,6 +133,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
 	}
 
+	@SuppressWarnings("NullAway")
+	protected RedisKeyValueAdapter() {
+		// I'm here for the sole sake of CDI
+	}
+
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
 	 * {@link RedisCustomConversions}.
@@ -163,7 +167,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @since 2.0
 	 */
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext,
-			@Nullable org.springframework.data.convert.CustomConversions customConversions) {
+			org.springframework.data.convert.@Nullable CustomConversions customConversions) {
 
 		super(new RedisQueryEngine());
 
@@ -197,12 +201,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		this.redisOps = redisOps;
 	}
 
-	/**
-	 * Default constructor.
-	 */
-	protected RedisKeyValueAdapter() {}
-
 	@Override
+	@SuppressWarnings("NullAway")
 	public Object put(Object id, Object item, String keyspace) {
 
 		RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
@@ -305,12 +305,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	@Override
-	public Object delete(Object id, String keyspace) {
+	public @Nullable Object delete(Object id, String keyspace) {
 		return delete(id, keyspace, Object.class);
 	}
 
 	@Override
-	public <T> T delete(Object id, String keyspace, Class<T> type) {
+	public <T> @Nullable T delete(Object id, String keyspace, Class<T> type) {
 
 		byte[] binId = toBytes(id);
 		byte[] binKeyspace = toBytes(keyspace);
@@ -415,6 +415,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return count != null ? count : 0;
 	}
 
+	@SuppressWarnings("NullAway")
 	public void update(PartialUpdate<?> update) {
 
 		RedisPersistentEntity<?> entity = this.converter.getMappingContext()
@@ -552,8 +553,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @param callback must not be {@literal null}.
 	 * @see RedisOperations#execute(RedisCallback)
 	 */
-	@Nullable
-	public <T> T execute(RedisCallback<T> callback) {
+	public <T> @Nullable T execute(RedisCallback<T> callback) {
 		return redisOps.execute(callback);
 	}
 
@@ -584,10 +584,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	/**
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
 	 */
-	public byte[] toBytes(Object source) {
+	@SuppressWarnings("NullAway")
+	public byte [] toBytes(Object source) {
 		return source instanceof byte[] bytes ? bytes : getConverter().getConversionService().convert(source, byte[].class);
 	}
 
+	@SuppressWarnings("NullAway")
 	private String toString(Object value) {
 		return value instanceof String stringValue ? stringValue
 				: getConverter().getConversionService().convert(value, String.class);
@@ -596,8 +598,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	/**
 	 * Read back and set {@link TimeToLive} for the property.
 	 */
-	@Nullable
-	private <T> T readBackTimeToLiveIfSet(@Nullable byte[] key, @Nullable T target) {
+	@SuppressWarnings("NullAway")
+	private @Nullable <T> T readBackTimeToLiveIfSet(byte @Nullable [] key, @Nullable T target) {
 
 		if (target == null || key == null) {
 			return target;
@@ -723,6 +725,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		if (isCreatedOrStopped(current)) {
 
+			Assert.state(messageListenerContainer != null, "MessageListenerContainer must not be null");
 			messageListenerContainer.start();
 
 			if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP, this.enableKeyspaceEvents)) {
@@ -754,7 +757,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				}
 			}
 
-			messageListenerContainer.stop();
+			if (messageListenerContainer != null) {
+				messageListenerContainer.stop();
+			}
 			state.set(State.STOPPED);
 		}
 	}
@@ -833,7 +838,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		@Override
-		public void onMessage(Message message, @Nullable byte[] pattern) {
+		@SuppressWarnings("NullAway")
+		public void onMessage(Message message, byte @Nullable [] pattern) {
 
 			if (!isKeyExpirationMessage(message)) {
 				return;
@@ -863,8 +869,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			return BinaryKeyspaceIdentifier.isValid(message.getBody());
 		}
 
-		@Nullable
-		private Object readShadowCopyIfEnabled(byte[] key) {
+		private @Nullable Object readShadowCopyIfEnabled(byte[] key) {
 
 			if (shadowCopy == ShadowCopy.OFF) {
 				return null;
@@ -872,8 +877,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			return readShadowCopy(key);
 		}
 
-		@Nullable
-		private Object readShadowCopy(byte[] key) {
+		@SuppressWarnings("NullAway")
+		private @Nullable Object readShadowCopy(byte[] key) {
 
 			byte[] phantomKey = ByteUtils.concat(key,
 					converter.getConversionService().convert(KeyspaceIdentifier.PHANTOM_SUFFIX, byte[].class));

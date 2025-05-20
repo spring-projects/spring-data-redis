@@ -15,14 +15,16 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.springframework.data.redis.connection.RedisListCommands.*;
+import static org.springframework.data.redis.connection.RedisListCommands.Direction;
 
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.util.Assert;
 
 /**
@@ -36,6 +38,7 @@ import org.springframework.util.Assert;
  * @author dengliming
  * @author Lee Jaeheon
  */
+@NullUnmarked
 public interface ListOperations<K, V> {
 
 	/**
@@ -47,8 +50,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	@Nullable
-	List<V> range(K key, long start, long end);
+	List<V> range(@NonNull K key, long start, long end);
 
 	/**
 	 * Trim list at {@code key} to elements between {@code start} and {@code end}.
@@ -58,7 +60,7 @@ public interface ListOperations<K, V> {
 	 * @param end
 	 * @see <a href="https://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
-	void trim(K key, long start, long end);
+	void trim(@NonNull K key, long start, long end);
 
 	/**
 	 * Get the size of list stored at {@code key}.
@@ -67,8 +69,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
-	@Nullable
-	Long size(K key);
+	Long size(@NonNull K key);
 
 	/**
 	 * Prepend {@code value} to {@code key}.
@@ -78,8 +79,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
-	Long leftPush(K key, V value);
+	Long leftPush(@NonNull K key, V value);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
@@ -89,8 +89,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
-	Long leftPushAll(K key, V... values);
+	Long leftPushAll(@NonNull K key, V @NonNull... values);
 
 	/**
 	 * Prepend {@code values} to {@code key}.
@@ -101,8 +100,7 @@ public interface ListOperations<K, V> {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
-	Long leftPushAll(K key, Collection<V> values);
+	Long leftPushAll(@NonNull K key, @NonNull Collection<V> values);
 
 	/**
 	 * Prepend {@code values} to {@code key} only if the list exists.
@@ -112,8 +110,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
-	@Nullable
-	Long leftPushIfPresent(K key, V value);
+	Long leftPushIfPresent(@NonNull K key, V value);
 
 	/**
 	 * Insert {@code value} to {@code key} before {@code pivot}.
@@ -124,8 +121,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
-	@Nullable
-	Long leftPush(K key, V pivot, V value);
+	Long leftPush(@NonNull K key, @NonNull V pivot, V value);
 
 	/**
 	 * Append {@code value} to {@code key}.
@@ -135,8 +131,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
-	Long rightPush(K key, V value);
+	Long rightPush(@NonNull K key, V value);
 
 	/**
 	 * Append {@code values} to {@code key}.
@@ -146,8 +141,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
-	Long rightPushAll(K key, V... values);
+	Long rightPushAll(@NonNull K key, V @NonNull... values);
 
 	/**
 	 * Append {@code values} to {@code key}.
@@ -158,8 +152,7 @@ public interface ListOperations<K, V> {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
-	Long rightPushAll(K key, Collection<V> values);
+	Long rightPushAll(@NonNull K key, @NonNull Collection<V> values);
 
 	/**
 	 * Append {@code values} to {@code key} only if the list exists.
@@ -169,8 +162,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
-	@Nullable
-	Long rightPushIfPresent(K key, V value);
+	Long rightPushIfPresent(@NonNull K key, V value);
 
 	/**
 	 * Insert {@code value} to {@code key} after {@code pivot}.
@@ -181,8 +173,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
-	@Nullable
-	Long rightPush(K key, V pivot, V value);
+	Long rightPush(@NonNull K key, @NonNull V pivot, V value);
 
 	/**
 	 * Value object representing the {@code where from} part for the {@code LMOVE} command.
@@ -191,6 +182,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 */
+	@NullMarked
 	class MoveFrom<K> {
 
 		final K key;
@@ -218,6 +210,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 */
+	@NullMarked
 	class MoveTo<K> {
 
 		final K key;
@@ -249,8 +242,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 */
-	@Nullable
-	default V move(MoveFrom<K> from, MoveTo<K> to) {
+	default V move(@NonNull MoveFrom<K> from, @NonNull MoveTo<K> to) {
 
 		Assert.notNull(from, "Move from must not be null");
 		Assert.notNull(to, "Move to must not be null");
@@ -271,8 +263,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 */
-	@Nullable
-	V move(K sourceKey, Direction from, K destinationKey, Direction to);
+	V move(@NonNull K sourceKey, @NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -288,8 +279,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	default V move(MoveFrom<K> from, MoveTo<K> to, Duration timeout) {
+	default V move(@NonNull MoveFrom<K> from, @NonNull MoveTo<K> to, @NonNull Duration timeout) {
 
 		Assert.notNull(from, "Move from must not be null");
 		Assert.notNull(to, "Move to must not be null");
@@ -316,8 +306,8 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	default V move(K sourceKey, Direction from, K destinationKey, Direction to, Duration timeout) {
+	default V move(@NonNull K sourceKey, @NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to,
+			@NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -343,8 +333,8 @@ public interface ListOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	V move(K sourceKey, Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit);
+	V move(@NonNull K sourceKey, @NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to, long timeout,
+			@NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
@@ -354,7 +344,7 @@ public interface ListOperations<K, V> {
 	 * @param value
 	 * @see <a href="https://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
-	void set(K key, long index, V value);
+	void set(@NonNull K key, long index, V value);
 
 	/**
 	 * Removes the first {@code count} occurrences of {@code value} from the list stored at {@code key}.
@@ -365,8 +355,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
-	@Nullable
-	Long remove(K key, long count, Object value);
+	Long remove(@NonNull K key, long count, Object value);
 
 	/**
 	 * Returns the first element from the list at {@code key}.
@@ -375,8 +364,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.4
 	 */
-	@Nullable
-	default V getFirst(K key) {
+	default V getFirst(@NonNull K key) {
 		return index(key, 0);
 	}
 
@@ -387,8 +375,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.4
 	 */
-	@Nullable
-	default V getLast(K key) {
+	default V getLast(@NonNull K key) {
 		return index(key, -1);
 	}
 
@@ -400,8 +387,7 @@ public interface ListOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
-	@Nullable
-	V index(K key, long index);
+	V index(@NonNull K key, long index);
 
 	/**
 	 * Returns the index of the first occurrence of the specified value in the list at at {@code key}. <br />
@@ -413,8 +399,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
-	@Nullable
-	Long indexOf(K key, V value);
+	Long indexOf(@NonNull K key, V value);
 
 	/**
 	 * Returns the index of the last occurrence of the specified value in the list at at {@code key}. <br />
@@ -426,8 +411,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
-	@Nullable
-	Long lastIndexOf(K key, V value);
+	Long lastIndexOf(@NonNull K key, V value);
 
 	/**
 	 * Removes and returns first element in list stored at {@code key}.
@@ -436,8 +420,7 @@ public interface ListOperations<K, V> {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
-	@Nullable
-	V leftPop(K key);
+	V leftPop(@NonNull K key);
 
 	/**
 	 * Removes and returns first {@code} elements in list stored at {@code key}.
@@ -448,8 +431,7 @@ public interface ListOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	List<V> leftPop(K key, long count);
+	List<V> leftPop(@NonNull K key, long count);
 
 	/**
 	 * Removes and returns first element from lists stored at {@code key} . <br>
@@ -461,8 +443,7 @@ public interface ListOperations<K, V> {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
-	@Nullable
-	V leftPop(K key, long timeout, TimeUnit unit);
+	V leftPop(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Removes and returns first element from lists stored at {@code key} . <br>
@@ -475,8 +456,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
-	@Nullable
-	default V leftPop(K key, Duration timeout) {
+	default V leftPop(@NonNull K key, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -491,8 +471,7 @@ public interface ListOperations<K, V> {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
-	@Nullable
-	V rightPop(K key);
+	V rightPop(@NonNull K key);
 
 	/**
 	 * Removes and returns last {@code} elements in list stored at {@code key}.
@@ -503,8 +482,7 @@ public interface ListOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	List<V> rightPop(K key, long count);
+	List<V> rightPop(@NonNull K key, long count);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code key}. <br>
@@ -516,8 +494,7 @@ public interface ListOperations<K, V> {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
-	@Nullable
-	V rightPop(K key, long timeout, TimeUnit unit);
+	V rightPop(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code key}. <br>
@@ -529,8 +506,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
-	@Nullable
-	default V rightPop(K key, Duration timeout) {
+	default V rightPop(@NonNull K key, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -546,8 +522,7 @@ public interface ListOperations<K, V> {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
-	@Nullable
-	V rightPopAndLeftPush(K sourceKey, K destinationKey);
+	V rightPopAndLeftPush(@NonNull K sourceKey, @NonNull K destinationKey);
 
 	/**
 	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its
@@ -561,8 +536,7 @@ public interface ListOperations<K, V> {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
-	@Nullable
-	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);
+	V rightPopAndLeftPush(@NonNull K sourceKey, @NonNull K destinationKey, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Remove the last element from list at {@code sourceKey}, append it to {@code destinationKey} and return its
@@ -577,8 +551,7 @@ public interface ListOperations<K, V> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
-	@Nullable
-	default V rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout) {
+	default V rightPopAndLeftPush(@NonNull K sourceKey, @NonNull K destinationKey, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -586,5 +559,6 @@ public interface ListOperations<K, V> {
 		return rightPopAndLeftPush(sourceKey, destinationKey, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
 	}
 
+	@NonNull
 	RedisOperations<K, V> getOperations();
 }

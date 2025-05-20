@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection.stream;
 
 import java.time.Duration;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -109,13 +109,11 @@ public class StreamReadOptions {
 		return getBlock() != null && getBlock() >= 0;
 	}
 
-	@Nullable
-	public Long getBlock() {
+	public @Nullable Long getBlock() {
 		return block;
 	}
 
-	@Nullable
-	public Long getCount() {
+	public @Nullable Long getCount() {
 		return count;
 	}
 

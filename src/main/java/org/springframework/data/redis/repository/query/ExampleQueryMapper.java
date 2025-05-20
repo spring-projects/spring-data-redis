@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher.MatchMode;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.support.ExampleMatcherAccessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -172,7 +172,7 @@ public class ExampleQueryMapper {
 
 		String keySpace = persistentEntity.getKeySpace();
 		return keySpace == null ? Collections.emptySet()
-				: indexResolver.resolveIndexesFor(persistentEntity.getKeySpace(), path, persistentEntity.getTypeInformation(),
+				: indexResolver.resolveIndexesFor(keySpace, path, persistentEntity.getTypeInformation(),
 						probe);
 	}
 }

@@ -19,8 +19,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -37,7 +38,7 @@ import org.springframework.util.CollectionUtils;
  * @param <T>
  * @since 1.4
  */
-public abstract class ScanCursor<T> implements Cursor<T> {
+public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 
 	private CursorState state;
 	private CursorId id;

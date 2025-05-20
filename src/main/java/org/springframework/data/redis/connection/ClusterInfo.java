@@ -17,8 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.types.RedisClientInfo.INFO;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -60,8 +60,7 @@ public class ClusterInfo {
 	 * @see Info#STATE
 	 * @return {@literal null} if no entry found for requested {@link Info#STATE}.
 	 */
-	@Nullable
-	public String getState() {
+	public @Nullable String getState() {
 		return get(Info.STATE);
 	}
 
@@ -69,8 +68,7 @@ public class ClusterInfo {
 	 * @see Info#SLOTS_ASSIGNED
 	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_ASSIGNED}.
 	 */
-	@Nullable
-	public Long getSlotsAssigned() {
+	public @Nullable Long getSlotsAssigned() {
 		return getLongValueOf(Info.SLOTS_ASSIGNED);
 	}
 
@@ -78,8 +76,7 @@ public class ClusterInfo {
 	 * @see Info#SLOTS_OK
 	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_OK}.
 	 */
-	@Nullable
-	public Long getSlotsOk() {
+	public @Nullable Long getSlotsOk() {
 		return getLongValueOf(Info.SLOTS_OK);
 	}
 
@@ -87,8 +84,7 @@ public class ClusterInfo {
 	 * @see Info#SLOTS_PFAIL
 	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_PFAIL}.
 	 */
-	@Nullable
-	public Long getSlotsPfail() {
+	public @Nullable Long getSlotsPfail() {
 		return getLongValueOf(Info.SLOTS_PFAIL);
 	}
 
@@ -96,8 +92,7 @@ public class ClusterInfo {
 	 * @see Info#SLOTS_FAIL
 	 * @return {@literal null} if no entry found for requested {@link Info#SLOTS_FAIL}.
 	 */
-	@Nullable
-	public Long getSlotsFail() {
+	public @Nullable Long getSlotsFail() {
 		return getLongValueOf(Info.SLOTS_FAIL);
 	}
 
@@ -105,8 +100,7 @@ public class ClusterInfo {
 	 * @see Info#KNOWN_NODES
 	 * @return {@literal null} if no entry found for requested {@link Info#KNOWN_NODES}.
 	 */
-	@Nullable
-	public Long getKnownNodes() {
+	public @Nullable Long getKnownNodes() {
 		return getLongValueOf(Info.KNOWN_NODES);
 	}
 
@@ -114,8 +108,7 @@ public class ClusterInfo {
 	 * @see Info#SIZE
 	 * @return {@literal null} if no entry found for requested {@link Info#SIZE}.
 	 */
-	@Nullable
-	public Long getClusterSize() {
+	public @Nullable Long getClusterSize() {
 		return getLongValueOf(Info.SIZE);
 	}
 
@@ -123,8 +116,7 @@ public class ClusterInfo {
 	 * @see Info#CURRENT_EPOCH
 	 * @return {@literal null} if no entry found for requested {@link Info#CURRENT_EPOCH}.
 	 */
-	@Nullable
-	public Long getCurrentEpoch() {
+	public @Nullable Long getCurrentEpoch() {
 		return getLongValueOf(Info.CURRENT_EPOCH);
 	}
 
@@ -132,8 +124,7 @@ public class ClusterInfo {
 	 * @see Info#MESSAGES_SENT
 	 * @return {@literal null} if no entry found for requested {@link Info#MESSAGES_SENT}.
 	 */
-	@Nullable
-	public Long getMessagesSent() {
+	public @Nullable Long getMessagesSent() {
 		return getLongValueOf(Info.MESSAGES_SENT);
 	}
 
@@ -141,8 +132,7 @@ public class ClusterInfo {
 	 * @see Info#MESSAGES_RECEIVED
 	 * @return {@literal null} if no entry found for requested {@link Info#MESSAGES_RECEIVED}.
 	 */
-	@Nullable
-	public Long getMessagesReceived() {
+	public @Nullable Long getMessagesReceived() {
 		return getLongValueOf(Info.MESSAGES_RECEIVED);
 	}
 
@@ -150,8 +140,7 @@ public class ClusterInfo {
 	 * @param info must not be null
 	 * @return {@literal null} if no entry found for requested {@link INFO}.
 	 */
-	@Nullable
-	public String get(Info info) {
+	public @Nullable String get(Info info) {
 
 		Assert.notNull(info, "Cannot retrieve cluster information for 'null'");
 		return get(info.key);
@@ -161,15 +150,13 @@ public class ClusterInfo {
 	 * @param key must not be {@literal null} or {@literal empty}.
 	 * @return {@literal null} if no entry found for requested {@code key}.
 	 */
-	@Nullable
-	public String get(String key) {
+	public @Nullable String get(String key) {
 
 		Assert.hasText(key, "Cannot get cluster information for 'empty' / 'null' key.");
 		return this.clusterProperties.getProperty(key);
 	}
 
-	@Nullable
-	private Long getLongValueOf(Info info) {
+	private @Nullable Long getLongValueOf(Info info) {
 
 		String value = get(info);
 		return value == null ? null : Long.valueOf(value);

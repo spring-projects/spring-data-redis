@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection.jedis;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.lang.Nullable;
 
 /**
  * Converts the value returned by Jedis script eval to the expected {@link ReturnType}
@@ -35,8 +35,8 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 		this.returnType = returnType;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Object convert(@Nullable Object result) {
+	@SuppressWarnings({ "unchecked", "NullAway" })
+	public @Nullable Object convert(@Nullable Object result) {
 		if (result instanceof String stringResult) {
 			// evalsha converts byte[] to String. Convert back for consistency
 			return JedisConverters.toBytes(stringResult);

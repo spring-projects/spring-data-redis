@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -53,8 +53,7 @@ public class ConvertingCursor<S, T> implements Cursor<T> {
 	}
 
 	@Override
-	@Nullable
-	public T next() {
+	public @Nullable T next() {
 		return converter.convert(delegate.next());
 	}
 

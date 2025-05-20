@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -36,7 +39,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -44,16 +46,17 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceGeoCommands implements RedisGeoCommands {
 
 	private final LettuceConnection connection;
 
-	LettuceGeoCommands(LettuceConnection connection) {
+	LettuceGeoCommands(@NonNull LettuceConnection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public Long geoAdd(byte[] key, Point point, byte[] member) {
+	public Long geoAdd(byte @NonNull [] key, @NonNull Point point, byte @NonNull [] member) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(point, "Point must not be null");
@@ -63,7 +66,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
+	public Long geoAdd(byte @NonNull [] key, @NonNull Map<byte @NonNull [], @NonNull Point> memberCoordinateMap) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null");
@@ -80,7 +83,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
+	public Long geoAdd(byte @NonNull [] key, @NonNull Iterable<@NonNull GeoLocation<byte[]>> locations) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(locations, "Locations must not be null");
@@ -96,18 +99,18 @@ class LettuceGeoCommands implements RedisGeoCommands {
 		return geoAdd(key, values);
 	}
 
-	@Nullable
-	private Long geoAdd(byte[] key, Collection<Object> values) {
+	private @Nullable Long geoAdd(byte @NonNull [] key, @NonNull Collection<@NonNull Object> values) {
 		return connection.invoke().just(it -> it.geoadd(key, values.toArray()));
 	}
 
 	@Override
-	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+	public Distance geoDist(byte @NonNull [] key, byte @NonNull [] member1, byte @NonNull [] member2) {
 		return geoDist(key, member1, member2, DistanceUnit.METERS);
 	}
 
 	@Override
-	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
+	public Distance geoDist(byte @NonNull [] key, byte @NonNull [] member1, byte @NonNull [] member2,
+			@NonNull Metric metric) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member1, "Member1 must not be null");
@@ -122,7 +125,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public List<String> geoHash(byte[] key, byte[]... members) {
+	public List<String> geoHash(byte @NonNull [] key, byte @NonNull [] @NonNull... members) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(members, "Members must not be null");
@@ -133,7 +136,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public List<Point> geoPos(byte[] key, byte[]... members) {
+	public List<Point> geoPos(byte @NonNull [] key, byte @NonNull [] @NonNull... members) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(members, "Members must not be null");
@@ -144,7 +147,7 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte @NonNull [] key, @NonNull Circle within) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(within, "Within must not be null");
@@ -159,7 +162,8 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte @NonNull [] key, @NonNull Circle within,
+			@NonNull GeoRadiusCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(within, "Within must not be null");
@@ -176,12 +180,14 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			double radius) {
 		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			@NonNull Distance radius) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
@@ -196,8 +202,8 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
-			GeoRadiusCommandArgs args) {
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			@NonNull Distance radius, @NonNull GeoRadiusCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
@@ -215,13 +221,13 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoRemove(byte[] key, byte[]... values) {
+	public Long geoRemove(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 		return connection.zSetCommands().zRem(key, values);
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
-			GeoSearchCommandArgs args) {
+	public GeoResults<GeoLocation<byte[]>> geoSearch(byte @NonNull [] key, @NonNull GeoReference<byte[]> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(reference, "Reference must not be null");
@@ -237,8 +243,8 @@ class LettuceGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
-			GeoSearchStoreCommandArgs args) {
+	public Long geoSearchStore(byte @NonNull [] destKey, byte @NonNull [] key, @NonNull GeoReference<byte[]> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchStoreCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(reference, "Reference must not be null");

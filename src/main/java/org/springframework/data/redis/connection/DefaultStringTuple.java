@@ -17,10 +17,10 @@ package org.springframework.data.redis.connection;
 
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**

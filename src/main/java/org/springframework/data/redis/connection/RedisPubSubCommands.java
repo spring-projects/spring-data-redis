@@ -15,7 +15,9 @@
  */
 package org.springframework.data.redis.connection;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * PubSub-specific Redis commands.
@@ -24,6 +26,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@NullUnmarked
 public interface RedisPubSubCommands {
 
 	/**
@@ -49,8 +52,7 @@ public interface RedisPubSubCommands {
 	 * @return the number of clients that received the message or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
-	@Nullable
-	Long publish(byte[] channel, byte[] message);
+	Long publish(byte @NonNull [] channel, byte @NonNull [] message);
 
 	/**
 	 * Subscribes the connection to the given channels. Once subscribed, a connection enters listening mode and can only
@@ -62,7 +64,7 @@ public interface RedisPubSubCommands {
 	 * @param channels channel names, must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
 	 */
-	void subscribe(MessageListener listener, byte[]... channels);
+	void subscribe(@NonNull MessageListener listener, byte @NonNull [] @NonNull... channels);
 
 	/**
 	 * Subscribes the connection to all channels matching the given patterns. Once subscribed, a connection enters
@@ -75,5 +77,5 @@ public interface RedisPubSubCommands {
 	 * @param patterns channel name patterns, must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
 	 */
-	void pSubscribe(MessageListener listener, byte[]... patterns);
+	void pSubscribe(@NonNull MessageListener listener, byte @NonNull [] @NonNull... patterns);
 }

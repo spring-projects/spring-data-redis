@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
@@ -43,7 +44,6 @@ import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.lang.Nullable;
 
 /**
  * Parameters for testing implementations of {@link ReactiveRedisTemplate}
@@ -170,8 +170,7 @@ abstract public class ReactiveOperationsTestParams {
 			return valueFactory;
 		}
 
-		@Nullable
-		public RedisSerializer getSerializer() {
+		public @Nullable RedisSerializer getSerializer() {
 			return serializer;
 		}
 

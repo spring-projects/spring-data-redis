@@ -17,6 +17,7 @@ package org.springframework.data.redis;
 
 import java.io.Serial;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataRetrievalFailureException;
 
 /**
@@ -44,7 +45,7 @@ public class ClusterRedirectException extends DataRetrievalFailureException {
 	 * @param targetPort the port on the host.
 	 * @param e the root cause from the data access API in use.
 	 */
-	public ClusterRedirectException(int slot, String targetHost, int targetPort, Throwable e) {
+	public ClusterRedirectException(int slot, String targetHost, int targetPort, @Nullable Throwable e) {
 
 		super("Redirect: slot %s to %s:%s.".formatted(slot, targetHost, targetPort), e);
 

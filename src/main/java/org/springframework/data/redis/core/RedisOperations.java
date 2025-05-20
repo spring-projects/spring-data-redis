@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -34,7 +36,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -51,6 +52,7 @@ import org.springframework.util.Assert;
  * @author Vedran Pavic
  * @author Marcin Grzejszczak
  */
+@NullUnmarked
 public interface RedisOperations<K, V> {
 
 	/**
@@ -66,8 +68,7 @@ public interface RedisOperations<K, V> {
 	 * @param action callback object that specifies the Redis action. Must not be {@literal null}.
 	 * @return result of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation.
 	 */
-	@Nullable
-	<T> T execute(RedisCallback<T> action);
+	<T> T execute(@NonNull RedisCallback<T> action);
 
 	/**
 	 * Executes a Redis session. Allows multiple operations to be executed in the same session enabling 'transactional'
@@ -77,8 +78,7 @@ public interface RedisOperations<K, V> {
 	 * @param session session callback. Must not be {@literal null}.
 	 * @return result of the given {@link SessionCallback#execute(RedisOperations)} invocation.
 	 */
-	@Nullable
-	<T> T execute(SessionCallback<T> session);
+	<T> T execute(@NonNull SessionCallback<T> session);
 
 	/**
 	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback
@@ -90,7 +90,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
 	 *         return {@literal null}.
 	 */
-	List<Object> executePipelined(RedisCallback<?> action);
+	List<Object> executePipelined(@NonNull RedisCallback<?> action);
 
 	/**
 	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
@@ -103,7 +103,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
 	 *         return {@literal null}.
 	 */
-	List<Object> executePipelined(RedisCallback<?> action, RedisSerializer<?> resultSerializer);
+	List<Object> executePipelined(@NonNull RedisCallback<?> action, @NonNull RedisSerializer<?> resultSerializer);
 
 	/**
 	 * Executes the given Redis session on a pipelined connection. Allows transactions to be pipelined. Note that the
@@ -114,7 +114,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
 	 *         return {@literal null}.
 	 */
-	List<Object> executePipelined(SessionCallback<?> session);
+	List<Object> executePipelined(@NonNull SessionCallback<?> session);
 
 	/**
 	 * Executes the given Redis session on a pipelined connection, returning the results using a dedicated serializer.
@@ -127,7 +127,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
 	 *         return {@literal null}.
 	 */
-	List<Object> executePipelined(SessionCallback<?> session, RedisSerializer<?> resultSerializer);
+	List<Object> executePipelined(@NonNull SessionCallback<?> session, @NonNull RedisSerializer<?> resultSerializer);
 
 	/**
 	 * Executes the given {@link RedisScript}
@@ -138,8 +138,7 @@ public interface RedisOperations<K, V> {
 	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
 	 *         throw-away status reply (i.e. "OK")
 	 */
-	@Nullable
-	<T> T execute(RedisScript<T> script, List<K> keys, Object... args);
+	<T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args);
 
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
@@ -153,9 +152,8 @@ public interface RedisOperations<K, V> {
 	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
 	 *         throw-away status reply (i.e. "OK")
 	 */
-	@Nullable
-	<T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
-			List<K> keys, Object... args);
+	<T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args);
 
 	/**
 	 * Allocates and binds a new {@link RedisConnection} to the actual return type of the method. It is up to the caller
@@ -165,8 +163,7 @@ public interface RedisOperations<K, V> {
 	 * @return the {@link Object result} of the operation performed in the callback or {@literal null}.
 	 * @since 1.8
 	 */
-	@Nullable
-	<T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback);
+	<T extends Closeable> T executeWithStickyConnection(@NonNull RedisCallback<T> callback);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Keys
@@ -182,8 +179,7 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/copy">Redis Documentation: COPY</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	Boolean copy(K sourceKey, K targetKey, boolean replace);
+	Boolean copy(@NonNull K sourceKey, @NonNull K targetKey, boolean replace);
 
 	/**
 	 * Determine if given {@code key} exists.
@@ -192,8 +188,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal true} if key exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
-	@Nullable
-	Boolean hasKey(K key);
+	Boolean hasKey(@NonNull K key);
 
 	/**
 	 * Count the number of {@code keys} that exist.
@@ -204,8 +199,7 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Long countExistingKeys(Collection<K> keys);
+	Long countExistingKeys(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Delete given {@code key}.
@@ -214,8 +208,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal true} if the key was removed.
 	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
-	@Nullable
-	Boolean delete(K key);
+	Boolean delete(@NonNull K key);
 
 	/**
 	 * Delete given {@code keys}.
@@ -224,8 +217,7 @@ public interface RedisOperations<K, V> {
 	 * @return The number of keys that were removed. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
-	@Nullable
-	Long delete(Collection<K> keys);
+	Long delete(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Unlink the {@code key} from the keyspace. Unlike with {@link #delete(Object)} the actual memory reclaiming here
@@ -236,8 +228,7 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Boolean unlink(K key);
+	Boolean unlink(@NonNull K key);
 
 	/**
 	 * Unlink the {@code keys} from the keyspace. Unlike with {@link #delete(Collection)} the actual memory reclaiming
@@ -248,8 +239,7 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/unlink">Redis Documentation: UNLINK</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Long unlink(Collection<K> keys);
+	Long unlink(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Determine the type stored at {@code key}.
@@ -258,8 +248,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
-	@Nullable
-	DataType type(K key);
+	DataType type(@NonNull K key);
 
 	/**
 	 * Find all keys matching the given {@code pattern}.
@@ -268,8 +257,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
-	@Nullable
-	Set<K> keys(K pattern);
+	Set<@NonNull K> keys(@NonNull K pattern);
 
 	/**
 	 * Use a {@link Cursor} to iterate over keys. <br />
@@ -281,7 +269,7 @@ public interface RedisOperations<K, V> {
 	 * @since 2.7
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
-	Cursor<K> scan(ScanOptions options);
+	Cursor<@NonNull K> scan(@NonNull ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.
@@ -289,7 +277,6 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} no keys exist or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
-	@Nullable
 	K randomKey();
 
 	/**
@@ -299,7 +286,7 @@ public interface RedisOperations<K, V> {
 	 * @param newKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
-	void rename(K oldKey, K newKey);
+	void rename(@NonNull K oldKey, @NonNull K newKey);
 
 	/**
 	 * Rename key {@code oldKey} to {@code newKey} only if {@code newKey} does not exist.
@@ -309,8 +296,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
-	@Nullable
-	Boolean renameIfAbsent(K oldKey, K newKey);
+	Boolean renameIfAbsent(@NonNull K oldKey, @NonNull K newKey);
 
 	/**
 	 * Set time to live for given {@code key}.
@@ -320,8 +306,7 @@ public interface RedisOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean expire(K key, long timeout, TimeUnit unit);
+	Boolean expire(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set time to live for given {@code key}.
@@ -332,8 +317,7 @@ public interface RedisOperations<K, V> {
 	 * @throws IllegalArgumentException if the timeout is {@literal null}.
 	 * @since 2.3
 	 */
-	@Nullable
-	default Boolean expire(K key, Duration timeout) {
+	default Boolean expire(@NonNull K key, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -348,8 +332,7 @@ public interface RedisOperations<K, V> {
 	 * @param date must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean expireAt(K key, Date date);
+	Boolean expireAt(@NonNull K key, @NonNull Date date);
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal date} timestamp.
@@ -360,8 +343,7 @@ public interface RedisOperations<K, V> {
 	 * @throws IllegalArgumentException if the instant is {@literal null} or too large to represent as a {@code Date}.
 	 * @since 2.3
 	 */
-	@Nullable
-	default Boolean expireAt(K key, Instant expireAt) {
+	default Boolean expireAt(@NonNull K key, @NonNull Instant expireAt) {
 
 		Assert.notNull(expireAt, "Timestamp must not be null");
 
@@ -383,8 +365,8 @@ public interface RedisOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 * @since 3.5
 	 */
-	@Nullable
-	ExpireChanges.ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options);
+	ExpireChanges.ExpiryChangeState expire(@NonNull K key, @NonNull Expiration expiration,
+			@NonNull ExpirationOptions options);
 
 	/**
 	 * Returns a bound operations object to perform expiration operations on the bound key.
@@ -392,7 +374,7 @@ public interface RedisOperations<K, V> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundKeyExpirationOperations expiration(K key) {
+	default @NonNull BoundKeyExpirationOperations expiration(@NonNull K key) {
 		return new DefaultBoundKeyExpirationOperations<>(this, key);
 	}
 
@@ -403,8 +385,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@code true} when persisted successfully or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/persist">Redis Documentation: PERSIST</a>
 	 */
-	@Nullable
-	Boolean persist(K key);
+	Boolean persist(@NonNull K key);
 
 	/**
 	 * Get the time to live for {@code key} in seconds.
@@ -413,8 +394,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/ttl">Redis Documentation: TTL</a>
 	 */
-	@Nullable
-	Long getExpire(K key);
+	Long getExpire(@NonNull K key);
 
 	/**
 	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
@@ -424,8 +404,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.8
 	 */
-	@Nullable
-	Long getExpire(K key, TimeUnit timeUnit);
+	Long getExpire(@NonNull K key, @NonNull TimeUnit timeUnit);
 
 	/**
 	 * Move given {@code key} to database with {@code index}.
@@ -435,8 +414,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/move">Redis Documentation: MOVE</a>
 	 */
-	@Nullable
-	Boolean move(K key, int dbIndex);
+	Boolean move(@NonNull K key, int dbIndex);
 
 	/**
 	 * Retrieve serialized version of the value stored at {@code key}.
@@ -445,8 +423,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/dump">Redis Documentation: DUMP</a>
 	 */
-	@Nullable
-	byte[] dump(K key);
+	byte[] dump(@NonNull K key);
 
 	/**
 	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.
@@ -457,7 +434,7 @@ public interface RedisOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
-	default void restore(K key, byte[] value, long timeToLive, TimeUnit unit) {
+	default void restore(@NonNull K key, byte @NonNull [] value, long timeToLive, @NonNull TimeUnit unit) {
 		restore(key, value, timeToLive, unit, false);
 	}
 
@@ -472,7 +449,7 @@ public interface RedisOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/restore">Redis Documentation: RESTORE</a>
 	 */
-	void restore(K key, byte[] value, long timeToLive, TimeUnit unit, boolean replace);
+	void restore(@NonNull K key, byte @NonNull [] value, long timeToLive, @NonNull TimeUnit unit, boolean replace);
 
 	/**
 	 * Sort the elements for {@code query}.
@@ -481,8 +458,7 @@ public interface RedisOperations<K, V> {
 	 * @return the results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	@Nullable
-	List<V> sort(SortQuery<K> query);
+	List<V> sort(@NonNull SortQuery<@NonNull K> query);
 
 	/**
 	 * Sort the elements for {@code query} applying {@link RedisSerializer}.
@@ -491,8 +467,7 @@ public interface RedisOperations<K, V> {
 	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	@Nullable
-	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
+	<T> List<T> sort(@NonNull SortQuery<@NonNull K> query, @NonNull RedisSerializer<T> resultSerializer);
 
 	/**
 	 * Sort the elements for {@code query} applying {@link BulkMapper}.
@@ -501,8 +476,7 @@ public interface RedisOperations<K, V> {
 	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	@Nullable
-	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
+	<T> List<T> sort(@NonNull SortQuery<@NonNull K> query, @NonNull BulkMapper<T, V> bulkMapper);
 
 	/**
 	 * Sort the elements for {@code query} applying {@link BulkMapper} and {@link RedisSerializer}.
@@ -511,8 +485,8 @@ public interface RedisOperations<K, V> {
 	 * @return the deserialized results of sort. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	@Nullable
-	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
+	<T, S> List<T> sort(SortQuery<@NonNull K> query, @NonNull BulkMapper<T, S> bulkMapper,
+			@NonNull RedisSerializer<S> resultSerializer);
 
 	/**
 	 * Sort the elements for {@code query} and store result in {@code storeKey}.
@@ -522,8 +496,7 @@ public interface RedisOperations<K, V> {
 	 * @return number of values. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	@Nullable
-	Long sort(SortQuery<K> query, K storeKey);
+	Long sort(@NonNull SortQuery<@NonNull K> query, @NonNull K storeKey);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Transactions
@@ -535,7 +508,7 @@ public interface RedisOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/watch">Redis Documentation: WATCH</a>
 	 */
-	void watch(K key);
+	void watch(@NonNull K key);
 
 	/**
 	 * Watch given {@code keys} for modifications during transaction started with {@link #multi()}.
@@ -543,7 +516,7 @@ public interface RedisOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/watch">Redis Documentation: WATCH</a>
 	 */
-	void watch(Collection<K> keys);
+	void watch(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Flushes all the previously {@link #watch(Object)} keys.
@@ -585,7 +558,7 @@ public interface RedisOperations<K, V> {
 	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results of transaction exec
 	 * @return The deserialized results of transaction exec
 	 */
-	List<Object> exec(RedisSerializer<?> valueSerializer);
+	List<Object> exec(@NonNull RedisSerializer<?> valueSerializer);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Server Commands
@@ -597,8 +570,7 @@ public interface RedisOperations<K, V> {
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
 	 */
-	@Nullable
-	List<RedisClientInfo> getClientList();
+	List<@NonNull RedisClientInfo> getClientList();
 
 	/**
 	 * Closes a given client connection identified by {@literal ip:port} given in {@code client}.
@@ -607,7 +579,7 @@ public interface RedisOperations<K, V> {
 	 * @param port of connection to close
 	 * @since 1.3
 	 */
-	void killClient(String host, int port);
+	void killClient(@NonNull String host, int port);
 
 	/**
 	 * Change redis replication setting to new master.
@@ -617,7 +589,7 @@ public interface RedisOperations<K, V> {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/replicaof">Redis Documentation: REPLICAOF</a>
 	 */
-	void replicaOf(String host, int port);
+	void replicaOf(@NonNull String host, int port);
 
 	/**
 	 * Change server into master.
@@ -635,8 +607,7 @@ public interface RedisOperations<K, V> {
 	 * @return the number of clients that received the message. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
-	@Nullable
-	Long convertAndSend(String destination, Object message);
+	Long convertAndSend(@NonNull String destination, @NonNull Object message);
 
 	// -------------------------------------------------------------------------
 	// Methods to obtain specific operations interface objects.
@@ -650,6 +621,7 @@ public interface RedisOperations<K, V> {
 	 * @return never {@literal null}.
 	 * @since 1.7
 	 */
+	@NonNull
 	ClusterOperations<K, V> opsForCluster();
 
 	/**
@@ -658,6 +630,7 @@ public interface RedisOperations<K, V> {
 	 * @return never {@literal null}.
 	 * @since 1.8
 	 */
+	@NonNull
 	GeoOperations<K, V> opsForGeo();
 
 	/**
@@ -667,7 +640,8 @@ public interface RedisOperations<K, V> {
 	 * @return never {@literal null}.
 	 * @since 1.8
 	 */
-	BoundGeoOperations<K, V> boundGeoOps(K key);
+	@NonNull
+	BoundGeoOperations<K, V> boundGeoOps(@NonNull K key);
 
 	/**
 	 * Returns the operations performed on hash values.
@@ -676,7 +650,7 @@ public interface RedisOperations<K, V> {
 	 * @param <HV> hash value type
 	 * @return hash operations
 	 */
-	<HK, HV> HashOperations<K, HK, HV> opsForHash();
+	<HK, HV> @NonNull HashOperations<K, HK, HV> opsForHash();
 
 	/**
 	 * Returns the operations performed on hash values bound to the given key.
@@ -686,12 +660,13 @@ public interface RedisOperations<K, V> {
 	 * @param key Redis key
 	 * @return hash operations bound to the given key.
 	 */
-	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
+	<HK, HV> @NonNull BoundHashOperations<K, HK, HV> boundHashOps(@NonNull K key);
 
 	/**
 	 * @return never {@literal null}.
 	 * @since 1.5
 	 */
+	@NonNull
 	HyperLogLogOperations<K, V> opsForHyperLogLog();
 
 	/**
@@ -699,6 +674,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @return list operations
 	 */
+	@NonNull
 	ListOperations<K, V> opsForList();
 
 	/**
@@ -707,6 +683,7 @@ public interface RedisOperations<K, V> {
 	 * @param key Redis key
 	 * @return list operations bound to the given key
 	 */
+	@NonNull
 	BoundListOperations<K, V> boundListOps(K key);
 
 	/**
@@ -714,6 +691,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @return set operations
 	 */
+	@NonNull
 	SetOperations<K, V> opsForSet();
 
 	/**
@@ -722,7 +700,8 @@ public interface RedisOperations<K, V> {
 	 * @param key Redis key
 	 * @return set operations bound to the given key
 	 */
-	BoundSetOperations<K, V> boundSetOps(K key);
+	@NonNull
+	BoundSetOperations<K, V> boundSetOps(@NonNull K key);
 
 	/**
 	 * Returns the operations performed on Streams.
@@ -730,7 +709,7 @@ public interface RedisOperations<K, V> {
 	 * @return stream operations.
 	 * @since 2.2
 	 */
-	<HK, HV> StreamOperations<K, HK, HV> opsForStream();
+	<HK, HV> @NonNull StreamOperations<K, HK, HV> opsForStream();
 
 	/**
 	 * Returns the operations performed on Streams.
@@ -739,7 +718,8 @@ public interface RedisOperations<K, V> {
 	 * @return stream operations.
 	 * @since 2.2
 	 */
-	<HK, HV> StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper);
+	<HK, HV> @NonNull StreamOperations<K, HK, HV> opsForStream(
+			@NonNull HashMapper<? super K, ? super HK, ? super HV> hashMapper);
 
 	/**
 	 * Returns the operations performed on Streams bound to the given key.
@@ -747,13 +727,14 @@ public interface RedisOperations<K, V> {
 	 * @return stream operations.
 	 * @since 2.2
 	 */
-	<HK, HV> BoundStreamOperations<K, HK, HV> boundStreamOps(K key);
+	<HK, HV> @NonNull BoundStreamOperations<K, HK, HV> boundStreamOps(@NonNull K key);
 
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology).
 	 *
 	 * @return value operations
 	 */
+	@NonNull
 	ValueOperations<K, V> opsForValue();
 
 	/**
@@ -762,13 +743,15 @@ public interface RedisOperations<K, V> {
 	 * @param key Redis key
 	 * @return value operations bound to the given key
 	 */
-	BoundValueOperations<K, V> boundValueOps(K key);
+	@NonNull
+	BoundValueOperations<K, V> boundValueOps(@NonNull K key);
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
 	 *
 	 * @return zset operations
 	 */
+	@NonNull
 	ZSetOperations<K, V> opsForZSet();
 
 	/**
@@ -777,26 +760,31 @@ public interface RedisOperations<K, V> {
 	 * @param key Redis key
 	 * @return zset operations bound to the given key.
 	 */
-	BoundZSetOperations<K, V> boundZSetOps(K key);
+	@NonNull
+	BoundZSetOperations<K, V> boundZSetOps(@NonNull K key);
 
 	/**
 	 * @return the key {@link RedisSerializer}.
 	 */
+	@NonNull
 	RedisSerializer<?> getKeySerializer();
 
 	/**
 	 * @return the value {@link RedisSerializer}.
 	 */
+	@NonNull
 	RedisSerializer<?> getValueSerializer();
 
 	/**
 	 * @return the hash key {@link RedisSerializer}.
 	 */
+	@NonNull
 	RedisSerializer<?> getHashKeySerializer();
 
 	/**
 	 * @return the hash value {@link RedisSerializer}.
 	 */
+	@NonNull
 	RedisSerializer<?> getHashValueSerializer();
 
 }

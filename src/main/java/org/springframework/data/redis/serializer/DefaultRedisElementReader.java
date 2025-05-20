@@ -17,8 +17,8 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Default implementation of {@link RedisElementReader}.
@@ -37,7 +37,7 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public T read(ByteBuffer buffer) {
+	public @Nullable T read(ByteBuffer buffer) {
 
 		if (serializer == null) {
 			return (T) buffer;

@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 
 /**
@@ -37,6 +39,7 @@ import org.springframework.dao.DataAccessException;
  * @author James Howe
  * @author John Blum
  */
+@NullUnmarked
 public interface RedisConnection extends RedisCommandsProvider, DefaultedRedisConnection, AutoCloseable {
 
 	/**
@@ -102,7 +105,7 @@ public interface RedisConnection extends RedisCommandsProvider, DefaultedRedisCo
 	 * @throws RedisPipelineException if the pipeline contains any incorrect/invalid statements
 	 * @return the result of the executed commands.
 	 */
-	List<Object> closePipeline() throws RedisPipelineException;
+	List<@Nullable Object> closePipeline() throws RedisPipelineException;
 
 	/**
 	 * @return the {@link RedisSentinelConnection} when using Redis Sentinel.

@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
@@ -33,14 +35,15 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author dengliming
  */
+@NullUnmarked
 class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
-	DefaultListOperations(RedisTemplate<K, V> template) {
+	DefaultListOperations(@NonNull RedisTemplate<K, V> template) {
 		super(template);
 	}
 
 	@Override
-	public V index(K key, long index) {
+	public V index(@NonNull K key, long index) {
 
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -52,7 +55,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long indexOf(K key, V value) {
+	public Long indexOf(@NonNull K key, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -60,7 +63,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long lastIndexOf(K key, V value) {
+	public Long lastIndexOf(@NonNull K key, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -72,7 +75,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public V leftPop(K key) {
+	public V leftPop(@NonNull K key) {
 
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -84,13 +87,13 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public List<V> leftPop(K key, long count) {
+	public List<V> leftPop(@NonNull K key, long count) {
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> deserializeValues(connection.lPop(rawKey, count)));
 	}
 
 	@Override
-	public V leftPop(K key, long timeout, TimeUnit unit) {
+	public V leftPop(@NonNull K key, long timeout, @NonNull TimeUnit unit) {
 
 		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 		return execute(new ValueDeserializingRedisCallback(key) {
@@ -104,7 +107,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long leftPush(K key, V value) {
+	public Long leftPush(@NonNull K key, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -112,7 +115,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long leftPushAll(K key, V... values) {
+	public Long leftPushAll(@NonNull K key, V @NonNull... values) {
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
@@ -120,7 +123,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long leftPushAll(K key, Collection<V> values) {
+	public Long leftPushAll(@NonNull K key, @NonNull Collection<V> values) {
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
@@ -129,7 +132,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long leftPushIfPresent(K key, V value) {
+	public Long leftPushIfPresent(@NonNull K key, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -137,7 +140,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long leftPush(K key, V pivot, V value) {
+	public Long leftPush(@NonNull K key, @NonNull V pivot, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawPivot = rawValue(pivot);
@@ -146,21 +149,21 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long size(K key) {
+	public Long size(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.lLen(rawKey));
 	}
 
 	@Override
-	public List<V> range(K key, long start, long end) {
+	public List<V> range(@NonNull K key, long start, long end) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> deserializeValues(connection.lRange(rawKey, start, end)));
 	}
 
 	@Override
-	public Long remove(K key, long count, Object value) {
+	public Long remove(@NonNull K key, long count, Object value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -168,7 +171,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public V rightPop(K key) {
+	public V rightPop(@NonNull K key) {
 
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -180,13 +183,13 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public List<V> rightPop(K key, long count) {
+	public List<V> rightPop(@NonNull K key, long count) {
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> deserializeValues(connection.rPop(rawKey, count)));
 	}
 
 	@Override
-	public V rightPop(K key, long timeout, TimeUnit unit) {
+	public V rightPop(@NonNull K key, long timeout, @NonNull TimeUnit unit) {
 
 		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 
@@ -201,7 +204,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long rightPush(K key, V value) {
+	public Long rightPush(@NonNull K key, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -209,7 +212,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long rightPushAll(K key, V... values) {
+	public Long rightPushAll(@NonNull K key, V @NonNull... values) {
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
@@ -217,7 +220,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long rightPushAll(K key, Collection<V> values) {
+	public Long rightPushAll(@NonNull K key, @NonNull Collection<V> values) {
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawValues = rawValues(values);
@@ -225,7 +228,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long rightPushIfPresent(K key, V value) {
+	public Long rightPushIfPresent(@NonNull K key, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawValue = rawValue(value);
@@ -233,7 +236,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public Long rightPush(K key, V pivot, V value) {
+	public Long rightPush(@NonNull K key, @NonNull V pivot, V value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawPivot = rawValue(pivot);
@@ -242,7 +245,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public V rightPopAndLeftPush(K sourceKey, K destinationKey) {
+	public V rightPopAndLeftPush(@NonNull K sourceKey, @NonNull K destinationKey) {
 
 		byte[] rawDestKey = rawKey(destinationKey);
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
@@ -255,7 +258,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit) {
+	public V rightPopAndLeftPush(@NonNull K sourceKey, @NonNull K destinationKey, long timeout, @NonNull TimeUnit unit) {
 
 		int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 		byte[] rawDestKey = rawKey(destinationKey);
@@ -269,7 +272,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public V move(K sourceKey, Direction from, K destinationKey, Direction to) {
+	public V move(@NonNull K sourceKey, @NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to) {
 
 		byte[] rawDestKey = rawKey(destinationKey);
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
@@ -282,7 +285,8 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public V move(K sourceKey, Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit) {
+	public V move(@NonNull K sourceKey, @NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to,
+			long timeout, @NonNull TimeUnit unit) {
 
 		byte[] rawDestKey = rawKey(destinationKey);
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
@@ -295,7 +299,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public void set(K key, long index, V value) {
+	public void set(@NonNull K key, long index, V value) {
 
 		byte[] rawValue = rawValue(value);
 		execute(new ValueDeserializingRedisCallback(key) {
@@ -309,7 +313,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	}
 
 	@Override
-	public void trim(K key, long start, long end) {
+	public void trim(@NonNull K key, long start, long end) {
 
 		execute(new ValueDeserializingRedisCallback(key) {
 

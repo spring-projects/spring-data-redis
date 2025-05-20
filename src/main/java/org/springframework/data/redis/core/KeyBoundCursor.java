@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Christoph Strobl

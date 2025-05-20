@@ -18,7 +18,8 @@ package org.springframework.data.redis.core;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.util.Assert;
 
 /**
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Marcin Grzejszczak
  */
+@NullUnmarked
 public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 	/**
@@ -38,7 +40,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param value must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	void set(V value);
+	void set(@NonNull V value);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for the bound key.
@@ -48,7 +50,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
-	void set(V value, long timeout, TimeUnit unit);
+	void set(@NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for the bound key. Return the old string stored at key, or
@@ -62,7 +64,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	V setGet(V value, long timeout, TimeUnit unit);
+	V setGet(@NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for the bound key. Return the old string stored at key, or
@@ -75,7 +77,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	V setGet(V value, Duration duration);
+	V setGet(@NonNull V value, @NonNull Duration duration);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for the bound key.
@@ -86,7 +88,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 * @since 2.1
 	 */
-	default void set(V value, Duration timeout) {
+	default void set(@NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -104,8 +106,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
-	@Nullable
-	Boolean setIfAbsent(V value);
+	Boolean setIfAbsent(@NonNull V value);
 
 	/**
 	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is absent.
@@ -117,8 +118,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	@Nullable
-	Boolean setIfAbsent(V value, long timeout, TimeUnit unit);
+	Boolean setIfAbsent(@NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is absent.
@@ -130,8 +130,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Boolean setIfAbsent(V value, Duration timeout) {
+	default Boolean setIfAbsent(@NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -151,8 +150,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Boolean setIfPresent(V value);
+	Boolean setIfPresent(@NonNull V value);
 
 	/**
 	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
@@ -165,8 +163,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Boolean setIfPresent(V value, long timeout, TimeUnit unit);
+	Boolean setIfPresent(@NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set the bound key to hold the string {@code value} and expiration {@code timeout} if the bound key is present.
@@ -178,8 +175,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	default Boolean setIfPresent(V value, Duration timeout) {
+	default Boolean setIfPresent(@NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -196,7 +192,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
-	@Nullable
 	V get();
 
 	/**
@@ -206,7 +201,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	V getAndDelete();
 
 	/**
@@ -218,8 +212,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	V getAndExpire(long timeout, TimeUnit unit);
+	V getAndExpire(long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Return the value at the bound key and expire the key by applying {@code timeout}.
@@ -229,8 +222,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	V getAndExpire(Duration timeout);
+	V getAndExpire(@NonNull Duration timeout);
 
 	/**
 	 * Return the value at the bound key and persist the key. This operation removes any TTL that is associated with the
@@ -240,7 +232,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	V getAndPersist();
 
 	/**
@@ -249,8 +240,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
-	@Nullable
-	V getAndSet(V value);
+	V getAndSet(@NonNull V value);
 
 	/**
 	 * Increment an integer value stored as string value under the bound key by one.
@@ -259,7 +249,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
-	@Nullable
 	Long increment();
 
 	/**
@@ -269,7 +258,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
-	@Nullable
 	Long increment(long delta);
 
 	/**
@@ -279,7 +267,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
-	@Nullable
 	Double increment(double delta);
 
 	/**
@@ -289,7 +276,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
-	@Nullable
 	Long decrement();
 
 	/**
@@ -300,7 +286,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
-	@Nullable
 	Long decrement(long delta);
 
 	/**
@@ -310,8 +295,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
-	@Nullable
-	Integer append(String value);
+	Integer append(@NonNull String value);
 
 	/**
 	 * Get a substring of value of the bound key between {@code begin} and {@code end}.
@@ -321,7 +305,6 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
-	@Nullable
 	String get(long start, long end);
 
 	/**
@@ -331,7 +314,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param offset
 	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
-	void set(V value, long offset);
+	void set(@NonNull V value, long offset);
 
 	/**
 	 * Get the length of the value stored at the bound key.
@@ -339,11 +322,11 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
-	@Nullable
 	Long size();
 
 	/**
 	 * @return never {@literal null}.
 	 */
+	@NonNull
 	RedisOperations<K, V> getOperations();
 }

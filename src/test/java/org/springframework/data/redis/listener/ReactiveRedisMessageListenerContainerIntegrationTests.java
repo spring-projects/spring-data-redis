@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.awaitility.Awaitility;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -53,7 +54,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
-import org.springframework.lang.Nullable;
 
 /**
  * Integration tests for {@link ReactiveRedisMessageListenerContainer} via Lettuce.
@@ -133,7 +133,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, @Nullable byte[] pattern) {
+			public void onMessage(Message message, byte @Nullable[] pattern) {
 
 			}
 
@@ -200,7 +200,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, @Nullable byte[] pattern) {
+			public void onMessage(Message message, byte @Nullable[] pattern) {
 
 			}
 

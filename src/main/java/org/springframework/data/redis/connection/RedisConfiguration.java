@@ -21,7 +21,8 @@ import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
 /**
@@ -68,6 +69,7 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithPassword}.
 	 */
+	@Contract("null -> false")
 	static boolean isAuthenticationAware(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof WithAuthentication;
 	}
@@ -76,6 +78,7 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithDatabaseIndex}.
 	 */
+	@Contract("null -> false")
 	static boolean isDatabaseIndexAware(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof WithDatabaseIndex;
 	}
@@ -84,6 +87,7 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link SentinelConfiguration}.
 	 */
+	@Contract("null -> false")
 	static boolean isSentinelConfiguration(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof SentinelConfiguration;
 	}
@@ -93,6 +97,7 @@ public interface RedisConfiguration {
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithHostAndPort}.
 	 * @since 2.1.6
 	 */
+	@Contract("null -> false")
 	static boolean isHostAndPortAware(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof WithHostAndPort;
 	}
@@ -101,6 +106,7 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link ClusterConfiguration}.
 	 */
+	@Contract("null -> false")
 	static boolean isClusterConfiguration(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof ClusterConfiguration;
 	}
@@ -109,6 +115,7 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link StaticMasterReplicaConfiguration}.
 	 */
+	@Contract("null -> false")
 	static boolean isStaticMasterReplicaConfiguration(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof StaticMasterReplicaConfiguration;
 	}
@@ -117,6 +124,7 @@ public interface RedisConfiguration {
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link DomainSocketConfiguration}.
 	 */
+	@Contract("null -> false")
 	static boolean isDomainSocketConfiguration(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof DomainSocketConfiguration;
 	}
@@ -141,8 +149,7 @@ public interface RedisConfiguration {
 	 * @return can be {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
 	 */
-	@Nullable
-	static String getUsernameOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
+	static @Nullable String getUsernameOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
 
 		Assert.notNull(other, "Other must not be null");
 		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getUsername() : other.get();
@@ -227,7 +234,7 @@ public interface RedisConfiguration {
 		 *
 		 * @param password can be {@literal null}.
 		 */
-		default void setPassword(@Nullable char[] password) {
+		default void setPassword(char @Nullable[] password) {
 			setPassword(RedisPassword.of(password));
 		}
 
@@ -418,8 +425,7 @@ public interface RedisConfiguration {
 		 * @return can be {@literal null} if not set.
 		 * @since 2.4
 		 */
-		@Nullable
-		default String getDataNodeUsername() {
+		default @Nullable String getDataNodeUsername() {
 			return getUsername();
 		}
 
@@ -468,7 +474,7 @@ public interface RedisConfiguration {
 		 * @param password can be {@literal null}.
 		 * @since 2.2.2
 		 */
-		default void setSentinelPassword(@Nullable char[] password) {
+		default void setSentinelPassword(char @Nullable[] password) {
 			setSentinelPassword(RedisPassword.of(password));
 		}
 

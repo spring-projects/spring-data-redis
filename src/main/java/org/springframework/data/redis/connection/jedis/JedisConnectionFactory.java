@@ -43,6 +43,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -58,7 +59,6 @@ import org.springframework.data.redis.connection.RedisConfiguration.SentinelConf
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisClusterTopologyProvider;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -247,7 +247,7 @@ public class JedisConnectionFactory
 	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
 	 * @since 1.4
 	 */
-	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+	public JedisConnectionFactory(@Nullable RedisSentinelConfiguration sentinelConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
 		this.configuration = sentinelConfiguration;
@@ -353,13 +353,11 @@ public class JedisConnectionFactory
 	 *
 	 * @return password for authentication.
 	 */
-	@Nullable
-	public String getPassword() {
+	public @Nullable String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
 	}
 
-	@Nullable
-	private String getRedisUsername() {
+	private @Nullable String getRedisUsername() {
 		return RedisConfiguration.getUsernameOrElse(this.configuration, standaloneConfig::getUsername);
 	}
 
@@ -466,8 +464,7 @@ public class JedisConnectionFactory
 	 *
 	 * @return the poolConfig
 	 */
-	@Nullable
-	public <T> GenericObjectPoolConfig<T> getPoolConfig() {
+	public <T> @Nullable GenericObjectPoolConfig<T> getPoolConfig() {
 		return clientConfiguration.getPoolConfig().orElse(null);
 	}
 
@@ -519,8 +516,7 @@ public class JedisConnectionFactory
 	 * @return the client name.
 	 * @since 1.8
 	 */
-	@Nullable
-	public String getClientName() {
+	public @Nullable String getClientName() {
 		return clientConfiguration.getClientName().orElse(null);
 	}
 
@@ -549,8 +545,7 @@ public class JedisConnectionFactory
 	 * @return the {@link RedisStandaloneConfiguration}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisStandaloneConfiguration getStandaloneConfiguration() {
+	public @Nullable RedisStandaloneConfiguration getStandaloneConfiguration() {
 		return this.standaloneConfig;
 	}
 
@@ -558,8 +553,7 @@ public class JedisConnectionFactory
 	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisSentinelConfiguration getSentinelConfiguration() {
+	public @Nullable RedisSentinelConfiguration getSentinelConfiguration() {
 		return RedisConfiguration.isSentinelConfiguration(configuration) ? (RedisSentinelConfiguration) configuration
 				: null;
 	}
@@ -568,8 +562,7 @@ public class JedisConnectionFactory
 	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
 	 * @since 2.0
 	 */
-	@Nullable
-	public RedisClusterConfiguration getClusterConfiguration() {
+	public @Nullable RedisClusterConfiguration getClusterConfiguration() {
 		return RedisConfiguration.isClusterConfiguration(configuration) ? (RedisClusterConfiguration) configuration : null;
 	}
 
@@ -722,6 +715,7 @@ public class JedisConnectionFactory
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void start() {
 
 		State current = this.state.getAndUpdate(state -> isCreatedOrStopped(state) ? State.STARTING : state);
@@ -781,6 +775,7 @@ public class JedisConnectionFactory
 		return State.STARTED.equals(this.state.get());
 	}
 
+	@SuppressWarnings("NullAway")
 	private Pool<Jedis> createPool() {
 
 		if (isRedisSentinelAware()) {
@@ -796,6 +791,7 @@ public class JedisConnectionFactory
 	 * @return the {@link Pool} to use. Never {@literal null}.
 	 * @since 1.4
 	 */
+	@SuppressWarnings("NullAway")
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 
 		GenericObjectPoolConfig<Jedis> poolConfig = getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig();
@@ -957,6 +953,7 @@ public class JedisConnectionFactory
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisClusterConnection getClusterConnection() {
 
 		assertInitialized();
@@ -984,7 +981,7 @@ public class JedisConnectionFactory
 	}
 
 	@Override
-	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+	public @Nullable DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
@@ -1062,6 +1059,7 @@ public class JedisConnectionFactory
 		return (MutableJedisClientConfiguration) clientConfiguration;
 	}
 
+	@SuppressWarnings("NullAway")
 	private void assertInitialized() {
 
 		State current = state.get();

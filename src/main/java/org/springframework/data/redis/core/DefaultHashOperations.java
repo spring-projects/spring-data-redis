@@ -26,13 +26,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 import org.springframework.data.redis.core.types.Expirations.Timeouts;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -43,16 +45,17 @@ import org.springframework.util.Assert;
  * @author Ninad Divadkar
  * @author Tihomir Mateev
  */
+@NullUnmarked
 class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
 
 	@SuppressWarnings("unchecked")
-	DefaultHashOperations(RedisTemplate<K, ?> template) {
+	DefaultHashOperations(@NonNull RedisTemplate<K, ?> template) {
 		super((RedisTemplate<K, Object>) template);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public HV get(K key, Object hashKey) {
+	public HV get(@NonNull K key, @NonNull Object hashKey) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -62,7 +65,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Boolean hasKey(K key, Object hashKey) {
+	public Boolean hasKey(@NonNull K key, @NonNull Object hashKey) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -70,7 +73,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Long increment(K key, HK hashKey, long delta) {
+	public Long increment(@NonNull K key, @NonNull HK hashKey, long delta) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -78,7 +81,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Double increment(K key, HK hashKey, double delta) {
+	public Double increment(@NonNull K key, @NonNull HK hashKey, double delta) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -87,15 +90,14 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 	@Nullable
 	@Override
-	public HK randomKey(K key) {
+	public HK randomKey(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		return deserializeHashKey(execute(connection -> connection.hRandField(rawKey)));
 	}
 
-	@Nullable
 	@Override
-	public Entry<HK, HV> randomEntry(K key) {
+	public Entry<@NonNull HK, HV> randomEntry(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		Entry<byte[], byte[]> rawEntry = execute(connection -> connection.hRandFieldWithValues(rawKey));
@@ -103,18 +105,16 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 				: Converters.entryOf(deserializeHashKey(rawEntry.getKey()), deserializeHashValue(rawEntry.getValue()));
 	}
 
-	@Nullable
 	@Override
-	public List<HK> randomKeys(K key, long count) {
+	public List<@NonNull HK> randomKeys(@NonNull K key, long count) {
 
 		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.hRandField(rawKey, count));
 		return deserializeHashKeys(rawValues);
 	}
 
-	@Nullable
 	@Override
-	public Map<HK, HV> randomEntries(K key, long count) {
+	public Map<@NonNull HK, HV> randomEntries(@NonNull K key, long count) {
 
 		Assert.isTrue(count > 0, "Count must not be negative");
 		byte[] rawKey = rawKey(key);
@@ -130,7 +130,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Set<HK> keys(K key) {
+	public Set<@NonNull HK> keys(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(connection -> connection.hKeys(rawKey));
@@ -139,15 +139,14 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Long size(K key) {
+	public Long size(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.hLen(rawKey));
 	}
 
-	@Nullable
 	@Override
-	public Long lengthOfValue(K key, HK hashKey) {
+	public Long lengthOfValue(@NonNull K key, @NonNull HK hashKey) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -155,7 +154,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public void putAll(K key, Map<? extends HK, ? extends HV> m) {
+	public void putAll(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m) {
 
 		if (m.isEmpty()) {
 			return;
@@ -176,7 +175,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public List<HV> multiGet(K key, Collection<HK> fields) {
+	public List<HV> multiGet(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
 
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
@@ -186,7 +185,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[][] rawHashKeys = new byte[fields.size()][];
 
 		int counter = 0;
-		for (HK hashKey : fields) {
+		for (@NonNull
+		HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 
@@ -196,7 +196,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public void put(K key, HK hashKey, HV value) {
+	public void put(@NonNull K key, @NonNull HK hashKey, HV value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -209,7 +209,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Boolean putIfAbsent(K key, HK hashKey, HV value) {
+	public Boolean putIfAbsent(@NonNull K key, @NonNull HK hashKey, HV value) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawHashKey = rawHashKey(hashKey);
@@ -219,13 +219,13 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public ExpireChanges<HK> expire(K key, Duration duration, Collection<HK> hashKeys) {
+	public ExpireChanges<@NonNull HK> expire(@NonNull K key, @NonNull Duration duration,
+			@NonNull Collection<@NonNull HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(orderedKeys.toArray());
-		boolean hasMillis = TimeoutUtils.hasMillis(duration);
 
 		List<Long> raw = execute(connection -> TimeoutUtils.hasMillis(duration)
 				? connection.hashCommands().hpExpire(rawKey, duration.toMillis(), rawHashKeys)
@@ -235,7 +235,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public ExpireChanges<HK> expireAt(K key, Instant instant, Collection<HK> hashKeys) {
+	public ExpireChanges<@NonNull HK> expireAt(@NonNull K key, @NonNull Instant instant,
+			@NonNull Collection<@NonNull HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 
@@ -251,7 +252,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public ExpireChanges<HK> expire(K key, Expiration expiration, ExpirationOptions options, Collection<HK> hashKeys) {
+	public ExpireChanges<@NonNull HK> expire(@NonNull K key, @NonNull Expiration expiration,
+			@NonNull ExpirationOptions options, @NonNull Collection<@NonNull HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 		byte[] rawKey = rawKey(key);
@@ -263,7 +265,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public ExpireChanges<HK> persist(K key, Collection<HK> hashKeys) {
+	public ExpireChanges<@NonNull HK> persist(@NonNull K key, @NonNull Collection<@NonNull HK> hashKeys) {
 
 		List<HK> orderedKeys = List.copyOf(hashKeys);
 		byte[] rawKey = rawKey(key);
@@ -275,9 +277,10 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Expirations<HK> getTimeToLive(K key, TimeUnit timeUnit, Collection<HK> hashKeys) {
+	public Expirations<@NonNull HK> getTimeToLive(@NonNull K key, @NonNull TimeUnit timeUnit,
+			@NonNull Collection<@NonNull HK> hashKeys) {
 
-		if(timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
+		if (timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
 			throw new IllegalArgumentException("%s precision is not supported must be >= MILLISECONDS".formatted(timeUnit));
 		}
 
@@ -299,7 +302,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public List<HV> values(K key) {
+	public List<HV> values(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		List<byte[]> rawValues = execute(connection -> connection.hVals(rawKey));
@@ -308,7 +311,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Long delete(K key, Object... hashKeys) {
+	public Long delete(@NonNull K key, @NonNull Object @NonNull... hashKeys) {
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = rawHashKeys(hashKeys);
@@ -317,7 +320,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Map<HK, HV> entries(K key) {
+	public Map<@NonNull HK, HV> entries(@NonNull K key) {
 
 		byte[] rawKey = rawKey(key);
 		Map<byte[], byte[]> entries = execute(connection -> connection.hGetAll(rawKey));
@@ -326,11 +329,12 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@Override
-	public Cursor<Entry<HK, HV>> scan(K key, ScanOptions options) {
+	public Cursor<Entry<@NonNull HK, HV>> scan(@NonNull K key, @Nullable ScanOptions options) {
 
 		byte[] rawKey = rawKey(key);
-		return template.executeWithStickyConnection(
-				(RedisCallback<Cursor<Entry<HK, HV>>>) connection -> new ConvertingCursor<>(connection.hScan(rawKey, options),
+		return template
+				.executeWithStickyConnection((RedisCallback<Cursor<Entry<HK, HV>>>) connection -> new ConvertingCursor<>(
+						connection.hScan(rawKey, options != null ? options : ScanOptions.NONE),
 						new Converter<Entry<byte[], byte[]>, Entry<HK, HV>>() {
 
 							@Override

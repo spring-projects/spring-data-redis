@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
@@ -40,7 +43,6 @@ import org.springframework.data.redis.connection.ValueEncoding.RedisValueEncodin
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -50,16 +52,17 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @since 2.0
  */
+@NullUnmarked
 class LettuceKeyCommands implements RedisKeyCommands {
 
 	private final LettuceConnection connection;
 
-	LettuceKeyCommands(LettuceConnection connection) {
+	LettuceKeyCommands(@NonNull LettuceConnection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public Boolean copy(byte[] sourceKey, byte[] targetKey, boolean replace) {
+	public Boolean copy(byte @NonNull [] sourceKey, byte @NonNull [] targetKey, boolean replace) {
 
 		Assert.notNull(sourceKey, "source key must not be null");
 		Assert.notNull(targetKey, "target key must not be null");
@@ -69,16 +72,15 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean exists(byte[] key) {
+	public Boolean exists(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(RedisKeyAsyncCommands::exists, key).get(LettuceConverters.longToBooleanConverter());
 	}
 
-	@Nullable
 	@Override
-	public Long exists(byte[]... keys) {
+	public Long exists(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -87,7 +89,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long del(byte[]... keys) {
+	public Long del(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -95,9 +97,8 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::del, keys);
 	}
 
-
 	@Override
-	public Long unlink(byte[]... keys) {
+	public Long unlink(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 
@@ -105,7 +106,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public DataType type(byte[] key) {
+	public DataType type(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -113,7 +114,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long touch(byte[]... keys) {
+	public Long touch(byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 
@@ -121,7 +122,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Set<byte[]> keys(byte[] pattern) {
+	public Set<byte @NonNull []> keys(byte @NonNull [] pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
@@ -132,12 +133,12 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 * @since 1.4
 	 * @return
 	 */
-	public Cursor<byte[]> scan() {
+	public Cursor<byte @NonNull []> scan() {
 		return scan(ScanOptions.NONE);
 	}
 
 	@Override
-	public Cursor<byte[]> scan(ScanOptions options) {
+	public Cursor<byte @NonNull []> scan(@Nullable ScanOptions options) {
 		return doScan(options != null ? options : ScanOptions.NONE);
 	}
 
@@ -146,12 +147,13 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	 * @param options
 	 * @return
 	 */
-	private Cursor<byte[]> doScan(ScanOptions options) {
+	private Cursor<byte[]> doScan(@NonNull ScanOptions options) {
 
 		return new LettuceScanCursor<byte[]>(options) {
 
 			@Override
-			protected LettuceScanIteration<byte[]> doScan(ScanCursor cursor, ScanOptions options) {
+			protected LettuceScanIteration<byte @NonNull []> doScan(@NonNull ScanCursor cursor,
+					@NonNull ScanOptions options) {
 
 				if (connection.isQueueing() || connection.isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'SCAN' cannot be called in pipeline / transaction mode");
@@ -178,7 +180,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public void rename(byte[] oldKey, byte[] newKey) {
+	public void rename(byte @NonNull [] oldKey, byte @NonNull [] newKey) {
 
 		Assert.notNull(oldKey, "Old key must not be null");
 		Assert.notNull(newKey, "New key must not be null");
@@ -187,7 +189,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
+	public Boolean renameNX(byte @NonNull [] sourceKey, byte @NonNull [] targetKey) {
 
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(targetKey, "Target key must not be null");
@@ -196,7 +198,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean expire(byte[] key, long seconds, ExpirationOptions.Condition condition) {
+	public Boolean expire(byte @NonNull [] key, long seconds, ExpirationOptions.@NonNull Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -204,7 +206,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean pExpire(byte[] key, long millis, ExpirationOptions.Condition condition) {
+	public Boolean pExpire(byte @NonNull [] key, long millis, ExpirationOptions.@NonNull Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -212,7 +214,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean expireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition) {
+	public Boolean expireAt(byte @NonNull [] key, long unixTime, ExpirationOptions.@NonNull Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -220,7 +222,8 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition) {
+	public Boolean pExpireAt(byte @NonNull [] key, long unixTimeInMillis,
+			ExpirationOptions.@NonNull Condition condition) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -228,7 +231,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean persist(byte[] key) {
+	public Boolean persist(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -236,7 +239,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Boolean move(byte[] key, int dbIndex) {
+	public Boolean move(byte @NonNull [] key, int dbIndex) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -244,7 +247,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long ttl(byte[] key) {
+	public Long ttl(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -252,7 +255,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long ttl(byte[] key, TimeUnit timeUnit) {
+	public Long ttl(byte @NonNull [] key, @NonNull TimeUnit timeUnit) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -260,7 +263,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long pTtl(byte[] key) {
+	public Long pTtl(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -268,7 +271,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long pTtl(byte[] key, TimeUnit timeUnit) {
+	public Long pTtl(byte @NonNull [] key, @NonNull TimeUnit timeUnit) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -276,7 +279,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public List<byte[]> sort(byte[] key, SortParameters params) {
+	public List<byte[]> sort(byte @NonNull [] key, @NonNull SortParameters params) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -286,7 +289,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
+	public Long sort(byte @NonNull [] key, @NonNull SortParameters params, byte @NonNull [] sortKey) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -296,7 +299,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public byte[] dump(byte[] key) {
+	public byte[] dump(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -304,7 +307,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
+	public void restore(byte @NonNull [] key, long ttlInMillis, byte @NonNull [] serializedValue, boolean replace) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(serializedValue, "Serialized value must not be null");
@@ -316,7 +319,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	@Nullable
 	@Override
-	public ValueEncoding encodingOf(byte[] key) {
+	public ValueEncoding encodingOf(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -326,7 +329,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	@Nullable
 	@Override
-	public Duration idletime(byte[] key) {
+	public Duration idletime(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -335,14 +338,14 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 	@Nullable
 	@Override
-	public Long refcount(byte[] key) {
+	public Long refcount(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisKeyAsyncCommands::objectRefcount, key);
 	}
 
-	private static ExpireArgs getExpireArgs(ExpirationOptions.Condition condition) {
+	private static ExpireArgs getExpireArgs(ExpirationOptions.@NonNull Condition condition) {
 
 		return new ExpireArgs() {
 			@Override

@@ -18,6 +18,7 @@ package org.springframework.data.redis.core.convert;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.convert.DefaultTypeMapper;
@@ -28,7 +29,6 @@ import org.springframework.data.mapping.Alias;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.redis.core.convert.Bucket.BucketPropertyPath;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -144,6 +144,7 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 			return Alias.NONE;
 		}
 
+		@SuppressWarnings("NullAway")
 		public void writeTypeTo(BucketPropertyPath sink, Object alias) {
 
 			if (typeKey != null) {

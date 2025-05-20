@@ -18,13 +18,13 @@ package org.springframework.data.redis.serializer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -81,7 +81,8 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
-	public byte[] serialize(@Nullable T value) {
+	@SuppressWarnings("NullAway")
+	public byte @Nullable [] serialize(@Nullable T value) {
 
 		if (value == null) {
 			return null;
@@ -92,8 +93,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
-	@Nullable
-	public T deserialize(@Nullable byte[] bytes) {
+	public @Nullable T deserialize(byte @Nullable [] bytes) {
 
 		if (bytes == null) {
 			return null;
@@ -123,8 +123,8 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 			this.typeConverter = typeConverter;
 		}
 
-		@Nullable
-		<E> E convert(Object value, Class<E> targetType) {
+		@SuppressWarnings("NullAway")
+		<E> @Nullable E convert(Object value, Class<E> targetType) {
 
 			return conversionService != null ? conversionService.convert(value, targetType)
 					: typeConverter.convertIfNecessary(value, targetType);

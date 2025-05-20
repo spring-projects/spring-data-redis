@@ -19,8 +19,8 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -119,8 +119,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @return {@literal null} if key does not exist.
 	 * @see #get(String, byte[], Duration)
 	 */
-	@Nullable
-	byte[] get(String name, byte[] key);
+	byte @Nullable[] get(String name, byte[] key);
+
 
 	/**
 	 * Get the binary value representation from Redis stored for the given key and set the given {@link Duration TTL
@@ -131,8 +131,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param ttl {@link Duration} specifying the {@literal expiration timeout} for the cache entry.
 	 * @return {@literal null} if key does not exist or has {@literal expired}.
 	 */
-	@Nullable
-	default byte[] get(String name, byte[] key, @Nullable Duration ttl) {
+	default byte @Nullable[] get(String name, byte[] key, @Nullable Duration ttl) {
 		return get(name, key);
 	}
 
@@ -242,8 +241,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param ttl optional expiration time. Can be {@literal null}.
 	 * @return {@literal null} if the value has been written, the value stored for the key if it already exists.
 	 */
-	@Nullable
-	byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl);
+	byte @Nullable[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl);
 
 	/**
 	 * Remove the given key from Redis.

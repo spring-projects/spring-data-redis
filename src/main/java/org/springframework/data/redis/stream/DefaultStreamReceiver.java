@@ -601,6 +601,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 			this.currentOffset.set(next);
 		}
 
+		@SuppressWarnings("NullAway")
 		ReadOffset getCurrentReadOffset() {
 			return currentOffset.get();
 		}

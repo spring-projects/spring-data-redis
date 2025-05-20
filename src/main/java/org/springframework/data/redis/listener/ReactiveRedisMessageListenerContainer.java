@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactivePubSubCommands;
@@ -48,7 +49,6 @@ import org.springframework.data.redis.serializer.RedisElementReader;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -437,6 +437,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				.toArray(ByteBuffer[]::new);
 	}
 
+	@SuppressWarnings("NullAway")
 	private <C, B> Message<C, B> readMessage(RedisElementReader<C> channelSerializer,
 			RedisElementReader<B> messageSerializer, Message<ByteBuffer, ByteBuffer> message) {
 
@@ -468,7 +469,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		return connection;
 	}
 
-	private static <C> C read(RedisElementReader<C> reader, ByteBuffer buffer) {
+	private static <C> @Nullable C read(RedisElementReader<C> reader, ByteBuffer buffer) {
 
 		try {
 			buffer.mark();

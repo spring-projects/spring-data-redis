@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.lang.Contract;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveListCommands;
@@ -33,7 +35,6 @@ import org.springframework.data.redis.connection.ReactiveListCommands.Direction;
 import org.springframework.data.redis.connection.ReactiveListCommands.LPosCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -251,6 +252,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Mono<V> leftPop(K key, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -278,6 +280,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Mono<V> rightPop(K key, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -344,8 +347,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return serializationContext.getValueSerializationPair().write(value);
 	}
 
-	@Nullable
-	private V readValue(ByteBuffer buffer) {
+	@Contract("!null -> !null")
+	private @Nullable V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 

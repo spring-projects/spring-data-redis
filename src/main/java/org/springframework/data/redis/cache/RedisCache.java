@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
@@ -37,7 +38,6 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -57,6 +57,7 @@ import org.springframework.util.ReflectionUtils;
 @SuppressWarnings("unused")
 public class RedisCache extends AbstractValueAdaptingCache {
 
+	@SuppressWarnings("NullAway")
 	static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
 	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE = "The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
@@ -146,7 +147,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(Object key, Callable<T> valueLoader) {
+	public <T> @Nullable T get(Object key, Callable<T> valueLoader) {
 
 		byte[] binaryKey = createAndConvertCacheKey(key);
 		byte[] binaryValue = getCacheWriter().get(getName(), binaryKey,
@@ -176,7 +177,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	protected Object lookup(Object key) {
+	protected @Nullable Object lookup(Object key) {
 
 		byte[] binaryKey = createAndConvertCacheKey(key);
 
@@ -196,6 +197,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void put(Object key, @Nullable Object value) {
 
 		Object cacheValue = processAndCheckValue(value);
@@ -209,7 +211,8 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	public ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
+	@SuppressWarnings("NullAway")
+	public @Nullable ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
 
@@ -268,7 +271,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	public <T> CompletableFuture<T> retrieve(Object key, Supplier<CompletableFuture<T>> valueLoader) {
 
 		return retrieve(key).thenCompose(wrapper -> {
@@ -291,7 +294,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		});
 	}
 
-	private Object processAndCheckValue(@Nullable Object value) {
+	private @Nullable Object processAndCheckValue(@Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
 
@@ -311,8 +314,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param value can be {@literal null}.
 	 * @return preprocessed value. Can be {@literal null}.
 	 */
-	@Nullable
-	protected Object preProcessCacheValue(@Nullable Object value) {
+	protected @Nullable Object preProcessCacheValue(@Nullable Object value) {
 		return value != null ? value : isAllowNullValues() ? NullValue.INSTANCE : null;
 	}
 
@@ -351,8 +353,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 *         {@link RedisSerializationContext.SerializationPair}; can be {@literal null}.
 	 * @see RedisCacheConfiguration#getValueSerializationPair()
 	 */
-	@Nullable
-	protected Object deserializeCacheValue(byte[] value) {
+	protected @Nullable Object deserializeCacheValue(byte[] value) {
 
 		if (isAllowNullValues() && ObjectUtils.nullSafeEquals(value, BINARY_NULL_VALUE)) {
 			return NullValue.INSTANCE;
@@ -381,6 +382,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @return never {@literal null}.
 	 * @throws IllegalStateException if {@code key} cannot be converted to {@link String}.
 	 */
+	@SuppressWarnings("NullAway")
 	protected String convertKey(Object key) {
 
 		if (key instanceof String stringKey) {
@@ -425,8 +427,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 				.thenApply(this::toValueWrapper);
 	}
 
-	@Nullable
-	private Object nullSafeDeserializedStoreValue(@Nullable byte[] value) {
+	private @Nullable Object nullSafeDeserializedStoreValue(byte @Nullable[] value) {
 		return value != null ? fromStoreValue(deserializeCacheValue(value)) : null;
 	}
 

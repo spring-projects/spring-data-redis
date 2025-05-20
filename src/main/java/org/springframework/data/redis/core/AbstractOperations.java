@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
@@ -34,7 +37,6 @@ import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -48,6 +50,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author Denis Zavedeev
  */
+@NullUnmarked
 abstract class AbstractOperations<K, V> {
 
 	// utility methods for the template internal methods
@@ -58,13 +61,12 @@ abstract class AbstractOperations<K, V> {
 			this.key = key;
 		}
 
-		public final V doInRedis(RedisConnection connection) {
+		public final V doInRedis(@NonNull RedisConnection connection) {
 			byte[] result = inRedis(rawKey(key), connection);
 			return deserializeValue(result);
 		}
 
-		@Nullable
-		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
+		protected abstract byte @Nullable [] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
 	private class FunctionalValueDeserializingRedisCallback extends ValueDeserializingRedisCallback {
@@ -76,15 +78,14 @@ abstract class AbstractOperations<K, V> {
 			this.function = function;
 		}
 
-		@Nullable
-		protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+		protected byte @Nullable [] inRedis(byte[] rawKey, RedisConnection connection) {
 			return function.apply(connection, rawKey);
 		}
 	}
 
 	final RedisTemplate<K, V> template;
 
-	AbstractOperations(RedisTemplate<K, V> template) {
+	AbstractOperations(@NonNull RedisTemplate<K, V> template) {
 		this.template = template;
 	}
 
@@ -112,17 +113,16 @@ abstract class AbstractOperations<K, V> {
 		return template.getStringSerializer();
 	}
 
-	@Nullable
-	<T> T execute(RedisCallback<T> callback) {
+	<T> T execute(@NonNull RedisCallback<T> callback) {
 		return template.execute(callback, true);
 	}
 
-	public RedisOperations<K, V> getOperations() {
+	public @NonNull RedisOperations<K, V> getOperations() {
 		return template;
 	}
 
 	@SuppressWarnings("unchecked")
-	byte[] rawKey(Object key) {
+	byte[] rawKey(@NonNull Object key) {
 
 		Assert.notNull(key, "non null key required");
 
@@ -244,8 +244,7 @@ abstract class AbstractOperations<K, V> {
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
-	@Nullable
-	Set<TypedTuple<V>> deserializeTupleValues(@Nullable Set<Tuple> rawValues) {
+	Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues) {
 		if (rawValues == null) {
 			return null;
 		}
@@ -268,8 +267,7 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Nullable
-	TypedTuple<V> deserializeTuple(@Nullable Tuple tuple) {
+	TypedTuple<V> deserializeTuple(Tuple tuple) {
 		if (tuple == null) {
 			return null;
 		}
@@ -331,7 +329,7 @@ abstract class AbstractOperations<K, V> {
 	}
 
 	@SuppressWarnings("unchecked")
-	<HK, HV> Map<HK, HV> deserializeHashMap(@Nullable Map<byte[], byte[]> entries) {
+	<HK, HV> Map<HK, HV> deserializeHashMap(Map<byte[], byte[]> entries) {
 		// connection in pipeline/multi mode
 
 		if (entries == null) {
@@ -407,8 +405,7 @@ abstract class AbstractOperations<K, V> {
 	 * @return converted or {@literal null}.
 	 * @since 1.8
 	 */
-	@Nullable
-	GeoResults<GeoLocation<V>> deserializeGeoResults(@Nullable GeoResults<GeoLocation<byte[]>> source) {
+	GeoResults<GeoLocation<V>> deserializeGeoResults(GeoResults<GeoLocation<byte[]>> source) {
 
 		if (source == null) {
 			return null;

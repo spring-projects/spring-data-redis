@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Redis set specific operations.
@@ -30,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Roman Bezpalko
  */
+@NullUnmarked
 public interface SetOperations<K, V> {
 
 	/**
@@ -40,8 +42,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
-	@Nullable
-	Long add(K key, V... values);
+	Long add(@NonNull K key, V@NonNull ... values);
 
 	/**
 	 * Remove given {@code values} from set at {@code key} and return the number of removed elements.
@@ -51,8 +52,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
-	@Nullable
-	Long remove(K key, Object... values);
+	Long remove(@NonNull K key, Object@NonNull ... values);
 
 	/**
 	 * Remove and return a random member from set at {@code key}.
@@ -61,8 +61,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
-	@Nullable
-	V pop(K key);
+	V pop(@NonNull K key);
 
 	/**
 	 * Remove and return {@code count} random members from set at {@code key}.
@@ -73,8 +72,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @since 2.0
 	 */
-	@Nullable
-	List<V> pop(K key, long count);
+	List<@NonNull V> pop(@NonNull K key, long count);
 
 	/**
 	 * Move {@code value} from {@code key} to {@code destKey}
@@ -85,8 +83,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
-	@Nullable
-	Boolean move(K key, V value, K destKey);
+	Boolean move(@NonNull K key, V value, @NonNull K destKey);
 
 	/**
 	 * Get size of set at {@code key}.
@@ -95,8 +92,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
-	@Nullable
-	Long size(K key);
+	Long size(@NonNull K key);
 
 	/**
 	 * Check if set at {@code key} contains {@code value}.
@@ -106,8 +102,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
-	@Nullable
-	Boolean isMember(K key, Object o);
+	Boolean isMember(@NonNull K key, Object o);
 
 	/**
 	 * Check if set at {@code key} contains one or more {@code values}.
@@ -118,8 +113,7 @@ public interface SetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
 	 */
-	@Nullable
-	Map<Object, Boolean> isMember(K key, Object... objects);
+	Map<Object, Boolean> isMember(@NonNull K key, Object@NonNull ... objects);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code key} and {@code otherKey}.
@@ -129,8 +123,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	@Nullable
-	Set<V> intersect(K key, K otherKey);
+	Set<@NonNull V> intersect(@NonNull K key, @NonNull K otherKey);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code key} and {@code otherKeys}.
@@ -140,8 +133,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	@Nullable
-	Set<V> intersect(K key, Collection<K> otherKeys);
+	Set<@NonNull V> intersect(@NonNull K key, @NonNull Collection<K> otherKeys);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
@@ -151,8 +143,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 * @since 2.2
 	 */
-	@Nullable
-	Set<V> intersect(Collection<K> keys);
+	Set<@NonNull V> intersect(@NonNull Collection<K> keys);
 
 	/**
 	 * Intersect all given sets at {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -163,8 +154,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
-	@Nullable
-	Long intersectAndStore(K key, K otherKey, K destKey);
+	Long intersectAndStore(@NonNull K key, @NonNull K otherKey, @NonNull K destKey);
 
 	/**
 	 * Intersect all given sets at {@code key} and {@code otherKeys} and store result in {@code destKey}.
@@ -175,8 +165,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
-	@Nullable
-	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long intersectAndStore(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey);
 
 	/**
 	 * Intersect all given sets at {@code keys} and store result in {@code destKey}.
@@ -187,8 +176,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 * @since 2.2
 	 */
-	@Nullable
-	Long intersectAndStore(Collection<K> keys, K destKey);
+	Long intersectAndStore(@NonNull Collection<@NonNull K> keys, @NonNull K destKey);
 
 	/**
 	 * Union all sets at given {@code keys} and {@code otherKey}.
@@ -198,8 +186,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	@Nullable
-	Set<V> union(K key, K otherKey);
+	Set<@NonNull V> union(@NonNull K key, @NonNull K otherKey);
 
 	/**
 	 * Union all sets at given {@code keys} and {@code otherKeys}.
@@ -209,8 +196,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	@Nullable
-	Set<V> union(K key, Collection<K> otherKeys);
+	Set<@NonNull V> union(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Union all sets at given {@code keys}.
@@ -220,8 +206,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 * @since 2.2
 	 */
-	@Nullable
-	Set<V> union(Collection<K> keys);
+	Set<@NonNull V> union(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Union all sets at given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -232,8 +217,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
-	@Nullable
-	Long unionAndStore(K key, K otherKey, K destKey);
+	Long unionAndStore(@NonNull K key, @NonNull K otherKey, @NonNull K destKey);
 
 	/**
 	 * Union all sets at given {@code key} and {@code otherKeys} and store result in {@code destKey}.
@@ -244,8 +228,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
-	@Nullable
-	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long unionAndStore(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey);
 
 	/**
 	 * Union all sets at given {@code keys} and store result in {@code destKey}.
@@ -256,8 +239,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 * @since 2.2
 	 */
-	@Nullable
-	Long unionAndStore(Collection<K> keys, K destKey);
+	Long unionAndStore(@NonNull Collection<@NonNull K> keys, @NonNull K destKey);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKey}.
@@ -267,8 +249,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	@Nullable
-	Set<V> difference(K key, K otherKey);
+	Set<@NonNull V> difference(@NonNull K key, @NonNull K otherKey);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKeys}.
@@ -278,8 +259,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	@Nullable
-	Set<V> difference(K key, Collection<K> otherKeys);
+	Set<@NonNull V> difference(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Diff all sets for given {@code keys}.
@@ -289,8 +269,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 * @since 2.2
 	 */
-	@Nullable
-	Set<V> difference(Collection<K> keys);
+	Set<@NonNull V> difference(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -301,8 +280,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
-	@Nullable
-	Long differenceAndStore(K key, K otherKey, K destKey);
+	Long differenceAndStore(@NonNull K key, @NonNull K otherKey, @NonNull K destKey);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKeys} and store result in {@code destKey}.
@@ -313,8 +291,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
-	@Nullable
-	Long differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long differenceAndStore(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey);
 
 	/**
 	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
@@ -325,8 +302,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 * @since 2.2
 	 */
-	@Nullable
-	Long differenceAndStore(Collection<K> keys, K destKey);
+	Long differenceAndStore(@NonNull Collection<@NonNull K> keys,@NonNull  K destKey);
 
 	/**
 	 * Get all elements of set at {@code key}.
@@ -335,8 +311,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
-	@Nullable
-	Set<V> members(K key);
+	Set<@NonNull V> members(@NonNull K key);
 
 	/**
 	 * Get random element from set at {@code key}.
@@ -345,7 +320,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	V randomMember(K key);
+	V randomMember(@NonNull K key);
 
 	/**
 	 * Get {@code count} distinct random elements from set at {@code key}.
@@ -356,8 +331,7 @@ public interface SetOperations<K, V> {
 	 * @throws IllegalArgumentException if count is negative.
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	@Nullable
-	Set<V> distinctRandomMembers(K key, long count);
+	Set<@NonNull V> distinctRandomMembers(@NonNull K key, long count);
 
 	/**
 	 * Get {@code count} random elements from set at {@code key}.
@@ -368,8 +342,7 @@ public interface SetOperations<K, V> {
 	 * @throws IllegalArgumentException if count is negative.
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	@Nullable
-	List<V> randomMembers(K key, long count);
+	List<@NonNull V> randomMembers(@NonNull K key, long count);
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries set at {@code key}. <br />
@@ -381,7 +354,8 @@ public interface SetOperations<K, V> {
 	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
-	Cursor<V> scan(K key, ScanOptions options);
+	Cursor<@NonNull V> scan(@NonNull K key, @NonNull ScanOptions options);
 
+	@NonNull
 	RedisOperations<K, V> getOperations();
 }

@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -83,8 +83,7 @@ public class RedisData {
 	/**
 	 * @return
 	 */
-	@Nullable
-	public String getId() {
+	public @Nullable String getId() {
 		return this.id;
 	}
 
@@ -93,8 +92,7 @@ public class RedisData {
 	 *
 	 * @return {@literal null} if not set.
 	 */
-	@Nullable
-	public Long getTimeToLive() {
+	public @Nullable Long getTimeToLive() {
 		return timeToLive;
 	}
 
@@ -126,8 +124,7 @@ public class RedisData {
 	/**
 	 * @return
 	 */
-	@Nullable
-	public String getKeyspace() {
+	public @Nullable String getKeyspace() {
 		return keyspace;
 	}
 

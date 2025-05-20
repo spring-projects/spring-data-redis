@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.domain.geo;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 

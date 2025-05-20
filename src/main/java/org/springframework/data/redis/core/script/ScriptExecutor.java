@@ -17,6 +17,8 @@ package org.springframework.data.redis.core.script;
 
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
@@ -25,6 +27,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Jennifer Hickey
  * @param <K> The type of keys that may be passed during script execution
  */
+@NullUnmarked
 public interface ScriptExecutor<K> {
 
 	/**
@@ -36,7 +39,7 @@ public interface ScriptExecutor<K> {
 	 * @return The return value of the script or {@literal null} if {@link RedisScript#getResultType()} is
 	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
 	 */
-	<T> T execute(RedisScript<T> script, List<K> keys, Object... args);
+	<T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args);
 
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
@@ -50,7 +53,7 @@ public interface ScriptExecutor<K> {
 	 * @return The return value of the script or {@literal null} if {@link RedisScript#getResultType()} is
 	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
 	 */
-	<T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
-			List<K> keys, Object... args);
+	<T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object... args);
 
 }
