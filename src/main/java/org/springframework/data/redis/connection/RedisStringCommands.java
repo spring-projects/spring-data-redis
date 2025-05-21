@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -31,6 +32,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Mark Paluch
  * @author Marcin Grzejszczak
  */
+@NullUnmarked
 public interface RedisStringCommands {
 
 	enum BitOperation {
@@ -44,7 +46,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
-	byte @Nullable[] get(byte[] key);
+	byte[] get(byte @NonNull [] key);
 
 	/**
 	 * Return the value at {@code key} and delete the key.
@@ -54,7 +56,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6
 	 */
-	byte @Nullable[] getDel(byte[] key);
+	byte[] getDel(byte @NonNull [] key);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@link Expiration}.
@@ -69,7 +71,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	byte @Nullable[] getEx(byte[] key, Expiration expiration);
+	byte[] getEx(byte @NonNull [] key, Expiration expiration);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -79,7 +81,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} if key did not exist before or when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
-	byte @Nullable[] getSet(byte[] key, byte[] value);
+	byte[] getSet(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys Absent field values are represented using
@@ -89,8 +91,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
-	@Nullable
-	List<byte[]> mGet(byte[]... keys);
+	List<byte @NonNull []> mGet(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Set {@code value} for {@code key}.
@@ -100,8 +101,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	@Nullable
-	Boolean set(byte[] key, byte[] value);
+	Boolean set(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
 	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
@@ -116,8 +116,7 @@ public interface RedisStringCommands {
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	@Nullable
-	Boolean set(byte[] key, byte[] value, Expiration expiration, SetOption option);
+	Boolean set(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration, @NonNull SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}. Return the old string stored at key, or {@literal null} if key did not exist. An
@@ -132,7 +131,8 @@ public interface RedisStringCommands {
 	 * @since 3.5
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	byte @Nullable[] setGet(byte[] key, byte[] value, Expiration expiration, SetOption option);
+	byte[] setGet(byte @NonNull [] key, byte @NonNull [] value, @NonNull Expiration expiration,
+			@NonNull SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -142,8 +142,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setnx">Redis Documentation: SETNX</a>
 	 */
-	@Nullable
-	Boolean setNX(byte[] key, byte[] value);
+	Boolean setNX(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
 	 * Set the {@code value} and expiration in {@code seconds} for {@code key}.
@@ -154,8 +153,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
-	@Nullable
-	Boolean setEx(byte[] key, long seconds, byte[] value);
+	Boolean setEx(byte @NonNull [] key, long seconds, byte @NonNull [] value);
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
@@ -167,8 +165,7 @@ public interface RedisStringCommands {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/psetex">Redis Documentation: PSETEX</a>
 	 */
-	@Nullable
-	Boolean pSetEx(byte[] key, long milliseconds, byte[] value);
+	Boolean pSetEx(byte @NonNull [] key, long milliseconds, byte @NonNull [] value);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
@@ -177,8 +174,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
-	@Nullable
-	Boolean mSet(Map<byte[], byte[]> tuple);
+	Boolean mSet(Map<byte @NonNull [], byte @NonNull []> tuple);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
@@ -188,8 +184,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
-	@Nullable
-	Boolean mSetNX(Map<byte[], byte[]> tuple);
+	Boolean mSetNX(Map<byte @NonNull [], byte @NonNull []> tuple);
 
 	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.
@@ -198,8 +193,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
-	@Nullable
-	Long incr(byte[] key);
+	Long incr(byte @NonNull [] key);
 
 	/**
 	 * Increment an integer value stored of {@code key} by {@code delta}.
@@ -209,8 +203,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
-	@Nullable
-	Long incrBy(byte[] key, long value);
+	Long incrBy(byte @NonNull [] key, long value);
 
 	/**
 	 * Increment a floating point number value of {@code key} by {@code delta}.
@@ -220,8 +213,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
-	@Nullable
-	Double incrBy(byte[] key, double value);
+	Double incrBy(byte @NonNull [] key, double value);
 
 	/**
 	 * Decrement an integer value stored as string value of {@code key} by 1.
@@ -230,8 +222,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
-	@Nullable
-	Long decr(byte[] key);
+	Long decr(byte @NonNull [] key);
 
 	/**
 	 * Decrement an integer value stored as string value of {@code key} by {@code value}.
@@ -241,8 +232,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
-	@Nullable
-	Long decrBy(byte[] key, long value);
+	Long decrBy(byte @NonNull [] key, long value);
 
 	/**
 	 * Append a {@code value} to {@code key}.
@@ -252,8 +242,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
-	@Nullable
-	Long append(byte[] key, byte[] value);
+	Long append(byte @NonNull [] key, byte[] value);
 
 	/**
 	 * Get a substring of value of {@code key} between {@code start} and {@code end}.
@@ -264,7 +253,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
-	byte @Nullable[] getRange(byte[] key, long start, long end);
+	byte[] getRange(byte @NonNull [] key, long start, long end);
 
 	/**
 	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
@@ -274,7 +263,7 @@ public interface RedisStringCommands {
 	 * @param offset
 	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
-	void setRange(byte[] key, byte[] value, long offset);
+	void setRange(byte @NonNull [] key, byte @NonNull [] value, long offset);
 
 	/**
 	 * Get the bit value at {@code offset} of value at {@code key}.
@@ -284,8 +273,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
-	@Nullable
-	Boolean getBit(byte[] key, long offset);
+	Boolean getBit(byte @NonNull [] key, long offset);
 
 	/**
 	 * Sets the bit at {@code offset} in value stored at {@code key}.
@@ -296,8 +284,7 @@ public interface RedisStringCommands {
 	 * @return the original bit value stored at {@code offset} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
-	@Nullable
-	Boolean setBit(byte[] key, long offset, boolean value);
+	Boolean setBit(byte @NonNull [] key, long offset, boolean value);
 
 	/**
 	 * Count the number of set bits (population counting) in value stored at {@code key}.
@@ -306,8 +293,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
-	@Nullable
-	Long bitCount(byte[] key);
+	Long bitCount(byte @NonNull [] key);
 
 	/**
 	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code start} and
@@ -319,8 +305,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/bitcount">Redis Documentation: BITCOUNT</a>
 	 */
-	@Nullable
-	Long bitCount(byte[] key, long start, long end);
+	Long bitCount(byte @NonNull [] key, long start, long end);
 
 	/**
 	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
@@ -331,8 +316,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 */
-	@Nullable
-	List<Long> bitField(byte[] key, BitFieldSubCommands subCommands);
+	List<Long> bitField(byte @NonNull [] key, @NonNull BitFieldSubCommands subCommands);
 
 	/**
 	 * Perform bitwise operations between strings.
@@ -343,8 +327,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/bitop">Redis Documentation: BITOP</a>
 	 */
-	@Nullable
-	Long bitOp(BitOperation op, byte[] destination, byte[]... keys);
+	Long bitOp(@NonNull BitOperation op, byte @NonNull [] destination, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Return the position of the first bit set to given {@code bit} in a string.
@@ -356,7 +339,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
-	default @Nullable Long bitPos(byte[] key, boolean bit) {
+	default Long bitPos(byte @NonNull [] key, boolean bit) {
 		return bitPos(key, bit, Range.unbounded());
 	}
 
@@ -373,8 +356,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/bitpos">Redis Documentation: BITPOS</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Long bitPos(byte[] key, boolean bit, Range<Long> range);
+	Long bitPos(byte @NonNull [] key, boolean bit, @NonNull Range<@NonNull Long> range);
 
 	/**
 	 * Get the length of the value stored at {@code key}.
@@ -383,8 +365,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
-	@Nullable
-	Long strLen(byte[] key);
+	Long strLen(byte @NonNull [] key);
 
 	/**
 	 * {@code SET} command arguments for {@code NX}, {@code XX}.

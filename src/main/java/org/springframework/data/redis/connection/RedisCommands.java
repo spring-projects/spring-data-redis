@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -24,6 +25,7 @@ import org.jspecify.annotations.Nullable;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@NullUnmarked
 public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
 		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
 		RedisServerCommands, RedisStreamCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands {

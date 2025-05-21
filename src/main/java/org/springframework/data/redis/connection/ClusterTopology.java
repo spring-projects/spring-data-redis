@@ -193,6 +193,7 @@ public class ClusterTopology {
 	 * @return never {@literal null}.
 	 * @throws ClusterStateFailureException
 	 */
+	@SuppressWarnings("NullAway")
 	public RedisClusterNode lookup(RedisClusterNode node) {
 
 		Assert.notNull(node, "RedisClusterNode must not be null");

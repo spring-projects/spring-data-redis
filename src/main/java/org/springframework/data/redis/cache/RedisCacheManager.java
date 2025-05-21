@@ -374,7 +374,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	@Override
-	protected RedisCache getMissingCache(String name) {
+	protected @Nullable RedisCache getMissingCache(String name) {
 		return isAllowRuntimeCacheCreation() ? createRedisCache(name, getDefaultCacheConfiguration()) : null;
 	}
 

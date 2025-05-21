@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
@@ -26,45 +28,46 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  * @author Dennis Neufeld
  * @since 2.0
  */
+@NullUnmarked
 public interface RedisClusterServerCommands extends RedisServerCommands {
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#bgReWriteAof()
 	 */
-	void bgReWriteAof(RedisClusterNode node);
+	void bgReWriteAof(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#bgSave()
 	 */
-	void bgSave(RedisClusterNode node);
+	void bgSave(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#lastSave()
 	 */
-	Long lastSave(RedisClusterNode node);
+	Long lastSave(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#save()
 	 */
-	void save(RedisClusterNode node);
+	void save(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#dbSize()
 	 */
-	Long dbSize(RedisClusterNode node);
+	Long dbSize(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#flushDb()
 	 */
-	void flushDb(RedisClusterNode node);
+	void flushDb(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -72,13 +75,13 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @see RedisServerCommands#flushDb(FlushOption)
 	 * @since 2.7
 	 */
-	void flushDb(RedisClusterNode node, FlushOption option);
+	void flushDb(@NonNull RedisClusterNode node, @NonNull FlushOption option);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#flushAll()
 	 */
-	void flushAll(RedisClusterNode node);
+	void flushAll(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -86,14 +89,14 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @see RedisServerCommands#flushAll(FlushOption)
 	 * @since 2.7
 	 */
-	void flushAll(RedisClusterNode node, FlushOption option);
+	void flushAll(@NonNull RedisClusterNode node, @NonNull FlushOption option);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#info()
 	 */
-	Properties info(RedisClusterNode node);
+	Properties info(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -101,13 +104,13 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @return
 	 * @see RedisServerCommands#info(String)
 	 */
-	Properties info(RedisClusterNode node, String section);
+	Properties info(@NonNull RedisClusterNode node, @NonNull String section);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#shutdown()
 	 */
-	void shutdown(RedisClusterNode node);
+	void shutdown(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -115,7 +118,7 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @return
 	 * @see RedisServerCommands#getConfig(String)
 	 */
-	Properties getConfig(RedisClusterNode node, String pattern);
+	Properties getConfig(@NonNull RedisClusterNode node, @NonNull String pattern);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -123,27 +126,27 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @param value
 	 * @see RedisServerCommands#setConfig(String, String)
 	 */
-	void setConfig(RedisClusterNode node, String param, String value);
+	void setConfig(@NonNull RedisClusterNode node, @NonNull String param, @NonNull String value);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#resetConfigStats()
 	 */
-	void resetConfigStats(RedisClusterNode node);
+	void resetConfigStats(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @see RedisServerCommands#rewriteConfig()
 	 * @since 2.5
 	 */
-	void rewriteConfig(RedisClusterNode node);
+	void rewriteConfig(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#time()
 	 */
-	default Long time(RedisClusterNode node) {
+	default Long time(@NonNull RedisClusterNode node) {
 		return time(node, TimeUnit.MILLISECONDS);
 	}
 
@@ -154,12 +157,12 @@ public interface RedisClusterServerCommands extends RedisServerCommands {
 	 * @since 2.5
 	 * @see RedisServerCommands#time(TimeUnit)
 	 */
-	Long time(RedisClusterNode node, TimeUnit timeUnit);
+	Long time(@NonNull RedisClusterNode node, @NonNull TimeUnit timeUnit);
 
 	/**
 	 * @param node must not be {@literal null}.
 	 * @return
 	 * @see RedisServerCommands#getClientList()
 	 */
-	List<RedisClientInfo> getClientList(RedisClusterNode node);
+	List<@NonNull RedisClientInfo> getClientList(@NonNull RedisClusterNode node);
 }

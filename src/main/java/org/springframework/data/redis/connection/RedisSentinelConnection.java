@@ -17,10 +17,13 @@ package org.springframework.data.redis.connection;
 
 import java.io.Closeable;
 
+import org.jspecify.annotations.NullUnmarked;
+
 /**
  * @author Christoph Strobl
  * @since 1.4
  */
+@NullUnmarked
 public interface RedisSentinelConnection extends RedisSentinelCommands, Closeable {
 
 	/**

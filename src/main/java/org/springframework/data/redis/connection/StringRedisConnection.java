@@ -2308,6 +2308,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hexits">Redis Documentation: HEXISTS</a>
 	 * @see RedisHashCommands#hExists(byte[], byte[])
 	 */
+	@Nullable
 	Boolean hExists(String key, String field);
 
 	/**
@@ -2319,6 +2320,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hdel">Redis Documentation: HDEL</a>
 	 * @see RedisHashCommands#hDel(byte[], byte[]...)
 	 */
+	@Nullable
 	Long hDel(String key, String... fields);
 
 	/**
@@ -2329,6 +2331,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hlen">Redis Documentation: HLEN</a>
 	 * @see RedisHashCommands#hLen(byte[])
 	 */
+	@Nullable
 	Long hLen(String key);
 
 	/**
@@ -2339,6 +2342,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>?
 	 * @see RedisHashCommands#hKeys(byte[])
 	 */
+	@Nullable
 	Set<String> hKeys(String key);
 
 	/**
@@ -2349,6 +2353,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 * @see RedisHashCommands#hVals(byte[])
 	 */
+	@Nullable
 	List<String> hVals(String key);
 
 	/**
@@ -2359,6 +2364,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 * @see RedisHashCommands#hGetAll(byte[])
 	 */
+	@Nullable
 	Map<String, String> hGetAll(String key);
 
 	/**
@@ -2371,6 +2377,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 * @see RedisHashCommands#hScan(byte[], ScanOptions)
 	 */
+	@Nullable
 	Cursor<Map.Entry<String, String>> hScan(String key, ScanOptions options);
 
 	/**
@@ -2597,6 +2604,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 * @see RedisHyperLogLogCommands#pfAdd(byte[], byte[]...)
 	 */
+	@Nullable
 	Long pfAdd(String key, String... values);
 
 	/**
@@ -2607,6 +2615,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 * @see RedisHyperLogLogCommands#pfCount(byte[]...)
 	 */
+	@Nullable
 	Long pfCount(String... keys);
 
 	/**
@@ -2634,6 +2643,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Point, byte[])
 	 */
+	@Nullable
 	Long geoAdd(String key, Point point, String member);
 
 	/**
@@ -2646,6 +2656,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], GeoLocation)
 	 */
+	@Nullable
 	Long geoAdd(String key, GeoLocation<String> location);
 
 	/**
@@ -2658,6 +2669,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Map)
 	 */
+	@Nullable
 	Long geoAdd(String key, Map<String, Point> memberCoordinateMap);
 
 	/**
@@ -2670,6 +2682,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 * @see RedisGeoCommands#geoAdd(byte[], Iterable)
 	 */
+	@Nullable
 	Long geoAdd(String key, Iterable<GeoLocation<String>> locations);
 
 	/**
@@ -2683,6 +2696,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 * @see RedisGeoCommands#geoDist(byte[], byte[], byte[])
 	 */
+	@Nullable
 	Distance geoDist(String key, String member1, String member2);
 
 	/**
@@ -2697,6 +2711,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 * @see RedisGeoCommands#geoDist(byte[], byte[], byte[], Metric)
 	 */
+	@Nullable
 	Distance geoDist(String key, String member1, String member2, Metric metric);
 
 	/**
@@ -2709,6 +2724,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 * @see RedisGeoCommands#geoHash(byte[], byte[]...)
 	 */
+	@Nullable
 	List<String> geoHash(String key, String... members);
 
 	/**
@@ -2721,6 +2737,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 * @see RedisGeoCommands#geoPos(byte[], byte[]...)
 	 */
+	@Nullable
 	List<Point> geoPos(String key, String... members);
 
 	/**
@@ -2733,6 +2750,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @see RedisGeoCommands#geoRadius(byte[], Circle)
 	 */
+	@Nullable
 	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within);
 
 	/**
@@ -2746,6 +2764,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 * @see RedisGeoCommands#geoRadius(byte[], Circle, GeoRadiusCommandArgs)
 	 */
+	@Nullable
 	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within, GeoRadiusCommandArgs args);
 
 	/**
@@ -2760,6 +2779,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], double)
 	 */
+	@Nullable
 	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, double radius);
 
 	/**
@@ -2774,6 +2794,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], Distance)
 	 */
+	@Nullable
 	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius);
 
 	/**
@@ -2789,6 +2810,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 * @see RedisGeoCommands#geoRadiusByMember(byte[], byte[], Distance, GeoRadiusCommandArgs)
 	 */
+	@Nullable
 	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius,
 			GeoRadiusCommandArgs args);
 
@@ -2802,6 +2824,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 * @see RedisGeoCommands#geoRemove(byte[], byte[]...)
 	 */
+	@Nullable
 	Long geoRemove(String key, String... members);
 
 	/**
@@ -2849,6 +2872,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 * @see RedisPubSubCommands#publish(byte[], byte[])
 	 */
+	@Nullable
 	Long publish(String channel, String message);
 
 	/**
@@ -2891,6 +2915,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/script-load">Redis Documentation: SCRIPT LOAD</a>
 	 * @see RedisScriptingCommands#scriptLoad(byte[])
 	 */
+	@Nullable
 	String scriptLoad(String script);
 
 	/**
@@ -2904,7 +2929,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/eval">Redis Documentation: EVAL</a>
 	 * @see RedisScriptingCommands#eval(byte[], ReturnType, int, byte[]...)
 	 */
-	<T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs);
+	<T> @Nullable T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs);
 
 	/**
 	 * Evaluate given {@code scriptSha}.
@@ -2917,7 +2942,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/evalsha">Redis Documentation: EVALSHA</a>
 	 * @see RedisScriptingCommands#evalSha(String, ReturnType, int, byte[]...)
 	 */
-	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, String... keysAndArgs);
+	<T> @Nullable T evalSha(String scriptSha, ReturnType returnType, int numKeys, String... keysAndArgs);
 
 	/**
 	 * Assign given name to current connection.
@@ -2937,6 +2962,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 * @see RedisServerCommands#getClientList()
 	 */
+	@Nullable
 	List<RedisClientInfo> getClientList();
 
 	/**
@@ -2947,6 +2973,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param command must not be {@literal null}.
 	 * @return
 	 */
+	@Nullable
 	List<Long> bitfield(String key, BitFieldSubCommands command);
 
 	// -------------------------------------------------------------------------
@@ -2976,6 +3003,7 @@ public interface StringRedisConnection extends RedisConnection {
 		return xAck(key, group, entryIds(entryIds));
 	}
 
+	@Nullable
 	Long xAck(String key, String group, RecordId... recordIds);
 
 	/**
@@ -3025,6 +3053,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	List<RecordId> xClaimJustId(String key, String group, String newOwner, XClaimOptions options);
 
 	/**
@@ -3039,7 +3068,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
-	default List<StringRecord> xClaim(String key, String group, String newOwner, Duration minIdleTime,
+	default @Nullable List<StringRecord> xClaim(String key, String group, String newOwner, Duration minIdleTime,
 			RecordId... recordIds) {
 		return xClaim(key, group, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
 	}
@@ -3055,6 +3084,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xclaim">Redis Documentation: XCLAIM</a>
 	 * @since 2.3
 	 */
+	@Nullable
 	List<StringRecord> xClaim(String key, String group, String newOwner, XClaimOptions options);
 
 	/**
@@ -3071,6 +3101,7 @@ public interface StringRedisConnection extends RedisConnection {
 		return xDel(key, entryIds(entryIds));
 	}
 
+	@Nullable
 	Long xDel(String key, RecordId... recordIds);
 
 	/**

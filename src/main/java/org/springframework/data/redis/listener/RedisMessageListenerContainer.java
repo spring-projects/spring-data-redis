@@ -364,6 +364,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * Lazily initiate subscriptions if the container has listeners.
 	 */
+	@SuppressWarnings("NullAway")
 	private void lazyListen() {
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
@@ -408,6 +409,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return containerListenFuture;
 	}
 
+	@SuppressWarnings("NullAway")
 	private boolean doSubscribe(BackOffExecution backOffExecution) {
 
 		CompletableFuture<Void> containerListenFuture = this.listenFuture;
@@ -495,6 +497,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private boolean doUnsubscribe() {
 
 		CompletableFuture<Void> listenFuture = this.listenFuture;
@@ -539,6 +542,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return this.started.get();
 	}
 
+	@SuppressWarnings("NullAway")
 	public boolean isListening() {
 		return this.state.get().isListening();
 	}

@@ -412,7 +412,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 *
 		 * @since 2.0.3
 		 */
-		PositionalKey getPositionalKey() {
+		@Nullable PositionalKey getPositionalKey() {
 			return this.positionalKey;
 		}
 
@@ -801,7 +801,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 */
 	private class NodeExceptionCollector {
 
-		private final Map<RedisClusterNode, Throwable> exceptions = new HashMap<>();
+		private final Map<RedisClusterNode, @Nullable Throwable> exceptions = new HashMap<>();
 
 		/**
 		 * @return {@code true} if the collector contains at least one exception.
@@ -810,7 +810,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 			return !exceptions.isEmpty();
 		}
 
-		public void addException(NodeExecution execution, Throwable throwable) {
+		public void addException(NodeExecution execution, @Nullable Throwable throwable) {
 
 			Throwable translated = throwable instanceof Exception e ? convertToDataAccessException(e) : throwable;
 			Throwable resolvedException = translated != null ? translated : throwable;
@@ -821,7 +821,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		/**
 		 * @return the collected exceptions.
 		 */
-		public List<? extends Throwable> getExceptions() {
+		public List<? extends @Nullable Throwable> getExceptions() {
 			return new ArrayList<>(exceptions.values());
 		}
 	}

@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+
 /**
  * @author Christoph Strobl
  * @since 1.5
  */
+@NullUnmarked
 public interface HyperLogLogOperations<K, V> {
 
 	/**
@@ -29,7 +33,7 @@ public interface HyperLogLogOperations<K, V> {
 	 * @return 1 of at least one of the values was added to the key; 0 otherwise. {@literal null} when used in pipeline /
 	 *         transaction.
 	 */
-	Long add(K key, V... values);
+	Long add(@NonNull K key, @NonNull V @NonNull... values);
 
 	/**
 	 * Gets the current number of elements within the {@literal key}.
@@ -37,7 +41,7 @@ public interface HyperLogLogOperations<K, V> {
 	 * @param keys must not be {@literal null} or {@literal empty}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	Long size(K... keys);
+	Long size(@NonNull K @NonNull... keys);
 
 	/**
 	 * Merges all values of given {@literal sourceKeys} into {@literal destination} key.
@@ -46,13 +50,13 @@ public interface HyperLogLogOperations<K, V> {
 	 * @param sourceKeys must not be {@literal null} or {@literal empty}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	Long union(K destination, K... sourceKeys);
+	Long union(@NonNull K destination, @NonNull K @NonNull... sourceKeys);
 
 	/**
 	 * Removes the given {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 */
-	void delete(K key);
+	void delete(@NonNull K key);
 
 }

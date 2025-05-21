@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
@@ -42,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 1.8
  */
+@NullUnmarked
 public interface RedisGeoCommands {
 
 	/**
@@ -53,8 +57,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	@Nullable
-	Long geoAdd(byte[] key, Point point, byte[] member);
+	Long geoAdd(byte @NonNull [] key, @NonNull Point point, byte @NonNull [] member);
 
 	/**
 	 * Add {@link GeoLocation} to {@literal key}.
@@ -64,7 +67,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	default @Nullable Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
+	default Long geoAdd(byte @NonNull [] key, @NonNull GeoLocation<byte[]> location) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(location, "Location must not be null");
@@ -80,8 +83,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	@Nullable
-	Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap);
+	Long geoAdd(byte @NonNull [] key, Map<byte @NonNull [], @NonNull Point> memberCoordinateMap);
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
@@ -91,8 +93,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	@Nullable
-	Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations);
+	Long geoAdd(byte @NonNull [] key, Iterable<@NonNull GeoLocation<byte[]>> locations);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
@@ -103,8 +104,7 @@ public interface RedisGeoCommands {
 	 * @return can be {@literal null}. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
-	@Nullable
-	Distance geoDist(byte[] key, byte[] member1, byte[] member2);
+	Distance geoDist(byte @NonNull [] key, byte @NonNull [] member1, byte @NonNull [] member2);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
@@ -116,8 +116,7 @@ public interface RedisGeoCommands {
 	 * @return can be {@literal null}. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
-	@Nullable
-	Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric);
+	Distance geoDist(byte @NonNull [] key, byte @NonNull [] member1, byte @NonNull [] member2, @NonNull Metric metric);
 
 	/**
 	 * Get Geohash representation of the position for one or more {@literal member}s.
@@ -127,8 +126,7 @@ public interface RedisGeoCommands {
 	 * @return empty list when key or members do not exists. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
-	@Nullable
-	List<String> geoHash(byte[] key, byte[]... members);
+	List<@NonNull String> geoHash(byte @NonNull [] key, byte @NonNull [] @NonNull... members);
 
 	/**
 	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
@@ -138,8 +136,7 @@ public interface RedisGeoCommands {
 	 * @return empty {@link List} when key of members do not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
-	@Nullable
-	List<Point> geoPos(byte[] key, byte[]... members);
+	List<@NonNull Point> geoPos(byte @NonNull [] key, byte @NonNull [] @NonNull... members);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
@@ -149,8 +146,7 @@ public interface RedisGeoCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within);
+	GeoResults<GeoLocation<byte[]>> geoRadius(byte @NonNull [] key, @NonNull Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -161,8 +157,8 @@ public interface RedisGeoCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<byte[]>> geoRadius(byte @NonNull [] key, @NonNull Circle within,
+			@NonNull GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -174,7 +170,8 @@ public interface RedisGeoCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	default @Nullable GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+	default GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			double radius) {
 		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
 	}
 
@@ -188,8 +185,8 @@ public interface RedisGeoCommands {
 	 * @return {@literal null} when used in pipeline / transaction..
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius);
+	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			@NonNull Distance radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates, given {@link Distance}
@@ -202,9 +199,8 @@ public interface RedisGeoCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
-			GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			@NonNull Distance radius, @NonNull GeoRadiusCommandArgs args);
 
 	/**
 	 * Remove the {@literal member}s.
@@ -214,8 +210,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements removed. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
-	@Nullable
-	Long geoRemove(byte[] key, byte[]... members);
+	Long geoRemove(byte @NonNull [] key, byte @NonNull [] @NonNull... members);
 
 	/**
 	 * Return the members of a geo set which are within the borders of the area specified by a given {@link GeoShape
@@ -229,9 +224,8 @@ public interface RedisGeoCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
-			GeoSearchCommandArgs args);
+	GeoResults<GeoLocation<byte[]>> geoSearch(byte @NonNull [] key, @NonNull GeoReference<byte[]> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchCommandArgs args);
 
 	/**
 	 * Query the members of a geo set which are within the borders of the area specified by a given {@link GeoShape shape}
@@ -245,9 +239,8 @@ public interface RedisGeoCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
-	@Nullable
-	Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
-			GeoSearchStoreCommandArgs args);
+	Long geoSearchStore(byte @NonNull [] destKey, byte @NonNull [] key, @NonNull GeoReference<byte[]> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchStoreCommandArgs args);
 
 	/**
 	 * Arguments to be used with {@link RedisGeoCommands}.
@@ -255,6 +248,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 2.6
 	 */
+	@NullMarked
 	interface GeoCommandArgs {
 
 		/**
@@ -325,6 +319,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 2.6
 	 */
+	@NullMarked
 	class GeoSearchCommandArgs implements GeoCommandArgs, Cloneable {
 
 		protected final Set<GeoCommandFlag> flags = new LinkedHashSet<>(2, 1);
@@ -466,6 +461,7 @@ public interface RedisGeoCommands {
 	 * @author Mark Paluch
 	 * @since 2.6
 	 */
+	@NullMarked
 	class GeoSearchStoreCommandArgs implements GeoCommandArgs, Cloneable {
 
 		private final Set<GeoCommandFlag> flags = new LinkedHashSet<>(2, 1);
@@ -601,6 +597,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
+	@NullMarked
 	class GeoRadiusCommandArgs extends GeoSearchCommandArgs implements Cloneable {
 
 		private GeoRadiusCommandArgs() {}
@@ -702,6 +699,7 @@ public interface RedisGeoCommands {
 	 * @param <T>
 	 * @since 1.8
 	 */
+	@NullMarked
 	class GeoLocation<T> extends org.springframework.data.redis.domain.geo.GeoLocation<T> {
 
 		public GeoLocation(T name, Point point) {
@@ -719,6 +717,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
+	@NullMarked
 	enum DistanceUnit implements Metric {
 
 		METERS(6378137, "m"), KILOMETERS(6378.137, "km"), MILES(3963.191, "mi"), FEET(20925646.325, "ft");

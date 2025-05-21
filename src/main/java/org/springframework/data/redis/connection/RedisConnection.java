@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.dao.DataAccessException;
 
 /**
@@ -37,6 +38,7 @@ import org.springframework.dao.DataAccessException;
  * @author James Howe
  * @author John Blum
  */
+@NullUnmarked
 public interface RedisConnection extends RedisCommandsProvider, DefaultedRedisConnection, AutoCloseable {
 
 	/**

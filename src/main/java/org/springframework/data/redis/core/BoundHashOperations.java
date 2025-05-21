@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Hash operations bound to a certain key.
@@ -32,6 +33,7 @@ import org.jspecify.annotations.Nullable;
  * @author Mark Paluch
  * @author Tihomir Mateev
  */
+@NullUnmarked
 public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	/**
@@ -40,8 +42,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Long delete(Object... keys);
+	Long delete(@NonNull Object @NonNull... keys);
 
 	/**
 	 * Determine if given hash {@code key} exists at the bound key.
@@ -49,8 +50,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean hasKey(Object key);
+	Boolean hasKey(@NonNull Object key);
 
 	/**
 	 * Get value for given {@code key} from the hash at the bound key.
@@ -58,8 +58,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param member must not be {@literal null}.
 	 * @return {@literal null} when member does not exist or when used in pipeline / transaction.
 	 */
-	@Nullable
-	HV get(Object member);
+	HV get(@NonNull Object member);
 
 	/**
 	 * Get values for given {@code keys} from the hash at the bound key. Values are in the order of the requested keys
@@ -68,8 +67,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	List<HV> multiGet(Collection<HK> keys);
+	List<HV> multiGet(@NonNull Collection<@NonNull HK> keys);
 
 	/**
 	 * Increment {@code value} of a hash {@code key} by the given {@code delta} at the bound key.
@@ -78,8 +76,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Long increment(HK key, long delta);
+	Long increment(@NonNull HK key, long delta);
 
 	/**
 	 * Increment {@code value} of a hash {@code key} by the given {@code delta} at the bound key.
@@ -88,8 +85,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param delta
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Double increment(HK key, double delta);
+	Double increment(@NonNull HK key, double delta);
 
 	/**
 	 * Return a random key from the hash stored at the bound key.
@@ -98,7 +94,6 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
 	HK randomKey();
 
 	/**
@@ -108,7 +103,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Map.@Nullable Entry<HK, HV> randomEntry();
+	Map.Entry<@NonNull HK, HV> randomEntry();
 
 	/**
 	 * Return a random keys from the hash stored at the bound key. If the provided {@code count} argument is positive,
@@ -121,8 +116,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	List<HK> randomKeys(long count);
+	List<@NonNull HK> randomKeys(long count);
 
 	/**
 	 * Return a random entry from the hash stored at the bound key.
@@ -132,16 +126,14 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	@Nullable
-	Map<HK, HV> randomEntries(long count);
+	Map<@NonNull HK, HV> randomEntries(long count);
 
 	/**
 	 * Get key set (fields) of hash at the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Set<HK> keys();
+	Set<@NonNull HK> keys();
 
 	/**
 	 * Returns the length of the value associated with {@code hashKey}. If the {@code hashKey} do not exist, {@code 0} is
@@ -151,15 +143,13 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.1
 	 */
-	@Nullable
-	Long lengthOfValue(HK hashKey);
+	Long lengthOfValue(@NonNull HK hashKey);
 
 	/**
 	 * Get size of hash at the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
 	Long size();
 
 	/**
@@ -167,7 +157,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *
 	 * @param m must not be {@literal null}.
 	 */
-	void putAll(Map<? extends HK, ? extends HV> m);
+	void putAll(Map<? extends @NonNull HK, ? extends HV> m);
 
 	/**
 	 * Set the {@code value} of a hash {@code key} at the bound key.
@@ -175,7 +165,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param key must not be {@literal null}.
 	 * @param value
 	 */
-	void put(HK key, HV value);
+	void put(@NonNull HK key, HV value);
 
 	/**
 	 * Set the {@code value} of a hash {@code key} only if {@code key} does not exist.
@@ -184,15 +174,13 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @param value
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean putIfAbsent(HK key, HV value);
+	Boolean putIfAbsent(@NonNull HK key, HV value);
 
 	/**
 	 * Get entry set (values) of hash at the bound key.
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
 	List<HV> values();
 
 	/**
@@ -200,8 +188,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Map<HK, HV> entries();
+	Map<@NonNull HK, HV> entries();
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at the bound key. <br />
@@ -212,7 +199,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
-	Cursor<Map.Entry<HK, HV>> scan(ScanOptions options);
+	Cursor<Map.Entry<@NonNull HK, HV>> scan(@NonNull ScanOptions options);
 
 	/**
 	 * Returns a bound operations object to perform operations on the hash field expiration for all hash fields at the
@@ -222,6 +209,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
+	@NonNull
 	default BoundHashFieldExpirationOperations<HK> hashExpiration() {
 		return new DefaultBoundHashFieldExpirationOperations<>(getOperations().opsForHash(), getKey(), this::keys);
 	}
@@ -234,7 +222,8 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundHashFieldExpirationOperations<HK> hashExpiration(HK... hashFields) {
+	@NonNull
+	default BoundHashFieldExpirationOperations<HK> hashExpiration(@NonNull HK @NonNull... hashFields) {
 		return hashExpiration(Arrays.asList(hashFields));
 	}
 
@@ -246,13 +235,15 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @return the bound operations object to perform operations on the hash field expiration.
 	 * @since 3.5
 	 */
-	default BoundHashFieldExpirationOperations<HK> hashExpiration(Collection<HK> hashFields) {
+	@NonNull
+	default BoundHashFieldExpirationOperations<HK> hashExpiration(@NonNull Collection<@NonNull HK> hashFields) {
 		return new DefaultBoundHashFieldExpirationOperations<>(getOperations().opsForHash(), getKey(), () -> hashFields);
 	}
 
 	/**
 	 * @return never {@literal null}.
 	 */
+	@NonNull
 	RedisOperations<H, ?> getOperations();
 
 }

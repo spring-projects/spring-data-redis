@@ -19,7 +19,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.util.Assert;
 
@@ -29,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Mark Paluch
  */
+@NullUnmarked
 public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 
 	/**
@@ -39,7 +41,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	@Nullable
 	List<V> range(long start, long end);
 
 	/**
@@ -57,7 +58,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
-	@Nullable
 	Long size();
 
 	/**
@@ -67,7 +67,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
 	Long leftPush(V value);
 
 	/**
@@ -77,7 +76,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
 	Long leftPushAll(V... values);
 
 	/**
@@ -87,7 +85,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
-	@Nullable
 	Long leftPushIfPresent(V value);
 
 	/**
@@ -97,8 +94,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
-	@Nullable
-	Long leftPush(V pivot, V value);
+	Long leftPush(@NonNull V pivot, V value);
 
 	/**
 	 * Append {@code value} to the bound key.
@@ -107,7 +103,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
 	Long rightPush(V value);
 
 	/**
@@ -117,8 +112,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
-	Long rightPushAll(V... values);
+	Long rightPushAll(V @NonNull... values);
 
 	/**
 	 * Append {@code values} to the bound key only if the list exists.
@@ -127,7 +121,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
-	@Nullable
 	Long rightPushIfPresent(V value);
 
 	/**
@@ -137,8 +130,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpush">Redis Documentation: RPUSH</a>
 	 */
-	@Nullable
-	Long rightPush(V pivot, V value);
+	Long rightPush(@NonNull V pivot, V value);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -152,8 +144,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/lmove">Redis Documentation: LMOVE</a>
 	 */
-	@Nullable
-	V move(Direction from, K destinationKey, Direction to);
+	V move(@NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -170,8 +161,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	V move(Direction from, K destinationKey, Direction to, Duration timeout);
+	V move(@NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to, @NonNull Duration timeout);
 
 	/**
 	 * Atomically returns and removes the first/last element (head/tail depending on the {@code from} argument) of the
@@ -189,8 +179,8 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/blmove">Redis Documentation: BLMOVE</a>
 	 */
-	@Nullable
-	V move(Direction from, K destinationKey, Direction to, long timeout, TimeUnit unit);
+	V move(@NonNull Direction from, @NonNull K destinationKey, @NonNull Direction to, long timeout,
+			@NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
@@ -209,7 +199,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
-	@Nullable
 	Long remove(long count, Object value);
 
 	/**
@@ -218,7 +207,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.4
 	 */
-	@Nullable
 	V getFirst();
 
 	/**
@@ -227,7 +215,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.4
 	 */
-	@Nullable
 	V getLast();
 
 	/**
@@ -237,7 +224,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
-	@Nullable
 	V index(long index);
 
 	/**
@@ -249,7 +235,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
-	@Nullable
 	Long indexOf(V value);
 
 	/**
@@ -261,7 +246,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 */
-	@Nullable
 	Long lastIndexOf(V value);
 
 	/**
@@ -270,7 +254,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
-	@Nullable
 	V leftPop();
 
 	/**
@@ -281,7 +264,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	List<V> leftPop(long count);
 
 	/**
@@ -293,8 +275,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when timeout reached or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
-	@Nullable
-	V leftPop(long timeout, TimeUnit unit);
+	V leftPop(long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Removes and returns first element from lists stored at the bound key . <br>
@@ -306,7 +287,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
-	default @Nullable V leftPop(Duration timeout) {
+	default V leftPop(Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -320,7 +301,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
-	@Nullable
 	V rightPop();
 
 	/**
@@ -331,7 +311,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	List<V> rightPop(long count);
 
 	/**
@@ -343,8 +322,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when timeout reached or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
-	@Nullable
-	V rightPop(long timeout, TimeUnit unit);
+	V rightPop(long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Removes and returns last element from lists stored at the bound key. <br>
@@ -356,7 +334,7 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.3
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
-	default @Nullable V rightPop(Duration timeout) {
+	default V rightPop(@NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -364,5 +342,6 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 		return rightPop(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
 	}
 
+	@NonNull
 	RedisOperations<K, V> getOperations();
 }

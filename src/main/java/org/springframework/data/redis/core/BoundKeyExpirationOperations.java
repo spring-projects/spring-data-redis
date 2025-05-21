@@ -19,7 +19,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.core.types.Expirations;
  * @author Mark Paluch
  * @since 3.5
  */
+@NullUnmarked
 public interface BoundKeyExpirationOperations {
 
 	/**
@@ -38,7 +40,7 @@ public interface BoundKeyExpirationOperations {
 	 * @param expiration the expiration definition.
 	 * @return changes to the key. {@literal null} when used in pipeline / transaction.
 	 */
-	default ExpireChanges.ExpiryChangeState expire(Expiration expiration) {
+	default ExpireChanges.ExpiryChangeState expire(@NonNull Expiration expiration) {
 		return expire(expiration, ExpirationOptions.none());
 	}
 
@@ -49,7 +51,7 @@ public interface BoundKeyExpirationOperations {
 	 * @param options expiration options.
 	 * @return changes to the key. {@literal null} when used in pipeline / transaction.
 	 */
-	ExpireChanges.@Nullable ExpiryChangeState expire(Expiration expiration, ExpirationOptions options);
+	ExpireChanges.ExpiryChangeState expire(@NonNull Expiration expiration, @NonNull ExpirationOptions options);
 
 	/**
 	 * Set time to live for the bound key.
@@ -60,7 +62,7 @@ public interface BoundKeyExpirationOperations {
 	 * @see <a href="https://redis.io/docs/latest/commands/expire/">Redis Documentation: EXPIRE</a>
 	 * @since 3.5
 	 */
-	ExpireChanges.@Nullable ExpiryChangeState expire(Duration timeout);
+	ExpireChanges.ExpiryChangeState expire(@NonNull Duration timeout);
 
 	/**
 	 * Set the expiration for the bound key as a {@literal date} timestamp.
@@ -71,7 +73,7 @@ public interface BoundKeyExpirationOperations {
 	 * @see <a href="https://redis.io/docs/latest/commands/expireat/">Redis Documentation: EXPIRE</a>
 	 * @since 3.5
 	 */
-	ExpireChanges.@Nullable ExpiryChangeState expireAt(Instant expireAt);
+	ExpireChanges.ExpiryChangeState expireAt(@NonNull Instant expireAt);
 
 	/**
 	 * Remove the expiration from the bound key.
@@ -80,7 +82,7 @@ public interface BoundKeyExpirationOperations {
 	 * @see <a href="https://redis.io/docs/latest/commands/persist/">Redis Documentation: PERSIST</a>
 	 * @since 3.5
 	 */
-	ExpireChanges.@Nullable ExpiryChangeState persist();
+	ExpireChanges.ExpiryChangeState persist();
 
 	/**
 	 * Get the time to live for the bound key in seconds.
@@ -89,7 +91,7 @@ public interface BoundKeyExpirationOperations {
 	 * @see <a href="https://redis.io/docs/latest/commands/ttl/">Redis Documentation: TTL</a>
 	 * @since 3.5
 	 */
-	Expirations.@Nullable TimeToLive getTimeToLive();
+	Expirations.TimeToLive getTimeToLive();
 
 	/**
 	 * Get the time to live for the bound key and convert it to the given {@link TimeUnit}.
@@ -100,6 +102,6 @@ public interface BoundKeyExpirationOperations {
 	 * @see <a href="https://redis.io/docs/latest/commands/ttl/">Redis Documentation: TTL</a>
 	 * @since 3.5
 	 */
-	Expirations.@Nullable TimeToLive getTimeToLive(TimeUnit timeUnit);
+	Expirations.TimeToLive getTimeToLive(@NonNull TimeUnit timeUnit);
 
 }

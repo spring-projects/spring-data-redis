@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.NullUnmarked;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -57,6 +58,7 @@ import org.springframework.util.Assert;
  * @author jinkshower
  * @since 2.2
  */
+@NullUnmarked
 public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
 
 	/**

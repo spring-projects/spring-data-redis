@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 
 /**
@@ -30,6 +32,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
  * @author Mark Paluch
  * @since 1.7
  */
+@NullUnmarked
 public interface RedisClusterCommands {
 
 	/**
@@ -38,7 +41,7 @@ public interface RedisClusterCommands {
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-nodes">Redis Documentation: CLUSTER NODES</a>
 	 */
-	Iterable<RedisClusterNode> clusterGetNodes();
+	Iterable<@NonNull RedisClusterNode> clusterGetNodes();
 
 	/**
 	 * Retrieve information about connected replicas for given master node.
@@ -47,7 +50,7 @@ public interface RedisClusterCommands {
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-replicas">Redis Documentation: CLUSTER REPLICAS</a>
 	 */
-	Collection<RedisClusterNode> clusterGetReplicas(RedisClusterNode master);
+	Collection<@NonNull RedisClusterNode> clusterGetReplicas(@NonNull RedisClusterNode master);
 
 	/**
 	 * Retrieve information about masters and their connected replicas.
@@ -55,7 +58,7 @@ public interface RedisClusterCommands {
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-replicas">Redis Documentation: CLUSTER REPLICAS</a>
 	 */
-	Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterReplicaMap();
+	Map<@NonNull RedisClusterNode, @NonNull Collection<@NonNull RedisClusterNode>> clusterGetMasterReplicaMap();
 
 	/**
 	 * Find the slot for a given {@code key}.
@@ -64,7 +67,7 @@ public interface RedisClusterCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/cluster-keyslot">Redis Documentation: CLUSTER KEYSLOT</a>
 	 */
-	Integer clusterGetSlotForKey(byte[] key);
+	Integer clusterGetSlotForKey(byte @NonNull [] key);
 
 	/**
 	 * Find the {@link RedisClusterNode} serving given {@literal slot}.
@@ -80,7 +83,7 @@ public interface RedisClusterCommands {
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
-	RedisClusterNode clusterGetNodeForKey(byte[] key);
+	RedisClusterNode clusterGetNodeForKey(byte @NonNull [] key);
 
 	/**
 	 * Get cluster information.
@@ -97,7 +100,7 @@ public interface RedisClusterCommands {
 	 * @param slots
 	 * @see <a href="https://redis.io/commands/cluster-addslots">Redis Documentation: CLUSTER ADDSLOTS</a>
 	 */
-	void clusterAddSlots(RedisClusterNode node, int... slots);
+	void clusterAddSlots(@NonNull RedisClusterNode node, int @NonNull... slots);
 
 	/**
 	 * Assign {@link SlotRange#getSlotsArray()} to given {@link RedisClusterNode}.
@@ -106,7 +109,7 @@ public interface RedisClusterCommands {
 	 * @param range must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-addslots">Redis Documentation: CLUSTER ADDSLOTS</a>
 	 */
-	void clusterAddSlots(RedisClusterNode node, SlotRange range);
+	void clusterAddSlots(@NonNull RedisClusterNode node, @NonNull SlotRange range);
 
 	/**
 	 * Count the number of keys assigned to one {@literal slot}.
@@ -133,7 +136,7 @@ public interface RedisClusterCommands {
 	 * @param range must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-delslots">Redis Documentation: CLUSTER DELSLOTS</a>
 	 */
-	void clusterDeleteSlotsInRange(RedisClusterNode node, SlotRange range);
+	void clusterDeleteSlotsInRange(@NonNull RedisClusterNode node, @NonNull SlotRange range);
 
 	/**
 	 * Remove given {@literal node} from cluster.
@@ -141,7 +144,7 @@ public interface RedisClusterCommands {
 	 * @param node must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-forget">Redis Documentation: CLUSTER FORGET</a>
 	 */
-	void clusterForget(RedisClusterNode node);
+	void clusterForget(@NonNull RedisClusterNode node);
 
 	/**
 	 * Add given {@literal node} to cluster.
@@ -150,7 +153,7 @@ public interface RedisClusterCommands {
 	 *          not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-meet">Redis Documentation: CLUSTER MEET</a>
 	 */
-	void clusterMeet(RedisClusterNode node);
+	void clusterMeet(@NonNull RedisClusterNode node);
 
 	/**
 	 * @param node must not be {@literal null}.
@@ -158,7 +161,7 @@ public interface RedisClusterCommands {
 	 * @param mode must not be{@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-setslot">Redis Documentation: CLUSTER SETSLOT</a>
 	 */
-	void clusterSetSlot(RedisClusterNode node, int slot, AddSlots mode);
+	void clusterSetSlot(@NonNull RedisClusterNode node, int slot, @NonNull AddSlots mode);
 
 	/**
 	 * Get {@literal keys} served by slot.
@@ -168,7 +171,7 @@ public interface RedisClusterCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/cluster-getkeysinslot">Redis Documentation: CLUSTER GETKEYSINSLOT</a>
 	 */
-	List<byte[]> clusterGetKeysInSlot(int slot, Integer count);
+	List<byte[]> clusterGetKeysInSlot(int slot, @NonNull Integer count);
 
 	/**
 	 * Assign a {@literal replica} to given {@literal master}.
@@ -177,7 +180,7 @@ public interface RedisClusterCommands {
 	 * @param replica must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/cluster-replicate">Redis Documentation: CLUSTER REPLICATE</a>
 	 */
-	void clusterReplicate(RedisClusterNode master, RedisClusterNode replica);
+	void clusterReplicate(@NonNull RedisClusterNode master, @NonNull RedisClusterNode replica);
 
 	enum AddSlots {
 		MIGRATING, IMPORTING, STABLE, NODE

@@ -18,7 +18,8 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 
@@ -29,6 +30,7 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@NullUnmarked
 public interface RedisSetCommands {
 
 	/**
@@ -39,8 +41,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
-	@Nullable
-	Long sAdd(byte[] key, byte[]... values);
+	Long sAdd(byte @NonNull [] key, byte @NonNull [] @NonNull... values);
 
 	/**
 	 * Remove given {@code values} from set at {@code key} and return the number of removed elements.
@@ -50,8 +51,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
-	@Nullable
-	Long sRem(byte[] key, byte[]... values);
+	Long sRem(byte @NonNull [] key, byte @NonNull []... values);
 
 	/**
 	 * Remove and return a random member from set at {@code key}.
@@ -60,7 +60,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
-	byte @Nullable[] sPop(byte[] key);
+	byte[] sPop(byte @NonNull [] key);
 
 	/**
 	 * Remove and return {@code count} random members from set at {@code key}.
@@ -71,8 +71,7 @@ public interface RedisSetCommands {
 	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 * @since 2.0
 	 */
-	@Nullable
-	List<byte[]> sPop(byte[] key, long count);
+	List<byte @NonNull []> sPop(byte @NonNull [] key, long count);
 
 	/**
 	 * Move {@code value} from {@code srcKey} to {@code destKey}
@@ -83,8 +82,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
-	@Nullable
-	Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value);
+	Boolean sMove(byte @NonNull [] srcKey, byte @NonNull [] destKey, byte @NonNull [] value);
 
 	/**
 	 * Get size of set at {@code key}.
@@ -93,8 +91,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
-	@Nullable
-	Long sCard(byte[] key);
+	Long sCard(byte @NonNull [] key);
 
 	/**
 	 * Check if set at {@code key} contains {@code value}.
@@ -104,8 +101,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
-	@Nullable
-	Boolean sIsMember(byte[] key, byte[] value);
+	Boolean sIsMember(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
 	 * Check if set at {@code key} contains one or more {@code values}.
@@ -116,8 +112,7 @@ public interface RedisSetCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
 	 */
-	@Nullable
-	List<Boolean> sMIsMember(byte[] key, byte[]... values);
+	List<@NonNull Boolean> sMIsMember(byte @NonNull [] key, byte @NonNull [] @NonNull... values);
 
 	/**
 	 * Diff all sets for given {@code keys}.
@@ -126,8 +121,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	@Nullable
-	Set<byte[]> sDiff(byte[]... keys);
+	Set<byte @NonNull []> sDiff(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
@@ -137,8 +131,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
-	@Nullable
-	Long sDiffStore(byte[] destKey, byte[]... keys);
+	Long sDiffStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code keys}.
@@ -147,8 +140,7 @@ public interface RedisSetCommands {
 	 * @return empty {@link Set} if no intersection found. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	@Nullable
-	Set<byte[]> sInter(byte[]... keys);
+	Set<byte @NonNull []> sInter(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Intersect all given sets at {@code keys} and store result in {@code destKey}.
@@ -158,8 +150,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
-	@Nullable
-	Long sInterStore(byte[] destKey, byte[]... keys);
+	Long sInterStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Union all sets at given {@code keys}.
@@ -168,8 +159,7 @@ public interface RedisSetCommands {
 	 * @return empty {@link Set} if keys do not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	@Nullable
-	Set<byte[]> sUnion(byte[]... keys);
+	Set<byte @NonNull []> sUnion(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Union all sets at given {@code keys} and store result in {@code destKey}.
@@ -179,9 +169,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
-	@Nullable
-	Long sUnionStore(byte[] destKey, byte[]... keys);
-
+	Long sUnionStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Get all elements of set at {@code key}.
@@ -190,8 +178,7 @@ public interface RedisSetCommands {
 	 * @return empty {@link Set} when key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
-	@Nullable
-	Set<byte[]> sMembers(byte[] key);
+	Set<byte @NonNull []> sMembers(byte @NonNull [] key);
 
 	/**
 	 * Get random element from set at {@code key}.
@@ -200,7 +187,7 @@ public interface RedisSetCommands {
 	 * @return can be {@literal null}.
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	byte @Nullable[] sRandMember(byte[] key);
+	byte[] sRandMember(byte @NonNull [] key);
 
 	/**
 	 * Get {@code count} random elements from set at {@code key}.
@@ -210,8 +197,7 @@ public interface RedisSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	@Nullable
-	List<byte[]> sRandMember(byte[] key, long count);
+	List<byte @NonNull []> sRandMember(byte @NonNull [] key, long count);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in set at {@code key}.
@@ -222,5 +208,5 @@ public interface RedisSetCommands {
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
-	Cursor<byte[]> sScan(byte[] key, ScanOptions options);
+	Cursor<byte @NonNull []> sScan(byte @NonNull [] key, ScanOptions options);
 }

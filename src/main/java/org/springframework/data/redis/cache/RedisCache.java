@@ -57,6 +57,7 @@ import org.springframework.util.ReflectionUtils;
 @SuppressWarnings("unused")
 public class RedisCache extends AbstractValueAdaptingCache {
 
+	@SuppressWarnings("NullAway")
 	static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
 
 	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE = "The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
@@ -146,7 +147,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(Object key, Callable<T> valueLoader) {
+	public <T> @Nullable T get(Object key, Callable<T> valueLoader) {
 
 		byte[] binaryKey = createAndConvertCacheKey(key);
 		byte[] binaryValue = getCacheWriter().get(getName(), binaryKey,
@@ -176,7 +177,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	protected Object lookup(Object key) {
+	protected @Nullable Object lookup(Object key) {
 
 		byte[] binaryKey = createAndConvertCacheKey(key);
 
@@ -209,7 +210,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	public ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
+	public @Nullable ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
 
@@ -291,7 +292,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		});
 	}
 
-	private Object processAndCheckValue(@Nullable Object value) {
+	private @Nullable Object processAndCheckValue(@Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
 
@@ -379,6 +380,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @return never {@literal null}.
 	 * @throws IllegalStateException if {@code key} cannot be converted to {@link String}.
 	 */
+	@SuppressWarnings("NullAway")
 	protected String convertKey(Object key) {
 
 		if (key instanceof String stringKey) {

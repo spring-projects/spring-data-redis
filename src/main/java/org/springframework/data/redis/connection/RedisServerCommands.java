@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
@@ -31,6 +33,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  * @author Mark Paluch
  * @author Dennis Neufeld
  */
+@NullUnmarked
 public interface RedisServerCommands {
 
 	enum ShutdownOption {
@@ -72,7 +75,6 @@ public interface RedisServerCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
 	 */
-	@Nullable
 	Long lastSave();
 
 	/**
@@ -88,7 +90,6 @@ public interface RedisServerCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
 	 */
-	@Nullable
 	Long dbSize();
 
 	/**
@@ -105,7 +106,7 @@ public interface RedisServerCommands {
 	 * @see <a href="https://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
 	 * @since 2.7
 	 */
-	void flushDb(FlushOption option);
+	void flushDb(@NonNull FlushOption option);
 
 	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
@@ -121,7 +122,7 @@ public interface RedisServerCommands {
 	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
 	 * @since 2.7
 	 */
-	void flushAll(FlushOption option);
+	void flushAll(@NonNull FlushOption option);
 
 	/**
 	 * Load {@literal default} server information like
@@ -134,7 +135,6 @@ public interface RedisServerCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
-	@Nullable
 	Properties info();
 
 	/**
@@ -143,8 +143,7 @@ public interface RedisServerCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
-	@Nullable
-	Properties info(String section);
+	Properties info(@NonNull String section);
 
 	/**
 	 * Shutdown server.
@@ -159,7 +158,7 @@ public interface RedisServerCommands {
 	 * @see <a href="https://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
 	 * @since 1.3
 	 */
-	void shutdown(ShutdownOption option);
+	void shutdown(@NonNull ShutdownOption option);
 
 	/**
 	 * Load configuration parameters for given {@code pattern} from server.
@@ -168,8 +167,7 @@ public interface RedisServerCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
-	@Nullable
-	Properties getConfig(String pattern);
+	Properties getConfig(@NonNull String pattern);
 
 	/**
 	 * Set server configuration for {@code param} to {@code value}.
@@ -178,7 +176,7 @@ public interface RedisServerCommands {
 	 * @param value must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
 	 */
-	void setConfig(String param, String value);
+	void setConfig(@NonNull String param, @NonNull String value);
 
 	/**
 	 * Reset statistic counters on server. <br>
@@ -203,7 +201,7 @@ public interface RedisServerCommands {
 	 * @since 1.1
 	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
-	default @Nullable Long time() {
+	default Long time() {
 		return time(TimeUnit.MILLISECONDS);
 	}
 
@@ -215,8 +213,7 @@ public interface RedisServerCommands {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
-	@Nullable
-	Long time(TimeUnit timeUnit);
+	Long time(@NonNull TimeUnit timeUnit);
 
 	/**
 	 * Closes a given client connection identified by {@literal host:port}.
@@ -226,7 +223,7 @@ public interface RedisServerCommands {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/client-kill">Redis Documentation: CLIENT KILL</a>
 	 */
-	void killClient(String host, int port);
+	void killClient(@NonNull String host, int port);
 
 	/**
 	 * Assign given name to current connection.
@@ -235,7 +232,7 @@ public interface RedisServerCommands {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
 	 */
-	void setClientName(byte[] name);
+	void setClientName(byte @NonNull [] name);
 
 	/**
 	 * Returns the name of the current connection.
@@ -244,7 +241,6 @@ public interface RedisServerCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 1.3
 	 */
-	@Nullable
 	String getClientName();
 
 	/**
@@ -254,8 +250,7 @@ public interface RedisServerCommands {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 */
-	@Nullable
-	List<RedisClientInfo> getClientList();
+	List<@NonNull RedisClientInfo> getClientList();
 
 	/**
 	 * Change redis replication setting to new master.
@@ -265,7 +260,7 @@ public interface RedisServerCommands {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/replicaof">Redis Documentation: REPLICAOF</a>
 	 */
-	void replicaOf(String host, int port);
+	void replicaOf(@NonNull String host, int port);
 
 	/**
 	 * Change server into master.
@@ -286,7 +281,7 @@ public interface RedisServerCommands {
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
-	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option);
+	void migrate(byte @NonNull [] key, @NonNull RedisNode target, int dbIndex, @Nullable MigrateOption option);
 
 	/**
 	 * Atomically transfer a key from a source Redis instance to a destination Redis instance. On success the key is
@@ -300,6 +295,7 @@ public interface RedisServerCommands {
 	 * @since 1.7
 	 * @see <a href="https://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
-	void migrate(byte[] key, RedisNode target, int dbIndex, @Nullable MigrateOption option, long timeout);
+	void migrate(byte @NonNull [] key, @NonNull RedisNode target, int dbIndex, @Nullable MigrateOption option,
+			long timeout);
 
 }

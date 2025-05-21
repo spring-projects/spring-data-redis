@@ -80,7 +80,7 @@ public class DefaultSortParameters implements SortParameters {
 		this.byPattern = byPattern;
 	}
 
-	public Range getLimit() {
+	public @Nullable Range getLimit() {
 		return limit;
 	}
 
