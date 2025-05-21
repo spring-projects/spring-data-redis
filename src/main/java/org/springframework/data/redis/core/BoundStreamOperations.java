@@ -18,7 +18,8 @@ package org.springframework.data.redis.core;
 import java.util.List;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
@@ -36,6 +37,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
  * @author Dengliming
  * @since 2.2
  */
+@NullUnmarked
 public interface BoundStreamOperations<K, HK, HV> {
 
 	/**
@@ -46,8 +48,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return length of acknowledged records. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	@Nullable
-	Long acknowledge(String group, String... recordIds);
+	Long acknowledge(@NonNull String group, @NonNull String @NonNull... recordIds);
 
 	/**
 	 * Append a record to the stream {@code key}.
@@ -56,8 +57,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return the record Id. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	@Nullable
-	RecordId add(Map<HK, HV> body);
+	RecordId add(@NonNull Map<@NonNull HK, HV> body);
 
 	/**
 	 * Append a record to the stream {@code key} with the specified options.
@@ -68,8 +68,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 * @since 3.4
 	 */
-	@Nullable
-	RecordId add(Map<HK, HV> content, XAddOptions xAddOptions);
+	RecordId add(@NonNull Map<@NonNull HK, HV> content, @NonNull XAddOptions xAddOptions);
 
 	/**
 	 * Removes the specified entries from the stream. Returns the number of items deleted, that may be different from the
@@ -79,8 +78,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	@Nullable
-	Long delete(String... recordIds);
+	Long delete(@NonNull String @NonNull... recordIds);
 
 	/**
 	 * Create a consumer group.
@@ -89,8 +87,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param group name of the consumer group.
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	String createGroup(ReadOffset readOffset, String group);
+	String createGroup(@NonNull ReadOffset readOffset, @NonNull String group);
 
 	/**
 	 * Delete a consumer from a consumer group.
@@ -98,8 +95,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param consumer consumer identified by group name and consumer key.
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean deleteConsumer(Consumer consumer);
+	Boolean deleteConsumer(@NonNull Consumer consumer);
 
 	/**
 	 * Destroy a consumer group.
@@ -107,8 +103,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @param group name of the consumer group.
 	 * @return {@literal true} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	@Nullable
-	Boolean destroyGroup(String group);
+	Boolean destroyGroup(@NonNull String group);
 
 	/**
 	 * Get the length of a stream.
@@ -116,7 +111,6 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return length of the stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
-	@Nullable
 	Long size();
 
 	/**
@@ -126,7 +120,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	default @Nullable List<MapRecord<K, HK, HV>> range(Range<String> range) {
+	default List<@NonNull MapRecord<K, HK, HV>> range(@NonNull Range<String> range) {
 		return range(range, Limit.unlimited());
 	}
 
@@ -138,8 +132,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	@Nullable
-	List<MapRecord<K, HK, HV>> range(Range<String> range, Limit limit);
+	List<@NonNull MapRecord<K, HK, HV>> range(@NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Read records from {@link ReadOffset}.
@@ -148,7 +141,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	default @Nullable List<MapRecord<K, HK, HV>> read(ReadOffset readOffset) {
+	default List<@NonNull MapRecord<K, HK, HV>> read(@NonNull ReadOffset readOffset) {
 		return read(StreamReadOptions.empty(), readOffset);
 	}
 
@@ -160,8 +153,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	@Nullable
-	List<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, ReadOffset readOffset);
+	List<@NonNull MapRecord<K, HK, HV>> read(@NonNull StreamReadOptions readOptions, @NonNull ReadOffset readOffset);
 
 	/**
 	 * Read records starting from {@link ReadOffset}. using a consumer group.
@@ -171,7 +163,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	default @Nullable List<MapRecord<K, HK, HV>> read(Consumer consumer, ReadOffset readOffset) {
+	default List<@NonNull MapRecord<K, HK, HV>> read(@NonNull Consumer consumer, @NonNull ReadOffset readOffset) {
 		return read(consumer, StreamReadOptions.empty(), readOffset);
 	}
 
@@ -184,8 +176,8 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	@Nullable
-	List<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, ReadOffset readOffset);
+	List<@NonNull MapRecord<K, HK, HV>> read(@NonNull Consumer consumer, @NonNull StreamReadOptions readOptions,
+			@NonNull ReadOffset readOffset);
 
 	/**
 	 * Read records from a stream within a specific {@link Range} in reverse order.
@@ -194,7 +186,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	default @Nullable List<MapRecord<K, HK, HV>> reverseRange(Range<String> range) {
+	default List<@NonNull MapRecord<K, HK, HV>> reverseRange(@NonNull Range<String> range) {
 		return reverseRange(range, Limit.unlimited());
 	}
 
@@ -206,8 +198,7 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return list with members of the resulting stream. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	@Nullable
-	List<MapRecord<K, HK, HV>> reverseRange(Range<String> range, Limit limit);
+	List<@NonNull MapRecord<K, HK, HV>> reverseRange(@NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Trims the stream to {@code count} elements.
@@ -216,7 +207,6 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	@Nullable
 	Long trim(long count);
 
 	/**
@@ -228,6 +218,5 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	@Nullable
 	Long trim(long count, boolean approximateTrimming);
 }

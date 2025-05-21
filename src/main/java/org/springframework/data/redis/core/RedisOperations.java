@@ -718,7 +718,8 @@ public interface RedisOperations<K, V> {
 	 * @return stream operations.
 	 * @since 2.2
 	 */
-	<HK, HV> @NonNull StreamOperations<K, HK, HV> opsForStream(HashMapper<? super K, ? super HK, ? super HV> hashMapper);
+	<HK, HV> @NonNull StreamOperations<K, HK, HV> opsForStream(
+			@NonNull HashMapper<? super K, ? super HK, ? super HV> hashMapper);
 
 	/**
 	 * Returns the operations performed on Streams bound to the given key.
@@ -726,7 +727,7 @@ public interface RedisOperations<K, V> {
 	 * @return stream operations.
 	 * @since 2.2
 	 */
-	<HK, HV> @NonNull BoundStreamOperations<K, HK, HV> boundStreamOps(K key);
+	<HK, HV> @NonNull BoundStreamOperations<K, HK, HV> boundStreamOps(@NonNull K key);
 
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology).
@@ -743,7 +744,7 @@ public interface RedisOperations<K, V> {
 	 * @return value operations bound to the given key
 	 */
 	@NonNull
-	BoundValueOperations<K, V> boundValueOps(K key);
+	BoundValueOperations<K, V> boundValueOps(@NonNull K key);
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
@@ -760,7 +761,7 @@ public interface RedisOperations<K, V> {
 	 * @return zset operations bound to the given key.
 	 */
 	@NonNull
-	BoundZSetOperations<K, V> boundZSetOps(K key);
+	BoundZSetOperations<K, V> boundZSetOps(@NonNull K key);
 
 	/**
 	 * @return the key {@link RedisSerializer}.

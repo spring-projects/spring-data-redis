@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.util.Assert;
 
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Jiahe Cai
  * @author Marcin Grzejszczak
  */
+@NullUnmarked
 public interface ValueOperations<K, V> {
 
 	/**
@@ -43,7 +45,7 @@ public interface ValueOperations<K, V> {
 	 * @param value must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	void set(K key, V value);
+	void set(@NonNull K key, @NonNull V value);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old string stored at key, or
@@ -58,7 +60,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	V setGet(K key, V value, long timeout, TimeUnit unit);
+	V setGet(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old string stored at key, or
@@ -72,7 +74,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	V setGet(K key, V value, Duration duration);
+	V setGet(@NonNull K key, @NonNull V value, @NonNull Duration duration);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
@@ -83,7 +85,7 @@ public interface ValueOperations<K, V> {
 	 * @param unit must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
-	void set(K key, V value, long timeout, TimeUnit unit);
+	void set(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
@@ -95,7 +97,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	default void set(K key, V value, Duration timeout) {
+	default void set(@NonNull K key, @NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -114,8 +116,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	@Nullable
-	Boolean setIfAbsent(K key, V value);
+	Boolean setIfAbsent(@NonNull K key, @NonNull V value);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
@@ -128,8 +129,7 @@ public interface ValueOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
-	@Nullable
-	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
+	Boolean setIfAbsent(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
@@ -142,7 +142,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	default @Nullable Boolean setIfAbsent(K key, V value, Duration timeout) {
+	default Boolean setIfAbsent(@NonNull K key, @NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -163,8 +163,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Boolean setIfPresent(K key, V value);
+	Boolean setIfPresent(@NonNull K key, @NonNull V value);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
@@ -178,8 +177,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	@Nullable
-	Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit);
+	Boolean setIfPresent(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
@@ -192,7 +190,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 2.1
 	 */
-	default @Nullable Boolean setIfPresent(K key, V value, Duration timeout) {
+	default Boolean setIfPresent(@NonNull K key, @NonNull V value, @NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 
@@ -209,7 +207,7 @@ public interface ValueOperations<K, V> {
 	 * @param map must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
-	void multiSet(Map<? extends K, ? extends V> map);
+	void multiSet(Map<? extends @NonNull K, ? extends @NonNull V> map);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
@@ -219,8 +217,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
-	@Nullable
-	Boolean multiSetIfAbsent(Map<? extends K, ? extends V> map);
+	Boolean multiSetIfAbsent(Map<? extends @NonNull K, ? extends @NonNull V> map);
 
 	/**
 	 * Get the value of {@code key}.
@@ -229,7 +226,6 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
-	@Nullable
 	V get(Object key);
 
 	/**
@@ -240,8 +236,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	V getAndDelete(K key);
+	V getAndDelete(@NonNull K key);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
@@ -253,8 +248,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	V getAndExpire(K key, long timeout, TimeUnit unit);
+	V getAndExpire(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
@@ -265,8 +259,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	V getAndExpire(K key, Duration timeout);
+	V getAndExpire(@NonNull K key, @NonNull Duration timeout);
 
 	/**
 	 * Return the value at {@code key} and persist the key. This operation removes any TTL that is associated with
@@ -277,8 +270,7 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	V getAndPersist(K key);
+	V getAndPersist(@NonNull K key);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -287,8 +279,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
-	@Nullable
-	V getAndSet(K key, V value);
+	V getAndSet(@NonNull K key, @NonNull V value);
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys Absent field values are represented using
@@ -298,8 +289,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
-	@Nullable
-	List<V> multiGet(Collection<K> keys);
+	List<V> multiGet(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Increment an integer value stored as string value under {@code key} by one.
@@ -309,8 +299,7 @@ public interface ValueOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
-	@Nullable
-	Long increment(K key);
+	Long increment(@NonNull K key);
 
 	/**
 	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
@@ -320,8 +309,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
-	@Nullable
-	Long increment(K key, long delta);
+	Long increment(@NonNull K key, long delta);
 
 	/**
 	 * Increment a floating point number value stored as string value under {@code key} by {@code delta}.
@@ -331,8 +319,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/incrbyfloat">Redis Documentation: INCRBYFLOAT</a>
 	 */
-	@Nullable
-	Double increment(K key, double delta);
+	Double increment(@NonNull K key, double delta);
 
 	/**
 	 * Decrement an integer value stored as string value under {@code key} by one.
@@ -342,8 +329,7 @@ public interface ValueOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
-	@Nullable
-	Long decrement(K key);
+	Long decrement(@NonNull K key);
 
 	/**
 	 * Decrement an integer value stored as string value under {@code key} by {@code delta}.
@@ -354,8 +340,7 @@ public interface ValueOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
-	@Nullable
-	Long decrement(K key, long delta);
+	Long decrement(@NonNull K key, long delta);
 
 	/**
 	 * Append a {@code value} to {@code key}.
@@ -365,8 +350,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/append">Redis Documentation: APPEND</a>
 	 */
-	@Nullable
-	Integer append(K key, String value);
+	Integer append(@NonNull K key, @NonNull String value);
 
 	/**
 	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
@@ -377,8 +361,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
 	 */
-	@Nullable
-	String get(K key, long start, long end);
+	String get(@NonNull K key, long start, long end);
 
 	/**
 	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
@@ -388,7 +371,7 @@ public interface ValueOperations<K, V> {
 	 * @param offset
 	 * @see <a href="https://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
 	 */
-	void set(K key, V value, long offset);
+	void set(@NonNull K key, @NonNull V value, long offset);
 
 	/**
 	 * Get the length of the value stored at {@code key}.
@@ -397,8 +380,7 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
 	 */
-	@Nullable
-	Long size(K key);
+	Long size(@NonNull K key);
 
 	/**
 	 * Sets the bit at {@code offset} in value stored at {@code key}.
@@ -410,8 +392,7 @@ public interface ValueOperations<K, V> {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
-	@Nullable
-	Boolean setBit(K key, long offset, boolean value);
+	Boolean setBit(@NonNull K key, long offset, boolean value);
 
 	/**
 	 * Get the bit value at {@code offset} of value at {@code key}.
@@ -422,8 +403,7 @@ public interface ValueOperations<K, V> {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/getbit">Redis Documentation: GETBIT</a>
 	 */
-	@Nullable
-	Boolean getBit(K key, long offset);
+	Boolean getBit(@NonNull K key, long offset);
 
 	/**
 	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
@@ -435,8 +415,8 @@ public interface ValueOperations<K, V> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/bitfield">Redis Documentation: BITFIELD</a>
 	 */
-	@Nullable
-	List<Long> bitField(K key, BitFieldSubCommands subCommands);
+	List<Long> bitField(@NonNull K key, @NonNull BitFieldSubCommands subCommands);
 
+	@NonNull
 	RedisOperations<K, V> getOperations();
 }

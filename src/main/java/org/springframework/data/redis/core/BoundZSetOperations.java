@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Aggregate;
@@ -40,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
  */
+@NullUnmarked
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	/**
@@ -50,8 +52,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@Nullable
-	Boolean add(V value, double score);
+	Boolean add(@NonNull V value, double score);
 
 	/**
 	 * Add {@code value} to a sorted set at the bound key if it does not already exists.
@@ -62,8 +63,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
 	 */
-	@Nullable
-	Boolean addIfAbsent(V value, double score);
+	Boolean addIfAbsent(@NonNull V value, double score);
 
 	/**
 	 * Add {@code tuples} to a sorted set at the bound key, or update its {@code score} if it already exists.
@@ -72,8 +72,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@Nullable
-	Long add(Set<TypedTuple<V>> tuples);
+	Long add(Set<@NonNull TypedTuple<V>> tuples);
 
 	/**
 	 * Add {@code tuples} to a sorted set at the bound key if it does not already exists.
@@ -83,8 +82,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.5
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD NX</a>
 	 */
-	@Nullable
-	Long addIfAbsent(Set<TypedTuple<V>> tuples);
+	Long addIfAbsent(Set<@NonNull TypedTuple<V>> tuples);
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
@@ -93,8 +91,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
-	@Nullable
-	Long remove(Object... values);
+	Long remove(@NonNull Object @NonNull... values);
 
 	/**
 	 * Increment the score of element with {@code value} in sorted set by {@code increment}.
@@ -104,8 +101,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zincrby">Redis Documentation: ZINCRBY</a>
 	 */
-	@Nullable
-	Double incrementScore(V value, double delta);
+	Double incrementScore(@NonNull V value, double delta);
 
 	/**
 	 * Get random element from set at the bound key.
@@ -125,7 +121,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
 	Set<V> distinctRandomMembers(long count);
 
 	/**
@@ -137,7 +132,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
 	List<V> randomMembers(long count);
 
 	/**
@@ -158,8 +152,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> distinctRandomMembersWithScore(long count);
+	Set<@NonNull TypedTuple<V>> distinctRandomMembersWithScore(long count);
 
 	/**
 	 * Get {@code count} random elements with their score from set at the bound key.
@@ -170,8 +163,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zrandmember">Redis Documentation: ZRANDMEMBER</a>
 	 */
-	@Nullable
-	List<TypedTuple<V>> randomMembersWithScore(long count);
+	List<@NonNull TypedTuple<V>> randomMembersWithScore(long count);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
@@ -180,8 +172,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 */
-	@Nullable
-	Long rank(Object o);
+	Long rank(@NonNull Object o);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
@@ -190,8 +181,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
-	@Nullable
-	Long reverseRank(Object o);
+	Long reverseRank(@NonNull Object o);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.
@@ -201,7 +191,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	@Nullable
 	Set<V> range(long start, long end);
 
 	/**
@@ -212,8 +201,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> rangeWithScores(long start, long end);
+	Set<@NonNull TypedTuple<V>> rangeWithScores(long start, long end);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
@@ -223,7 +211,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<V> rangeByScore(double min, double max);
 
 	/**
@@ -234,8 +221,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> rangeByScoreWithScores(double min, double max);
+	Set<@NonNull TypedTuple<V>> rangeByScoreWithScores(double min, double max);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} from sorted set ordered from high to low.
@@ -245,7 +231,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	@Nullable
 	Set<V> reverseRange(long start, long end);
 
 	/**
@@ -256,8 +241,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> reverseRangeWithScores(long start, long end);
+	Set<@NonNull TypedTuple<V>> reverseRangeWithScores(long start, long end);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered from high to low.
@@ -267,7 +251,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Set<V> reverseRangeByScore(double min, double max);
 
 	/**
@@ -279,8 +262,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max);
+	Set<@NonNull TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max);
 
 	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
@@ -290,7 +272,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zcount">Redis Documentation: ZCOUNT</a>
 	 */
-	@Nullable
 	Long count(double min, double max);
 
 	/**
@@ -303,9 +284,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 * @deprecated since 3.0. Please use {@link #lexCount(Range)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
-	default Long lexCount(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+	default Long lexCount(org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
 		return lexCount(range.toRange());
 	}
 
@@ -318,8 +298,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
-	@Nullable
-	Long lexCount(Range<String> range);
+	Long lexCount(@NonNull Range<String> range);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at the bound key.
@@ -328,7 +307,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	TypedTuple<V> popMin();
 
 	/**
@@ -339,8 +317,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zpopmin">Redis Documentation: ZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	Set<TypedTuple<V>> popMin(long count);
+	Set<@NonNull TypedTuple<V>> popMin(long count);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at the bound key. <b>Blocks
@@ -352,8 +329,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	TypedTuple<V> popMin(long timeout, TimeUnit unit);
+	TypedTuple<V> popMin(long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Remove and return the value with its score having the lowest score from sorted set at the bound key. <b>Blocks
@@ -365,7 +341,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	default @Nullable TypedTuple<V> popMin(Duration timeout) {
+	default TypedTuple<V> popMin(@NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -380,7 +356,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
 	TypedTuple<V> popMax();
 
 	/**
@@ -391,8 +366,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zpopmax">Redis Documentation: ZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	Set<TypedTuple<V>> popMax(long count);
+	Set<@NonNull TypedTuple<V>> popMax(long count);
 
 	/**
 	 * Remove and return the value with its score having the highest score from sorted set at the bound key. <b>Blocks
@@ -404,8 +378,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	TypedTuple<V> popMax(long timeout, TimeUnit unit);
+	TypedTuple<V> popMax(long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Remove and return the value with its score having the highest score from sorted set at the bound key. <b>Blocks
@@ -417,7 +390,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	default @Nullable TypedTuple<V> popMax(Duration timeout) {
+	default TypedTuple<V> popMax(@NonNull Duration timeout) {
 
 		Assert.notNull(timeout, "Timeout must not be null");
 		Assert.isTrue(!timeout.isNegative(), "Timeout must not be negative");
@@ -432,7 +405,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
-	@Nullable
 	Long size();
 
 	/**
@@ -442,7 +414,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 1.3
 	 * @see <a href="https://redis.io/commands/zcard">Redis Documentation: ZCARD</a>
 	 */
-	@Nullable
 	Long zCard();
 
 	/**
@@ -452,8 +423,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
-	@Nullable
-	Double score(Object o);
+	Double score(@NonNull Object o);
 
 	/**
 	 * Get the scores of elements with {@code values} from sorted set with key the bound key.
@@ -463,8 +433,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zmscore">Redis Documentation: ZMSCORE</a>
 	 * @since 2.6
 	 */
-	@Nullable
-	List<Double> score(Object... o);
+	List<Double> score(@NonNull Object @NonNull... o);
 
 	/**
 	 * Remove elements in range between {@code start} and {@code end} from sorted set with the bound key.
@@ -474,7 +443,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
-	@Nullable
 	Long removeRange(long start, long end);
 
 	/**
@@ -486,9 +454,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #removeRangeByLex(Range)}.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
-	default Long removeRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+	default Long removeRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
 		return removeRangeByLex(range.toRange());
 	}
 
@@ -500,8 +467,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
 	 */
-	@Nullable
-	Long removeRangeByLex(Range<String> range);
+	Long removeRangeByLex(@NonNull Range<String> range);
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with the bound key.
@@ -511,7 +477,6 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zremrangebyscore">Redis Documentation: ZREMRANGEBYSCORE</a>
 	 */
-	@Nullable
 	Long removeRangeByScore(double min, double max);
 
 	/**
@@ -525,8 +490,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
-	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+	Long unionAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey, @NonNull Aggregate aggregate,
+			@NonNull Weights weights);
 
 	/**
 	 * Diff sorted {@code sets}.
@@ -536,7 +501,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	default @Nullable Set<V> difference(K otherKey) {
+	default Set<V> difference(@NonNull K otherKey) {
 		return difference(Collections.singleton(otherKey));
 	}
 
@@ -548,8 +513,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	Set<V> difference(Collection<K> otherKeys);
+	Set<V> difference(@NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Diff sorted {@code sets}.
@@ -559,7 +523,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	default @Nullable Set<TypedTuple<V>> differenceWithScores(K otherKey) {
+	default Set<@NonNull TypedTuple<V>> differenceWithScores(@NonNull K otherKey) {
 		return differenceWithScores(Collections.singleton(otherKey));
 	}
 
@@ -571,8 +535,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> differenceWithScores(Collection<K> otherKeys);
+	Set<@NonNull TypedTuple<V>> differenceWithScores(@NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Diff sorted {@code sets} and store result in destination {@code destKey}.
@@ -583,7 +546,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
 	 */
-	default @Nullable Long differenceAndStore(K otherKey, K destKey) {
+	default Long differenceAndStore(@NonNull K otherKey, @NonNull K destKey) {
 		return differenceAndStore(Collections.singleton(otherKey), destKey);
 	}
 
@@ -596,8 +559,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiffstore">Redis Documentation: ZDIFFSTORE</a>
 	 */
-	@Nullable
-	Long differenceAndStore(Collection<K> otherKeys, K destKey);
+	Long differenceAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey);
 
 	/**
 	 * Intersect sorted {@code sets}.
@@ -607,7 +569,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	default @Nullable Set<V> intersect(K otherKey) {
+	default Set<V> intersect(@NonNull K otherKey) {
 		return intersect(Collections.singleton(otherKey));
 	}
 
@@ -619,8 +581,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	Set<V> intersect(Collection<K> otherKeys);
+	Set<V> intersect(@NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Intersect sorted {@code sets}.
@@ -630,7 +591,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	default @Nullable Set<TypedTuple<V>> intersectWithScores(K otherKey) {
+	default Set<@NonNull TypedTuple<V>> intersectWithScores(@NonNull K otherKey) {
 		return intersectWithScores(Collections.singleton(otherKey));
 	}
 
@@ -642,8 +603,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> intersectWithScores(Collection<K> otherKeys);
+	Set<@NonNull TypedTuple<V>> intersectWithScores(@NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Intersect sorted {@code sets}.
@@ -655,8 +615,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zinter">Redis Documentation: ZINTER</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> intersectWithScores(Collection<K> otherKeys, Aggregate aggregate, Weights weights);
+	Set<@NonNull TypedTuple<V>> intersectWithScores(@NonNull Collection<@NonNull K> otherKeys,
+			@NonNull Aggregate aggregate, @NonNull Weights weights);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKey} and store result in destination {@code destKey}.
@@ -666,8 +626,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
-	Long intersectAndStore(K otherKey, K destKey);
+	Long intersectAndStore(@NonNull K otherKey, @NonNull K destKey);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -677,8 +636,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
-	Long intersectAndStore(Collection<K> otherKeys, K destKey);
+	Long intersectAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -690,8 +648,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
-	Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	Long intersectAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey, @NonNull Aggregate aggregate);
 
 	/**
 	 * Intersect sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -704,8 +661,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zinterstore">Redis Documentation: ZINTERSTORE</a>
 	 */
-	@Nullable
-	Long intersectAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate, Weights weights);
+	Long intersectAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey, @NonNull Aggregate aggregate,
+			@NonNull Weights weights);
 
 	/**
 	 * Union sorted {@code sets}.
@@ -715,7 +672,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	default @Nullable Set<V> union(K otherKey) {
+	default Set<V> union(@NonNull K otherKey) {
 		return union(Collections.singleton(otherKey));
 	}
 
@@ -727,8 +684,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	Set<V> union(Collection<K> otherKeys);
+	Set<V> union(@NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Union sorted {@code sets}.
@@ -738,7 +694,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	default @Nullable Set<TypedTuple<V>> unionWithScores(K otherKey) {
+	default Set<@NonNull TypedTuple<V>> unionWithScores(@NonNull K otherKey) {
 		return unionWithScores(Collections.singleton(otherKey));
 	}
 
@@ -750,8 +706,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys);
+	Set<@NonNull TypedTuple<V>> unionWithScores(@NonNull Collection<@NonNull K> otherKeys);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys}.
@@ -762,7 +717,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	default @Nullable Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate) {
+	default Set<@NonNull TypedTuple<V>> unionWithScores(@NonNull Collection<@NonNull K> otherKeys,
+			@NonNull Aggregate aggregate) {
 		return unionWithScores(otherKeys, aggregate, Weights.fromSetCount(1 + otherKeys.size()));
 	}
 
@@ -776,8 +732,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	@Nullable
-	Set<TypedTuple<V>> unionWithScores(Collection<K> otherKeys, Aggregate aggregate, Weights weights);
+	Set<@NonNull TypedTuple<V>> unionWithScores(@NonNull Collection<@NonNull K> otherKeys, @NonNull Aggregate aggregate,
+			@NonNull Weights weights);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -787,8 +743,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
-	Long unionAndStore(K otherKey, K destKey);
+	Long unionAndStore(@NonNull K otherKey, @NonNull K destKey);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -798,8 +753,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
-	Long unionAndStore(Collection<K> otherKeys, K destKey);
+	Long unionAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey);
 
 	/**
 	 * Union sorted sets at the bound key and {@code otherKeys} and store result in destination {@code destKey}.
@@ -811,8 +765,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 2.1
 	 * @see <a href="https://redis.io/commands/zunionstore">Redis Documentation: ZUNIONSTORE</a>
 	 */
-	@Nullable
-	Long unionAndStore(Collection<K> otherKeys, K destKey, Aggregate aggregate);
+	Long unionAndStore(@NonNull Collection<@NonNull K> otherKeys, @NonNull K destKey, @NonNull Aggregate aggregate);
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in zset at the bound key. <br />
@@ -823,7 +776,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
-	Cursor<TypedTuple<V>> scan(ScanOptions options);
+	Cursor<@NonNull TypedTuple<V>> scan(@NonNull ScanOptions options);
 
 	/**
 	 * Get all elements with lexicographical ordering with a value between
@@ -836,9 +789,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #rangeByLex(Range)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+	default Set<V> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
 		return rangeByLex(range.toRange());
 	}
 
@@ -851,7 +803,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	default @Nullable Set<V> rangeByLex(Range<String> range) {
+	default Set<V> rangeByLex(@NonNull Range<String> range) {
 		return rangeByLex(range, Limit.unlimited());
 	}
 
@@ -868,9 +820,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #rangeByLex(Range, Limit)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range, Limit limit) {
+	default Set<V> rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range,
+			@NonNull Limit limit) {
 		return rangeByLex(range.toRange(), limit);
 	}
 
@@ -885,8 +837,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	@Nullable
-	Set<V> rangeByLex(Range<String> range, Limit limit);
+	Set<V> rangeByLex(Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} with a value between
@@ -899,9 +850,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Range)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+	default Set<V> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
 		return reverseRangeByLex(range);
 	}
 
@@ -914,7 +864,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	default @Nullable Set<V> reverseRangeByLex(Range<String> range) {
+	default Set<V> reverseRangeByLex(@NonNull Range<String> range) {
 		return reverseRangeByLex(range, Limit.unlimited());
 	}
 
@@ -931,10 +881,9 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Range, Limit)} instead.
 	 */
-	@Nullable
 	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range range,
-			Limit limit) {
+	default Set<V> reverseRangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range,
+			@NonNull Limit limit) {
 		return reverseRangeByLex(range.toRange(), limit);
 	}
 
@@ -949,8 +898,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	@Nullable
-	Set<V> reverseRangeByLex(Range<String> range, Limit limit);
+	Set<V> reverseRangeByLex(@NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with lexicographical ordering from {@literal ZSET} at the bound key with a
@@ -963,7 +911,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #rangeByLex(Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	default @Nullable Long rangeAndStoreByLex(K dstKey, Range<String> range) {
+	default Long rangeAndStoreByLex(@NonNull K dstKey, @NonNull Range<String> range) {
 		return rangeAndStoreByLex(dstKey, range, Limit.unlimited());
 	}
 
@@ -980,8 +928,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #rangeByLex(Range, Limit)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long rangeAndStoreByLex(K dstKey, Range<String> range, Limit limit);
+	Long rangeAndStoreByLex(@NonNull K dstKey, @NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with reverse lexicographical ordering from {@literal ZSET} at the bound key
@@ -994,7 +941,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #reverseRangeByLex(Range)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	default @Nullable Long reverseRangeAndStoreByLex(K dstKey, Range<String> range) {
+	default Long reverseRangeAndStoreByLex(@NonNull K dstKey, @NonNull Range<String> range) {
 		return reverseRangeAndStoreByLex(dstKey, range, Limit.unlimited());
 	}
 
@@ -1011,8 +958,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #reverseRangeByLex(Range, Limit)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long reverseRangeAndStoreByLex(K dstKey, Range<String> range, Limit limit);
+	Long reverseRangeAndStoreByLex(@NonNull K dstKey, @NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with ordering by score from {@literal ZSET} at the bound key with a score
@@ -1025,7 +971,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #rangeByScore(double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	default @Nullable Long rangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
+	default Long rangeAndStoreByScore(@NonNull K dstKey, @NonNull Range<? extends Number> range) {
 		return rangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -1042,8 +988,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #rangeByScore(double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long rangeAndStoreByScore(K dstKey, Range<? extends Number> range, Limit limit);
+	Long rangeAndStoreByScore(@NonNull K dstKey, @NonNull Range<? extends Number> range, @NonNull Limit limit);
 
 	/**
 	 * Store all elements at {@code dstKey} with reverse ordering by score from {@literal ZSET} at the bound key with a
@@ -1056,7 +1001,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see #reverseRangeByScore(double, double)
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	default @Nullable Long reverseRangeAndStoreByScore(K dstKey, Range<? extends Number> range) {
+	default Long reverseRangeAndStoreByScore(@NonNull K dstKey, @NonNull Range<? extends Number> range) {
 		return reverseRangeAndStoreByScore(dstKey, range, Limit.unlimited());
 	}
 
@@ -1072,11 +1017,11 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zrangestore">Redis Documentation: ZRANGESTORE</a>
 	 */
-	@Nullable
-	Long reverseRangeAndStoreByScore(K dstKey, Range<? extends Number> range, Limit limit);
+	Long reverseRangeAndStoreByScore(@NonNull K dstKey, @NonNull Range<? extends Number> range, @NonNull Limit limit);
 
 	/**
 	 * @return never {@literal null}.
 	 */
+	@NonNull
 	RedisOperations<K, V> getOperations();
 }
