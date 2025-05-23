@@ -83,7 +83,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Long geoAdd(byte @NonNull [] key, Map<byte @NonNull [], @NonNull Point> memberCoordinateMap);
+	Long geoAdd(byte @NonNull [] key,  @NonNull Map<byte @NonNull [], @NonNull Point> memberCoordinateMap);
 
 	/**
 	 * Add {@link GeoLocation}s to {@literal key}
@@ -93,7 +93,7 @@ public interface RedisGeoCommands {
 	 * @return Number of elements added. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
-	Long geoAdd(byte @NonNull [] key, Iterable<@NonNull GeoLocation<byte[]>> locations);
+	Long geoAdd(byte @NonNull [] key,  @NonNull Iterable<@NonNull GeoLocation<byte[]>> locations);
 
 	/**
 	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.

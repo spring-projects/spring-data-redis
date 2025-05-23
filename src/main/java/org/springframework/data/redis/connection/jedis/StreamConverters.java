@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.ByteRecord;
@@ -160,12 +161,10 @@ class StreamConverters {
 
 		List<Object> objectList = (List<Object>) source;
 		long total = BuilderFactory.LONG.build(objectList.get(0));
-		Range.Bound<String> lower = objectList.get(1) != null
-				? Range.Bound.inclusive(JedisConverters.toString((byte[]) objectList.get(1)))
-				: Range.Bound.unbounded();
-		Range.Bound<String> upper = objectList.get(2) != null
-				? Range.Bound.inclusive(JedisConverters.toString((byte[]) objectList.get(2)))
-				: Range.Bound.unbounded();
+
+		Range.Bound<String> lower = boundOf(objectList.get(1));
+		Range.Bound<String> upper = boundOf(objectList.get(2));
+
 		List<List<Object>> consumerObjList = (List<List<Object>>) objectList.get(3);
 		Map<String, Long> map;
 
@@ -180,6 +179,10 @@ class StreamConverters {
 		}
 
 		return new PendingMessagesSummary(groupName, total, Range.of(lower, upper), map);
+	}
+
+	static Range.Bound<String> boundOf(@Nullable Object o) {
+		return o instanceof byte[] bytes ? Range.Bound.inclusive(JedisConverters.toString(bytes)) : Range.Bound.unbounded();
 	}
 
 	/**
@@ -202,6 +205,7 @@ class StreamConverters {
 		return new PendingMessages(groupName, messages).withinRange(range);
 	}
 
+	@SuppressWarnings("NullAway")
 	public static XAddParams toXAddParams(RecordId recordId, RedisStreamCommands.XAddOptions options) {
 
 		XAddParams params = new XAddParams();
@@ -262,6 +266,7 @@ class StreamConverters {
 		return params;
 	}
 
+	@SuppressWarnings("NullAway")
 	public static XReadParams toXReadParams(StreamReadOptions readOptions) {
 
 		XReadParams params = XReadParams.xReadParams();

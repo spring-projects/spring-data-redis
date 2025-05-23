@@ -199,7 +199,7 @@ class JedisClusterSetCommands implements RedisSetCommands {
 			}
 		}
 
-		if (result.isEmpty()) {
+		if (result == null || result.isEmpty()) {
 			return Collections.emptySet();
 		}
 

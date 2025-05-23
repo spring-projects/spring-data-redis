@@ -247,7 +247,7 @@ public class JedisConnectionFactory
 	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
 	 * @since 1.4
 	 */
-	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+	public JedisConnectionFactory(@Nullable RedisSentinelConfiguration sentinelConfiguration,
 			@Nullable JedisPoolConfig poolConfig) {
 
 		this.configuration = sentinelConfiguration;
@@ -715,6 +715,7 @@ public class JedisConnectionFactory
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void start() {
 
 		State current = this.state.getAndUpdate(state -> isCreatedOrStopped(state) ? State.STARTING : state);
@@ -796,6 +797,7 @@ public class JedisConnectionFactory
 		return State.STARTED.equals(this.state.get());
 	}
 
+	@SuppressWarnings("NullAway")
 	private Pool<Jedis> createPool() {
 
 		if (isRedisSentinelAware()) {
@@ -811,6 +813,7 @@ public class JedisConnectionFactory
 	 * @return the {@link Pool} to use. Never {@literal null}.
 	 * @since 1.4
 	 */
+	@SuppressWarnings("NullAway")
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 
 		GenericObjectPoolConfig<Jedis> poolConfig = getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig();
@@ -942,6 +945,7 @@ public class JedisConnectionFactory
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisClusterConnection getClusterConnection() {
 
 		assertInitialized();
@@ -969,7 +973,7 @@ public class JedisConnectionFactory
 	}
 
 	@Override
-	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+	public @Nullable DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
@@ -1047,6 +1051,7 @@ public class JedisConnectionFactory
 		return (MutableJedisClientConfiguration) clientConfiguration;
 	}
 
+	@SuppressWarnings("NullAway")
 	private void assertInitialized() {
 
 		State current = state.get();

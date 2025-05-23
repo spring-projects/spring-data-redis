@@ -67,6 +67,8 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	public List<RedisServer> replicas(NamedNode master) {
 
 		Assert.notNull(master, "Master node cannot be 'null' when loading replicas");
+		Assert.notNull(master.getName(), "Master node cannot be 'null' when loading replicas");
+
 		return replicas(master.getName());
 	}
 

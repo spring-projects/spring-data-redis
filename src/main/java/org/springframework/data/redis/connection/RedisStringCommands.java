@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -71,7 +72,7 @@ public interface RedisStringCommands {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	byte[] getEx(byte @NonNull [] key, Expiration expiration);
+	byte[] getEx(byte @NonNull [] key, @NonNull Expiration expiration);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -91,7 +92,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/mget">Redis Documentation: MGET</a>
 	 */
-	List<byte @NonNull []> mGet(byte @NonNull [] @NonNull... keys);
+	List<byte[]> mGet(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Set {@code value} for {@code key}.
@@ -174,7 +175,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
-	Boolean mSet(Map<byte @NonNull [], byte @NonNull []> tuple);
+	Boolean mSet(@NonNull Map<byte @NonNull [], byte @NonNull []> tuple);
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
@@ -184,7 +185,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
-	Boolean mSetNX(Map<byte @NonNull [], byte @NonNull []> tuple);
+	Boolean mSetNX( @NonNull Map<byte @NonNull [], byte @NonNull []> tuple);
 
 	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.

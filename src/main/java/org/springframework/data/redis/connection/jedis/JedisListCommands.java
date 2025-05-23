@@ -23,6 +23,8 @@ import redis.clients.jedis.params.LPosParams;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.util.Assert;
@@ -33,16 +35,17 @@ import org.springframework.util.Assert;
  * @author dengliming
  * @since 2.0
  */
+@NullUnmarked
 class JedisListCommands implements RedisListCommands {
 
 	private final JedisConnection connection;
 
-	JedisListCommands(JedisConnection connection) {
+	JedisListCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public Long rPush(byte[] key, byte[]... values) {
+	public Long rPush(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -50,7 +53,8 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<Long> lPos(byte[] key, byte[] element, @Nullable Integer rank, @Nullable Integer count) {
+	public List<Long> lPos(byte @NonNull [] key, byte @NonNull [] element, @Nullable Integer rank,
+			@Nullable Integer count) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(element, "Element must not be null");
@@ -70,7 +74,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public Long lPush(byte[] key, byte[]... values) {
+	public Long lPush(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Values must not be null");
@@ -80,7 +84,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public Long rPushX(byte[] key, byte[] value) {
+	public Long rPushX(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -89,7 +93,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public Long lPushX(byte[] key, byte[] value) {
+	public Long lPushX(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -98,7 +102,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public Long lLen(byte[] key) {
+	public Long lLen(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -106,7 +110,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte[]> lRange(byte[] key, long start, long end) {
+	public List<byte @NonNull []> lRange(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -114,7 +118,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public void lTrim(byte[] key, long start, long end) {
+	public void lTrim(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -122,7 +126,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] lIndex(byte[] key, long index) {
+	public byte[] lIndex(byte @NonNull [] key, long index) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -130,7 +134,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
+	public Long lInsert(byte @NonNull [] key, @NonNull Position where, byte @NonNull [] pivot, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -139,7 +143,8 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] lMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to) {
+	public byte[] lMove(byte @NonNull [] sourceKey, byte @NonNull [] destinationKey, @NonNull Direction from,
+			@NonNull Direction to) {
 
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(destinationKey, "Destination key must not be null");
@@ -151,7 +156,8 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] bLMove(byte[] sourceKey, byte[] destinationKey, Direction from, Direction to, double timeout) {
+	public byte[] bLMove(byte @NonNull [] sourceKey, byte @NonNull [] destinationKey, @NonNull Direction from,
+			@NonNull Direction to, double timeout) {
 
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(destinationKey, "Destination key must not be null");
@@ -163,7 +169,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public void lSet(byte[] key, long index, byte[] value) {
+	public void lSet(byte @NonNull [] key, long index, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -172,7 +178,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public Long lRem(byte[] key, long count, byte[] value) {
+	public Long lRem(byte @NonNull [] key, long count, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -181,7 +187,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] lPop(byte[] key) {
+	public byte[] lPop(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -189,7 +195,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte[]> lPop(byte[] key, long count) {
+	public List<byte[]> lPop(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -197,7 +203,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] rPop(byte[] key) {
+	public byte[] rPop(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -205,7 +211,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte[]> rPop(byte[] key, long count) {
+	public List<byte @NonNull []> rPop(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -213,7 +219,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+	public List<byte @NonNull []> bLPop(int timeout, byte @NonNull []... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -222,7 +228,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+	public List<byte @NonNull []> bRPop(int timeout, byte @NonNull []... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -231,7 +237,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
+	public byte[] rPopLPush(byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
@@ -240,7 +246,7 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+	public byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");

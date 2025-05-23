@@ -85,6 +85,7 @@ import org.springframework.data.redis.domain.geo.BoxShape;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.domain.geo.RadiusShape;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -187,12 +188,13 @@ abstract class JedisConverters extends Converters {
 		return toBytes(source.getCursorId());
 	}
 
-
-	public static byte @Nullable[] toBytes(@Nullable String source) {
+	@Contract("null -> null;!null -> !null")
+	public static byte @Nullable [] toBytes(@Nullable String source) {
 		return source == null ? null : SafeEncoder.encode(source);
 	}
 
-	public static @Nullable String toString(byte @Nullable[] source) {
+	@Contract("null -> null;!null -> !null")
+	public static @Nullable String toString(byte @Nullable [] source) {
 		return source == null ? null : SafeEncoder.encode(source);
 	}
 
@@ -203,7 +205,7 @@ abstract class JedisConverters extends Converters {
 	 * @return the {@link ValueEncoding} for given {@code source}. Never {@literal null}.
 	 * @since 2.1
 	 */
-	public static ValueEncoding toEncoding(byte[] source) {
+	public static ValueEncoding toEncoding(byte @Nullable [] source) {
 		return ValueEncoding.of(toString(source));
 	}
 
@@ -258,32 +260,33 @@ abstract class JedisConverters extends Converters {
 		return result;
 	}
 
+	@Contract("null -> null;!null -> !null")
 	public static @Nullable SortingParams toSortingParams(@Nullable SortParameters params) {
 
-		SortingParams jedisParams = null;
+		if (params == null) {
+			return null;
+		}
 
-		if (params != null) {
-			jedisParams = new SortingParams();
-			byte[] byPattern = params.getByPattern();
-			if (byPattern != null) {
-				jedisParams.by(params.getByPattern());
-			}
-			byte[][] getPattern = params.getGetPattern();
-			if (getPattern != null) {
-				jedisParams.get(getPattern);
-			}
-			Range limit = params.getLimit();
-			if (limit != null) {
-				jedisParams.limit((int) limit.getStart(), (int) limit.getCount());
-			}
-			Order order = params.getOrder();
-			if (order != null && order.equals(Order.DESC)) {
-				jedisParams.desc();
-			}
-			Boolean isAlpha = params.isAlphabetic();
-			if (isAlpha != null && isAlpha) {
-				jedisParams.alpha();
-			}
+		SortingParams jedisParams = new SortingParams();
+		byte[] byPattern = params.getByPattern();
+		if (byPattern != null) {
+			jedisParams.by(params.getByPattern());
+		}
+		byte[][] getPattern = params.getGetPattern();
+		if (getPattern != null) {
+			jedisParams.get(getPattern);
+		}
+		Range limit = params.getLimit();
+		if (limit != null) {
+			jedisParams.limit((int) limit.getStart(), (int) limit.getCount());
+		}
+		Order order = params.getOrder();
+		if (order != null && order.equals(Order.DESC)) {
+			jedisParams.desc();
+		}
+		Boolean isAlpha = params.isAlphabetic();
+		if (isAlpha != null && isAlpha) {
+			jedisParams.alpha();
 		}
 
 		return jedisParams;
@@ -616,6 +619,7 @@ abstract class JedisConverters extends Converters {
 	 *
 	 * @since 1.8
 	 */
+	@SuppressWarnings("NullAway")
 	public static GeoRadiusParam toGeoRadiusParam(GeoRadiusCommandArgs source) {
 
 		GeoRadiusParam param = GeoRadiusParam.geoRadiusParam();

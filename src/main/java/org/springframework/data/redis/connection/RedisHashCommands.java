@@ -79,7 +79,7 @@ public interface RedisHashCommands {
 	 * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 */
-	List<byte @NonNull []> hMGet(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
+	List<byte[]> hMGet(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Set multiple hash fields to multiple values using data provided in {@code hashes}
@@ -214,7 +214,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	List<Map.Entry<byte @NonNull [], byte @NonNull []>> hRandFieldWithValues(byte @NonNull [] key, long count);
+	List<Map. @NonNull Entry<byte @NonNull [], byte @NonNull []>> hRandFieldWithValues(byte @NonNull [] key, long count);
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
@@ -225,7 +225,7 @@ public interface RedisHashCommands {
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 */
-	Cursor<Map.Entry<byte @NonNull [], byte @NonNull []>> hScan(byte @NonNull [] key, ScanOptions options);
+	Cursor<Map. @NonNull Entry<byte @NonNull [], byte @NonNull []>> hScan(byte @NonNull [] key, ScanOptions options);
 
 	/**
 	 * Returns the length of the value associated with {@code field} in the hash stored at {@code key}. If the {@code key}

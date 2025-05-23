@@ -35,6 +35,7 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -598,6 +599,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @param returnValue can be {@literal null}.
 		 * @return can be {@literal null}.
 		 */
+		@Contract("!null -> !null")
 		public @Nullable T getFirstNonNullNotEmptyOrDefault(@Nullable T returnValue) {
 
 			for (NodeResult<T> nodeResult : nodeResults) {

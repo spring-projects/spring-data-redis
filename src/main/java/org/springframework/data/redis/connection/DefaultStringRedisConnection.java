@@ -23,6 +23,7 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
@@ -81,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  */
+@NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -126,7 +128,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	private class SerializingConverter implements Converter<String, byte[]> {
-
 
 		@Override
 		public byte @Nullable[] convert(String source) {

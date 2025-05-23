@@ -41,6 +41,8 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -48,7 +50,25 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.AbstractRedisConnection;
+import org.springframework.data.redis.connection.FutureResult;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisCommands;
+import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
+import org.springframework.data.redis.connection.RedisKeyCommands;
+import org.springframework.data.redis.connection.RedisListCommands;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.RedisScriptingCommands;
+import org.springframework.data.redis.connection.RedisServerCommands;
+import org.springframework.data.redis.connection.RedisSetCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.connection.jedis.JedisInvoker.ResponseCommands;
 import org.springframework.data.redis.connection.jedis.JedisResult.JedisResultBuilder;
@@ -76,10 +96,11 @@ import org.springframework.util.CollectionUtils;
  * @author John Blum
  * @see redis.clients.jedis.Jedis
  */
+@NullUnmarked
 public class JedisConnection extends AbstractRedisConnection {
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
-			new FallbackExceptionTranslationStrategy(JedisExceptionConverter.INSTANCE);
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
+			JedisExceptionConverter.INSTANCE);
 
 	private boolean convertPipelineAndTxResults = true;
 
@@ -109,8 +130,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private final Log LOGGER = LogFactory.getLog(getClass());
 
-	@SuppressWarnings("rawtypes")
-	private List<JedisResult> pipelinedResults = new ArrayList<>();
+	@SuppressWarnings("rawtypes") private List<JedisResult> pipelinedResults = new ArrayList<>();
 
 	private final @Nullable Pool<Jedis> pool;
 
@@ -125,7 +145,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 *
 	 * @param jedis {@link Jedis} client.
 	 */
-	public JedisConnection(Jedis jedis) {
+	public JedisConnection(@NonNull Jedis jedis) {
 		this(jedis, null, 0);
 	}
 
@@ -136,7 +156,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param pool {@link Pool} of Redis connections; can be null, if no pool is used.
 	 * @param dbIndex {@link Integer index} of the Redis database to use.
 	 */
-	public JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex) {
+	public JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex) {
 		this(jedis, pool, dbIndex, null);
 	}
 
@@ -149,7 +169,8 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param clientName {@link String name} given to this client; can be {@literal null}.
 	 * @since 1.8
 	 */
-	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex, @Nullable String clientName) {
+	protected JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, int dbIndex,
+			@Nullable String clientName) {
 		this(jedis, pool, createConfig(dbIndex, clientName), createConfig(dbIndex, clientName));
 	}
 
@@ -162,8 +183,8 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @param sentinelConfig {@literal Redis Sentinel} configuration
 	 * @since 2.5
 	 */
-	protected JedisConnection(Jedis jedis, @Nullable Pool<Jedis> pool, JedisClientConfig nodeConfig,
-			JedisClientConfig sentinelConfig) {
+	protected JedisConnection(@NonNull Jedis jedis, @Nullable Pool<Jedis> pool, @NonNull JedisClientConfig nodeConfig,
+			@NonNull JedisClientConfig sentinelConfig) {
 
 		this.jedis = jedis;
 		this.pool = pool;
@@ -282,7 +303,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public Object execute(String command, byte[]... args) {
+	public Object execute(@NonNull String command, byte @NonNull []... args) {
 
 		Assert.hasText(command, "A valid command needs to be specified");
 		Assert.notNull(args, "Arguments must not be null");
@@ -325,8 +346,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		// Return connection to the pool
 		if (this.pool != null) {
 			jedis.close();
-		}
-		else {
+		} else {
 			doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
 		}
 	}
@@ -364,7 +384,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public List<Object> closePipeline() {
+	public List<@Nullable Object> closePipeline() {
 
 		if (pipeline != null) {
 			try {
@@ -378,7 +398,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return Collections.emptyList();
 	}
 
-	private List<Object> convertPipelineResults() {
+	private List<@Nullable Object> convertPipelineResults() {
 
 		List<Object> results = new ArrayList<>();
 
@@ -415,7 +435,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return results;
 	}
 
-	void pipeline(JedisResult<?, ?> result) {
+	void pipeline(@NonNull JedisResult<?, ?> result) {
 
 		if (isQueueing()) {
 			transaction(result);
@@ -424,12 +444,12 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	void transaction(FutureResult<Response<?>> result) {
+	void transaction(@NonNull FutureResult<Response<?>> result) {
 		txResults.add(result);
 	}
 
 	@Override
-	public byte[] echo(byte[] message) {
+	public byte[] echo(byte @NonNull [] message) {
 
 		Assert.notNull(message, "Message must not be null");
 
@@ -455,7 +475,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public List<Object> exec() {
+	public List<@Nullable Object> exec() {
 
 		try {
 
@@ -503,6 +523,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		return transaction;
 	}
 
+	@NonNull
 	public Jedis getJedis() {
 		return this.jedis;
 	}
@@ -513,6 +534,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @return the {@link JedisInvoker}.
 	 * @since 2.5
 	 */
+	@NonNull
 	JedisInvoker invoke() {
 		return this.invoker;
 	}
@@ -524,6 +546,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	 * @return the {@link JedisInvoker}.
 	 * @since 2.5
 	 */
+	@NonNull
 	JedisInvoker invokeStatus() {
 		return this.statusInvoker;
 	}
@@ -569,7 +592,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public void watch(byte[]... keys) {
+	public void watch(byte @NonNull [] @NonNull... keys) {
 
 		if (isQueueing()) {
 			throw new InvalidDataAccessApiUsageException("WATCH is not supported when a transaction is active");
@@ -587,7 +610,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	//
 
 	@Override
-	public Long publish(byte[] channel, byte[] message) {
+	public Long publish(byte @NonNull [] channel, byte @NonNull [] message) {
 		return invoke().just(jedis -> jedis.publish(channel, message));
 	}
 
@@ -603,7 +626,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+	public void pSubscribe(@NonNull MessageListener listener, byte @NonNull [] @NonNull... patterns) {
 
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
@@ -624,7 +647,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public void subscribe(MessageListener listener, byte[]... channels) {
+	public void subscribe(@NonNull MessageListener listener, byte @NonNull [] @NonNull... channels) {
 
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
@@ -655,7 +678,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	protected boolean isActive(RedisNode node) {
+	protected boolean isActive(@NonNull RedisNode node) {
 
 		Jedis verification = null;
 
@@ -674,15 +697,15 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	protected JedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
+	protected JedisSentinelConnection getSentinelConnection(@NonNull RedisNode sentinel) {
 		return new JedisSentinelConnection(getJedis(sentinel));
 	}
 
-	protected Jedis getJedis(RedisNode node) {
+	protected Jedis getJedis(@NonNull RedisNode node) {
 		return new Jedis(new HostAndPort(node.getHost(), node.getPort()), this.sentinelConfig);
 	}
 
-	private @Nullable <T> T doWithJedis(Function<Jedis, T> callback) {
+	private @Nullable <T> T doWithJedis(@NonNull Function<@NonNull Jedis, T> callback) {
 
 		try {
 			return callback.apply(getJedis());
@@ -691,7 +714,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private void doWithJedis(Consumer<Jedis> callback) {
+	private void doWithJedis(@NonNull Consumer<@NonNull Jedis> callback) {
 
 		try {
 			callback.accept(getJedis());
@@ -704,14 +727,12 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			operation.run();
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(logMessage, ex);
 			}
 		}
 	}
-
 
 	@FunctionalInterface
 	private interface ExceptionThrowingOperation {

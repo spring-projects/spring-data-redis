@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -41,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class JedisGeoCommands implements RedisGeoCommands {
 
 	private final JedisConnection connection;
@@ -50,7 +53,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoAdd(byte[] key, Point point, byte[] member) {
+	public Long geoAdd(byte @NonNull [] key, @NonNull Point point, byte @NonNull [] member) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(point, "Point must not be null");
@@ -61,7 +64,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
+	public Long geoAdd(byte @NonNull [] key, @NonNull Map<byte @NonNull [], @NonNull Point> memberCoordinateMap) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null");
@@ -76,7 +79,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
+	public Long geoAdd(byte @NonNull [] key, @NonNull Iterable<@NonNull GeoLocation<byte[]>> locations) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(locations, "Locations must not be null");
@@ -91,7 +94,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+	public Distance geoDist(byte @NonNull [] key, byte @NonNull [] member1, byte @NonNull [] member2) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member1, "Member1 must not be null");
@@ -104,7 +107,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
+	public Distance geoDist(byte @NonNull [] key, byte @NonNull [] member1, byte @NonNull [] member2,
+			@NonNull Metric metric) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member1, "Member1 must not be null");
@@ -119,7 +123,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public List<String> geoHash(byte[] key, byte[]... members) {
+	public List<String> geoHash(byte @NonNull [] key, byte @NonNull [] @NonNull... members) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(members, "Members must not be null");
@@ -130,7 +134,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public List<Point> geoPos(byte[] key, byte[]... members) {
+	public List<@NonNull Point> geoPos(byte @NonNull [] key, byte @NonNull [] @NonNull... members) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(members, "Members must not be null");
@@ -141,7 +145,7 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte @NonNull [] key, @NonNull Circle within) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(within, "Within must not be null");
@@ -157,7 +161,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte @NonNull [] key, @NonNull Circle within,
+			@NonNull GeoRadiusCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(within, "Within must not be null");
@@ -175,7 +180,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			@NonNull Distance radius) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
@@ -190,8 +196,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
-			GeoRadiusCommandArgs args) {
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte @NonNull [] key, byte @NonNull [] member,
+			@NonNull Distance radius, @NonNull GeoRadiusCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
@@ -208,13 +214,13 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoRemove(byte[] key, byte[]... members) {
+	public Long geoRemove(byte @NonNull [] key, byte @NonNull [] @NonNull... members) {
 		return connection.zSetCommands().zRem(key, members);
 	}
 
 	@Override
-	public GeoResults<GeoLocation<byte[]>> geoSearch(byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
-			GeoSearchCommandArgs args) {
+	public GeoResults<GeoLocation<byte[]>> geoSearch(byte @NonNull [] key, @NonNull GeoReference<byte[]> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -226,8 +232,8 @@ class JedisGeoCommands implements RedisGeoCommands {
 	}
 
 	@Override
-	public Long geoSearchStore(byte[] destKey, byte[] key, GeoReference<byte[]> reference, GeoShape predicate,
-			GeoSearchStoreCommandArgs args) {
+	public Long geoSearchStore(byte @NonNull [] destKey, byte @NonNull [] key, @NonNull GeoReference<byte[]> reference,
+			@NonNull GeoShape predicate, @NonNull GeoSearchStoreCommandArgs args) {
 
 		Assert.notNull(destKey, "Destination Key must not be null");
 		Assert.notNull(key, "Key must not be null");

@@ -155,10 +155,11 @@ public interface RedisServerCommands {
 	/**
 	 * Shutdown server.
 	 *
+	 * @param option shutdown options if applicable.
 	 * @see <a href="https://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
 	 * @since 1.3
 	 */
-	void shutdown(@NonNull ShutdownOption option);
+	void shutdown(@Nullable ShutdownOption option);
 
 	/**
 	 * Load configuration parameters for given {@code pattern} from server.

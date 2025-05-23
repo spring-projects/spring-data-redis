@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
@@ -153,7 +154,7 @@ public interface RedisKeyCommands {
 	 * @return {@literal null} if no keys available or when used in pipeline or transaction.
 	 * @see <a href="https://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
 	 */
-	byte @NonNull [] randomKey();
+	byte[] randomKey();
 
 	/**
 	 * Rename key {@code oldKey} to {@code newKey}.
@@ -456,22 +457,22 @@ public interface RedisKeyCommands {
 	 * Sort the elements for {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param params must not be {@literal null}.
+	 * @param params can be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	List<byte @NonNull []> sort(byte @NonNull [] key, @NonNull SortParameters params);
+	List<byte @NonNull []> sort(byte @NonNull [] key, @Nullable SortParameters params);
 
 	/**
 	 * Sort the elements for {@code key} and store result in {@code storeKey}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param params must not be {@literal null}.
+	 * @param params can be {@literal null}.
 	 * @param storeKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sort">Redis Documentation: SORT</a>
 	 */
-	Long sort(byte @NonNull [] key, @NonNull SortParameters params, byte @NonNull [] storeKey);
+	Long sort(byte @NonNull [] key, @Nullable SortParameters params, byte @NonNull [] storeKey);
 
 	/**
 	 * Retrieve serialized version of the value stored at {@code key}.

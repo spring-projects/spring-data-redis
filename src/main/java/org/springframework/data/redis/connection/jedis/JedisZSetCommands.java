@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
@@ -53,16 +55,17 @@ import org.springframework.util.Assert;
  * @author John Blum
  * @since 2.0
  */
+@NullUnmarked
 class JedisZSetCommands implements RedisZSetCommands {
 
 	private final JedisConnection connection;
 
-	JedisZSetCommands(JedisConnection connection) {
+	JedisZSetCommands(@NonNull JedisConnection connection) {
 		this.connection = connection;
 	}
 
 	@Override
-	public Boolean zAdd(byte[] key, double score, byte[] value, ZAddArgs args) {
+	public Boolean zAdd(byte @NonNull [] key, double score, byte @NonNull [] value, @NonNull ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -73,7 +76,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zAdd(byte[] key, Set<Tuple> tuples, ZAddArgs args) {
+	public Long zAdd(byte @NonNull [] key, @NonNull Set<@NonNull Tuple> tuples, @NonNull ZAddArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(tuples, "Tuples must not be null");
@@ -85,7 +88,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRem(byte[] key, byte[]... values) {
+	public Long zRem(byte @NonNull [] key, byte @NonNull [] @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Values must not be null");
@@ -95,7 +98,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Double zIncrBy(byte[] key, double increment, byte[] value) {
+	public Double zIncrBy(byte @NonNull [] key, double increment, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -104,7 +107,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public byte[] zRandMember(byte[] key) {
+	public byte[] zRandMember(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -112,7 +115,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public List<byte[]> zRandMember(byte[] key, long count) {
+	public List<byte @NonNull []> zRandMember(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -120,7 +123,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple zRandMemberWithScore(byte[] key) {
+	public Tuple zRandMemberWithScore(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -136,7 +139,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public List<Tuple> zRandMemberWithScore(byte[] key, long count) {
+	public List<@NonNull Tuple> zRandMemberWithScore(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -146,7 +149,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRank(byte[] key, byte[] value) {
+	public Long zRank(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -155,7 +158,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRevRank(byte[] key, byte[] value) {
+	public Long zRevRank(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -163,7 +166,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRange(byte[] key, long start, long end) {
+	public Set<@NonNull byte[]> zRange(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -171,7 +174,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
+	public Set<@NonNull Tuple> zRangeWithScores(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -181,8 +184,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScores(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Set<@NonNull Tuple> zRangeByScoreWithScores(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null");
@@ -205,7 +209,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
+	public Set<byte @NonNull []> zRevRange(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -213,7 +217,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
+	public Set<@NonNull Tuple> zRevRangeWithScores(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -223,8 +227,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte @NonNull []> zRevRangeByScore(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCORE must not be null");
@@ -245,9 +250,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key,
-			org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Set<Tuple> zRevRangeByScoreWithScores(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREVRANGEBYSCOREWITHSCORES must not be null");
@@ -270,7 +275,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zCount(byte[] key, double min, double max) {
+	public Long zCount(byte @NonNull [] key, double min, double max) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -278,7 +283,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zCount(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
+	public Long zCount(byte @NonNull [] key, org.springframework.data.domain.@NonNull Range<? extends Number> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -292,7 +297,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zLexCount(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
+	public Long zLexCount(byte @NonNull [] key, org.springframework.data.domain.@NonNull Range<byte[]> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -303,18 +308,16 @@ class JedisZSetCommands implements RedisZSetCommands {
 		return connection.invoke().just(Jedis::zlexcount, PipelineBinaryCommands::zlexcount, key, min, max);
 	}
 
-	@Nullable
 	@Override
-	public Tuple zPopMin(byte[] key) {
+	public Tuple zPopMin(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Jedis::zpopmin, PipelineBinaryCommands::zpopmin, key).get(JedisConverters::toTuple);
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zPopMin(byte[] key, long count) {
+	public Set<Tuple> zPopMin(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -322,9 +325,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.toSet(JedisConverters::toTuple);
 	}
 
-	@Nullable
 	@Override
-	public Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+	public Tuple bZPopMin(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
@@ -334,18 +336,16 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.get(JedisZSetCommands::toTuple);
 	}
 
-	@Nullable
 	@Override
-	public Tuple zPopMax(byte[] key) {
+	public Tuple zPopMax(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().from(Jedis::zpopmax, PipelineBinaryCommands::zpopmax, key).get(JedisConverters::toTuple);
 	}
 
-	@Nullable
 	@Override
-	public Set<Tuple> zPopMax(byte[] key, long count) {
+	public Set<@NonNull Tuple> zPopMax(byte @NonNull [] key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -353,9 +353,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 				.toSet(JedisConverters::toTuple);
 	}
 
-	@Nullable
 	@Override
-	public Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+	public Tuple bZPopMax(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
@@ -366,7 +365,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zCard(byte[] key) {
+	public Long zCard(byte @NonNull [] key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -374,7 +373,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Double zScore(byte[] key, byte[] value) {
+	public Double zScore(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
@@ -383,7 +382,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public List<Double> zMScore(byte[] key, byte[][] values) {
+	public List<@NonNull Double> zMScore(byte @NonNull [] key, byte @NonNull [] @NonNull [] values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Value must not be null");
@@ -392,7 +391,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRemRange(byte[] key, long start, long end) {
+	public Long zRemRange(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -400,7 +399,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRemRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range) {
+	public Long zRemRangeByLex(byte @NonNull [] key, org.springframework.data.domain.@NonNull Range<byte[]> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null for ZREMRANGEBYLEX");
@@ -412,7 +411,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRemRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range) {
+	public Long zRemRangeByScore(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREMRANGEBYSCORE must not be null");
@@ -426,7 +426,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zDiff(byte[]... sets) {
+	public Set<byte @NonNull []> zDiff(byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 
@@ -434,7 +434,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zDiffWithScores(byte[]... sets) {
+	public Set<@NonNull Tuple> zDiffWithScores(byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 
@@ -443,7 +443,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zDiffStore(byte[] destKey, byte[]... sets) {
+	public Long zDiffStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
@@ -452,7 +452,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zInter(byte[]... sets) {
+	public Set<byte @NonNull []> zInter(byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 
@@ -460,7 +460,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zInterWithScores(byte[]... sets) {
+	public Set<@NonNull Tuple> zInterWithScores(byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 
@@ -470,7 +470,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zInterWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Set<@NonNull Tuple> zInterWithScores(@NonNull Aggregate aggregate, @NonNull Weights weights,
+			byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
@@ -482,7 +483,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Long zInterStore(byte @NonNull [] destKey, @NonNull Aggregate aggregate, @NonNull Weights weights,
+			byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
@@ -496,7 +498,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zInterStore(byte[] destKey, byte[]... sets) {
+	public Long zInterStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
@@ -506,7 +508,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zUnion(byte[]... sets) {
+	public Set<byte @NonNull []> zUnion(byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 
@@ -514,7 +516,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zUnionWithScores(byte[]... sets) {
+	public Set<@NonNull Tuple> zUnionWithScores(byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 
@@ -524,7 +526,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<Tuple> zUnionWithScores(Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Set<@NonNull Tuple> zUnionWithScores(@NonNull Aggregate aggregate, @NonNull Weights weights,
+			byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(sets, "Sets must not be null");
 		Assert.noNullElements(sets, "Source sets must not contain null elements");
@@ -536,7 +539,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, Weights weights, byte[]... sets) {
+	public Long zUnionStore(byte @NonNull [] destKey, @NonNull Aggregate aggregate, @NonNull Weights weights,
+			byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
@@ -551,7 +555,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zUnionStore(byte[] destKey, byte[]... sets) {
+	public Long zUnionStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... sets) {
 
 		Assert.notNull(destKey, "Destination key must not be null");
 		Assert.notNull(sets, "Source sets must not be null");
@@ -561,10 +565,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @NonNull ScanOptions options) {
 		return zScan(key, CursorId.initial(), options);
 	}
-
 
 	/**
 	 * @param key
@@ -573,14 +576,15 @@ class JedisZSetCommands implements RedisZSetCommands {
 	 * @return
 	 * @since 3.2.1
 	 */
-	public Cursor<Tuple> zScan(byte[] key, CursorId cursorId, ScanOptions options) {
+	public Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @NonNull CursorId cursorId, @NonNull ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
 			@Override
-			protected ScanIteration<Tuple> doScan(byte[] key, CursorId cursorId, ScanOptions options) {
+			protected ScanIteration<Tuple> doScan(byte @NonNull [] key, @NonNull CursorId cursorId,
+					@NonNull ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new InvalidDataAccessApiUsageException("'ZSCAN' cannot be called in pipeline / transaction mode");
@@ -603,7 +607,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @Nullable String min, @Nullable String max) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -612,7 +616,8 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @Nullable String min, @Nullable String max,
+			long offset, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -627,8 +632,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByScore(byte[] key, org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null");
@@ -649,8 +655,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte @NonNull []> zRangeByLex(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<byte[]> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZRANGEBYLEX must not be null");
@@ -668,8 +675,9 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte[]> zRevRangeByLex(byte[] key, org.springframework.data.domain.Range<byte[]> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Set<byte @NonNull []> zRevRangeByLex(byte @NonNull [] key,
+			org.springframework.data.domain.@NonNull Range<byte[]> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range for ZREVRANGEBYLEX must not be null");
@@ -688,19 +696,22 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByLex(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
+			org.springframework.data.domain.@NonNull Range<byte[]> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 		return zRangeStoreByLex(dstKey, srcKey, range, limit, false);
 	}
 
 	@Override
-	public Long zRangeStoreRevByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreRevByLex(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
+			org.springframework.data.domain.@NonNull Range<byte[]> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 		return zRangeStoreByLex(dstKey, srcKey, range, limit, true);
 	}
 
-	private Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
-			org.springframework.data.redis.connection.Limit limit, boolean rev) {
+	private Long zRangeStoreByLex(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
+			org.springframework.data.domain.@NonNull Range<byte[]> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit, boolean rev) {
 
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");
@@ -717,22 +728,22 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
-			org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByScore(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 		return zRangeStoreByScore(dstKey, srcKey, range, limit, false);
 	}
 
 	@Override
-	public Long zRangeStoreRevByScore(byte[] dstKey, byte[] srcKey,
-			org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreRevByScore(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit) {
 		return zRangeStoreByScore(dstKey, srcKey, range, limit, true);
 	}
 
-	private Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
-			org.springframework.data.domain.Range<? extends Number> range,
-			org.springframework.data.redis.connection.Limit limit, boolean rev) {
+	private Long zRangeStoreByScore(byte @NonNull [] dstKey, byte @NonNull [] srcKey,
+			org.springframework.data.domain.@NonNull Range<? extends Number> range,
+			org.springframework.data.redis.connection.@NonNull Limit limit, boolean rev) {
 
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(srcKey, "Source key must not be null");

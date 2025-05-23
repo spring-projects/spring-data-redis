@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -69,6 +70,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @since 2.0
  */
 @Deprecated
+@NullUnmarked
 public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsProvider {
 
 	// KEY COMMANDS
