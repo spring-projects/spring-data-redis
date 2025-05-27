@@ -116,6 +116,7 @@ import org.springframework.util.StringUtils;
  * @author Chris Bono
  * @author John Blum
  * @author Zhian Chen
+ * @author UHyeon Jeong
  */
 public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
 		InitializingBean, DisposableBean, SmartLifecycle {
@@ -979,6 +980,9 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 			dispose(reactiveConnectionProvider);
 			reactiveConnectionProvider = null;
 
+			dispose(clusterCommandExecutor);
+			clusterCommandExecutor = null;
+
 			if (client != null) {
 				try {
 					Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
@@ -1012,20 +1016,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	@Override
 	public void destroy() {
-
 		stop();
-		this.client = null;
-
-		ClusterCommandExecutor clusterCommandExecutor = this.clusterCommandExecutor;
-
-		if (clusterCommandExecutor != null) {
-			try {
-				clusterCommandExecutor.destroy();
-				this.clusterCommandExecutor = null;
-			} catch (Exception ex) {
-				log.warn("Cannot properly close cluster command executor", ex);
-			}
-		}
 
 		this.state.set(State.DESTROYED);
 	}
@@ -1039,6 +1030,16 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 				if (log.isWarnEnabled()) {
 					log.warn(connectionProvider + " did not shut down gracefully.", ex);
 				}
+			}
+		}
+	}
+
+	private void dispose(@Nullable ClusterCommandExecutor commandExecutor) {
+		if (commandExecutor != null) {
+			try {
+				commandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
 			}
 		}
 	}

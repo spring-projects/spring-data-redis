@@ -31,11 +31,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.util.Assert;
 
@@ -56,13 +58,16 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Asmir Mustafic
+ * @author UHyeon Jeong
  * @since 2.0
  * @see #getConnection(Class)
  */
-class LettucePoolingConnectionProvider implements LettuceConnectionProvider, RedisClientProvider, DisposableBean {
+class LettucePoolingConnectionProvider implements LettuceConnectionProvider, RedisClientProvider, DisposableBean,
+	SmartLifecycle {
 
 	private static final Log log = LogFactory.getLog(LettucePoolingConnectionProvider.class);
 
+	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 	private final LettuceConnectionProvider connectionProvider;
 	private final GenericObjectPoolConfig<StatefulConnection<?, ?>> poolConfig;
 	private final Map<StatefulConnection<?, ?>, GenericObjectPool<StatefulConnection<?, ?>>> poolRef = new ConcurrentHashMap<>(
@@ -75,6 +80,10 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 	private final Map<Class<?>, GenericObjectPool<StatefulConnection<?, ?>>> pools = new ConcurrentHashMap<>(32);
 	private final Map<Class<?>, AsyncPool<StatefulConnection<?, ?>>> asyncPools = new ConcurrentHashMap<>(32);
 	private final BoundedPoolConfig asyncPoolConfig;
+
+	enum State {
+		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
+	}
 
 	LettucePoolingConnectionProvider(LettuceConnectionProvider connectionProvider,
 			LettucePoolingClientConfiguration clientConfiguration) {
@@ -206,39 +215,51 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 
 	@Override
 	public void destroy() throws Exception {
+		stop();
+		state.set(State.DESTROYED);
+	}
 
-		List<CompletableFuture<?>> futures = new ArrayList<>();
-		if (!poolRef.isEmpty() || !asyncPoolRef.isEmpty()) {
-			log.warn("LettucePoolingConnectionProvider contains unreleased connections");
-		}
 
-		if (!inProgressAsyncPoolRef.isEmpty()) {
+	@Override
+	public void start() {
+		state.set(State.STARTED);
+	}
 
-			log.warn("LettucePoolingConnectionProvider has active connection retrievals");
-			inProgressAsyncPoolRef.forEach((k, v) -> futures.add(k.thenApply(StatefulConnection::closeAsync)));
-		}
+	@Override
+	public void stop() {
+		if (state.compareAndSet(State.STARTED, State.STOPPING)) {
+			List<CompletableFuture<?>> futures = new ArrayList<>();
+			if (!poolRef.isEmpty() || !asyncPoolRef.isEmpty()) {
+				log.warn("LettucePoolingConnectionProvider contains unreleased connections");
+			}
 
-		if (!poolRef.isEmpty()) {
+			if (!inProgressAsyncPoolRef.isEmpty()) {
 
-			poolRef.forEach((connection, pool) -> pool.returnObject(connection));
-			poolRef.clear();
-		}
+				log.warn("LettucePoolingConnectionProvider has active connection retrievals");
+				inProgressAsyncPoolRef.forEach((k, v) -> futures.add(k.thenApply(StatefulConnection::closeAsync)));
+			}
 
-		if (!asyncPoolRef.isEmpty()) {
+			if (!poolRef.isEmpty()) {
 
-			asyncPoolRef.forEach((connection, pool) -> futures.add(pool.release(connection)));
-			asyncPoolRef.clear();
-		}
+				poolRef.forEach((connection, pool) -> pool.returnObject(connection));
+				poolRef.clear();
+			}
 
-		pools.forEach((type, pool) -> pool.close());
+			if (!asyncPoolRef.isEmpty()) {
 
-		CompletableFuture
+				asyncPoolRef.forEach((connection, pool) -> futures.add(pool.release(connection)));
+				asyncPoolRef.clear();
+			}
+
+			pools.forEach((type, pool) -> pool.close());
+
+			CompletableFuture
 				.allOf(futures.stream().map(it -> it.exceptionally(LettuceFutureUtils.ignoreErrors()))
-						.toArray(CompletableFuture[]::new)) //
+					.toArray(CompletableFuture[]::new)) //
 				.thenCompose(ignored -> {
 
 					CompletableFuture[] poolClose = asyncPools.values().stream().map(AsyncPool::closeAsync)
-							.map(it -> it.exceptionally(LettuceFutureUtils.ignoreErrors())).toArray(CompletableFuture[]::new);
+						.map(it -> it.exceptionally(LettuceFutureUtils.ignoreErrors())).toArray(CompletableFuture[]::new);
 
 					return CompletableFuture.allOf(poolClose);
 				}) //
@@ -248,6 +269,18 @@ class LettucePoolingConnectionProvider implements LettuceConnectionProvider, Red
 				}) //
 				.join();
 
-		pools.clear();
+			pools.clear();
+		}
+		state.set(State.STOPPED);
+	}
+
+	@Override
+	public boolean isRunning() {
+		return State.STARTED.equals(this.state.get());
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return true;
 	}
 }
