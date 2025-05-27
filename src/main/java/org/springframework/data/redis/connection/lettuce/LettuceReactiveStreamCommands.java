@@ -226,12 +226,12 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Flux<CommandResponse<PendingRecordsCommand, PendingMessages>> xPending(
 			Publisher<PendingRecordsCommand> commands) {
 		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
-			Assert.notNull(command.getConsumerName(), "Command.getConsumerName() must not be null");
 
 			ByteBuffer groupName = ByteUtils.getByteBuffer(command.getGroupName());
 			io.lettuce.core.Range<String> range = RangeConverter.toRangeWithDefault(command.getRange(), "-", "+");

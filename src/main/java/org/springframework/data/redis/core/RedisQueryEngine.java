@@ -147,6 +147,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		return result;
 	}
 
+	@SuppressWarnings("NullAway")
 	private List<byte[]> findKeys(RedisOperationChain criteria, int rows, String keyspace, Class<?> domainType,
 			RedisConnection connection) {
 

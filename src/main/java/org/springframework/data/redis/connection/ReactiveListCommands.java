@@ -1396,7 +1396,7 @@ public interface ReactiveListCommands {
 
 		private final @Nullable ByteBuffer destination;
 
-		private RPopLPushCommand(ByteBuffer key, @Nullable ByteBuffer destination) {
+		private RPopLPushCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer destination) {
 
 			super(key);
 			this.destination = destination;
@@ -1476,7 +1476,7 @@ public interface ReactiveListCommands {
 		private final @Nullable ByteBuffer destination;
 		private final Duration timeout;
 
-		private BRPopLPushCommand(ByteBuffer key, @Nullable ByteBuffer destination, Duration timeout) {
+		private BRPopLPushCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer destination, Duration timeout) {
 
 			super(key);
 

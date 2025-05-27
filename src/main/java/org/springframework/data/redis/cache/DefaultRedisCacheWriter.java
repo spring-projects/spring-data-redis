@@ -143,6 +143,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 
+	@SuppressWarnings("NullAway")
 	private byte @Nullable[] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
 
 		byte[] result = shouldExpireWithin(ttl) ? connection.stringCommands().getEx(key, Expiration.from(ttl))
@@ -241,6 +242,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	}
 
+	@SuppressWarnings("NullAway")
 	private void doPut(RedisConnection connection, String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
 		if (shouldExpireWithin(ttl)) {
@@ -265,6 +267,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public byte[] putIfAbsent(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 
 		Assert.notNull(name, "Name must not be null");
@@ -538,6 +541,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl) {
 
 			return doWithConnection(connection -> {
@@ -572,6 +576,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					unused -> doUnlock(name, connection));
 		}
 
+		@SuppressWarnings("NullAway")
 		private Mono<Boolean> doStore(byte[] cacheKey, byte[] value, @Nullable Duration ttl,
 				ReactiveRedisConnection connection) {
 

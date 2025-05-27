@@ -17,6 +17,8 @@ package org.springframework.data.redis.core.script;
 
 import java.util.List;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -35,6 +37,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Mark Paluch
  * @param <K> The type of keys that may be passed during script execution
  */
+@NullUnmarked
 public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 
 	private final RedisTemplate<K, ?> template;
@@ -42,19 +45,20 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	/**
 	 * @param template The {@link RedisTemplate} to use
 	 */
-	public DefaultScriptExecutor(RedisTemplate<K, ?> template) {
+	public DefaultScriptExecutor(@NonNull RedisTemplate<K, ?> template) {
 		this.template = template;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T execute(final RedisScript<T> script, final List<K> keys, final Object... args) {
+	public <T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
+			@NonNull Object @NonNull... args) {
 		// use the Template's value serializer for args and result
 		return execute(script, template.getValueSerializer(), (RedisSerializer<T>) template.getValueSerializer(), keys,
 				args);
 	}
 
-	public <T> T execute(final RedisScript<T> script, final RedisSerializer<?> argsSerializer,
-			final RedisSerializer<T> resultSerializer, final List<K> keys, final Object... args) {
+	public <T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
 		return template.execute((RedisCallback<T>) connection -> {
 			final ReturnType returnType = ReturnType.fromJavaType(script.getResultType());
 			final byte[][] keysAndArgs = keysAndArgs(argsSerializer, keys, args);

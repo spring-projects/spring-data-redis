@@ -67,7 +67,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public String getAddressPort() {
+	public @Nullable String getAddressPort() {
 		return get(INFO.ADDRESS_PORT);
 	}
 
@@ -76,7 +76,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public String getFileDescriptor() {
+	public @Nullable String getFileDescriptor() {
 		return get(INFO.FILE_DESCRIPTOR);
 	}
 
@@ -85,7 +85,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public String getName() {
+	public @Nullable String getName() {
 		return get(INFO.CONNECTION_NAME);
 	}
 
@@ -94,7 +94,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getAge() {
+	public @Nullable Long getAge() {
 		return getLongValueOf(INFO.CONNECTION_AGE);
 	}
 
@@ -103,7 +103,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getIdle() {
+	public @Nullable Long getIdle() {
 		return getLongValueOf(INFO.CONNECTION_IDLE);
 	}
 
@@ -112,7 +112,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public String getFlags() {
+	public @Nullable String getFlags() {
 		return get(INFO.FLAGS);
 	}
 
@@ -121,7 +121,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getDatabaseId() {
+	public @Nullable Long getDatabaseId() {
 		return getLongValueOf(INFO.DATABSE_ID);
 	}
 
@@ -130,7 +130,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getChannelSubscribtions() {
+	public @Nullable Long getChannelSubscribtions() {
 		return getLongValueOf(INFO.CHANNEL_SUBSCRIBTIONS);
 	}
 
@@ -139,7 +139,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getPatternSubscrbtions() {
+	public @Nullable Long getPatternSubscrbtions() {
 		return getLongValueOf(INFO.PATTERN_SUBSCRIBTIONS);
 	}
 
@@ -148,7 +148,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getMultiCommandContext() {
+	public @Nullable Long getMultiCommandContext() {
 		return getLongValueOf(INFO.MULIT_COMMAND_CONTEXT);
 	}
 
@@ -157,7 +157,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getBufferLength() {
+	public @Nullable Long getBufferLength() {
 		return getLongValueOf(INFO.BUFFER_LENGTH);
 	}
 
@@ -166,7 +166,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getBufferFreeSpace() {
+	public @Nullable Long getBufferFreeSpace() {
 		return getLongValueOf(INFO.BUFFER_FREE_SPACE);
 	}
 
@@ -175,7 +175,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getOutputBufferLength() {
+	public @Nullable Long getOutputBufferLength() {
 		return getLongValueOf(INFO.OUTPUT_BUFFER_LENGTH);
 	}
 
@@ -184,7 +184,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getOutputListLength() {
+	public @Nullable Long getOutputListLength() {
 		return getLongValueOf(INFO.OUTPUT_LIST_LENGTH);
 	}
 
@@ -193,7 +193,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public Long getOutputBufferMemoryUsage() {
+	public @Nullable Long getOutputBufferMemoryUsage() {
 		return getLongValueOf(INFO.OUTPUT_BUFFER_MEMORY_USAGE);
 	}
 
@@ -202,7 +202,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public String getEvents() {
+	public @Nullable String getEvents() {
 		return get(INFO.EVENTS);
 	}
 
@@ -211,7 +211,7 @@ public class RedisClientInfo {
 	 *
 	 * @return
 	 */
-	public String getLastCommand() {
+	public @Nullable String getLastCommand() {
 		return get(INFO.LAST_COMMAND);
 	}
 
@@ -219,7 +219,7 @@ public class RedisClientInfo {
 	 * @param info must not be null
 	 * @return {@literal null} if no entry found for requested {@link INFO}.
 	 */
-	public String get(INFO info) {
+	public @Nullable String get(INFO info) {
 
 		Assert.notNull(info, "Cannot retrieve client information for 'null'");
 		return this.clientProperties.getProperty(info.key);
@@ -235,7 +235,7 @@ public class RedisClientInfo {
 		return this.clientProperties.getProperty(key);
 	}
 
-	private Long getLongValueOf(INFO info) {
+	private @Nullable Long getLongValueOf(INFO info) {
 
 		String value = get(info);
 		return value == null ? null : Long.valueOf(value);

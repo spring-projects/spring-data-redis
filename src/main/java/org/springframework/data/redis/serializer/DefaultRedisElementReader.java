@@ -37,7 +37,7 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public T read(ByteBuffer buffer) {
+	public @Nullable T read(ByteBuffer buffer) {
 
 		if (serializer == null) {
 			return (T) buffer;

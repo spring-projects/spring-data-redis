@@ -493,8 +493,8 @@ public abstract class Converters {
 			 * @param metric can be {@literal null}. Defaults to {@link DistanceUnit#METERS}.
 			 * @return never {@literal null}.
 			 */
-			DistanceConverter(Metric metric) {
-				this.metric = ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric;
+			DistanceConverter(@Nullable Metric metric) {
+				this.metric = (metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric)) ? DistanceUnit.METERS : metric;
 			}
 
 			@Override
@@ -519,6 +519,7 @@ public abstract class Converters {
 		}
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public GeoResults<GeoLocation<V>> convert(GeoResults<GeoLocation<byte[]>> source) {
 
 			List<GeoResult<GeoLocation<V>>> values = new ArrayList<>(source.getContent().size());

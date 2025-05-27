@@ -17,6 +17,8 @@ package org.springframework.data.redis.hash;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Core mapping contract between Java types and Redis hashes/maps. It's up to the implementation to support nested
  * objects.
@@ -35,7 +37,7 @@ public interface HashMapper<T, K, V> {
 	 * @param object
 	 * @return
 	 */
-	Map<K, V> toHash(T object);
+	@Nullable Map<K, V> toHash(@Nullable T object);
 
 	/**
 	 * Convert a {@code hash} (map) to an object.
@@ -43,5 +45,5 @@ public interface HashMapper<T, K, V> {
 	 * @param hash
 	 * @return
 	 */
-	T fromHash(Map<K, V> hash);
+	@Nullable T fromHash(Map<K, V> hash);
 }

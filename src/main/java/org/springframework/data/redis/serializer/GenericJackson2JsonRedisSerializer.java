@@ -292,9 +292,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 * @throws SerializationException if the array of bytes cannot be deserialized as an instance of the given
 	 *           {@link Class type}
 	 */
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public <T> T deserialize(byte @Nullable[] source, Class<T> type) throws SerializationException {
+	public <T> @Nullable T deserialize(byte @Nullable[] source, Class<T> type) throws SerializationException {
 
 		Assert.notNull(type, "Deserialization type must not be null;"
 				+ " Please provide Object.class to make use of Jackson2 default typing.");

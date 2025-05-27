@@ -118,7 +118,7 @@ public class SpelIndexResolver implements IndexResolver {
 
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-			Object value) {
+			@Nullable Object value) {
 		return Collections.emptySet();
 	}
 

@@ -273,7 +273,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		 * @param key must not be {@literal null}.
 		 * @param range must not be {@literal null}.
 		 */
-		private RangeCommand(ByteBuffer key, Range<Long> range) {
+		private RangeCommand(@Nullable ByteBuffer key, Range<Long> range) {
 
 			super(key);
 			this.range = range;

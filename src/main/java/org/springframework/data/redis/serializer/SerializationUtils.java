@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.CollectionFactory;
+import org.springframework.lang.Contract;
 
 /**
  * Utility class with various serialization-related methods.
@@ -36,11 +37,12 @@ public abstract class SerializationUtils {
 
 	static final byte[] EMPTY_ARRAY = new byte[0];
 
-	static boolean isEmpty(byte @Nullable[] data) {
+	@Contract("null -> true")
+	static boolean isEmpty(byte @Nullable [] data) {
 		return (data == null || data.length == 0);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "NullAway" })
 	static <T extends Collection<?>> T deserializeValues(@Nullable Collection<byte[]> rawValues, Class<T> type,
 			@Nullable RedisSerializer<?> redisSerializer) {
 		// connection in pipeline/multi mode

@@ -172,7 +172,7 @@ public class ExampleQueryMapper {
 
 		String keySpace = persistentEntity.getKeySpace();
 		return keySpace == null ? Collections.emptySet()
-				: indexResolver.resolveIndexesFor(persistentEntity.getKeySpace(), path, persistentEntity.getTypeInformation(),
+				: indexResolver.resolveIndexesFor(keySpace, path, persistentEntity.getTypeInformation(),
 						probe);
 	}
 }

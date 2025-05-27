@@ -44,7 +44,7 @@ class ScriptUtils {
 	 * @return the deserialized result.
 	 */
 	@SuppressWarnings({ "unchecked" })
-	static <T> T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
+	static <T> @Nullable T deserializeResult(RedisSerializer<T> resultSerializer, Object result) {
 
 		if (result instanceof byte[] resultBytes) {
 			return resultSerializer.deserialize(resultBytes);
@@ -72,9 +72,8 @@ class ScriptUtils {
 	 * @param result must not be {@literal null}.
 	 * @return the deserialized result.
 	 */
-	@Nullable
 	@SuppressWarnings({ "unchecked" })
-	static <T> T deserializeResult(RedisElementReader<T> reader, Object result) {
+	static <T> @Nullable T deserializeResult(RedisElementReader<T> reader, Object result) {
 
 		if (result instanceof ByteBuffer byteBuffer) {
 			return reader.read(byteBuffer);

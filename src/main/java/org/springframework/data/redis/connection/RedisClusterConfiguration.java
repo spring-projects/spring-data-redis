@@ -194,7 +194,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	}
 
 	@Override
-	public Integer getMaxRedirects() {
+	public @Nullable Integer getMaxRedirects() {
 		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
 	}
 

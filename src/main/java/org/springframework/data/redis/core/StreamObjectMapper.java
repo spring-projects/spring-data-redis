@@ -65,7 +65,7 @@ class StreamObjectMapper {
 	 *
 	 * @param mapper the configured {@link HashMapper}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
 	StreamObjectMapper(HashMapper<?, ?, ?> mapper) {
 
 		Assert.notNull(mapper, "HashMapper must not be null");
@@ -103,7 +103,7 @@ class StreamObjectMapper {
 	 * @param source the source value.
 	 * @return the converted {@link MapRecord}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
 	static <K, V, HK, HV> MapRecord<K, HK, HV> toMapRecord(HashMapperProvider<HK, HV> provider, Record<K, V> source) {
 
 		if (source instanceof ObjectRecord entry) {

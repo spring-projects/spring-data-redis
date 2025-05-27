@@ -409,7 +409,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 	 */
 	class ConsumerStreamReadRequestBuilder<K> extends StreamReadRequestBuilder<K> {
 
-		private Consumer consumer;
+		private @Nullable Consumer consumer;
 		private boolean autoAck = true;
 
 		ConsumerStreamReadRequestBuilder(StreamReadRequestBuilder<K> other) {
@@ -476,6 +476,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @return a new instance of {@link ConsumerStreamReadRequest}.
 		 */
 		public ConsumerStreamReadRequest<K> build() {
+
+			Assert.notNull(consumer, "Consumer must be set");
 			return new ConsumerStreamReadRequest<>(streamOffset, errorHandler, cancelSubscriptionOnError, consumer, autoAck);
 		}
 	}
@@ -556,6 +558,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return hashMapper;
 		}
 
+		@SuppressWarnings("NullAway")
 		public HashMapper<Object, Object, Object> getRequiredHashMapper() {
 
 			if (!hasHashMapper()) {
@@ -613,6 +616,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private ErrorHandler errorHandler = LoggingErrorHandler.INSTANCE;
 		private Executor executor = new SimpleAsyncTaskExecutor();
 
+		@SuppressWarnings("NullAway")
 		private StreamMessageListenerContainerOptionsBuilder() {}
 
 		/**

@@ -227,7 +227,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> toHash(Object source) {
+	public Map<String, Object> toHash(@Nullable Object source) {
 
 		JsonNode tree = this.typingMapper.valueToTree(source);
 
@@ -236,7 +236,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 	@Override
 	@SuppressWarnings("all")
-	public Object fromHash(Map<String, Object> hash) {
+	public @Nullable Object fromHash(Map<String, Object> hash) {
 
 		try {
 			if (this.flatten) {
@@ -319,23 +319,23 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		return result;
 	}
 
-	private boolean isIndexed(@NonNull String value) {
+	private boolean isIndexed( String value) {
 		return value.indexOf('[') > -1;
 	}
 
-	private boolean isNotIndexed(@NonNull String value) {
+	private boolean isNotIndexed( String value) {
 		return !isIndexed(value);
 	}
 
-	private boolean isNonNestedIndexed(@NonNull String value) {
+	private boolean isNonNestedIndexed( String value) {
 		return value.endsWith("]");
 	}
 
-	private int getIndex(@NonNull String indexedValue) {
+	private int getIndex( String indexedValue) {
 		return Integer.parseInt(indexedValue.substring(indexedValue.indexOf('[') + 1, indexedValue.length() - 1));
 	}
 
-	private @NonNull String stripIndex(@NonNull String indexedValue) {
+	private  String stripIndex( String indexedValue) {
 
 		int indexOfLeftBracket = indexedValue.indexOf("[");
 
@@ -536,13 +536,13 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		private final UntypedDateDeserializer dateDeserializer = new UntypedDateDeserializer();
 
 		@Override
-		public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
+		public @Nullable Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
 				throws IOException {
 			return deserialize(p, ctxt);
 		}
 
 		@Override
-		public Calendar deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+		public @Nullable Calendar deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
 
 			Date date = dateDeserializer.deserialize(p, ctxt);
 

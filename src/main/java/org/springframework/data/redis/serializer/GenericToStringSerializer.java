@@ -81,7 +81,8 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
-	public byte[] serialize(@Nullable T value) {
+	@SuppressWarnings("NullAway")
+	public byte @Nullable [] serialize(@Nullable T value) {
 
 		if (value == null) {
 			return null;
@@ -92,7 +93,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	@Override
-	public @Nullable T deserialize(byte @Nullable[] bytes) {
+	public @Nullable T deserialize(byte @Nullable [] bytes) {
 
 		if (bytes == null) {
 			return null;
@@ -122,8 +123,8 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 			this.typeConverter = typeConverter;
 		}
 
-		@Nullable
-		<E> E convert(Object value, Class<E> targetType) {
+		@SuppressWarnings("NullAway")
+		<E> @Nullable E convert(Object value, Class<E> targetType) {
 
 			return conversionService != null ? conversionService.convert(value, targetType)
 					: typeConverter.convertIfNecessary(value, targetType);

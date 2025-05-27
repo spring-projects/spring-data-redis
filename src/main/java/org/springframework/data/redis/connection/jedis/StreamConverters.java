@@ -282,6 +282,7 @@ class StreamConverters {
 		return params;
 	}
 
+	@SuppressWarnings("NullAway")
 	public static XReadGroupParams toXReadGroupParams(StreamReadOptions readOptions) {
 
 		XReadGroupParams params = XReadGroupParams.xReadGroupParams();

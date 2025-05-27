@@ -18,6 +18,8 @@ package org.springframework.data.redis.hash;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Delegating hash mapper used for flattening objects into Strings. Suitable when dealing with mappers that support
  * Strings and type conversion.
@@ -34,14 +36,18 @@ public class DecoratingStringHashMapper<T> implements HashMapper<T, String, Stri
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public T fromHash(Map hash) {
+	public @Nullable T fromHash(Map hash) {
 		return (T) delegate.fromHash(hash);
 	}
 
 	@Override
-	public Map<String, String> toHash(T object) {
+	public @Nullable Map<String, String> toHash(@Nullable T object) {
 
 		Map<?, ?> hash = delegate.toHash(object);
+		if(hash == null) {
+			return null;
+		}
+
 		Map<String, String> flatten = new LinkedHashMap<>(hash.size());
 		for (Map.Entry<?, ?> entry : hash.entrySet()) {
 			flatten.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));

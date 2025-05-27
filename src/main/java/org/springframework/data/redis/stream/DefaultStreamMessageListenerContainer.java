@@ -217,7 +217,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		};
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "NullAway" })
 	private Function<ReadOffset, List<ByteRecord>> getReadFunction(StreamReadRequest<K> streamRequest) {
 
 		byte[] rawKey = ((RedisSerializer<K>) template.getKeySerializer())

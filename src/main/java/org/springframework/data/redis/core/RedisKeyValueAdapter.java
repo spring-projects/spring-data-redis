@@ -133,6 +133,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		CREATED, STARTING, STARTED, STOPPING, STOPPED, DESTROYED;
 	}
 
+	@SuppressWarnings("NullAway")
+	protected RedisKeyValueAdapter() {
+		// I'm here for the sole sake of CDI
+	}
+
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
 	 * {@link RedisCustomConversions}.

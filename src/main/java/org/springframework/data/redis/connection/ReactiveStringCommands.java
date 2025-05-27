@@ -64,7 +64,7 @@ public interface ReactiveStringCommands {
 		private @Nullable Expiration expiration;
 		private @Nullable SetOption option;
 
-		private SetCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
+		private SetCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
 				@Nullable SetOption option) {
 
 			super(key);
@@ -586,7 +586,7 @@ public interface ReactiveStringCommands {
 
 		private @Nullable ByteBuffer value;
 
-		private AppendCommand(ByteBuffer key, @Nullable ByteBuffer value) {
+		private AppendCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value) {
 
 			super(key);
 			this.value = value;
@@ -690,7 +690,7 @@ public interface ReactiveStringCommands {
 		private @Nullable ByteBuffer value;
 		private @Nullable Long offset;
 
-		private SetRangeCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Long offset) {
+		private SetRangeCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value, @Nullable Long offset) {
 
 			super(key);
 			this.value = value;
@@ -786,7 +786,7 @@ public interface ReactiveStringCommands {
 
 		private @Nullable Long offset;
 
-		private GetBitCommand(ByteBuffer key, @Nullable Long offset) {
+		private GetBitCommand(@Nullable ByteBuffer key, @Nullable Long offset) {
 
 			super(key);
 
@@ -859,7 +859,7 @@ public interface ReactiveStringCommands {
 		private @Nullable Long offset;
 		private boolean value;
 
-		private SetBitCommand(ByteBuffer key, @Nullable Long offset, boolean value) {
+		private SetBitCommand(@Nullable ByteBuffer key, @Nullable Long offset, boolean value) {
 
 			super(key);
 
@@ -949,7 +949,7 @@ public interface ReactiveStringCommands {
 
 		private Range<Long> range;
 
-		private BitCountCommand(ByteBuffer key, Range<Long> range) {
+		private BitCountCommand(@Nullable ByteBuffer key, Range<Long> range) {
 
 			super(key);
 
@@ -1044,7 +1044,7 @@ public interface ReactiveStringCommands {
 
 		private @Nullable BitFieldSubCommands subcommands;
 
-		private BitFieldCommand(ByteBuffer key, @Nullable BitFieldSubCommands subcommands) {
+		private BitFieldCommand(@Nullable ByteBuffer key, @Nullable BitFieldSubCommands subcommands) {
 
 			super(key);
 

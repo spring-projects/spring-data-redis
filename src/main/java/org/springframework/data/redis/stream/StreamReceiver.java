@@ -280,6 +280,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 			return hashMapper;
 		}
 
+		@SuppressWarnings("NullAway")
 		public HashMapper<Object, Object, Object> getRequiredHashMapper() {
 
 			if (!hasHashMapper()) {
@@ -320,6 +321,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		private @Nullable HashMapper<V, ?, ?> hashMapper;
 		private @Nullable Class<?> targetType;
 
+		@SuppressWarnings("NullAway")
 		private StreamReceiverOptionsBuilder() {}
 
 		/**

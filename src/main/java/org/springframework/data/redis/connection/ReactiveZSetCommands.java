@@ -264,7 +264,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@SuppressWarnings("nullAway")
+	@SuppressWarnings("NullAway")
 	default Mono<Long> zAdd(ByteBuffer key, Double score, ByteBuffer value) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -283,7 +283,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
-	@SuppressWarnings("nullAway")
+	@SuppressWarnings("NullAway")
 	default Mono<Long> zAdd(ByteBuffer key, Collection<? extends Tuple> tuples) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -1055,7 +1055,7 @@ public interface ReactiveZSetCommands {
 			return new ZRangeStoreCommand(getKey(), getDestKey(), rangeMode, range, direction, limit);
 		}
 
-		public ByteBuffer getDestKey() {
+		public @Nullable ByteBuffer getDestKey() {
 			return destKey;
 		}
 

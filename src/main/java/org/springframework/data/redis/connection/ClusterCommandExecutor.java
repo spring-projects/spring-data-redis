@@ -239,6 +239,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		return collectResults(futures);
 	}
 
+	@SuppressWarnings("NullAway")
 	<T> MultiNodeResult<T> collectResults(Map<NodeExecution, Future<NodeResult<T>>> futures) {
 
 		MultiNodeResult<T> result = new MultiNodeResult<>();

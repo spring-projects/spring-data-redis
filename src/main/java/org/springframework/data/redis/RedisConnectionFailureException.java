@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 /**
@@ -27,7 +28,7 @@ public class RedisConnectionFailureException extends DataAccessResourceFailureEx
 	/**
 	 * @param msg the detail message.
 	 */
-	public RedisConnectionFailureException(String msg) {
+	public RedisConnectionFailureException(@Nullable String msg) {
 		super(msg);
 	}
 
@@ -35,7 +36,7 @@ public class RedisConnectionFailureException extends DataAccessResourceFailureEx
 	 * @param msg the detail message.
 	 * @param cause the nested exception.
 	 */
-	public RedisConnectionFailureException(String msg, Throwable cause) {
+	public RedisConnectionFailureException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

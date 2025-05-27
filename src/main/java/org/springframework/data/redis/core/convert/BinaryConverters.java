@@ -241,7 +241,7 @@ final class BinaryConverters {
 	static class BytesToBooleanConverter extends StringBasedConverter implements Converter<byte[], Boolean> {
 
 		@Override
-		public Boolean convert(byte[] source) {
+		public @Nullable Boolean convert(byte[] source) {
 
 			if (ObjectUtils.isEmpty(source)) {
 				return null;
@@ -273,7 +273,7 @@ final class BinaryConverters {
 	static class BytesToDateConverter extends StringBasedConverter implements Converter<byte[], Date> {
 
 		@Override
-		public Date convert(byte[] source) {
+		public @Nullable Date convert(byte[] source) {
 
 			if (ObjectUtils.isEmpty(source)) {
 				return null;
@@ -315,7 +315,7 @@ final class BinaryConverters {
 	static class BytesToUuidConverter extends StringBasedConverter implements Converter<byte[], UUID> {
 
 		@Override
-		public UUID convert(byte[] source) {
+		public @Nullable UUID convert(byte[] source) {
 
 			if (ObjectUtils.isEmpty(source)) {
 				return null;

@@ -29,7 +29,7 @@ public class RedisSystemException extends UncategorizedDataAccessException {
 	 * @param msg the detail message.
 	 * @param cause the root cause from the data access API in use.
 	 */
-	public RedisSystemException(String msg, @Nullable Throwable cause) {
+	public RedisSystemException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

@@ -11,5 +11,5 @@
  * Lastly, for key/value associations {@link org.springframework.data.redis.support.collections.RedisMap} providing a
  * Map-like abstraction on top of a Redis hash.
  */
-@org.jspecify.annotations.NullMarked
+@org.jspecify.annotations.NullUnmarked
 package org.springframework.data.redis.support.collections;

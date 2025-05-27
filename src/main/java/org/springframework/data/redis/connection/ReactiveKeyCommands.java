@@ -59,7 +59,7 @@ public interface ReactiveKeyCommands {
 		private final boolean replace;
 		private final @Nullable Integer database;
 
-		public CopyCommand(ByteBuffer key, @Nullable ByteBuffer target, boolean replace, @Nullable Integer database) {
+		public CopyCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer target, boolean replace, @Nullable Integer database) {
 			super(key);
 			this.target = target;
 			this.replace = replace;
@@ -324,7 +324,7 @@ public interface ReactiveKeyCommands {
 
 		private @Nullable ByteBuffer newKey;
 
-		private RenameCommand(ByteBuffer key, @Nullable ByteBuffer newKey) {
+		private RenameCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer newKey) {
 
 			super(key);
 
@@ -901,7 +901,7 @@ public interface ReactiveKeyCommands {
 
 		private @Nullable Integer database;
 
-		private MoveCommand(ByteBuffer key, @Nullable Integer database) {
+		private MoveCommand(@Nullable ByteBuffer key, @Nullable Integer database) {
 
 			super(key);
 

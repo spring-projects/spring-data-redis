@@ -132,6 +132,7 @@ class BoundOperationsProxyFactory {
 		}
 
 		@Override
+		@SuppressWarnings("NullAway")
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 
 			Method method = invocation.getMethod();

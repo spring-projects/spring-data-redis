@@ -68,7 +68,7 @@ public interface ReactiveNumberCommands {
 
 		private @Nullable T value;
 
-		private IncrByCommand(ByteBuffer key, @Nullable T value) {
+		private IncrByCommand(@Nullable ByteBuffer key, @Nullable T value) {
 
 			super(key);
 			this.value = value;
@@ -147,7 +147,7 @@ public interface ReactiveNumberCommands {
 
 		private @Nullable T value;
 
-		private DecrByCommand(ByteBuffer key, @Nullable T value) {
+		private DecrByCommand(@Nullable ByteBuffer key, @Nullable T value) {
 			super(key);
 			this.value = value;
 		}

@@ -278,6 +278,7 @@ class IndexWriter {
 		return ByteUtils.concatAll(arrays);
 	}
 
+	@SuppressWarnings("NullAway")
 	private byte[] toBytes(@Nullable Object source) {
 
 		if (source == null) {

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
  * HashMapper based on Apache Commons BeanUtils project. Does NOT supports nested properties.
@@ -42,7 +43,11 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 	}
 
 	@Override
-	public T fromHash(Map<String, String> hash) {
+	public @Nullable T fromHash(@Nullable Map<String, String> hash) {
+
+		if(hash == null) {
+			return null;
+		}
 
 		T instance = org.springframework.beans.BeanUtils.instantiateClass(type);
 
@@ -56,7 +61,7 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 	}
 
 	@Override
-	public Map<String, String> toHash(T object) {
+	public Map<String, String> toHash(@Nullable T object) {
 
 		try {
 

@@ -31,7 +31,7 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 
 	private final @Nullable RedisSerializer<T> serializer;
 
-	DefaultRedisElementWriter(RedisSerializer<T> serializer) {
+	DefaultRedisElementWriter(@Nullable RedisSerializer<T> serializer) {
 		this.serializer = serializer;
 	}
 

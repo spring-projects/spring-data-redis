@@ -61,6 +61,7 @@ public interface ByteRecord extends MapRecord<byte[], byte[], byte[]> {
 	 * @param valueSerializer can be {@literal null} if the values suite already the target format.
 	 * @return new {@link MapRecord} holding the deserialized values.
 	 */
+	@SuppressWarnings("NullAway")
 	default <K, HK, HV> MapRecord<K, HK, HV> deserialize(@Nullable RedisSerializer<? extends K> streamSerializer,
 			@Nullable RedisSerializer<? extends HK> fieldSerializer,
 			@Nullable RedisSerializer<? extends HV> valueSerializer) {

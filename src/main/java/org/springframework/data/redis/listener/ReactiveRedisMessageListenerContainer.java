@@ -437,6 +437,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 				.toArray(ByteBuffer[]::new);
 	}
 
+	@SuppressWarnings("NullAway")
 	private <C, B> Message<C, B> readMessage(RedisElementReader<C> channelSerializer,
 			RedisElementReader<B> messageSerializer, Message<ByteBuffer, ByteBuffer> message) {
 
@@ -468,7 +469,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		return connection;
 	}
 
-	private static <C> C read(RedisElementReader<C> reader, ByteBuffer buffer) {
+	private static <C> @Nullable C read(RedisElementReader<C> reader, ByteBuffer buffer) {
 
 		try {
 			buffer.mark();

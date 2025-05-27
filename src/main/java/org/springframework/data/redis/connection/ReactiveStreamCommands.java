@@ -402,7 +402,7 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 * @since 3.4
 	 */
-	@SuppressWarnings("nullAway")
+	@SuppressWarnings("NullAway")
 	default Mono<RecordId> xAdd(ByteBufferRecord record, XAddOptions xAddOptions) {
 
 		Assert.notNull(record, "Record must not be null");
@@ -803,7 +803,7 @@ public interface ReactiveStreamCommands {
 		private final Range<?> range;
 		private final @Nullable Long count;
 
-		private PendingRecordsCommand(ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
+		private PendingRecordsCommand(@Nullable ByteBuffer key, String groupName, @Nullable String consumerName, Range<?> range,
 				@Nullable Long count) {
 
 			super(key);
@@ -908,7 +908,7 @@ public interface ReactiveStreamCommands {
 		 * @param range must not be {@literal null}.
 		 * @param limit must not be {@literal null}.
 		 */
-		private RangeCommand(ByteBuffer key, Range<String> range, Limit limit) {
+		private RangeCommand(@Nullable ByteBuffer key, Range<String> range, Limit limit) {
 
 			super(key);
 			this.range = range;
@@ -1153,7 +1153,7 @@ public interface ReactiveStreamCommands {
 
 		private final @Nullable String groupName;
 
-		private XInfoCommand(ByteBuffer key, @Nullable String groupName) {
+		private XInfoCommand(@Nullable ByteBuffer key, @Nullable String groupName) {
 
 			super(key);
 			this.groupName = groupName;
@@ -1483,7 +1483,7 @@ public interface ReactiveStreamCommands {
 		private @Nullable Long count;
 		private boolean approximateTrimming;
 
-		private TrimCommand(ByteBuffer key, @Nullable Long count, boolean approximateTrimming) {
+		private TrimCommand(@Nullable ByteBuffer key, @Nullable Long count, boolean approximateTrimming) {
 			super(key);
 			this.count = count;
 			this.approximateTrimming = approximateTrimming;

@@ -755,20 +755,16 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		 * @param cluster should not be {@literal null}.
 		 * @param topologyProvider must not be {@literal null}.
 		 */
-		JedisClusterNodeResourceProvider(@Nullable JedisCluster cluster, ClusterTopologyProvider topologyProvider) {
+		JedisClusterNodeResourceProvider(JedisCluster cluster, ClusterTopologyProvider topologyProvider) {
 
 			this.cluster = cluster;
 			this.topologyProvider = topologyProvider;
 
-			if (cluster != null) {
+			PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
+			this.connectionHandler = accessor.isReadableProperty("connectionHandler")
+					? (ClusterConnectionProvider) accessor.getPropertyValue("connectionHandler")
+					: null;
 
-				PropertyAccessor accessor = new DirectFieldAccessFallbackBeanWrapper(cluster);
-				this.connectionHandler = accessor.isReadableProperty("connectionHandler")
-						? (ClusterConnectionProvider) accessor.getPropertyValue("connectionHandler")
-						: null;
-			} else {
-				this.connectionHandler = null;
-			}
 		}
 
 		@Override

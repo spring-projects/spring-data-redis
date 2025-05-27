@@ -197,6 +197,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void put(Object key, @Nullable Object value) {
 
 		Object cacheValue = processAndCheckValue(value);
@@ -210,6 +211,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public @Nullable ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
 
 		Object cacheValue = preProcessCacheValue(value);
@@ -269,7 +271,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	public <T> CompletableFuture<T> retrieve(Object key, Supplier<CompletableFuture<T>> valueLoader) {
 
 		return retrieve(key).thenCompose(wrapper -> {

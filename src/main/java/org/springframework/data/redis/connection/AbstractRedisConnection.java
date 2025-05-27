@@ -63,6 +63,7 @@ public abstract class AbstractRedisConnection implements RedisConnection {
 		return this.sentinelConfiguration != null;
 	}
 
+	@SuppressWarnings("NullAway")
 	private RedisNode selectActiveSentinel() {
 
 		Assert.state(hasRedisSentinelConfigured(), "Sentinel configuration missing");

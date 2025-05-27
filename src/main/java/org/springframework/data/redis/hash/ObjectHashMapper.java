@@ -30,6 +30,7 @@ import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
 /**
@@ -137,7 +138,8 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	}
 
 	@Override
-	public Map<byte[], byte[]> toHash(Object source) {
+	@Contract("null -> !null")
+	public Map<byte[], byte[]> toHash(@Nullable Object source) {
 
 		if (source == null) {
 			return Collections.emptyMap();
@@ -149,7 +151,8 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	}
 
 	@Override
-	public Object fromHash(Map<byte[], byte[]> hash) {
+	@Contract("null -> null")
+	public @Nullable Object fromHash(@Nullable Map<byte[], byte[]> hash) {
 
 		if (hash == null || hash.isEmpty()) {
 			return null;
@@ -166,7 +169,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 	 * @param <T>
 	 * @return
 	 */
-	public <T> T fromHash(Map<byte[], byte[]> hash, Class<T> type) {
+	public <T> @Nullable T fromHash(Map<byte[], byte[]> hash, Class<T> type) {
 		return type.cast(fromHash(hash));
 	}
 
@@ -195,13 +198,13 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		private static final Set<IndexedData> NO_INDEXES = Collections.emptySet();
 
 		@Override
-		public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
+		public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 			return NO_INDEXES;
 		}
 
 		@Override
 		public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-				Object value) {
+				@Nullable Object value) {
 			return NO_INDEXES;
 		}
 	}

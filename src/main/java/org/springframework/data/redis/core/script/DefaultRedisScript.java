@@ -80,6 +80,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public String getSha1() {
 
 		lock.lock();
@@ -100,6 +101,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public String getScriptAsString() {
 
 		try {

@@ -1003,7 +1003,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return this.taskExecutor;
 	}
 
-	@SuppressWarnings("ConstantConditions")
+	@SuppressWarnings({"ConstantConditions", "NullAway"})
 	private byte[] serialize(Topic topic) {
 		return serializer.serialize(topic.getTopic());
 	}

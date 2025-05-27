@@ -113,6 +113,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 	 * @param valueSerializer can be {@literal null} if the values are binary.
 	 * @return new {@link ByteRecord} holding the serialized values.
 	 */
+	@SuppressWarnings("NullAway")
 	default ByteRecord serialize(@Nullable RedisSerializer<? super S> streamSerializer,
 			@Nullable RedisSerializer<? super K> fieldSerializer, @Nullable RedisSerializer<? super V> valueSerializer) {
 
@@ -134,7 +135,7 @@ public interface MapRecord<S, K, V> extends Record<S, Map<K, V>>, Iterable<Map.E
 	 * @param <OV> type of the value backing the {@link ObjectRecord}.
 	 * @return new instance of {@link ObjectRecord}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
 	default <OV> ObjectRecord<S, OV> toObjectRecord(HashMapper<? super OV, ? super K, ? super V> mapper) {
 		return Record.<S, OV> of((OV) mapper.fromHash((Map) getValue())).withId(getId()).withStreamKey(getRequiredStream());
 	}

@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection;
 
 import java.util.Properties;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -84,7 +83,7 @@ public class RedisServer extends RedisNode {
 	public RedisServer(String host, int port, @Nullable Properties properties) {
 
 		super(host, port);
-		this.properties = properties;
+		this.properties = properties != null ? properties : new Properties();
 
 		String name = host + ":" + port;
 		if (properties != null && properties.containsKey(INFO.NAME.key)) {
@@ -108,7 +107,7 @@ public class RedisServer extends RedisNode {
 		return new RedisServer(host, port, properties);
 	}
 
-	public void setQuorum( @Nullable Long quorum) {
+	public void setQuorum(@Nullable Long quorum) {
 
 		if (quorum == null) {
 			this.properties.remove(INFO.QUORUM.key);
@@ -118,11 +117,11 @@ public class RedisServer extends RedisNode {
 		this.properties.put(INFO.QUORUM.key, quorum.toString());
 	}
 
-	public  @NonNull String getRunId() {
+	public @Nullable String getRunId() {
 		return get(INFO.RUN_ID);
 	}
 
-	public  @NonNull String getFlags() {
+	public @Nullable String getFlags() {
 		return get(INFO.FLAGS);
 	}
 
@@ -135,35 +134,35 @@ public class RedisServer extends RedisNode {
 		return role.equalsIgnoreCase("master");
 	}
 
-	public  @NonNull Long getPendingCommands() {
+	public @Nullable Long getPendingCommands() {
 		return getLongValueOf(INFO.PENDING_COMMANDS);
 	}
 
-	public  @NonNull Long getLastPingSent() {
+	public @Nullable Long getLastPingSent() {
 		return getLongValueOf(INFO.LAST_PING_SENT);
 	}
 
-	public  @NonNull Long getLastOkPingReply() {
+	public @Nullable Long getLastOkPingReply() {
 		return getLongValueOf(INFO.LAST_OK_PING_REPLY);
 	}
 
-	public  @NonNull Long getDownAfterMilliseconds() {
+	public @Nullable Long getDownAfterMilliseconds() {
 		return getLongValueOf(INFO.DOWN_AFTER_MILLISECONDS);
 	}
 
-	public  @NonNull Long getInfoRefresh() {
+	public @Nullable Long getInfoRefresh() {
 		return getLongValueOf(INFO.INFO_REFRESH);
 	}
 
-	public  @NonNull String getRoleReported() {
+	public @Nullable String getRoleReported() {
 		return get(INFO.ROLE_REPORTED);
 	}
 
-	public  @NonNull Long roleReportedTime() {
+	public @Nullable Long roleReportedTime() {
 		return getLongValueOf(INFO.ROLE_REPORTED_TIME);
 	}
 
-	public  @NonNull Long getConfigEpoch() {
+	public @Nullable Long getConfigEpoch() {
 		return getLongValueOf(INFO.CONFIG_EPOCH);
 	}
 
@@ -173,23 +172,23 @@ public class RedisServer extends RedisNode {
 	 * @return
 	 * @since 2.1
 	 */
-	public Long getNumberReplicas() {
+	public @Nullable Long getNumberReplicas() {
 		return getLongValueOf(INFO.NUMBER_SLAVES);
 	}
 
-	public Long getNumberOtherSentinels() {
+	public @Nullable Long getNumberOtherSentinels() {
 		return getLongValueOf(INFO.NUMBER_OTHER_SENTINELS);
 	}
 
-	public Long getQuorum() {
+	public @Nullable Long getQuorum() {
 		return getLongValueOf(INFO.QUORUM);
 	}
 
-	public Long getFailoverTimeout() {
+	public @Nullable Long getFailoverTimeout() {
 		return getLongValueOf(INFO.FAILOVER_TIMEOUT);
 	}
 
-	public Long getParallelSyncs() {
+	public @Nullable Long getParallelSyncs() {
 		return getLongValueOf(INFO.PARALLEL_SYNCS);
 	}
 

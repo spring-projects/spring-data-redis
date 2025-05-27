@@ -65,6 +65,7 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 	 * @param valueSerializer can be {@literal null} if the values suite already the target format.
 	 * @return new {@link MapRecord} holding the deserialized values.
 	 */
+	@SuppressWarnings("NullAway")
 	default <K, HK, HV> MapRecord<K, HK, HV> deserialize(@Nullable RedisSerializer<? extends K> streamSerializer,
 			@Nullable RedisSerializer<? extends HK> fieldSerializer,
 			@Nullable RedisSerializer<? extends HV> valueSerializer) {
@@ -94,7 +95,7 @@ public interface ByteBufferRecord extends MapRecord<ByteBuffer, ByteBuffer, Byte
 	 * @param mapper must not be {@literal null}.
 	 * @return new instance of {@link ByteRecord}.
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
 	default <OV> ObjectRecord<ByteBuffer, OV> toObjectRecord(
 			HashMapper<? super OV, ? super ByteBuffer, ? super ByteBuffer> mapper) {
 
