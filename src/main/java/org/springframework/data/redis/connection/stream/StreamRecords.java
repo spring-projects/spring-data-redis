@@ -109,7 +109,7 @@ public class StreamRecords {
 	public static class RecordBuilder<S> {
 
 		private RecordId id;
-		private S stream;
+		private @Nullable S stream;
 
 		RecordBuilder(@Nullable S stream, RecordId recordId) {
 
@@ -342,7 +342,7 @@ public class StreamRecords {
 	static class ByteBufferMapBackedRecord extends MapBackedRecord<ByteBuffer, ByteBuffer, ByteBuffer>
 			implements ByteBufferRecord {
 
-		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, @Nullable RecordId recordId,
+		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, RecordId recordId,
 				Map<ByteBuffer, ByteBuffer> map) {
 			super(stream, recordId, map);
 		}
@@ -363,7 +363,7 @@ public class StreamRecords {
 	 */
 	static class StringMapBackedRecord extends MapBackedRecord<String, String, String> implements StringRecord {
 
-		StringMapBackedRecord(@Nullable String stream, @Nullable RecordId recordId, Map<String, String> stringStringMap) {
+		StringMapBackedRecord(@Nullable String stream, RecordId recordId, Map<String, String> stringStringMap) {
 			super(stream, recordId, stringStringMap);
 		}
 
@@ -403,7 +403,7 @@ public class StreamRecords {
 			return stream;
 		}
 
-		@Nullable
+
 		@Override
 		public RecordId getId() {
 			return recordId;

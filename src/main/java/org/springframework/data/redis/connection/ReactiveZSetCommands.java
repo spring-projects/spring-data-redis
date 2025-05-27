@@ -264,6 +264,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@SuppressWarnings("nullAway")
 	default Mono<Long> zAdd(ByteBuffer key, Double score, ByteBuffer value) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -282,6 +283,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="https://redis.io/commands/zadd">Redis Documentation: ZADD</a>
 	 */
+	@SuppressWarnings("nullAway")
 	default Mono<Long> zAdd(ByteBuffer key, Collection<? extends Tuple> tuples) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -941,7 +943,7 @@ public interface ReactiveZSetCommands {
 	 */
 	class ZRangeStoreCommand extends KeyCommand {
 
-		private final ByteBuffer destKey;
+		private final @Nullable ByteBuffer destKey;
 		private final RangeMode rangeMode;
 		private final Range<?> range;
 		private final Direction direction;
@@ -2158,7 +2160,7 @@ public interface ReactiveZSetCommands {
 
 		private final Range<Long> range;
 
-		private ZRemRangeByRankCommand(ByteBuffer key, Range<Long> range) {
+		private ZRemRangeByRankCommand(@Nullable ByteBuffer key, Range<Long> range) {
 			super(key);
 			this.range = range;
 		}
@@ -2860,7 +2862,7 @@ public interface ReactiveZSetCommands {
 	 */
 	class ZInterStoreCommand extends ZAggregateStoreCommand {
 
-		private ZInterStoreCommand(ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
+		private ZInterStoreCommand(@Nullable ByteBuffer key, List<ByteBuffer> sourceKeys, List<Double> weights,
 				@Nullable Aggregate aggregate) {
 			super(key, sourceKeys, weights, aggregate);
 		}

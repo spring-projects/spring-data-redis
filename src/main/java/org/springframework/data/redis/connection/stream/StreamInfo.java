@@ -181,7 +181,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public String firstEntryId() {
+		public @Nullable String firstEntryId() {
 			return getAndMap("first-entry", Map.class, it -> it.keySet().iterator().next().toString());
 		}
 
@@ -190,7 +190,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Map<Object, Object> getFirstEntry() {
+		public @Nullable Map<Object, Object> getFirstEntry() {
 			return getAndMap("first-entry", Map.class, Collections::unmodifiableMap);
 		}
 
@@ -199,7 +199,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public String lastEntryId() {
+		public @Nullable String lastEntryId() {
 			return getAndMap("last-entry", Map.class, it -> it.keySet().iterator().next().toString());
 		}
 
@@ -208,7 +208,7 @@ public class StreamInfo {
 		 *
 		 * @return
 		 */
-		public Map<Object, Object> getLastEntry() {
+		public @Nullable Map<Object, Object> getLastEntry() {
 			return getAndMap("last-entry", Map.class, Collections::unmodifiableMap);
 		}
 

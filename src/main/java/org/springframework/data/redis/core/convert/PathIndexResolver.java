@@ -82,6 +82,7 @@ public class PathIndexResolver implements IndexResolver {
 		this.indexedDataFactoryProvider = new IndexedDataFactoryProvider();
 	}
 
+	@SuppressWarnings("NullAway")
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 		return doResolveIndexesFor(mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace(), "",
 				typeInformation, null, value);
@@ -89,10 +90,11 @@ public class PathIndexResolver implements IndexResolver {
 
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
-			Object value) {
+			@Nullable Object value) {
 		return doResolveIndexesFor(keyspace, path, typeInformation, null, value);
 	}
 
+	@SuppressWarnings("NullAway")
 	private Set<IndexedData> doResolveIndexesFor(final String keyspace, final String path,
 			TypeInformation<?> typeInformation, @Nullable PersistentProperty<?> fallback, @Nullable Object value) {
 
@@ -191,6 +193,7 @@ public class PathIndexResolver implements IndexResolver {
 		return indexes;
 	}
 
+	@SuppressWarnings("NullAway")
 	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath,
 			@Nullable PersistentProperty<?> property, @Nullable Object value) {
 

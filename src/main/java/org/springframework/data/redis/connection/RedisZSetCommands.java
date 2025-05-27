@@ -189,7 +189,7 @@ public interface RedisZSetCommands {
 
 		private org.springframework.data.domain.Range.Bound<Object> toBound(@Nullable Boundary boundary) {
 
-			if (boundary == null || boundary.value == null) {
+			if (boundary == null || boundary.getValue() == null) {
 				return org.springframework.data.domain.Range.Bound.unbounded();
 			}
 
@@ -1178,7 +1178,7 @@ public interface RedisZSetCommands {
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 */
-	Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @NonNull ScanOptions options);
+	Cursor<@NonNull Tuple> zScan(byte @NonNull [] key, @Nullable ScanOptions options);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.

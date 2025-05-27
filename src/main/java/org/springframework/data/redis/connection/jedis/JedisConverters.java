@@ -851,6 +851,7 @@ abstract class JedisConverters extends Converters {
 			}
 
 			@Override
+			@SuppressWarnings("NullAway")
 			public GeoResult<GeoLocation<byte[]>> convert(GeoRadiusResponse source) {
 
 				Point point = JedisConverters.toPoint(source.getCoordinate());

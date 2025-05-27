@@ -15,7 +15,19 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -255,8 +267,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 				} catch (ExecutionException ex) {
 					entryIterator.remove();
 					exceptionCollector.addException(nodeExecution, ex.getCause());
-				} catch (TimeoutException ignore) {
-				} catch (InterruptedException ex) {
+				} catch (TimeoutException ignore) {} catch (InterruptedException ex) {
 					Thread.currentThread().interrupt();
 					exceptionCollector.addException(nodeExecution, ex);
 					break OUT;
@@ -413,7 +424,8 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 *
 		 * @since 2.0.3
 		 */
-		@Nullable PositionalKey getPositionalKey() {
+		@Nullable
+		PositionalKey getPositionalKey() {
 			return this.positionalKey;
 		}
 
@@ -485,6 +497,19 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @return can be {@literal null}.
 		 */
 		public @Nullable T getValue() {
+			return this.value;
+		}
+
+		/**
+		 * Get the actual value of the command execution or raise an error if {@literal null}.
+		 *
+		 * @return can be {@literal null}.
+		 * @throws IllegalArgumentException in case the value is {@literal null}.
+		 * @since 4.0
+		 */
+		public T getRequiredValue() {
+
+			Assert.notNull(this.value, "Expected non null value, but was null");
 			return this.value;
 		}
 

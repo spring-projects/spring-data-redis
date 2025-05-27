@@ -22,12 +22,13 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -58,6 +59,7 @@ import org.springframework.util.Assert;
  * @author jinkshower
  * @since 2.2
  */
+@NullUnmarked
 public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> {
 
 	/**
@@ -69,7 +71,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the length of acknowledged records.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	default Mono<Long> acknowledge(K key, String group, String... recordIds) {
+	default Mono<Long> acknowledge(@NonNull K key, @NonNull String group, @NonNull String @NonNull... recordIds) {
 		return acknowledge(key, group, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 	}
 
@@ -82,7 +84,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the length of acknowledged records.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	Mono<Long> acknowledge(K key, String group, RecordId... recordIds);
+	Mono<Long> acknowledge(@NonNull K key, @NonNull String group, @NonNull RecordId @NonNull... recordIds);
 
 	/**
 	 * Acknowledge the given record as processed.
@@ -92,7 +94,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the length of acknowledged records.
 	 * @see <a href="https://redis.io/commands/xack">Redis Documentation: XACK</a>
 	 */
-	default Mono<Long> acknowledge(String group, Record<K, ?> record) {
+	default Mono<Long> acknowledge(@NonNull String group, @NonNull Record<K, ?> record) {
 		return acknowledge(record.getRequiredStream(), group, record.getId());
 	}
 
@@ -106,7 +108,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 * @since 3.4
 	 */
-	default Mono<RecordId> add(K key, Map<? extends HK, ? extends HV> content, XAddOptions xAddOptions) {
+	default Mono<RecordId> add(@NonNull K key, @NonNull Map<? extends HK, ? extends HV> content,
+			@NonNull XAddOptions xAddOptions) {
 		return add(StreamRecords.newRecord().in(key).ofMap(content), xAddOptions);
 	}
 
@@ -119,14 +122,15 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 * @since 3.4
 	 */
-	@SuppressWarnings("unchecked")
-	default Mono<RecordId> add(MapRecord<K, ? extends HK, ? extends HV> record, XAddOptions xAddOptions) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	default Mono<RecordId> add(@NonNull MapRecord<K, ? extends HK, ? extends HV> record,
+			@NonNull XAddOptions xAddOptions) {
 		return add((Record) record, xAddOptions);
 	}
 
 	/**
-	 * Append the record, backed by the given value, to the stream with the specified options.
-	 * The value will be hashed and serialized.
+	 * Append the record, backed by the given value, to the stream with the specified options. The value will be hashed
+	 * and serialized.
 	 *
 	 * @param record must not be {@literal null}.
 	 * @param xAddOptions parameters for the {@literal XADD} call. Must not be {@literal null}.
@@ -136,7 +140,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 * @since 3.4
 	 */
-	Mono<RecordId> add(Record<K, ?> record, XAddOptions xAddOptions);
+	Mono<RecordId> add(@NonNull Record<K, ?> record, @NonNull XAddOptions xAddOptions);
 
 	/**
 	 * Append one or more records to the stream {@code key}.
@@ -146,7 +150,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the record Ids.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	default Flux<RecordId> add(K key, Publisher<? extends Map<? extends HK, ? extends HV>> bodyPublisher) {
+	default Flux<RecordId> add(@NonNull K key,
+			@NonNull Publisher<? extends Map<? extends HK, ? extends HV>> bodyPublisher) {
 		return Flux.from(bodyPublisher).flatMap(it -> add(key, it));
 	}
 
@@ -158,7 +163,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the {@link RecordId}.
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
-	default Mono<RecordId> add(K key, Map<? extends HK, ? extends HV> content) {
+	default Mono<RecordId> add(@NonNull K key, @NonNull Map<? extends HK, ? extends HV> content) {
 		return add(StreamRecords.newRecord().in(key).ofMap(content));
 	}
 
@@ -170,7 +175,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 */
 	@SuppressWarnings("unchecked")
-	default Mono<RecordId> add(MapRecord<K, ? extends HK, ? extends HV> record) {
+	default Mono<RecordId> add(@NonNull MapRecord<K, ? extends HK, ? extends HV> record) {
 		return add((Record) record);
 	}
 
@@ -182,14 +187,12 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see MapRecord
 	 * @see ObjectRecord
 	 */
-	Mono<RecordId> add(Record<K, ?> record);
+	Mono<RecordId> add(@NonNull Record<K, ?> record);
 
 	/**
-	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
-	 * the command argument.
-	 *
-	 * The message is claimed only if its idle time (ms) is greater than the {@link Duration minimum idle time}
-	 * specified when calling {@literal XCLAIM}.
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as the command argument.
+	 * The message is claimed only if its idle time (ms) is greater than the {@link Duration minimum idle time} specified
+	 * when calling {@literal XCLAIM}.
 	 *
 	 * @param key {@link K key} to the steam.
 	 * @param consumerGroup {@link String name} of the consumer group.
@@ -203,16 +206,14 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see #claim(Object, String, String, XClaimOptions)
 	 * @see reactor.core.publisher.Flux
 	 */
-	default Flux<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, Duration minIdleTime,
-			RecordId... recordIds) {
+	default Flux<MapRecord<K, HK, HV>> claim(@NonNull K key, @NonNull String consumerGroup, @NonNull String newOwner,
+			@NonNull Duration minIdleTime, @NonNull RecordId @NonNull... recordIds) {
 
 		return claim(key, consumerGroup, newOwner, XClaimOptions.minIdle(minIdleTime).ids(recordIds));
 	}
 
 	/**
-	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
-	 * the command argument.
-
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as the command argument.
 	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
 	 * specified when calling {@literal XCLAIM}.
 	 *
@@ -226,7 +227,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see org.springframework.data.redis.connection.stream.MapRecord
 	 * @see reactor.core.publisher.Flux
 	 */
-	Flux<MapRecord<K, HK, HV>> claim(K key, String consumerGroup, String newOwner, XClaimOptions xClaimOptions);
+	Flux<MapRecord<K, HK, HV>> claim(@NonNull K key, @NonNull String consumerGroup, @NonNull String newOwner,
+			@NonNull XClaimOptions xClaimOptions);
 
 	/**
 	 * Removes the specified records from the stream. Returns the number of records deleted, that may be different from
@@ -237,7 +239,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the number of removed records.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	default Mono<Long> delete(K key, String... recordIds) {
+	default Mono<Long> delete(@NonNull K key, @NonNull String @NonNull... recordIds) {
 		return delete(key, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
 	}
 
@@ -247,7 +249,9 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param record must not be {@literal null}.
 	 * @return he {@link Mono} emitting the number of removed records.
 	 */
-	default Mono<Long> delete(Record<K, ?> record) {
+	default Mono<Long> delete(@NonNull Record<K, ?> record) {
+
+		Assert.notNull(record.getStream(), "Record.getStream() must not be null");
 		return delete(record.getStream(), record.getId());
 	}
 
@@ -260,7 +264,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the number of removed records.
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
-	Mono<Long> delete(K key, RecordId... recordIds);
+	Mono<Long> delete(@NonNull K key, @NonNull RecordId @NonNull... recordIds);
 
 	/**
 	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}. This command creates the stream if it
@@ -271,7 +275,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting {@literal OK} if successful.. {@literal null} when used in pipeline /
 	 *         transaction.
 	 */
-	default Mono<String> createGroup(K key, String group) {
+	default Mono<String> createGroup(@NonNull K key, @NonNull String group) {
 		return createGroup(key, ReadOffset.latest(), group);
 	}
 
@@ -283,7 +287,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param group name of the consumer group.
 	 * @return the {@link Mono} emitting {@literal OK} if successful.
 	 */
-	Mono<String> createGroup(K key, ReadOffset readOffset, String group);
+	Mono<String> createGroup(@NonNull K key, @NonNull ReadOffset readOffset, @NonNull String group);
 
 	/**
 	 * Delete a consumer from a consumer group.
@@ -292,7 +296,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param consumer consumer identified by group name and consumer key.
 	 * @return the {@link Mono} {@literal OK} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	Mono<String> deleteConsumer(K key, Consumer consumer);
+	Mono<String> deleteConsumer(@NonNull K key, @NonNull Consumer consumer);
 
 	/**
 	 * Destroy a consumer group.
@@ -301,7 +305,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @param group name of the consumer group.
 	 * @return the {@link Mono} {@literal OK} if successful. {@literal null} when used in pipeline / transaction.
 	 */
-	Mono<String> destroyGroup(K key, String group);
+	Mono<String> destroyGroup(@NonNull K key, @NonNull String group);
 
 	/**
 	 * Obtain information about every consumer in a specific {@literal consumer group} for the stream stored at the
@@ -312,7 +316,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	Flux<XInfoConsumer> consumers(K key, String group);
+	Flux<XInfoConsumer> consumers(@NonNull K key, @NonNull String group);
 
 	/**
 	 * Obtain information about {@literal consumer groups} associated with the stream stored at the specified
@@ -322,7 +326,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	Flux<XInfoGroup> groups(K key);
+	Flux<XInfoGroup> groups(@NonNull K key);
 
 	/**
 	 * Obtain general information about the stream stored at the specified {@literal key}.
@@ -331,7 +335,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
-	Mono<XInfoStream> info(K key);
+	Mono<XInfoStream> info(@NonNull K key);
 
 	/**
 	 * Obtain the {@link PendingMessagesSummary} for a given {@literal consumer group}.
@@ -343,8 +347,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	@Nullable
-	Mono<PendingMessagesSummary> pending(K key, String group);
+	Mono<PendingMessagesSummary> pending(@NonNull K key, @NonNull String group);
 
 	/**
 	 * Obtained detailed information about all pending messages for a given {@link Consumer}.
@@ -355,7 +358,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	default Mono<PendingMessages> pending(K key, Consumer consumer) {
+	default Mono<PendingMessages> pending(@NonNull K key, @NonNull Consumer consumer) {
 		return pending(key, consumer, Range.unbounded(), -1L);
 	}
 
@@ -372,7 +375,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	Mono<PendingMessages> pending(K key, String group, Range<?> range, long count);
+	Mono<PendingMessages> pending(@NonNull K key, @NonNull String group, @NonNull Range<?> range, long count);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
@@ -386,7 +389,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 2.3
 	 */
-	Mono<PendingMessages> pending(K key, Consumer consumer, Range<?> range, long count);
+	Mono<PendingMessages> pending(@NonNull K key, @NonNull Consumer consumer, @NonNull Range<?> range, long count);
 
 	/**
 	 * Get the length of a stream.
@@ -395,7 +398,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Mono} emitting the length of the stream.
 	 * @see <a href="https://redis.io/commands/xlen">Redis Documentation: XLEN</a>
 	 */
-	Mono<Long> size(K key);
+	Mono<Long> size(@NonNull K key);
 
 	/**
 	 * Read records from a stream within a specific {@link Range}.
@@ -405,7 +408,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	default Flux<MapRecord<K, HK, HV>> range(K key, Range<String> range) {
+	default Flux<MapRecord<K, HK, HV>> range(@NonNull K key, @NonNull Range<String> range) {
 		return range(key, range, Limit.unlimited());
 	}
 
@@ -418,7 +421,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return lthe {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	Flux<MapRecord<K, HK, HV>> range(K key, Range<String> range, Limit limit);
+	Flux<MapRecord<K, HK, HV>> range(@NonNull K key, @NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Read all records from a stream within a specific {@link Range}.
@@ -429,7 +432,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> range(Class<V> targetType, K key, Range<String> range) {
+	default <V> Flux<ObjectRecord<K, V>> range(@NonNull Class<V> targetType, @NonNull K key,
+			@NonNull Range<String> range) {
 		return range(targetType, key, range, Limit.unlimited());
 	}
 
@@ -443,7 +447,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrange">Redis Documentation: XRANGE</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> range(Class<V> targetType, K key, Range<String> range, Limit limit) {
+	default <V> Flux<ObjectRecord<K, V>> range(@NonNull Class<V> targetType, @NonNull K key, @NonNull Range<String> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(targetType, "Target type must not be null");
 
@@ -458,7 +463,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	@SuppressWarnings("unchecked")
-	default Flux<MapRecord<K, HK, HV>> read(StreamOffset<K> stream) {
+	default Flux<MapRecord<K, HK, HV>> read(@NonNull StreamOffset<K> stream) {
 
 		Assert.notNull(stream, "StreamOffset must not be null");
 
@@ -474,7 +479,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	@SuppressWarnings("unchecked")
-	default <V> Flux<ObjectRecord<K, V>> read(Class<V> targetType, StreamOffset<K> stream) {
+	default <V> Flux<ObjectRecord<K, V>> read(@NonNull Class<V> targetType, @NonNull StreamOffset<K> stream) {
 
 		Assert.notNull(stream, "StreamOffset must not be null");
 
@@ -488,7 +493,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	default Flux<MapRecord<K, HK, HV>> read(StreamOffset<K>... streams) {
+	default Flux<MapRecord<K, HK, HV>> read(@NonNull StreamOffset<K>... streams) {
 		return read(StreamReadOptions.empty(), streams);
 	}
 
@@ -500,7 +505,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> read(Class<V> targetType, StreamOffset<K>... streams) {
+	default <V> Flux<ObjectRecord<K, V>> read(@NonNull Class<V> targetType, @NonNull StreamOffset<K>... streams) {
 		return read(targetType, StreamReadOptions.empty(), streams);
 	}
 
@@ -512,7 +517,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	Flux<MapRecord<K, HK, HV>> read(StreamReadOptions readOptions, StreamOffset<K>... streams);
+	Flux<MapRecord<K, HK, HV>> read(@NonNull StreamReadOptions readOptions, @NonNull StreamOffset<K> @NonNull... streams);
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s as {@link ObjectRecord}.
@@ -523,8 +528,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> read(Class<V> targetType, StreamReadOptions readOptions,
-			StreamOffset<K>... streams) {
+	default <V> Flux<ObjectRecord<K, V>> read(@NonNull Class<V> targetType, @NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<K> @NonNull... streams) {
 
 		Assert.notNull(targetType, "Target type must not be null");
 
@@ -539,7 +544,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	default Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamOffset<K>... streams) {
+	default Flux<MapRecord<K, HK, HV>> read(@NonNull Consumer consumer, @NonNull StreamOffset<K> @NonNull... streams) {
 		return read(consumer, StreamReadOptions.empty(), streams);
 	}
 
@@ -552,7 +557,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> read(Class<V> targetType, Consumer consumer, StreamOffset<K>... streams) {
+	default <V> Flux<ObjectRecord<K, V>> read(@NonNull Class<V> targetType, @NonNull Consumer consumer,
+			@NonNull StreamOffset<K> @NonNull... streams) {
 		return read(targetType, consumer, StreamReadOptions.empty(), streams);
 	}
 
@@ -565,7 +571,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams);
+	Flux<MapRecord<K, HK, HV>> read(@NonNull Consumer consumer, @NonNull StreamReadOptions readOptions,
+			@NonNull StreamOffset<K>... streams);
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s using a consumer group as {@link ObjectRecord}.
@@ -577,8 +584,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> read(Class<V> targetType, Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<K>... streams) {
+	default <V> Flux<ObjectRecord<K, V>> read(@NonNull Class<V> targetType, @NonNull Consumer consumer,
+			@NonNull StreamReadOptions readOptions, @NonNull StreamOffset<K> @NonNull... streams) {
 
 		Assert.notNull(targetType, "Target type must not be null");
 
@@ -593,7 +600,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	default Flux<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range) {
+	default Flux<MapRecord<K, HK, HV>> reverseRange(@NonNull K key, @NonNull Range<String> range) {
 		return reverseRange(key, range, Limit.unlimited());
 	}
 
@@ -606,7 +613,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	Flux<MapRecord<K, HK, HV>> reverseRange(K key, Range<String> range, Limit limit);
+	Flux<MapRecord<K, HK, HV>> reverseRange(@NonNull K key, @NonNull Range<String> range, @NonNull Limit limit);
 
 	/**
 	 * Read records from a stream within a specific {@link Range} in reverse order as {@link ObjectRecord}.
@@ -617,7 +624,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> reverseRange(Class<V> targetType, K key, Range<String> range) {
+	default <V> Flux<ObjectRecord<K, V>> reverseRange(@NonNull Class<V> targetType, @NonNull K key,
+			@NonNull Range<String> range) {
 		return reverseRange(targetType, key, range, Limit.unlimited());
 	}
 
@@ -632,7 +640,8 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link Flux} emitting records one by one.
 	 * @see <a href="https://redis.io/commands/xrevrange">Redis Documentation: XREVRANGE</a>
 	 */
-	default <V> Flux<ObjectRecord<K, V>> reverseRange(Class<V> targetType, K key, Range<String> range, Limit limit) {
+	default <V> Flux<ObjectRecord<K, V>> reverseRange(@NonNull Class<V> targetType, @NonNull K key,
+			@NonNull Range<String> range, @NonNull Limit limit) {
 
 		Assert.notNull(targetType, "Target type must not be null");
 
@@ -647,7 +656,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return number of removed entries.
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	Mono<Long> trim(K key, long count);
+	Mono<Long> trim(@NonNull K key, long count);
 
 	/**
 	 * Trims the stream to {@code count} elements.
@@ -659,7 +668,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @since 2.4
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
-	Mono<Long> trim(K key, long count, boolean approximateTrimming);
+	Mono<Long> trim(@NonNull K key, long count, boolean approximateTrimming);
 
 	/**
 	 * Get the {@link HashMapper} for a specific type.
@@ -669,7 +678,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the {@link HashMapper} suitable for a given type;
 	 */
 	@Override
-	<V> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType);
+	<V> HashMapper<V, HK, HV> getHashMapper(@NonNull Class<V> targetType);
 
 	/**
 	 * Map records from {@link MapRecord} to {@link ObjectRecord}.
@@ -679,7 +688,7 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return the mapped {@link ObjectRecord}.
 	 * @since 2.x
 	 */
-	default <V> ObjectRecord<K, V> map(MapRecord<K, HK, HV> record, Class<V> targetType) {
+	default <V> ObjectRecord<K, V> map(@NonNull MapRecord<K, HK, HV> record, @NonNull Class<V> targetType) {
 
 		Assert.notNull(record, "Records must not be null");
 		Assert.notNull(targetType, "Target type must not be null");
@@ -694,5 +703,5 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @return deserialized {@link MapRecord}.
 	 * @since 2.x
 	 */
-	MapRecord<K, HK, HV> deserializeRecord(ByteBufferRecord record);
+	MapRecord<K, HK, HV> deserializeRecord(@NonNull ByteBufferRecord record);
 }

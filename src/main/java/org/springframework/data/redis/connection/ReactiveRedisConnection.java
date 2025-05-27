@@ -205,7 +205,7 @@ public interface ReactiveRedisConnection extends Closeable {
 		}
 
 		@Override
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return key;
 		}
 	}

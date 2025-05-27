@@ -23,6 +23,7 @@ import redis.clients.jedis.exceptions.JedisRedirectionException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -43,7 +44,7 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 
 	static final JedisExceptionConverter INSTANCE = new JedisExceptionConverter();
 
-	public DataAccessException convert(Exception ex) {
+	public @Nullable DataAccessException convert(Exception ex) {
 
 		if (ex instanceof DataAccessException dae) {
 			return dae;

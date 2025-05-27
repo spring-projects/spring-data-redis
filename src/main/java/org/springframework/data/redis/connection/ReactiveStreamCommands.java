@@ -402,6 +402,7 @@ public interface ReactiveStreamCommands {
 	 * @see <a href="https://redis.io/commands/xadd">Redis Documentation: XADD</a>
 	 * @since 3.4
 	 */
+	@SuppressWarnings("nullAway")
 	default Mono<RecordId> xAdd(ByteBufferRecord record, XAddOptions xAddOptions) {
 
 		Assert.notNull(record, "Record must not be null");

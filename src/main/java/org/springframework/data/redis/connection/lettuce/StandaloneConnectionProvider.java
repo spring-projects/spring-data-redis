@@ -81,6 +81,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 			AtomicReference<RedisURI> uriFieldReference = new AtomicReference<>();
 
 			@Override
+			@SuppressWarnings("NullAway")
 			public RedisURI get() {
 
 				RedisURI uri = uriFieldReference.get();

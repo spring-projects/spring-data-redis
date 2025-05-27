@@ -229,7 +229,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 		 * @param <T> message type.
 		 * @return
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "NullAway" })
 		<T> Flux<T> receive(Supplier<Flux<T>> connectFunction) {
 
 			Flux<?> fastPath = flux.get();

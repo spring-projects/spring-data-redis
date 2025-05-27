@@ -1277,7 +1277,7 @@ public interface ReactiveListCommands {
 		}
 
 		@Override
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return null;
 		}
 
@@ -1316,11 +1316,11 @@ public interface ReactiveListCommands {
 			this.result = result;
 		}
 
-		public ByteBuffer getKey() {
+		public @Nullable ByteBuffer getKey() {
 			return ObjectUtils.isEmpty(result) ? null : result.get(0);
 		}
 
-		public ByteBuffer getValue() {
+		public @Nullable ByteBuffer getValue() {
 			return ObjectUtils.isEmpty(result) ? null : result.get(1);
 		}
 

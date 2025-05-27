@@ -37,7 +37,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 */
 	private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-	private final BinaryKeyspaceIdentifier objectId;
+	private final @Nullable BinaryKeyspaceIdentifier objectId;
 	private final @Nullable Object value;
 
 	/**
@@ -84,7 +84,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	 *
 	 * @return {@literal null} if it could not be determined.
 	 */
-	public String getKeyspace() {
+	public @Nullable String getKeyspace() {
 		return objectId != null ? new String(objectId.getKeyspace(), CHARSET) : null;
 	}
 

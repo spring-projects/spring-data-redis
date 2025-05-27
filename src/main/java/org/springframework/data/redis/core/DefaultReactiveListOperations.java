@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.lang.Contract;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -251,6 +252,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Mono<V> leftPop(K key, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -278,6 +280,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Mono<V> rightPop(K key, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -344,6 +347,7 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		return serializationContext.getValueSerializationPair().write(value);
 	}
 
+	@Contract("!null -> !null")
 	private @Nullable V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
 	}

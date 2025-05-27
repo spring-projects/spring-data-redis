@@ -933,13 +933,13 @@ public interface ZSetOperations<K, V> {
 	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
 	 *
 	 * @param key
-	 * @param options must not be {@literal null}.
+	 * @param options can be {@literal null}.
 	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
 	 *         try-with-resources clause).
 	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 1.4
 	 */
-	Cursor<@NonNull TypedTuple<V>> scan(@NonNull K key, @NonNull ScanOptions options);
+	Cursor<@NonNull TypedTuple<V>> scan(@NonNull K key, @Nullable ScanOptions options);
 
 	/**
 	 * Get all elements with lexicographical ordering from {@literal ZSET} at {@code key} with a value between

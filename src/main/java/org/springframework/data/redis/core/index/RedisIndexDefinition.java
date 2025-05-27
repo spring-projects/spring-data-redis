@@ -159,7 +159,8 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 		}
 
 		@Override
-		public Object convert(Object source) {
+		@SuppressWarnings("NullAway")
+		public @Nullable Object convert(Object source) {
 
 			Object tmp = source;
 			for (IndexValueTransformer transformer : transformers) {

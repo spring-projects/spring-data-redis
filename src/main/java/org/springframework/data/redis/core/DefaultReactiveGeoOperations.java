@@ -329,6 +329,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 
+	@SuppressWarnings("NullAway")
 	private GeoResult<GeoLocation<V>> readGeoResult(GeoResult<GeoLocation<ByteBuffer>> source) {
 
 		return new GeoResult<>(new GeoLocation<>(readValue(source.getContent().getName()), source.getContent().getPoint()),

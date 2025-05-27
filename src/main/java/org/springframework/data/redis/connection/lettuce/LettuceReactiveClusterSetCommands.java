@@ -82,11 +82,12 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 			return sUnion(Mono.just(SUnionCommand.keys(command.getKeys()))).next().flatMap(values -> {
 
-				Mono<Long> result = values.getOutput().collectList().flatMap(it -> {
+				Flux<ByteBuffer> output = values.getOutput();
+				Mono<Long> result =  output != null ? output.collectList().flatMap(it -> {
 
 					ByteBuffer[] members = it.toArray(new ByteBuffer[0]);
 					return cmd.sadd(command.getKey(), members);
-				});
+				}) : Mono.empty();
 
 				return result.map(value -> new NumericResponse<>(command, value));
 			});
@@ -142,11 +143,12 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 			return sInter(Mono.just(SInterCommand.keys(command.getKeys()))).next().flatMap(values -> {
 
-				Mono<Long> result = values.getOutput().collectList().flatMap(it -> {
+				Flux<ByteBuffer> output = values.getOutput();
+				Mono<Long> result = output != null ? output.collectList().flatMap(it -> {
 
 					ByteBuffer[] members = it.toArray(new ByteBuffer[0]);
 					return cmd.sadd(command.getKey(), members);
-				});
+				}) : Mono.empty();
 
 				return result.map(value -> new NumericResponse<>(command, value));
 			});
@@ -204,11 +206,12 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 
 			return sDiff(Mono.just(SDiffCommand.keys(command.getKeys()))).next().flatMap(values -> {
 
-				Mono<Long> result = values.getOutput().collectList().flatMap(it -> {
+				Flux<ByteBuffer> output = values.getOutput();
+				Mono<Long> result = output != null ? output.collectList().flatMap(it -> {
 
 					ByteBuffer[] members = it.toArray(new ByteBuffer[0]);
 					return cmd.sadd(command.getKey(), members);
-				});
+				}) : Mono.empty();
 
 				return result.map(value -> new NumericResponse<>(command, value));
 			});

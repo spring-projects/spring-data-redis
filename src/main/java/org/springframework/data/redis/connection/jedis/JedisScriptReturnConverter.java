@@ -35,8 +35,8 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 		this.returnType = returnType;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Object convert(@Nullable Object result) {
+	@SuppressWarnings({ "unchecked", "NullAway" })
+	public @Nullable Object convert(@Nullable Object result) {
 		if (result instanceof String stringResult) {
 			// evalsha converts byte[] to String. Convert back for consistency
 			return JedisConverters.toBytes(stringResult);

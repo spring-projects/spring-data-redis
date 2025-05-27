@@ -46,6 +46,7 @@ public class CompositeIndexResolver implements IndexResolver {
 	 *
 	 * @param resolvers must not be {@literal null}.
 	 */
+	@SuppressWarnings("NullAway")
 	public CompositeIndexResolver(Collection<IndexResolver> resolvers) {
 
 		Assert.notNull(resolvers, "Resolvers must not be null");

@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.data.convert.ReadingConverter;
@@ -172,7 +173,7 @@ final class BinaryConverters {
 			}
 
 			@Override
-			public T convert(byte[] source) {
+			public @Nullable T convert(byte[] source) {
 
 				if (ObjectUtils.isEmpty(source)) {
 					return null;
@@ -205,7 +206,7 @@ final class BinaryConverters {
 			}
 
 			@Override
-			public T convert(byte[] source) {
+			public @Nullable T convert(byte[] source) {
 
 				if (ObjectUtils.isEmpty(source)) {
 					return null;

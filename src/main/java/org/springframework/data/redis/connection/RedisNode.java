@@ -225,7 +225,7 @@ public class RedisNode implements NamedNode {
 		return this.name;
 	}
 
-	public void setName(String name) {
+	public void setName(@Nullable String name) {
 		this.name = name;
 	}
 

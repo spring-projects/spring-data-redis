@@ -323,7 +323,7 @@ public class Bucket {
 		private final Bucket bucket;
 		private final @Nullable String prefix;
 
-		private BucketPropertyPath(Bucket bucket, String prefix) {
+		private BucketPropertyPath(Bucket bucket, @Nullable String prefix) {
 
 			Assert.notNull(bucket, "Bucket must not be null");
 

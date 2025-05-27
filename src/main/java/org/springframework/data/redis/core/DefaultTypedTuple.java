@@ -45,7 +45,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return score;
 	}
 
-	public @Nullable  V getValue() {
+	public @Nullable V getValue() {
 		return value;
 	}
 
@@ -82,7 +82,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return true;
 	}
 
-	public int compareTo(Double o) {
+	public int compareTo(@Nullable Double o) {
 
 		double thisScore = (score == null ? 0.0 : score);
 		double otherScore = (o == null ? 0.0 : o);
@@ -91,7 +91,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 	}
 
 	@Override
-	public int compareTo(TypedTuple<V> o) {
+	public int compareTo(@Nullable TypedTuple<V> o) {
 
 		if (o == null) {
 			return compareTo(Double.valueOf(0));

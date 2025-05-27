@@ -15,15 +15,48 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.springframework.data.redis.connection.RedisGeoCommands.*;
-import static org.springframework.data.redis.domain.geo.GeoReference.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoCommandArgs;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import static org.springframework.data.redis.domain.geo.GeoReference.GeoCoordinateReference;
+import static org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
 
-import io.lettuce.core.*;
+import io.lettuce.core.BitFieldArgs;
+import io.lettuce.core.FlushMode;
+import io.lettuce.core.GeoArgs;
+import io.lettuce.core.GeoCoordinates;
+import io.lettuce.core.GeoSearch;
+import io.lettuce.core.GeoWithin;
+import io.lettuce.core.GetExArgs;
+import io.lettuce.core.KeyScanArgs;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.LMoveArgs;
+import io.lettuce.core.Range;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.SetArgs;
+import io.lettuce.core.SortArgs;
+import io.lettuce.core.TransactionResult;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -35,19 +68,30 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
+import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisServerCommands;
+import org.springframework.data.redis.connection.RedisSocketConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -62,6 +106,7 @@ import org.springframework.data.redis.domain.geo.BoxShape;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.domain.geo.RadiusShape;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -99,10 +144,9 @@ public abstract class LettuceConverters extends Converters {
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
 	}
 
-	public static Point geoCoordinatesToPoint(@Nullable GeoCoordinates geoCoordinate) {
+	public static @Nullable Point geoCoordinatesToPoint(@Nullable GeoCoordinates geoCoordinate) {
 
-		return geoCoordinate != null
-				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+		return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
 				: null;
 	}
 
@@ -139,15 +183,18 @@ public abstract class LettuceConverters extends Converters {
 		return Converters::toBoolean;
 	}
 
-	public static Long toLong(@Nullable Date source) {
+	@Contract("null -> null;!null -> !null")
+	public static @Nullable Long toLong(@Nullable Date source) {
 		return source != null ? source.getTime() : null;
 	}
 
-	public static Set<byte[]> toBytesSet(@Nullable List<byte[]> source) {
+	@Contract("null -> null;!null -> !null")
+	public static @Nullable Set<byte[]> toBytesSet(@Nullable List<byte[]> source) {
 		return source != null ? new LinkedHashSet<>(source) : null;
 	}
 
-	public static List<byte[]> toBytesList(KeyValue<byte[], byte[]> source) {
+	@Contract("null -> null;!null -> !null")
+	public static @Nullable List<byte[]> toBytesList(@Nullable KeyValue<byte[], byte[]> source) {
 
 		if (source == null) {
 			return null;
@@ -161,23 +208,16 @@ public abstract class LettuceConverters extends Converters {
 		return list;
 	}
 
-	public static List<byte[]> toBytesList(Collection<byte[]> source) {
-
-		if (source instanceof List) {
-			return (List<byte[]>) source;
-		}
-
-		return source != null ? new ArrayList<>(source) : null;
-	}
-
+	@Contract("null -> null;!null -> !null")
+	@SuppressWarnings("NullAway")
 	public static Tuple toTuple(@Nullable ScoredValue<byte[]> source) {
 
-		return source != null && source.hasValue()
-				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+		return source != null && source.hasValue() ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
 				: null;
 	}
 
-	public static String toString(byte @Nullable[] source) {
+	@Contract("null -> null")
+	public static @Nullable String toString(byte @Nullable [] source) {
 
 		if (source == null || Arrays.equals(source, new byte[0])) {
 			return null;
@@ -294,7 +334,7 @@ public abstract class LettuceConverters extends Converters {
 	 *
 	 * @since 2.2
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked", "NullAway" })
 	public static <T> Range<T> toRange(org.springframework.data.domain.Range<T> range, boolean convertNumberToBytes) {
 
 		Range.Boundary upper = RangeConverter.convertBound(range.getUpperBound(), convertNumberToBytes, null,
@@ -311,7 +351,7 @@ public abstract class LettuceConverters extends Converters {
 	 *
 	 * @since 2.0
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked", "NullAway" })
 	public static <T> Range<T> toRevRange(org.springframework.data.domain.Range<T> range) {
 
 		Range.Boundary upper = RangeConverter.convertBound(range.getUpperBound(), false, null,
@@ -383,7 +423,9 @@ public abstract class LettuceConverters extends Converters {
 			password.toOptional().ifPresent(builder::withPassword);
 		}
 
-		builder.withSentinelMasterId(sentinelConfiguration.getMaster().getName());
+		if (sentinelConfiguration.getMaster() != null && sentinelConfiguration.getMaster().getName() != null) {
+			builder.withSentinelMasterId(sentinelConfiguration.getMaster().getName());
+		}
 
 		return builder.build();
 	}
@@ -471,7 +513,8 @@ public abstract class LettuceConverters extends Converters {
 		}
 	}
 
-	public static byte[] toBytes(@Nullable String source) {
+	@Contract("null -> null;!null -> !null")
+	public static byte @Nullable [] toBytes(@Nullable String source) {
 		return source != null ? source.getBytes() : null;
 	}
 
@@ -520,6 +563,10 @@ public abstract class LettuceConverters extends Converters {
 	}
 
 	private static Set<Flag> parseFlags(@Nullable Set<NodeFlag> source) {
+
+		if(source == null) {
+			return Collections.emptySet();
+		}
 
 		Set<Flag> flags = new LinkedHashSet<>(source != null ? source.size() : 8, 1);
 
@@ -616,6 +663,7 @@ public abstract class LettuceConverters extends Converters {
 				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
+	@SuppressWarnings("NullAway")
 	static Converter<List<byte[]>, Long> toTimeConverter(TimeUnit timeUnit) {
 
 		return source -> {
@@ -635,8 +683,8 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	public static GeoArgs.Unit toGeoArgsUnit(Metric metric) {
 
-		Metric metricToUse = metric == null
-				|| ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric;
+		Metric metricToUse = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
+				: metric;
 
 		return ObjectUtils.caseInsensitiveValueOf(GeoArgs.Unit.values(), metricToUse.getAbbreviation());
 	}
@@ -655,6 +703,7 @@ public abstract class LettuceConverters extends Converters {
 	 *
 	 * @since 2.6
 	 */
+	@SuppressWarnings("NullAway")
 	public static GeoArgs toGeoArgs(GeoCommandArgs args) {
 
 		GeoArgs geoArgs = new GeoArgs();
@@ -688,9 +737,12 @@ public abstract class LettuceConverters extends Converters {
 	 *
 	 * @since 2.1
 	 */
-	public static BitFieldArgs toBitFieldArgs(BitFieldSubCommands subCommands) {
+	public static BitFieldArgs toBitFieldArgs(@Nullable BitFieldSubCommands subCommands) {
 
 		BitFieldArgs args = new BitFieldArgs();
+		if(subCommands == null) {
+			return args;
+		}
 
 		for (BitFieldSubCommand subCommand : subCommands) {
 
@@ -716,7 +768,7 @@ public abstract class LettuceConverters extends Converters {
 						case SAT -> BitFieldArgs.OverflowType.SAT;
 						case FAIL -> BitFieldArgs.OverflowType.FAIL;
 						case WRAP -> BitFieldArgs.OverflowType.WRAP;
-          			};
+					};
 
 					args = args.overflow(type);
 				}
@@ -766,6 +818,7 @@ public abstract class LettuceConverters extends Converters {
 	 *
 	 * @since 1.8
 	 */
+	@SuppressWarnings("NullAway")
 	public static Converter<Set<byte[]>, GeoResults<GeoLocation<byte[]>>> bytesSetToGeoResultsConverter() {
 
 		return source -> {
@@ -897,7 +950,7 @@ public abstract class LettuceConverters extends Converters {
 		return switch (option) {
 			case ASYNC -> FlushMode.ASYNC;
 			case SYNC -> FlushMode.SYNC;
-    	};
+		};
 	}
 
 	/**
@@ -909,8 +962,8 @@ public abstract class LettuceConverters extends Converters {
 		INSTANCE;
 
 		Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
-			return new GeoResultsConverter(metric == null
-					|| ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+			return new GeoResultsConverter(
+					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
 
 		private static class GeoResultsConverter
@@ -950,6 +1003,7 @@ public abstract class LettuceConverters extends Converters {
 			return new GeoResultConverter(metric);
 		}
 
+		@SuppressWarnings("NullAway")
 		private static class GeoResultConverter implements Converter<GeoWithin<byte[]>, GeoResult<GeoLocation<byte[]>>> {
 
 			private final Metric metric;

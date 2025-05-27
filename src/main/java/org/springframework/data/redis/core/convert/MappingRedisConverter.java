@@ -173,7 +173,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "NullAway"})
 	public <R> R read(Class<R> type, RedisData source) {
 
 		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
@@ -184,12 +184,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	}
 
-	private @Nullable <R> R readInternal(String path, Class<R> type, RedisData source) {
+	private <R> @Nullable R readInternal(String path, Class<R> type, RedisData source) {
 		return source.getBucket().isEmpty() ? null : doReadInternal(path, type, source);
 	}
 
-	@SuppressWarnings("unchecked")
-	private <R> R doReadInternal(String path, Class<R> type, RedisData source) {
+	@SuppressWarnings({"unchecked", "NullAway"})
+	private <R>  R doReadInternal(String path, Class<R> type, RedisData source) {
 
 		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
 
@@ -331,6 +331,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		return fromBytes(sourceBytes, typeToUse);
 	}
 
+	@SuppressWarnings("NullAway")
 	private void readAssociation(String path, RedisData source, RedisPersistentEntity<?> entity,
 			PersistentPropertyAccessor<?> accessor) {
 
@@ -355,7 +356,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					}
 
 					KeyspaceIdentifier identifier = KeyspaceIdentifier.of(referenceKey);
-					Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(identifier.getId(),
+					Map<byte[], byte[]> rawHash = getRequiredReferenceResolver().resolveReference(identifier.getId(),
 							identifier.getKeyspace());
 
 					if (!CollectionUtils.isEmpty(rawHash)) {
@@ -377,7 +378,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 					KeyspaceIdentifier identifier = KeyspaceIdentifier.of(referenceKey);
 
-					Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(identifier.getId(),
+					Map<byte[], byte[]> rawHash = getRequiredReferenceResolver().resolveReference(identifier.getId(),
 							identifier.getKeyspace());
 
 					if (!CollectionUtils.isEmpty(rawHash)) {
@@ -391,7 +392,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	@Override
 	@SuppressWarnings({ "rawtypes" })
-	public void write(Object source, RedisData sink) {
+	public void write(@Nullable Object source, RedisData sink) {
 
 		if (source == null) {
 			return;
@@ -478,6 +479,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param entity
 	 * @param path
 	 */
+	@SuppressWarnings("NullAway")
 	private void writePartialPropertyUpdate(PartialUpdate<?> update, PropertyUpdate pUpdate, RedisData sink,
 			RedisPersistentEntity<?> entity, String path) {
 
@@ -582,6 +584,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param typeHint
 	 * @param sink
 	 */
+	@SuppressWarnings("NullAway")
 	private void writeInternal(@Nullable String keyspace, String path, @Nullable Object value,
 			TypeInformation<?> typeHint, RedisData sink) {
 
@@ -672,6 +675,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		writeAssociation(path, entity, value, sink);
 	}
 
+	private ReferenceResolver getRequiredReferenceResolver() {
+
+		Assert.notNull(referenceResolver, "ReferenceResolver must not be null");
+		return referenceResolver;
+    }
+
 	private void writeAssociation(String path, RedisPersistentEntity<?> entity, @Nullable Object value, RedisData sink) {
 
 		if (value == null) {
@@ -760,6 +769,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private void writeToBucket(String path, @Nullable Object value, RedisData sink, Class<?> propertyType) {
 
 		if (value == null || (value instanceof Optional && !((Optional<?>) value).isPresent())) {
@@ -796,6 +806,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
+	@SuppressWarnings("NullAway")
 	private @Nullable Object readCollectionOrArray(String path, Class<?> collectionType, Class<?> valueType, Bucket bucket) {
 
 		List<String> keys = new ArrayList<>(bucket.extractAllKeysFor(path));
@@ -862,7 +873,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 	}
 
-	private String mapMapKey(Object key) {
+	@SuppressWarnings("NullAway")
+	private @Nullable String mapMapKey(Object key) {
 
 		if (conversionService.canConvert(key.getClass(), byte[].class)) {
 			return new String(conversionService.convert(key, byte[].class));
@@ -964,7 +976,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @return
 	 * @throws ConverterNotFoundException
 	 */
-	public byte[] toBytes(Object source) {
+	public byte@Nullable[] toBytes(Object source) {
 
 		if (source instanceof byte[] bytes) {
 			return bytes;
@@ -981,7 +993,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @return
 	 * @throws ConverterNotFoundException
 	 */
-	public <T> T fromBytes(byte[] source, Class<T> type) {
+	public <T> @Nullable T fromBytes(byte[] source, Class<T> type) {
 
 		if (type.isInstance(source)) {
 			return type.cast(source);
@@ -1092,7 +1104,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <T> T getPropertyValue(RedisPersistentProperty property) {
+		public <T> @Nullable T getPropertyValue(RedisPersistentProperty property) {
 
 			Object value = readProperty(path, source, property);
 
@@ -1171,6 +1183,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			}
 
 			@Override
+			@SuppressWarnings("NullAway")
 			public int compareTo(Part that) {
 
 				if (this.isNumeric() && that.isNumeric()) {

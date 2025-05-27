@@ -61,8 +61,8 @@ public interface ReactiveStringCommands {
 	class SetCommand extends KeyCommand {
 
 		private @Nullable ByteBuffer value;
-		private Expiration expiration;
-		private SetOption option;
+		private @Nullable Expiration expiration;
+		private @Nullable SetOption option;
 
 		private SetCommand(ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
 				@Nullable SetOption option) {
@@ -859,7 +859,7 @@ public interface ReactiveStringCommands {
 		private @Nullable Long offset;
 		private boolean value;
 
-		private SetBitCommand(ByteBuffer key, Long offset, boolean value) {
+		private SetBitCommand(ByteBuffer key, @Nullable Long offset, boolean value) {
 
 			super(key);
 
@@ -1078,7 +1078,7 @@ public interface ReactiveStringCommands {
 			return new BitFieldCommand(getKey(), commands);
 		}
 
-		public BitFieldSubCommands getSubCommands() {
+		public @Nullable BitFieldSubCommands getSubCommands() {
 			return subcommands;
 		}
 	}

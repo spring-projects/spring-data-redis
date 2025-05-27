@@ -24,6 +24,7 @@ import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import org.jspecify.annotations.NullUnmarked;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 2.0
  */
+@NullUnmarked
 class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;

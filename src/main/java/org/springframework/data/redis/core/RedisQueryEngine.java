@@ -82,7 +82,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> List<T> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows, String keyspace,
+	public <T> List<T> execute(@Nullable RedisOperationChain criteria, @Nullable Comparator<?> sort, long offset, int rows, String keyspace,
 			Class<T> type) {
 		List<T> result = doFind(criteria, offset, rows, keyspace, type);
 
@@ -93,7 +93,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		return result;
 	}
 
-	private <T> List<T> doFind(RedisOperationChain criteria, long offset, int rows, String keyspace, Class<T> type) {
+	@SuppressWarnings("NullAway")
+	private <T> List<T> doFind(@Nullable RedisOperationChain criteria, long offset, int rows, String keyspace, Class<T> type) {
 
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
@@ -200,12 +201,13 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	}
 
 	@Override
-	public List<?> execute(RedisOperationChain criteria, Comparator<?> sort, long offset, int rows, String keyspace) {
+	public List<?> execute(@Nullable RedisOperationChain criteria, @Nullable Comparator<?> sort, long offset, int rows, String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
 	@Override
-	public long count(RedisOperationChain criteria, String keyspace) {
+	@SuppressWarnings("NullAway")
+	public long count(@Nullable RedisOperationChain criteria, String keyspace) {
 
 		if (criteria == null || criteria.isEmpty()) {
 			return this.getRequiredAdapter().count(keyspace);
@@ -227,6 +229,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		});
 	}
 
+	@SuppressWarnings("NullAway")
 	private byte[][] keys(String prefix, Collection<PathAndValue> source) {
 
 		ConversionService conversionService = getRequiredAdapter().getConverter().getConversionService();
@@ -243,6 +246,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		return keys;
 	}
 
+	@SuppressWarnings("NullAway")
 	private byte[] geoKey(String prefix, NearPath source) {
 
 		String path = GeoIndexedPropertyValue.geoIndexName(source.getPath());
@@ -257,7 +261,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	static class RedisCriteriaAccessor implements CriteriaAccessor<RedisOperationChain> {
 
 		@Override
-		public RedisOperationChain resolve(KeyValueQuery<?> query) {
+		public @Nullable RedisOperationChain resolve(KeyValueQuery<?> query) {
 			return (RedisOperationChain) query.getCriteria();
 		}
 	}

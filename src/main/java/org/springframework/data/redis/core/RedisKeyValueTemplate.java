@@ -89,6 +89,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * @param type must not be {@literal null}.
 	 * @return empty list if not elements found.
 	 */
+	@SuppressWarnings("NullAway")
 	public <T> List<T> find(RedisCallback<?> callback, Class<T> type) {
 
 		Assert.notNull(callback, "Callback must not be null");

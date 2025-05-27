@@ -50,6 +50,7 @@ class IndexedDataFactoryProvider {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
+
 	static class SimpleIndexedPropertyValueFactory implements IndexedDataFactory {
 
 		final SimpleIndexDefinition indexDefinition;
@@ -58,6 +59,7 @@ class IndexedDataFactoryProvider {
 			this.indexDefinition = indexDefinition;
 		}
 
+		@SuppressWarnings("NullAway")
 		public SimpleIndexedPropertyValue createIndexedDataFor(Object value) {
 
 			return new SimpleIndexedPropertyValue(indexDefinition.getKeyspace(), indexDefinition.getIndexName(),
@@ -77,6 +79,7 @@ class IndexedDataFactoryProvider {
 			this.indexDefinition = indexDefinition;
 		}
 
+		@SuppressWarnings("NullAway")
 		public GeoIndexedPropertyValue createIndexedDataFor(Object value) {
 
 			return new GeoIndexedPropertyValue(indexDefinition.getKeyspace(), indexDefinition.getPath(),

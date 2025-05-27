@@ -463,11 +463,12 @@ public abstract class RedisConnectionUtils {
 		}
 
 		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable {
+		public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 			return intercept(invocation.getThis(), invocation.getMethod(), invocation.getArguments());
 		}
 
-		public Object intercept(Object obj, Method method, Object[] args) throws Throwable {
+		@SuppressWarnings("NullAway")
+		public @Nullable Object intercept(@Nullable Object obj, Method method, Object[] args) throws Throwable {
 
 			if (method.getName().equals("getTargetConnection")) {
 				// Handle getTargetConnection method: return underlying RedisConnection.

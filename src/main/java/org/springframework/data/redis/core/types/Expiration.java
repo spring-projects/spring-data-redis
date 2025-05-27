@@ -78,6 +78,10 @@ public class Expiration {
 	 * @return a new {@link Expiration} configured with the given {@link Long length of time} in {@link TimeUnit}.
 	 */
 	public static Expiration from(long expirationTime, @Nullable TimeUnit timeUnit) {
+		
+		if(timeUnit == null) {
+			return new Expiration(expirationTime, TimeUnit.SECONDS);
+		}
 
 		if (TimeUnit.NANOSECONDS.equals(timeUnit)
 			|| TimeUnit.MICROSECONDS.equals(timeUnit)
@@ -86,15 +90,14 @@ public class Expiration {
 			return new Expiration(timeUnit.toMillis(expirationTime), TimeUnit.MILLISECONDS);
 		}
 
-		return timeUnit != null ? new Expiration(timeUnit.toSeconds(expirationTime), TimeUnit.SECONDS)
-			: new Expiration(expirationTime, TimeUnit.SECONDS);
+		return new Expiration(timeUnit.toSeconds(expirationTime), TimeUnit.SECONDS);
 	}
 
 	/**
 	 * Creates a new {@link Expiration} with the given, required {@link Duration}.
 	 * <p>
-	 * Durations with at least {@literal seconds} resolution uses {@link TimeUnit#SECONDS}. {@link Duration Durations}
-	 * in {@literal milliseconds} use {@link TimeUnit#MILLISECONDS}.
+	 * Durations with at least {@literal seconds} resolution uses {@link TimeUnit#SECONDS}. {@link Duration Durations} in
+	 * {@literal milliseconds} use {@link TimeUnit#MILLISECONDS}.
 	 *
 	 * @param duration must not be {@literal null}.
 	 * @return a new {@link Expiration} from the given {@link Duration}.
@@ -105,15 +108,15 @@ public class Expiration {
 		Assert.notNull(duration, "Duration must not be null");
 
 		return duration.isZero() ? Expiration.persistent()
-			: TimeoutUtils.hasMillis(duration) ? new Expiration(duration.toMillis(), TimeUnit.MILLISECONDS)
-			: new Expiration(duration.getSeconds(), TimeUnit.SECONDS);
+				: TimeoutUtils.hasMillis(duration) ? new Expiration(duration.toMillis(), TimeUnit.MILLISECONDS)
+						: new Expiration(duration.getSeconds(), TimeUnit.SECONDS);
 	}
 
 	/**
 	 * Obtain an {@link Expiration} that indicates to keep the existing one, e.g. when sending a {@code SET} command.
 	 * <p>
-	 * <strong>NOTE: </strong>Please follow the documentation for the individual commands to see
-	 * if keeping the existing TTL is applicable.
+	 * <strong>NOTE: </strong>Please follow the documentation for the individual commands to see if keeping the existing
+	 * TTL is applicable.
 	 *
 	 * @return never {@literal null}.
 	 * @since 2.4
@@ -186,8 +189,8 @@ public class Expiration {
 	/**
 	 * Converts {@link #getExpirationTime() expiration time} into the given, desired {@link TimeUnit}.
 	 *
-	 * @param targetTimeUnit {@link TimeUnit} used to convert the {@link #getExpirationTime()} expiration time};
-	 * must not be {@literal null}.
+	 * @param targetTimeUnit {@link TimeUnit} used to convert the {@link #getExpirationTime()} expiration time}; must not
+	 *          be {@literal null}.
 	 * @return the {@link #getExpirationTime() expiration time} converted into the given, desired {@link TimeUnit}.
 	 * @throws IllegalArgumentException if the given {@link TimeUnit} is {@literal null}.
 	 */

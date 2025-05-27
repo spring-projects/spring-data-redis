@@ -183,8 +183,8 @@ public interface ReactiveGeoCommands {
 	 */
 	class GeoDistCommand extends KeyCommand {
 
-		private final ByteBuffer from;
-		private final ByteBuffer to;
+		private final @Nullable ByteBuffer from;
+		private final @Nullable ByteBuffer to;
 		private final Metric metric;
 
 		private GeoDistCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer from, @Nullable ByteBuffer to,

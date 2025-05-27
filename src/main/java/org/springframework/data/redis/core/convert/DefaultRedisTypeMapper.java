@@ -144,6 +144,7 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 			return Alias.NONE;
 		}
 
+		@SuppressWarnings("NullAway")
 		public void writeTypeTo(BucketPropertyPath sink, Object alias) {
 
 			if (typeKey != null) {

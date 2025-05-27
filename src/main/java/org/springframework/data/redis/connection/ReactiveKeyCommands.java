@@ -710,11 +710,11 @@ public interface ReactiveKeyCommands {
 		private @Nullable Instant expireAt;
 		private final ExpirationOptions options;
 
-		private ExpireAtCommand(ByteBuffer key, Instant expireAt) {
+		private ExpireAtCommand(@Nullable ByteBuffer key, @Nullable Instant expireAt) {
 			this(key, expireAt, ExpirationOptions.none());
 		}
 
-		private ExpireAtCommand(@Nullable ByteBuffer key, Instant expireAt, ExpirationOptions options) {
+		private ExpireAtCommand(@Nullable ByteBuffer key, @Nullable Instant expireAt, ExpirationOptions options) {
 
 			super(key);
 

@@ -59,6 +59,8 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
@@ -75,6 +77,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceRe
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
 import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.RedisCommand;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -101,6 +104,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author John Blum
  */
+@NullUnmarked
 public class LettuceConnection extends AbstractRedisConnection {
 
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
@@ -119,7 +123,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 
 		@Override
-		public List<Object> convert(List<Object> execResults) {
+		public @Nullable List<@Nullable Object> convert(List<Object> execResults) {
 			// Lettuce Empty list means null (watched variable modified)
 			return execResults.isEmpty() ? null : super.convert(execResults);
 		}
@@ -170,7 +174,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when instantiating a native connection
 	 */
-	public LettuceConnection(long timeout, RedisClient client) {
+	public LettuceConnection(long timeout,  @NonNull RedisClient client) {
 		this(null, timeout, client);
 	}
 
@@ -183,7 +187,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param client The {@link RedisClient} to use when making pub/sub, blocking, and tx connections
 	 */
 	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-			RedisClient client) {
+		@NonNull RedisClient client) {
 		this(sharedConnection, timeout, client, 0);
 	}
 
@@ -197,8 +201,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 1.7
 	 */
-	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-			@Nullable AbstractRedisClient client, int defaultDbIndex) {
+	public LettuceConnection(@Nullable  StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
+			@NonNull  AbstractRedisClient client, int defaultDbIndex) {
 
 		this.connectionProvider = new StandaloneConnectionProvider((RedisClient) client, CODEC);
 		this.asyncSharedConnection = sharedConnection;
@@ -218,7 +222,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @since 2.0
 	 */
 	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection,
-			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
+		@NonNull LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
 		this((StatefulConnection<byte[], byte[]>) sharedConnection, connectionProvider, timeout, defaultDbIndex);
 	}
@@ -234,7 +238,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @since 2.1
 	 */
 	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
-			LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
+		@NonNull LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null");
 
@@ -543,6 +547,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return isAlive(subscription) ? subscription.getNativeConnection().async() : getAsyncConnection();
 	}
 
+	@Contract("null -> false")
 	private boolean isAlive(@Nullable LettuceSubscription subscription) {
 		return subscription != null && subscription.isAlive();
 	}
@@ -569,7 +574,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public List<Object> closePipeline() {
+	public List<@Nullable Object> closePipeline() {
 
 		if (!isPipelined) {
 			return Collections.emptyList();
@@ -652,12 +657,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public byte[] echo(byte[] message) {
+	public  byte@Nullable [] echo(byte[] message) {
 		return invoke().just(RedisClusterAsyncCommands::echo, message);
 	}
 
 	@Override
-	public String ping() {
+	public @Nullable String ping() {
 		return invoke().just(RedisClusterAsyncCommands::ping);
 	}
 
@@ -681,7 +686,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public List<Object> exec() {
+	public @Nullable List<@Nullable Object> exec() {
 
 		isMulti = false;
 
@@ -798,7 +803,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public Subscription getSubscription() {
+	public @Nullable Subscription getSubscription() {
 		return this.subscription;
 	}
 
@@ -843,7 +848,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> T failsafeReadScanValues(List<?> source, @SuppressWarnings("rawtypes") @Nullable Converter converter) {
+	<T> @Nullable T failsafeReadScanValues(List<?> source, @SuppressWarnings("rawtypes") @Nullable Converter converter) {
 
 		try {
 			return (T) (converter != null ? converter.convert(source) : source);

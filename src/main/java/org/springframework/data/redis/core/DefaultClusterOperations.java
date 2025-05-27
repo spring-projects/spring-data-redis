@@ -19,7 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  * @param <K>
  * @param <V>
  */
+@NullUnmarked
 class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements ClusterOperations<K, V> {
 
 	private final RedisTemplate<K, V> template;
@@ -46,14 +48,14 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	 *
 	 * @param template must not be {@literal null}.
 	 */
-	DefaultClusterOperations(RedisTemplate<K, V> template) {
+	DefaultClusterOperations(@NonNull RedisTemplate<K, V> template) {
 
 		super(template);
 		this.template = template;
 	}
 
 	@Override
-	public Set<K> keys(RedisClusterNode node, K pattern) {
+	public Set<K> keys(@NonNull RedisClusterNode node, @NonNull K pattern) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -61,7 +63,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public K randomKey(RedisClusterNode node) {
+	public K randomKey(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -69,7 +71,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public String ping(RedisClusterNode node) {
+	public String ping(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -77,7 +79,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void addSlots(RedisClusterNode node, int... slots) {
+	public void addSlots(@NonNull RedisClusterNode node, int... slots) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -88,7 +90,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void addSlots(RedisClusterNode node, SlotRange range) {
+	public void addSlots(@NonNull RedisClusterNode node, @NonNull SlotRange range) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -97,7 +99,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void bgReWriteAof(RedisClusterNode node) {
+	public void bgReWriteAof(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -108,7 +110,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void bgSave(RedisClusterNode node) {
+	public void bgSave(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -119,7 +121,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void meet(RedisClusterNode node) {
+	public void meet(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -130,7 +132,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void forget(RedisClusterNode node) {
+	public void forget(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -141,7 +143,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void flushDb(RedisClusterNode node) {
+	public void flushDb(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -152,7 +154,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void flushDb(RedisClusterNode node, FlushOption option) {
+	public void flushDb(@NonNull RedisClusterNode node, @NonNull FlushOption option) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -163,7 +165,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public Collection<RedisClusterNode> getReplicas(final RedisClusterNode node) {
+	public Collection<RedisClusterNode> getReplicas(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -171,7 +173,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void save(RedisClusterNode node) {
+	public void save(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -182,7 +184,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void shutdown(RedisClusterNode node) {
+	public void shutdown(@NonNull RedisClusterNode node) {
 
 		Assert.notNull(node, "ClusterNode must not be null");
 
@@ -193,7 +195,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	}
 
 	@Override
-	public void reshard(RedisClusterNode source, int slot, RedisClusterNode target) {
+	public void reshard(@NonNull RedisClusterNode source, int slot, @NonNull RedisClusterNode target) {
 
 		Assert.notNull(source, "Source node must not be null");
 		Assert.notNull(target, "Target node must not be null");
@@ -218,8 +220,7 @@ class DefaultClusterOperations<K, V> extends AbstractOperations<K, V> implements
 	 * @param callback must not be {@literal null}.
 	 * @return execution result. Can be {@literal null}.
 	 */
-	@Nullable
-	<T> T doInCluster(RedisClusterCallback<T> callback) {
+	<T> T doInCluster(@NonNull RedisClusterCallback<T> callback) {
 
 		Assert.notNull(callback, "ClusterCallback must not be null");
 

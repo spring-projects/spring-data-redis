@@ -117,7 +117,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Map.@Nullable Entry<HK, HV> randomEntry(@NonNull H key);
+	Map. Entry<@NonNull HK, HV> randomEntry(@NonNull H key);
 
 	/**
 	 * Return random hash keys from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -131,7 +131,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	List<HK> randomKeys(@NonNull H key, long count);
+	List<@NonNull HK> randomKeys(@NonNull H key, long count);
 
 	/**
 	 * Return a random entries from the hash stored at {@code key}.
@@ -142,7 +142,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Map<HK, HV> randomEntries(@NonNull H key, long count);
+	Map<@NonNull HK, HV> randomEntries(@NonNull H key, long count);
 
 	/**
 	 * Get key set (fields) of hash at {@code key}.
@@ -150,7 +150,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
-	Set<HK> keys(@NonNull H key);
+	Set<@NonNull HK> keys(@NonNull H key);
 
 	/**
 	 * Returns the length of the value associated with {@code hashKey}. If either the {@code key} or the {@code hashKey}
@@ -219,12 +219,12 @@ public interface HashOperations<H, HK, HV> {
 	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param options must not be {@literal null}.
+	 * @param options can be {@literal null}.
 	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
 	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
-	Cursor<Map.Entry<@NonNull HK, HV>> scan(@NonNull H key, @NonNull ScanOptions options);
+	Cursor<Map.Entry<@NonNull HK, HV>> scan(@NonNull H key, @Nullable ScanOptions options);
 
 	/**
 	 * Set time to live for given {@code hashKey} .

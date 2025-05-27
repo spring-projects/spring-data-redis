@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -94,6 +96,7 @@ import org.springframework.util.CollectionUtils;
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
  */
+@NullUnmarked
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V>, BeanClassLoaderAware {
 
 	private boolean enableTransactionSupport = false;
@@ -233,7 +236,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @since 1.8
 	 */
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
+	public void setBeanClassLoader(@Nullable ClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 
@@ -253,7 +256,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 *
 	 * @param serializer default serializer to use.
 	 */
-	public void setDefaultSerializer(RedisSerializer<?> serializer) {
+	public void setDefaultSerializer(@Nullable RedisSerializer<?> serializer) {
 		this.defaultSerializer = serializer;
 	}
 
@@ -361,7 +364,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <T> @Nullable T execute(RedisCallback<T> action) {
+	public <T> @Nullable T execute(@NonNull RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
 
@@ -373,7 +376,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
 	 * @return object returned by the action
 	 */
-	public <T> @Nullable T execute(RedisCallback<T> action, boolean exposeConnection) {
+	public <T> @Nullable T execute(@NonNull RedisCallback<T> action, boolean exposeConnection) {
 		return execute(action, exposeConnection, false);
 	}
 
@@ -387,7 +390,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param pipeline whether to pipeline or not the connection for the execution
 	 * @return object returned by the action
 	 */
-	public <T> @Nullable T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
+	public <T> @Nullable T execute(@NonNull RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
@@ -420,7 +423,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <T> T execute(SessionCallback<T> session) {
+	public <T> T execute(@NonNull SessionCallback<T> session) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(session, "Callback object must not be null");
@@ -436,12 +439,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public List<Object> executePipelined(SessionCallback<?> session) {
+	public List<Object> executePipelined(@NonNull SessionCallback<?> session) {
 		return executePipelined(session, valueSerializer);
 	}
 
 	@Override
-	public List<Object> executePipelined(SessionCallback<?> session, @Nullable RedisSerializer<?> resultSerializer) {
+	public List<Object> executePipelined(@NonNull SessionCallback<?> session,
+			@Nullable RedisSerializer<?> resultSerializer) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(session, "Callback object must not be null");
@@ -474,12 +478,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public List<Object> executePipelined(RedisCallback<?> action) {
+	public List<Object> executePipelined(@NonNull RedisCallback<?> action) {
 		return executePipelined(action, valueSerializer);
 	}
 
 	@Override
-	public List<Object> executePipelined(RedisCallback<?> action, @Nullable RedisSerializer<?> resultSerializer) {
+	public List<Object> executePipelined(@NonNull RedisCallback<?> action,
+			@Nullable RedisSerializer<?> resultSerializer) {
 
 		return execute((RedisCallback<List<Object>>) connection -> {
 			connection.openPipeline();
@@ -502,18 +507,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <T> T execute(RedisScript<T> script, List<K> keys, Object... args) {
+	public <T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
+			@NonNull Object @NonNull... args) {
 		return scriptExecutor.execute(script, keys, args);
 	}
 
 	@Override
-	public <T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
-			List<K> keys, Object... args) {
+	public <T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
 		return scriptExecutor.execute(script, argsSerializer, resultSerializer, keys, args);
 	}
 
 	@Override
-	public <T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback) {
+	public <T extends Closeable> T executeWithStickyConnection(@NonNull RedisCallback<T> callback) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(callback, "Callback object must not be null");
@@ -707,7 +713,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		});
 	}
-
 
 	@Override
 	public ExpireChanges.@Nullable ExpiryChangeState expire(K key, Expiration expiration, ExpirationOptions options) {

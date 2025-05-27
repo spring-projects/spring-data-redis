@@ -1035,6 +1035,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisConnection getConnection() {
 
 		assertStarted();
@@ -1052,6 +1053,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisClusterConnection getClusterConnection() {
 
 		assertStarted();
@@ -1071,6 +1073,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public RedisSentinelConnection getSentinelConnection() {
 
 		assertStarted();
@@ -1128,6 +1131,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public LettuceReactiveRedisConnection getReactiveConnection() {
 
 		assertStarted();
@@ -1142,6 +1146,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
 
 		assertStarted();
@@ -1200,6 +1205,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		getOrCreateSharedReactiveConnection().validateConnection();
 	}
 
+	@SuppressWarnings("NullAway")
 	private SharedConnection<byte[]> getOrCreateSharedConnection() {
 
 		return doInLock(() -> {
@@ -1212,6 +1218,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		});
 	}
 
+	@SuppressWarnings("NullAway")
 	private SharedConnection<ByteBuffer> getOrCreateSharedReactiveConnection() {
 
 		return doInLock(() -> {
@@ -1225,7 +1232,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 	}
 
 	@Override
-	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+	public @Nullable DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
@@ -1424,6 +1431,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		return redisClient;
 	}
 
+	@SuppressWarnings("NullAway")
 	private void assertStarted() {
 
 		State current = this.state.get();
@@ -1470,6 +1478,7 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 				.withTimeout(this.clientConfiguration.getCommandTimeout()).withDatabase(getDatabase()).build();
 	}
 
+	@SuppressWarnings("NullAway")
 	private RedisURI.Builder applyAuthentication(RedisURI.Builder builder) {
 
 		String username = getRedisUsername();

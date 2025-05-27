@@ -83,7 +83,7 @@ public class KeyspaceConfiguration {
 	 * @param type must not be {@literal null}
 	 * @return {@literal null} if no settings configured.
 	 */
-	public KeyspaceSettings getKeyspaceSettings(Class<?> type) {
+	public @Nullable KeyspaceSettings getKeyspaceSettings(Class<?> type) {
 
 		if (!hasSettingsFor(type)) {
 			return null;

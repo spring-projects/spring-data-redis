@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Contract;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
@@ -36,7 +38,11 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	private Jedis jedis;
 
 	public JedisSentinelConnection(RedisNode sentinel) {
-		this(sentinel.getHost(), sentinel.getPort());
+
+		Assert.notNull(sentinel.getHost(), "Sentinel.getHost() must not be null");
+		Assert.notNull(sentinel.getPort(), "Sentinel.getHost() must not be null");
+
+		this.jedis = new Jedis(sentinel.getHost(), sentinel.getPort());
 	}
 
 	public JedisSentinelConnection(String host, int port) {
@@ -94,7 +100,8 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 	 * @param masterName
 	 * @see RedisSentinelCommands#remove(NamedNode)
 	 */
-	public void remove(String masterName) {
+	@Contract("null -> fail")
+	public void remove(@Nullable String masterName) {
 
 		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when trying to remove");
 		jedis.sentinelRemove(masterName);

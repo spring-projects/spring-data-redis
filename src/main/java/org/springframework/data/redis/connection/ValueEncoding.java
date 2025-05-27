@@ -104,11 +104,10 @@ public interface ValueEncoding {
 		}
 
 		@Override
-		public String raw() {
+		public @Nullable String raw() {
 			return raw;
 		}
 
-		@Nullable
 		static Optional<ValueEncoding> lookup(@Nullable String encoding) {
 
 			for (ValueEncoding valueEncoding : values()) {

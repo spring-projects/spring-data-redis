@@ -60,6 +60,7 @@ import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -212,7 +213,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * @param connectionFactory The connectionFactory to set.
 	 */
-	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
+	@Contract("null -> fail")
+	public void setConnectionFactory(@Nullable RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 

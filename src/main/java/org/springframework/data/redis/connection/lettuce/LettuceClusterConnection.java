@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
@@ -285,7 +286,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	}
 
 	@Override
-	public String ping(RedisClusterNode node) {
+	public @Nullable String ping(RedisClusterNode node) {
 		return this.clusterCommandExecutor.executeCommandOnSingleNode(pingCommand(), node).getValue();
 	}
 
@@ -306,9 +307,9 @@ public class LettuceClusterConnection extends LettuceConnection
 		RedisClusterNode nodeToUse = this.topologyProvider.getTopology().lookup(master);
 
 		LettuceClusterCommandCallback<Set<RedisClusterNode>> command = client ->
-			LettuceConverters.toSetOfRedisClusterNodes(client.clusterSlaves(nodeToUse.getId()));
+			LettuceConverters.toSetOfRedisClusterNodes(client.clusterReplicas(nodeToUse.getId()));
 
-		return this.clusterCommandExecutor.executeCommandOnSingleNode(command, master).getValue();
+		return this.clusterCommandExecutor.executeCommandOnSingleNode(command, master).getRequiredValue();
 	}
 
 	@Override
@@ -317,7 +318,7 @@ public class LettuceClusterConnection extends LettuceConnection
 		Set<RedisClusterNode> activeMasterNodes = this.topologyProvider.getTopology().getActiveMasterNodes();
 
 		LettuceClusterCommandCallback<Collection<RedisClusterNode>> command = client ->
-			Converters.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId()));
+			Converters.toSetOfRedisClusterNodes(client.clusterReplicas(client.clusterMyId()));
 
 		List<NodeResult<Collection<RedisClusterNode>>> nodeResults =
 			this.clusterCommandExecutor.executeCommandAsyncOnNodes(command,activeMasterNodes).getResults();
@@ -336,9 +337,9 @@ public class LettuceClusterConnection extends LettuceConnection
 		return SlotHash.getSlot(key);
 	}
 
-	@Nullable
+
 	@Override
-	public RedisClusterNode clusterGetNodeForSlot(int slot) {
+	public @Nullable RedisClusterNode clusterGetNodeForSlot(int slot) {
 
 		Set<RedisClusterNode> nodes = topologyProvider.getTopology().getSlotServingNodes(slot);
 
@@ -346,12 +347,12 @@ public class LettuceClusterConnection extends LettuceConnection
 	}
 
 	@Override
-	public RedisClusterNode clusterGetNodeForKey(byte[] key) {
+	public @Nullable RedisClusterNode clusterGetNodeForKey(byte[] key) {
 		return clusterGetNodeForSlot(clusterGetSlotForKey(key));
 	}
 
 	@Override
-	public ClusterInfo clusterGetClusterInfo() {
+	public @Nullable ClusterInfo clusterGetClusterInfo() {
 
 		LettuceClusterCommandCallback<ClusterInfo> command = client ->
 				new ClusterInfo(LettuceConverters.toProperties(client.clusterInfo()));
@@ -467,7 +468,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	}
 
 	@Override
-	public Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
+	public @Nullable Set<byte[]> keys(RedisClusterNode node, byte[] pattern) {
 		return new LettuceClusterKeyCommands(this).keys(node, pattern);
 	}
 
@@ -476,7 +477,7 @@ public class LettuceClusterConnection extends LettuceConnection
 		return new LettuceClusterKeyCommands(this).scan(node, options);
 	}
 
-	public byte[] randomKey(RedisClusterNode node) {
+	public byte @Nullable [] randomKey(RedisClusterNode node) {
 		return new LettuceClusterKeyCommands(this).randomKey(node);
 	}
 

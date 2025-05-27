@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
@@ -46,7 +47,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 	}
 
 	@Override
-	public List<Object> convert(List<Object> execResults) {
+	public @Nullable List<@Nullable Object> convert(List<Object> execResults) {
 
 		if (execResults.size() != txResults.size()) {
 

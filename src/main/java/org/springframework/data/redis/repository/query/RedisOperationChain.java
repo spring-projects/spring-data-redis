@@ -154,7 +154,7 @@ public class RedisOperationChain {
 			super(path, Arrays.asList(point, distance));
 		}
 
-		public Point getPoint() {
+		public @Nullable Point getPoint() {
 			return (Point) getFirstValue();
 		}
 

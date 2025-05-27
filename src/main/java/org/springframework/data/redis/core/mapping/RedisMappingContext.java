@@ -122,7 +122,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		}
 
 		@Override
-		public String resolveKeySpace(Class<?> type) {
+		@SuppressWarnings("NullAway")
+		public @Nullable String resolveKeySpace(Class<?> type) {
 
 			Assert.notNull(type, "Type must not be null");
 			if (keyspaceConfig.hasSettingsFor(type)) {
@@ -188,8 +189,8 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 		}
 
 		@Override
-		@SuppressWarnings({ "rawtypes" })
-		public Long getTimeToLive(Object source) {
+		@SuppressWarnings({ "rawtypes", "NullAway" })
+		public @Nullable Long getTimeToLive(Object source) {
 
 			Assert.notNull(source, "Source must not be null");
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source
@@ -273,6 +274,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return resolveTimeMethod(type) != null;
 		}
 
+		@SuppressWarnings("NullAway")
 		private @Nullable Long resolveDefaultTimeOut(Class<?> type) {
 
 			if (this.defaultTimeouts.containsKey(type)) {
@@ -294,6 +296,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			return defaultTimeout;
 		}
 
+		@SuppressWarnings("NullAway")
 		private @Nullable PersistentProperty<?> resolveTtlProperty(Class<?> type) {
 
 			if (timeoutProperties.containsKey(type)) {

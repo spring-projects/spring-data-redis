@@ -306,7 +306,7 @@ class StreamConverters {
 
 		Range<String> range = (Range<String>) options.getRange();
 		XPendingParams xPendingParams = XPendingParams.xPendingParams(StreamConverters.getLowerValue(range),
-				StreamConverters.getUpperValue(range), options.getCount().intValue());
+				StreamConverters.getUpperValue(range), options.getCount() != null ? options.getCount().intValue() : 0);
 
 		if (options.hasConsumer()) {
 			xPendingParams.consumer(options.getConsumerName());

@@ -75,6 +75,7 @@ public class SpelIndexResolver implements IndexResolver {
 		this.parser = parser;
 	}
 
+	@SuppressWarnings("NullAway")
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
 
 		if (value == null) {

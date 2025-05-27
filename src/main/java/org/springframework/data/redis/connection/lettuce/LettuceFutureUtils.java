@@ -59,7 +59,7 @@ class LettuceFutureUtils {
 	 * @throws CompletionException thrown if the future is completed with a checked exception.
 	 * @return the future result if completed normally.
 	 */
-	@Nullable
+
 	static <T> T join(CompletionStage<T> future) throws RuntimeException, CompletionException {
 
 		Assert.notNull(future, "CompletableFuture must not be null");

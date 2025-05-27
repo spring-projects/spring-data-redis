@@ -141,12 +141,12 @@ public interface RedisKeyCommands {
 	/**
 	 * Use a {@link Cursor} to iterate over keys.
 	 *
-	 * @param options must not be {@literal null}.
+	 * @param options can be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
-	Cursor<byte @NonNull []> scan(@NonNull ScanOptions options);
+	Cursor<byte @NonNull []> scan(@Nullable ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.

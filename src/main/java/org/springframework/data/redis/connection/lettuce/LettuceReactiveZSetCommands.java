@@ -392,6 +392,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Flux<CommandResponse<BZPopCommand, Flux<Tuple>>> bZPop(Publisher<BZPopCommand> commands) {
 
 		return this.connection.execute(reactiveCommands -> Flux.from(commands).map(command -> {
