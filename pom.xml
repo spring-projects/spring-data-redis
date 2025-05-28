@@ -20,7 +20,7 @@
 	<properties>
 		<springdata.keyvalue>4.0.0-SNAPSHOT</springdata.keyvalue>
 		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
-		<beanutils>1.9.4</beanutils>
+		<beanutils>1.11.0</beanutils>
 		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
 		<lettuce>6.6.0.RELEASE</lettuce>
