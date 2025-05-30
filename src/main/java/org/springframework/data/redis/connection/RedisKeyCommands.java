@@ -122,7 +122,10 @@ public interface RedisKeyCommands {
 	Long touch(byte[]... keys);
 
 	/**
-	 * Find all keys matching the given {@code pattern}.
+	 * Retrieve all keys matching the given pattern.
+	 * <p>
+	 * <strong>IMPORTANT:</strong> The {@literal KEYS} command is non-interruptible and scans the entire keyspace which
+	 * may cause performance issues. Consider {@link #scan(ScanOptions)} for large datasets.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return empty {@link Set} if no match found. {@literal null} when used in pipeline / transaction.

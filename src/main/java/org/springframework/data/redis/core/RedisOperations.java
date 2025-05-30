@@ -262,10 +262,10 @@ public interface RedisOperations<K, V> {
 	DataType type(K key);
 
 	/**
-	 * Retrieve keys matching the given pattern via {@code KEYS} command.
+	 * Retrieve all keys matching the given pattern via {@code KEYS} command.
 	 * <p>
-	 * Note: This command scans the entire keyspace and may cause performance issues
-	 * in production environments. Prefer using {@link #scan(ScanOptions)} for large datasets.
+	 * <strong>IMPORTANT:</strong> This command is non-interruptible and scans the entire keyspace which may cause
+	 * performance issues. Consider {@link #scan(ScanOptions)} for large datasets.
 	 *
 	 * @param pattern key pattern
 	 * @return set of matching keys, or {@literal null} when used in pipeline / transaction

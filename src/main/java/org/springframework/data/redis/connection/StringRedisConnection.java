@@ -185,7 +185,10 @@ public interface StringRedisConnection extends RedisConnection {
 	Long touch(String... keys);
 
 	/**
-	 * Find all keys matching the given {@code pattern}.
+	 * Retrieve all keys matching the given pattern via {@code KEYS} command.
+	 * <p>
+	 * <strong>IMPORTANT:</strong> This command is non-interruptible and scans the entire keyspace which may cause
+	 * performance issues. Consider {@link #scan(ScanOptions)} for large datasets.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
