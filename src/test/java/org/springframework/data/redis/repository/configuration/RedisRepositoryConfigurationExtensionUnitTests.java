@@ -18,6 +18,7 @@ package org.springframework.data.redis.repository.configuration;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,7 @@ import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.DeletionStrategy;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
@@ -44,6 +46,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Kim Sumin
  */
 class RedisRepositoryConfigurationExtensionUnitTests {
 
@@ -118,6 +121,22 @@ class RedisRepositoryConfigurationExtensionUnitTests {
 		assertThat(getKeyspaceNotificationsConfigParameter(bdr)).isEqualTo("");
 	}
 
+	@Test // GH-2294
+	void picksUpDeletionStrategyDefaultCorrectly() {
+		metadata = new StandardAnnotationMetadata(ConfigWithDefaultDeletionStrategy.class, true);
+		BeanDefinitionRegistry beanDefinitionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getDeletionStrategy(beanDefinitionRegistry)).isEqualTo(DeletionStrategy.DEL);
+	}
+
+	@Test // GH-2294
+	void picksUpDeletionStrategyUnlinkCorrectly() {
+		metadata = new StandardAnnotationMetadata(ConfigWithUnlinkDeletionStrategy.class, true);
+		BeanDefinitionRegistry beanDefinitionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getDeletionStrategy(beanDefinitionRegistry)).isEqualTo(DeletionStrategy.UNLINK);
+	}
+
 	private static void assertDoesNotHaveRepo(Class<?> repositoryInterface,
 			Collection<RepositoryConfiguration<RepositoryConfigurationSource>> configs) {
 
@@ -167,6 +186,11 @@ class RedisRepositoryConfigurationExtensionUnitTests {
 				.getPropertyValue("keyspaceNotificationsConfigParameter").getValue();
 	}
 
+	private Object getDeletionStrategy(BeanDefinitionRegistry beanDefinitionRegistry) {
+		return Objects.requireNonNull(beanDefinitionRegistry.getBeanDefinition("redisKeyValueAdapter").getPropertyValues()
+				.getPropertyValue("deletionStrategy").getValue());
+	}
+
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP)
 	private static class Config {
 
@@ -188,6 +212,12 @@ class RedisRepositoryConfigurationExtensionUnitTests {
 	private static class ConfigWithEmptyConfigParameter {
 
 	}
+
+	@EnableRedisRepositories(considerNestedRepositories = true)
+	private static class ConfigWithDefaultDeletionStrategy {}
+
+	@EnableRedisRepositories(considerNestedRepositories = true, deletionStrategy = DeletionStrategy.UNLINK)
+	private static class ConfigWithUnlinkDeletionStrategy {}
 
 	@RedisHash
 	static class Sample {

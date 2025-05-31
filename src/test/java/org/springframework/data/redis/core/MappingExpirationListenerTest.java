@@ -40,6 +40,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 /**
  * @author Lucian Torje
  * @author Christoph Strobl
+ * @author Kim Sumin
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -58,7 +59,7 @@ class MappingExpirationListenerTest {
 		byte[] key = "testKey".getBytes();
 		when(message.getBody()).thenReturn(key);
 		listener = new RedisKeyValueAdapter.MappingExpirationListener(listenerContainer, redisOperations, redisConverter,
-				RedisKeyValueAdapter.ShadowCopy.ON);
+				RedisKeyValueAdapter.ShadowCopy.ON, RedisKeyValueAdapter.DeletionStrategy.DEL);
 
 		listener.onMessage(message, null);
 
@@ -74,7 +75,7 @@ class MappingExpirationListenerTest {
 		when(message.getBody()).thenReturn(key);
 
 		listener = new RedisKeyValueAdapter.MappingExpirationListener(listenerContainer, redisOperations, redisConverter,
-				RedisKeyValueAdapter.ShadowCopy.OFF);
+				RedisKeyValueAdapter.ShadowCopy.OFF, RedisKeyValueAdapter.DeletionStrategy.DEL);
 		listener.setApplicationEventPublisher(eventList::add);
 		listener.onMessage(message, null);
 
@@ -97,7 +98,7 @@ class MappingExpirationListenerTest {
 		when(conversionService.convert(any(), eq(byte[].class))).thenReturn("foo".getBytes());
 
 		listener = new RedisKeyValueAdapter.MappingExpirationListener(listenerContainer, redisOperations, redisConverter,
-				RedisKeyValueAdapter.ShadowCopy.ON);
+				RedisKeyValueAdapter.ShadowCopy.ON, RedisKeyValueAdapter.DeletionStrategy.DEL);
 		listener.setApplicationEventPublisher(eventList::add);
 		listener.onMessage(message, null);
 

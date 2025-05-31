@@ -28,6 +28,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.DeletionStrategy;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.ShadowCopy;
 import org.springframework.data.redis.core.RedisOperations;
@@ -47,6 +48,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Kim Sumin
  * @since 1.7
  */
 @Target(ElementType.TYPE)
@@ -129,7 +131,9 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Configure a specific {@link BeanNameGenerator} to be used when creating the repositoy beans.
-	 * @return the {@link BeanNameGenerator} to be used or the base {@link BeanNameGenerator} interface to indicate context default.
+	 * 
+	 * @return the {@link BeanNameGenerator} to be used or the base {@link BeanNameGenerator} interface to indicate
+	 *         context default.
 	 * @since 3.4
 	 */
 	Class<? extends BeanNameGenerator> nameGenerator() default BeanNameGenerator.class;
@@ -204,4 +208,20 @@ public @interface EnableRedisRepositories {
 	 */
 	String keyspaceNotificationsConfigParameter() default "Ex";
 
+	/**
+	 * Configure the deletion strategy for Redis keys during repository operations.
+	 * <p>
+	 * {@link DeletionStrategy#DEL DEL} uses synchronous deletion (blocking), while {@link DeletionStrategy#UNLINK UNLINK}
+	 * uses asynchronous deletion (non-blocking).
+	 * <p>
+	 * {@literal UNLINK} can provide better performance for applications with frequent updates on existing keys,
+	 * especially when dealing with large data structures under high load.
+	 * <p>
+	 * Requires Redis 4.0 or later when using {@link DeletionStrategy#UNLINK}.
+	 *
+	 * @return the deletion strategy to use
+	 * @since 3.6
+	 * @see DeletionStrategy
+	 */
+	DeletionStrategy deletionStrategy() default DeletionStrategy.DEL;
 }
