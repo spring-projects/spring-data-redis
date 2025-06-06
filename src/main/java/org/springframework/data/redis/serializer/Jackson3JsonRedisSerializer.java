@@ -15,17 +15,16 @@
  */
 package org.springframework.data.redis.serializer;
 
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ser.SerializerFactory;
+import tools.jackson.databind.type.TypeFactory;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.jspecify.annotations.Nullable;
-
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.SerializerFactory;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
  * {@link RedisSerializer} that can read and write JSON using
@@ -41,10 +40,8 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @since 1.2
- * @deprecated since 4.0 in favor of {@link Jackson3JsonRedisSerializer}.
  */
-@Deprecated(since = "4.0", forRemoval = true)
-public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
+public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	/**
 	 * @deprecated since 3.0 for removal.
@@ -56,59 +53,59 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	private ObjectMapper mapper;
 
-	private final JacksonObjectReader reader;
+	private final Jackson3ObjectReader reader;
 
-	private final JacksonObjectWriter writer;
+	private final Jackson3ObjectWriter writer;
 
 	/**
-	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
+	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link Class}.
 	 *
 	 * @param type must not be {@literal null}.
 	 */
-	public Jackson2JsonRedisSerializer(Class<T> type) {
+	public Jackson3JsonRedisSerializer(Class<T> type) {
 		this(new ObjectMapper(), type);
 	}
 
 	/**
-	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link JavaType}.
 	 *
 	 * @param javaType must not be {@literal null}.
 	 */
-	public Jackson2JsonRedisSerializer(JavaType javaType) {
+	public Jackson3JsonRedisSerializer(JavaType javaType) {
 		this(new ObjectMapper(), javaType);
 	}
 
 	/**
-	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
+	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link Class}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param type must not be {@literal null}.
 	 * @since 3.0
 	 */
-	public Jackson2JsonRedisSerializer(ObjectMapper mapper, Class<T> type) {
+	public Jackson3JsonRedisSerializer(ObjectMapper mapper, Class<T> type) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null");
 		Assert.notNull(type, "Java type must not be null");
 
 		this.javaType = getJavaType(type);
 		this.mapper = mapper;
-		this.reader = JacksonObjectReader.create();
-		this.writer = JacksonObjectWriter.create();
+		this.reader = Jackson3ObjectReader.create();
+		this.writer = Jackson3ObjectWriter.create();
 	}
 
 	/**
-	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link JavaType}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param javaType must not be {@literal null}.
 	 * @since 3.0
 	 */
-	public Jackson2JsonRedisSerializer(ObjectMapper mapper, JavaType javaType) {
-		this(mapper, javaType, JacksonObjectReader.create(), JacksonObjectWriter.create());
+	public Jackson3JsonRedisSerializer(ObjectMapper mapper, JavaType javaType) {
+		this(mapper, javaType, Jackson3ObjectReader.create(), Jackson3ObjectWriter.create());
 	}
 
 	/**
-	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link JavaType}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param javaType must not be {@literal null}.
@@ -116,8 +113,8 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
 	 * @since 3.0
 	 */
-	public Jackson2JsonRedisSerializer(ObjectMapper mapper, JavaType javaType, JacksonObjectReader reader,
-			JacksonObjectWriter writer) {
+	public Jackson3JsonRedisSerializer(ObjectMapper mapper, JavaType javaType, Jackson3ObjectReader reader,
+			Jackson3ObjectWriter writer) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null!");
 		Assert.notNull(reader, "Reader must not be null!");
@@ -138,7 +135,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * specific types. The other option for refining the serialization process is to use Jackson's provided annotations on
 	 * the types to be serialized, in which case a custom-configured ObjectMapper is unnecessary.
 	 *
-	 * @deprecated since 3.0, use {@link #Jackson2JsonRedisSerializer(ObjectMapper, Class) constructor creation} to
+	 * @deprecated since 3.0, use {@link #Jackson3JsonRedisSerializer(ObjectMapper, Class) constructor creation} to
 	 *             configure the object mapper.
 	 */
 	@Deprecated(since = "3.0", forRemoval = true)
@@ -164,7 +161,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public T deserialize(byte @Nullable[] bytes) throws SerializationException {
+	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
@@ -196,7 +193,6 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @return the java type
 	 */
 	protected JavaType getJavaType(Class<?> clazz) {
-		return TypeFactory.defaultInstance().constructType(clazz);
+		return TypeFactory.unsafeSimpleType(clazz);
 	}
-
 }

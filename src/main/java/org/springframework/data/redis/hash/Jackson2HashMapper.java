@@ -143,7 +143,9 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * @author Mark Paluch
  * @author John Blum
  * @since 1.8
+ * @deprecated since 4.0
  */
+@Deprecated(since = "4.0", forRemoval = true)
 public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 	private static final boolean SOURCE_VERSION_PRESENT =

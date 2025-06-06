@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
@@ -48,6 +49,7 @@ public abstract class CollectionTestParams {
 
 		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
+		Jackson3JsonRedisSerializer<Person> jackson3JsonSerializer = new Jackson3JsonRedisSerializer<>(Person.class);
 		StringRedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
 
 		// create Jedis Factory
@@ -86,6 +88,12 @@ public abstract class CollectionTestParams {
 		rawTemplate.setKeySerializer(stringSerializer);
 		rawTemplate.afterPropertiesSet();
 
+		// jackson3
+		RedisTemplate<String, Person> jackson3JsonPersonTemplate = new RedisTemplate<>();
+		jackson3JsonPersonTemplate.setConnectionFactory(jedisConnFactory);
+		jackson3JsonPersonTemplate.setValueSerializer(jackson3JsonSerializer);
+		jackson3JsonPersonTemplate.afterPropertiesSet();
+
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
 				.getConnectionFactory(RedisStandalone.class);
@@ -110,6 +118,11 @@ public abstract class CollectionTestParams {
 		jackson2JsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		jackson2JsonPersonTemplateLtc.afterPropertiesSet();
 
+		RedisTemplate<String, Person> jackson3JsonPersonTemplateLtc = new RedisTemplate<>();
+		jackson3JsonPersonTemplateLtc.setValueSerializer(jackson3JsonSerializer);
+		jackson3JsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		jackson3JsonPersonTemplateLtc.afterPropertiesSet();
+
 		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<>();
 		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		rawTemplateLtc.setEnableDefaultSerializer(false);
@@ -122,6 +135,7 @@ public abstract class CollectionTestParams {
 				{ stringFactory, xstreamStringTemplate }, //
 				{ personFactory, xstreamPersonTemplate }, //
 				{ personFactory, jackson2JsonPersonTemplate }, //
+				{ personFactory, jackson3JsonPersonTemplate }, //
 				{ rawFactory, rawTemplate },
 
 				// lettuce
@@ -132,6 +146,7 @@ public abstract class CollectionTestParams {
 				{ stringFactory, xstreamStringTemplateLtc }, //
 				{ personFactory, xstreamPersonTemplateLtc }, //
 				{ personFactory, jackson2JsonPersonTemplateLtc }, //
+				{ personFactory, jackson3JsonPersonTemplateLtc }, //
 				{ rawFactory, rawTemplateLtc } });
 	}
 }
