@@ -42,6 +42,7 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.extension.RedisStandalone;
@@ -195,6 +196,9 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(
 				String.class);
+		Jackson3JsonRedisSerializer<Person> jackson3JsonSerializer = new Jackson3JsonRedisSerializer<>(Person.class);
+		Jackson3JsonRedisSerializer<String> jackson3JsonStringSerializer = new Jackson3JsonRedisSerializer<>(
+			String.class);
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -217,6 +221,13 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		jackson2JsonPersonTemplate.setHashKeySerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplate.setHashValueSerializer(jackson2JsonStringSerializer);
 		jackson2JsonPersonTemplate.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jackson3JsonPersonTemplate = new RedisTemplate<>();
+		jackson3JsonPersonTemplate.setConnectionFactory(jedisConnFactory);
+		jackson3JsonPersonTemplate.setDefaultSerializer(jackson3JsonSerializer);
+		jackson3JsonPersonTemplate.setHashKeySerializer(jackson3JsonSerializer);
+		jackson3JsonPersonTemplate.setHashValueSerializer(jackson3JsonStringSerializer);
+		jackson3JsonPersonTemplate.afterPropertiesSet();
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension

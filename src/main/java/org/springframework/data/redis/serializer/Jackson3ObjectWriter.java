@@ -17,7 +17,7 @@ package org.springframework.data.redis.serializer;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Defines the contract for Object Mapping writers. Implementations of this interface can serialize a given Object to a
@@ -28,11 +28,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Mark Paluch
  * @since 3.0
- * @deprecated since 4.0 in favor of {@link Jackson3ObjectWriter}.
  */
 @FunctionalInterface
-@Deprecated(since = "4.0", forRemoval = true)
-public interface JacksonObjectWriter {
+public interface Jackson3ObjectWriter {
 
 	/**
 	 * Write the object graph with the given root {@code source} as byte array.
@@ -45,11 +43,11 @@ public interface JacksonObjectWriter {
 	byte[] write(ObjectMapper mapper, Object source) throws IOException;
 
 	/**
-	 * Create a default {@link JacksonObjectWriter} delegating to {@link ObjectMapper#writeValueAsBytes(Object)}.
+	 * Create a default {@link Jackson3ObjectWriter} delegating to {@link ObjectMapper#writeValueAsBytes(Object)}.
 	 *
-	 * @return the default {@link JacksonObjectWriter}.
+	 * @return the default {@link Jackson3ObjectWriter}.
 	 */
-	static JacksonObjectWriter create() {
+	static Jackson3ObjectWriter create() {
 		return ObjectMapper::writeValueAsBytes;
 	}
 

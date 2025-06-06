@@ -72,7 +72,9 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @see org.springframework.data.redis.serializer.JacksonObjectWriter
  * @see com.fasterxml.jackson.databind.ObjectMapper
  * @since 1.6
+ * @deprecated since 4.0 in favor of {@link GenericJackson3JsonRedisSerializer}
  */
+@Deprecated(since = "4.0", forRemoval = true)
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 
 	private final JacksonObjectReader reader;
