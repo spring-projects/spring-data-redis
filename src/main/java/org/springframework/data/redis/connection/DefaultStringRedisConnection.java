@@ -87,7 +87,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
 
-	private final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
+	private static final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
 	private final RedisConnection delegate;
 	private final RedisSerializer<String> serializer;
 	private Converter<byte[], String> bytesToString = new DeserializingConverter();
