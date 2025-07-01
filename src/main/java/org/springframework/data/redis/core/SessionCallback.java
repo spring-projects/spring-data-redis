@@ -24,7 +24,7 @@ import org.springframework.dao.DataAccessException;
  *
  * @author Costin Leau
  */
-public interface SessionCallback<T> {
+public interface SessionCallback<T extends @Nullable Object> {
 
 	/**
 	 * Executes all the given operations inside the same session.
@@ -32,6 +32,5 @@ public interface SessionCallback<T> {
 	 * @param operations Redis operations
 	 * @return return value
 	 */
-	@Nullable
 	<K, V> T execute(RedisOperations<K, V> operations) throws DataAccessException;
 }

@@ -1389,7 +1389,8 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		ClusterConfiguration clusterConfiguration = (ClusterConfiguration) this.configuration;
 
 		clusterConfiguration.getClusterNodes().stream()
-				.map(node -> createRedisURIAndApplySettings(node.getHost(), node.getPort())).forEach(initialUris::add);
+				.map(node -> createRedisURIAndApplySettings(node.getRequiredHost(), node.getRequiredPort()))
+				.forEach(initialUris::add);
 
 		RedisClusterClient clusterClient = this.clientConfiguration.getClientResources()
 				.map(clientResources -> RedisClusterClient.create(clientResources, initialUris))

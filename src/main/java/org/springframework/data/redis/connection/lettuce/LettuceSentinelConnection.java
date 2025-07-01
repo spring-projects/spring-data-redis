@@ -61,7 +61,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.notNull(sentinel.getHost(), "Sentinel.getHost() must not be null");
 		Assert.notNull(sentinel.getPort(), "Sentinel.getPort() must not be null");
 
-		this.provider = new DedicatedClientConnectionProvider(sentinel.getHost(), sentinel.getPort());
+		this.provider = new DedicatedClientConnectionProvider(sentinel.getRequiredHost(), sentinel.getPort());
 		this.init();
 	}
 
@@ -217,7 +217,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor.");
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor.");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor.");
-		getSentinelCommands().monitor(server.getName(), server.getHost(), server.getPort().intValue(),
+		getSentinelCommands().monitor(server.getName(), server.getRequiredHost(), server.getRequiredPort(),
 				server.getQuorum().intValue());
 	}
 

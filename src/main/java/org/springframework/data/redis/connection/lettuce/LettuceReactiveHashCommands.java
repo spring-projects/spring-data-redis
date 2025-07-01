@@ -105,7 +105,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 				result = cmd.hget(command.getKey(), key.duplicate()).map(value -> KeyValue.fromNullable(key, value))
 						.defaultIfEmpty(KeyValue.empty(key)).map(Collections::singletonList);
 			} else {
-				result = cmd.hmget(command.getKey(), command.getFields().stream().toArray(ByteBuffer[]::new)).collectList();
+				result = cmd.hmget(command.getKey(), command.getFields().toArray(ByteBuffer[]::new)).collectList();
 			}
 
 			return result.map(value -> new MultiValueResponse<>(command,
@@ -133,7 +133,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getFields(), "Fields must not be null");
 
-			return cmd.hdel(command.getKey(), command.getFields().stream().toArray(ByteBuffer[]::new))
+			return cmd.hdel(command.getKey(), command.getFields().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}

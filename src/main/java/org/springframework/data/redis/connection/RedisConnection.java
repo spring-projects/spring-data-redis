@@ -32,6 +32,12 @@ import org.springframework.dao.DataAccessException;
  * <p>
  * {@link RedisConnection Redis connections}, unlike perhaps their underlying native connection are not Thread-safe and
  * should not be shared across multiple threads, concurrently or simultaneously.
+ * <p>
+ * Redis command methods are exempted from the default {@literal non-nullable} return value assumption as nullness
+ * depends not only on the command but also on the connection state. Methods invoked during a transaction or while
+ * pipelining are required to return {@literal null} at the time invoking a command as the response is not available
+ * until the transaction is executed or the pipeline is closed. To avoid excessive null checks in calling code and to
+ * not express a faulty assumption of non-nullness, all command interfaces are annotated with {@code @NullUnmarked}.
  *
  * @author Costin Leau
  * @author Christoph Strobl

@@ -75,7 +75,7 @@ class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHyperLogL
 			Assert.notEmpty(command.getKeys(), "Keys must be null or empty for PFCOUNT");
 
 			if (ClusterSlotHashUtil
-					.isSameSlotForAllKeys(command.getKeys().toArray(new ByteBuffer[command.getKeys().size()]))) {
+					.isSameSlotForAllKeys(command.getKeys())) {
 				return super.pfCount(Mono.just(command));
 			}
 

@@ -47,8 +47,7 @@ import org.springframework.util.Assert;
  */
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
 
-	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final @Serial long serialVersionUID = 1L;
 
 	private volatile String key;
 

@@ -17,8 +17,6 @@ package org.springframework.data.redis.stream;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -31,15 +29,15 @@ import org.springframework.data.redis.connection.stream.ReadOffset;
  */
 class ReadOffsetStrategyUnitTests {
 
-	private static Optional<Consumer> consumer = Optional.of(Consumer.from("foo", "bar"));
+	private static Consumer consumer = Consumer.from("foo", "bar");
 
 	@Test // DATAREDIS-864
 	void nextMessageStandaloneShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.from("foo");
 
-		assertThat(ReadOffsetStrategy.NextMessage.getFirst(offset, Optional.empty())).isEqualTo(offset);
-		assertThat(ReadOffsetStrategy.NextMessage.getNext(offset, Optional.empty(), "42")).isEqualTo(ReadOffset.from("42"));
+		assertThat(ReadOffsetStrategy.NextMessage.getFirst(offset, null)).isEqualTo(offset);
+		assertThat(ReadOffsetStrategy.NextMessage.getNext(offset, null, "42")).isEqualTo(ReadOffset.from("42"));
 	}
 
 	@Test // DATAREDIS-864
@@ -47,8 +45,8 @@ class ReadOffsetStrategyUnitTests {
 
 		ReadOffset offset = ReadOffset.lastConsumed();
 
-		assertThat(ReadOffsetStrategy.LastConsumed.getFirst(offset, Optional.empty())).isEqualTo(ReadOffset.latest());
-		assertThat(ReadOffsetStrategy.LastConsumed.getNext(offset, Optional.empty(), "42"))
+		assertThat(ReadOffsetStrategy.LastConsumed.getFirst(offset, null)).isEqualTo(ReadOffset.latest());
+		assertThat(ReadOffsetStrategy.LastConsumed.getNext(offset, null, "42"))
 				.isEqualTo(ReadOffset.from("42"));
 	}
 
@@ -57,8 +55,8 @@ class ReadOffsetStrategyUnitTests {
 
 		ReadOffset offset = ReadOffset.latest();
 
-		assertThat(ReadOffsetStrategy.Latest.getFirst(offset, Optional.empty())).isEqualTo(ReadOffset.latest());
-		assertThat(ReadOffsetStrategy.Latest.getNext(offset, Optional.empty(), "42")).isEqualTo(ReadOffset.latest());
+		assertThat(ReadOffsetStrategy.Latest.getFirst(offset, null)).isEqualTo(ReadOffset.latest());
+		assertThat(ReadOffsetStrategy.Latest.getNext(offset, null, "42")).isEqualTo(ReadOffset.latest());
 	}
 
 	@Test // DATAREDIS-864

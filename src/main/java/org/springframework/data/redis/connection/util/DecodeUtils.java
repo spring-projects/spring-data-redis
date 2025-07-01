@@ -32,7 +32,9 @@ import org.jspecify.annotations.Nullable;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @deprecated since 4.0 for removal. Use {@link Base64} encoding and decoding methods directly.
  */
+@Deprecated(since = "4.0", forRemoval = true)
 public abstract class DecodeUtils {
 
 	public static String decode(byte[] bytes) {

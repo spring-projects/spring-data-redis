@@ -17,9 +17,9 @@ package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisCredentialsProvider;
+import reactor.core.publisher.Mono;
 
 import org.jspecify.annotations.Nullable;
-import reactor.core.publisher.Mono;
 
 import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
@@ -47,12 +47,10 @@ public interface RedisCredentialsProviderFactory {
 	 */
 	default @Nullable RedisCredentialsProvider createCredentialsProvider(RedisConfiguration redisConfiguration) {
 
-		if (redisConfiguration instanceof RedisConfiguration.WithAuthentication
-				&& ((RedisConfiguration.WithAuthentication) redisConfiguration).getPassword().isPresent()) {
+		if (redisConfiguration instanceof RedisConfiguration.WithAuthentication withAuthentication
+				&& withAuthentication.getPassword().isPresent()) {
 
 			return RedisCredentialsProvider.from(() -> {
-
-				RedisConfiguration.WithAuthentication withAuthentication = (RedisConfiguration.WithAuthentication) redisConfiguration;
 
 				return RedisCredentials.just(withAuthentication.getUsername(), withAuthentication.getPassword().get());
 			});

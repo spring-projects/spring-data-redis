@@ -178,6 +178,6 @@ class LettuceReactiveServerCommands implements ReactiveServerCommands {
 	public Flux<RedisClientInfo> getClientList() {
 
 		return connection.execute(RedisServerReactiveCommands::clientList)
-				.concatMapIterable(s -> LettuceConverters.stringToRedisClientListConverter().convert(s));
+				.concatMapIterable(LettuceConverters::toListOfRedisClientInformation);
 	}
 }

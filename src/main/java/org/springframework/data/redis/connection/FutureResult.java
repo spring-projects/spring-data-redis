@@ -31,7 +31,7 @@ import org.springframework.core.convert.converter.Converter;
  */
 public abstract class FutureResult<T> {
 
-	private T resultHolder;
+	private final @Nullable T resultHolder;
 	private final Supplier<?> defaultConversionResult;
 
 	private boolean status = false;

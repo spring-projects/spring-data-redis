@@ -71,7 +71,6 @@ public class DefaultSortParameters implements SortParameters {
 		setGetPattern(getPattern);
 	}
 
-
 	public byte @Nullable[] getByPattern() {
 		return byPattern;
 	}

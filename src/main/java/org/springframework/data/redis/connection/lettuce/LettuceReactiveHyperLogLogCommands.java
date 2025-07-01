@@ -66,7 +66,7 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 
 			Assert.notEmpty(command.getKeys(), "Keys must not be empty for PFCOUNT.");
 
-			return cmd.pfcount(command.getKeys().stream().toArray(ByteBuffer[]::new))
+			return cmd.pfcount(command.getKeys().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -79,7 +79,7 @@ class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCommands 
 			Assert.notNull(command.getKey(), "Destination key must not be null for PFMERGE.");
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null for PFMERGE.");
 
-			return cmd.pfmerge(command.getKey(), command.getSourceKeys().stream().toArray(ByteBuffer[]::new))
+			return cmd.pfmerge(command.getKey(), command.getSourceKeys().toArray(ByteBuffer[]::new))
 					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}

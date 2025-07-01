@@ -32,6 +32,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisServerCommands {

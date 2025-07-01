@@ -19,6 +19,8 @@ import java.util.List;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -50,14 +52,15 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
+	public <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
 			@NonNull Object @NonNull... args) {
 		// use the Template's value serializer for args and result
 		return execute(script, template.getValueSerializer(), (RedisSerializer<T>) template.getValueSerializer(), keys,
 				args);
 	}
 
-	public <T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+	public <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script,
+			@NonNull RedisSerializer<?> argsSerializer,
 			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
 		return template.execute((RedisCallback<T>) connection -> {
 			final ReturnType returnType = ReturnType.fromJavaType(script.getResultType());

@@ -22,6 +22,7 @@ import redis.clients.jedis.params.SetParams;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
@@ -316,9 +317,10 @@ class JedisStringCommands implements RedisStringCommands {
 
 		if (range.getLowerBound().isBounded()) {
 
-			BitPosParams params = range.getUpperBound().isBounded()
-					? new BitPosParams(range.getLowerBound().getValue().get(), range.getUpperBound().getValue().get())
-					: new BitPosParams(range.getLowerBound().getValue().get());
+			Optional<Long> lower = range.getLowerBound().getValue();
+			Range.Bound<Long> upper = range.getUpperBound();
+			BitPosParams params = upper.isBounded() ? new BitPosParams(lower.get(), upper.getValue().get())
+					: new BitPosParams(lower.get());
 
 			return connection.invoke().just(Jedis::bitpos, PipelineBinaryCommands::bitpos, key, bit, params);
 		}

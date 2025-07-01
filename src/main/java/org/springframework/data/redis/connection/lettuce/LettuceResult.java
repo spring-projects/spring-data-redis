@@ -47,17 +47,17 @@ class LettuceResult<T, R> extends FutureResult<CompletableFuture<T>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	LettuceResult(Future<T> resultHolder, Supplier<R> defaultReturnValue, boolean convertPipelineAndTxResults,
+	LettuceResult(Future<T> resultHolder, Supplier<@Nullable R> defaultReturnValue, boolean convertPipelineAndTxResults,
 			@Nullable Converter<T, R> converter) {
 
 		super((CompletableFuture<T>) resultHolder, converter, defaultReturnValue);
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
-	@Nullable
+
 	@Override
 	@SuppressWarnings("unchecked")
-	public T get() {
+	public @Nullable T get() {
 		return (T) getResultHolder().join();
 	}
 
@@ -90,7 +90,7 @@ class LettuceResult<T, R> extends FutureResult<CompletableFuture<T>> {
 		private final Future<T> response;
 		private Converter<T, R> converter;
 		private boolean convertPipelineAndTxResults = false;
-		private Supplier<R> nullValueDefault = () -> null;
+		private Supplier<@Nullable R> nullValueDefault = () -> null;
 
 		@SuppressWarnings("unchecked")
 		LettuceResultBuilder(Future<T> response) {

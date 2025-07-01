@@ -304,9 +304,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean add(E e) {
-		Boolean result = add(e, getDefaultScore());
-		checkResult(result);
-		return result;
+		return add(e, getDefaultScore());
 	}
 
 	@Override

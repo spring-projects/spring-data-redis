@@ -94,7 +94,7 @@ public interface ReactiveServerCommands {
 	Mono<String> flushDb(FlushOption option);
 
 	/**
-	 * Delete all <b>all keys</b> from <b>all databases</b>.
+	 * Delete <b>all keys</b> from <b>all databases</b>.
 	 *
 	 * @return {@link Mono} indicating command completion.
 	 * @see <a href="https://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
@@ -102,7 +102,7 @@ public interface ReactiveServerCommands {
 	Mono<String> flushAll();
 
 	/**
-	 * Delete all <b>all keys</b> from <b>all databases</b> using the specified {@link FlushOption}.
+	 * Delete <b>all keys</b> from <b>all databases</b> using the specified {@link FlushOption}.
 	 *
 	 * @param option
 	 * @return {@link Mono} indicating command completion.

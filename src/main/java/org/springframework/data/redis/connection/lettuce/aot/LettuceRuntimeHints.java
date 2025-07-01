@@ -37,7 +37,7 @@ class LettuceRuntimeHints implements RuntimeHintsRegistrar {
 					it -> it
 							.onReachableType(
 									TypeReference.of("org.springframework.data.redis.connection.lettuce.StandaloneConnectionProvider"))
-							.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.DECLARED_FIELDS));
+							.withMembers(MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.ACCESS_DECLARED_FIELDS));
 		}
 	}
 }

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +27,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -44,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.8
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisGeoCommands {
@@ -466,9 +468,9 @@ public interface RedisGeoCommands {
 
 		private final Set<GeoCommandFlag> flags = new LinkedHashSet<>(2, 1);
 
-		@Nullable private Long limit;
+		private @Nullable Long limit;
 
-		@Nullable private Direction sortDirection;
+		private @Nullable Direction sortDirection;
 
 		private GeoSearchStoreCommandArgs() {}
 
@@ -728,7 +730,7 @@ public interface RedisGeoCommands {
 		/**
 		 * Creates a new {@link DistanceUnit} using the given muliplier.
 		 *
-		 * @param multiplier the earth radius at equator.
+		 * @param multiplier the earth radius at the equator.
 		 */
 		private DistanceUnit(double multiplier, String abbreviation) {
 

@@ -66,12 +66,12 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 * Creates a new {@link JdkSerializationRedisSerializer} using {@link Converter converters} to serialize and
 	 * deserialize {@link Object objects}.
 	 *
-	 * @param serializer {@link Converter} used to serialize an {@link Object} to a byte array;
-	 * must not be {@literal null}.
-	 * @param deserializer {@link Converter} used to deserialize and convert a byte arra into an {@link Object};
-	 * must not be {@literal null}
-	 * @throws IllegalArgumentException if either the given {@code serializer} or {@code deserializer}
-	 * are {@literal null}.
+	 * @param serializer {@link Converter} used to serialize an {@link Object} to a byte array; must not be
+	 *          {@literal null}.
+	 * @param deserializer {@link Converter} used to deserialize and convert a byte array into an {@link Object}; must not
+	 *          be {@literal null}
+	 * @throws IllegalArgumentException if either the given {@code serializer} or {@code deserializer} are
+	 *           {@literal null}.
 	 * @since 1.7
 	 */
 	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer,
@@ -86,14 +86,15 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 
 	@Override
-	public byte @Nullable[] serialize(@Nullable Object value) {
+	public byte[] serialize(@Nullable Object value) {
 
 		if (value == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}
 
 		try {
-			return serializer.convert(value);
+			byte[] result = serializer.convert(value);
+			return result == null ? SerializationUtils.EMPTY_ARRAY : result;
 		} catch (Exception ex) {
 			throw new SerializationException("Cannot serialize", ex);
 		}

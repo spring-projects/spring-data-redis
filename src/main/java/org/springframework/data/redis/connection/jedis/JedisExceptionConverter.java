@@ -27,7 +27,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.redis.ClusterRedirectException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 
@@ -40,9 +42,20 @@ import org.springframework.data.redis.TooManyClusterRedirectionsException;
  * @author Guy Korland
  * @author Mark Paluch
  */
-public class JedisExceptionConverter implements Converter<Exception, DataAccessException> {
+public class JedisExceptionConverter
+		implements PersistenceExceptionTranslator, ExceptionTranslationStrategy, Converter<Exception, DataAccessException> {
 
 	static final JedisExceptionConverter INSTANCE = new JedisExceptionConverter();
+
+	@Override
+	public @Nullable DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+		return convert(ex);
+	}
+
+	@Override
+	public @Nullable DataAccessException translate(Exception e) {
+		return convert(e);
+	}
 
 	public @Nullable DataAccessException convert(Exception ex) {
 
@@ -78,4 +91,5 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 
 		return null;
 	}
+
 }

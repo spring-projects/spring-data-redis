@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.stream;
 
-import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -33,12 +33,12 @@ enum ReadOffsetStrategy {
 	 */
 	NextMessage {
 		@Override
-		public ReadOffset getFirst(ReadOffset readOffset, Optional<Consumer> consumer) {
+		public ReadOffset getFirst(ReadOffset readOffset, @Nullable Consumer consumer) {
 			return readOffset;
 		}
 
 		@Override
-		public ReadOffset getNext(ReadOffset readOffset, Optional<Consumer> consumer, String lastConsumedMessageId) {
+		public ReadOffset getNext(ReadOffset readOffset, @Nullable Consumer consumer, String lastConsumedMessageId) {
 			return ReadOffset.from(lastConsumedMessageId);
 		}
 	},
@@ -48,13 +48,13 @@ enum ReadOffsetStrategy {
 	 */
 	LastConsumed {
 		@Override
-		public ReadOffset getFirst(ReadOffset readOffset, Optional<Consumer> consumer) {
-			return consumer.map(it -> ReadOffset.lastConsumed()).orElseGet(ReadOffset::latest);
+		public ReadOffset getFirst(ReadOffset readOffset, @Nullable Consumer consumer) {
+			return consumer != null ? ReadOffset.lastConsumed() : ReadOffset.latest();
 		}
 
 		@Override
-		public ReadOffset getNext(ReadOffset readOffset, Optional<Consumer> consumer, String lastConsumedMessageId) {
-			return consumer.map(it -> ReadOffset.lastConsumed()).orElseGet(() -> ReadOffset.from(lastConsumedMessageId));
+		public ReadOffset getNext(ReadOffset readOffset, @Nullable Consumer consumer, String lastConsumedMessageId) {
+			return consumer != null ? ReadOffset.lastConsumed() : ReadOffset.from(lastConsumedMessageId);
 		}
 	},
 
@@ -63,12 +63,12 @@ enum ReadOffsetStrategy {
 	 */
 	Latest {
 		@Override
-		public ReadOffset getFirst(ReadOffset readOffset, Optional<Consumer> consumer) {
+		public ReadOffset getFirst(ReadOffset readOffset, @Nullable Consumer consumer) {
 			return ReadOffset.latest();
 		}
 
 		@Override
-		public ReadOffset getNext(ReadOffset readOffset, Optional<Consumer> consumer, String lastConsumedMessageId) {
+		public ReadOffset getNext(ReadOffset readOffset, @Nullable Consumer consumer, String lastConsumedMessageId) {
 			return ReadOffset.latest();
 		}
 	};
@@ -99,7 +99,7 @@ enum ReadOffsetStrategy {
 	 * @param consumer
 	 * @return
 	 */
-	public abstract ReadOffset getFirst(ReadOffset readOffset, Optional<Consumer> consumer);
+	public abstract ReadOffset getFirst(ReadOffset readOffset, @Nullable Consumer consumer);
 
 	/**
 	 * Determine the next {@link ReadOffset} given {@code lastConsumedMessageId}.
@@ -109,5 +109,5 @@ enum ReadOffsetStrategy {
 	 * @param lastConsumedMessageId
 	 * @return
 	 */
-	public abstract ReadOffset getNext(ReadOffset readOffset, Optional<Consumer> consumer, String lastConsumedMessageId);
+	public abstract ReadOffset getNext(ReadOffset readOffset, @Nullable Consumer consumer, String lastConsumedMessageId);
 }

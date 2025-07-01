@@ -15,52 +15,20 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoCommandArgs;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
-import static org.springframework.data.redis.domain.geo.GeoReference.GeoCoordinateReference;
-import static org.springframework.data.redis.domain.geo.GeoReference.GeoMemberReference;
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
+import static org.springframework.data.redis.domain.geo.GeoReference.*;
 
-import io.lettuce.core.BitFieldArgs;
-import io.lettuce.core.FlushMode;
-import io.lettuce.core.GeoArgs;
-import io.lettuce.core.GeoCoordinates;
-import io.lettuce.core.GeoSearch;
-import io.lettuce.core.GeoWithin;
-import io.lettuce.core.GetExArgs;
-import io.lettuce.core.KeyScanArgs;
-import io.lettuce.core.KeyValue;
-import io.lettuce.core.LMoveArgs;
-import io.lettuce.core.Range;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScanArgs;
-import io.lettuce.core.ScoredValue;
-import io.lettuce.core.ScriptOutputType;
-import io.lettuce.core.SetArgs;
-import io.lettuce.core.SortArgs;
-import io.lettuce.core.TransactionResult;
+import io.lettuce.core.*;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -68,30 +36,19 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.BitFieldSubCommands;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldGet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.RedisConfiguration;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisPassword;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisServer;
-import org.springframework.data.redis.connection.RedisServerCommands;
-import org.springframework.data.redis.connection.RedisSocketConfiguration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
@@ -400,7 +357,7 @@ public abstract class LettuceConverters extends Converters {
 
 		for (RedisNode sentinel : sentinels) {
 
-			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getHost(), sentinel.getPort());
+			RedisURI.Builder sentinelBuilder = RedisURI.Builder.redis(sentinel.getRequiredHost(), sentinel.getRequiredPort());
 
 			String sentinelUsername = sentinelConfiguration.getSentinelUsername();
 			if (StringUtils.hasText(sentinelUsername) && sentinelPassword.isPresent()) {

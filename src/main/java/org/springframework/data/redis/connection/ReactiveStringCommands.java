@@ -60,9 +60,9 @@ public interface ReactiveStringCommands {
 	 */
 	class SetCommand extends KeyCommand {
 
-		private @Nullable ByteBuffer value;
-		private @Nullable Expiration expiration;
-		private @Nullable SetOption option;
+		private final @Nullable ByteBuffer value;
+		private final @Nullable Expiration expiration;
+		private final @Nullable SetOption option;
 
 		private SetCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value, @Nullable Expiration expiration,
 				@Nullable SetOption option) {
@@ -496,7 +496,7 @@ public interface ReactiveStringCommands {
 	 */
 	class MSetCommand implements Command {
 
-		private Map<ByteBuffer, ByteBuffer> keyValuePairs;
+		private final Map<ByteBuffer, ByteBuffer> keyValuePairs;
 
 		private MSetCommand(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
 			this.keyValuePairs = keyValuePairs;
@@ -584,7 +584,7 @@ public interface ReactiveStringCommands {
 	 */
 	class AppendCommand extends KeyCommand {
 
-		private @Nullable ByteBuffer value;
+		private final @Nullable ByteBuffer value;
 
 		private AppendCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value) {
 
@@ -687,8 +687,8 @@ public interface ReactiveStringCommands {
 	 */
 	class SetRangeCommand extends KeyCommand {
 
-		private @Nullable ByteBuffer value;
-		private @Nullable Long offset;
+		private final @Nullable ByteBuffer value;
+		private final @Nullable Long offset;
 
 		private SetRangeCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer value, @Nullable Long offset) {
 
@@ -784,7 +784,7 @@ public interface ReactiveStringCommands {
 	 */
 	class GetBitCommand extends KeyCommand {
 
-		private @Nullable Long offset;
+		private final @Nullable Long offset;
 
 		private GetBitCommand(@Nullable ByteBuffer key, @Nullable Long offset) {
 
@@ -856,8 +856,8 @@ public interface ReactiveStringCommands {
 	 */
 	class SetBitCommand extends KeyCommand {
 
-		private @Nullable Long offset;
-		private boolean value;
+		private final @Nullable Long offset;
+		private final boolean value;
 
 		private SetBitCommand(@Nullable ByteBuffer key, @Nullable Long offset, boolean value) {
 
@@ -947,7 +947,7 @@ public interface ReactiveStringCommands {
 	 */
 	class BitCountCommand extends KeyCommand {
 
-		private Range<Long> range;
+		private final Range<Long> range;
 
 		private BitCountCommand(@Nullable ByteBuffer key, Range<Long> range) {
 
@@ -1042,7 +1042,7 @@ public interface ReactiveStringCommands {
 	 */
 	class BitFieldCommand extends KeyCommand {
 
-		private @Nullable BitFieldSubCommands subcommands;
+		private final @Nullable BitFieldSubCommands subcommands;
 
 		private BitFieldCommand(@Nullable ByteBuffer key, @Nullable BitFieldSubCommands subcommands) {
 
@@ -1121,9 +1121,9 @@ public interface ReactiveStringCommands {
 	 */
 	class BitOpCommand {
 
-		private List<ByteBuffer> keys;
-		private BitOperation bitOp;
-		private @Nullable ByteBuffer destinationKey;
+		private final List<ByteBuffer> keys;
+		private final BitOperation bitOp;
+		private final @Nullable ByteBuffer destinationKey;
 
 		private BitOpCommand(List<ByteBuffer> keys, BitOperation bitOp, @Nullable ByteBuffer destinationKey) {
 
@@ -1230,8 +1230,8 @@ public interface ReactiveStringCommands {
 	 */
 	class BitPosCommand extends KeyCommand {
 
-		private boolean bit;
-		private Range<Long> range;
+		private final boolean bit;
+		private final Range<Long> range;
 
 		private BitPosCommand(@Nullable ByteBuffer key, boolean bit, Range<Long> range) {
 			super(key);

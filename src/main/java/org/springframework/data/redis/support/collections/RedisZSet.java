@@ -601,7 +601,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	}
 
 	/**
-	 * Adds an element to the set with the given score if the element does not already exists.
+	 * Adds an element to the set with the given score if the element does not already exist.
 	 *
 	 * @param e element to add
 	 * @param score element score

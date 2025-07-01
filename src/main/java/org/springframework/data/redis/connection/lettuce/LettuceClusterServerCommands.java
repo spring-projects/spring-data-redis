@@ -148,9 +148,9 @@ class LettuceClusterServerCommands extends LettuceServerCommands implements Redi
 	@Override
 	public void shutdown(@NonNull RedisClusterNode node) {
 
-		executeCommandOnSingleNode((LettuceClusterCommandCallback<Void>) client -> {
+		executeCommandOnSingleNode(client -> {
 			client.shutdown(true);
-			return null;
+			return Void.class;
 		}, node);
 	}
 

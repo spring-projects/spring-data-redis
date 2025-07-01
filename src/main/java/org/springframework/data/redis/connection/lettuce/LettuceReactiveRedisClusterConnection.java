@@ -267,7 +267,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 		Assert.isTrue(node.getPort() != null && node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
 		return clusterGetNodes()
-				.flatMap(actualNode -> execute(node, cmd -> cmd.clusterMeet(node.getHost(), node.getPort()))).then();
+				.flatMap(actualNode -> execute(node, cmd -> cmd.clusterMeet(node.getRequiredHost(), node.getPort()))).then();
 	}
 
 	@Override
@@ -357,7 +357,8 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 			});
 		}
 
-		return getConnection().flatMap(it -> Mono.fromCompletionStage(it.getConnectionAsync(node.getHost(), node.getPort()))
+		return getConnection()
+				.flatMap(it -> Mono.fromCompletionStage(it.getConnectionAsync(node.getRequiredHost(), node.getRequiredPort()))
 				.map(StatefulRedisConnection::reactive));
 	}
 

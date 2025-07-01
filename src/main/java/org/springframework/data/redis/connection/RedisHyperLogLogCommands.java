@@ -24,6 +24,7 @@ import org.jspecify.annotations.NullUnmarked;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.5
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisHyperLogLogCommands {

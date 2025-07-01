@@ -16,6 +16,8 @@
 package org.springframework.data.redis.connection.jedis;
 
 import redis.clients.jedis.GeoCoordinate;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.args.BitOP;
 import redis.clients.jedis.args.FlushMode;
 import redis.clients.jedis.args.GeoUnit;
@@ -42,6 +44,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
@@ -54,13 +57,13 @@ import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSet;
 import org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldSubCommand;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -72,7 +75,6 @@ import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
-import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -150,10 +152,6 @@ abstract class JedisConverters extends Converters {
 		return tuplesToTuples().convert(source);
 	}
 
-	static Set<Tuple> toTupleSet(Set<redis.clients.jedis.resps.Tuple> source) {
-		return new SetConverter<>(JedisConverters::toTuple).convert(source);
-	}
-
 	/**
 	 * Map a {@link Set} of {@link Tuple} by {@code value} to its {@code score}.
 	 *
@@ -207,23 +205,6 @@ abstract class JedisConverters extends Converters {
 	 */
 	public static ValueEncoding toEncoding(byte @Nullable [] source) {
 		return ValueEncoding.of(toString(source));
-	}
-
-	/**
-	 * @since 1.7
-	 */
-	@SuppressWarnings("unchecked")
-	public static RedisClusterNode toNode(Object source) {
-
-		List<Object> values = (List<Object>) source;
-
-		RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
-				((Number) values.get(1)).intValue());
-
-		List<Object> nodeInfo = (List<Object>) values.get(2);
-
-		return new RedisClusterNode(toString((byte[]) nodeInfo.get(0)), ((Number) nodeInfo.get(1)).intValue(), range);
-
 	}
 
 	/**
@@ -790,6 +771,10 @@ abstract class JedisConverters extends Converters {
 		}
 
 		throw new IllegalArgumentException("Cannot extract Geo Reference from %s".formatted(reference));
+	}
+
+	public static HostAndPort toHostAndPort(RedisNode node) {
+		return new HostAndPort(node.getRequiredHost(), node.getPortOr(Protocol.DEFAULT_PORT));
 	}
 
 	/**

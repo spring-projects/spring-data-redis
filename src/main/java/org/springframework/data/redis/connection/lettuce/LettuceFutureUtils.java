@@ -92,7 +92,7 @@ class LettuceFutureUtils {
 	 *
 	 * @return
 	 */
-	static <T> Function<Throwable, T> ignoreErrors() {
+	static <T> Function<Throwable, @Nullable T> ignoreErrors() {
 		return ignored -> null;
 	}
 }

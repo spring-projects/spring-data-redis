@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterKeyCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
 
 /**
@@ -87,7 +88,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 					.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 							new RedisException("ERR no such key."))))
 					.flatMap(value -> cmd.restore(command.getNewKey(), 0, value).flatMap(res -> cmd.del(command.getKey())))
-					.map(LettuceConverters.longToBooleanConverter()::convert);
+					.map(Converters::toBoolean);
 
 			return result.map(val -> new BooleanResponse<>(command, val));
 		}));
@@ -115,7 +116,7 @@ class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands imple
 						.switchIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 								new RedisException("ERR no such key."))))
 						.flatMap(value -> cmd.restore(command.getNewKey(), 0, value).flatMap(res -> cmd.del(command.getKey())))
-						.map(LettuceConverters::toBoolean);
+						.map(Converters::toBoolean);
 			});
 
 			return result.map(val -> new BooleanResponse<>(command, val));
