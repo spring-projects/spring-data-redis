@@ -28,6 +28,7 @@
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.121.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
+		<junit5>5.12.2</junit5>
 	</properties>
 
 	<scm>
