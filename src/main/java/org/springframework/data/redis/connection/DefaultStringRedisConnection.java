@@ -99,7 +99,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private ListConverter<Tuple, StringTuple> tupleListToStringTuple = new ListConverter<>(new TupleConverter());
 	private ListConverter<byte[], String> byteListToStringList = new ListConverter<>(bytesToString);
 	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<>(bytesToString);
-	private MapConverter<String, byte[]> stringMapToByteMap = new MapConverter<>(stringToBytes);
 	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<>(bytesToString);
 	private Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<String>>> byteGeoResultsToStringGeoResults;
 	private Converter<ByteRecord, StringRecord> byteMapRecordToStringMapRecordConverter = new Converter<ByteRecord, StringRecord>() {
@@ -3089,7 +3088,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		this.deserializePipelineAndTxResults = deserializePipelineAndTxResults;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T> @Nullable T convertAndReturn(@Nullable Object value, Converter converter) {
 
 		if (isFutureConversion()) {

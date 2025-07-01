@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -97,64 +98,6 @@ import org.springframework.util.StringUtils;
  */
 @NullUnmarked
 public class MessageListenerAdapter implements InitializingBean, MessageListener {
-
-	// TODO move this down.
-	private class MethodInvoker {
-
-		private final Object delegate;
-		private String methodName;
-		private Set<Method> methods;
-		private boolean lenient;
-
-		MethodInvoker(Object delegate, String methodName) {
-
-			this.delegate = delegate;
-			this.methodName = methodName;
-			this.lenient = delegate instanceof MessageListener;
-			this.methods = new HashSet<>();
-
-			Class<?> c = delegate.getClass();
-
-			ReflectionUtils.doWithMethods(c, method -> {
-				ReflectionUtils.makeAccessible(method);
-				methods.add(method);
-			}, new MostSpecificMethodFilter(methodName, c));
-
-			Assert.isTrue(lenient || !methods.isEmpty(), "Cannot find a suitable method named [" + c.getName() + "#"
-					+ methodName + "] - is the method public and has the proper arguments");
-		}
-
-		void invoke(Object[] arguments) throws InvocationTargetException, IllegalAccessException {
-
-			Object[] message = new Object[] { arguments[0] };
-
-			for (Method m : methods) {
-
-				Class<?>[] types = m.getParameterTypes();
-				Object[] args = //
-						types.length == 2 //
-								&& types[0].isInstance(arguments[0]) //
-								&& types[1].isInstance(arguments[1]) ? arguments : message;
-
-				if (!types[0].isInstance(args[0])) {
-					continue;
-				}
-
-				m.invoke(delegate, args);
-
-				return;
-			}
-		}
-
-		/**
-		 * Returns the current methodName.
-		 *
-		 * @return the methodName
-		 */
-		public String getMethodName() {
-			return methodName;
-		}
-	}
 
 	/**
 	 * Out-of-the-box value for the default listener method: "handleMessage".
@@ -385,19 +328,68 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		}
 	}
 
+	private static class MethodInvoker {
+
+		private final Object delegate;
+		private final String methodName;
+		private final Set<Method> methods;
+		private final boolean lenient;
+
+		MethodInvoker(Object delegate, String methodName) {
+
+			this.delegate = delegate;
+			this.methodName = methodName;
+			this.lenient = delegate instanceof MessageListener;
+			this.methods = new HashSet<>();
+
+			Class<?> c = delegate.getClass();
+
+			ReflectionUtils.doWithMethods(c, method -> {
+				ReflectionUtils.makeAccessible(method);
+				methods.add(method);
+			}, new MostSpecificMethodFilter(methodName, c));
+
+			Assert.isTrue(lenient || !methods.isEmpty(), "Cannot find a suitable method named [" + c.getName() + "#"
+					+ methodName + "] - is the method public and has the proper arguments");
+		}
+
+		void invoke(Object[] arguments) throws InvocationTargetException, IllegalAccessException {
+
+			Object[] message = new Object[] { arguments[0] };
+
+			for (Method m : methods) {
+
+				Class<?>[] types = m.getParameterTypes();
+				Object[] args = //
+						types.length == 2 //
+								&& types[0].isInstance(arguments[0]) //
+								&& types[1].isInstance(arguments[1]) ? arguments : message;
+
+				if (!types[0].isInstance(args[0])) {
+					continue;
+				}
+
+				m.invoke(delegate, args);
+
+				return;
+			}
+		}
+
+		/**
+		 * Returns the current methodName.
+		 *
+		 * @return the methodName
+		 */
+		public String getMethodName() {
+			return methodName;
+		}
+
+	}
+
 	/**
 	 * @since 1.4
 	 */
-	static final class MostSpecificMethodFilter implements MethodFilter {
-
-		private final String methodName;
-		private final Class<?> c;
-
-		MostSpecificMethodFilter(String methodName, Class<?> c) {
-
-			this.methodName = methodName;
-			this.c = c;
-		}
+	record MostSpecificMethodFilter(String methodName, Class<?> c) implements MethodFilter {
 
 		public boolean matches(Method method) {
 
@@ -408,10 +400,12 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 				// check out the argument numbers
 				Class<?>[] parameterTypes = method.getParameterTypes();
 
-				return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
+					return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
+				}
+
+				return false;
 			}
 
-			return false;
-		}
 	}
+
 }

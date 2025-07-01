@@ -37,7 +37,7 @@ public interface Task extends SchedulingAwareRunnable, Cancelable {
 	/**
 	 * Get the current lifecycle phase.
 	 *
-	 * @return never {@literal null}.
+	 * @return the current {@link State} of the task.
 	 */
 	State getState();
 
@@ -60,4 +60,5 @@ public interface Task extends SchedulingAwareRunnable, Cancelable {
 	enum State {
 		CREATED, STARTING, RUNNING, CANCELLED;
 	}
+
 }

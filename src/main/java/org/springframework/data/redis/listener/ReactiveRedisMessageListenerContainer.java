@@ -190,7 +190,6 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
 	 * @see #receive(Iterable, SerializationPair, SerializationPair)
 	 */
-	@SuppressWarnings("unchecked")
 	public Flux<PatternMessage<String, String, String>> receive(PatternTopic... patternTopics) {
 
 		Assert.notNull(patternTopics, "PatternTopic must not be null");
@@ -214,7 +213,6 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 	 * @throws InvalidDataAccessApiUsageException if {@code patternTopics} is empty.
 	 * @since 2.6
 	 */
-	@SuppressWarnings("unchecked")
 	public Mono<Flux<PatternMessage<String, String, String>>> receiveLater(PatternTopic... patternTopics) {
 
 		Assert.notNull(patternTopics, "PatternTopic must not be null");
@@ -445,15 +443,15 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 			PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer> patternMessage = (PatternMessage<ByteBuffer, ByteBuffer, ByteBuffer>) message;
 
-			String pattern = read(stringSerializationPair.getReader(), patternMessage.getPattern());
-			C channel = read(channelSerializer, patternMessage.getChannel());
-			B body = read(messageSerializer, patternMessage.getMessage());
+			String pattern = readNonNull(stringSerializationPair.getReader(), patternMessage.getPattern());
+			C channel = readNonNull(channelSerializer, patternMessage.getChannel());
+			B body = readNonNull(messageSerializer, patternMessage.getMessage());
 
 			return new PatternMessage<>(pattern, channel, body);
 		}
 
-		C channel = read(channelSerializer, message.getChannel());
-		B body = read(messageSerializer, message.getMessage());
+		C channel = readNonNull(channelSerializer, message.getChannel());
+		B body = readNonNull(messageSerializer, message.getMessage());
 
 		return new ChannelMessage<>(channel, body);
 	}
@@ -477,6 +475,17 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		} finally {
 			buffer.reset();
 		}
+	}
+
+	private static <C> C readNonNull(RedisElementReader<C> reader, ByteBuffer buffer) {
+
+		C result = read(reader, buffer);
+
+		if (result == null) {
+			throw new IllegalStateException("Deserialized value must not be null");
+		}
+
+		return result;
 	}
 
 	/**
@@ -525,6 +534,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 
 			return false;
 		}
+
 	}
 
 	static class SubscriptionReadyListener extends AtomicBoolean implements SubscriptionListener {
@@ -575,5 +585,7 @@ public class ReactiveRedisMessageListenerContainer implements DisposableBean {
 		public Mono<Void> getTrigger() {
 			return sink.asMono();
 		}
+
 	}
+
 }

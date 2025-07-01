@@ -61,4 +61,5 @@ public class RedisCustomConversions extends org.springframework.data.convert.Cus
 	public RedisCustomConversions(List<?> converters) {
 		super(STORE_CONVERSIONS, converters);
 	}
+
 }

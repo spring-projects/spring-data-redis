@@ -94,4 +94,5 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	public RedisElementWriter<T> getWriter() {
 		return pair.getWriter();
 	}
+
 }

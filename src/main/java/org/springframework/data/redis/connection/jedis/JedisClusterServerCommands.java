@@ -411,9 +411,11 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		Assert.notNull(target, "Target node must not be null");
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
-		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getHost(), target.getPort());
+		RedisClusterNode node = connection.getTopologyProvider().getTopology().lookup(target.getRequiredHost(),
+				target.getRequiredPort());
 
-		executeCommandOnSingleNode(client -> client.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse),
+		executeCommandOnSingleNode(
+				client -> client.migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse),
 				node);
 	}
 

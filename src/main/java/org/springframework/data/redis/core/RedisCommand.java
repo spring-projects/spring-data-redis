@@ -402,4 +402,5 @@ public enum RedisCommand {
 	private String arguments(int count) {
 		return count == 1 ? "argument" : "arguments";
 	}
+
 }

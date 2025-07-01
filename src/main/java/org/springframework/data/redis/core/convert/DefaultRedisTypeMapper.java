@@ -156,5 +156,7 @@ public class DefaultRedisTypeMapper extends DefaultTypeMapper<BucketPropertyPath
 				}
 			}
 		}
+
 	}
+
 }

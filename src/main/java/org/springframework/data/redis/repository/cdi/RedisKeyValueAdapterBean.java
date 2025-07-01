@@ -25,7 +25,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Set;
 
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.util.Assert;
@@ -83,12 +82,10 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 	@Override
 	public void destroy(RedisKeyValueAdapter instance, CreationalContext<RedisKeyValueAdapter> creationalContext) {
 
-		if (instance instanceof DisposableBean) {
-			try {
-				instance.destroy();
-			} catch (Exception ex) {
-				throw new IllegalStateException(ex);
-			}
+		try {
+			instance.destroy();
+		} catch (Exception ex) {
+			throw new IllegalStateException(ex);
 		}
 
 		super.destroy(instance, creationalContext);

@@ -318,6 +318,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		public int hashCode() {
 			return ObjectUtils.nullSafeHashCode(task);
 		}
+
 	}
 
 	/**
@@ -342,5 +343,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 				this.logger.error("Unexpected error occurred in scheduled task", t);
 			}
 		}
+
 	}
+
 }

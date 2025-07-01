@@ -69,4 +69,5 @@ public class GeoLocation<T> {
 	public String toString() {
 		return "GeoLocation(name=" + this.getName() + ", point=" + this.getPoint() + ")";
 	}
+
 }

@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection.convert;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.Converter;
 
 /**
@@ -31,7 +33,7 @@ import org.springframework.core.convert.converter.Converter;
  */
 public class ListConverter<S, T> implements Converter<List<S>, List<T>> {
 
-	private Converter<S, T> itemConverter;
+	private final Converter<S, T> itemConverter;
 
 	/**
 	 * @param itemConverter The {@link Converter} to use for converting individual List items
@@ -41,9 +43,9 @@ public class ListConverter<S, T> implements Converter<List<S>, List<T>> {
 	}
 
 	@Override
-	public List<T> convert(List<S> source) {
+	public List<@Nullable T> convert(List<S> source) {
 
-		List<T> results = new ArrayList<>(source.size());
+		List<@Nullable T> results = new ArrayList<>(source.size());
 
 		for (S result : source) {
 			results.add(itemConverter.convert(result));

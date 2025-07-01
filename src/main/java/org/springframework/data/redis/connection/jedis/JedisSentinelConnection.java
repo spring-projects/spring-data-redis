@@ -15,18 +15,19 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.jspecify.annotations.Nullable;
-import org.springframework.lang.Contract;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.util.List;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.redis.connection.NamedNode;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisSentinelCommands;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
 /**
@@ -35,14 +36,14 @@ import org.springframework.util.Assert;
  */
 public class JedisSentinelConnection implements RedisSentinelConnection {
 
-	private Jedis jedis;
+	private final Jedis jedis;
 
 	public JedisSentinelConnection(RedisNode sentinel) {
 
 		Assert.notNull(sentinel.getHost(), "Sentinel.getHost() must not be null");
 		Assert.notNull(sentinel.getPort(), "Sentinel.getHost() must not be null");
 
-		this.jedis = new Jedis(sentinel.getHost(), sentinel.getPort());
+		this.jedis = new Jedis(sentinel.getRequiredHost(), sentinel.getPort());
 	}
 
 	public JedisSentinelConnection(String host, int port) {
@@ -115,7 +116,8 @@ public class JedisSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor");
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor");
-		jedis.sentinelMonitor(server.getName(), server.getHost(), server.getPort().intValue(),
+
+		jedis.sentinelMonitor(server.getName(), server.getRequiredHost(), server.getRequiredPort(),
 				server.getQuorum().intValue());
 	}
 

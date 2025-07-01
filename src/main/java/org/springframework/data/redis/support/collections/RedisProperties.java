@@ -148,13 +148,13 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public synchronized Enumeration<Object> elements() {
 		return Collections.enumeration((Collection) delegate.values());
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<Entry<Object, Object>> entrySet() {
 		return (Set) delegate.entrySet();
 	}
@@ -190,7 +190,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<Object> keySet() {
 		return (Set) delegate.keySet();
 	}
@@ -206,7 +206,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Collection<Object> values() {
 		return (Collection) delegate.values();
 	}
@@ -227,6 +227,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Entry<Object, Object> randomEntry() {
 		return (Entry) delegate.randomEntry();
 	}
@@ -302,16 +303,19 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterator<java.util.Map.Entry<Object, Object>> scan() {
 		return (Iterator) delegate.scan();
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public BoundHashFieldExpirationOperations<Object> hashFieldExpiration() {
 		return (BoundHashFieldExpirationOperations) delegate.hashFieldExpiration();
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public BoundHashFieldExpirationOperations<Object> hashFieldExpiration(Collection<Object> hashFields) {
 		return (BoundHashFieldExpirationOperations) delegate.hashFieldExpiration((Collection) hashFields);
 	}

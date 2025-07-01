@@ -486,4 +486,5 @@ public interface RedisSerializationContext<K, V> {
 		RedisSerializationContext<K, V> build();
 
 	}
+
 }

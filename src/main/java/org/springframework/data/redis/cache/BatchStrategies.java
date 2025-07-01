@@ -23,6 +23,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
@@ -79,11 +80,13 @@ public abstract class BatchStrategies {
 		@Override
 		public long cleanCache(RedisConnection connection, String name, byte[] pattern) {
 
-			byte[][] keys = Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())
+			RedisKeyCommands commands = connection.keyCommands();
+
+			byte[][] keys = Optional.ofNullable(commands.keys(pattern)).orElse(Collections.emptySet())
 					.toArray(new byte[0][]);
 
 			if (keys.length > 0) {
-				connection.del(keys);
+				commands.del(keys);
 			}
 
 			return keys.length;
@@ -104,7 +107,9 @@ public abstract class BatchStrategies {
 		@Override
 		public long cleanCache(RedisConnection connection, String name, byte[] pattern) {
 
-			Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions().count(batchSize).match(pattern).build());
+			RedisKeyCommands commands = connection.keyCommands();
+
+			Cursor<byte[]> cursor = commands.scan(ScanOptions.scanOptions().count(batchSize).match(pattern).build());
 
 			long count = 0;
 
@@ -116,8 +121,8 @@ public abstract class BatchStrategies {
 
 				count += keys.size();
 
-				if (keys.size() > 0) {
-					connection.del(keys.toArray(new byte[0][]));
+				if (!keys.isEmpty()) {
+					commands.del(keys.toArray(new byte[0][]));
 				}
 			}
 

@@ -93,7 +93,7 @@ public interface ValueEncoding {
 		 */
 		SKIPLIST("skiplist"), //
 		/**
-		 * No encoding present due to non existing key.
+		 * No encoding present due to non-existing key.
 		 */
 		VACANT(null);
 

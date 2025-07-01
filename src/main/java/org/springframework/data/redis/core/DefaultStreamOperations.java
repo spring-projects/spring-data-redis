@@ -369,4 +369,5 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 		abstract List<ByteRecord> inRedis(RedisConnection connection);
 	}
+
 }

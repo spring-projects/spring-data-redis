@@ -212,7 +212,8 @@ class JedisServerCommands implements RedisServerCommands {
 
 		int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
 
-		connection.invokeStatus().just(j -> j.migrate(target.getHost(), target.getPort(), key, dbIndex, timeoutToUse));
+		connection.invokeStatus()
+				.just(j -> j.migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse));
 	}
 
 }

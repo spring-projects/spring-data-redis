@@ -104,4 +104,5 @@ public interface ReactiveScriptExecutor<K> {
 	 */
 	<T> Flux<T> execute(RedisScript<T> script, List<K> keys, List<?> args, RedisElementWriter<?> argsWriter,
 			RedisElementReader<T> resultReader);
+
 }

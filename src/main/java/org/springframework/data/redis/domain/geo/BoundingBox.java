@@ -32,8 +32,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class BoundingBox implements Shape {
 
-	@Serial
-	private static final long serialVersionUID = 5215611530535947924L;
+	private static final @Serial long serialVersionUID = 5215611530535947924L;
 
 	private final Distance width;
 	private final Distance height;
@@ -93,6 +92,7 @@ public class BoundingBox implements Shape {
 
 	@Override
 	public boolean equals(@Nullable Object o) {
+
 		if (this == o) {
 			return true;
 		}
@@ -109,4 +109,5 @@ public class BoundingBox implements Shape {
 	public String toString() {
 		return "Bounding box: [width=%s, height=%s]".formatted(width, height);
 	}
+
 }

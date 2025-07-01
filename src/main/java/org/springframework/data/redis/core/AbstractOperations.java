@@ -113,7 +113,7 @@ abstract class AbstractOperations<K, V> {
 		return template.getStringSerializer();
 	}
 
-	<T> T execute(@NonNull RedisCallback<T> callback) {
+	<T extends @Nullable Object> T execute(@NonNull RedisCallback<T> callback) {
 		return template.execute(callback, true);
 	}
 
@@ -417,4 +417,5 @@ abstract class AbstractOperations<K, V> {
 
 		return Converters.deserializingGeoResultsConverter((RedisSerializer<V>) valueSerializer()).convert(source);
 	}
+
 }

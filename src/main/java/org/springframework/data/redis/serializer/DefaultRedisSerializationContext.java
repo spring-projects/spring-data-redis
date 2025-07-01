@@ -151,5 +151,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			return new DefaultRedisSerializationContext<>(this.keyTuple, this.valueTuple,
 					this.hashKeyTuple, this.hashValueTuple, this.stringTuple);
 		}
+
 	}
+
 }

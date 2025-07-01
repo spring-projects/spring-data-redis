@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
@@ -94,7 +96,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return (long) connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) (client, key) -> client.del(key),
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) Jedis::del,
 						Arrays.asList(keys))
 				.resultsAsList().size();
 	}
@@ -156,7 +158,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Cursor<byte @NonNull []> scan(@NonNull ScanOptions options) {
+	public Cursor<byte @NonNull []> scan(@Nullable ScanOptions options) {
 		throw new InvalidDataAccessApiUsageException("Scan is not supported across multiple nodes within a cluster");
 	}
 
@@ -220,7 +222,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) client -> client.randomBinaryKey(), node)
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) Jedis::randomBinaryKey, node)
 				.getValue();
 	}
 
@@ -439,7 +441,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public List<byte[]> sort(byte @NonNull [] key, @NonNull SortParameters params) {
+	public List<byte[]> sort(byte @NonNull [] key, @Nullable SortParameters params) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -451,7 +453,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 	}
 
 	@Override
-	public Long sort(byte @NonNull [] key, @NonNull SortParameters params, byte @NonNull [] storeKey) {
+	public Long sort(byte @NonNull [] key, @Nullable SortParameters params, byte @NonNull [] storeKey) {
 
 		Assert.notNull(key, "Key must not be null");
 

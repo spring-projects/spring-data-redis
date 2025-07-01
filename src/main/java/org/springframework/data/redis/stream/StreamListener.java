@@ -34,4 +34,5 @@ public interface StreamListener<K, V extends Record<K, ?>> {
 	 * @param message never {@literal null}.
 	 */
 	void onMessage(V message);
+
 }

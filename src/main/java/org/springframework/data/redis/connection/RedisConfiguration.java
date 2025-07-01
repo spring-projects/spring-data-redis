@@ -149,7 +149,8 @@ public interface RedisConfiguration {
 	 * @return can be {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
 	 */
-	static @Nullable String getUsernameOrElse(@Nullable RedisConfiguration configuration, Supplier<String> other) {
+	static @Nullable String getUsernameOrElse(@Nullable RedisConfiguration configuration,
+			Supplier<@Nullable String> other) {
 
 		Assert.notNull(other, "Other must not be null");
 		return isAuthenticationAware(configuration) ? ((WithAuthentication) configuration).getUsername() : other.get();

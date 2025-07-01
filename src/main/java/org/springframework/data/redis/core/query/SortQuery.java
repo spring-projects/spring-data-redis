@@ -79,4 +79,5 @@ public interface SortQuery<K> {
 	 * @return the (list of) keys used for GET
 	 */
 	List<String> getGetPattern();
+
 }

@@ -76,25 +76,26 @@ public abstract class SerializationUtils {
 		return deserializeValues(rawValues, List.class, redisSerializer);
 	}
 
-	public static <T> Map<T, T> deserialize(@Nullable Map<byte[], byte[]> rawValues, RedisSerializer<T> redisSerializer) {
+	public static <T> Map<T, @Nullable T> deserialize(@Nullable Map<byte[], byte[]> rawValues,
+			RedisSerializer<T> redisSerializer) {
 
 		if (rawValues == null) {
 			return Collections.emptyMap();
 		}
-		Map<T, T> ret = new LinkedHashMap<>(rawValues.size());
+		Map<T, @Nullable T> ret = new LinkedHashMap<>(rawValues.size());
 		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
 			ret.put(redisSerializer.deserialize(entry.getKey()), redisSerializer.deserialize(entry.getValue()));
 		}
 		return ret;
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <HK, HV> Map<HK, HV> deserialize(@Nullable Map<byte[], byte[]> rawValues,
 			@Nullable RedisSerializer<HK> hashKeySerializer, @Nullable RedisSerializer<HV> hashValueSerializer) {
 
 		if (rawValues == null) {
 			return Collections.emptyMap();
 		}
+
 		Map<HK, HV> map = new LinkedHashMap<>(rawValues.size());
 		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
 			// May want to deserialize only key or value
@@ -105,4 +106,5 @@ public abstract class SerializationUtils {
 		}
 		return map;
 	}
+
 }

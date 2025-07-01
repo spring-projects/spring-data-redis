@@ -42,6 +42,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisZSetCommands {
@@ -429,7 +430,7 @@ public interface RedisZSetCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
-	Long zRem(byte @NonNull [] key, byte @NonNull [] @Nullable... values);
+	Long zRem(byte @NonNull [] key, byte @NonNull [] @NonNull... values);
 
 	/**
 	 * Increment the score of element with {@code value} in sorted set by {@code increment}.
@@ -1192,7 +1193,7 @@ public interface RedisZSetCommands {
 	 * @deprecated since 3.0, use {@link #zRangeByScore(byte[], org.springframework.data.domain.Range)} instead.
 	 */
 	@Deprecated
-	default Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @Nullable String min, @Nullable String max) {
+	default Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @NonNull String min, @NonNull String max) {
 		return zRangeByScore(key, new Range().gte(min).lte(max).toRange());
 	}
 
@@ -1223,7 +1224,7 @@ public interface RedisZSetCommands {
 	 * @since 1.5
 	 * @see <a href="https://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @Nullable String min, @Nullable String max, long offset,
+	Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @NonNull String min, @NonNull String max, long offset,
 			long count);
 
 	/**

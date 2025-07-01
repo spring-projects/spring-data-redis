@@ -939,6 +939,7 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zscan">Redis Documentation: ZSCAN</a>
 	 * @since 1.4
 	 */
+	@NonNull
 	Cursor<@NonNull TypedTuple<V>> scan(@NonNull K key, @Nullable ScanOptions options);
 
 	/**
@@ -1206,8 +1207,9 @@ public interface ZSetOperations<K, V> {
 			@NonNull Limit limit);
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
+
 }

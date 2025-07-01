@@ -197,6 +197,24 @@ public class RedisNode implements NamedNode {
 	}
 
 	/**
+	 * Returns the required host of this Redis Node or throws {@link IllegalStateException} if no host is set.
+	 *
+	 * @return
+	 * @since 4.0
+	 * @throws IllegalStateException if no host is associated with this Redis Node.
+	 */
+	public String getRequiredHost() {
+
+		String host = getHost();
+
+		if (host == null) {
+			throw new IllegalStateException("No host associated with this Redis Node");
+		}
+
+		return host;
+	}
+
+	/**
 	 * @return whether this node has a valid host (not null and not empty).
 	 * @since 2.3.8
 	 */
@@ -208,6 +226,37 @@ public class RedisNode implements NamedNode {
 	 * @return can be {@literal null}.
 	 */
 	public @Nullable Integer getPort() {
+		return port;
+	}
+
+	/**
+	 * Returns the port of this Redis Node the {@code defaultPort} if no port is set.
+	 *
+	 * @return
+	 * @since 4.0
+	 */
+	public int getPortOr(int defaultPort) {
+
+		Integer port = getPort();
+
+		return port == null ? defaultPort : port;
+	}
+
+	/**
+	 * Returns the required port of this Redis Node or throws {@link IllegalStateException} if no port is set.
+	 *
+	 * @return
+	 * @since 4.0
+	 * @throws IllegalStateException if no host is associated with this Redis Node.
+	 */
+	public int getRequiredPort() {
+
+		Integer port = getPort();
+
+		if (port == null) {
+			throw new IllegalStateException("No port associated with this Redis Node");
+		}
+
 		return port;
 	}
 

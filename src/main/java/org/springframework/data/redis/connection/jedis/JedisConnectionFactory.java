@@ -841,7 +841,7 @@ public class JedisConnectionFactory
 		Set<HostAndPort> hostAndPort = new HashSet<>();
 
 		for (RedisNode node : clusterConfig.getClusterNodes()) {
-			hostAndPort.add(new HostAndPort(node.getHost(), node.getPort()));
+			hostAndPort.add(JedisConverters.toHostAndPort(node));
 		}
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects() : 5;
@@ -1010,13 +1010,13 @@ public class JedisConnectionFactory
 
 			try {
 
-				jedis = new Jedis(new HostAndPort(node.getHost(), node.getPort()), clientConfig);
+				jedis = new Jedis(JedisConverters.toHostAndPort(node), clientConfig);
 				if (jedis.ping().equalsIgnoreCase("pong")) {
 					success = true;
 					return jedis;
 				}
 			} catch (Exception ex) {
-				log.warn("Ping failed for sentinel host: %s".formatted(node.getHost()), ex);
+				log.warn("Ping failed for sentinel host: %s".formatted(node.getRequiredHost()), ex);
 			} finally {
 				if (!success && jedis != null) {
 					jedis.close();
@@ -1036,7 +1036,7 @@ public class JedisConnectionFactory
 		Set<HostAndPort> convertedNodes = new LinkedHashSet<>(nodes.size());
 		for (RedisNode node : nodes) {
 			if (node != null) {
-				convertedNodes.add(new HostAndPort(node.getHost(), node.getPort()));
+				convertedNodes.add(JedisConverters.toHostAndPort(node));
 			}
 		}
 		return convertedNodes;

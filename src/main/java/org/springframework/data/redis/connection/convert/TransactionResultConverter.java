@@ -55,7 +55,7 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 					"Incorrect number of transaction results; Expected: " + txResults.size() + " Actual: " + execResults.size());
 		}
 
-		List<Object> convertedResults = new ArrayList<>();
+		List<@Nullable Object> convertedResults = new ArrayList<>();
 
 		for (Object result : execResults) {
 			FutureResult<T> futureResult = txResults.remove();

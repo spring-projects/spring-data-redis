@@ -203,7 +203,7 @@ public class ClusterTopology {
 		}
 
 		if (node.hasValidHost() && node.getPort() != null) {
-			return lookup(node.getHost(), node.getPort());
+			return lookup(node.getRequiredHost(), node.getRequiredPort());
 		}
 
 		if (StringUtils.hasText(node.getId())) {

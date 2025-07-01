@@ -25,7 +25,6 @@ import org.springframework.core.NestedRuntimeException;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@SuppressWarnings("serial")
 public class PoolException extends NestedRuntimeException {
 
 	/**

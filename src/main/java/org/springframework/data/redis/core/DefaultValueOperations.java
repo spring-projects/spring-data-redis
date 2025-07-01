@@ -118,6 +118,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public Integer append(K key, String value) {
 
 		byte[] rawKey = rawKey(key);
@@ -157,6 +158,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void multiSet(Map<? extends K, ? extends V> m) {
 
 		if (m.isEmpty()) {
@@ -169,7 +171,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
 		}
 
-		execute(connection -> {
+		execute((RedisCallback<@Nullable Void>) connection -> {
 			connection.mSet(rawKeys);
 			return null;
 		});
@@ -271,6 +273,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void set(K key, V value, long offset) {
 
 		byte[] rawKey = rawKey(key);

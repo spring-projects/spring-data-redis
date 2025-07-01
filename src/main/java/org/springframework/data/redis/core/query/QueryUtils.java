@@ -49,4 +49,5 @@ public abstract class QueryUtils {
 		}
 		return raw.toArray(new byte[raw.size()][]);
 	}
+
 }

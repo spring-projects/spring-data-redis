@@ -39,4 +39,5 @@ public interface HashMapperProvider<HK, HV> {
 	 * @return the {@link HashMapper} suitable for a given type;
 	 */
 	<V> HashMapper<V, HK, HV> getHashMapper(Class<V> targetType);
+
 }

@@ -45,4 +45,5 @@ class DefaultSerializationPair<T> implements SerializationPair<T> {
 	public RedisElementWriter<T> getWriter() {
 		return this.writer;
 	}
+
 }

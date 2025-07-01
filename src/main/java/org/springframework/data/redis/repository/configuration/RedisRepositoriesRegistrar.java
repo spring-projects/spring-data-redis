@@ -38,4 +38,5 @@ public class RedisRepositoriesRegistrar extends RepositoryBeanDefinitionRegistra
 	protected RepositoryConfigurationExtension getExtension() {
 		return new RedisRepositoryConfigurationExtension();
 	}
+
 }

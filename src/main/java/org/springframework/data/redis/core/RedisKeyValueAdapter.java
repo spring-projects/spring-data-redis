@@ -310,6 +310,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public <T> @Nullable T delete(Object id, String keyspace, Class<T> type) {
 
 		byte[] binId = toBytes(id);
@@ -321,7 +322,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			byte[] keyToDelete = createKey(keyspace, toString(id));
 
-			redisOps.execute((RedisCallback<Void>) connection -> {
+			redisOps.execute((RedisCallback<@Nullable Void>) connection -> {
 
 				connection.del(keyToDelete);
 				connection.sRem(binKeyspace, binId);
@@ -391,9 +392,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public void deleteAllOf(String keyspace) {
 
-		redisOps.execute((RedisCallback<Void>) connection -> {
+		redisOps.execute((RedisCallback<@Nullable Void>) connection -> {
 
 			connection.del(toBytes(keyspace));
 			new IndexWriter(connection, converter).removeAllIndexes(keyspace);
@@ -421,7 +423,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		RedisPersistentEntity<?> entity = this.converter.getMappingContext()
 				.getRequiredPersistentEntity(update.getTarget());
 
-		String keyspace = entity.getKeySpace();
+		String keyspace = entity.getRequiredKeySpace();
 		Object id = update.getId();
 
 		byte[] redisKey = createKey(keyspace, converter.getConversionService().convert(id, String.class));
@@ -789,7 +791,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private void initMessageListenerContainer() {
 
 		this.messageListenerContainer = new RedisMessageListenerContainer();
-		this.messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getConnectionFactory());
+		this.messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getRequiredConnectionFactory());
 		this.messageListenerContainer.afterPropertiesSet();
 	}
 
@@ -809,6 +811,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				listener.init();
 			}
 		}
+
 	}
 
 	/**
@@ -927,6 +930,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		 * Turn {@link KeyExpirationEventMessageListener} usage off. No expiration events will be received.
 		 */
 		OFF
+
 	}
 
 	/**
@@ -952,6 +956,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		 * Do not store shadow copies.
 		 */
 		OFF
+
 	}
 
 	/**
@@ -992,6 +997,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				this.key = key;
 				this.type = type;
 			}
+
 		}
+
 	}
+
 }

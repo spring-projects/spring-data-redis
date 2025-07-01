@@ -63,7 +63,6 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	}
 
 	@Override
-	@SuppressWarnings("NullAway")
 	protected @Nullable RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
 
 		Assert.notNull(property, "Property must not be null");
@@ -73,9 +72,8 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 		}
 
 		RedisPersistentProperty currentIdProperty = getIdProperty();
-		boolean currentIdPropertyIsSet = currentIdProperty != null;
 
-		if (!currentIdPropertyIsSet) {
+		if (currentIdProperty == null) {
 			return property;
 		}
 
@@ -99,4 +97,5 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 
 		return null;
 	}
+
 }

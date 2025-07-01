@@ -386,8 +386,8 @@ public class StreamRecords {
 	 */
 	static class ObjectBackedRecord<S, V> implements ObjectRecord<S, V> {
 
-		private @Nullable S stream;
-		private RecordId recordId;
+		private final @Nullable S stream;
+		private final RecordId recordId;
 		private final V value;
 
 		ObjectBackedRecord(@Nullable S stream, RecordId recordId, V value) {

@@ -54,4 +54,5 @@ class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 		throw new IllegalStateException(
 				"Cannot serialize value of type %s without a serializer".formatted(ObjectUtils.nullSafeClassName(value)));
 	}
+
 }

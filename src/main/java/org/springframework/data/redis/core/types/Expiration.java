@@ -16,12 +16,13 @@
 package org.springframework.data.redis.core.types;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link Expiration} holds a {@link Long numeric value} with an associated {@link TimeUnit}.
@@ -78,7 +79,7 @@ public class Expiration {
 	 * @return a new {@link Expiration} configured with the given {@link Long length of time} in {@link TimeUnit}.
 	 */
 	public static Expiration from(long expirationTime, @Nullable TimeUnit timeUnit) {
-		
+
 		if(timeUnit == null) {
 			return new Expiration(expirationTime, TimeUnit.SECONDS);
 		}
@@ -240,7 +241,7 @@ public class Expiration {
 
 	@Override
 	public int hashCode() {
-		return ObjectUtils.nullSafeHashCode(new Object[] { getExpirationTime(), getTimeUnit() });
+		return Objects.hash(getExpirationTime(), getTimeUnit());
 	}
 
 	/**
@@ -275,4 +276,5 @@ public class Expiration {
 			return true;
 		}
 	}
+
 }

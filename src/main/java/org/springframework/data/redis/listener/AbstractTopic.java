@@ -65,4 +65,5 @@ abstract class AbstractTopic implements Topic {
 	public String toString() {
 		return getTopic();
 	}
+
 }

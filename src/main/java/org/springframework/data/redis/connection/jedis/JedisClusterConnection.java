@@ -21,7 +21,6 @@ import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisClusterInfoCache;
-import redis.clients.jedis.Protocol;
 import redis.clients.jedis.providers.ClusterConnectionProvider;
 
 import java.time.Duration;
@@ -41,6 +40,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
 import org.springframework.dao.DataAccessException;
@@ -50,35 +50,11 @@ import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
-import org.springframework.data.redis.connection.ClusterInfo;
-import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
-import org.springframework.data.redis.connection.ClusterTopology;
-import org.springframework.data.redis.connection.ClusterTopologyProvider;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisClusterCommands;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
-import org.springframework.data.redis.connection.RedisClusterServerCommands;
-import org.springframework.data.redis.connection.RedisCommands;
-import org.springframework.data.redis.connection.RedisGeoCommands;
-import org.springframework.data.redis.connection.RedisHashCommands;
-import org.springframework.data.redis.connection.RedisHyperLogLogCommands;
-import org.springframework.data.redis.connection.RedisKeyCommands;
-import org.springframework.data.redis.connection.RedisListCommands;
-import org.springframework.data.redis.connection.RedisPipelineException;
-import org.springframework.data.redis.connection.RedisScriptingCommands;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
-import org.springframework.data.redis.connection.RedisSetCommands;
-import org.springframework.data.redis.connection.RedisStreamCommands;
-import org.springframework.data.redis.connection.RedisStringCommands;
-import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
-import org.springframework.data.redis.connection.RedisZSetCommands;
-import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -380,7 +356,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public boolean isSubscribed() {
-		return (this.subscription != null && this.subscription.isAlive());
+		JedisSubscription subscription = this.subscription;
+		return (subscription != null && subscription.isAlive());
 	}
 
 	@Override
@@ -563,7 +540,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
 		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
-		JedisClusterCommandCallback<String> command = jedis -> jedis.clusterMeet(node.getHost(), node.getPort());
+		JedisClusterCommandCallback<String> command = jedis -> jedis.clusterMeet(node.getRequiredHost(),
+				node.getRequiredPort());
 
 		this.clusterCommandExecutor.executeCommandOnAllNodes(command);
 	}
@@ -790,8 +768,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		private @Nullable ConnectionPool getResourcePoolForSpecificNode(RedisClusterNode node) {
 
 			Map<String, ConnectionPool> clusterNodes = cluster.getClusterNodes();
-			HostAndPort hap = new HostAndPort(node.getHost(),
-					node.getPort() == null ? Protocol.DEFAULT_PORT : node.getPort());
+			HostAndPort hap = JedisConverters.toHostAndPort(node);
 			String key = JedisClusterInfoCache.getNodeKey(hap);
 
 			if (clusterNodes.containsKey(key)) {
@@ -807,11 +784,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 			if (!member.hasValidHost()) {
 				throw new DataAccessResourceFailureException(
-						"Cannot obtain connection to node %ss; " + "it is not associated with a hostname".formatted(node.getId()));
+						"Cannot obtain connection to node %s; it is not associated with a hostname".formatted(node.getId()));
 			}
 
-			if (member != null && connectionHandler != null) {
-				return connectionHandler.getConnection(new HostAndPort(member.getHost(), member.getPort()));
+			if (connectionHandler != null) {
+				return connectionHandler.getConnection(JedisConverters.toHostAndPort(member));
 			}
 
 			return null;

@@ -152,6 +152,7 @@ public interface GeoReference<T> {
 			sb.append(']');
 			return sb.toString();
 		}
+
 	}
 
 	class GeoCoordinateReference<T> implements GeoReference<T> {
@@ -206,5 +207,7 @@ public interface GeoReference<T> {
 			sb.append(']');
 			return sb.toString();
 		}
+
 	}
+
 }

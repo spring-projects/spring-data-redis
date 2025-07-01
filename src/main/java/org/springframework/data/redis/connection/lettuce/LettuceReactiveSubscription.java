@@ -166,7 +166,7 @@ class LettuceReactiveSubscription implements ReactiveSubscription {
 
 		private final Set<ByteArrayWrapper> targets = new ConcurrentSkipListSet<>();
 		private final AtomicLong subscribers = new AtomicLong();
-		private final AtomicReference<Flux<?>> flux = new AtomicReference<>();
+		private final AtomicReference<@Nullable Flux<?>> flux = new AtomicReference<>();
 		private final Function<Throwable, Throwable> exceptionTranslator;
 
 		private volatile @Nullable Disposable disposable;

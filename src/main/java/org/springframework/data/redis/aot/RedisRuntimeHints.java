@@ -174,11 +174,11 @@ public class RedisRuntimeHints implements RuntimeHintsRegistrar {
 		registerRedisConnectionProxy(TypeReference.of(RedisZSetCommands.class), hints);
 	}
 
-	static void boundOperationsProxy(Class<?> type, ClassLoader classLoader, RuntimeHints hints) {
+	static void boundOperationsProxy(Class<?> type, @Nullable ClassLoader classLoader, RuntimeHints hints) {
 		boundOperationsProxy(TypeReference.of(type), classLoader, hints);
 	}
 
-	static void boundOperationsProxy(TypeReference typeReference, ClassLoader classLoader, RuntimeHints hints) {
+	static void boundOperationsProxy(TypeReference typeReference, @Nullable ClassLoader classLoader, RuntimeHints hints) {
 
 		String boundTargetClass = typeReference.getPackageName() + "." + typeReference.getSimpleName().replace("Bound", "");
 		if (ClassUtils.isPresent(boundTargetClass, classLoader)) {

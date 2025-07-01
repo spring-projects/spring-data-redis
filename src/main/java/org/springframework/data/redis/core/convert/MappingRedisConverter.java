@@ -416,13 +416,15 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return;
 		}
 
-		sink.setKeyspace(entity.getKeySpace());
+		String keySpace = entity.getRequiredKeySpace();
+
+		sink.setKeyspace(keySpace);
 
 		if (entity.getTypeInformation().isCollectionLike()) {
-			writeCollection(entity.getKeySpace(), "", (List) source, entity.getTypeInformation().getRequiredComponentType(),
+			writeCollection(keySpace, "", (List) source, entity.getTypeInformation().getRequiredComponentType(),
 					sink);
 		} else {
-			writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
+			writeInternal(keySpace, "", source, entity.getTypeInformation(), sink);
 		}
 
 		Object identifier = entity.getIdentifierAccessor(source).getIdentifier();
@@ -485,6 +487,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		RedisPersistentProperty targetProperty = getTargetPropertyOrNullForPath(path, update.getTarget());
 
+		String keySpace = entity.getRequiredKeySpace();
 		if (targetProperty == null) {
 
 			targetProperty = getTargetPropertyOrNullForPath(path.replaceAll("\\.\\[.*\\]", ""), update.getTarget());
@@ -494,7 +497,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 							? targetProperty.getTypeInformation().getRequiredMapValueType()
 							: TypeInformation.OBJECT) : targetProperty.getTypeInformation().getActualType());
 
-			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
+			writeInternal(keySpace, pUpdate.getPropertyPath(), pUpdate.getValue(), ti, sink);
 			return;
 		}
 
@@ -510,7 +513,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 					Object refId = ref.getPropertyAccessor(o).getProperty(ref.getRequiredIdProperty());
 					if (refId != null) {
-						sink.getBucket().put(pUpdate.getPropertyPath() + ".[" + i + "]", toBytes(ref.getKeySpace() + ":" + refId));
+						sink.getBucket().put(pUpdate.getPropertyPath() + ".[" + i + "]",
+								toBytes(ref.getRequiredKeySpace() + ":" + refId));
 						i++;
 					}
 				}
@@ -521,14 +525,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 				Object refId = ref.getPropertyAccessor(pUpdate.getValue()).getProperty(ref.getRequiredIdProperty());
 				if (refId != null) {
-					sink.getBucket().put(pUpdate.getPropertyPath(), toBytes(ref.getKeySpace() + ":" + refId));
+					sink.getBucket().put(pUpdate.getPropertyPath(), toBytes(ref.getRequiredKeySpace() + ":" + refId));
 				}
 			}
 		} else if (targetProperty.isCollectionLike() && !isByteArray(targetProperty)) {
 
 			Collection<?> collection = pUpdate.getValue() instanceof Collection ? (Collection<?>) pUpdate.getValue()
 					: Collections.singleton(pUpdate.getValue());
-			writeCollection(entity.getKeySpace(), pUpdate.getPropertyPath(), collection,
+			writeCollection(keySpace, pUpdate.getPropertyPath(), collection,
 					targetProperty.getTypeInformation().getRequiredActualType(), sink);
 		} else if (targetProperty.isMap()) {
 
@@ -544,18 +548,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 								.formatted(pUpdate.getPropertyPath(), pUpdate.getValue()));
 			}
 
-			writeMap(entity.getKeySpace(), pUpdate.getPropertyPath(), targetProperty.getMapValueType(), map, sink);
+			writeMap(keySpace, pUpdate.getPropertyPath(), targetProperty.getMapValueType(), map, sink);
 		} else {
 
-			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(),
+			writeInternal(keySpace, pUpdate.getPropertyPath(), pUpdate.getValue(),
 					targetProperty.getTypeInformation(), sink);
 
-			Set<IndexedData> data = indexResolver.resolveIndexesFor(entity.getKeySpace(), pUpdate.getPropertyPath(),
+			Set<IndexedData> data = indexResolver.resolveIndexesFor(keySpace, pUpdate.getPropertyPath(),
 					targetProperty.getTypeInformation(), pUpdate.getValue());
 
 			if (data.isEmpty()) {
 
-				data = indexResolver.resolveIndexesFor(entity.getKeySpace(), pUpdate.getPropertyPath(),
+				data = indexResolver.resolveIndexesFor(entity.getRequiredKeySpace(), pUpdate.getPropertyPath(),
 						targetProperty.getOwner().getTypeInformation(), pUpdate.getValue());
 
 			}
@@ -701,7 +705,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				RedisPersistentEntity<?> ref = mappingContext.getRequiredPersistentEntity(
 						association.getInverse().getTypeInformation().getRequiredComponentType().getRequiredActualType());
 
-				String keyspace = ref.getKeySpace();
+				String keyspace = ref.getRequiredKeySpace();
 				String propertyStringPath = (!path.isEmpty() ? path + "." : "") + association.getInverse().getName();
 
 				int i = 0;
@@ -718,7 +722,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 				RedisPersistentEntity<?> ref = mappingContext
 						.getRequiredPersistentEntity(association.getInverse().getTypeInformation());
-				String keyspace = ref.getKeySpace();
+				String keyspace = ref.getRequiredKeySpace();
 
 				if (keyspace != null) {
 					Object refId = ref.getPropertyAccessor(refObject).getProperty(ref.getRequiredIdProperty());
@@ -1114,6 +1118,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			return (T) conversionService.convert(value, property.getType());
 		}
+
 	}
 
 	private enum NaturalOrderingKeyComparator implements Comparator<String> {
@@ -1192,7 +1197,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 				return this.rawValue.compareTo(that.rawValue);
 			}
+
 		}
+
 	}
 
 	/**
@@ -1273,6 +1280,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		public boolean isPhantomKey() {
 			return this.phantomKey;
 		}
+
 	}
 
 	/**
@@ -1373,5 +1381,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		public boolean isPhantomKey() {
 			return this.phantomKey;
 		}
+
 	}
+
 }

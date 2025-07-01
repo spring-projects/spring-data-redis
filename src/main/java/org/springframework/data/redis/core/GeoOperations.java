@@ -401,4 +401,11 @@ public interface GeoOperations<K, M> {
 	Long searchAndStore(@NonNull K key, @NonNull K destKey, @NonNull GeoReference<M> reference,
 			@NonNull GeoShape geoPredicate, @NonNull GeoSearchStoreCommandArgs args);
 
+	/**
+	 * @return the underlying {@link RedisOperations} used to execute commands.
+	 * @since 4.0
+	 */
+	@NonNull
+	RedisOperations<K, ?> getOperations();
+
 }

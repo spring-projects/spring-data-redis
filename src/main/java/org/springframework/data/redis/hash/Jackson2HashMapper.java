@@ -21,8 +21,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.Map.Entry;
-import org.jspecify.annotations.NonNull;
+
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.support.collections.CollectionUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
@@ -231,7 +232,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 		JsonNode tree = this.typingMapper.valueToTree(source);
 
-		return this.flatten ? flattenMap(tree.fields()) : this.untypedMapper.convertValue(tree, Map.class);
+		return this.flatten ? flattenMap(tree.properties().iterator()) : this.untypedMapper.convertValue(tree, Map.class);
 	}
 
 	@Override
@@ -418,7 +419,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 				}
 			}
 		} else if (element.isContainerNode()) {
-			doFlatten(propertyPrefix, element.fields(), resultMap);
+			doFlatten(propertyPrefix, element.properties().iterator(), resultMap);
 		} else {
 
 			switch (element.getNodeType()) {
@@ -526,6 +527,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 				return new Date(NumberUtils.parseNumber(value.toString(), Long.class));
 			}
 		}
+
 	}
 
 	/**
@@ -554,6 +556,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 			return null;
 		}
+
 	}
 
 	/**
@@ -586,6 +589,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 				serializers.defaultSerializeNull(jsonGenerator);
 			}
 		}
+
 	}
 
 	private static class DateToTimestampSerializer extends DateSerializer {
@@ -595,6 +599,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		protected boolean _asTimestamp(SerializerProvider serializers) {
 			return true;
 		}
+
 	}
 
 	private static class CalendarToTimestampSerializer extends CalendarSerializer {
@@ -604,5 +609,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		protected boolean _asTimestamp(SerializerProvider serializers) {
 			return true;
 		}
+
 	}
+
 }

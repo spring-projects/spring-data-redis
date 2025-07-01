@@ -55,7 +55,7 @@ public interface ReactiveSetCommands {
 	 */
 	class SAddCommand extends KeyCommand {
 
-		private List<ByteBuffer> values;
+		private final List<ByteBuffer> values;
 
 		private SAddCommand(@Nullable ByteBuffer key, List<ByteBuffer> values) {
 

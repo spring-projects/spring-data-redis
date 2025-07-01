@@ -15,16 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs;
-import static org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchStoreCommandArgs;
+import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 
 import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResults;
@@ -370,5 +368,11 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 */
 	Long searchAndStore(@NonNull K destKey, @NonNull GeoReference<M> reference, @NonNull GeoShape geoPredicate,
 			@NonNull GeoSearchStoreCommandArgs args);
+
+	/**
+	 * @return the underlying {@link RedisOperations} used to execute commands.
+	 * @since 4.0
+	 */
+	RedisOperations<K, ?> getOperations();
 
 }

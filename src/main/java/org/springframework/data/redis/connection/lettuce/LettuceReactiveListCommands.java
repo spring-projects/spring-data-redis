@@ -298,8 +298,8 @@ class LettuceReactiveListCommands implements ReactiveListCommands {
 			long timeout = command.getTimeout().get(ChronoUnit.SECONDS);
 
 			Mono<PopResult> mappedMono = (ObjectUtils.nullSafeEquals(Direction.RIGHT, command.getDirection())
-					? cmd.brpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new))
-					: cmd.blpop(timeout, command.getKeys().stream().toArray(ByteBuffer[]::new)))
+					? cmd.brpop(timeout, command.getKeys().toArray(ByteBuffer[]::new))
+					: cmd.blpop(timeout, command.getKeys().toArray(ByteBuffer[]::new)))
 							.map(kv -> Arrays.asList(kv.getKey(), kv.getValue())).map(PopResult::new);
 
 			return mappedMono.map(value -> new PopResponse(command, value));

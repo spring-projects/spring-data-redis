@@ -123,5 +123,7 @@ public interface IndexDefinition {
 			return "IndexDefinition.IndexingContext(keyspace=" + this.getKeyspace() + ", path=" + this.getPath()
 					+ ", typeInformation=" + this.getTypeInformation() + ")";
 		}
+
 	}
+
 }

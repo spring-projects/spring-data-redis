@@ -19,6 +19,8 @@ import java.util.List;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
@@ -39,7 +41,8 @@ public interface ScriptExecutor<K> {
 	 * @return The return value of the script or {@literal null} if {@link RedisScript#getResultType()} is
 	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
 	 */
-	<T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args);
+	<T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
+			@NonNull Object @NonNull... args);
 
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
@@ -53,7 +56,7 @@ public interface ScriptExecutor<K> {
 	 * @return The return value of the script or {@literal null} if {@link RedisScript#getResultType()} is
 	 *         {@literal null}, likely indicating a throw-away status reply (i.e. "OK")
 	 */
-	<T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+	<T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
 			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object... args);
 
 }

@@ -231,7 +231,7 @@ public abstract class RedisConnectionUtils {
 		proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory));
 		proxyFactory.addInterface(RedisConnectionProxy.class);
 
-		return RedisConnection.class.cast(proxyFactory.getProxy());
+		return (RedisConnection) proxyFactory.getProxy();
 	}
 
 	/**
@@ -349,6 +349,7 @@ public abstract class RedisConnectionUtils {
 				doCloseConnection(connection);
 			}
 		}
+
 	}
 
 	/**
@@ -397,22 +398,8 @@ public abstract class RedisConnectionUtils {
 	 * @author Thomas Darimont
 	 * @author Mark Paluch
 	 */
-	private static class RedisTransactionSynchronizer implements TransactionSynchronization {
-
-		private final RedisConnectionHolder connectionHolder;
-		private final RedisConnection connection;
-		private final RedisConnectionFactory factory;
-
-		private final boolean readOnly;
-
-		RedisTransactionSynchronizer(RedisConnectionHolder connectionHolder, RedisConnection connection,
-				RedisConnectionFactory factory, boolean readOnly) {
-
-			this.connectionHolder = connectionHolder;
-			this.connection = connection;
-			this.factory = factory;
-			this.readOnly = readOnly;
-		}
+	private record RedisTransactionSynchronizer(RedisConnectionHolder connectionHolder, RedisConnection connection,
+			RedisConnectionFactory factory, boolean readOnly) implements TransactionSynchronization {
 
 		@Override
 		public void afterCompletion(int status) {
@@ -437,6 +424,7 @@ public abstract class RedisConnectionUtils {
 				connectionHolder.reset();
 			}
 		}
+
 	}
 
 	/**
@@ -536,6 +524,7 @@ public abstract class RedisConnectionUtils {
 		private boolean isPotentiallyThreadBoundCommand(RedisCommand command) {
 			return RedisCommand.UNKNOWN.equals(command) || !command.isReadonly();
 		}
+
 	}
 
 	/**
@@ -555,7 +544,6 @@ public abstract class RedisConnectionUtils {
 		 * Create a new RedisConnectionHolder for the given Redis Connection assuming that there is no ongoing transaction.
 		 *
 		 * @param connection the Redis Connection to hold.
-		 * @see #RedisConnectionHolder(RedisConnection, boolean)
 		 */
 		public RedisConnectionHolder(RedisConnection connection) {
 			this.connection = connection;
@@ -630,6 +618,7 @@ public abstract class RedisConnectionUtils {
 			super.clear();
 			this.transactionActive = false;
 		}
+
 	}
 
 	/**
@@ -651,4 +640,5 @@ public abstract class RedisConnectionUtils {
 		RedisConnection getTargetConnection();
 
 	}
+
 }

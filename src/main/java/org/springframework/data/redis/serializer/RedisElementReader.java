@@ -51,4 +51,5 @@ public interface RedisElementReader<T> {
 		Assert.notNull(serializer, "Serializer must not be null");
 		return new DefaultRedisElementReader<>(serializer);
 	}
+
 }

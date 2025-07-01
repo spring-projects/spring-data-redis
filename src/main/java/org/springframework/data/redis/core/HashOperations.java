@@ -224,6 +224,7 @@ public interface HashOperations<H, HK, HV> {
 	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
+	@NonNull
 	Cursor<Map.Entry<@NonNull HK, HV>> scan(@NonNull H key, @Nullable ScanOptions options);
 
 	/**
@@ -351,7 +352,7 @@ public interface HashOperations<H, HK, HV> {
 	}
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	@NonNull
 	RedisOperations<H, ?> getOperations();

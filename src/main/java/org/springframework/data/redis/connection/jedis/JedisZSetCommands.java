@@ -166,7 +166,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<@NonNull byte[]> zRange(byte @NonNull [] key, long start, long end) {
+	public Set<byte @NonNull []> zRange(byte @NonNull [] key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -607,7 +607,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @Nullable String min, @Nullable String max) {
+	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @NonNull String min, @NonNull String max) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -616,7 +616,7 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @Nullable String min, @Nullable String max,
+	public Set<byte @NonNull []> zRangeByScore(byte @NonNull [] key, @NonNull String min, @NonNull String max,
 			long offset, long count) {
 
 		Assert.notNull(key, "Key must not be null");

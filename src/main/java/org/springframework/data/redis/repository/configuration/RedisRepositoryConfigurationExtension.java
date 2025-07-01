@@ -182,4 +182,5 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 				.addPropertyReference("customConversions", REDIS_CUSTOM_CONVERSIONS_BEAN_NAME) //
 				.getBeanDefinition();
 	}
+
 }

@@ -62,6 +62,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -74,7 +75,6 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionProvider.TargetAware;
 import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceResultBuilder;
-import org.springframework.data.redis.connection.lettuce.LettuceResult.LettuceStatusResult;
 import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.lang.Contract;
@@ -784,7 +784,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceStatusResult(getAsyncDedicatedRedisCommands().watch(keys)));
+				transaction(newLettuceStatusResult(getAsyncDedicatedRedisCommands().watch(keys)));
 				return;
 			}
 			getDedicatedRedisCommands().watch(keys);
@@ -861,7 +861,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver
 	 *
-	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
+	 * @param convertPipelineAndTxResults whether to convert pipeline and tx results.
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
@@ -1046,7 +1046,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	private RedisURI getRedisURI(RedisNode node) {
-		return RedisURI.Builder.redis(node.getHost(), getPort(node)).build();
+		return RedisURI.Builder.redis(node.getRequiredHost(), getPort(node)).build();
 	}
 
 	private int getPort(RedisNode node) {
@@ -1315,6 +1315,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 			if (constructor == null) {
 				constructor = (Constructor<CommandOutput>) ClassUtils.getConstructorIfAvailable(type, RedisCodec.class);
 				CONSTRUCTORS.put(type, constructor);
+			}
+
+			if (constructor == null) {
+				throw new IllegalArgumentException(
+						"Cannot instantiate command output for type '%s'. No constructor accepting RedisCodec.".formatted(type));
 			}
 
 			return BeanUtils.instantiateClass(constructor, CODEC);

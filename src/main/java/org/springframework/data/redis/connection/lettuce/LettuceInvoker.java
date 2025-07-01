@@ -258,7 +258,7 @@ class LettuceInvoker {
 	 *
 	 * @param function must not be {@literal null}.
 	 */
-	<R extends Collection<@Nullable E>, E> ManyInvocationSpec<@Nullable E> fromMany(ConnectionFunction0<R> function) {
+	<R extends Collection<@Nullable E>, E> ManyInvocationSpec<E> fromMany(ConnectionFunction0<R> function) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 
@@ -272,7 +272,7 @@ class LettuceInvoker {
 	 * @param function must not be {@literal null}.
 	 * @param t1 first argument.
 	 */
-	<R extends Collection<@Nullable E>, E, T1> ManyInvocationSpec<@Nullable E> fromMany(
+	<R extends Collection<@Nullable E>, E, T1> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction1<T1, @Nullable R> function, T1 t1) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
@@ -288,7 +288,7 @@ class LettuceInvoker {
 	 * @param t1 first argument.
 	 * @param t2 second argument.
 	 */
-	<R extends Collection<@Nullable E>, E, T1, T2> ManyInvocationSpec<@Nullable E> fromMany(
+	<R extends Collection<@Nullable E>, E, T1, T2> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction2<T1, T2, @Nullable R> function, T1 t1, T2 t2) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
@@ -305,7 +305,7 @@ class LettuceInvoker {
 	 * @param t2 second argument.
 	 * @param t3 third argument.
 	 */
-	<R extends Collection<@Nullable E>, E, T1, T2, T3> ManyInvocationSpec<@Nullable E> fromMany(
+	<R extends Collection<@Nullable E>, E, T1, T2, T3> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction3<T1, T2, T3, @Nullable R> function, T1 t1, T2 t2, T3 t3) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
@@ -323,7 +323,7 @@ class LettuceInvoker {
 	 * @param t3 third argument.
 	 * @param t4 fourth argument.
 	 */
-	<R extends Collection<@Nullable E>, E, T1, T2, T3, T4> ManyInvocationSpec<@Nullable E> fromMany(
+	<R extends Collection<@Nullable E>, E, T1, T2, T3, T4> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction4<T1, T2, T3, T4, @Nullable R> function, T1 t1, T2 t2, T3 t3, T4 t4) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
@@ -342,7 +342,7 @@ class LettuceInvoker {
 	 * @param t4 fourth argument.
 	 * @param t5 fifth argument.
 	 */
-	<R extends Collection<@Nullable E>, E, T1, T2, T3, T4, T5> ManyInvocationSpec<@Nullable E> fromMany(
+	<R extends Collection<@Nullable E>, E, T1, T2, T3, T4, T5> ManyInvocationSpec<E> fromMany(
 			ConnectionFunction5<T1, T2, T3, T4, T5, @Nullable R> function, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");

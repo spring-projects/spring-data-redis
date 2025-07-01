@@ -47,4 +47,5 @@ public interface IndexedData {
 	default String getKeyPrefix() {
 		return getKeyspace() + ":" + getIndexName();
 	}
+
 }

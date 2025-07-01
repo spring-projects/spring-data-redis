@@ -180,5 +180,7 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 
 			return false;
 		}
+
 	}
+
 }

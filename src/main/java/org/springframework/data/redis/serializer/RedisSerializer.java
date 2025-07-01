@@ -76,7 +76,7 @@ public interface RedisSerializer<T> {
 	}
 
 	/**
-	 * Obtain a {@link RedisSerializer} that passes thru {@code byte[]}.
+	 * Obtain a {@link RedisSerializer} that passes through {@code byte[]}.
 	 *
 	 * @return never {@literal null}.
 	 * @since 2.2
@@ -89,9 +89,9 @@ public interface RedisSerializer<T> {
 	 * Serialize the given object to binary data.
 	 *
 	 * @param value object to serialize. Can be {@literal null}.
-	 * @return the equivalent binary data. Can be {@literal null}.
+	 * @return the equivalent binary data. Can be an empty array but never {@literal null}.
 	 */
-	byte @Nullable[] serialize(@Nullable T value) throws SerializationException;
+	byte[] serialize(@Nullable T value) throws SerializationException;
 
 	/**
 	 * Deserialize an object from the given binary data.
@@ -120,4 +120,5 @@ public interface RedisSerializer<T> {
 	default Class<?> getTargetType() {
 		return Object.class;
 	}
+
 }

@@ -325,7 +325,7 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 	Long size();
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();

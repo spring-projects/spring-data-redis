@@ -42,7 +42,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
-	Long add(@NonNull K key, V@NonNull ... values);
+	Long add(@NonNull K key, V @NonNull... values);
 
 	/**
 	 * Remove given {@code values} from set at {@code key} and return the number of removed elements.
@@ -52,7 +52,7 @@ public interface SetOperations<K, V> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
-	Long remove(@NonNull K key, Object@NonNull ... values);
+	Long remove(@NonNull K key, Object @NonNull... values);
 
 	/**
 	 * Remove and return a random member from set at {@code key}.
@@ -113,7 +113,7 @@ public interface SetOperations<K, V> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
 	 */
-	Map<Object, Boolean> isMember(@NonNull K key, Object@NonNull ... objects);
+	Map<Object, Boolean> isMember(@NonNull K key, Object @NonNull... objects);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code key} and {@code otherKey}.
@@ -302,7 +302,7 @@ public interface SetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 * @since 2.2
 	 */
-	Long differenceAndStore(@NonNull Collection<@NonNull K> keys,@NonNull  K destKey);
+	Long differenceAndStore(@NonNull Collection<@NonNull K> keys, @NonNull K destKey);
 
 	/**
 	 * Get all elements of set at {@code key}.
@@ -354,8 +354,13 @@ public interface SetOperations<K, V> {
 	 *         try-with-resources clause).
 	 * @since 1.4
 	 */
+	@NonNull
 	Cursor<@NonNull V> scan(@NonNull K key, @NonNull ScanOptions options);
 
+	/**
+	 * @return the underlying {@link RedisOperations} used to execute commands.
+	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
+
 }

@@ -139,4 +139,5 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	public void setScriptSource(ScriptSource scriptSource) {
 		this.scriptSource = scriptSource;
 	}
+
 }

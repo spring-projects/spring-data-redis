@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.stream;
-
-import org.springframework.dao.DataAccessResourceFailureException;
 
 /**
- * Cancelable allows stopping long-running tasks and freeing underlying resources.
- *
- * @author Mark Paluch
- * @since 2.2
+ * AOT Runtime hints.
  */
-public interface Cancelable {
-
-	/**
-	 * Abort and free resources.
-	 *
-	 * @throws DataAccessResourceFailureException
-	 */
-	void cancel() throws DataAccessResourceFailureException;
-
-}
+@org.jspecify.annotations.NullMarked
+package org.springframework.data.redis.aot;

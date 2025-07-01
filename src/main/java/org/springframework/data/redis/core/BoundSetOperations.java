@@ -220,7 +220,7 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @param destKey must not be {@literal null}.
 	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 * @deprecated since 3.0, use {@link #differenceAndStore(Object, Object)} instead to follow a consistent method naming
-	 *             scheme..
+	 *             scheme.
 	 */
 	@Deprecated
 	default void diffAndStore(@NonNull K keys, @NonNull K destKey) {
@@ -307,7 +307,7 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	Cursor<@NonNull V> scan(@NonNull ScanOptions options);
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();

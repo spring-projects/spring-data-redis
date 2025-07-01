@@ -36,4 +36,5 @@ public interface ReferenceResolver {
 	 */
 	@Nullable
 	Map<byte[], byte[]> resolveReference(Object id, String keyspace);
+
 }

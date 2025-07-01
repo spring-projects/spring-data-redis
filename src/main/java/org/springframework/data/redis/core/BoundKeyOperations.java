@@ -137,7 +137,7 @@ public interface BoundKeyOperations<K> {
 	void rename(K newKey);
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	RedisOperations<K, ?> getOperations();
 

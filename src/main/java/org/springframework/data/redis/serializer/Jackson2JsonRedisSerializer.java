@@ -17,7 +17,9 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -194,4 +196,5 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	protected JavaType getJavaType(Class<?> clazz) {
 		return TypeFactory.defaultInstance().constructType(clazz);
 	}
+
 }

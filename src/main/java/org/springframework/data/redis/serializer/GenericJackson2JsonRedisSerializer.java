@@ -20,7 +20,9 @@ import java.io.Serial;
 import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.KotlinDetector;
 import org.springframework.data.util.Lazy;
@@ -407,6 +409,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			cfg.initialize(parser);
 			return parser;
 		}
+
 	}
 
 	/**
@@ -446,6 +449,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			serialize(value, jsonGenerator, serializers);
 		}
+
 	}
 
 	/**
@@ -599,6 +603,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			return new GenericJackson2JsonRedisSerializer(objectMapper, this.reader, this.writer, this.typeHintPropertyName);
 		}
+
 	}
 
 	/**
@@ -669,5 +674,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			return type;
 		}
+
 	}
+
 }

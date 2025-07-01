@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.springframework.data.redis.connection.RedisListCommands.Direction;
+import static org.springframework.data.redis.connection.RedisListCommands.*;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
+
 import org.springframework.util.Assert;
 
 /**
@@ -201,6 +202,7 @@ public interface ListOperations<K, V> {
 		public static <K> MoveFrom<K> fromTail(K key) {
 			return new MoveFrom<>(key, Direction.last());
 		}
+
 	}
 
 	/**
@@ -559,6 +561,10 @@ public interface ListOperations<K, V> {
 		return rightPopAndLeftPush(sourceKey, destinationKey, TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
 	}
 
+	/**
+	 * @return the underlying {@link RedisOperations} used to execute commands.
+	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
+
 }

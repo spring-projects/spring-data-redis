@@ -74,4 +74,5 @@ public class SpelIndexDefinition extends RedisIndexDefinition {
 		result = 31 * result + ObjectUtils.nullSafeHashCode(expression);
 		return result;
 	}
+
 }

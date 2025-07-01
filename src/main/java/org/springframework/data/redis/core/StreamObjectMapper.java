@@ -207,4 +207,5 @@ class StreamObjectMapper {
 	ConversionService getConversionService() {
 		return conversionService;
 	}
+
 }

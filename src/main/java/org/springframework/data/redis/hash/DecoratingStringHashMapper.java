@@ -55,4 +55,5 @@ public class DecoratingStringHashMapper<T> implements HashMapper<T, String, Stri
 
 		return flatten;
 	}
+
 }

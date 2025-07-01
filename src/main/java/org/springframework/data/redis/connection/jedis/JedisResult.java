@@ -46,7 +46,7 @@ class JedisResult<T, R> extends FutureResult<Response<?>> {
 		this(resultHolder, () -> null, convertPipelineAndTxResults, converter);
 	}
 
-	JedisResult(Response<T> resultHolder, Supplier<R> defaultReturnValue, boolean convertPipelineAndTxResults,
+	JedisResult(Response<T> resultHolder, Supplier<@Nullable R> defaultReturnValue, boolean convertPipelineAndTxResults,
 			@Nullable Converter<T, ?> converter) {
 
 		super(resultHolder, converter, defaultReturnValue);
@@ -89,7 +89,7 @@ class JedisResult<T, R> extends FutureResult<Response<?>> {
 		private final Response<T> response;
 		private Converter<T, R> converter;
 		private boolean convertPipelineAndTxResults = false;
-		private Supplier<R> nullValueDefault = () -> null;
+		private Supplier<@Nullable R> nullValueDefault = () -> null;
 
 		@SuppressWarnings("unchecked")
 		JedisResultBuilder(Response<T> response) {

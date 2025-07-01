@@ -34,6 +34,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tihomir Mateev
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisHashCommands {

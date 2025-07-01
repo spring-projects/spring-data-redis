@@ -364,7 +364,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <T> @Nullable T execute(@NonNull RedisCallback<T> action) {
+	public <T extends @Nullable Object> T execute(@NonNull RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
 
@@ -376,7 +376,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
 	 * @return object returned by the action
 	 */
-	public <T> @Nullable T execute(@NonNull RedisCallback<T> action, boolean exposeConnection) {
+	public <T extends @Nullable Object> T execute(@NonNull RedisCallback<T> action, boolean exposeConnection) {
 		return execute(action, exposeConnection, false);
 	}
 
@@ -390,7 +390,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param pipeline whether to pipeline or not the connection for the execution
 	 * @return object returned by the action
 	 */
-	public <T> @Nullable T execute(@NonNull RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
+	public <T extends @Nullable Object> T execute(@NonNull RedisCallback<T> action, boolean exposeConnection,
+			boolean pipeline) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
@@ -423,7 +424,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <T> T execute(@NonNull SessionCallback<T> session) {
+	public <T extends @Nullable Object> T execute(@NonNull SessionCallback<T> session) {
 
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(session, "Callback object must not be null");
@@ -507,13 +508,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
+	public <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
 			@NonNull Object @NonNull... args) {
 		return scriptExecutor.execute(script, keys, args);
 	}
 
 	@Override
-	public <T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+	public <T extends @Nullable Object> T execute(@NonNull RedisScript<T> script,
+			@NonNull RedisSerializer<?> argsSerializer,
 			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args) {
 		return scriptExecutor.execute(script, argsSerializer, resultSerializer, keys, args);
 	}
@@ -887,7 +889,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public void unwatch() {
-
 		executeWithoutResult(RedisTxCommands::unwatch);
 	}
 

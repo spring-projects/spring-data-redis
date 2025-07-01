@@ -195,6 +195,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 		}
 
 		public abstract T doInRedis(RedisKeyValueAdapter adapter);
+
 	}
 
 }

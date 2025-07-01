@@ -43,7 +43,9 @@ class IndexedDataFactoryProvider {
 	}
 
 	static interface IndexedDataFactory {
+
 		IndexedData createIndexedDataFor(Object value);
+
 	}
 
 	/**
@@ -65,6 +67,7 @@ class IndexedDataFactoryProvider {
 			return new SimpleIndexedPropertyValue(indexDefinition.getKeyspace(), indexDefinition.getIndexName(),
 					indexDefinition.valueTransformer().convert(value));
 		}
+
 	}
 
 	/**
@@ -85,5 +88,7 @@ class IndexedDataFactoryProvider {
 			return new GeoIndexedPropertyValue(indexDefinition.getKeyspace(), indexDefinition.getPath(),
 					(Point) indexDefinition.valueTransformer().convert(value));
 		}
+
 	}
+
 }

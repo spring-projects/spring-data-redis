@@ -119,7 +119,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	public static enum NoOpValueTransformer implements IndexValueTransformer {
+	public enum NoOpValueTransformer implements IndexValueTransformer {
 		INSTANCE;
 
 		@Override
@@ -132,7 +132,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	public static enum LowercaseIndexValueTransformer implements IndexValueTransformer {
+	public enum LowercaseIndexValueTransformer implements IndexValueTransformer {
 		INSTANCE;
 
 		@Override
@@ -194,6 +194,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 			}
 			return false;
 		}
+
 	}
 
 	/**
@@ -217,5 +218,7 @@ public abstract class RedisIndexDefinition implements IndexDefinition {
 
 			return ObjectUtils.nullSafeEquals(context.getPath(), path);
 		}
+
 	}
+
 }

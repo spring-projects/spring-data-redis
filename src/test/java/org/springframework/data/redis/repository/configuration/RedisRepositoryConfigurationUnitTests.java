@@ -55,6 +55,7 @@ public class RedisRepositoryConfigurationUnitTests {
 		RedisConnection connection = mock(RedisConnection.class);
 
 		when(template.getConnectionFactory()).thenReturn(connectionFactory);
+		when(template.getRequiredConnectionFactory()).thenReturn(connectionFactory);
 		when(connectionFactory.getConnection()).thenReturn(connection);
 
 		return template;

@@ -82,8 +82,8 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 
 
 	@Override
-	public byte @Nullable[] serialize(@Nullable String value) {
-		return (value == null ? null : value.getBytes(charset));
+	public byte[] serialize(@Nullable String value) {
+		return (value == null ? SerializationUtils.EMPTY_ARRAY : value.getBytes(charset));
 	}
 
 	@Nullable
@@ -96,4 +96,5 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	public Class<?> getTargetType() {
 		return String.class;
 	}
+
 }

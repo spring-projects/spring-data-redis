@@ -77,4 +77,5 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 		this.by = keyPattern;
 		return this;
 	}
+
 }

@@ -326,6 +326,7 @@ class JedisClusterHashCommands implements RedisHashCommands {
 
 	@Override
 	public List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields) {
+
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 

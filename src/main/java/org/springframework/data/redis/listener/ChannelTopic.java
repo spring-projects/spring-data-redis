@@ -47,4 +47,5 @@ public class ChannelTopic extends AbstractTopic {
 	public static ChannelTopic of(String channelName) {
 		return new ChannelTopic(channelName);
 	}
+
 }

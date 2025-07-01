@@ -241,7 +241,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	}
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	@NonNull
 	RedisOperations<H, ?> getOperations();

@@ -330,4 +330,5 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 	enum CursorState {
 		READY, OPEN, FINISHED, CLOSED;
 	}
+
 }

@@ -109,4 +109,5 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		sb.append(']');
 		return sb.toString();
 	}
+
 }

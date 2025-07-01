@@ -232,7 +232,6 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		/**
 		 * @return a new builder for {@link StreamReceiverOptions}.
 		 */
-		@SuppressWarnings("unchecked")
 		public static <T> StreamReceiverOptionsBuilder<String, ObjectRecord<String, T>> builder(
 				HashMapper<T, byte[], byte[]> hashMapper) {
 
@@ -504,5 +503,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 					hashValueSerializer,
 					targetType, hashMapper);
 		}
+
 	}
+
 }

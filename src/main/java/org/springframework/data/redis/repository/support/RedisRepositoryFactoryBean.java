@@ -53,4 +53,5 @@ public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 			Class<? extends AbstractQueryCreator<?, ?>> queryCreator, Class<? extends RepositoryQuery> repositoryQueryType) {
 		return new RedisRepositoryFactory(operations, queryCreator, repositoryQueryType);
 	}
+
 }

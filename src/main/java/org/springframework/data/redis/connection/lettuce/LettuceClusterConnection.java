@@ -34,8 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -74,13 +74,11 @@ public class LettuceClusterConnection extends LettuceConnection
 	static final ExceptionTranslationStrategy exceptionConverter = new PassThroughExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
 
-	private boolean disposeClusterCommandExecutorOnClose;
-
-	private ClusterCommandExecutor clusterCommandExecutor;
-
-	private ClusterTopologyProvider topologyProvider;
-
 	private final Log log = LogFactory.getLog(getClass());
+
+	private final boolean disposeClusterCommandExecutorOnClose;
+	private final ClusterCommandExecutor clusterCommandExecutor;
+	private final ClusterTopologyProvider topologyProvider;
 
 	private final LettuceClusterGeoCommands geoCommands = new LettuceClusterGeoCommands(this);
 	private final LettuceClusterHashCommands hashCommands = new LettuceClusterHashCommands(this);
@@ -423,7 +421,8 @@ public class LettuceClusterConnection extends LettuceConnection
 		Assert.hasText(node.getHost(), "Node to meet cluster must have a host");
 		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0");
 
-		LettuceClusterCommandCallback<String> command = client -> client.clusterMeet(node.getHost(), node.getPort());
+		LettuceClusterCommandCallback<String> command = client -> client.clusterMeet(node.getRequiredHost(),
+				node.getPort());
 
 		this.clusterCommandExecutor.executeCommandOnAllNodes(command);
 	}
@@ -581,7 +580,7 @@ public class LettuceClusterConnection extends LettuceConnection
 				}
 			}
 
-			return this.connection.getConnection(node.getHost(), node.getPort()).sync();
+			return this.connection.getConnection(node.getRequiredHost(), node.getRequiredPort()).sync();
 		}
 
 		@Override

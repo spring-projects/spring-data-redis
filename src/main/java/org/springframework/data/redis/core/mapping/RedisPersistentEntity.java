@@ -71,4 +71,5 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T, Re
 	default boolean isExpiring() {
 		return getTimeToLiveAccessor().isExpiringEntity(getType());
 	}
+
 }

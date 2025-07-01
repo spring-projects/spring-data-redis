@@ -1020,7 +1020,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Long reverseRangeAndStoreByScore(@NonNull K dstKey, @NonNull Range<? extends Number> range, @NonNull Limit limit);
 
 	/**
-	 * @return never {@literal null}.
+	 * @return the underlying {@link RedisOperations} used to execute commands.
 	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();

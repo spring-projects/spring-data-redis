@@ -27,7 +27,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author John Blum
  */
-public interface RedisCallback<T> {
+public interface RedisCallback<T extends @Nullable Object> {
 
 	/**
 	 * Method called by {@link RedisTemplate} with an active {@link RedisConnection}.
@@ -40,7 +40,6 @@ public interface RedisCallback<T> {
 	 * @throws DataAccessException if the operation performed by the callback fails to execute in the context of Redis
 	 *           using the given {@link RedisConnection}.
 	 */
-	@Nullable
 	T doInRedis(RedisConnection connection) throws DataAccessException;
 
 }

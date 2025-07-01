@@ -47,4 +47,5 @@ public interface RedisConverter
 	 * @since 3.2.4
 	 */
 	EntityInstantiators getEntityInstantiators();
+
 }

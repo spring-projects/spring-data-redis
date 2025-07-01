@@ -277,5 +277,7 @@ public class RedisClientInfo {
 			}
 			return new RedisClientInfo(properties);
 		}
+
 	}
+
 }

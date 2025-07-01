@@ -98,7 +98,7 @@ public class ExampleQueryMapper {
 			return;
 		}
 
-		PersistentPropertyAccessor propertyAccessor = persistentEntity.getPropertyAccessor(probe);
+		PersistentPropertyAccessor<?> propertyAccessor = persistentEntity.getPropertyAccessor(probe);
 
 		Set<IndexedData> indexedData = getIndexedData(path, probe, persistentEntity);
 		Set<String> indexNames = indexedData.stream().map(IndexedData::getIndexName).distinct().collect(Collectors.toSet());
@@ -121,7 +121,7 @@ public class ExampleQueryMapper {
 	}
 
 	private void applyPropertySpec(String path, Predicate<String> hasIndex, ExampleMatcherAccessor exampleSpecAccessor,
-			PersistentPropertyAccessor propertyAccessor, RedisPersistentProperty property, MatchMode matchMode,
+			PersistentPropertyAccessor<?> propertyAccessor, RedisPersistentProperty property, MatchMode matchMode,
 			RedisOperationChain chain) {
 
 		StringMatcher stringMatcher = exampleSpecAccessor.getDefaultStringMatcher();
@@ -175,4 +175,5 @@ public class ExampleQueryMapper {
 				: indexResolver.resolveIndexesFor(keySpace, path, persistentEntity.getTypeInformation(),
 						probe);
 	}
+
 }

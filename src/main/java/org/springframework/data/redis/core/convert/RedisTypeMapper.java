@@ -33,4 +33,5 @@ public interface RedisTypeMapper extends TypeMapper<BucketPropertyPath> {
 	 * @return {@literal true} if the given {@code key} is the type key.
 	 */
 	boolean isTypeKey(String key);
+
 }

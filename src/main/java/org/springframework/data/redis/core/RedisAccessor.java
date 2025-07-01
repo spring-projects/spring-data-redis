@@ -75,4 +75,5 @@ public abstract class RedisAccessor implements InitializingBean {
 	public void setConnectionFactory(@Nullable RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
+
 }

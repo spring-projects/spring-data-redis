@@ -72,7 +72,7 @@ import org.springframework.util.Assert;
  */
 public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
-	@Nullable private volatile static ObjectHashMapper sharedInstance;
+	private volatile static @Nullable ObjectHashMapper sharedInstance;
 
 	private final RedisConverter converter;
 
@@ -186,6 +186,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 		public Map<byte[], byte[]> resolveReference(Object id, String keyspace) {
 			return NO_REFERENCE;
 		}
+
 	}
 
 	/**
@@ -207,5 +208,7 @@ public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 				@Nullable Object value) {
 			return NO_INDEXES;
 		}
+
 	}
+
 }

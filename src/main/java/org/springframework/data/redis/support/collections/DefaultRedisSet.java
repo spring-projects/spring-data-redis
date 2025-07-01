@@ -75,23 +75,23 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	@Override
 	public Set<E> diff(RedisSet<?> set) {
-		return boundSetOps.diff(set.getKey());
+		return boundSetOps.difference(set.getKey());
 	}
 
 	@Override
 	public Set<E> diff(Collection<? extends RedisSet<?>> sets) {
-		return boundSetOps.diff(CollectionUtils.extractKeys(sets));
+		return boundSetOps.difference(CollectionUtils.extractKeys(sets));
 	}
 
 	@Override
 	public RedisSet<E> diffAndStore(RedisSet<?> set, String destKey) {
-		boundSetOps.diffAndStore(set.getKey(), destKey);
+		boundSetOps.differenceAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
 	@Override
 	public RedisSet<E> diffAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
-		boundSetOps.diffAndStore(CollectionUtils.extractKeys(sets), destKey);
+		boundSetOps.differenceAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 

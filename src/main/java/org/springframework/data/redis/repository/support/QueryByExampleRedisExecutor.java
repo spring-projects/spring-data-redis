@@ -122,7 +122,7 @@ public class QueryByExampleRedisExecutor<T>
 		return Optional.ofNullable(doFindOne(example));
 	}
 
-	private @Nullable <S extends T> S doFindOne(Example<S> example) {
+	private <S extends T> @Nullable S doFindOne(Example<S> example) {
 
 		Iterator<S> iterator = doFind(example);
 
@@ -326,5 +326,7 @@ public class QueryByExampleRedisExecutor<T>
 
 			return o -> (P) converter.convert(o);
 		}
+
 	}
+
 }

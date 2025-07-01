@@ -59,4 +59,5 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 	protected RedisConnection preProcessConnection(RedisConnection connection, boolean existingConnection) {
 		return new DefaultStringRedisConnection(connection);
 	}
+
 }

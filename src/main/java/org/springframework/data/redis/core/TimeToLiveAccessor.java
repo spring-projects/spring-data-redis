@@ -38,4 +38,5 @@ public interface TimeToLiveAccessor {
 	 * @since 2.3
 	 */
 	boolean isExpiringEntity(Class<?> type);
+
 }

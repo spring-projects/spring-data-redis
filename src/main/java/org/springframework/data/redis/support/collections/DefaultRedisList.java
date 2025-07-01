@@ -157,7 +157,6 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void potentiallyCap(RedisList<E> destination) {
 		if (destination instanceof DefaultRedisList<?> redisList) {
 			redisList.cap();

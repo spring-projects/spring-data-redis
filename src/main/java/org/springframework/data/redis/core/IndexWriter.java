@@ -306,4 +306,5 @@ class IndexWriter {
 
 		CREATE, UPDATE, PARTIAL_UPDATE
 	}
+
 }

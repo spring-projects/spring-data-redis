@@ -44,4 +44,5 @@ public class RadiusShape implements GeoShape {
 	public Metric getMetric() {
 		return radius.getMetric();
 	}
+
 }

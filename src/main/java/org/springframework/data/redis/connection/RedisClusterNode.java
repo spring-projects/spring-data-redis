@@ -388,7 +388,7 @@ public class RedisClusterNode extends RedisNode {
 
 			RedisClusterNode node;
 			if (base.getHost() != null) {
-				node = new RedisClusterNode(base.getHost(), base.getPort(), slotRange);
+				node = new RedisClusterNode(base.getRequiredHost(), base.getRequiredPort(), slotRange);
 			} else {
 				node = new RedisClusterNode(slotRange);
 			}

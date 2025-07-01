@@ -55,4 +55,5 @@ public class MappingConfiguration {
 	public KeyspaceConfiguration getKeyspaceConfiguration() {
 		return keyspaceConfiguration;
 	}
+
 }

@@ -31,12 +31,19 @@ import org.springframework.util.Assert;
 public class ClusterInfo {
 
 	public static enum Info {
-		STATE("cluster_state"), SLOTS_ASSIGNED("cluster_slots_assigned"), SLOTS_OK("cluster_slots_ok"), SLOTS_PFAIL(
-				"cluster_slots_pfail"), SLOTS_FAIL("cluster_slots_fail"), KNOWN_NODES("cluster_known_nodes"), SIZE(
-						"cluster_size"), CURRENT_EPOCH("cluster_current_epoch"), MY_EPOCH("cluster_my_epoch"), MESSAGES_SENT(
-								"cluster_stats_messages_sent"), MESSAGES_RECEIVED("cluster_stats_messages_received");
+		STATE("cluster_state"), //
+		SLOTS_ASSIGNED("cluster_slots_assigned"), //
+		SLOTS_OK("cluster_slots_ok"), //
+		SLOTS_PFAIL("cluster_slots_pfail"), //
+		SLOTS_FAIL("cluster_slots_fail"), //
+		KNOWN_NODES("cluster_known_nodes"), //
+		SIZE("cluster_size"), //
+		CURRENT_EPOCH("cluster_current_epoch"), //
+		MY_EPOCH("cluster_my_epoch"), //
+		MESSAGES_SENT("cluster_stats_messages_sent"), //
+		MESSAGES_RECEIVED("cluster_stats_messages_received");
 
-		String key;
+		final String key;
 
 		Info(String key) {
 			this.key = key;

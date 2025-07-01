@@ -36,4 +36,5 @@ public interface SortCriterion<K> {
 	SortCriterion<K> get(String pattern);
 
 	SortQuery<K> build();
+
 }

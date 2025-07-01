@@ -29,6 +29,8 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 
@@ -39,11 +41,22 @@ import org.springframework.data.redis.RedisSystemException;
  * @author Thomas Darimont
  * @author Mark Paluch
  */
-public class LettuceExceptionConverter implements Converter<Exception, DataAccessException> {
+public class LettuceExceptionConverter
+		implements PersistenceExceptionTranslator, ExceptionTranslationStrategy, Converter<Exception, DataAccessException> {
 
 	static final LettuceExceptionConverter INSTANCE = new LettuceExceptionConverter();
 
-	public @Nullable DataAccessException convert(@Nullable Exception ex) {
+	@Override
+	public @Nullable DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+		return convert(ex);
+	}
+
+	@Override
+	public @Nullable DataAccessException translate(Exception e) {
+		return convert(e);
+	}
+
+	public @Nullable DataAccessException convert(Exception ex) {
 
 		if (ex instanceof ExecutionException || ex instanceof RedisCommandExecutionException) {
 

@@ -27,6 +27,7 @@ import org.jspecify.annotations.NullUnmarked;
  * @author Christoph Strobl
  * @author David Liu
  * @author Mark Paluch
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisScriptingCommands {

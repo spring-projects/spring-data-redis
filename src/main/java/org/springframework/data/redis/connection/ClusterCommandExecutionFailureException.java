@@ -30,7 +30,7 @@ import org.springframework.dao.UncategorizedDataAccessException;
  */
 public class ClusterCommandExecutionFailureException extends UncategorizedDataAccessException {
 
-	@Serial private static final long serialVersionUID = 5727044227040368955L;
+	private static final @Serial long serialVersionUID = 5727044227040368955L;
 
 	/**
 	 * Creates new {@link ClusterCommandExecutionFailureException}.

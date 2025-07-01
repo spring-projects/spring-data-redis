@@ -137,4 +137,5 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	private static boolean containsExactlyOne(Collection<?> collection) {
 		return !CollectionUtils.isEmpty(collection) && collection.size() == 1;
 	}
+
 }

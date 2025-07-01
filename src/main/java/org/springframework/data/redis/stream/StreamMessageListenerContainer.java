@@ -296,6 +296,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		public Predicate<Throwable> getCancelSubscriptionOnError() {
 			return cancelSubscriptionOnError;
 		}
+
 	}
 
 	/**
@@ -327,6 +328,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		public boolean isAutoAcknowledge() {
 			return autoAck;
 		}
+
 	}
 
 	/**
@@ -480,6 +482,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			Assert.notNull(consumer, "Consumer must be set");
 			return new ConsumerStreamReadRequest<>(streamOffset, errorHandler, cancelSubscriptionOnError, consumer, autoAck);
 		}
+
 	}
 
 	/**
@@ -501,7 +504,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private final ErrorHandler errorHandler;
 		private final Executor executor;
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		private StreamMessageListenerContainerOptions(Duration pollTimeout, @Nullable Integer batchSize,
 				RedisSerializer<K> keySerializer, RedisSerializer<Object> hashKeySerializer,
 				RedisSerializer<Object> hashValueSerializer, @Nullable Class<?> targetType,
@@ -608,9 +611,9 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 
 		private Duration pollTimeout = Duration.ofSeconds(2);
 		private @Nullable Integer batchSize;
-		private RedisSerializer<K> keySerializer;
-		private RedisSerializer<Object> hashKeySerializer;
-		private RedisSerializer<Object> hashValueSerializer;
+		private @Nullable RedisSerializer<K> keySerializer;
+		private @Nullable RedisSerializer<Object> hashKeySerializer;
+		private @Nullable RedisSerializer<Object> hashValueSerializer;
 		private @Nullable HashMapper<V, ?, ?> hashMapper;
 		private @Nullable Class<?> targetType;
 		private ErrorHandler errorHandler = LoggingErrorHandler.INSTANCE;
@@ -682,6 +685,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <T> StreamMessageListenerContainerOptionsBuilder<T, MapRecord<T, T, T>> serializer(
 				RedisSerializer<T> serializer) {
 
@@ -699,6 +703,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <NK, NV extends Record<NK, ?>> StreamMessageListenerContainerOptionsBuilder<NK, NV> keySerializer(
 				RedisSerializer<NK> serializer) {
 
@@ -714,6 +719,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <HK, HV> StreamMessageListenerContainerOptionsBuilder<K, MapRecord<K, HK, HV>> hashKeySerializer(
 				RedisSerializer<HK> serializer) {
 
@@ -729,6 +735,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param serializer must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <HK, HV> StreamMessageListenerContainerOptionsBuilder<K, MapRecord<K, HK, HV>> hashValueSerializer(
 				RedisSerializer<HV> serializer) {
 
@@ -744,7 +751,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param targetType must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <NV> StreamMessageListenerContainerOptionsBuilder<K, ObjectRecord<K, NV>> targetType(Class<NV> targetType) {
 
 			Assert.notNull(targetType, "Target type must not be null");
@@ -767,7 +774,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @param hashMapper must not be {@literal null}.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public <NV> StreamMessageListenerContainerOptionsBuilder<K, ObjectRecord<K, NV>> objectMapper(
 				HashMapper<NV, ?, ?> hashMapper) {
 
@@ -783,8 +790,15 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		 * @return new {@link StreamMessageListenerContainerOptions}.
 		 */
 		public StreamMessageListenerContainerOptions<K, V> build() {
+
+			Assert.notNull(keySerializer, "Key Serializer must not be null");
+			Assert.notNull(hashKeySerializer, "Hash Key Serializer must not be null");
+			Assert.notNull(hashValueSerializer, "Hash Value Serializer must not be null");
+
 			return new StreamMessageListenerContainerOptions<>(pollTimeout, batchSize, keySerializer, hashKeySerializer,
 					hashValueSerializer, targetType, hashMapper, errorHandler, executor);
 		}
+
 	}
+
 }

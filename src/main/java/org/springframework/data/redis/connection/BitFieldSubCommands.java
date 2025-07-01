@@ -232,7 +232,7 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	 */
 	public static class BitFieldGetBuilder {
 
-		private BitFieldSubCommands ref;
+		private final BitFieldSubCommands ref;
 
 		BitFieldGet get = new BitFieldGet();
 

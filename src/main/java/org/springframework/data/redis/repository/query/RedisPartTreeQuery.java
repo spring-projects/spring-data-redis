@@ -148,5 +148,7 @@ public class RedisPartTreeQuery extends KeyValuePartTreeQuery {
 
 			return processor.processResult(source, converter);
 		}
+
 	}
+
 }

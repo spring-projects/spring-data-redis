@@ -18,9 +18,9 @@ package org.springframework.data.redis.connection.stream;
 import java.nio.ByteBuffer;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
-import org.springframework.lang.Contract;
 
 /**
  * Utility methods for stream serialization.
@@ -39,7 +39,7 @@ class StreamSerialization {
 	 * @return the serialized (binary) representation of {@code value}.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes", "NullAway" })
-	static byte@Nullable[] serialize(@Nullable RedisSerializer<?> serializer, Object value) {
+	static byte @Nullable [] serialize(@Nullable RedisSerializer<?> serializer, Object value) {
 		return canSerialize(serializer, value) ? ((RedisSerializer) serializer).serialize(value) : (byte[]) value;
 	}
 

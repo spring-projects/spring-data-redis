@@ -326,12 +326,12 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * Return an {@link Collections#unmodifiableMap(Map) unmodifiable Map} containing {@link String caches name} mapped to
 	 * the {@link RedisCache} {@link RedisCacheConfiguration configuration}.
 	 *
-	 * @return unmodifiable {@link Map} containing {@link String cache name}
-	 * / {@link RedisCacheConfiguration configuration} pairs.
+	 * @return unmodifiable {@link Map} containing {@link String cache name} to {@link RedisCacheConfiguration
+	 *         configuration} pairs.
 	 */
-	public Map<String, RedisCacheConfiguration> getCacheConfigurations() {
+	public Map<String, @Nullable RedisCacheConfiguration> getCacheConfigurations() {
 
-		Map<String, RedisCacheConfiguration> cacheConfigurationMap = new HashMap<>(getCacheNames().size());
+		Map<String, @Nullable RedisCacheConfiguration> cacheConfigurationMap = new HashMap<>(getCacheNames().size());
 
 		getCacheNames().forEach(cacheName -> {
 			RedisCache cache = (RedisCache) lookupCache(cacheName);
@@ -412,42 +412,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public static class RedisCacheManagerBuilder {
 
-		/**
-		 * Factory method returning a new {@literal Builder} used to create and configure a {@link RedisCacheManager} using
-		 * the given {@link RedisCacheWriter}.
-		 *
-		 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations
-		 * by executing appropriate Redis commands; must not be {@literal null}.
-		 * @return new {@link RedisCacheManagerBuilder}.
-		 * @throws IllegalArgumentException if the given {@link RedisCacheWriter} is {@literal null}.
-		 * @see org.springframework.data.redis.cache.RedisCacheWriter
-		 */
-		public static RedisCacheManagerBuilder fromCacheWriter(RedisCacheWriter cacheWriter) {
-
-			Assert.notNull(cacheWriter, "CacheWriter must not be null");
-
-			return new RedisCacheManagerBuilder(cacheWriter);
-		}
-
-		/**
-		 * Factory method returning a new {@literal Builder} used to create and configure a {@link RedisCacheManager} using
-		 * the given {@link RedisConnectionFactory}.
-		 *
-		 * @param connectionFactory {@link RedisConnectionFactory} used by the {@link RedisCacheManager}
-		 * to acquire connections to Redis when performing {@link RedisCache} operations; must not be {@literal null}.
-		 * @return new {@link RedisCacheManagerBuilder}.
-		 * @throws IllegalArgumentException if the given {@link RedisConnectionFactory} is {@literal null}.
-		 * @see org.springframework.data.redis.connection.RedisConnectionFactory
-		 */
-		public static RedisCacheManagerBuilder fromConnectionFactory(RedisConnectionFactory connectionFactory) {
-
-			Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-
-			RedisCacheWriter cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
-
-			return new RedisCacheManagerBuilder(cacheWriter);
-		}
-
 		private boolean allowRuntimeCacheCreation = true;
 		private boolean enableTransactions;
 
@@ -463,6 +427,42 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		private RedisCacheManagerBuilder(RedisCacheWriter cacheWriter) {
 			this.cacheWriter = cacheWriter;
+		}
+
+		/**
+		 * Factory method returning a new {@literal Builder} used to create and configure a {@link RedisCacheManager} using
+		 * the given {@link RedisCacheWriter}.
+		 *
+		 * @param cacheWriter {@link RedisCacheWriter} used to perform {@link RedisCache} operations by executing
+		 *          appropriate Redis commands; must not be {@literal null}.
+		 * @return new {@link RedisCacheManagerBuilder}.
+		 * @throws IllegalArgumentException if the given {@link RedisCacheWriter} is {@literal null}.
+		 * @see org.springframework.data.redis.cache.RedisCacheWriter
+		 */
+		public static RedisCacheManagerBuilder fromCacheWriter(RedisCacheWriter cacheWriter) {
+
+			Assert.notNull(cacheWriter, "CacheWriter must not be null");
+
+			return new RedisCacheManagerBuilder(cacheWriter);
+		}
+
+		/**
+		 * Factory method returning a new {@literal Builder} used to create and configure a {@link RedisCacheManager} using
+		 * the given {@link RedisConnectionFactory}.
+		 *
+		 * @param connectionFactory {@link RedisConnectionFactory} used by the {@link RedisCacheManager} to acquire
+		 *          connections to Redis when performing {@link RedisCache} operations; must not be {@literal null}.
+		 * @return new {@link RedisCacheManagerBuilder}.
+		 * @throws IllegalArgumentException if the given {@link RedisConnectionFactory} is {@literal null}.
+		 * @see org.springframework.data.redis.connection.RedisConnectionFactory
+		 */
+		public static RedisCacheManagerBuilder fromConnectionFactory(RedisConnectionFactory connectionFactory) {
+
+			Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
+
+			RedisCacheWriter cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
+
+			return new RedisCacheManagerBuilder(cacheWriter);
 		}
 
 		/**

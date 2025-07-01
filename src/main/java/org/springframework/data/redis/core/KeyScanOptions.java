@@ -47,7 +47,7 @@ public class KeyScanOptions extends ScanOptions {
 	/**
 	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
 	 *
-	 * @param type 
+	 * @param type
 	 * @return
 	 */
 	public static ScanOptionsBuilder scanOptions(DataType type) {
@@ -73,4 +73,5 @@ public class KeyScanOptions extends ScanOptions {
 
 		return joiner.toString();
 	}
+
 }

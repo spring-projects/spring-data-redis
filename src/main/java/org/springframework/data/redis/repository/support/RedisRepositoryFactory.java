@@ -102,4 +102,5 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 
 		return new MappingRedisEntityInformation<>(entity);
 	}
+
 }

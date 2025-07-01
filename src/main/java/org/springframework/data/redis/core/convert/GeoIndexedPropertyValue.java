@@ -105,4 +105,5 @@ public class GeoIndexedPropertyValue implements IndexedData {
 		return "GeoIndexedPropertyValue(keyspace=" + this.getKeyspace() + ", indexName=" + this.getIndexName() + ", value="
 				+ this.getValue() + ")";
 	}
+
 }

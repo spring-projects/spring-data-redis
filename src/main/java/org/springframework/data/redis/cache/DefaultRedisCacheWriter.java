@@ -129,12 +129,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public byte[] get(String name, byte[] key) {
+	public byte @Nullable [] get(String name, byte[] key) {
 		return get(name, key, null);
 	}
 
 	@Override
-	public byte[] get(String name, byte[] key, @Nullable Duration ttl) {
+	public byte @Nullable [] get(String name, byte[] key, @Nullable Duration ttl) {
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
@@ -142,12 +142,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return execute(name, connection -> doGet(connection, name, key, ttl));
 	}
 
-
 	@SuppressWarnings("NullAway")
 	private byte @Nullable[] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
 
-		byte[] result = shouldExpireWithin(ttl) ? connection.stringCommands().getEx(key, Expiration.from(ttl))
-				: connection.stringCommands().get(key);
+		RedisStringCommands commands = connection.stringCommands();
+		byte[] result = shouldExpireWithin(ttl) ? commands.getEx(key, Expiration.from(ttl)) : commands.get(key);
 
 		statistics.incGets(name);
 

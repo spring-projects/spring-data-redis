@@ -23,7 +23,6 @@ import reactor.util.concurrent.Queues;
 import reactor.util.context.Context;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -32,6 +31,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 
@@ -71,7 +71,6 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 	 * @param connectionFactory must not be {@literal null}.
 	 * @param options must not be {@literal null}.
 	 */
-	@SuppressWarnings("unchecked")
 	DefaultStreamReceiver(ReactiveRedisConnectionFactory connectionFactory, StreamReceiverOptions<K, V> options) {
 
 		receiverOptions = options;
@@ -91,7 +90,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		}
 
 		this.readOptions = readOptions;
-		this.template = new ReactiveRedisTemplate(connectionFactory, serializationContext);
+		this.template = new ReactiveRedisTemplate<>(connectionFactory, serializationContext);
 
 		if (options.hasHashMapper()) {
 			this.streamOperations = this.template.opsForStream(options.getRequiredHashMapper());
@@ -179,7 +178,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 		Function<ByteBufferRecord, MapRecord<K, Object, Object>> deserializer = streamOperations::deserializeRecord;
 
-		if (receiverOptions.getHashMapper() == null) {
+		if (!receiverOptions.hasHashMapper()) {
 			return (Function) deserializer;
 		}
 
@@ -367,6 +366,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 				public Context currentContext() {
 					return sink.currentContext();
 				}
+
 			};
 		}
 
@@ -465,6 +465,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 				}
 			}
 		}
+
 	}
 
 	/**
@@ -478,9 +479,9 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 		private final ReadOffsetStrategy readOffsetStrategy;
 		private final AtomicReference<ReadOffset> currentOffset;
-		private final Optional<Consumer> consumer;
+		private final @Nullable Consumer consumer;
 
-		private PollState(Optional<Consumer> consumer, ReadOffsetStrategy readOffsetStrategy, ReadOffset currentOffset) {
+		private PollState(@Nullable Consumer consumer, ReadOffsetStrategy readOffsetStrategy, ReadOffset currentOffset) {
 
 			this.readOffsetStrategy = readOffsetStrategy;
 			this.currentOffset = new AtomicReference<>(currentOffset);
@@ -496,7 +497,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		static PollState standalone(ReadOffset offset) {
 
 			ReadOffsetStrategy strategy = ReadOffsetStrategy.getStrategy(offset);
-			return new PollState(Optional.empty(), strategy, strategy.getFirst(offset, Optional.empty()));
+			return new PollState(null, strategy, strategy.getFirst(offset, null));
 		}
 
 		/**
@@ -509,8 +510,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		static PollState consumer(Consumer consumer, ReadOffset offset) {
 
 			ReadOffsetStrategy strategy = ReadOffsetStrategy.getStrategy(offset);
-			Optional<Consumer> optionalConsumer = Optional.of(consumer);
-			return new PollState(optionalConsumer, strategy, strategy.getFirst(offset, optionalConsumer));
+			return new PollState(consumer, strategy, strategy.getFirst(offset, consumer));
 		}
 
 		/**
@@ -605,5 +605,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		ReadOffset getCurrentReadOffset() {
 			return currentOffset.get();
 		}
+
 	}
+
 }

@@ -296,5 +296,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 			return new KeySelector(keys, remainder);
 		}
+
 	}
+
 }

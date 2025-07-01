@@ -86,7 +86,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 
 	@Override
 	@SuppressWarnings("NullAway")
-	public byte @Nullable [] serialize(@Nullable Object value) throws SerializationException {
+	public byte[] serialize(@Nullable Object value) throws SerializationException {
 
 		if (value == null) {
 			return SerializationUtils.EMPTY_ARRAY;
@@ -117,4 +117,5 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 			throw new SerializationException("Cannot deserialize bytes", ex);
 		}
 	}
+
 }

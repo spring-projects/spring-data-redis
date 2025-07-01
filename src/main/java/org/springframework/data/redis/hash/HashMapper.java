@@ -46,4 +46,5 @@ public interface HashMapper<T, K, V> {
 	 * @return
 	 */
 	@Nullable T fromHash(Map<K, V> hash);
+
 }

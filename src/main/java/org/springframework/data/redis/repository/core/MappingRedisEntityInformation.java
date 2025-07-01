@@ -45,4 +45,5 @@ public class MappingRedisEntityInformation<T, ID> extends PersistentEntityInform
 							.formatted(entity.getName()));
 		}
 	}
+
 }

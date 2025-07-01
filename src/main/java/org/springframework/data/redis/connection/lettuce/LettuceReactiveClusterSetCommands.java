@@ -185,7 +185,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 			});
 
 			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
-
 		}));
 	}
 
@@ -237,6 +236,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 						if (!exists) {
 							return Mono.just(Boolean.FALSE);
 						}
+
 						return cmd.sismember(command.getDestination(), command.getValue()).flatMap(existsInTarget -> {
 
 							Mono<Boolean> tmp = cmd.srem(command.getKey(), command.getValue()).map(nrRemoved -> nrRemoved > 0);
@@ -246,7 +246,6 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 							}
 							return tmp;
 						});
-
 					});
 
 			return result.defaultIfEmpty(Boolean.FALSE).map(value -> new BooleanResponse<>(command, value));

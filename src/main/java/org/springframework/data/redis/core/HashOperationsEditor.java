@@ -31,4 +31,5 @@ class HashOperationsEditor extends PropertyEditorSupport {
 			throw new IllegalArgumentException("Editor supports only conversion of type " + RedisOperations.class);
 		}
 	}
+
 }

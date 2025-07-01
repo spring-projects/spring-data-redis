@@ -51,7 +51,7 @@ public class JedisScriptReturnConverter implements Converter<Object, Object> {
 			}
 			return ((Long) result == 1);
 		}
-		if (returnType == ReturnType.MULTI) {
+		if (returnType == ReturnType.MULTI && result != null) {
 			List<Object> resultList = (List<Object>) result;
 			List<Object> convertedResults = new ArrayList<>();
 			for (Object res : resultList) {

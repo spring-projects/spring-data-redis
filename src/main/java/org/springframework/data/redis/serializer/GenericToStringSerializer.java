@@ -85,7 +85,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	public byte @Nullable [] serialize(@Nullable T value) {
 
 		if (value == null) {
-			return null;
+			return SerializationUtils.EMPTY_ARRAY;
 		}
 
 		String string = converter.convert(value, String.class);
@@ -129,5 +129,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 			return conversionService != null ? conversionService.convert(value, targetType)
 					: typeConverter.convertIfNecessary(value, targetType);
 		}
+
 	}
+
 }

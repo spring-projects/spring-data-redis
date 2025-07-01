@@ -417,6 +417,10 @@ public interface ValueOperations<K, V> {
 	 */
 	List<Long> bitField(@NonNull K key, @NonNull BitFieldSubCommands subCommands);
 
+	/**
+	 * @return the underlying {@link RedisOperations} used to execute commands.
+	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
+
 }

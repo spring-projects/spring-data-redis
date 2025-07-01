@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
-import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -32,6 +32,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Marcin Grzejszczak
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisStringCommands {

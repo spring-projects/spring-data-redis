@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -60,7 +61,6 @@ import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.listener.adapter.RedisListenerExecutionFailedException;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -213,8 +213,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * @param connectionFactory The connectionFactory to set.
 	 */
-	@Contract("null -> fail")
-	public void setConnectionFactory(@Nullable RedisConnectionFactory connectionFactory) {
+	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 
@@ -706,14 +705,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private Collection<MessageListener> resolveMessageListeners(
 			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, ByteArrayWrapper topic) {
 
-		Collection<MessageListener> messageListeners = mapping.get(topic);
-
-		if (messageListeners == null) {
-			messageListeners = new CopyOnWriteArraySet<>();
-			mapping.put(topic, messageListeners);
-		}
-
-		return messageListeners;
+		return mapping.computeIfAbsent(topic, k -> new CopyOnWriteArraySet<>());
 	}
 
 	private void removeListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
@@ -1153,6 +1145,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		@Override
 		public void onMessage(Message message, byte @Nullable[] pattern) {
+
 			Collection<MessageListener> listeners = null;
 
 			// if it's a pattern, disregard channel
@@ -1196,6 +1189,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					patternMapping.getOrDefault(new ByteArrayWrapper(pattern), Collections.emptyList()), pattern, count,
 					SubscriptionListener::onPatternUnsubscribed);
 		}
+
 	}
 
 	/**
@@ -1462,6 +1456,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				this.lock.unlock();
 			}
 		}
+
 	}
 
 	/**
@@ -1522,5 +1517,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 			});
 		}
+
 	}
+
 }

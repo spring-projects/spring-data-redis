@@ -24,6 +24,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -190,12 +192,12 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 	static class PollState {
 
 		private final ReadOffsetStrategy readOffsetStrategy;
-		private final Optional<Consumer> consumer;
+		private final @Nullable Consumer consumer;
 		private volatile ReadOffset currentOffset;
 		private volatile State state = State.CREATED;
 		private volatile CountDownLatch awaitStart = new CountDownLatch(1);
 
-		private PollState(Optional<Consumer> consumer, ReadOffsetStrategy readOffsetStrategy, ReadOffset currentOffset) {
+		private PollState(@Nullable Consumer consumer, ReadOffsetStrategy readOffsetStrategy, ReadOffset currentOffset) {
 
 			this.readOffsetStrategy = readOffsetStrategy;
 			this.currentOffset = currentOffset;
@@ -211,7 +213,7 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 		static PollState standalone(ReadOffset offset) {
 
 			ReadOffsetStrategy strategy = ReadOffsetStrategy.getStrategy(offset);
-			return new PollState(Optional.empty(), strategy, strategy.getFirst(offset, Optional.empty()));
+			return new PollState(null, strategy, strategy.getFirst(offset, null));
 		}
 
 		/**
@@ -224,8 +226,7 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 		static PollState consumer(Consumer consumer, ReadOffset offset) {
 
 			ReadOffsetStrategy strategy = ReadOffsetStrategy.getStrategy(offset);
-			Optional<Consumer> optionalConsumer = Optional.of(consumer);
-			return new PollState(optionalConsumer, strategy, strategy.getFirst(offset, optionalConsumer));
+			return new PollState(consumer, strategy, strategy.getFirst(offset, consumer));
 		}
 
 		boolean awaitStart(long timeout, TimeUnit unit) throws InterruptedException {

@@ -95,4 +95,5 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 		result = 31 * result + ObjectUtils.nullSafeHashCode(value);
 		return result;
 	}
+
 }

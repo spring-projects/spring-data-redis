@@ -191,5 +191,7 @@ public class ScanOptions {
 			}
 			return new ScanOptions(count, pattern, bytePattern);
 		}
+
 	}
+
 }

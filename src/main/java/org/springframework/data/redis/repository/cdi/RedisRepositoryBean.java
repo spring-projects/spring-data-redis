@@ -18,11 +18,12 @@ package org.springframework.data.redis.repository.cdi;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
-import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.Set;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
@@ -67,4 +68,5 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 
 		return create(() -> new RedisRepositoryFactory(keyValueTemplate, RedisQueryCreator.class), repositoryType);
 	}
+
 }

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.script;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -29,7 +30,7 @@ abstract public class DigestUtils {
 	private static final char[] HEX_CHARS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
 			'f' };
 
-	private static final Charset UTF8_CHARSET = Charset.forName("UTF8");
+	private static final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 
 	/**
 	 * Returns the SHA1 of the provided data
@@ -63,4 +64,5 @@ abstract public class DigestUtils {
 			throw new IllegalStateException("MessageDigest with algorithm '%s' not found".formatted(algorithm), ex);
 		}
 	}
+
 }

@@ -59,4 +59,5 @@ public interface IndexDefinitionProvider {
 	 * @return never {@literal null}.
 	 */
 	Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace, String path);
+
 }

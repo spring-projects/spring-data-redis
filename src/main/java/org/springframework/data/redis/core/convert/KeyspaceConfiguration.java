@@ -35,7 +35,7 @@ import org.springframework.util.ClassUtils;
  */
 public class KeyspaceConfiguration {
 
-	private Map<Class<?>, KeyspaceSettings> settingsMap;
+	private final Map<Class<?>, KeyspaceSettings> settingsMap;
 
 	public KeyspaceConfiguration() {
 
@@ -168,6 +168,7 @@ public class KeyspaceConfiguration {
 		public @Nullable String getTimeToLivePropertyName() {
 			return timeToLivePropertyName;
 		}
+
 	}
 
 	/**
@@ -181,5 +182,7 @@ public class KeyspaceConfiguration {
 		public DefaultKeyspaceSetting(Class<?> type) {
 			super(type, "#default#", false);
 		}
+
 	}
+
 }

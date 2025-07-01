@@ -179,6 +179,7 @@ class BoundOperationsProxyFactory {
 				throw new UnsupportedOperationException("Should not happen", ex);
 			}
 		}
+
 	}
 
 	/**
@@ -244,4 +245,5 @@ class BoundOperationsProxyFactory {
 		}
 
 	}
+
 }

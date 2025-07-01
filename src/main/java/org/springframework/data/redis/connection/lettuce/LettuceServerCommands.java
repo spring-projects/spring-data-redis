@@ -224,7 +224,8 @@ class LettuceServerCommands implements RedisServerCommands {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(target, "Target node must not be null");
 
-		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getHost(), target.getPort(), key, dbIndex, timeout);
+		connection.invoke().just(RedisKeyAsyncCommands::migrate, target.getRequiredHost(), target.getRequiredPort(), key,
+				dbIndex, timeout);
 	}
 
 	public RedisClusterCommands<byte[], byte[]> getConnection() {

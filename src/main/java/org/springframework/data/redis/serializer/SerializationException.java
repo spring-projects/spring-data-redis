@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.serializer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.NestedRuntimeException;
 
 /**
@@ -30,7 +32,7 @@ public class SerializationException extends NestedRuntimeException {
 	 *
 	 * @param msg
 	 */
-	public SerializationException(String msg) {
+	public SerializationException(@Nullable String msg) {
 		super(msg);
 	}
 
@@ -40,7 +42,8 @@ public class SerializationException extends NestedRuntimeException {
 	 * @param msg the detail message.
 	 * @param cause the nested exception.
 	 */
-	public SerializationException(String msg, Throwable cause) {
+	public SerializationException(@Nullable String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
+
 }

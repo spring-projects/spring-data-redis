@@ -97,7 +97,7 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 * @param repositoryType must not be {@literal null}.
 	 * @return
 	 */
-	private final String createPassivationId(Set<Annotation> qualifiers, Class<?> repositoryType) {
+	private String createPassivationId(Set<Annotation> qualifiers, Class<?> repositoryType) {
 
 		List<String> qualifierNames = new ArrayList<>(qualifiers.size());
 

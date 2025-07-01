@@ -83,6 +83,7 @@ final class BinaryConverters {
 		String toString(byte[] source) {
 			return new String(source, CHARSET);
 		}
+
 	}
 
 	/**
@@ -96,6 +97,7 @@ final class BinaryConverters {
 		public byte[] convert(String source) {
 			return fromString(source);
 		}
+
 	}
 
 	/**
@@ -123,6 +125,7 @@ final class BinaryConverters {
 		public byte[] convert(Number source) {
 			return fromString(source.toString());
 		}
+
 	}
 
 	/**
@@ -137,6 +140,7 @@ final class BinaryConverters {
 		public byte[] convert(Enum<?> source) {
 			return fromString(source.name());
 		}
+
 	}
 
 	/**
@@ -182,6 +186,7 @@ final class BinaryConverters {
 				return Enum.valueOf(this.enumType, toString(source).trim());
 			}
 		}
+
 	}
 
 	/**
@@ -215,6 +220,7 @@ final class BinaryConverters {
 				return NumberUtils.parseNumber(toString(source), targetType);
 			}
 		}
+
 	}
 
 	/**
@@ -231,6 +237,7 @@ final class BinaryConverters {
 		public byte[] convert(Boolean source) {
 			return source.booleanValue() ? _true : _false;
 		}
+
 	}
 
 	/**
@@ -250,6 +257,7 @@ final class BinaryConverters {
 			String value = toString(source);
 			return ("1".equals(value) || "true".equalsIgnoreCase(value)) ? Boolean.TRUE : Boolean.FALSE;
 		}
+
 	}
 
 	/**
@@ -263,6 +271,7 @@ final class BinaryConverters {
 		public byte[] convert(Date source) {
 			return fromString(Long.toString(source.getTime()));
 		}
+
 	}
 
 	/**
@@ -292,6 +301,7 @@ final class BinaryConverters {
 
 			throw new IllegalArgumentException("Cannot parse date out of %s".formatted(Arrays.toString(source)));
 		}
+
 	}
 
 	/**
@@ -305,6 +315,7 @@ final class BinaryConverters {
 		public byte[] convert(UUID source) {
 			return fromString(source.toString());
 		}
+
 	}
 
 	/**
@@ -323,5 +334,7 @@ final class BinaryConverters {
 
 			return UUID.fromString(toString(source));
 		}
+
 	}
+
 }

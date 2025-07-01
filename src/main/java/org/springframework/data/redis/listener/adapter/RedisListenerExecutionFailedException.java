@@ -27,7 +27,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 public class RedisListenerExecutionFailedException extends InvalidDataAccessApiUsageException {
 
 	/**
-	 * Constructs a new <code>RedisListenerExecutionFailedException</code> instance.
+	 * Constructs a new {@code RedisListenerExecutionFailedException} instance.
 	 *
 	 * @param msg
 	 * @param cause
@@ -37,11 +37,11 @@ public class RedisListenerExecutionFailedException extends InvalidDataAccessApiU
 	}
 
 	/**
-	 * Constructs a new <code>RedisListenerExecutionFailedException</code> instance.
+	 * Constructs a new {@code RedisListenerExecutionFailedException} instance.
 	 *
 	 * @param msg
 	 */
-	public RedisListenerExecutionFailedException(String msg) {
+	public RedisListenerExecutionFailedException(@Nullable String msg) {
 		super(msg);
 	}
 }

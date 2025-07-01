@@ -124,7 +124,7 @@ public abstract class Converters {
 		return target;
 	}
 
-	public static Boolean toBoolean(@Nullable Long source) {
+	public static boolean toBoolean(@Nullable Long source) {
 		return source != null && source == 1L;
 	}
 
@@ -202,7 +202,7 @@ public abstract class Converters {
 	 * @param microseconds elapsed microseconds in current second
 	 * @return
 	 */
-	public static Long toTimeMillis(String seconds, String microseconds) {
+	public static long toTimeMillis(String seconds, String microseconds) {
 		return NumberUtils.parseNumber(seconds, Long.class) * 1000L
 				+ NumberUtils.parseNumber(microseconds, Long.class) / 1000L;
 	}
@@ -216,7 +216,7 @@ public abstract class Converters {
 	 * @return
 	 * @since 2.5
 	 */
-	public static Long toTimeMillis(String seconds, String microseconds, TimeUnit unit) {
+	public static long toTimeMillis(String seconds, String microseconds, TimeUnit unit) {
 
 		long secondValue = TimeUnit.SECONDS.toMicros(NumberUtils.parseNumber(seconds, Long.class));
 		long microValue = NumberUtils.parseNumber(microseconds, Long.class);

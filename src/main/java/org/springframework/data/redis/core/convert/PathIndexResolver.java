@@ -84,7 +84,7 @@ public class PathIndexResolver implements IndexResolver {
 
 	@SuppressWarnings("NullAway")
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, @Nullable Object value) {
-		return doResolveIndexesFor(mappingContext.getRequiredPersistentEntity(typeInformation).getKeySpace(), "",
+		return doResolveIndexesFor(mappingContext.getRequiredPersistentEntity(typeInformation).getRequiredKeySpace(), "",
 				typeInformation, null, value);
 	}
 
@@ -95,7 +95,7 @@ public class PathIndexResolver implements IndexResolver {
 	}
 
 	@SuppressWarnings("NullAway")
-	private Set<IndexedData> doResolveIndexesFor(final String keyspace, final String path,
+	private Set<IndexedData> doResolveIndexesFor(String keyspace, String path,
 			TypeInformation<?> typeInformation, @Nullable PersistentProperty<?> fallback, @Nullable Object value) {
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
@@ -111,8 +111,8 @@ public class PathIndexResolver implements IndexResolver {
 			return resolveIndex(keyspace, path, entity.getPersistentProperty(propertyName), value);
 		}
 
-		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
-		final Set<IndexedData> indexes = new LinkedHashSet<>();
+		PersistentPropertyAccessor<?> accessor = entity.getPropertyAccessor(value);
+		Set<IndexedData> indexes = new LinkedHashSet<>();
 
 		entity.doWithProperties(new PropertyHandler<RedisPersistentProperty>() {
 
@@ -271,4 +271,5 @@ public class PathIndexResolver implements IndexResolver {
 
 		return path;
 	}
+
 }

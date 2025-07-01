@@ -342,6 +342,9 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 		return rightPop(TimeoutUtils.toSeconds(timeout), TimeUnit.SECONDS);
 	}
 
+	/**
+	 * @return the underlying {@link RedisOperations} used to execute commands.
+	 */
 	@NonNull
 	RedisOperations<K, V> getOperations();
 }

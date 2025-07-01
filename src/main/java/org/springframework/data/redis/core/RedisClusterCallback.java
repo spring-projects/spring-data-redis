@@ -38,4 +38,5 @@ public interface RedisClusterCallback<T> {
 	 */
 	@Nullable
 	T doInRedis(RedisClusterConnection connection) throws DataAccessException;
+
 }

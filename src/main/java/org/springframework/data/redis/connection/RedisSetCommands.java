@@ -29,6 +29,7 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @see RedisCommands
  */
 @NullUnmarked
 public interface RedisSetCommands {

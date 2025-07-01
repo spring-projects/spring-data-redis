@@ -59,4 +59,5 @@ public class RedisPersistentProperty extends KeyValuePersistentProperty<RedisPer
 
 		return SUPPORTED_ID_PROPERTY_NAMES.contains(getName());
 	}
+
 }

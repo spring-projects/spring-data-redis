@@ -29,4 +29,5 @@ public interface IndexDefinitionRegistry {
 	 * @param indexDefinition must not be {@literal null}.
 	 */
 	void addIndexDefinition(IndexDefinition indexDefinition);
+
 }

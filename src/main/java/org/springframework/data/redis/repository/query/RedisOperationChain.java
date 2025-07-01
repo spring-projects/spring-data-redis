@@ -142,6 +142,7 @@ public class RedisOperationChain {
 			result = 31 * result + ObjectUtils.nullSafeHashCode(values);
 			return result;
 		}
+
 	}
 
 	/**
@@ -164,5 +165,7 @@ public class RedisOperationChain {
 			it.next();
 			return (Distance) it.next();
 		}
+
 	}
+
 }

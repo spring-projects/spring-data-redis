@@ -169,4 +169,5 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 	public ReactiveRedisConnectionFactory getConnectionFactory() {
 		return this.connectionFactory;
 	}
+
 }

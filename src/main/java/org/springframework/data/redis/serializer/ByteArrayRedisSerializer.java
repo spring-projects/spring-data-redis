@@ -27,10 +27,9 @@ enum ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
 
 	INSTANCE;
 
-
 	@Override
-	public byte @Nullable[] serialize(byte @Nullable[] value) throws SerializationException {
-		return value;
+	public byte[] serialize(byte @Nullable [] value) throws SerializationException {
+		return value == null ? SerializationUtils.EMPTY_ARRAY : value;
 	}
 
 
@@ -38,4 +37,5 @@ enum ByteArrayRedisSerializer implements RedisSerializer<byte[]> {
 	public byte @Nullable[] deserialize(byte @Nullable[] bytes) throws SerializationException {
 		return bytes;
 	}
+
 }

@@ -136,6 +136,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 			return null;
 		}
+
 	}
 
 	/**
@@ -154,6 +155,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 			Assert.notNull(type, "Type must not be null");
 			return ClassUtils.getUserClass(type).getName();
 		}
+
 	}
 
 	/**
@@ -342,6 +344,7 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 
 			return timeoutMethods.get(type);
 		}
+
 	}
 
 }

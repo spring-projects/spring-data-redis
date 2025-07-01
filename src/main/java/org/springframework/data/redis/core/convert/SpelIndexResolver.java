@@ -88,7 +88,7 @@ public class SpelIndexResolver implements IndexResolver {
 			return Collections.emptySet();
 		}
 
-		String keyspace = entity.getKeySpace();
+		String keyspace = entity.getRequiredKeySpace();
 
 		Set<IndexedData> indexes = new HashSet<>();
 
@@ -142,4 +142,5 @@ public class SpelIndexResolver implements IndexResolver {
 	public void setBeanResolver(BeanResolver beanResolver) {
 		this.beanResolver = beanResolver;
 	}
+
 }

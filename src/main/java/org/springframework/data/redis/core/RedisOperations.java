@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -41,6 +43,12 @@ import org.springframework.util.Assert;
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}. Not often used but a
  * useful option for extensibility and testability (as it can be easily mocked or stubbed).
+ * <p>
+ * Redis command methods are exempted from the default {@literal non-nullable} return value assumption as nullness
+ * depends not only on the command but also on the connection state. Methods invoked during a transaction or while
+ * pipelining are required to return {@literal null} at the time invoking a command as the response is not available
+ * until the transaction is executed or the pipeline is closed. To avoid excessive null checks in calling code and to
+ * not express a faulty assumption of non-nullness, all command interfaces are annotated with {@code @NullUnmarked}.
  *
  * @author Costin Leau
  * @author Christoph Strobl
@@ -68,7 +76,7 @@ public interface RedisOperations<K, V> {
 	 * @param action callback object that specifies the Redis action. Must not be {@literal null}.
 	 * @return result of the given {@link RedisCallback#doInRedis(RedisConnection)} invocation.
 	 */
-	<T> T execute(@NonNull RedisCallback<T> action);
+	<T extends @Nullable Object> T execute(@NonNull RedisCallback<T> action);
 
 	/**
 	 * Executes a Redis session. Allows multiple operations to be executed in the same session enabling 'transactional'
@@ -78,7 +86,7 @@ public interface RedisOperations<K, V> {
 	 * @param session session callback. Must not be {@literal null}.
 	 * @return result of the given {@link SessionCallback#execute(RedisOperations)} invocation.
 	 */
-	<T> T execute(@NonNull SessionCallback<T> session);
+	<T extends @Nullable Object> T execute(@NonNull SessionCallback<T> session);
 
 	/**
 	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback
@@ -90,6 +98,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
 	 *         return {@literal null}.
 	 */
+	@NonNull
 	List<Object> executePipelined(@NonNull RedisCallback<?> action);
 
 	/**
@@ -103,6 +112,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisConnection} calls, {@link RedisCallback#doInRedis(RedisConnection)} itself must
 	 *         return {@literal null}.
 	 */
+	@NonNull
 	List<Object> executePipelined(@NonNull RedisCallback<?> action, @NonNull RedisSerializer<?> resultSerializer);
 
 	/**
@@ -114,6 +124,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
 	 *         return {@literal null}.
 	 */
+	@NonNull
 	List<Object> executePipelined(@NonNull SessionCallback<?> session);
 
 	/**
@@ -127,6 +138,7 @@ public interface RedisOperations<K, V> {
 	 *         collected from {@link RedisOperations} calls, {@link SessionCallback#execute(RedisOperations)} itself must
 	 *         return {@literal null}.
 	 */
+	@NonNull
 	List<Object> executePipelined(@NonNull SessionCallback<?> session, @NonNull RedisSerializer<?> resultSerializer);
 
 	/**
@@ -138,7 +150,8 @@ public interface RedisOperations<K, V> {
 	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
 	 *         throw-away status reply (i.e. "OK")
 	 */
-	<T> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args);
+	<T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull List<@NonNull K> keys,
+			@NonNull Object @NonNull... args);
 
 	/**
 	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
@@ -152,7 +165,7 @@ public interface RedisOperations<K, V> {
 	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
 	 *         throw-away status reply (i.e. "OK")
 	 */
-	<T> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
+	<T extends @Nullable Object> T execute(@NonNull RedisScript<T> script, @NonNull RedisSerializer<?> argsSerializer,
 			@NonNull RedisSerializer<T> resultSerializer, @NonNull List<@NonNull K> keys, @NonNull Object @NonNull... args);
 
 	/**
@@ -269,6 +282,7 @@ public interface RedisOperations<K, V> {
 	 * @since 2.7
 	 * @see <a href="https://redis.io/commands/scan">Redis Documentation: SCAN</a>
 	 */
+	@NonNull
 	Cursor<@NonNull K> scan(@NonNull ScanOptions options);
 
 	/**
@@ -547,6 +561,7 @@ public interface RedisOperations<K, V> {
 	 * @return List of replies for each executed command.
 	 * @see <a href="https://redis.io/commands/exec">Redis Documentation: EXEC</a>
 	 */
+	@NonNull
 	List<Object> exec();
 
 	/**
@@ -558,6 +573,7 @@ public interface RedisOperations<K, V> {
 	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results of transaction exec
 	 * @return The deserialized results of transaction exec
 	 */
+	@NonNull
 	List<Object> exec(@NonNull RedisSerializer<?> valueSerializer);
 
 	// -------------------------------------------------------------------------

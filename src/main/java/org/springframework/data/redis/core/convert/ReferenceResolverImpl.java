@@ -54,4 +54,5 @@ public class ReferenceResolverImpl implements ReferenceResolver {
 
 		return redisOps.execute((RedisCallback<Map<byte[], byte[]>>) connection -> connection.hGetAll(key));
 	}
+
 }

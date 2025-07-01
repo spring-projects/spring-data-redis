@@ -15,19 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -37,6 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -706,15 +695,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
-	private static class PositionalKey {
-
-		private final ByteArrayWrapper key;
-		private final int position;
-
-		private PositionalKey(ByteArrayWrapper key, int position) {
-			this.key = key;
-			this.position = position;
-		}
+	private record PositionalKey(ByteArrayWrapper key, int position) {
 
 		static PositionalKey of(byte[] key, int index) {
 			return new PositionalKey(new ByteArrayWrapper(key), index);
@@ -724,36 +705,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @return binary key.
 		 */
 		byte[] getBytes() {
-			return getKey().getArray();
+			return key().getArray();
 		}
 
-		public ByteArrayWrapper getKey() {
-			return this.key;
-		}
-
-		public int getPosition() {
-			return this.position;
-		}
-
-		@Override
-		public boolean equals(@Nullable Object obj) {
-
-			if (this == obj) {
-				return true;
-			}
-
-			if (!(obj instanceof PositionalKey that))
-				return false;
-
-			return this.getPosition() == that.getPosition() && ObjectUtils.nullSafeEquals(this.getKey(), that.getKey());
-		}
-
-		@Override
-		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(getKey());
-			result = 31 * result + ObjectUtils.nullSafeHashCode(getPosition());
-			return result;
-		}
 	}
 
 	/**
@@ -763,13 +717,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @author Christoph Strobl
 	 * @since 2.0.3
 	 */
-	private static class PositionalKeys implements Iterable<PositionalKey> {
-
-		private final List<PositionalKey> keys;
-
-		private PositionalKeys(List<PositionalKey> keys) {
-			this.keys = keys;
-		}
+	private record PositionalKeys(List<PositionalKey> keys) implements Iterable<PositionalKey> {
 
 		/**
 		 * Create an empty {@link PositionalKeys}.

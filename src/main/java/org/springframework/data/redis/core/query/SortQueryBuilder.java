@@ -39,4 +39,5 @@ public class SortQueryBuilder<K> extends DefaultSortCriterion<K> {
 	public SortCriterion<K> noSort() {
 		return by(NO_SORT_KEY);
 	}
+
 }
