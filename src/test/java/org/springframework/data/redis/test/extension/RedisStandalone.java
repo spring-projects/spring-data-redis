@@ -34,5 +34,5 @@ import org.springframework.data.redis.SettingsUtils;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface RedisStanalone {
+public @interface RedisStandalone {
 }

@@ -33,6 +33,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ObjectFactory;
@@ -58,8 +61,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link ReactiveRedisTemplate}.
@@ -68,6 +69,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Christoph Strobl
  * @author Dahye Anne Lee
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
@@ -97,7 +99,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest // GH-2040
+	@Test // GH-2040
 	@EnabledOnCommand("COPY")
 	void copy() {
 
@@ -121,7 +123,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.opsForValue().get(targetKey).as(StepVerifier::create).expectNext(nextValue).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void exists() {
 
 		K key = keyFactory.instance();
@@ -134,7 +136,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2883
+	@Test // GH-2883
 	void countExistingKeysIfValidKeyExists() {
 
 		K key = keyFactory.instance();
@@ -151,14 +153,14 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2883
+	@Test // GH-2883
 	void countExistingKeysIfNotValidKeyExists() {
 
 		K key = keyFactory.instance();
 		redisTemplate.countExistingKeys(List.of(key)).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-743
+	@Test // DATAREDIS-743
 	void scan() {
 
 		assumeThat(valueFactory.instance() instanceof Person).isFalse();
@@ -175,7 +177,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void type() {
 
 		K key = keyFactory.instance();
@@ -188,7 +190,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.type(key).as(StepVerifier::create).expectNext(DataType.STRING).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rename() {
 
 		K oldName = keyFactory.instance();
@@ -203,7 +205,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void renameNx() {
 
 		K oldName = keyFactory.instance();
@@ -228,7 +230,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-693
+	@Test // DATAREDIS-693
 	void unlink() {
 
 		K single = keyFactory.instance();
@@ -241,7 +243,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(single).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-693
+	@Test // DATAREDIS-693
 	void unlinkMany() {
 
 		K key1 = keyFactory.instance();
@@ -258,7 +260,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-913
+	@Test // DATAREDIS-913
 	void unlinkManyPublisher() {
 
 		K key1 = keyFactory.instance();
@@ -277,7 +279,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-913
+	@Test // DATAREDIS-913
 	void deleteManyPublisher() {
 
 		K key1 = keyFactory.instance();
@@ -296,7 +298,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-683
+	@Test // DATAREDIS-683
 	@SuppressWarnings("unchecked")
 	void executeScript() {
 
@@ -314,7 +316,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		execute.as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-683
+	@Test // DATAREDIS-683
 	void executeScriptWithElementReaderAndWriter() {
 
 		K key = keyFactory.instance();
@@ -339,7 +341,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		execute.as(StepVerifier::create).expectNext(person).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void expire() {
 
 		K key = keyFactory.instance();
@@ -353,7 +355,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3114
+	@Test // GH-3114
 	@EnabledOnCommand("SPUBLISH") // Redis 7.0
 	void expireWithCondition() {
 
@@ -371,7 +373,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(5))).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void preciseExpire() {
 
 		K key = keyFactory.instance();
@@ -385,7 +387,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3114
+	@Test // GH-3114
 	@EnabledOnCommand("SPUBLISH") // Redis 7.0
 	void preciseExpireWithCondition() {
 
@@ -403,7 +405,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(5))).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void expireAt() {
 
 		K key = keyFactory.instance();
@@ -420,7 +422,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void preciseExpireAt() {
 
 		K key = keyFactory.instance();
@@ -437,7 +439,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void getTtlForAbsentKeyShouldCompleteWithoutValue() {
 
 		K key = keyFactory.instance();
@@ -445,7 +447,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.getExpire(key).as(StepVerifier::create).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void getTtlForKeyWithoutExpiryShouldCompleteWithZeroDuration() {
 
 		K key = keyFactory.instance();
@@ -456,7 +458,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.getExpire(key).as(StepVerifier::create).expectNext(Duration.ZERO).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void move() {
 
 		try (ReactiveRedisClusterConnection connection = redisTemplate.getConnectionFactory()
@@ -473,7 +475,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void shouldApplyCustomSerializationContextToValues() {
 
 		Person key = new PersonObjectFactory().instance();
@@ -494,7 +496,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void shouldApplyCustomSerializationContextToHash() {
 
 		RedisSerializationContext<K, V> serializationContext = redisTemplate.getSerializationContext();
@@ -517,7 +519,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		hashOperations.get(key, hashField).as(StepVerifier::create).expectNext(hashValue).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-612
+	@Test // DATAREDIS-612
 	@EnabledIfLongRunningTest
 	void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
 
@@ -539,7 +541,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify(Duration.ofSeconds(3));
 	}
 
-	@ParameterizedRedisTest // GH-1622
+	@Test // GH-1622
 	@EnabledIfLongRunningTest
 	void listenToLaterChannelShouldReceiveChannelMessagesCorrectly() {
 
@@ -562,7 +564,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify(Duration.ofSeconds(3));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-612
+	@Test // DATAREDIS-612
 	void listenToPatternShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";
@@ -586,7 +588,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 				.verify(Duration.ofSeconds(3));
 	}
 
-	@ParameterizedRedisTest // GH-1622
+	@Test // GH-1622
 	void listenToPatternLaterShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";

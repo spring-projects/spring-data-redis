@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
@@ -53,8 +56,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link DefaultReactiveStreamOperations}.
@@ -64,6 +65,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Marcin Zielinski
  * @author jinkshower
  */
+@ParameterizedClass
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
 @EnabledOnCommand("XADD")
@@ -112,7 +114,8 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test
+	// DATAREDIS-864
 	void addShouldAddMessage() {
 
 		K key = keyFactory.instance();
@@ -135,7 +138,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void addShouldAddReadSimpleMessage() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
@@ -158,7 +161,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void addShouldAddReadSimpleMessageWithRawSerializer() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
@@ -188,7 +191,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2915
+	@Test // GH-2915
 	void addMaxLenShouldLimitMessagesSize() {
 
 		K key = keyFactory.instance();
@@ -215,7 +218,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2915
+	@Test // GH-2915
 	void addMaxLenShouldLimitSimpleMessagesSize() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
@@ -242,7 +245,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				}).expectNextCount(0).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2915
+	@Test // GH-2915
 	void addMaxLenShouldLimitSimpleMessageWithRawSerializerSize() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
@@ -278,7 +281,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				}).expectNextCount(0).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2915
+	@Test // GH-2915
 	void addMinIdShouldEvictLowerIdMessages() {
 
 		K key = keyFactory.instance();
@@ -301,7 +304,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		}).expectNextCount(0).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2915
+	@Test // GH-2915
 	void addMakeNoStreamShouldNotCreateStreamWhenNoStreamExists() {
 
 		K key = keyFactory.instance();
@@ -317,7 +320,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).expectNextCount(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2915
+	@Test // GH-2915
 	void addMakeNoStreamShouldCreateStreamWhenStreamExists() {
 
 		K key = keyFactory.instance();
@@ -335,7 +338,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).expectNextCount(2L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void rangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
@@ -356,7 +359,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void reverseRangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
@@ -372,7 +375,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void reverseRangeShouldConvertSimpleMessages() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
@@ -390,7 +393,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.consumeNextWith(it -> assertThat(it.getId()).isEqualTo(messageId1)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void readShouldReadMessage() {
 
 		// assumeFalse(valueFactory instanceof PersonObjectFactory);
@@ -416,7 +419,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void readShouldReadMessages() {
 
 		assumeFalse(valueFactory instanceof PersonObjectFactory);
@@ -434,7 +437,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-864
+	@Test // DATAREDIS-864
 	void sizeShouldReportStreamSize() {
 
 		K key = keyFactory.instance();
@@ -456,7 +459,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1084
+	@Test // DATAREDIS-1084
 	void pendingShouldReadMessageSummary() {
 
 		K key = keyFactory.instance();
@@ -479,7 +482,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1084
+	@Test // DATAREDIS-1084
 	void pendingShouldReadMessageDetails() {
 
 		K key = keyFactory.instance();
@@ -504,7 +507,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2465
+	@Test // GH-2465
 	void claimShouldReadMessageDetails() {
 
 		K key = keyFactory.instance();

@@ -23,6 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
@@ -30,8 +33,6 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * @author Costin Leau
@@ -39,6 +40,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class BoundKeyOperationsIntegrationTests {
 
@@ -77,7 +79,7 @@ public class BoundKeyOperationsIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void testRename() throws Exception {
 
 		Object key = keyOps.getKey();
@@ -90,7 +92,8 @@ public class BoundKeyOperationsIntegrationTests {
 		assertThat(keyOps.getKey()).isEqualTo(key);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-251
+	@Test
+	// DATAREDIS-251
 	void testExpire() throws Exception {
 
 		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
@@ -102,7 +105,7 @@ public class BoundKeyOperationsIntegrationTests {
 		}
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-251
+	@Test // DATAREDIS-251
 	void testPersist() throws Exception {
 
 		keyOps.persist();

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.support.collections;
 
+import org.junit.jupiter.params.ParameterizedClass;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -24,6 +26,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author Costin Leau
  * @author John Blum
  */
+@ParameterizedClass
 public class RedisListIntegrationTests extends AbstractRedisListIntegrationTests<Object> {
 
 	/**

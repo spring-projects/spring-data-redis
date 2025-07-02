@@ -22,13 +22,14 @@ import reactor.test.StepVerifier;
 import java.util.Collection;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link DefaultReactiveHyperLogLogOperations}.
@@ -36,6 +37,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@ParameterizedClass
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
 public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
@@ -67,7 +69,8 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test
+	// DATAREDIS-602
 	void add() {
 
 		K key = keyFactory.instance();
@@ -79,7 +82,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		hyperLogLogOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void union() {
 
 		K mergedKey = keyFactory.instance();
@@ -101,7 +104,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void delete() {
 
 		K key = keyFactory.instance();

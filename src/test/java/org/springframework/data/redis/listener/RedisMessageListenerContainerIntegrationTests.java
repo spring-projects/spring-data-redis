@@ -29,6 +29,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -39,9 +42,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 import org.springframework.lang.Nullable;
 
 /**
@@ -49,6 +50,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Mark Paluch
  */
+@ParameterizedClass
 @MethodSource("testParams")
 class RedisMessageListenerContainerIntegrationTests {
 
@@ -73,11 +75,11 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}
@@ -87,7 +89,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void notifiesChannelSubscriptionState() throws Exception {
 
 		AtomicReference<String> onSubscribe = new AtomicReference<>();
@@ -127,7 +129,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		assertThat(onUnsubscribe).hasValue("a");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void notifiesPatternSubscriptionState() throws Exception {
 
 		AtomicReference<String> onPsubscribe = new AtomicReference<>();
@@ -167,7 +169,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		assertThat(onPunsubscribe).hasValue("a");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void repeatedSubscribeShouldNotifyOnlyOnce() throws Exception {
 
 		AtomicInteger subscriptions1 = new AtomicInteger();
@@ -215,7 +217,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		assertThat(subscriptions1.get() + subscriptions2.get()).isGreaterThan(0);
 	}
 
-	@ParameterizedRedisTest // GH-964
+	@Test // GH-964
 	void subscribeAfterStart() throws Exception {
 
 		AtomicInteger subscriptions1 = new AtomicInteger();
@@ -263,7 +265,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		assertThat(subscriptions1.get() + subscriptions2.get()).isGreaterThan(0);
 	}
 
-	@ParameterizedRedisTest // GH-964
+	@Test // GH-964
 	void multipleStarts() throws Exception {
 
 		AtomicInteger subscriptions = new AtomicInteger();
@@ -298,7 +300,7 @@ class RedisMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedRedisTest // GH-964
+	@Test // GH-964
 	void shouldRegisterChannelsAndTopics() throws Exception {
 
 		AtomicInteger subscriptions = new AtomicInteger();

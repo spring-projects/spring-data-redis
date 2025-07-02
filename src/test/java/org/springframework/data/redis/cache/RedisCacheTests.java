@@ -35,6 +35,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.interceptor.SimpleKey;
@@ -48,8 +51,6 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver;
 import org.springframework.data.redis.test.condition.EnabledOnRedisDriver.DriverQualifier;
 import org.springframework.data.redis.test.condition.RedisDriver;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.lang.Nullable;
 
 /**
@@ -62,6 +63,7 @@ import org.springframework.lang.Nullable;
  * @author Jos Roseboom
  * @author John Blum
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class RedisCacheTests {
 
@@ -97,7 +99,7 @@ public class RedisCacheTests {
 		this.cache = new RedisCache("cache", usingRedisCacheWriter(), usingRedisCacheConfiguration());
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void putShouldAddEntry() {
 
 		cache.put("key-1", sample);
@@ -105,7 +107,7 @@ public class RedisCacheTests {
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
 
-	@ParameterizedRedisTest // GH-2379
+	@Test // GH-2379
 	void cacheShouldBeClearedByPattern() {
 
 		cache.put(key, sample);
@@ -116,7 +118,7 @@ public class RedisCacheTests {
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 	}
 
-	@ParameterizedRedisTest // GH-2379
+	@Test // GH-2379
 	void cacheShouldNotBeClearedIfNoPatternMatch() {
 
 		cache.put(key, sample);
@@ -127,7 +129,8 @@ public class RedisCacheTests {
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test
+	// DATAREDIS-481
 	void putNullShouldAddEntryForNullValue() {
 
 		cache.put("key-1", null);
@@ -138,7 +141,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void putIfAbsentShouldAddEntryIfNotExists() {
 
 		cache.putIfAbsent("key-1", sample);
@@ -149,7 +152,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void putIfAbsentWithNullShouldAddNullValueEntryIfNotExists() {
 
 		assertThat(cache.putIfAbsent("key-1", null)).isNull();
@@ -160,7 +163,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void putIfAbsentShouldReturnExistingIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binarySample));
@@ -173,7 +176,7 @@ public class RedisCacheTests {
 		doWithConnection(connection -> assertThat(connection.get(binaryCacheKey)).isEqualTo(binarySample));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void putIfAbsentShouldReturnExistingNullValueIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -186,7 +189,7 @@ public class RedisCacheTests {
 		doWithConnection(connection -> assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryNullValue));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void getShouldRetrieveEntry() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binarySample));
@@ -196,7 +199,7 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void shouldReadAndWriteSimpleCacheKey() {
 
 		SimpleKey key = new SimpleKey("param-1", "param-2");
@@ -208,7 +211,7 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void shouldRejectNonInvalidKey() {
 
 		InvalidKey key = new InvalidKey(sample.getFirstname(), sample.getBirthdate());
@@ -216,7 +219,7 @@ public class RedisCacheTests {
 		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void shouldAllowComplexKeyWithToStringMethod() {
 
 		ComplexKey key = new ComplexKey(sample.getFirstname(), sample.getBirthdate());
@@ -229,12 +232,12 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void getShouldReturnNullWhenKeyDoesNotExist() {
 		assertThat(cache.get(key)).isNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void getShouldReturnValueWrapperHoldingNullIfNullValueStored() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -245,7 +248,7 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(null);
 	}
 
-	@ParameterizedRedisTest // GH-2890
+	@Test // GH-2890
 	void getWithValueLoaderShouldStoreNull() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -257,7 +260,7 @@ public class RedisCacheTests {
 		assertThat(result).isNull();
 	}
 
-	@ParameterizedRedisTest // GH-2890
+	@Test // GH-2890
 	void getWithValueLoaderShouldRetrieveValue() {
 
 		AtomicLong counter = new AtomicLong();
@@ -276,7 +279,7 @@ public class RedisCacheTests {
 		assertThat(counter).hasValue(1);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void evictShouldRemoveKey() {
 
 		doWithConnection(connection -> {
@@ -292,7 +295,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-2028
+	@Test // GH-2028
 	void clearShouldClearCache() {
 
 		doWithConnection(connection -> {
@@ -308,7 +311,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-1721
+	@Test // GH-1721
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE) // SCAN not supported via Jedis Cluster.
 	void clearWithScanShouldClearCache() {
 
@@ -331,7 +334,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void getWithCallableShouldResolveValueIfNotPresent() {
 
 		assertThat(cache.get(key, () -> sample)).isEqualTo(sample);
@@ -342,7 +345,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-481
+	@Test // DATAREDIS-481
 	void getWithCallableShouldNotResolveValueIfPresent() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -357,7 +360,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-715
+	@Test // DATAREDIS-715
 	void computePrefixCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
@@ -372,7 +375,7 @@ public class RedisCacheTests {
 						.isEqualTo(binarySample));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1041
+	@Test // DATAREDIS-1041
 	void prefixCacheNameCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
@@ -386,7 +389,7 @@ public class RedisCacheTests {
 				.isEqualTo(binarySample));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-715
+	@Test // DATAREDIS-715
 	void fetchKeyWithComputedPrefixReturnsExpectedResult() {
 
 		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(StandardCharsets.UTF_8), binarySample));
@@ -402,7 +405,7 @@ public class RedisCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1032
+	@Test // DATAREDIS-1032
 	void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
@@ -414,7 +417,7 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1032
+	@Test // DATAREDIS-1032
 	void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey("my-cache-key-in-an-array");
@@ -425,7 +428,7 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1032
+	@Test // DATAREDIS-1032
 	void cacheShouldAllowListCacheKeysOfComplexTypes() {
 
 		Object key = SimpleKeyGenerator
@@ -438,7 +441,7 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1032
+	@Test // DATAREDIS-1032
 	void cacheShouldAllowMapCacheKeys() {
 
 		Object key = SimpleKeyGenerator
@@ -451,7 +454,7 @@ public class RedisCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-1032
+	@Test // DATAREDIS-1032
 	void cacheShouldFailOnNonConvertibleCacheKey() {
 
 		Object key = SimpleKeyGenerator
@@ -461,7 +464,7 @@ public class RedisCacheTests {
 	}
 
 	@EnabledOnCommand("GETEX")
-	@ParameterizedRedisTest // GH-2351
+	@Test // GH-2351
 	void cacheGetWithTimeToIdleExpirationWhenEntryNotExpiredShouldReturnValue() {
 
 		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
@@ -478,7 +481,7 @@ public class RedisCacheTests {
 	}
 
 	@EnabledOnCommand("GETEX")
-	@ParameterizedRedisTest // GH-2351
+	@Test // GH-2351
 	void cacheGetWithTimeToIdleExpirationAfterEntryExpiresShouldReturnNull() {
 
 		doWithConnection(connection -> connection.stringCommands().set(this.binaryCacheKey, this.binarySample));
@@ -493,7 +496,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.JEDIS)
 	void retrieveCacheValueUsingJedis() {
 
@@ -501,7 +504,7 @@ public class RedisCacheTests {
 				.isThrownBy(() -> this.cache.retrieve(this.binaryCacheKey)).withMessageContaining("RedisCache");
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.JEDIS)
 	void retrieveLoadedValueUsingJedis() {
 
@@ -510,7 +513,7 @@ public class RedisCacheTests {
 				.withMessageContaining("RedisCache");
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsCachedValue() throws Exception {
 
@@ -531,7 +534,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-2890
+	@Test // GH-2890
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveAppliesTimeToIdle() throws ExecutionException, InterruptedException {
 
@@ -551,7 +554,7 @@ public class RedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsCachedNullableValue() throws Exception {
 
@@ -566,7 +569,7 @@ public class RedisCacheTests {
 		assertThat(value).isDone();
 	}
 
-	@ParameterizedRedisTest // GH-2783
+	@Test // GH-2783
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsCachedNullValue() throws Exception {
 
@@ -579,7 +582,7 @@ public class RedisCacheTests {
 		assertThat(wrapper.get()).isNull();
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsCachedValueWhenLockIsReleased() throws Exception {
 
@@ -605,7 +608,7 @@ public class RedisCacheTests {
 		assertThat(value).isDone();
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsLoadedValue() throws Exception {
 
@@ -627,7 +630,7 @@ public class RedisCacheTests {
 		assertThat(value).isDone();
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveStoresLoadedValue() throws Exception {
 
@@ -643,7 +646,7 @@ public class RedisCacheTests {
 						.isTrue());
 	}
 
-	@ParameterizedRedisTest // GH-2650
+	@Test // GH-2650
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE)
 	void retrieveReturnsNull() throws Exception {
 

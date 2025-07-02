@@ -36,11 +36,12 @@ import java.util.List;
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection.ByteBufferCodec;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.LettuceExtension;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
 
 /**
  * @author Christoph Strobl

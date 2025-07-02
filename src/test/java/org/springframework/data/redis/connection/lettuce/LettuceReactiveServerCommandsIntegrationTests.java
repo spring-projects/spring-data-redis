@@ -20,31 +20,34 @@ import static org.assertj.core.api.Assumptions.*;
 
 import reactor.test.StepVerifier;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+
 import org.springframework.data.redis.connection.RedisServerCommands.FlushOption;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dennis Neufeld
  */
+@ParameterizedClass
 public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
 
 	public LettuceReactiveServerCommandsIntegrationTests(Fixture fixture) {
 		super(fixture);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void pingShouldRespondCorrectly() {
 		connection.ping().as(StepVerifier::create).expectNext("PONG").verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void lastSaveShouldRespondCorrectly() {
 		connection.serverCommands().lastSave().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659, DATAREDIS-667
+	@Test // DATAREDIS-659, DATAREDIS-667
 	void saveShouldRespondCorrectly() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -52,12 +55,12 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().save().as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void dbSizeShouldRespondCorrectly() {
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void flushDbShouldRespondCorrectly() {
 
 		connection.serverCommands().flushDb() //
@@ -72,7 +75,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2187
+	@Test // GH-2187
 	void flushDbSyncShouldRespondCorrectly() {
 
 		connection.serverCommands().flushDb() //
@@ -89,7 +92,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2187
+	@Test // GH-2187
 	void flushDbAsyncShouldRespondCorrectly() {
 
 		connection.serverCommands().flushDb() //
@@ -106,7 +109,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void flushAllShouldRespondCorrectly() {
 
 		connection.serverCommands().flushAll() //
@@ -121,7 +124,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2187
+	@Test // GH-2187
 	void flushAllSyncShouldRespondCorrectly() {
 
 		connection.serverCommands().flushAll() //
@@ -136,7 +139,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2187
+	@Test // GH-2187
 	void flushAllAsyncShouldRespondCorrectly() {
 
 		connection.serverCommands().flushAll() //
@@ -151,7 +154,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void infoShouldRespondCorrectly() {
 
 		if (connection instanceof LettuceReactiveRedisClusterConnection) {
@@ -172,7 +175,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void standaloneInfoWithSectionShouldRespondCorrectly() {
 
 		if (connection instanceof LettuceReactiveRedisClusterConnection) {
@@ -194,7 +197,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void getConfigShouldRespondCorrectly() {
 
 		if (connection instanceof LettuceReactiveRedisClusterConnection) {
@@ -214,7 +217,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedRedisTest // GH-2798
+	@Test // GH-2798
 	void setConfigShouldRespondCorrectly() {
 
 		if (!(connection instanceof LettuceReactiveRedisClusterConnection)) {
@@ -231,7 +234,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void setConfigShouldApplyConfiguration() {
 
 		final String slowLogKey = "slowlog-max-len";
@@ -266,17 +269,17 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void configResetstatShouldRespondCorrectly() {
 		connection.serverCommands().resetConfigStats().as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void timeShouldRespondCorrectly() {
 		connection.serverCommands().time().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void setClientNameShouldSetName() {
 
 		// see lettuce-io/lettuce-core#563
@@ -286,7 +289,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().getClientName().as(StepVerifier::create).expectNext("foo").verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-659
+	@Test // DATAREDIS-659
 	void getClientListShouldReportClient() {
 		connection.serverCommands().getClientList().as(StepVerifier::create).expectNextCount(1).thenCancel().verify();
 	}
