@@ -761,38 +761,16 @@ public class JedisConnectionFactory
 		if (this.state.compareAndSet(State.STARTED, State.STOPPING)) {
 
 			if (getUsePool() && !isRedisClusterAware()) {
-				if (this.pool != null) {
-					try {
-						this.pool.close();
-						this.pool = null;
-					} catch (Exception ex) {
-						log.warn("Cannot properly close Jedis pool", ex);
-					}
-				}
+				dispose(pool);
+				pool = null;
 			}
 
-			ClusterCommandExecutor clusterCommandExecutor = this.clusterCommandExecutor;
+			dispose(clusterCommandExecutor);
+			clusterCommandExecutor = null;
 
-			if (clusterCommandExecutor != null) {
-				try {
-					clusterCommandExecutor.destroy();
-					this.clusterCommandExecutor = null;
-				} catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-
-			if (this.cluster != null) {
-
-				this.topologyProvider = null;
-
-				try {
-					this.cluster.close();
-					this.cluster = null;
-				} catch (Exception ex) {
-					log.warn("Cannot properly close Jedis cluster", ex);
-				}
-			}
+			dispose(cluster);
+			topologyProvider = null;
+			cluster = null;
 
 			this.state.set(State.STOPPED);
 		}
@@ -880,6 +858,36 @@ public class JedisConnectionFactory
 
 		stop();
 		state.set(State.DESTROYED);
+	}
+
+	private void dispose(@Nullable ClusterCommandExecutor commandExecutor) {
+		if (commandExecutor != null) {
+			try {
+				commandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
+	}
+
+	private void dispose(@Nullable JedisCluster cluster) {
+		if (cluster != null) {
+			try {
+				cluster.close();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close Jedis cluster", ex);
+			}
+		}
+	}
+
+	private void dispose(@Nullable Pool<Jedis> pool) {
+		if (pool != null) {
+			try {
+				pool.close();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close Jedis pool", ex);
+			}
+		}
 	}
 
 	@Override

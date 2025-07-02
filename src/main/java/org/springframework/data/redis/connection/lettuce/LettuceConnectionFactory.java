@@ -974,32 +974,22 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 			resetConnection();
 
+			dispose(clusterCommandExecutor);
+			clusterCommandExecutor = null;
+
 			dispose(connectionProvider);
 			connectionProvider = null;
 
 			dispose(reactiveConnectionProvider);
 			reactiveConnectionProvider = null;
 
-			dispose(clusterCommandExecutor);
-			clusterCommandExecutor = null;
-
-			if (client != null) {
-				try {
-					Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
-					Duration timeout = clientConfiguration.getShutdownTimeout();
-
-					client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
-					client = null;
-				} catch (Exception ex) {
-					if (log.isWarnEnabled()) {
-						log.warn(ClassUtils.getShortName(client.getClass()) + " did not shut down gracefully.", ex);
-					}
-				}
-			}
+			dispose(client);
+			client = null;
 		}
 
 		state.set(State.STOPPED);
 	}
+
 
 	@Override
 	public boolean isRunning() {
@@ -1016,9 +1006,20 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	@Override
 	public void destroy() {
-		stop();
 
+		stop();
 		this.state.set(State.DESTROYED);
+	}
+
+	private void dispose(@Nullable ClusterCommandExecutor commandExecutor) {
+
+		if (commandExecutor != null) {
+			try {
+				commandExecutor.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close cluster command executor", ex);
+			}
+		}
 	}
 
 	private void dispose(@Nullable LettuceConnectionProvider connectionProvider) {
@@ -1034,12 +1035,18 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		}
 	}
 
-	private void dispose(@Nullable ClusterCommandExecutor commandExecutor) {
-		if (commandExecutor != null) {
+	private void dispose(@Nullable AbstractRedisClient client) {
+
+		if (client != null) {
 			try {
-				commandExecutor.destroy();
+				Duration quietPeriod = clientConfiguration.getShutdownQuietPeriod();
+				Duration timeout = clientConfiguration.getShutdownTimeout();
+
+				client.shutdown(quietPeriod.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
 			} catch (Exception ex) {
-				log.warn("Cannot properly close cluster command executor", ex);
+				if (log.isWarnEnabled()) {
+					log.warn(ClassUtils.getShortName(client.getClass()) + " did not shut down gracefully.", ex);
+				}
 			}
 		}
 	}
