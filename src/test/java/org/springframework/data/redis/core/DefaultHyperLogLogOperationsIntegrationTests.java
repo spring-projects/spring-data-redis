@@ -20,15 +20,17 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Collection;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 
@@ -58,7 +60,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-308
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void addShouldAddDistinctValuesCorrectly() {
 
@@ -70,7 +72,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v1, v2, v3)).isEqualTo(1L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-308
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void addShouldNotAddExistingValuesCorrectly() {
 
@@ -83,7 +85,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v2)).isEqualTo(0L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-308
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void sizeShouldCountValuesCorrectly() {
 
@@ -96,7 +98,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.size(key)).isEqualTo(3L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-308
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void sizeShouldCountValuesOfMultipleKeysCorrectly() {
 
@@ -114,7 +116,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.size(key, key2)).isGreaterThan(3L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-308
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void unionShouldMergeValuesOfMultipleKeysCorrectly() throws InterruptedException {
 

@@ -45,7 +45,7 @@ import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.redis.repository.core.MappingRedisEntityInformation;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 import org.springframework.data.repository.query.FluentQuery;
 
 /**
@@ -65,7 +65,7 @@ class QueryByExampleRedisExecutorIntegrationTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		connectionFactory = JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
+		connectionFactory = JedisConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
 	}
 
 	@BeforeEach

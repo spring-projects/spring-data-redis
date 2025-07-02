@@ -26,7 +26,7 @@ import org.springframework.data.redis.aot.RedisRuntimeHints;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Christoph Strobl
@@ -38,7 +38,7 @@ class BoundOperationsProxyFactoryRuntimeHintTests {
 	void boundOpsRuntimeHints() {
 
 		LettuceConnectionFactory connectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 		RedisTemplate template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();

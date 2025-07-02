@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -45,9 +48,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Costin Leau
@@ -56,6 +57,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Vedran Pavic
  */
+@ParameterizedClass
 @MethodSource("testParams")
 @EnabledIfLongRunningTest
 public class PubSubResubscribeTests {
@@ -82,13 +84,13 @@ public class PubSubResubscribeTests {
 
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		factories.add(jedisConnFactory);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		factories.add(lettuceConnFactory);
 
@@ -126,7 +128,7 @@ public class PubSubResubscribeTests {
 		bag.clear();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	@EnabledIfLongRunningTest
 	void testContainerPatternResubscribe() {
 
@@ -164,7 +166,7 @@ public class PubSubResubscribeTests {
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag2.contains(payload1) && bag2.contains(payload2));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testContainerChannelResubscribe() {
 
 		String payload1 = "do";
@@ -194,7 +196,7 @@ public class PubSubResubscribeTests {
 	 * Validates the behavior of {@link RedisMessageListenerContainer} when it needs to spin up a thread executing its
 	 * PatternSubscriptionTask
 	 */
-	@ParameterizedRedisTest
+	@Test
 	void testInitializeContainerWithMultipleTopicsIncludingPattern() {
 
 		assumeFalse(isClusterAware(template.getConnectionFactory()));

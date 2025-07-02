@@ -23,20 +23,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Artem Bilian
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class MultithreadedRedisTemplateIntegrationTests {
 
@@ -48,13 +51,14 @@ public class MultithreadedRedisTemplateIntegrationTests {
 
 	public static Collection<Object> testParams() {
 
-		JedisConnectionFactory jedis = JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
-		LettuceConnectionFactory lettuce = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
+		JedisConnectionFactory jedis = JedisConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
+		LettuceConnectionFactory lettuce = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
 
 		return Arrays.asList(jedis, lettuce);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-300
+	@Test
+	// DATAREDIS-300
 	void assertResouresAreReleasedProperlyWhenSharingRedisTemplate() throws InterruptedException {
 
 		final RedisTemplate<Object, Object> template = new RedisTemplate<>();

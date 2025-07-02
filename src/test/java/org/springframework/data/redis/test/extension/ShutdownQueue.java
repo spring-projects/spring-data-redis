@@ -54,12 +54,21 @@ public enum ShutdownQueue {
 
 	private final LinkedList<Closeable> closeables = new LinkedList<>();
 
+	public static void register(ShutdownCloseable closeable) {
+		INSTANCE.closeables.add(closeable::close);
+	}
+
 	public static void register(Closeable closeable) {
 		INSTANCE.closeables.add(closeable);
 	}
 
 	public static void register(AutoCloseable closeable) {
 		INSTANCE.closeables.add(() -> IOUtils.closeQuietly(closeable));
+	}
+
+	public interface ShutdownCloseable {
+
+		void close();
 	}
 
 }

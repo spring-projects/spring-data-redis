@@ -18,14 +18,11 @@ package org.springframework.data.redis.support.atomic;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
-import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Costin Leau
@@ -39,11 +36,11 @@ abstract class AtomicCountersParam {
 
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class, false);
+				.getConnectionFactory(RedisStandalone.class, false);
 
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}

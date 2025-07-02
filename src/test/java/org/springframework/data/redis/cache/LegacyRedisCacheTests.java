@@ -30,6 +30,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueRetrievalException;
@@ -38,8 +41,6 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Tests moved over from 1.x line RedisCache implementation. Just removed somme of the limitations/assumptions
@@ -51,6 +52,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  */
 @SuppressWarnings("rawtypes")
+@ParameterizedClass
 @MethodSource("testParams")
 public class LegacyRedisCacheTests {
 
@@ -116,7 +118,7 @@ public class LegacyRedisCacheTests {
 		return keyFactory.instance();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testCachePut() {
 
 		Object key = getKey();
@@ -131,7 +133,7 @@ public class LegacyRedisCacheTests {
 		}
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testCacheClear() {
 
 		Object key1 = getKey();
@@ -149,7 +151,7 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key1)).isNull();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testConcurrentRead() throws Exception {
 
 		final Object key1 = getKey();
@@ -195,7 +197,7 @@ public class LegacyRedisCacheTests {
 		assertThat(valueWrapper.get()).isEqualTo(v1);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetWhileClear() throws InterruptedException {
 
 		final Object key1 = getKey();
@@ -221,7 +223,7 @@ public class LegacyRedisCacheTests {
 		assertThat(monitorStateException.get()).isFalse();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-243
+	@Test // DATAREDIS-243
 	void testCacheGetShouldReturnCachedInstance() {
 
 		Object key = getKey();
@@ -231,7 +233,7 @@ public class LegacyRedisCacheTests {
 		assertThat(value).isEqualTo(cache.get(key, Object.class));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-243
+	@Test // DATAREDIS-243
 	void testCacheGetShouldRetunInstanceOfCorrectType() {
 
 		Object key = getKey();
@@ -241,7 +243,7 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key, value.getClass())).isInstanceOf(value.getClass());
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-243
+	@Test // DATAREDIS-243
 	void testCacheGetShouldThrowExceptionOnInvalidType() {
 
 		Object key = getKey();
@@ -251,7 +253,7 @@ public class LegacyRedisCacheTests {
 		assertThatIllegalStateException().isThrownBy(() -> cache.get(key, Cache.class));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-243
+	@Test // DATAREDIS-243
 	void testCacheGetShouldReturnNullIfNoCachedValueFound() {
 
 		Object key = getKey();
@@ -262,7 +264,7 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(invalidKey, value.getClass())).isNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-344, DATAREDIS-416
+	@Test // DATAREDIS-344, DATAREDIS-416
 	void putIfAbsentShouldSetValueOnlyIfNotPresent() {
 
 		Object key = getKey();
@@ -280,7 +282,7 @@ public class LegacyRedisCacheTests {
 		assertThat(wrapper.get()).isEqualTo(value);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-510, DATAREDIS-606
+	@Test // DATAREDIS-510, DATAREDIS-606
 	void cachePutWithNullShouldNotAddStuffToRedis() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
@@ -290,7 +292,7 @@ public class LegacyRedisCacheTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> cache.put(key, null));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-510, DATAREDIS-606
+	@Test // DATAREDIS-510, DATAREDIS-606
 	void cachePutWithNullShouldErrorAndLeaveExistingKeyUntouched() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
@@ -310,13 +312,13 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key).get()).isEqualTo(value);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-443, DATAREDIS-452
+	@Test // DATAREDIS-443, DATAREDIS-452
 	@Disabled("junit.framework.AssertionFailedError: expected:<2> but was:<1>")
 	void testCacheGetSynchronized() throws Throwable {
 		runOnce(new CacheGetWithValueLoaderIsThreadSafe(cache));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-553
+	@Test // DATAREDIS-553
 	void cachePutWithNullShouldAddStuffToRedisWhenCachingNullIsEnabled() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
@@ -329,7 +331,7 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key, String.class)).isNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-553
+	@Test // DATAREDIS-553
 	void testCacheGetSynchronizedNullAllowingNull() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
@@ -341,7 +343,7 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key).get()).isNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-553, DATAREDIS-606
+	@Test // DATAREDIS-553, DATAREDIS-606
 	void testCacheGetSynchronizedNullNotAllowingNull() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
@@ -350,7 +352,7 @@ public class LegacyRedisCacheTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> cache.get(key, () -> null));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testCacheGetSynchronizedThrowsExceptionInValueLoader() {
 
 		Object key = getKey();
@@ -362,7 +364,7 @@ public class LegacyRedisCacheTests {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-553
+	@Test // DATAREDIS-553
 	void testCacheGetSynchronizedNullWithStoredNull() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values").isTrue();

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import reactor.test.StepVerifier;
 
@@ -29,9 +29,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link LettuceReactiveHashCommands}.
@@ -40,6 +42,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Tihomir Mateev
  */
+@ParameterizedClass
 public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactiveCommandsTestSupport {
 
 	private static final String FIELD_1 = "field-1";
@@ -58,20 +61,20 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		super(fixture);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hSetShouldOperateCorrectly() {
 
 		connection.hashCommands().hSet(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create)
 				.expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hSetNxShouldOperateCorrectly() {
 		connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create)
 				.expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hSetNxShouldReturnFalseIfFieldAlreadyExists() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -80,7 +83,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hGetShouldReturnValueForExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -91,7 +94,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hGetShouldReturnNullForNotExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -99,7 +102,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_2_BBUFFER).as(StepVerifier::create).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hMGetShouldReturnValueForFields() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -114,7 +117,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525, GH-2210
+	@Test // DATAREDIS-525, GH-2210
 	void hMGetShouldReturnNullValueForFieldsThatHaveNoValue() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -130,7 +133,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.as(StepVerifier::create).expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hMSetSouldSetValuesCorrectly() {
 
 		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
@@ -143,7 +146,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.hget(KEY_1, FIELD_2)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-791
+	@Test // DATAREDIS-791
 	void hMSetShouldOverwriteValuesCorrectly() {
 
 		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
@@ -160,7 +163,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hExistsShouldReturnTrueForExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -169,13 +172,13 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hExistsShouldReturnFalseForNonExistingField() {
 		connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER).as(StepVerifier::create).expectNext(false)
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hDelShouldRemoveSingleFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -186,7 +189,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hDelShouldRemoveMultipleFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -197,7 +200,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hLenShouldReturnSizeCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -207,7 +210,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hLen(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(3L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hKeysShouldReturnFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -219,7 +222,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hValsShouldReturnValuesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -231,7 +234,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void hGetAllShouldReturnEntriesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -250,7 +253,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-743
+	@Test // DATAREDIS-743
 	void hScanShouldIterateOverHash() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -262,7 +265,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-698
+	@Test // DATAREDIS-698
 	void hStrLenReturnsFieldLength() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -273,7 +276,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-698
+	@Test // DATAREDIS-698
 	void hStrLenReturnsZeroWhenFieldDoesNotExist() {
 
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_3);
@@ -282,14 +285,14 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-698
+	@Test // DATAREDIS-698
 	void hStrLenReturnsZeroWhenKeyDoesNotExist() {
 
 		connection.hashCommands().hStrLen(KEY_1_BBUFFER, FIELD_1_BBUFFER).as(StepVerifier::create).expectNext(0L) //
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void hExpireShouldHandleMultipleParametersCorrectly() {
 
@@ -305,7 +308,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void hExpireAtShouldHandleMultipleParametersCorrectly() {
 
@@ -320,7 +323,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.httl(KEY_1, FIELD_3)).allSatisfy(it -> assertThat(it).isEqualTo(-2L));
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void hPersistShouldPersistFields() {
 

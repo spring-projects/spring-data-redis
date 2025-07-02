@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Collection;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,8 +30,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link CompareAndSet}.
@@ -36,6 +37,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class CompareAndSetIntegrationIntegrationTests {
 
@@ -70,7 +72,8 @@ public class CompareAndSetIntegrationIntegrationTests {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-843
+	@Test
+	// DATAREDIS-843
 	void shouldUpdateCounter() {
 
 		long expected = 5;
@@ -84,7 +87,7 @@ public class CompareAndSetIntegrationIntegrationTests {
 		assertThat(valueOps.get(KEY)).isEqualTo(update);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-843
+	@Test // DATAREDIS-843
 	void expectationNotMet() {
 
 		long expected = 5;
@@ -98,7 +101,7 @@ public class CompareAndSetIntegrationIntegrationTests {
 		assertThat(valueOps.get(KEY)).isNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-843
+	@Test // DATAREDIS-843
 	void concurrentUpdate() {
 
 		long expected = 5;

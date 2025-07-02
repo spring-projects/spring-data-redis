@@ -32,7 +32,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
@@ -47,8 +50,6 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration tests for {@link DefaultReactiveHashOperations}.
@@ -56,6 +57,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@ParameterizedClass
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
 public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
@@ -110,7 +112,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test
+	// DATAREDIS-602
 	void remove() {
 
 		K key = keyFactory.instance();
@@ -128,7 +131,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void hasKey() {
 
 		K key = keyFactory.instance();
@@ -151,7 +154,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void get() {
 
 		K key = keyFactory.instance();
@@ -169,14 +172,14 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-824
+	@Test // DATAREDIS-824
 	void getAbsentKey() {
 
 		hashOperations.get(keyFactory.instance(), hashKeyFactory.instance()).as(StepVerifier::create) //
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void multiGet() {
 
 		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
@@ -198,7 +201,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-824
+	@Test // DATAREDIS-824
 	void multiGetAbsentKeys() {
 
 		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
@@ -212,7 +215,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void increment() {
 
 		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
@@ -237,7 +240,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2048
+	@Test // GH-2048
 	@EnabledOnCommand("HRANDFIELD")
 	void randomField() {
 
@@ -272,7 +275,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2048
+	@Test // GH-2048
 	@EnabledOnCommand("HRANDFIELD")
 	void randomValue() {
 
@@ -312,7 +315,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	@DisabledOnOs(value = MAC, architectures = "aarch64")
 	@SuppressWarnings("unchecked")
 	void incrementDouble() {
@@ -339,7 +342,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void keys() {
 
 		assumeThat(hashKeyFactory instanceof StringObjectFactory).isTrue();
@@ -359,7 +362,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void size() {
 
 		K key = keyFactory.instance();
@@ -377,7 +380,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void putAll() {
 
 		K key = keyFactory.instance();
@@ -400,7 +403,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void put() {
 
 		K key = keyFactory.instance();
@@ -413,7 +416,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void putIfAbsent() {
 
 		K key = keyFactory.instance();
@@ -432,7 +435,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void values() {
 
 		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
@@ -452,7 +455,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void entries() {
 
 		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
@@ -479,7 +482,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-743
+	@Test // DATAREDIS-743
 	void scan() {
 
 		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
@@ -507,7 +510,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@EnabledOnCommand("HEXPIRE") // GH-3054
-	@ParameterizedRedisTest
+	@Test
 	void testExpireAndGetExpireMillis() {
 
 		K key = keyFactory.instance();
@@ -531,7 +534,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptions() {
 
@@ -568,7 +571,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAndGetExpireSeconds() {
 
@@ -594,7 +597,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
 
@@ -619,7 +622,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testPersistAndGetExpireMillis() {
 
@@ -648,7 +651,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void delete() {
 
 		K key = keyFactory.instance();

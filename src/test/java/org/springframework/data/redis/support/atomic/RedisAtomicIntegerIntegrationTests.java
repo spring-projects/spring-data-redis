@@ -24,6 +24,9 @@ import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -31,8 +34,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration test of {@link RedisAtomicInteger}
@@ -44,6 +45,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Graham MacMaster
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class RedisAtomicIntegerIntegrationTests {
 
@@ -77,7 +79,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		this.intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testCheckAndSet() {
 
 		intCounter.set(0);
@@ -86,14 +88,14 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(intCounter.compareAndSet(10, 0)).isTrue();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testIncrementAndGet() {
 
 		intCounter.set(0);
 		assertThat(intCounter.incrementAndGet()).isOne();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testAddAndGet() {
 
 		intCounter.set(0);
@@ -101,14 +103,14 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(intCounter.addAndGet(delta)).isEqualTo(delta);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testDecrementAndGet() {
 
 		intCounter.set(1);
 		assertThat(intCounter.decrementAndGet()).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndIncrement() {
 
 		intCounter.set(1);
@@ -116,7 +118,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(intCounter.get()).isEqualTo(2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndAdd() {
 
 		intCounter.set(1);
@@ -124,7 +126,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(intCounter.get()).isEqualTo(6);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndDecrement() {
 
 		intCounter.set(1);
@@ -132,7 +134,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(intCounter.get()).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndSet() {
 
 		intCounter.set(1);
@@ -140,7 +142,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(intCounter.get()).isEqualTo(5);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-108, DATAREDIS-843
+	@Test // DATAREDIS-108, DATAREDIS-843
 	void testCompareSet() throws Exception {
 
 		AtomicBoolean alreadySet = new AtomicBoolean(false);
@@ -172,7 +174,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(failed.get()).withFailMessage("counter already modified").isFalse();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
@@ -180,7 +182,7 @@ public class RedisAtomicIntegerIntegrationTests {
 				.withMessageContaining("a valid key serializer in template is required");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		RedisTemplate<String, Integer> template = new RedisTemplate<>();
@@ -190,7 +192,7 @@ public class RedisAtomicIntegerIntegrationTests {
 				.withMessageContaining("a valid value serializer in template is required");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldBeAbleToUseRedisAtomicIntegerWithProperlyConfiguredRedisTemplate() {
 
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-317.atomicInteger", template);
@@ -199,7 +201,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(ral.get()).isEqualTo(32);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		// setup integer
@@ -212,7 +214,7 @@ public class RedisAtomicIntegerIntegrationTests {
 				.withMessageContaining("'test' seems to no longer exist");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup integer
@@ -224,7 +226,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(test.getAndSet(2)).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -246,7 +248,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void updateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -267,7 +269,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -289,7 +291,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndUpdateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -310,7 +312,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -332,7 +334,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void accumulateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -354,7 +356,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean(false);
@@ -376,7 +378,7 @@ public class RedisAtomicIntegerIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndAccumulateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();

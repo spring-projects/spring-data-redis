@@ -21,26 +21,28 @@ import static org.assertj.core.api.Assumptions.*;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
 
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@ParameterizedClass
 public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveCommandsTestSupport {
 
 	public LettuceReactiveHyperLogLogCommandsTests(Fixture fixture) {
 		super(fixture);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void pfAddShouldAddToNonExistingKeyCorrectly() {
 
 		assertThat(connection.hyperLogLogCommands()
 				.pfAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block()).isEqualTo(1L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void pfAddShouldReturnZeroWhenValueAlreadyExists() {
 
 		nativeCommands.pfadd(KEY_1, VALUE_1, VALUE_2);
@@ -51,7 +53,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 				.isEqualTo(0L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void pfCountShouldReturnCorrectly() {
 
 		nativeCommands.pfadd(KEY_1, VALUE_1, VALUE_2);
@@ -59,7 +61,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 		assertThat(connection.hyperLogLogCommands().pfCount(KEY_1_BBUFFER).block()).isEqualTo(2L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -71,7 +73,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 				.isEqualTo(3L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-525
+	@Test // DATAREDIS-525
 	void pfMergeShouldWorkCorrectly() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);

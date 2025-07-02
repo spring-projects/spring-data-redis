@@ -18,6 +18,8 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import reactor.test.StepVerifier;
+
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,6 +28,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -38,10 +44,6 @@ import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
-
-import reactor.test.StepVerifier;
 
 /**
  * Integration tests for {@link DefaultReactiveZSetOperations}.
@@ -50,6 +52,7 @@ import reactor.test.StepVerifier;
  * @author Christoph Strobl
  * @author Andrey Shlykov
  */
+@ParameterizedClass
 @MethodSource("testParams")
 @SuppressWarnings("unchecked")
 public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
@@ -90,7 +93,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void add() {
 
 		K key = keyFactory.instance();
@@ -99,7 +102,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.add(key, value, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test
+	// DATAREDIS-602
 	void addAll() {
 
 		K key = keyFactory.instance();
@@ -118,7 +122,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.score(key, value1).as(StepVerifier::create).expectNext(52.1d).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void remove() {
 
 		K key = keyFactory.instance();
@@ -131,7 +135,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.remove(key, value).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void incrementScore() {
 
 		K key = keyFactory.instance();
@@ -142,7 +146,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.incrementScore(key, value, 1.1).as(StepVerifier::create).expectNext(43.2).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2049
+	@Test // GH-2049
 	@EnabledOnCommand("ZRANDMEMBER")
 	void randomMember() {
 
@@ -162,7 +166,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.distinctRandomMembers(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2049
+	@Test // GH-2049
 	@Disabled("https://github.com/redis/redis/issues/9160")
 	@EnabledOnCommand("ZRANDMEMBER")
 	void randomMemberWithScore() {
@@ -183,7 +187,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.distinctRandomMembersWithScore(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rank() {
 
 		K key = keyFactory.instance();
@@ -196,7 +200,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.rank(key, value1).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRank() {
 
 		K key = keyFactory.instance();
@@ -209,7 +213,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.reverseRank(key, value1).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void range() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -227,7 +231,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -244,7 +248,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -261,7 +265,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeByScoreWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -278,7 +282,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeByScoreWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -296,7 +300,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeByScoreWithScoresWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -314,7 +318,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRange() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -332,7 +336,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -349,7 +353,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -366,7 +370,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeByScoreWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -383,7 +387,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeByScoreWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -401,7 +405,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeByScoreWithScoresWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -419,7 +423,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2345
+	@Test // GH-2345
 	void rangeAndStoreByLex() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -439,7 +443,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2345
+	@Test // GH-2345
 	@Disabled("https://github.com/spring-projects/spring-data-redis/issues/2441")
 	void rangeAndStoreByScore() {
 
@@ -465,7 +469,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2345
+	@Test // GH-2345
 	void reverseRangeAndStoreByLex() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -485,7 +489,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2345
+	@Test // GH-2345
 	@Disabled("https://github.com/spring-projects/spring-data-redis/issues/2441")
 	void reverseRangeAndStoreByScore() {
 
@@ -511,7 +515,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-743
+	@Test // DATAREDIS-743
 	void scan() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -534,7 +538,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void count() {
 
 		K key = keyFactory.instance();
@@ -548,7 +552,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.count(key, Range.closed(0d, 10d)).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-729
+	@Test // DATAREDIS-729
 	void lexCount() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -568,7 +572,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.lexCount(key, Range.rightOpen("b", "f")).as(StepVerifier::create).expectNext(4L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2007
+	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMIN")
 	void popMin() {
 
@@ -591,7 +595,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.expectNext(new DefaultTypedTuple<>(value4, 4D)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2007
+	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMAX")
 	void popMax() {
 
@@ -614,7 +618,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.expectNext(new DefaultTypedTuple<>(value1, 1D)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void size() {
 
 		K key = keyFactory.instance();
@@ -627,7 +631,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void score() {
 
 		K key = keyFactory.instance();
@@ -641,7 +645,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.score(key, value2).as(StepVerifier::create).expectNext(10d).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2038
+	@Test // GH-2038
 	@EnabledOnCommand("ZMSCORE")
 	void scores() {
 
@@ -656,7 +660,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.expectNext(Arrays.asList(42.1d, 10d, null)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void removeRange() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -672,7 +676,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.range(key, ZERO_TO_FIVE).as(StepVerifier::create).expectNext(value1).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void removeRangeByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -691,7 +695,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2041
+	@Test // GH-2041
 	void difference() {
 
 		K key = keyFactory.instance();
@@ -713,7 +717,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.expectNext(new DefaultTypedTuple<>(onlyInKey, 10D)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2041
+	@Test // GH-2041
 	void differenceAndStore() {
 
 		K key = keyFactory.instance();
@@ -737,7 +741,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2042
+	@Test // GH-2042
 	@EnabledOnCommand("ZINTER")
 	void intersect() {
 
@@ -763,7 +767,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(shared, 33D)).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void intersectAndStore() {
 
 		K key = keyFactory.instance();
@@ -788,7 +792,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746
+	@Test // DATAREDIS-746
 	void intersectAndStoreWithAggregation() {
 
 		K key = keyFactory.instance();
@@ -820,7 +824,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2042
+	@Test // GH-2042
 	@EnabledOnCommand("ZUNION")
 	void union() {
 
@@ -853,7 +857,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void unionAndStore() {
 
 		K key = keyFactory.instance();
@@ -874,7 +878,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.range(destKey, Range.closed(0L, 100L)).as(StepVerifier::create).expectNextCount(3).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746
+	@Test // DATAREDIS-746
 	void unionAndStoreWithAggregation() {
 
 		K key = keyFactory.instance();
@@ -900,7 +904,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.score(destKey, shared).as(StepVerifier::create).expectNext(33d).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeByLex() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -918,7 +922,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void rangeByLexWithLimit() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -941,7 +945,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeByLex() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -958,7 +962,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void reverseRangeByLexLimit() {
 
 		assumeThat(serializer instanceof StringRedisSerializer).isTrue();
@@ -981,7 +985,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-602
+	@Test // DATAREDIS-602
 	void delete() {
 
 		K key = keyFactory.instance();

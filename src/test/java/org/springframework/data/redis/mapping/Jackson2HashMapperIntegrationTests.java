@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.Address;
@@ -33,9 +36,7 @@ import org.springframework.data.redis.connection.jedis.extension.JedisConnection
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration tests for {@link Jackson2HashMapper}.
@@ -44,6 +45,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author John Blum
  */
+@ParameterizedClass
 @MethodSource("params")
 public class Jackson2HashMapperIntegrationTests {
 
@@ -61,8 +63,8 @@ public class Jackson2HashMapperIntegrationTests {
 
 	public static Collection<RedisConnectionFactory> params() {
 
-		return Arrays.asList(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class),
-				LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class));
+		return Arrays.asList(JedisConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class),
+				LettuceConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class));
 	}
 
 	@BeforeEach
@@ -75,7 +77,7 @@ public class Jackson2HashMapperIntegrationTests {
 		this.mapper = new Jackson2HashMapper(true);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-423
+	@Test // DATAREDIS-423
 	public void shouldWriteReadHashCorrectly() {
 
 		Person jon = new Person("jon", "snow", 19);
@@ -90,7 +92,7 @@ public class Jackson2HashMapperIntegrationTests {
 		assertThat(result).isEqualTo(jon);
 	}
 
-	@ParameterizedRedisTest // GH-2565
+	@Test // GH-2565
 	public void shouldPreserveListPropertyOrderOnHashedSource() {
 
 		User jonDoe = User.as("Jon Doe")

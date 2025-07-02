@@ -27,7 +27,7 @@ import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Mark Paluch
@@ -39,7 +39,7 @@ public class RedisCdiDependenciesProducer {
 	 */
 	@Produces
 	public RedisConnectionFactory redisConnectionFactory() {
-		return JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
+		return JedisConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
 	}
 
 	/**

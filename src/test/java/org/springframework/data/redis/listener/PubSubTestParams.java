@@ -30,7 +30,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Costin Leau
@@ -45,7 +45,7 @@ public class PubSubTestParams {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getNewConnectionFactory(RedisStanalone.class);
+				.getNewConnectionFactory(RedisStandalone.class);
 
 		jedisConnFactory.afterPropertiesSet();
 
@@ -60,7 +60,7 @@ public class PubSubTestParams {
 
 		// add Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<>();

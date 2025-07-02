@@ -26,6 +26,9 @@ import java.util.function.DoubleUnaryOperator;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -33,8 +36,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration test of {@link RedisAtomicDouble}
@@ -45,6 +46,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Graham MacMaster
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class RedisAtomicDoubleIntegrationTests {
 
@@ -78,7 +80,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		this.doubleCounter = new RedisAtomicDouble(getClass().getSimpleName() + ":double", factory);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testCheckAndSet() {
 
 		doubleCounter.set(0);
@@ -87,14 +89,15 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.compareAndSet(10.6, 0)).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test
+	// DATAREDIS-198
 	void testIncrementAndGet() {
 
 		doubleCounter.set(0);
 		assertThat(doubleCounter.incrementAndGet()).isEqualTo(1.0);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testAddAndGet() {
 
 		doubleCounter.set(0);
@@ -102,14 +105,14 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.addAndGet(delta)).isCloseTo(delta, Offset.offset(.0001));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testDecrementAndGet() {
 
 		doubleCounter.set(1);
 		assertThat(doubleCounter.decrementAndGet()).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testGetAndSet() {
 
 		doubleCounter.set(3.4);
@@ -117,7 +120,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.get()).isEqualTo(1.2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testGetAndIncrement() {
 
 		doubleCounter.set(2.3);
@@ -125,7 +128,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.get()).isEqualTo(3.3);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testGetAndDecrement() {
 
 		doubleCounter.set(0.5);
@@ -133,7 +136,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.get()).isEqualTo(-0.5);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testGetAndAdd() {
 
 		doubleCounter.set(0.5);
@@ -141,14 +144,14 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.get()).isEqualTo(1.2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testExpire() {
 
 		assertThat(doubleCounter.expire(1, TimeUnit.SECONDS)).isTrue();
 		assertThat(doubleCounter.getExpire()).isGreaterThan(0);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testExpireAt() {
 
 		doubleCounter.set(7.8);
@@ -156,7 +159,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(doubleCounter.getExpire()).isGreaterThan(0);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-198
+	@Test // DATAREDIS-198
 	void testRename() {
 
 		doubleCounter.set(5.6);
@@ -165,7 +168,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(factory.getConnection().get((getClass().getSimpleName() + ":double").getBytes())).isNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
@@ -173,7 +176,7 @@ public class RedisAtomicDoubleIntegrationTests {
 				.withMessageContaining("a valid key serializer in template is required");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 
@@ -184,7 +187,7 @@ public class RedisAtomicDoubleIntegrationTests {
 				.withMessageContaining("a valid value serializer in template is required");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldBeAbleToUseRedisAtomicDoubleWithProperlyConfiguredRedisTemplate() {
 
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-317.atomicDouble", template);
@@ -193,7 +196,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(ral.get()).isEqualTo(32.23);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		// setup double
@@ -206,7 +209,7 @@ public class RedisAtomicDoubleIntegrationTests {
 				.withMessageContaining("'test' seems to no longer exist");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup double
@@ -218,7 +221,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(test.getAndSet(2)).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -240,7 +243,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void updateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -261,7 +264,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -283,7 +286,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndUpdateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -304,7 +307,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -326,7 +329,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void accumulateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -348,7 +351,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -370,7 +373,7 @@ public class RedisAtomicDoubleIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndAccumulateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();

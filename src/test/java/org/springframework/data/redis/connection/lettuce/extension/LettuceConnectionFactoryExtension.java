@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce.extension;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.time.Duration;
 import java.util.HashMap;
@@ -26,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -37,10 +36,11 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder;
+import org.springframework.data.redis.test.RedisTestExtensionSupport;
 import org.springframework.data.redis.test.extension.LettuceTestClientResources;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisSentinel;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 import org.springframework.data.redis.test.extension.ShutdownQueue;
 import org.springframework.data.util.Lazy;
 
@@ -50,11 +50,11 @@ import org.springframework.data.util.Lazy;
  * specific factory instance. Instances are managed by this extension and will be shut down on JVM shutdown.
  *
  * @author Mark Paluch
- * @see RedisStanalone
+ * @see RedisStandalone
  * @see RedisSentinel
  * @see RedisCluster
  */
-public class LettuceConnectionFactoryExtension implements ParameterResolver {
+public class LettuceConnectionFactoryExtension extends RedisTestExtensionSupport implements ParameterResolver {
 
 	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace
 			.create(LettuceConnectionFactoryExtension.class);
@@ -155,12 +155,12 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 	static {
 
 		pooledFactories = new HashMap<>();
-		pooledFactories.put(RedisStanalone.class, STANDALONE);
+		pooledFactories.put(RedisStandalone.class, STANDALONE);
 		pooledFactories.put(RedisSentinel.class, SENTINEL);
 		pooledFactories.put(RedisCluster.class, CLUSTER);
 
 		unpooledFactories = new HashMap<>();
-		unpooledFactories.put(RedisStanalone.class, STANDALONE_UNPOOLED);
+		unpooledFactories.put(RedisStandalone.class, STANDALONE_UNPOOLED);
 		unpooledFactories.put(RedisSentinel.class, SENTINEL_UNPOOLED);
 		unpooledFactories.put(RedisCluster.class, CLUSTER_UNPOOLED);
 	}
@@ -169,7 +169,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 	 * Obtain a {@link LettuceConnectionFactory} described by {@code qualifier}. Instances are managed by this extension
 	 * and will be shut down on JVM shutdown.
 	 *
-	 * @param qualifier an be any of {@link RedisStanalone}, {@link RedisSentinel}, {@link RedisCluster}.
+	 * @param qualifier can be any of {@link RedisStandalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link LettuceConnectionFactory}.
 	 */
 	public static LettuceConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier) {
@@ -180,7 +180,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 	 * Obtain a {@link LettuceConnectionFactory} described by {@code qualifier}. Instances are managed by this extension
 	 * and will be shut down on JVM shutdown.
 	 *
-	 * @param qualifier an be any of {@link RedisStanalone}, {@link RedisSentinel}, {@link RedisCluster}.
+	 * @param qualifier can be any of {@link RedisStandalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link LettuceConnectionFactory}.
 	 */
 	public static LettuceConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier, boolean pooled) {
@@ -198,7 +198,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 	public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
 			throws ParameterResolutionException {
 
-		ExtensionContext.Store store = extensionContext.getStore(NAMESPACE);
+		ExtensionContext.Store store = getSessionStore(extensionContext, NAMESPACE);
 
 		Class<? extends Annotation> qualifier = getQualifier(parameterContext);
 
@@ -215,11 +215,11 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 			return RedisCluster.class;
 		}
 
-		return RedisStanalone.class;
+		return RedisStandalone.class;
 	}
 
 	static class ManagedLettuceConnectionFactory extends LettuceConnectionFactory
-			implements ConnectionFactoryTracker.Managed, Closeable {
+			implements ConnectionFactoryTracker.Managed, ShutdownQueue.ShutdownCloseable {
 
 		private volatile boolean mayClose;
 
@@ -270,7 +270,7 @@ public class LettuceConnectionFactoryExtension implements ParameterResolver {
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void close() {
 
 			mayClose = true;
 			destroy();

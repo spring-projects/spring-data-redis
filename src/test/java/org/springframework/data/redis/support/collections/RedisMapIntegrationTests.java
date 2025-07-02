@@ -18,6 +18,8 @@ package org.springframework.data.redis.support.collections;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.jupiter.params.ParameterizedClass;
+
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -35,7 +37,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration test for RedisMap.
@@ -46,6 +48,7 @@ import org.springframework.data.redis.test.extension.RedisStanalone;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@ParameterizedClass
 public class RedisMapIntegrationTests extends AbstractRedisMapIntegrationTests<Object, Object> {
 
 	@SuppressWarnings("rawtypes")
@@ -78,7 +81,7 @@ public class RedisMapIntegrationTests extends AbstractRedisMapIntegrationTests<O
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		RedisTemplate genericTemplate = new RedisTemplate();
 		genericTemplate.setConnectionFactory(jedisConnFactory);
@@ -104,7 +107,7 @@ public class RedisMapIntegrationTests extends AbstractRedisMapIntegrationTests<O
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class, false);
+				.getConnectionFactory(RedisStandalone.class, false);
 
 		RedisTemplate genericTemplateLettuce = new RedisTemplate();
 		genericTemplateLettuce.setConnectionFactory(lettuceConnFactory);

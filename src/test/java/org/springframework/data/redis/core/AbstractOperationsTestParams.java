@@ -29,7 +29,6 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -37,7 +36,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Parameters for testing implementations of {@link AbstractOperations}
@@ -53,8 +52,8 @@ abstract public class AbstractOperationsTestParams {
 	public static Collection<Object[]> testParams() {
 
 		List<Object[]> params = new ArrayList<>();
-		params.addAll(testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
-		params.addAll(testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
+		params.addAll(testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class)));
+		params.addAll(testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class)));
 		return params;
 	}
 
