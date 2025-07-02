@@ -26,13 +26,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -69,10 +69,10 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		return new DefaultRedisSet<>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
 	}
 
-	@ParameterizedRedisTest // GH-2037
+	@Test // GH-2037
 	@EnabledOnCommand("SMISMEMBER")
 	void testContainsAll() {
-		
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -85,7 +85,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		assertThat(set.containsAll(Collections.emptyList())).isTrue();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testDiff() {
 		RedisSet<T> diffSet1 = createSetFor("test:set:diff1");
 		RedisSet<T> diffSet2 = createSetFor("test:set:diff2");
@@ -106,7 +106,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		assertThat(diff).contains(t1);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testDiffAndStore() {
 		RedisSet<T> diffSet1 = createSetFor("test:set:diff1");
 		RedisSet<T> diffSet2 = createSetFor("test:set:diff2");
@@ -132,7 +132,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		assertThat(diff.getKey()).isEqualTo(resultName);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testIntersect() {
 		RedisSet<T> intSet1 = createSetFor("test:set:int1");
 		RedisSet<T> intSet2 = createSetFor("test:set:int2");
@@ -182,7 +182,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void testUnion() {
 		RedisSet<T> unionSet1 = createSetFor("test:set:union1");
 		RedisSet<T> unionSet2 = createSetFor("test:set:union2");
@@ -205,7 +205,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void testUnionAndStore() {
 		RedisSet<T> unionSet1 = createSetFor("test:set:union1");
 		RedisSet<T> unionSet2 = createSetFor("test:set:union2");
@@ -229,7 +229,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		assertThat(union.getKey()).isEqualTo(resultName);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	public void testIterator() {
 		T t1 = getT();
 		T t2 = getT();
@@ -258,7 +258,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	public void testToArray() {
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
@@ -283,7 +283,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	public void testToArrayWithGenerics() {
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
@@ -308,7 +308,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 
 	// DATAREDIS-314
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void testScanWorksCorrectly() throws IOException {
 
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
@@ -321,7 +321,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 		cursor.close();
 	}
 
-	@ParameterizedRedisTest // GH-2049
+	@Test // GH-2049
 	void randMemberReturnsSomething() {
 
 		Object[] valuesArray = new Object[]{getT(), getT(), getT()};

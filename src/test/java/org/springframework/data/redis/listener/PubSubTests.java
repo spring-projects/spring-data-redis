@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -37,8 +40,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Base test class for PubSub integration tests
@@ -48,6 +49,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Vedran Pavic
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class PubSubTests<T> {
 
@@ -107,7 +109,7 @@ public class PubSubTests<T> {
 		return factory.instance();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testContainerSubscribe() {
 		T payload1 = getT();
 		T payload2 = getT();
@@ -118,7 +120,7 @@ public class PubSubTests<T> {
 		await().atMost(Duration.ofSeconds(2)).until(() -> bag.contains(payload1) && bag.contains(payload2));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testMessageBatch() throws Exception {
 
 		int COUNT = 10;
@@ -131,7 +133,7 @@ public class PubSubTests<T> {
 		}
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	@EnabledIfLongRunningTest
 	void testContainerUnsubscribe() throws Exception {
 		T payload1 = getT();
@@ -144,7 +146,7 @@ public class PubSubTests<T> {
 		assertThat(bag.poll(200, TimeUnit.MILLISECONDS)).isNull();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testStartNoListeners() {
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.stop();
@@ -152,7 +154,7 @@ public class PubSubTests<T> {
 		container.start();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-251, GH-964
+	@Test // DATAREDIS-251, GH-964
 	void testStartListenersToNoSpecificChannelTest() {
 
 		assumeThat(isClusterAware(template.getConnectionFactory())).isFalse();

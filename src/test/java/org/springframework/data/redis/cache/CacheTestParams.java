@@ -37,7 +37,7 @@ import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Christoph Strobl
@@ -55,12 +55,12 @@ class CacheTestParams {
 
 		// Jedis Standalone
 		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 		factoryList.add(jedisConnectionFactory);
 
 		// Lettuce Standalone
 		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 		factoryList.add(lettuceConnectionFactory);
 
 		if (clusterAvailable()) {

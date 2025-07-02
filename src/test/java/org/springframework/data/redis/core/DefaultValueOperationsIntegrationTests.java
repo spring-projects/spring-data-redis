@@ -27,12 +27,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -45,6 +47,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Hendrik Duerkop
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class DefaultValueOperationsIntegrationTests<K, V> {
 
@@ -74,7 +77,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		});
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-784
+	@Test // DATAREDIS-784
 	void testIncrement() {
 
 		K key = keyFactory.instance();
@@ -88,7 +91,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value + 1);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testIncrementLong() {
 
 		K key = keyFactory.instance();
@@ -105,7 +108,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value - 20);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-247
+	@Test // DATAREDIS-247
 	void testIncrementDouble() {
 
 		assumeThat(valueFactory).isInstanceOf(DoubleObjectFactory.class);
@@ -122,7 +125,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat((Double) valueOps.get(key)).isBetween(value + 1.39 - 10, value + 1.41 - 10);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-784
+	@Test // DATAREDIS-784
 	void testDecrement() {
 
 		K key = keyFactory.instance();
@@ -136,7 +139,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value - 1);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-784
+	@Test // DATAREDIS-784
 	void testDecrementByLong() {
 
 		K key = keyFactory.instance();
@@ -150,7 +153,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value - 5);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testMultiSetIfAbsent() {
 
 		Map<K, V> keysAndValues = new HashMap<>();
@@ -166,7 +169,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.multiGet(keysAndValues.keySet())).containsExactlyElementsOf(keysAndValues.values());
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testMultiSetIfAbsentFailure() {
 
 		K key1 = keyFactory.instance();
@@ -184,7 +187,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.multiSetIfAbsent(keysAndValues)).isFalse();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testMultiSet() {
 
 		Map<K, V> keysAndValues = new HashMap<>();
@@ -201,7 +204,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.multiGet(keysAndValues.keySet())).containsExactlyElementsOf(keysAndValues.values());
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetSet() {
 
 		K key = keyFactory.instance();
@@ -212,7 +215,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value);
 	}
 
-	@ParameterizedRedisTest // GH-2050
+	@Test // GH-2050
 	@EnabledOnCommand("GETEX")
 	void testGetAndExpire() {
 
@@ -226,7 +229,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(redisTemplate.getExpire(key)).isGreaterThan(1);
 	}
 
-	@ParameterizedRedisTest // GH-2050
+	@Test // GH-2050
 	@EnabledOnCommand("GETEX")
 	void testGetAndPersist() {
 
@@ -239,7 +242,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);
 	}
 
-	@ParameterizedRedisTest // GH-2050
+	@Test // GH-2050
 	@EnabledOnCommand("GETDEL")
 	void testGetAndDelete() {
 
@@ -252,7 +255,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(redisTemplate.hasKey(key)).isFalse();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetAndSet() {
 
 		K key = keyFactory.instance();
@@ -264,7 +267,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.getAndSet(key, value2)).isEqualTo(value1);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSetWithExpiration() {
 
 		K key = keyFactory.instance();
@@ -277,7 +280,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-815
+	@Test // DATAREDIS-815
 	void testSetWithExpirationEX() {
 
 		K key = keyFactory.instance();
@@ -290,7 +293,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-815
+	@Test // DATAREDIS-815
 	void testSetWithExpirationPX() {
 
 		K key = keyFactory.instance();
@@ -304,7 +307,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-271
+	@Test // DATAREDIS-271
 	@EnabledIfLongRunningTest
 	void testSetWithExpirationWithTimeUnitMilliseconds() {
 
@@ -316,7 +319,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		await().atMost(Duration.ofMillis(500L)).until(() -> !redisTemplate.hasKey(key));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSetGetWithExpiration() {
 
 		K key = keyFactory.instance();
@@ -329,7 +332,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSetGetWithExpirationDuration() {
 
 		K key = keyFactory.instance();
@@ -342,7 +345,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testAppend() {
 
 		K key = keyFactory.instance();
@@ -356,7 +359,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value + "aaa");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetRange() {
 
 		K key = keyFactory.instance();
@@ -369,7 +372,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key, 0, 1)).hasSize(2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSetRange() {
 
 		K key = keyFactory.instance();
@@ -384,7 +387,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSetIfAbsent() {
 
 		K key = keyFactory.instance();
@@ -395,7 +398,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.setIfAbsent(key, value2)).isFalse();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-782
+	@Test // DATAREDIS-782
 	void testSetIfAbsentWithExpiration() {
 
 		K key = keyFactory.instance();
@@ -410,7 +413,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-815
+	@Test // DATAREDIS-815
 	void testSetIfAbsentWithExpirationEX() {
 
 		K key = keyFactory.instance();
@@ -425,7 +428,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-815
+	@Test // DATAREDIS-815
 	void testSetIfAbsentWithExpirationPX() {
 
 		K key = keyFactory.instance();
@@ -440,7 +443,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-786
+	@Test // DATAREDIS-786
 	void setIfPresentReturnsTrueWhenKeyExists() {
 
 		K key = keyFactory.instance();
@@ -453,12 +456,12 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-786
+	@Test // DATAREDIS-786
 	void setIfPresentReturnsFalseWhenKeyDoesNotExist() {
 		assertThat(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance())).isFalse();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-786
+	@Test // DATAREDIS-786
 	void setIfPresentShouldSetExpirationCorrectly() {
 
 		K key = keyFactory.instance();
@@ -475,7 +478,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-815
+	@Test // DATAREDIS-815
 	void testSetIfPresentWithExpirationEX() {
 
 		K key = keyFactory.instance();
@@ -492,7 +495,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-815
+	@Test // DATAREDIS-815
 	void testSetIfPresentWithExpirationPX() {
 
 		K key = keyFactory.instance();
@@ -509,7 +512,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSize() {
 
 		K key = keyFactory.instance();
@@ -521,7 +524,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@ParameterizedRedisTest
+	@Test
 	void testRawKeys() {
 
 		K key1 = keyFactory.instance();
@@ -533,7 +536,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@ParameterizedRedisTest
+	@Test
 	void testRawKeysCollection() {
 
 		K key1 = keyFactory.instance();
@@ -545,7 +548,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	@ParameterizedRedisTest
+	@Test
 	void testDeserializeKey() {
 
 		K key = keyFactory.instance();
@@ -555,7 +558,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key)).isNotNull();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-197
+	@Test // DATAREDIS-197
 	void testSetAndGetBit() {
 
 		assumeThat(redisTemplate).isInstanceOf(StringRedisTemplate.class);

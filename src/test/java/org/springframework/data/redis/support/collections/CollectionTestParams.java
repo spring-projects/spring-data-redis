@@ -34,7 +34,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Costin Leau
@@ -57,7 +57,7 @@ public abstract class CollectionTestParams {
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate(jedisConnFactory);
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<>();
@@ -88,7 +88,7 @@ public abstract class CollectionTestParams {
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<>();

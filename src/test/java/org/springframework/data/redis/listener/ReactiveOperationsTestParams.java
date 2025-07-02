@@ -27,7 +27,7 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.test.condition.RedisDetector;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Parameters for testing implementations of {@link ReactiveRedisMessageListenerContainer}
@@ -39,9 +39,9 @@ class ReactiveOperationsTestParams {
 	public static Collection<Object[]> testParams() {
 
 		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class, false);
+				.getConnectionFactory(RedisStandalone.class, false);
 		LettuceConnectionFactory poolingConnectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class, true);
+				.getConnectionFactory(RedisStandalone.class, true);
 
 		List<Object[]> list = Arrays.asList(new Object[][] { //
 				{ lettuceConnectionFactory, "Standalone" }, //
@@ -54,7 +54,7 @@ class ReactiveOperationsTestParams {
 			clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
 
 			LettuceConnectionFactory lettuceClusterConnectionFactory = LettuceConnectionFactoryExtension
-					.getConnectionFactory(RedisStanalone.class);
+					.getConnectionFactory(RedisStandalone.class);
 
 			list = new ArrayList<>(list);
 			list.add(new Object[] { lettuceClusterConnectionFactory, "Cluster" });

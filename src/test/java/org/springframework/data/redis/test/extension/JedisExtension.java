@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -38,6 +37,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.test.RedisTestExtensionSupport;
 import org.springframework.data.util.Lazy;
 
 /**
@@ -45,7 +45,7 @@ import org.springframework.data.util.Lazy;
  * callbacks. The following resource types are supported by this extension:
  * <ul>
  * <li>{@link Jedis} (singleton)</li>
- * <li>{@link JediCluster} (singleton)</li>
+ * <li>{@link JedisCluster} (singleton)</li>
  * </ul>
  *
  * <pre class="code">
@@ -69,7 +69,7 @@ import org.springframework.data.util.Lazy;
  * @see ParameterResolver
  * @see BeforeEachCallback
  */
-public class JedisExtension implements ParameterResolver {
+public class JedisExtension extends RedisTestExtensionSupport implements ParameterResolver {
 
 	private final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(JedisExtension.class);
 
@@ -80,31 +80,16 @@ public class JedisExtension implements ParameterResolver {
 			JedisClusterSupplier.INSTANCE);
 
 	@Override
-	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context)
 			throws ParameterResolutionException {
 		return SUPPORTED_INJECTABLE_TYPES.contains(parameterContext.getParameter().getType());
 	}
 
-	/**
-	 * Attempt to resolve the {@code requestedResourceType}.
-	 *
-	 * @param extensionContext
-	 * @param requestedResourceType
-	 * @param <T>
-	 * @return
-	 */
-	public <T> T resolve(ExtensionContext extensionContext, Class<T> requestedResourceType) {
-
-		ExtensionContext.Store store = getStore(extensionContext);
-
-		return (T) store.getOrComputeIfAbsent(requestedResourceType, it -> findSupplier(requestedResourceType).get());
-	}
-
 	@Override
-	public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+	public Object resolveParameter(ParameterContext parameterContext, ExtensionContext context)
 			throws ParameterResolutionException {
 
-		ExtensionContext.Store store = getStore(extensionContext);
+		ExtensionContext.Store store = getStore(context);
 		Parameter parameter = parameterContext.getParameter();
 		Type parameterizedType = parameter.getParameterizedType();
 
@@ -133,21 +118,8 @@ public class JedisExtension implements ParameterResolver {
 		return findSupplier(parameterizedType).get();
 	}
 
-	private ExtensionContext.Store getStore(ExtensionContext extensionContext) {
-		return extensionContext.getStore(NAMESPACE);
-	}
-
-	static class ResourceFunction {
-
-		final ResolvableType dependsOn;
-		final ResolvableType provides;
-		final Function<Object, Object> function;
-
-		public ResourceFunction(ResolvableType dependsOn, ResolvableType provides, Function<?, ?> function) {
-			this.dependsOn = dependsOn;
-			this.provides = provides;
-			this.function = (Function) function;
-		}
+	private ExtensionContext.Store getStore(ExtensionContext context) {
+		return getSessionStore(context, NAMESPACE);
 	}
 
 	enum JedisSupplier implements Supplier<Jedis> {
@@ -155,6 +127,7 @@ public class JedisExtension implements ParameterResolver {
 		INSTANCE;
 
 		final Lazy<Jedis> lazy = Lazy.of(() -> {
+
 			Jedis client = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort());
 
 			ShutdownQueue.INSTANCE.register(client);
@@ -172,6 +145,7 @@ public class JedisExtension implements ParameterResolver {
 		INSTANCE;
 
 		final Lazy<JedisCluster> lazy = Lazy.of(() -> {
+
 			JedisCluster client = new JedisCluster(new HostAndPort(SettingsUtils.getHost(), SettingsUtils.getClusterPort()));
 
 			ShutdownQueue.INSTANCE.register(client);

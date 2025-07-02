@@ -43,7 +43,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.condition.RedisDetector;
 import org.springframework.data.redis.test.extension.RedisCluster;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Parameters for testing implementations of {@link ReactiveRedisTemplate}
@@ -63,7 +63,7 @@ abstract public class ReactiveOperationsTestParams {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		LettuceConnectionFactory lettuceConnectionFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
 				RedisSerializationContext.java(ReactiveOperationsTestParams.class.getClassLoader()));

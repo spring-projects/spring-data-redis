@@ -27,6 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
@@ -41,8 +44,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Costin Leau
@@ -50,6 +52,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@ParameterizedClass
 public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 
 	private Properties defaults = new Properties();
@@ -77,12 +80,12 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		return new RedisProperties(store.getKey(), store.getOperations());
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	public void testGetOperations() {
 		assertThat(map.getOperations() instanceof StringRedisTemplate).isTrue();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testPropertiesLoad() throws Exception {
 		InputStream stream = getClass()
 				.getResourceAsStream("/org/springframework/data/redis/support/collections/props.properties");
@@ -103,7 +106,7 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		assertThat(props.size()).isEqualTo(size + 3);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testPropertiesSave() throws Exception {
 		props.setProperty("x", "y");
 		props.setProperty("a", "b");
@@ -112,7 +115,7 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		props.store(writer, "no-comment");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetProperty() throws Exception {
 		String property = props.getProperty("a");
 		assertThat(property).isNull();
@@ -120,19 +123,19 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		assertThat(props.getProperty("a")).isEqualTo("x");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetPropertyDefault() throws Exception {
 		assertThat(props.getProperty("a", "x")).isEqualTo("x");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSetProperty() throws Exception {
 		assertThat(props.getProperty("a")).isNull();
 		defaults.setProperty("a", "x");
 		assertThat(props.getProperty("a")).isEqualTo("x");
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testPropertiesList() throws Exception {
 		defaults.setProperty("a", "b");
 		props.setProperty("x", "y");
@@ -140,7 +143,7 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		props.list(new PrintWriter(wr));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testPropertyNames() throws Exception {
 		String key1 = "foo";
 		String key2 = "x";
@@ -161,13 +164,13 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		assertThat(names.hasMoreElements()).isFalse();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testDefaultInit() throws Exception {
 		RedisProperties redisProperties = new RedisProperties("foo", template);
 		redisProperties.propertyNames();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testStringPropertyNames() throws Exception {
 		String key1 = "foo";
 		String key2 = "x";
@@ -199,7 +202,7 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		ObjectFactory<String> doubleFactory = new DoubleAsStringObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		RedisTemplate<String, String> genericTemplate = new StringRedisTemplate(jedisConnFactory);
 
@@ -217,7 +220,7 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class, false);
+				.getConnectionFactory(RedisStandalone.class, false);
 
 		RedisTemplate<String, String> genericTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> xGenericTemplateLtc = new RedisTemplate<>();

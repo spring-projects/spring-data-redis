@@ -23,6 +23,9 @@ import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -30,8 +33,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration test of {@link RedisAtomicLong}
@@ -43,6 +44,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Mark Paluch
  * @author Graham MacMaster
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class RedisAtomicLongIntegrationTests {
 
@@ -76,7 +78,7 @@ public class RedisAtomicLongIntegrationTests {
 		this.longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testCheckAndSet() {
 
 		longCounter.set(0);
@@ -85,14 +87,14 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.compareAndSet(10, 0)).isTrue();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testIncrementAndGet() {
 
 		longCounter.set(0);
 		assertThat(longCounter.incrementAndGet()).isOne();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testAddAndGet() {
 
 		longCounter.set(0);
@@ -100,14 +102,14 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.addAndGet(delta)).isEqualTo(delta);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testDecrementAndGet() {
 
 		longCounter.set(1);
 		assertThat(longCounter.decrementAndGet()).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndIncrement() {
 
 		longCounter.set(1);
@@ -115,7 +117,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndAdd() {
 
 		longCounter.set(1);
@@ -123,7 +125,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(6);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndDecrement() {
 
 		longCounter.set(1);
@@ -131,7 +133,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void testGetAndSet() {
 
 		longCounter.set(1);
@@ -139,7 +141,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(5);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetExistingValue() {
 
 		longCounter.set(5);
@@ -147,7 +149,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(keyCopy.get());
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfAtomicLongIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
@@ -155,7 +157,7 @@ public class RedisAtomicLongIntegrationTests {
 				.withMessageContaining("a valid key serializer in template is required");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfAtomicLongIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		RedisTemplate<String, Long> template = new RedisTemplate<>();
@@ -165,7 +167,7 @@ public class RedisAtomicLongIntegrationTests {
 				.withMessageContaining("a valid value serializer in template is required");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-317
+	@Test // DATAREDIS-317
 	void testShouldBeAbleToUseRedisAtomicLongWithProperlyConfiguredRedisTemplate() {
 
 		RedisTemplate<String, Long> template = new RedisTemplate<>();
@@ -180,7 +182,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(ral.get()).isEqualTo(32L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		// setup long
@@ -193,7 +195,7 @@ public class RedisAtomicLongIntegrationTests {
 				.withMessageContaining("'test' seems to no longer exist");
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-469
+	@Test // DATAREDIS-469
 	void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup long
@@ -205,7 +207,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(test.getAndSet(2)).isZero();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -227,7 +229,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void updateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -248,7 +250,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -270,7 +272,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndUpdateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -291,7 +293,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -313,7 +315,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void accumulateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -335,7 +337,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -357,7 +359,7 @@ public class RedisAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-874
+	@Test // DATAREDIS-874
 	void getAndAccumulateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();

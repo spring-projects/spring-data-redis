@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.script.AbstractDefaultScriptExecutorTests;
 import org.springframework.data.redis.core.script.DefaultScriptExecutor;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration test of {@link DefaultScriptExecutor} with {@link Jedis}.
@@ -34,7 +34,7 @@ public class JedisDefaultScriptExecutorTests extends AbstractDefaultScriptExecut
 
 	@Override
 	protected RedisConnectionFactory getConnectionFactory() {
-		return JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
+		return JedisConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
 	}
 
 	@Disabled("transactional execution is currently not supported with Jedis")

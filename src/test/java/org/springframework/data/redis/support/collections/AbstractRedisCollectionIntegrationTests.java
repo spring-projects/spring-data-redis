@@ -25,12 +25,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Base test for Redis collections.
@@ -84,7 +84,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		});
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	public void testAdd() {
 		T t1 = getT();
 		assertThat(collection.add(t1)).isTrue();
@@ -93,7 +93,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void testAddAll() {
 		T t1 = getT();
 		T t2 = getT();
@@ -108,7 +108,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(3).isEqualTo(collection.size());
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testClear() {
 		T t1 = getT();
 		assertThat(collection).isEmpty();
@@ -118,7 +118,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(collection).isEmpty();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testContainsObject() {
 		T t1 = getT();
 		assertThat(collection).doesNotContain(t1);
@@ -127,7 +127,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void testContainsAll() {
 		T t1 = getT();
 		T t2 = getT();
@@ -140,17 +140,17 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(collection).contains(t1, t2, t3);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testEquals() {
 		// assertEquals(collection, copyStore(collection));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testHashCode() {
 		assertThat(collection.hashCode()).isNotEqualTo(collection.getKey().hashCode());
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testIsEmpty() {
 		assertThat(collection).isEmpty();
 		assertThat(collection.isEmpty()).isTrue();
@@ -162,7 +162,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	public void testIterator() {
 		T t1 = getT();
 		T t2 = getT();
@@ -181,7 +181,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(iterator.hasNext()).isFalse();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testRemoveObject() {
 		T t1 = getT();
 		T t2 = getT();
@@ -200,7 +200,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	void removeAll() {
 		T t1 = getT();
 		T t2 = getT();
@@ -223,7 +223,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(collection).doesNotContain(t2, t3);
 	}
 
-	// @ParameterizedRedisTest(expected = UnsupportedOperationException.class)
+	// @Test(expected = UnsupportedOperationException.class)
 	@SuppressWarnings("unchecked")
 	public void testRetainAll() {
 		T t1 = getT();
@@ -240,7 +240,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(collection).contains(t2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testSize() {
 		assertThat(collection).isEmpty();
 		assertThat(collection.isEmpty()).isTrue();
@@ -252,7 +252,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	public void testToArray() {
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
@@ -264,7 +264,7 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@ParameterizedRedisTest
+	@Test
 	public void testToArrayWithGenerics() {
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
@@ -275,14 +275,14 @@ public abstract class AbstractRedisCollectionIntegrationTests<T> {
 		assertThat(array).isEqualTo(expectedArray);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testToString() {
 		String name = collection.toString();
 		collection.add(getT());
 		assertThat(collection.toString()).isEqualTo(name);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testGetKey() throws Exception {
 		assertThat(collection.getKey()).isNotNull();
 	}

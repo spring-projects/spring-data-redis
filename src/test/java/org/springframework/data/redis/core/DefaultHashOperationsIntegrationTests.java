@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
@@ -39,9 +42,7 @@ import org.springframework.data.redis.connection.jedis.extension.JedisConnection
 import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
 import org.springframework.data.redis.core.types.Expirations.TimeToLive;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration test of {@link DefaultHashOperations}
@@ -53,6 +54,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @param <HK> Hash key type
  * @param <HV> Hash value type
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
@@ -77,7 +79,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnectionFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
 		stringTemplate.setConnectionFactory(jedisConnectionFactory);
@@ -100,7 +102,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testEntries() {
 		K key = keyFactory.instance();
 		HK key1 = hashKeyFactory.instance();
@@ -116,7 +118,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		}
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testDelete() {
 		K key = keyFactory.instance();
 		HK key1 = hashKeyFactory.instance();
@@ -130,7 +132,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(numDeleted.longValue()).isEqualTo(2L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-305
+	@Test // DATAREDIS-305
 	void testHScanReadsValuesFully() throws IOException {
 
 		K key = keyFactory.instance();
@@ -155,7 +157,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(count).isEqualTo(hashOps.size(key));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-698
+	@Test // DATAREDIS-698
 	void lengthOfValue() throws IOException {
 
 		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();
@@ -172,7 +174,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(hashOps.lengthOfValue(key, key1)).isEqualTo(Long.valueOf(val1.toString().length()));
 	}
 
-	@ParameterizedRedisTest // GH-2048
+	@Test // GH-2048
 	void randomField() {
 
 		K key = keyFactory.instance();
@@ -187,7 +189,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(hashOps.randomKeys(key, 2)).hasSize(2).contains(key1, key2);
 	}
 
-	@ParameterizedRedisTest // GH-2048
+	@Test // GH-2048
 	void randomValue() {
 
 		assumeThat(hashKeyFactory).isNotInstanceOf(RawObjectFactory.class);
@@ -213,7 +215,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@EnabledOnCommand("HEXPIRE") // GH-3054
-	@ParameterizedRedisTest
+	@Test
 	void testExpireAndGetExpireMillis() {
 
 		K key = keyFactory.instance();
@@ -237,7 +239,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAndGetExpireSeconds() {
 
@@ -268,7 +270,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 				});
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testBoundExpireAndGetExpireSeconds() {
 
@@ -300,7 +302,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
 
@@ -325,7 +327,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 				});
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void expireThrowsErrorOfNanoPrecision() {
 
@@ -336,7 +338,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 				.isThrownBy(() -> redisTemplate.opsForHash().getTimeToLive(key, TimeUnit.NANOSECONDS, List.of(key1)));
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptionsNone() {
 
@@ -355,7 +357,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(expire.allOk()).isTrue();
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireWithOptions() {
 
@@ -381,7 +383,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(changes.skipped()).containsExactly(key2);
 	}
 
-	@ParameterizedRedisTest // GH-3054
+	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testPersistAndGetExpireMillis() {
 

@@ -29,7 +29,7 @@ import org.springframework.data.redis.connection.jedis.extension.JedisConnection
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration tests for {@link RedisCollectionFactoryBean}.
@@ -46,7 +46,7 @@ public class RedisCollectionFactoryBeanTests {
 
 	RedisCollectionFactoryBeanTests() {
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		this.template = new StringRedisTemplate(jedisConnFactory);
 	}

@@ -19,7 +19,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.core.script.AbstractDefaultScriptExecutorTests;
 import org.springframework.data.redis.core.script.DefaultScriptExecutor;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration test of {@link DefaultScriptExecutor} with Lettuce.
@@ -31,6 +31,6 @@ public class LettuceDefaultScriptExecutorTests extends AbstractDefaultScriptExec
 
 	@Override
 	protected RedisConnectionFactory getConnectionFactory() {
-		return LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
+		return LettuceConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
 	}
 }

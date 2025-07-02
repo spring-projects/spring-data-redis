@@ -25,6 +25,8 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
+
+import org.springframework.data.redis.test.RedisTestExtensionSupport;
 import org.springframework.data.redis.test.extension.LettuceExtension;
 
 /**
@@ -34,7 +36,7 @@ import org.springframework.data.redis.test.extension.LettuceExtension;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-class EnabledOnCommandCondition implements ExecutionCondition {
+class EnabledOnCommandCondition extends RedisTestExtensionSupport implements ExecutionCondition {
 
 	private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@EnabledOnCommand is not present");
 	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(RedisConditions.class);
@@ -53,7 +55,7 @@ class EnabledOnCommandCondition implements ExecutionCondition {
 
 		String command = optional.get().value();
 
-		ExtensionContext.Store store = context.getRoot().getStore(NAMESPACE);
+		ExtensionContext.Store store = getSessionStore(context, NAMESPACE);
 		RedisConditions conditions = store.getOrComputeIfAbsent(RedisConditions.class, ignore -> {
 
 			try (StatefulRedisConnection connection = lettuceExtension.resolve(context, StatefulRedisConnection.class)) {

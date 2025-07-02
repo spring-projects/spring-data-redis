@@ -29,7 +29,7 @@ import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.DefaultRedisSet;
 import org.springframework.data.redis.support.collections.RedisList;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * @author Costin Leau
@@ -41,7 +41,7 @@ public class BoundKeyParams {
 	public static Collection<Object[]> testParams() {
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		StringRedisTemplate templateJS = new StringRedisTemplate(jedisConnFactory);
 		DefaultRedisMap mapJS = new DefaultRedisMap("bound:key:map", templateJS);
@@ -50,7 +50,7 @@ public class BoundKeyParams {
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		StringRedisTemplate templateLT = new StringRedisTemplate(lettuceConnFactory);
 		DefaultRedisMap mapLT = new DefaultRedisMap("bound:key:mapLT", templateLT);

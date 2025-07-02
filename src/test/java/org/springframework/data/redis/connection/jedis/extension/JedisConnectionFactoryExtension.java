@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis.extension;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -34,9 +33,10 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.test.RedisTestExtensionSupport;
 import org.springframework.data.redis.test.extension.RedisCluster;
 import org.springframework.data.redis.test.extension.RedisSentinel;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 import org.springframework.data.redis.test.extension.ShutdownQueue;
 import org.springframework.data.util.Lazy;
 
@@ -46,11 +46,11 @@ import org.springframework.data.util.Lazy;
  * specific factory instance. Instances are managed by this extension and will be shut down on JVM shutdown.
  *
  * @author Mark Paluch
- * @see RedisStanalone
+ * @see RedisStandalone
  * @see RedisSentinel
  * @see RedisCluster
  */
-public class JedisConnectionFactoryExtension implements ParameterResolver {
+public class JedisConnectionFactoryExtension extends RedisTestExtensionSupport implements ParameterResolver {
 
 	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace
 			.create(JedisConnectionFactoryExtension.class);
@@ -99,7 +99,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	static {
 
 		factories = new HashMap<>();
-		factories.put(RedisStanalone.class, STANDALONE);
+		factories.put(RedisStandalone.class, STANDALONE);
 		factories.put(RedisSentinel.class, SENTINEL);
 		factories.put(RedisCluster.class, CLUSTER);
 	}
@@ -108,7 +108,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	 * Obtain a cached {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this
 	 * extension and will be shut down on JVM shutdown.
 	 *
-	 * @param qualifier an be any of {@link RedisStanalone}, {@link RedisSentinel}, {@link RedisCluster}.
+	 * @param qualifier can be any of {@link RedisStandalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link JedisConnectionFactory}.
 	 */
 	public static JedisConnectionFactory getConnectionFactory(Class<? extends Annotation> qualifier) {
@@ -119,7 +119,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	 * Obtain a new {@link JedisConnectionFactory} described by {@code qualifier}. Instances are managed by this extension
 	 * and will be shut down on JVM shutdown.
 	 *
-	 * @param qualifier an be any of {@link RedisStanalone}, {@link RedisSentinel}, {@link RedisCluster}.
+	 * @param qualifier can be any of {@link RedisStandalone}, {@link RedisSentinel}, {@link RedisCluster}.
 	 * @return the managed {@link JedisConnectionFactory}.
 	 */
 	public static JedisConnectionFactory getNewConnectionFactory(Class<? extends Annotation> qualifier) {
@@ -136,7 +136,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
 			throws ParameterResolutionException {
 
-		ExtensionContext.Store store = extensionContext.getStore(NAMESPACE);
+		ExtensionContext.Store store = getSessionStore(extensionContext, NAMESPACE);
 
 		Class<? extends Annotation> qualifier = getQualifier(parameterContext);
 
@@ -153,7 +153,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 			return RedisCluster.class;
 		}
 
-		return RedisStanalone.class;
+		return RedisStandalone.class;
 	}
 
 	static class NewableLazy<T> {
@@ -174,7 +174,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 	}
 
 	static class ManagedJedisConnectionFactory extends JedisConnectionFactory
-			implements ConnectionFactoryTracker.Managed, Closeable {
+			implements ConnectionFactoryTracker.Managed, ShutdownQueue.ShutdownCloseable {
 
 		private volatile boolean mayClose;
 
@@ -223,7 +223,7 @@ public class JedisConnectionFactoryExtension implements ParameterResolver {
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void close() {
 			try {
 				mayClose = true;
 				destroy();

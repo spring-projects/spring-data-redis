@@ -24,6 +24,9 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -35,9 +38,7 @@ import org.springframework.data.redis.connection.jedis.extension.JedisConnection
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.test.extension.RedisStanalone;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 
 /**
  * Integration tests confirming that {@link RedisMessageListenerContainer} closes connections after unsubscribing
@@ -47,6 +48,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @author Christoph Strobl
  * @author Mark Paluch
  */
+@ParameterizedClass
 @MethodSource("testParams")
 public class SubscriptionConnectionTests {
 
@@ -72,11 +74,11 @@ public class SubscriptionConnectionTests {
 
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
-				.getConnectionFactory(RedisStanalone.class);
+				.getConnectionFactory(RedisStandalone.class);
 
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}
@@ -90,7 +92,8 @@ public class SubscriptionConnectionTests {
 		}
 	}
 
-	@ParameterizedRedisTest // GH-964
+	@Test
+	// GH-964
 	void testStopMessageListenerContainers() throws Exception {
 
 		// Grab all 8 connections from the pool. They should be released on
@@ -115,7 +118,7 @@ public class SubscriptionConnectionTests {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testRemoveLastListener() throws Exception {
 
 		// Grab all 8 connections from the pool
@@ -141,7 +144,7 @@ public class SubscriptionConnectionTests {
 		connection.close();
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testStopListening() throws InterruptedException {
 
 		// Grab all 8 connections from the pool.

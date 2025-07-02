@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.data.Offset.*;
 import static org.assertj.core.data.Offset.offset;
 
 import java.io.IOException;
@@ -29,6 +30,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
@@ -42,8 +46,6 @@ import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
-import org.springframework.data.redis.test.extension.parametrized.MethodSource;
-import org.springframework.data.redis.test.extension.parametrized.ParameterizedRedisTest;
 
 /**
  * Integration test of {@link DefaultZSetOperations}
@@ -57,6 +59,7 @@ import org.springframework.data.redis.test.extension.parametrized.ParameterizedR
  * @param <V> Value type
  */
 @SuppressWarnings("unchecked")
+@ParameterizedClass
 @MethodSource("testParams")
 public class DefaultZSetOperationsIntegrationTests<K, V> {
 
@@ -86,7 +89,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		});
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testCount() {
 
 		K key1 = keyFactory.instance();
@@ -99,7 +102,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.count(key1, 2.7, 5.7)).isEqualTo(Long.valueOf(1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-729
+	@Test // DATAREDIS-729
 	void testLexCountUnbounded() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -117,7 +120,8 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.lexCount(key, Range.unbounded())).isEqualTo(3);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-729
+	@Test
+	// DATAREDIS-729
 	void testLexCountBounded() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -135,7 +139,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.lexCount(key, Range.rightUnbounded(Range.Bound.exclusive(value1.toString())))).isEqualTo(2);
 	}
 
-	@ParameterizedRedisTest // GH-2007
+	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMIN")
 	void testPopMin() {
 
@@ -159,7 +163,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.popMin(key, 1, TimeUnit.SECONDS)).isEqualTo(new DefaultTypedTuple<>(value4, 4d));
 	}
 
-	@ParameterizedRedisTest // GH-2007
+	@Test // GH-2007
 	@EnabledOnCommand("ZPOPMAX")
 	void testPopMax() {
 
@@ -183,7 +187,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.popMax(key, 1, TimeUnit.SECONDS)).isEqualTo(new DefaultTypedTuple<>(value1, 1d));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testIncrementScore() {
 
 		K key1 = keyFactory.instance();
@@ -198,7 +202,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuple).isEqualTo(new DefaultTypedTuple<>(value1, 5.7));
 	}
 
-	@ParameterizedRedisTest // GH-2049
+	@Test // GH-2049
 	@EnabledOnCommand("ZRANDMEMBER")
 	void testRandomMember() {
 
@@ -216,7 +220,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.distinctRandomMembers(key, 2)).hasSize(2).containsAnyOf(value1, value2, value3);
 	}
 
-	@ParameterizedRedisTest // GH-2049
+	@Test // GH-2049
 	@Disabled("https://github.com/redis/redis/issues/9160")
 	@EnabledOnCommand("ZRANDMEMBER")
 	void testRandomMemberWithScore() {
@@ -241,7 +245,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 				new DefaultTypedTuple<>(value3, 5.8d));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testRangeByScoreOffsetCount() {
 
 		K key = keyFactory.instance();
@@ -256,7 +260,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1)).containsOnly(value1);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testRangeByScoreWithScoresOffsetCount() {
 
 		K key = keyFactory.instance();
@@ -272,7 +276,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(1).contains(new DefaultTypedTuple<>(value1, 1.9));
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testReverseRangeByScoreOffsetCount() {
 
 		K key = keyFactory.instance();
@@ -287,7 +291,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1)).containsOnly(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testReverseRangeByScoreWithScoresOffsetCount() {
 
 		K key = keyFactory.instance();
@@ -304,7 +308,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(1).contains(new DefaultTypedTuple<>(value2, 3.7));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-407
+	@Test // DATAREDIS-407
 	void testRangeByLexUnbounded() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -323,7 +327,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(3).contains(value1);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-407
+	@Test // DATAREDIS-407
 	void testRangeByLexBounded() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -342,7 +346,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(1).contains(value2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-407
+	@Test // DATAREDIS-407
 	void testRangeByLexUnboundedWithLimit() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -361,7 +365,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(2).containsSequence(value2, value3);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-729
+	@Test // DATAREDIS-729
 	void testReverseRangeByLexUnboundedWithLimit() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -380,7 +384,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(2).containsSequence(value2, value1);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-407
+	@Test // DATAREDIS-407
 	void testRangeByLexBoundedWithLimit() {
 
 		assumeThat(valueFactory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -400,7 +404,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(tuples).hasSize(1).startsWith(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testAddMultiple() {
 
 		K key = keyFactory.instance();
@@ -417,7 +421,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.range(key, 0, -1)).containsExactly(value3, value1, value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testRemove() {
 
 		K key = keyFactory.instance();
@@ -435,7 +439,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.range(key, 0, -1)).containsOnly(value2);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void testScore() {
 
 		K key = keyFactory.instance();
@@ -450,7 +454,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.score(key, value1, value2, valueFactory.instance())).containsExactly(1.9d, 3.7d, null);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void zCardRetrievesDataCorrectly() {
 
 		K key = keyFactory.instance();
@@ -467,7 +471,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.zCard(key)).isEqualTo(3L);
 	}
 
-	@ParameterizedRedisTest
+	@Test
 	void sizeRetrievesDataCorrectly() {
 
 		K key = keyFactory.instance();
@@ -484,7 +488,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.size(key)).isEqualTo(3L);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-306
+	@Test // DATAREDIS-306
 	void testZScanShouldReadEntireValueRange() throws IOException {
 
 		K key = keyFactory.instance();
@@ -514,7 +518,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(count).isEqualTo(3);
 	}
 
-	@ParameterizedRedisTest // GH-2042
+	@Test // GH-2042
 	@EnabledOnCommand("ZDIFF")
 	void testZsetDiff() {
 
@@ -532,7 +536,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.differenceWithScores(key1, key2)).containsOnly(new DefaultTypedTuple<>(value1, 1d));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746, GH-2042
+	@Test // DATAREDIS-746, GH-2042
 	@EnabledOnCommand("ZDIFFSTORE")
 	void testZsetDiffStore() {
 
@@ -552,7 +556,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.rangeWithScores(key3, 0, -1)).containsOnly(new DefaultTypedTuple<>(value1, 1d));
 	}
 
-	@ParameterizedRedisTest // GH-2042
+	@Test // GH-2042
 	@EnabledOnCommand("ZINTER")
 	void testZsetIntersect() {
 
@@ -569,7 +573,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.intersect(key1, Collections.singletonList(key2))).containsExactly(value2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746, GH-2042
+	@Test // DATAREDIS-746, GH-2042
 	@EnabledOnCommand("ZINTER")
 	void testZsetIntersectWithAggregate() {
 
@@ -590,7 +594,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.score(key1, value2)).isCloseTo(2.0, offset(0.1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746
+	@Test // DATAREDIS-746
 	void testZsetIntersectWithAggregateWeights() {
 
 		K key1 = keyFactory.instance();
@@ -606,7 +610,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
 	}
 
-	@ParameterizedRedisTest // GH-2042
+	@Test // GH-2042
 	@EnabledOnCommand("ZUNION")
 	void testZsetUnion() {
 
@@ -623,7 +627,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.union(key1, Collections.singletonList(key2))).containsOnly(value1, value2);
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746, GH-2042
+	@Test // DATAREDIS-746, GH-2042
 	@EnabledOnCommand("ZUNION")
 	void testZsetUnionWithAggregate() {
 
@@ -645,7 +649,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		assertThat(zSetOps.score(key1, value2)).isCloseTo(2.0, offset(0.1));
 	}
 
-	@ParameterizedRedisTest // DATAREDIS-746
+	@Test // DATAREDIS-746
 	void testZsetUnionWithAggregateWeights() {
 
 		K key1 = keyFactory.instance();

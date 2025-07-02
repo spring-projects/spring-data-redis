@@ -44,7 +44,7 @@ import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializationContext.RedisSerializationContextBuilder;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.extension.RedisStanalone;
+import org.springframework.data.redis.test.extension.RedisStandalone;
 import org.springframework.scripting.support.StaticScriptSource;
 
 /**
@@ -60,7 +60,7 @@ public class DefaultReactiveScriptExecutorTests {
 	@BeforeAll
 	static void setUp() {
 
-		connectionFactory = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class);
+		connectionFactory = LettuceConnectionFactoryExtension.getConnectionFactory(RedisStandalone.class);
 
 		stringTemplate = new StringRedisTemplate(connectionFactory);
 		stringScriptExecutor = new DefaultReactiveScriptExecutor<>(connectionFactory, RedisSerializationContext.string());
