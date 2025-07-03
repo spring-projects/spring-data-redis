@@ -272,7 +272,7 @@ class JedisConnectionUnitTests {
 
 			Cursor<Tuple> cursor = connection.zSetCommands().zScan("spring".getBytes(), ScanOptions.NONE);
 			cursor.next(); // initial value
-			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+			assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.of(Long.parseUnsignedLong(cursorId)));
 
 			cursor.next(); // fetch next
 			verify(jedisSpy, times(2)).zscan(any(byte[].class), captor.capture(), any(ScanParams.class));

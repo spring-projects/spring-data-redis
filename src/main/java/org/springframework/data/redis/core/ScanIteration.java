@@ -40,34 +40,12 @@ public class ScanIteration<T> implements Iterable<T> {
 	/**
 	 * @param cursorId
 	 * @param items
-	 * @deprecated since 3.3.0, use {@link ScanIteration#ScanIteration(CursorId, Collection)} instead as {@code cursorId}
-	 *             can exceed {@link Long#MAX_VALUE}.
-	 */
-	@Deprecated(since = "3.3.0")
-	public ScanIteration(long cursorId, @Nullable Collection<T> items) {
-		this(CursorId.of(cursorId), items);
-	}
-
-	/**
-	 * @param cursorId
-	 * @param items
 	 * @since 3.3.0
 	 */
 	public ScanIteration(CursorId cursorId, @Nullable Collection<T> items) {
 
 		this.cursorId = cursorId;
 		this.items = (items != null ? new ArrayList<>(items) : Collections.emptyList());
-	}
-
-	/**
-	 * The cursor id to be used for subsequent requests.
-	 *
-	 * @return
-	 * @deprecated since 3.3.0, use {@link #getId()} instead as the cursorId can exceed {@link Long#MAX_VALUE}.
-	 */
-	@Deprecated(since="3.3.3")
-	public long getCursorId() {
-		return Long.parseLong(getId().getCursorId());
 	}
 
 	/**

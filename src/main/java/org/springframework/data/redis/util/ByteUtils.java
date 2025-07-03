@@ -245,17 +245,4 @@ public final class ByteUtils {
 		return charset.encode(theString);
 	}
 
-	/**
-	 * Extract/Transfer bytes from the given {@link ByteBuffer} into an array by duplicating the buffer and fetching its
-	 * content.
-	 *
-	 * @param buffer must not be {@literal null}.
-	 * @return the extracted bytes.
-	 * @since 2.1
-	 * @deprecated Since 3.2. Use {@link #getBytes(ByteBuffer)} instead.
-	 */
-	@Deprecated(since = "3.2")
-	public static byte[] extractBytes(ByteBuffer buffer) {
-		return getBytes(buffer);
-	}
 }

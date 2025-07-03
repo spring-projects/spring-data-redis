@@ -880,21 +880,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		/**
-		 * Returns whether {@link #getTopology()} should return the cached {@link ClusterTopology}. Uses a time-based
-		 * caching.
-		 *
-		 * @return {@literal true} to use the cached {@link ClusterTopology}; {@literal false} to fetch a new cluster
-		 *         topology.
-		 * @see #JedisClusterTopologyProvider(JedisCluster, Duration)
-		 * @since 2.2
-		 * @deprecated since 3.3.4, use {@link #shouldUseCachedValue(JedisClusterTopology)} instead.
-		 */
-		@Deprecated(since = "3.3.4", forRemoval = true)
-		protected boolean shouldUseCachedValue() {
-			return shouldUseCachedValue(cached);
-		}
-
-		/**
 		 * Returns whether {@link #getTopology()} should return the cached {@link JedisClusterTopology}. Uses a time-based
 		 * caching.
 		 *

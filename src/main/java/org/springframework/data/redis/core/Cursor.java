@@ -49,9 +49,9 @@ public interface Cursor<T> extends CloseableIterator<T> {
 	 * <strong>NOTE:</strong> the id might change while iterating items.
 	 *
 	 * @return
-	 * @deprecated since 3.3.0, use {@link #getId()} instead as the cursorId can exceed {@link Long#MAX_VALUE}.
+	 * @deprecated since 3.3, use {@link #getId()} instead as the cursorId can exceed {@link Long#MAX_VALUE}.
 	 */
-	@Deprecated(since = "3.3.0")
+	@Deprecated(since = "3.3")
 	long getCursorId();
 
 	/**

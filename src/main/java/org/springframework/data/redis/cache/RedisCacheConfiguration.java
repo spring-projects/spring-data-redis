@@ -376,21 +376,6 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Returns a computed {@link Duration TTL expiration timeout} based on cache entry key/value if a {@link TtlFunction}
-	 * was confiugred using {@link #entryTtl(TtlFunction)}.
-	 * <p>
-	 * Otherwise, returns the user-provided, fixed {@link Duration} if {@link #entryTtl(Duration)} was called during cache
-	 * configuration.
-	 *
-	 * @return the configured {@link Duration TTL expiration}.
-	 * @deprecated since 3.2. Use {@link #getTtlFunction()} instead.
-	 */
-	@Deprecated(since = "3.2")
-	public Duration getTtl() {
-		return getTtlFunction().getTimeToLive(Object.class, null);
-	}
-
-	/**
 	 * Gets the {@link TtlFunction} used to compute a cache key {@literal time-to-live (TTL) expiration}.
 	 *
 	 * @return the {@link TtlFunction} used to compute expiration time (TTL) for cache entries; never {@literal null}.

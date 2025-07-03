@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
-import org.springframework.core.env.MapPropertySource;
+
 import org.springframework.core.env.PropertySource;
 import org.springframework.data.redis.connection.RedisConfiguration.SentinelConfiguration;
 import org.springframework.util.Assert;
@@ -62,7 +62,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private RedisPassword dataNodePassword = RedisPassword.none();
 	private RedisPassword sentinelPassword = RedisPassword.none();
 
-	private final Set<RedisNode> sentinels;
+	private final Set<RedisNode> sentinels = new LinkedHashSet<>();
 
 	private @Nullable String dataNodeUsername = null;
 	private @Nullable String sentinelUsername = null;
@@ -71,7 +71,6 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 * Creates a new, default {@link RedisSentinelConfiguration}.
 	 */
 	public RedisSentinelConfiguration() {
-		this(new MapPropertySource("RedisSentinelConfiguration", Collections.emptyMap()));
 	}
 
 	/**
@@ -86,72 +85,14 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 * @since 1.5
 	 */
 	public RedisSentinelConfiguration(String master, Set<String> sentinelHostAndPorts) {
-		this(new MapPropertySource("RedisSentinelConfiguration", asMap(master, sentinelHostAndPorts)));
-	}
 
-	/**
-	 * Creates a new {@link RedisSentinelConfiguration} looking up configuration values from the given
-	 * {@link PropertySource}.
-	 *
-	 * <pre class="code">
-	 * spring.redis.sentinel.master=myMaster
-	 * spring.redis.sentinel.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
-	 * </pre>
-	 *
-	 * @param propertySource must not be {@literal null}.
-	 * @since 1.5
-	 * @deprecated since 3.3, use {@link RedisSentinelConfiguration#of(PropertySource)} instead. This constructor will be
-	 *             made private in the next major release.
-	 */
-	@Deprecated(since = "3.3")
-	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
+		Assert.notNull(master, "Sentinel master must not be null");
+		Assert.notNull(sentinelHostAndPorts, "Sentinel nodes must not be null");
 
-		Assert.notNull(propertySource, "PropertySource must not be null");
+		this.master = new SentinelMasterId(master);
 
-		this.sentinels = new LinkedHashSet<>();
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
-			String sentinelMaster = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY));
-			this.setMaster(sentinelMaster);
-		}
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)) {
-			String sentinelNodes = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY));
-			appendSentinels(commaDelimitedListToSet(sentinelNodes));
-		}
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY)) {
-			String sentinelPassword = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY));
-			this.setSentinelPassword(sentinelPassword);
-		}
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY)) {
-			String sentinelUsername = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY));
-			this.setSentinelUsername(sentinelUsername);
-		}
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY)) {
-			String dataNodeUsername = String
-					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY));
-			this.setUsername(dataNodeUsername);
-		}
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY)) {
-			String dataNodePassword = String
-					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY));
-			this.setPassword(dataNodePassword);
-		}
-
-		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY)) {
-			String databaseSource = String
-					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY));
-			int database;
-			try {
-				database = Integer.parseInt(databaseSource);
-			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException("Invalid DB index '%s'; integer required".formatted(databaseSource));
-			}
-			this.setDatabase(database);
+		for (String hostAndPort : sentinelHostAndPorts) {
+			addSentinel(RedisNode.fromString(hostAndPort, RedisNode.DEFAULT_SENTINEL_PORT));
 		}
 	}
 
@@ -163,7 +104,56 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	 * @since 3.3
 	 */
 	public static RedisSentinelConfiguration of(PropertySource<?> propertySource) {
-		return new RedisSentinelConfiguration(propertySource);
+
+		Assert.notNull(propertySource, "PropertySource must not be null");
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
+			String sentinelMaster = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY));
+			configuration.setMaster(sentinelMaster);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)) {
+			String sentinelNodes = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY));
+			configuration.appendSentinels(commaDelimitedListToSet(sentinelNodes));
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY)) {
+			String sentinelPassword = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_PASSWORD_CONFIG_PROPERTY));
+			configuration.setSentinelPassword(sentinelPassword);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY)) {
+			String sentinelUsername = String.valueOf(propertySource.getProperty(REDIS_SENTINEL_USERNAME_CONFIG_PROPERTY));
+			configuration.setSentinelUsername(sentinelUsername);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY)) {
+			String dataNodeUsername = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY));
+			configuration.setUsername(dataNodeUsername);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY)) {
+			String dataNodePassword = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY));
+			configuration.setPassword(dataNodePassword);
+		}
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY)) {
+			String databaseSource = String
+					.valueOf(propertySource.getProperty(REDIS_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY));
+			int database;
+			try {
+				database = Integer.parseInt(databaseSource);
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException("Invalid DB index '%s'; integer required".formatted(databaseSource));
+			}
+			configuration.setDatabase(database);
+		}
+
+		return configuration;
 	}
 
 	/**

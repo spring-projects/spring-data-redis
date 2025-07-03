@@ -66,9 +66,9 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 	 * Crates new {@link ScanCursor} with {@link ScanOptions#NONE}
 	 *
 	 * @param cursorId the cursor Id.
-	 * @deprecated since 3.3.0 - Use {@link ScanCursor#ScanCursor(CursorId)} instead.
+	 * @deprecated since 3.3 - Use {@link ScanCursor#ScanCursor(CursorId)} instead.
 	 */
-	@Deprecated(since = "3.3.0")
+	@Deprecated(since = "3.3")
 	public ScanCursor(long cursorId) {
 		this(cursorId, ScanOptions.NONE);
 	}
@@ -88,9 +88,9 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 	 *
 	 * @param cursorId the cursor Id.
 	 * @param options Defaulted to {@link ScanOptions#NONE} if {@literal null}.
-	 * @deprecated since 3.3.0 - Use {@link ScanCursor#ScanCursor(CursorId, ScanOptions)} instead.
+	 * @deprecated since 3.3 - Use {@link ScanCursor#ScanCursor(CursorId, ScanOptions)} instead.
 	 */
-	@Deprecated(since = "3.3.0")
+	@Deprecated(since = "3.3")
 	public ScanCursor(long cursorId, @Nullable ScanOptions options) {
 		this(CursorId.of(cursorId), options);
 	}
@@ -131,9 +131,9 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 	 * @param cursorId
 	 * @param options
 	 * @return
-	 * @deprecated since 3.3.0, cursorId, can exceed {@link Long#MAX_VALUE}.
+	 * @deprecated since 3.3 cursorId, can exceed {@link Long#MAX_VALUE}.
 	 */
-	@Deprecated(since = "3.3.0")
+	@Deprecated(since = "3.3")
 	protected ScanIteration<T> doScan(long cursorId, ScanOptions options) {
 		return doScan(CursorId.of(cursorId), scanOptions);
 	}
@@ -170,17 +170,6 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 	 * Customization hook when calling {@link #open()}.
 	 *
 	 * @param cursorId
-	 * @deprecated since 3.3.0, use {@link #doOpen(CursorId)} instead.
-	 */
-	@Deprecated(since = "3.3.0", forRemoval = true)
-	protected void doOpen(long cursorId) {
-		doOpen(CursorId.of(cursorId));
-	}
-
-	/**
-	 * Customization hook when calling {@link #open()}.
-	 *
-	 * @param cursorId
 	 */
 	protected void doOpen(CursorId cursorId) {
 		scan(cursorId);
@@ -199,18 +188,6 @@ public abstract class ScanCursor<T> implements Cursor<@NonNull T> {
 		} else {
 			resetDelegate();
 		}
-	}
-
-	/**
-	 * Check whether {@code cursorId} is finished.
-	 *
-	 * @param cursorId the cursor Id
-	 * @return {@literal true} if the cursor is considered finished, {@literal false} otherwise.s
-	 * @since 2.1
-	 */
-	@Deprecated(since = "3.3.0", forRemoval = true)
-	protected boolean isFinished(long cursorId) {
-		return cursorId == 0;
 	}
 
 	/**

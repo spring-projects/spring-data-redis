@@ -28,4 +28,5 @@ public interface NamedNode {
 	 */
 	@Nullable
 	String getName();
+
 }

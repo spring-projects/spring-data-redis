@@ -15,17 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -149,13 +141,13 @@ class ConvertingCursorUnitTests {
 		Converter<Object, Object> mockConverter = mock(Converter.class);
 		Cursor<Object> mockCursor = mock(Cursor.class);
 
-		doReturn(1L).when(mockCursor).getCursorId();
+		doReturn(Cursor.CursorId.of(1L)).when(mockCursor).getId();
 
 		ConvertingCursor<?, ?> convertingCursor = new ConvertingCursor<>(mockCursor, mockConverter);
 
-		assertThat(convertingCursor.getCursorId()).isOne();
+		assertThat(convertingCursor.getId()).isEqualTo(Cursor.CursorId.of(1L));
 
-		verify(mockCursor, times(1)).getCursorId();
+		verify(mockCursor, times(1)).getId();
 		verifyNoMoreInteractions(mockCursor);
 		verifyNoInteractions(mockConverter);
 	}

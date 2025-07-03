@@ -58,15 +58,15 @@ class ScanCursorUnitTests {
 		CapturingCursorDummy cursor = initCursor(values);
 
 		assertThat(cursor.next()).isEqualTo("spring");
-		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.initial());
 		assertThat(cursor.hasNext()).isTrue();
 
 		assertThat(cursor.next()).isEqualTo("data");
-		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.initial());
 		assertThat(cursor.hasNext()).isTrue();
 
 		assertThat(cursor.next()).isEqualTo("redis");
-		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.initial());
 		assertThat(cursor.hasNext()).isFalse();
 	}
 
@@ -80,15 +80,15 @@ class ScanCursorUnitTests {
 		CapturingCursorDummy cursor = initCursor(values);
 
 		assertThat(cursor.next()).isEqualTo("spring");
-		assertThat(cursor.getCursorId()).isEqualTo(1L);
+		assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.of(1L));
 		assertThat(cursor.hasNext()).isTrue();
 
 		assertThat(cursor.next()).isEqualTo("data");
-		assertThat(cursor.getCursorId()).isEqualTo(2L);
+		assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.of(2L));
 		assertThat(cursor.hasNext()).isTrue();
 
 		assertThat(cursor.next()).isEqualTo("redis");
-		assertThat(cursor.getCursorId()).isEqualTo(0L);
+		assertThat(cursor.getId()).isEqualTo(Cursor.CursorId.of(0L));
 		assertThat(cursor.hasNext()).isFalse();
 	}
 

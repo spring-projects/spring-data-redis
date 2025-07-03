@@ -172,36 +172,10 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
-	 * @deprecated since 3.0, use {@link #difference(Object)} instead to follow a consistent method naming scheme.
-	 */
-	@Deprecated(since = "3.0")
-	default Set<@NonNull V> diff(@NonNull K key) {
-		return difference(key);
-	}
-
-	/**
-	 * Diff all sets for given the bound key and {@code key}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	Set<@NonNull V> difference(@NonNull K key);
-
-	/**
-	 * Diff all sets for given the bound key and {@code keys}.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
-	 * @deprecated since 3.0, use {@link #difference(Collection)} instead to follow a consistent method naming scheme.
-	 */
-	@Deprecated(since = "3.0")
-	default Set<@NonNull V> diff(@NonNull Collection<@NonNull K> keys) {
-		return difference(keys);
-	}
 
 	/**
 	 * Diff all sets for given the bound key and {@code keys}.

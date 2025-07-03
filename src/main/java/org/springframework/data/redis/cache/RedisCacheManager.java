@@ -226,16 +226,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	/**
-	 * @deprecated since 3.2. Use {@link RedisCacheManager#RedisCacheManager(RedisCacheWriter, RedisCacheConfiguration, boolean, Map)} instead.
-	 */
-	@Deprecated(since = "3.2")
-	public RedisCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration,
-			Map<String, RedisCacheConfiguration> initialCacheConfigurations, boolean allowRuntimeCacheCreation) {
-
-		this(cacheWriter, defaultCacheConfiguration, allowRuntimeCacheCreation, initialCacheConfigurations);
-	}
-
-	/**
 	 * Factory method returning a {@literal Builder} used to construct and configure a {@link RedisCacheManager}.
 	 *
 	 * @return new {@link RedisCacheManagerBuilder}.

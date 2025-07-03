@@ -390,23 +390,6 @@ public interface ZSetOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 * @param range must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
-	 * @deprecated since 3.0. Please use #lexCount(Range) instead.
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	default Long lexCount(@NonNull K key,
-			org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
-		return lexCount(key, range.toRange());
-	}
-
-	/**
-	 * Count number of elements within sorted set with value between {@link Range#getLowerBound()} and
-	 * {@link Range#getUpperBound()} applying lexicographical ordering.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
 	 * @since 3.0
 	 * @see <a href="https://redis.io/commands/zlexcount">Redis Documentation: ZLEXCOUNT</a>
 	 */
@@ -569,22 +552,6 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zremrangebyrank">Redis Documentation: ZREMRANGEBYRANK</a>
 	 */
 	Long removeRange(@NonNull K key, long start, long end);
-
-	/**
-	 * Remove elements in {@link Range} from sorted set with {@literal key}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.5
-	 * @see <a href="https://redis.io/commands/zremrangebylex">Redis Documentation: ZREMRANGEBYLEX</a>
-	 * @deprecated since 3.0. Please use {@link #removeRangeByLex(Object, Range)} instead;
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	default Long removeRangeByLex(@NonNull K key,
-			org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
-		return removeRangeByLex(key, range.toRange());
-	}
 
 	/**
 	 * Remove elements in {@link Range} from sorted set with {@literal key}.
@@ -944,24 +911,6 @@ public interface ZSetOperations<K, V> {
 
 	/**
 	 * Get all elements with lexicographical ordering from {@literal ZSET} at {@code key} with a value between
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 1.7
-	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
-	 * @deprecated since 3.0. Please use {@link #rangeByLex(Object, Range)} instead.
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> rangeByLex(@NonNull K key,
-			org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
-		return rangeByLex(key, range.toRange());
-	}
-
-	/**
-	 * Get all elements with lexicographical ordering from {@literal ZSET} at {@code key} with a value between
 	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -972,26 +921,6 @@ public interface ZSetOperations<K, V> {
 	 */
 	default Set<V> rangeByLex(@NonNull K key, @NonNull Range<String> range) {
 		return rangeByLex(key, range, Limit.unlimited());
-	}
-
-	/**
-	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with lexicographical ordering from {@literal ZSET} at {@code key} with a value between
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
-	 *
-	 * @param key must not be {@literal null}
-	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 1.7
-	 * @see <a href="https://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
-	 * @deprecated since 3.0. Please use {@link #rangeByLex(Object, Range, Limit)} instead.
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> rangeByLex(@NonNull K key,
-			org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range, @NonNull Limit limit) {
-		return rangeByLex(key, range.toRange(), limit);
 	}
 
 	/**
@@ -1010,24 +939,6 @@ public interface ZSetOperations<K, V> {
 
 	/**
 	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Object, Range)}
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> reverseRangeByLex(@NonNull K key,
-			org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range) {
-		return reverseRangeByLex(key, range.toRange());
-	}
-
-	/**
-	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
 	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1038,26 +949,6 @@ public interface ZSetOperations<K, V> {
 	 */
 	default Set<V> reverseRangeByLex(@NonNull K key, @NonNull Range<String> range) {
 		return reverseRangeByLex(key, range, Limit.unlimited());
-	}
-
-	/**
-	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
-	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
-	 * between {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMin()} and
-	 * {@link org.springframework.data.redis.connection.RedisZSetCommands.Range#getMax()}.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param range must not be {@literal null}.
-	 * @param limit can be {@literal null}.
-	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 2.4
-	 * @see <a href="https://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
-	 * @deprecated since 3.0. Please use {@link #reverseRangeByLex(Object, Range, Limit)} instead.
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	default Set<V> reverseRangeByLex(@NonNull K key,
-			org.springframework.data.redis.connection.RedisZSetCommands.@NonNull Range range, @NonNull Limit limit) {
-		return reverseRangeByLex(key, range.toRange(), limit);
 	}
 
 	/**

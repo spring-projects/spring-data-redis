@@ -15,14 +15,9 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 
@@ -67,7 +62,6 @@ class RedisCacheConfigurationUnitTests {
 	}
 
 	@Test // GH-2628
-	@SuppressWarnings("deprecation")
 	void getTtlReturnsFixedDuration() {
 
 		Duration sixtySeconds = Duration.ofSeconds(60);
@@ -76,13 +70,12 @@ class RedisCacheConfigurationUnitTests {
 			.entryTtl(sixtySeconds);
 
 		assertThat(cacheConfiguration).isNotNull();
-		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds);
-		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds); // does not change!
+		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualByComparingTo(sixtySeconds);
+		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualByComparingTo(sixtySeconds); // does not change!
 	}
 
 	@Test // GH-2628
-	@SuppressWarnings("deprecation")
-	public void getTtlReturnsDynamicDuration() {
+	void getTtlReturnsDynamicDuration() {
 
 		Duration thirtyMinutes = Duration.ofMinutes(30);
 		Duration twoHours = Duration.ofHours(2);
@@ -94,15 +87,15 @@ class RedisCacheConfigurationUnitTests {
 		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
 				.entryTtl(mockTtlFunction);
 
-		assertThat(cacheConfiguration.getTtl()).isEqualTo(thirtyMinutes);
-		assertThat(cacheConfiguration.getTtl()).isEqualTo(twoHours);
+		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualTo(thirtyMinutes);
+		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualTo(twoHours);
 
 		verify(mockTtlFunction, times(2)).getTimeToLive(any(), isNull());
 		verifyNoMoreInteractions(mockTtlFunction);
 	}
 
 	@Test // GH-2351
-	public void enableTtiExpirationShouldConfigureTti() {
+	void enableTtiExpirationShouldConfigureTti() {
 
 		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
 
