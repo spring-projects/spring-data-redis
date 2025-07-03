@@ -1997,9 +1997,8 @@ class MappingRedisConverterUnitTests {
 		assertThat(generic.entity.name).isEqualTo("hello");
 	}
 
-	@Test // DATAREDIS-1175
-	@EnabledOnJre(JRE.JAVA_8)
-		// FIXME: https://github.com/spring-projects/spring-data-redis/issues/2168
+	@Test // GH-2168
+//	@EnabledOnJre(JRE.JAVA_8)
 	void writePlainList() {
 
 		List<Object> source = Arrays.asList("Hello", "stream", "message", 100L);
