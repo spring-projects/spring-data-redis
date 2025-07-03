@@ -32,9 +32,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.comparator.NullSafeComparator;
 
 /**
  * Bucket is the data bag for Redis hash structures to be used with {@link RedisData}.
@@ -51,8 +51,7 @@ public class Bucket {
 	 */
 	public static final Charset CHARSET = StandardCharsets.UTF_8;
 
-	private static final Comparator<String> COMPARATOR = new NullSafeComparator<>(Comparator.<String> naturalOrder(),
-			true);
+	private static final Comparator<String> COMPARATOR = Comparator.nullsFirst(Comparator.naturalOrder());
 
 	/**
 	 * The Redis data as {@link Map} sorted by the keys.

@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
@@ -63,7 +64,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.comparator.NullSafeComparator;
 
 /**
  * {@link RedisConverter} implementation creating flat binary map structure out of a given domain type. Considers
@@ -119,8 +119,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private final GenericConversionService conversionService;
 	private final EntityInstantiators entityInstantiators;
 	private final RedisTypeMapper typeMapper;
-	private final Comparator<String> listKeyComparator = new NullSafeComparator<>(NaturalOrderingKeyComparator.INSTANCE,
-			true);
+	private final Comparator<String> listKeyComparator = Comparator.nullsFirst(NaturalOrderingKeyComparator.INSTANCE);
 
 	private IndexResolver indexResolver;
 	private @Nullable ReferenceResolver referenceResolver;

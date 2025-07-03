@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -158,6 +159,6 @@ public class RedisPassword {
 
 	@Override
 	public int hashCode() {
-		return ObjectUtils.nullSafeHashCode(thePassword);
+		return Objects.hashCode(thePassword);
 	}
 }

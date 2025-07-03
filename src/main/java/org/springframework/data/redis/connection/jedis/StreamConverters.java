@@ -237,11 +237,11 @@ class StreamConverters {
 		}
 
 		if ("$".equals(value)) {
-			return StreamEntryID.LAST_ENTRY;
+			return StreamEntryID.XGROUP_LAST_ENTRY;
 		}
 
 		if (">".equals(value)) {
-			return StreamEntryID.UNRECEIVED_ENTRY;
+			return StreamEntryID.XREADGROUP_UNDELIVERED_ENTRY;
 		}
 
 		return new StreamEntryID(value);

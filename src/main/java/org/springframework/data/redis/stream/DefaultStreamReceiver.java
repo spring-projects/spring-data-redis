@@ -364,7 +364,7 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 				@Override
 				public Context currentContext() {
-					return sink.currentContext();
+					return Context.of(sink.contextView());
 				}
 
 			};

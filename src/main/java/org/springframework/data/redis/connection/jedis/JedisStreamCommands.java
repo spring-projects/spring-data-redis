@@ -24,7 +24,7 @@ import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
-import redis.clients.jedis.resps.StreamConsumersInfo;
+import redis.clients.jedis.resps.StreamConsumerInfo;
 import redis.clients.jedis.resps.StreamGroupInfo;
 
 import java.util.ArrayList;
@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands;
@@ -203,7 +204,7 @@ class JedisStreamCommands implements RedisStreamCommands {
 		return connection.invoke()
 				.from(Jedis::xinfoConsumers, ResponseCommands::xinfoConsumers, key, JedisConverters.toBytes(groupName))
 				.get(it -> {
-					List<StreamConsumersInfo> streamConsumersInfos = BuilderFactory.STREAM_CONSUMERS_INFO_LIST.build(it);
+					List<StreamConsumerInfo> streamConsumersInfos = BuilderFactory.STREAM_CONSUMER_INFO_LIST.build(it);
 					List<Object> sources = new ArrayList<>();
 					streamConsumersInfos.forEach(
 							streamConsumersInfo -> sources.add(StreamConverters.mapToList(streamConsumersInfo.getConsumerInfo())));
