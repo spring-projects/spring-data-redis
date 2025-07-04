@@ -41,7 +41,10 @@ import org.springframework.data.redis.connection.RedisServerCommands.FlushOption
 public interface ClusterOperations<K, V> {
 
 	/**
-	 * Get all keys located at given node.
+	 * Retrieve all keys located at given node matching the given pattern.
+	 * <p>
+	 * <strong>IMPORTANT:</strong> The {@literal KEYS} command is non-interruptible and scans the entire keyspace which
+	 * may cause performance issues.
 	 *
 	 * @param node must not be {@literal null}.
 	 * @param pattern

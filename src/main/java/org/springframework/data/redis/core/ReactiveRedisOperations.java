@@ -264,9 +264,10 @@ public interface ReactiveRedisOperations<K, V> {
 	Mono<DataType> type(K key);
 
 	/**
-	 * Find all keys matching the given {@code pattern}. <br />
-	 * <strong>IMPORTANT:</strong> It is recommended to use {@link #scan()} to iterate over the keyspace as
-	 * {@link #keys(Object)} is a non-interruptible and expensive Redis operation.
+	 * Retrieve all keys matching the given pattern via {@code KEYS} command.
+	 * <p>
+	 * <strong>IMPORTANT:</strong> This command is non-interruptible and scans the entire keyspace which may cause
+	 * performance issues. Consider {@link #scan(ScanOptions)} for large datasets.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return the {@link Flux} emitting matching keys one by one.

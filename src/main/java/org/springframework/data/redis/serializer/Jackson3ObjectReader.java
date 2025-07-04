@@ -18,8 +18,8 @@ package org.springframework.data.redis.serializer;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Defines the contract for Object Mapping readers. Implementations of this interface can deserialize a given byte array
@@ -30,11 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Mark Paluch
  * @since 3.0
- * @deprecated since 4.0 in favor of {@link Jackson3ObjectReader}.
  */
 @FunctionalInterface
-@Deprecated(since = "4.0", forRemoval = true)
-public interface JacksonObjectReader {
+public interface Jackson3ObjectReader {
 
 	/**
 	 * Read an object graph from the given root JSON into a Java object considering the {@link JavaType}.
@@ -48,11 +46,11 @@ public interface JacksonObjectReader {
 	Object read(ObjectMapper mapper, byte[] source, JavaType type) throws IOException;
 
 	/**
-	 * Create a default {@link JacksonObjectReader} delegating to {@link ObjectMapper#readValue(InputStream, JavaType)}.
+	 * Create a default {@link Jackson3ObjectReader} delegating to {@link ObjectMapper#readValue(InputStream, JavaType)}.
 	 *
-	 * @return the default {@link JacksonObjectReader}.
+	 * @return the default {@link Jackson3ObjectReader}.
 	 */
-	static JacksonObjectReader create() {
+	static Jackson3ObjectReader create() {
 		return (mapper, source, type) -> mapper.readValue(source, 0, source.length, type);
 	}
 

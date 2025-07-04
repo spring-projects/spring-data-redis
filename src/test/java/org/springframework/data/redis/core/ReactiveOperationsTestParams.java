@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -100,6 +101,10 @@ abstract public class ReactiveOperationsTestParams {
 		ReactiveRedisTemplate<String, Person> jackson2JsonPersonTemplate = new ReactiveRedisTemplate(
 				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson2JsonSerializer));
 
+		Jackson3JsonRedisSerializer<Person> jackson3JsonSerializer = new Jackson3JsonRedisSerializer<>(Person.class);
+		ReactiveRedisTemplate<String, Person> jackson3JsonPersonTemplate = new ReactiveRedisTemplate(
+			lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson3JsonSerializer));
+
 		GenericJackson2JsonRedisSerializer genericJackson2JsonSerializer = new GenericJackson2JsonRedisSerializer();
 		ReactiveRedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new ReactiveRedisTemplate(
 				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(genericJackson2JsonSerializer));
@@ -115,6 +120,7 @@ abstract public class ReactiveOperationsTestParams {
 				new Fixture<>(xstreamStringTemplate, stringFactory, stringFactory, oxmSerializer, "String/OXM"), //
 				new Fixture<>(xstreamPersonTemplate, stringFactory, personFactory, oxmSerializer, "String/Person/OXM"), //
 				new Fixture<>(jackson2JsonPersonTemplate, stringFactory, personFactory, jackson2JsonSerializer, "Jackson2"), //
+				new Fixture<>(jackson3JsonPersonTemplate, stringFactory, personFactory, jackson2JsonSerializer, "Jackson3"), //
 				new Fixture<>(genericJackson2JsonPersonTemplate, stringFactory, personFactory, genericJackson2JsonSerializer,
 						"Generic Jackson 2"));
 
