@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,9 @@ package org.springframework.data.redis.hash;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
+import tools.jackson.core.TreeNode;
 import tools.jackson.core.Version;
-import tools.jackson.databind.DefaultTyping;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.*;
 import tools.jackson.databind.cfg.MapperBuilder;
 import tools.jackson.databind.deser.jdk.JavaUtilCalendarDeserializer;
 import tools.jackson.databind.deser.jdk.JavaUtilDateDeserializer;
@@ -36,11 +29,13 @@ import tools.jackson.databind.deser.jdk.NumberDeserializers.BigIntegerDeserializ
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.json.JsonMapper.Builder;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.TypeDeserializer;
+import tools.jackson.databind.jsontype.TypeResolverBuilder;
 import tools.jackson.databind.jsontype.TypeSerializer;
 import tools.jackson.databind.jsontype.impl.AsPropertyTypeDeserializer;
+import tools.jackson.databind.jsontype.impl.DefaultTypeResolverBuilder;
 import tools.jackson.databind.module.SimpleDeserializers;
 import tools.jackson.databind.module.SimpleSerializers;
 import tools.jackson.databind.ser.Serializers;
@@ -51,28 +46,24 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.redis.support.collections.CollectionUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.data.util.Lazy;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -81,10 +72,16 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * with an {@code Address} like below the flattening will create individual hash entries for all nested properties and
  * resolve complex types into simple types, as far as possible.
  * <p>
+ * Creation can be configured using {@link #builder()} to enable Jackson 2 compatibility mode (when migrating existing
+ * data from Jackson 2) or to attach a custom {@link MapperBuilder} configurer.
+ * <p>
+ * By default, JSON mapping uses default typing. Make sure to configure an appropriate {@link PolymorphicTypeValidator}
+ * to prevent instantiation of unwanted types.
+ * <p>
  * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
  * <h3>Example</h3>
- * 
+ *
  * <pre class="code">
  * class Person {
  * 	String firstname;
@@ -160,38 +157,22 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * </table>
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 4.0
  */
 public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 
-	private static final boolean SOURCE_VERSION_PRESENT = ClassUtils.isPresent("javax.lang.model.SourceVersion",
-			Jackson3HashMapper.class.getClassLoader());
+	private static final Lazy<Jackson3HashMapper> sharedFlattening = Lazy
+			.of(() -> create(Jackson3HashMapperBuilder::flatten));
+	private static final Lazy<Jackson3HashMapper> sharedHierarchical = Lazy
+			.of(() -> create(Jackson3HashMapperBuilder::hierarchical));
 
 	private final ObjectMapper typingMapper;
 	private final ObjectMapper untypedMapper;
 	private final boolean flatten;
 
-	public Jackson3HashMapper(
-			Consumer<MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> jsonMapperBuilder,
-			boolean flatten) {
-		this(((Supplier<JsonMapper>) () -> {
-			Builder builder = JsonMapper.builder();
-			jsonMapperBuilder.accept(builder);
-			return builder.build();
-		}).get(), flatten);
-	}
-
-	public static void preconfigure(MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>> builder) {
-		builder.findAndAddModules().addModules(new HashMapperModule())
-				.activateDefaultTypingAsProperty(BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class)
-						.allowIfSubType((ctx, clazz) -> true).build(), DefaultTyping.NON_FINAL, "@class")
-				.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
-				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-				.changeDefaultPropertyInclusion(value -> value.withValueInclusion(Include.NON_NULL));
-	}
-
 	/**
-	 * Creates new {@link Jackson3HashMapper} initialized with a custom Jackson {@link ObjectMapper}.
+	 * Creates a new {@link Jackson3HashMapper} initialized with a custom Jackson {@link ObjectMapper}.
 	 *
 	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects}; must not be
 	 *          {@literal null}.
@@ -207,12 +188,92 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		this.untypedMapper = JsonMapper.shared();
 	}
 
+	/**
+	 * Returns a flattening {@link Jackson3HashMapper} using {@literal dot notation} for properties.
+	 *
+	 * @return a flattening {@link Jackson3HashMapper} instance.
+	 */
+	public static Jackson3HashMapper flattening() {
+		return sharedFlattening.get();
+	}
+
+	/**
+	 * Returns a {@link Jackson3HashMapper} retain the hierarchical node structure created by Jackson.
+	 *
+	 * @return a hierarchical {@link Jackson3HashMapper} instance.
+	 */
+	public static Jackson3HashMapper hierarchical() {
+		return sharedHierarchical.get();
+	}
+
+	/**
+	 * Creates a new {@link Jackson3HashMapper} allowing further configuration through {@code configurer}.
+	 *
+	 * @param configurer the configurer for {@link Jackson3HashMapperBuilder}.
+	 * @return a new {@link Jackson3HashMapper} instance.
+	 */
+	public static Jackson3HashMapper create(
+			Consumer<Jackson3HashMapperBuilder<JsonMapper.Builder>> configurer) {
+
+		Assert.notNull(configurer, "Builder configurer must not be null");
+
+		Jackson3HashMapperBuilder<JsonMapper.Builder> builder = builder();
+		configurer.accept(builder);
+
+		return builder.build();
+	}
+
+	/**
+	 * Creates a {@link Jackson3HashMapperBuilder} to build a {@link Jackson3HashMapper} instance using
+	 * {@link JsonMapper}.
+	 *
+	 * @return a {@link Jackson3HashMapperBuilder} to build a {@link Jackson3HashMapper} instance.
+	 */
+	public static Jackson3HashMapperBuilder<JsonMapper.Builder> builder() {
+		return builder(JsonMapper::builder);
+	}
+
+	/**
+	 * Creates a new {@link Jackson3HashMapperBuilder} to configure and build a {@link Jackson3HashMapper}.
+	 *
+	 * @param builderFactory factory to create a {@link MapperBuilder} for the {@link ObjectMapper}.
+	 * @param <B> type of the {@link MapperBuilder} to use.
+	 * @return a new {@link Jackson3HashMapperBuilder}.
+	 */
+	public static <B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> Jackson3HashMapperBuilder<B> builder(
+			Supplier<B> builderFactory) {
+
+		Assert.notNull(builderFactory, "MapperBuilder Factory must not be null");
+
+		return new Jackson3HashMapperBuilder<>(builderFactory);
+	}
+
+	/**
+	 * Preconfigures the given {@link MapperBuilder} to create a Jackson {@link ObjectMapper} that is suitable for
+	 * HashMapper use.
+	 *
+	 * @param builder the {@link MapperBuilder} to preconfigure.
+	 * @param jackson2Compatibility whether to apply Jackson 2.x compatibility settings to read values written by
+	 *          {@link Jackson2HashMapper}.
+	 */
+	public static void preconfigure(MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>> builder,
+			boolean jackson2Compatibility) {
+
+		builder.findAndAddModules() //
+				.addModules(new HashMapperModule(jackson2Compatibility)) //
+				.disable(MapperFeature.REQUIRE_TYPE_ID_FOR_SUBTYPES) //
+				.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
+				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+				.changeDefaultPropertyInclusion(value -> value.withValueInclusion(Include.NON_NULL));
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> toHash(Object source) {
+	public Map<String, Object> toHash(@Nullable Object source) {
 
 		JsonNode tree = this.typingMapper.valueToTree(source);
-		return this.flatten ? flattenMap(tree.properties()) : this.untypedMapper.convertValue(tree, Map.class);
+		return this.flatten ? FlatEric.flatten(Jackson3AdapterFactory.INSTANCE, tree.properties())
+				: this.untypedMapper.convertValue(tree, Map.class);
 	}
 
 	@Override
@@ -222,7 +283,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		try {
 			if (this.flatten) {
 
-				Map<String, Object> unflattenedHash = doUnflatten(hash);
+				Map<String, Object> unflattenedHash = FlatEric.unflatten(hash);
 				byte[] unflattenedHashedBytes = this.untypedMapper.writeValueAsBytes(unflattenedHash);
 				Object hashedObject = this.typingMapper.reader().forType(Object.class).readValue(unflattenedHashedBytes);
 
@@ -236,233 +297,150 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> doUnflatten(Map<String, Object> source) {
 
-		Map<String, Object> result = org.springframework.util.CollectionUtils.newLinkedHashMap(source.size());
-		Set<String> treatSeparate = org.springframework.util.CollectionUtils.newLinkedHashSet(source.size());
+	/**
+	 * Builder to create a {@link Jackson3HashMapper} instance.
+	 *
+	 * @param <B> type of the {@link MapperBuilder}.
+	 */
+	public static class Jackson3HashMapperBuilder<B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> {
 
-		for (Entry<String, Object> entry : source.entrySet()) {
+		private final Supplier<B> builderFactory;
 
-			String key = entry.getKey();
-			String[] keyParts = key.split("\\.");
+		private PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
+				.allowIfBaseType(Object.class).allowIfSubType((ctx, clazz) -> true).build();
+		private boolean jackson2CompatibilityMode = false;
+		private boolean flatten = false;
+		private Consumer<B> mapperBuilderCustomizer = builder -> {};
 
-			if (keyParts.length == 1 && isNotIndexed(keyParts[0])) {
-				result.put(key, entry.getValue());
-			} else if (keyParts.length == 1 && isIndexed(keyParts[0])) {
+		private Jackson3HashMapperBuilder(Supplier<B> builderFactory) {
+			this.builderFactory = builderFactory;
+		}
 
-				String indexedKeyName = keyParts[0];
-				String nonIndexedKeyName = stripIndex(indexedKeyName);
+		/**
+		 * Use a flattened representation using {@literal dot notation}. The default is to use {@link #hierarchical()}.
+		 *
+		 * @return {@code this} builder.
+		 */
+		@Contract("-> this")
+		public Jackson3HashMapperBuilder<B> flatten() {
+			return flatten(true);
+		}
 
-				int index = getIndex(indexedKeyName);
+		/**
+		 * Use a hierarchical node structure as created by Jackson. This is the default behavior.
+		 *
+		 * @return {@code this} builder.
+		 */
+		@Contract("-> this")
+		public Jackson3HashMapperBuilder<B> hierarchical() {
+			return flatten(false);
+		}
 
-				if (result.containsKey(nonIndexedKeyName)) {
-					addValueToTypedListAtIndex((List<Object>) result.get(nonIndexedKeyName), index, entry.getValue());
-				} else {
-					result.put(nonIndexedKeyName, createTypedListWithValue(index, entry.getValue()));
+		/**
+		 * Configure whether to flatten the resulting hash using {@literal dot notation} for properties. The default is to
+		 * use {@link #hierarchical()}.
+		 *
+		 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties will be
+		 *          un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure created
+		 *          by Jackson.
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public Jackson3HashMapperBuilder<B> flatten(boolean flatten) {
+			this.flatten = flatten;
+			return this;
+		}
+
+		/**
+		 * Enable Jackson 2 compatibility mode. This enables reading values written by {@link Jackson2HashMapper} and
+		 * writing values that can be read by {@link Jackson2HashMapper}.
+		 *
+		 * @return {@code this} builder.
+		 */
+		@Contract("-> this")
+		public Jackson3HashMapperBuilder<B> jackson2CompatibilityMode() {
+			this.jackson2CompatibilityMode = true;
+			return this;
+		}
+
+		/**
+		 * Provide a {@link PolymorphicTypeValidator} to validate polymorphic types during deserialization.
+		 *
+		 * @param typeValidator the validator to use, defaults to a permissive validator that allows all types.
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public Jackson3HashMapperBuilder<B> typeValidator(PolymorphicTypeValidator typeValidator) {
+
+			Assert.notNull(typeValidator, "Type validator must not be null");
+
+			this.typeValidator = typeValidator;
+			return this;
+		}
+
+		/**
+		 * Provide a {@link Consumer customizer} to configure the {@link ObjectMapper} through its {@link MapperBuilder}.
+		 *
+		 * @param mapperBuilderCustomizer the configurer to apply to the {@link ObjectMapper} builder.
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public Jackson3HashMapperBuilder<B> customize(Consumer<B> mapperBuilderCustomizer) {
+
+			Assert.notNull(mapperBuilderCustomizer, "JSON mapper customizer must not be null");
+
+			this.mapperBuilderCustomizer = mapperBuilderCustomizer;
+			return this;
+		}
+
+		/**
+		 * Build a new {@link Jackson3HashMapper} instance with the configured settings.
+		 *
+		 * @return a new {@link Jackson3HashMapper} instance.
+		 */
+		@Contract("-> new")
+		public Jackson3HashMapper build() {
+
+			B mapperBuilder = builderFactory.get();
+
+			preconfigure(mapperBuilder, jackson2CompatibilityMode);
+			mapperBuilder.setDefaultTyping(getDefaultTyping(typeValidator, flatten, "@class"));
+
+			mapperBuilderCustomizer.accept(mapperBuilder);
+
+			return new Jackson3HashMapper(mapperBuilder.build(), flatten);
+		}
+
+		private static TypeResolverBuilder<?> getDefaultTyping(PolymorphicTypeValidator typeValidator, boolean flatten,
+				String typePropertyName) {
+
+			return new DefaultTypeResolverBuilder(typeValidator, DefaultTyping.NON_FINAL, typePropertyName) {
+
+				@Override
+				public boolean useForType(JavaType type) {
+
+					if (type.isPrimitive()) {
+						return false;
+					}
+
+					if (flatten && (type.isTypeOrSubTypeOf(Number.class) || type.isEnumType())) {
+						return false;
+					}
+
+					return !TreeNode.class.isAssignableFrom(type.getRawClass());
 				}
-			} else {
-				treatSeparate.add(keyParts[0]);
-			}
+			};
 		}
-
-		for (String partial : treatSeparate) {
-
-			Map<String, Object> newSource = new LinkedHashMap<>();
-
-			// Copies all nested, dot properties from the source Map to the new Map beginning from
-			// the next nested (dot) property
-			for (Entry<String, Object> entry : source.entrySet()) {
-				String key = entry.getKey();
-				if (key.startsWith(partial)) {
-					String keyAfterDot = key.substring(partial.length() + 1);
-					newSource.put(keyAfterDot, entry.getValue());
-				}
-			}
-
-			if (isNonNestedIndexed(partial)) {
-
-				String nonIndexPartial = stripIndex(partial);
-				int index = getIndex(partial);
-
-				if (result.containsKey(nonIndexPartial)) {
-					addValueToTypedListAtIndex((List<Object>) result.get(nonIndexPartial), index, doUnflatten(newSource));
-				} else {
-					result.put(nonIndexPartial, createTypedListWithValue(index, doUnflatten(newSource)));
-				}
-			} else {
-				result.put(partial, doUnflatten(newSource));
-			}
-		}
-
-		return result;
-	}
-
-	private boolean isIndexed(String value) {
-		return value.indexOf('[') > -1;
-	}
-
-	private boolean isNotIndexed(String value) {
-		return !isIndexed(value);
-	}
-
-	private boolean isNonNestedIndexed(String value) {
-		return value.endsWith("]");
-	}
-
-	private int getIndex(String indexedValue) {
-		return Integer.parseInt(indexedValue.substring(indexedValue.indexOf('[') + 1, indexedValue.length() - 1));
-	}
-
-	private String stripIndex(String indexedValue) {
-
-		int indexOfLeftBracket = indexedValue.indexOf("[");
-
-		return indexOfLeftBracket > -1 ? indexedValue.substring(0, indexOfLeftBracket) : indexedValue;
-	}
-
-	private Map<String, Object> flattenMap(Set<Entry<String, JsonNode>> source) {
-
-		Map<String, Object> resultMap = new HashMap<>();
-		doFlatten("", source, resultMap);
-		return resultMap;
-	}
-
-	private void doFlatten(String propertyPrefix, Set<Entry<String, JsonNode>> inputMap, Map<String, Object> resultMap) {
-
-		if (StringUtils.hasText(propertyPrefix)) {
-			propertyPrefix = propertyPrefix + ".";
-		}
-
-		for (Entry<String, JsonNode> entry : inputMap) {
-			flattenElement(propertyPrefix + entry.getKey(), entry.getValue(), resultMap);
-		}
-	}
-
-	private void flattenElement(String propertyPrefix, Object source, Map<String, Object> resultMap) {
-
-		if (!(source instanceof JsonNode element)) {
-			resultMap.put(propertyPrefix, source);
-			return;
-		}
-
-		if (element.isArray()) {
-
-			Iterator<JsonNode> nodes = element.values().iterator();
-
-			while (nodes.hasNext()) {
-
-				JsonNode currentNode = nodes.next();
-
-				if (currentNode.isArray()) {
-					flattenCollection(propertyPrefix, currentNode.values(), resultMap);
-				} else if (nodes.hasNext() && mightBeJavaType(currentNode)) {
-
-					JsonNode next = nodes.next();
-
-					if (next.isArray()) {
-						flattenCollection(propertyPrefix, next.values(), resultMap);
-					}
-					if (currentNode.asString().equals("java.util.Date")) {
-						resultMap.put(propertyPrefix, next.asString());
-						break;
-					}
-					if (next.isNumber()) {
-						resultMap.put(propertyPrefix, next.numberValue());
-						break;
-					}
-					if (next.isString()) {
-						resultMap.put(propertyPrefix, next.stringValue());
-						break;
-					}
-					if (next.isBoolean()) {
-						resultMap.put(propertyPrefix, next.booleanValue());
-						break;
-					}
-					if (next.isBinary()) {
-
-						try {
-							resultMap.put(propertyPrefix, next.binaryValue());
-						} catch (Exception ex) {
-							throw new IllegalStateException("Cannot read binary value '%s'".formatted(propertyPrefix), ex);
-						}
-
-						break;
-					}
-				}
-			}
-		} else if (element.isObject()) {
-			doFlatten(propertyPrefix, element.properties(), resultMap);
-		} else {
-
-			switch (element.getNodeType()) {
-				case STRING -> resultMap.put(propertyPrefix, element.stringValue());
-				case NUMBER -> resultMap.put(propertyPrefix, element.numberValue());
-				case BOOLEAN -> resultMap.put(propertyPrefix, element.booleanValue());
-				case BINARY -> {
-					try {
-						resultMap.put(propertyPrefix, element.binaryValue());
-					} catch (Exception e) {
-						throw new IllegalStateException(e);
-					}
-				}
-				default ->
-					resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element).getPropertyValue("_value"));
-			}
-		}
-	}
-
-	private boolean mightBeJavaType(JsonNode node) {
-
-		String textValue = node.asString();
-
-		if (!SOURCE_VERSION_PRESENT) {
-			return Arrays.asList("java.util.Date", "java.math.BigInteger", "java.math.BigDecimal").contains(textValue);
-		}
-
-		return javax.lang.model.SourceVersion.isName(textValue);
-	}
-
-	private void flattenCollection(String propertyPrefix, Collection<JsonNode> list, Map<String, Object> resultMap) {
-
-		Iterator<JsonNode> iterator = list.iterator();
-		for (int counter = 0; iterator.hasNext(); counter++) {
-			JsonNode element = iterator.next();
-			flattenElement(propertyPrefix + "[" + counter + "]", element, resultMap);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private void addValueToTypedListAtIndex(List<Object> listWithTypeHint, int index, Object value) {
-
-		List<Object> valueList = (List<Object>) listWithTypeHint.get(1);
-
-		if (index >= valueList.size()) {
-			int initialCapacity = index + 1;
-			List<Object> newValueList = new ArrayList<>(initialCapacity);
-			Collections.copy(CollectionUtils.initializeList(newValueList, initialCapacity), valueList);
-			listWithTypeHint.set(1, newValueList);
-			valueList = newValueList;
-		}
-
-		valueList.set(index, value);
-	}
-
-	private List<Object> createTypedListWithValue(int index, Object value) {
-
-		int initialCapacity = index + 1;
-
-		List<Object> valueList = CollectionUtils.initializeList(new ArrayList<>(initialCapacity), initialCapacity);
-		valueList.set(index, value);
-
-		List<Object> listWithTypeHint = new ArrayList<>();
-		listWithTypeHint.add(ArrayList.class.getName());
-		listWithTypeHint.add(valueList);
-
-		return listWithTypeHint;
 	}
 
 	private static class HashMapperModule extends JacksonModule {
+
+		private final boolean useCalendarTimestamps;
+
+		private HashMapperModule(boolean useCalendarTimestamps) {
+			this.useCalendarTimestamps = useCalendarTimestamps;
+		}
 
 		@Override
 		public String getModuleName() {
@@ -485,7 +463,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 					serialize(value, g, ctxt);
 				}
 			});
-			valueSerializers.add(new UTCCalendarSerializer());
+			valueSerializers.add(new UTCCalendarSerializer(useCalendarTimestamps));
 
 			Serializers serializers = new SimpleSerializers(valueSerializers);
 			context.addSerializers(serializers);
@@ -542,6 +520,12 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 
 		private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
+		public final boolean useTimestamps;
+
+		public UTCCalendarSerializer(boolean useTimestamps) {
+			this.useTimestamps = useTimestamps;
+		}
+
 		@Override
 		public void serialize(Calendar value, JsonGenerator g, SerializationContext provider) throws JacksonException {
 
@@ -556,6 +540,11 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 				throws JacksonException {
 			serialize(value, g, ctxt);
 		}
+
+		protected boolean _asTimestamp(SerializationContext serializers) {
+			return useTimestamps;
+		}
+
 	}
 
 	static class UntypedUTCCalendarDeserializer extends JavaUtilCalendarDeserializer {
@@ -574,4 +563,102 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 			return utc;
 		}
 	}
+
+	private enum Jackson3AdapterFactory implements FlatEric.JsonNodeAdapterFactory {
+
+		INSTANCE;
+
+
+		@Override
+		public FlatEric.JsonNodeAdapter adapt(Object node) {
+			return node instanceof FlatEric.JsonNodeAdapter na ? na : new Jackson3JsonNodeAdapter((JsonNode) node);
+		}
+
+		@Override
+		public boolean isJsonNode(Object value) {
+			return value instanceof JsonNode || value instanceof FlatEric.JsonNodeAdapter;
+		}
+	}
+
+	private record Jackson3JsonNodeAdapter(JsonNode node) implements FlatEric.JsonNodeAdapter {
+
+		@Override
+		public FlatEric.JsonNodeType getNodeType() {
+			return FlatEric.JsonNodeType.valueOf(node().getNodeType().name());
+		}
+
+		@Override
+		public boolean isArray() {
+			return node().isArray();
+		}
+
+		@Override
+		public Collection<? extends FlatEric.JsonNodeAdapter> values() {
+			return node().valueStream().map(Jackson3JsonNodeAdapter::new).toList();
+		}
+
+		@Override
+		public String asString() {
+			return node().asString();
+		}
+
+		@Override
+		public boolean isNumber() {
+			return node().isNumber();
+		}
+
+		@Override
+		public Number numberValue() {
+			return node().numberValue();
+		}
+
+		@Override
+		public boolean isString() {
+			return node().isString();
+		}
+
+		@Override
+		public String stringValue() {
+			return node().stringValue();
+		}
+
+		@Override
+		public boolean isBoolean() {
+			return node().isBoolean();
+		}
+
+		@Override
+		public boolean booleanValue() {
+			return node().booleanValue();
+		}
+
+		@Override
+		public boolean isBinary() {
+			return node().isBinary();
+		}
+
+		@Override
+		public byte[] binaryValue() {
+			return node().binaryValue();
+		}
+
+		@Override
+		public boolean isObject() {
+			return node().isObject();
+		}
+
+		@Override
+		public Collection<Entry<String, FlatEric.JsonNodeAdapter>> properties() {
+			return node().propertyStream()
+					.map(it -> Map.entry(it.getKey(), (FlatEric.JsonNodeAdapter) new Jackson3JsonNodeAdapter(it.getValue())))
+					.toList();
+		}
+
+		@Override
+		public Object getDirectValue() {
+			return new DirectFieldAccessFallbackBeanWrapper(node()).getPropertyValue("_value");
+		}
+
+	}
+
 }

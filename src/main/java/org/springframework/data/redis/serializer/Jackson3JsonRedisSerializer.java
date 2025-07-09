@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,41 +17,34 @@ package org.springframework.data.redis.serializer;
 
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.ser.SerializerFactory;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.type.TypeFactory;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * {@link RedisSerializer} that can read and write JSON using
- * <a href="https://github.com/FasterXML/jackson-core">Jackson's</a> and
- * <a href="https://github.com/FasterXML/jackson-databind">Jackson Databind</a> {@link ObjectMapper}.
+ * <a href="https://github.com/FasterXML/jackson-core">Jackson 3</a> and
+ * <a href="https://github.com/FasterXML/jackson-databind">Jackson 3 Databind</a> {@link ObjectMapper}.
  * <p>
  * This serializer can be used to bind to typed beans, or untyped {@link java.util.HashMap HashMap} instances.
  * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  * <p>
- * JSON reading and writing can be customized by configuring {@link JacksonObjectReader} respective
- * {@link JacksonObjectWriter}.
+ * JSON reading and writing can be customized by configuring {@link Jackson3ObjectReader} respective
+ * {@link Jackson3ObjectWriter}.
  *
+ * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
- * @since 1.2
+ * @since 4.0
  */
 public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 
-	/**
-	 * @deprecated since 3.0 for removal.
-	 */
-	@Deprecated(since = "3.0", forRemoval = true) //
-	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-
 	private final JavaType javaType;
 
-	private ObjectMapper mapper;
+	private final ObjectMapper mapper;
 
 	private final Jackson3ObjectReader reader;
 
@@ -63,7 +56,7 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @param type must not be {@literal null}.
 	 */
 	public Jackson3JsonRedisSerializer(Class<T> type) {
-		this(new ObjectMapper(), type);
+		this(JsonMapper.shared(), type);
 	}
 
 	/**
@@ -72,7 +65,7 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @param javaType must not be {@literal null}.
 	 */
 	public Jackson3JsonRedisSerializer(JavaType javaType) {
-		this(new ObjectMapper(), javaType);
+		this(JsonMapper.shared(), javaType);
 	}
 
 	/**
@@ -80,7 +73,6 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param type must not be {@literal null}.
-	 * @since 3.0
 	 */
 	public Jackson3JsonRedisSerializer(ObjectMapper mapper, Class<T> type) {
 
@@ -98,7 +90,6 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param javaType must not be {@literal null}.
-	 * @since 3.0
 	 */
 	public Jackson3JsonRedisSerializer(ObjectMapper mapper, JavaType javaType) {
 		this(mapper, javaType, Jackson3ObjectReader.create(), Jackson3ObjectWriter.create());
@@ -109,40 +100,20 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param javaType must not be {@literal null}.
-	 * @param reader the {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
-	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
-	 * @since 3.0
+	 * @param reader the {@link Jackson3ObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer the {@link Jackson3ObjectWriter} function to write objects using {@link ObjectMapper}.
 	 */
 	public Jackson3JsonRedisSerializer(ObjectMapper mapper, JavaType javaType, Jackson3ObjectReader reader,
 			Jackson3ObjectWriter writer) {
 
-		Assert.notNull(mapper, "ObjectMapper must not be null!");
-		Assert.notNull(reader, "Reader must not be null!");
-		Assert.notNull(writer, "Writer must not be null!");
+		Assert.notNull(mapper, "ObjectMapper must not be null");
+		Assert.notNull(reader, "Reader must not be null");
+		Assert.notNull(writer, "Writer must not be null");
 
 		this.mapper = mapper;
 		this.reader = reader;
 		this.writer = writer;
 		this.javaType = javaType;
-	}
-
-	/**
-	 * Sets the {@code ObjectMapper} for this view. If not set, a default {@link ObjectMapper#ObjectMapper() ObjectMapper}
-	 * is used.
-	 * <p>
-	 * Setting a custom-configured {@code ObjectMapper} is one way to take further control of the JSON serialization
-	 * process. For example, an extended {@link SerializerFactory} can be configured that provides custom serializers for
-	 * specific types. The other option for refining the serialization process is to use Jackson's provided annotations on
-	 * the types to be serialized, in which case a custom-configured ObjectMapper is unnecessary.
-	 *
-	 * @deprecated since 3.0, use {@link #Jackson3JsonRedisSerializer(ObjectMapper, Class) constructor creation} to
-	 *             configure the object mapper.
-	 */
-	@Deprecated(since = "3.0", forRemoval = true)
-	public void setObjectMapper(ObjectMapper mapper) {
-
-		Assert.notNull(mapper, "'objectMapper' must not be null");
-		this.mapper = mapper;
 	}
 
 	@Override
@@ -153,7 +124,7 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 		}
 		try {
 			return this.writer.write(this.mapper, value);
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
 			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
 		}
 	}
@@ -161,14 +132,14 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public T deserialize(@Nullable byte[] bytes) throws SerializationException {
+	public T deserialize(byte @Nullable [] bytes) throws SerializationException {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
 		try {
 			return (T) this.reader.read(this.mapper, bytes, javaType);
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
 	}
@@ -195,4 +166,5 @@ public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
 	protected JavaType getJavaType(Class<?> clazz) {
 		return TypeFactory.unsafeSimpleType(clazz);
 	}
+
 }
