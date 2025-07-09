@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,26 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.hash.Jackson3HashMapper;
 
 /**
+ * Unit tests for {@link Jackson3HashMapper} using flattening mode.
+ *
  * @author Christoph Strobl
  * @author John Blum
- * @since 2023/06
  */
-public class Jackson3HashMapperFlatteningUnitTests extends Jackson3HashMapperUnitTests {
+class Jackson3HashMapperFlatteningUnitTests extends Jackson3HashMapperUnitTests {
 
 	Jackson3HashMapperFlatteningUnitTests() {
-		super(new Jackson3HashMapper(Jackson3HashMapper::preconfigure,true));
+		super(Jackson3HashMapper.flattening());
 	}
 
 	@Test // GH-2593

@@ -91,7 +91,7 @@
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
-		<!-- REDIS Drivers -->
+		<!-- Redis Drivers -->
 
 		<dependency>
 			<groupId>redis.clients</groupId>
@@ -121,7 +121,8 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- reactive -->
+		<!-- Reactive -->
+
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
@@ -139,7 +140,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>${jackson}</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -149,7 +149,8 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- jackson 3 -->
+		<!-- Jackson 3 -->
+
 		<dependency>
 			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -159,7 +160,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
-			<version>3.0-rc5</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -241,6 +241,7 @@
 		</dependency>
 
 		<!-- Kotlin extension -->
+
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>

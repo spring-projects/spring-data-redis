@@ -39,7 +39,6 @@ public abstract class AbstractHashMapperTests {
 
 		HashMapper mapper = mapperFor(o.getClass());
 		Map hash = mapper.toHash(o);
-		System.out.println("hash: " + hash);
 		assertThat(mapper.fromHash(hash)).isEqualTo(o);
 	}
 

@@ -20,7 +20,6 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.core.Version;
-import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
@@ -30,36 +29,40 @@ import tools.jackson.databind.JavaType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.cfg.MapperBuilder;
 import tools.jackson.databind.deser.jackson.BaseNodeDeserializer;
 import tools.jackson.databind.deser.jackson.JsonNodeDeserializer;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.json.JsonMapper.Builder;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 import tools.jackson.databind.jsontype.TypeDeserializer;
-import tools.jackson.databind.jsontype.TypeResolverBuilder;
+import tools.jackson.databind.jsontype.TypeSerializer;
+import tools.jackson.databind.jsontype.impl.DefaultTypeResolverBuilder;
 import tools.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import tools.jackson.databind.module.SimpleSerializers;
 import tools.jackson.databind.ser.std.StdSerializer;
 import tools.jackson.databind.type.TypeFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.support.NullValue;
+import org.springframework.core.KotlinDetector;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.TreeNode;
+
 /**
- * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON}.
+ * Generic Jackson 3-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON}.
  * <p>
  * {@literal JSON} reading and writing can be customized by configuring a {@link Jackson3ObjectReader} and
  * {@link Jackson3ObjectWriter}.
@@ -78,36 +81,9 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 
 	private final Lazy<Boolean> defaultTypingEnabled;
 
-	private final Lazy<String> lazyTypeHintPropertyName;
-
 	private final ObjectMapper mapper;
 
 	private final TypeResolver typeResolver;
-
-	// internal shortcut for testing
-	GenericJackson3JsonRedisSerializer() {
-		this(((Supplier<ObjectMapper>) () -> {
-			Builder builder = JsonMapper.builder();
-			new JsonMapperConfigurer(builder).unsafeDefaultTyping().enableSpringCacheNullValueSupport();
-			return builder.build();
-		}).get());
-	}
-
-	/**
-	 * Prepare a new {@link GenericJackson3JsonRedisSerializer} instance.
-	 *
-	 * @param configurer configuration helper callback to apply customizations to the {@link JsonMapper.Builder json
-	 *          mapper}.
-	 * @return new instance of {@link GenericJackson3JsonRedisSerializer}.
-	 */
-	public static GenericJackson3JsonRedisSerializer create(Consumer<JsonMapperConfigurer> configurer) {
-
-		Builder configurationBuilder = JsonMapper.builder();
-		JsonMapperConfigurer configHelper = new JsonMapperConfigurer(configurationBuilder);
-		configurer.accept(configHelper);
-		return new GenericJackson3JsonRedisSerializer(configurationBuilder.build(), configHelper.getReader(),
-				configHelper.getWriter());
-	}
 
 	/**
 	 * Create a {@link GenericJackson3JsonRedisSerializer} with a custom-configured {@link ObjectMapper}.
@@ -126,7 +102,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	 * @param reader the {@link Jackson3ObjectReader} function to read objects using {@link ObjectMapper}.
 	 * @param writer the {@link Jackson3ObjectWriter} function to write objects using {@link ObjectMapper}.
 	 */
-	public GenericJackson3JsonRedisSerializer(ObjectMapper mapper, Jackson3ObjectReader reader,
+	protected GenericJackson3JsonRedisSerializer(ObjectMapper mapper, Jackson3ObjectReader reader,
 			Jackson3ObjectWriter writer) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null");
@@ -138,12 +114,55 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		this.writer = writer;
 
 		this.defaultTypingEnabled = Lazy.of(() -> mapper.serializationConfig().getDefaultTyper(null) != null);
-		this.lazyTypeHintPropertyName = newLazyTypeHintPropertyName(mapper, this.defaultTypingEnabled);
 
-		this.typeResolver = newTypeResolver(mapper, this.lazyTypeHintPropertyName);
+		Lazy<String> lazyTypeHintPropertyName = newLazyTypeHintPropertyName(mapper, this.defaultTypingEnabled);
+		this.typeResolver = newTypeResolver(mapper, lazyTypeHintPropertyName);
+	}
+
+	/**
+	 * Prepare a new {@link GenericJackson3JsonRedisSerializer} instance.
+	 *
+	 * @param configurer the configurer for {@link GenericJackson3JsonRedisSerializerBuilder}.
+	 * @return new instance of {@link GenericJackson3JsonRedisSerializer}.
+	 */
+	public static GenericJackson3JsonRedisSerializer create(
+			Consumer<GenericJackson3JsonRedisSerializerBuilder<JsonMapper.Builder>> configurer) {
+
+		Assert.notNull(configurer, "Builder configurer must not be null");
+
+		GenericJackson3JsonRedisSerializerBuilder<JsonMapper.Builder> builder = builder();
+		configurer.accept(builder);
+		return builder.build();
+	}
+
+	/**
+	 * Creates a new {@link GenericJackson3JsonRedisSerializerBuilder} to configure and build a
+	 * {@link GenericJackson3JsonRedisSerializer} using {@link JsonMapper}.
+	 *
+	 * @return a new {@link GenericJackson3JsonRedisSerializerBuilder}.
+	 */
+	public static GenericJackson3JsonRedisSerializerBuilder<JsonMapper.Builder> builder() {
+		return builder(JsonMapper::builder);
+	}
+
+	/**
+	 * Creates a new {@link GenericJackson3JsonRedisSerializerBuilder} to configure and build a
+	 * {@link GenericJackson3JsonRedisSerializer}.
+	 *
+	 * @param builderFactory factory to create a {@link MapperBuilder} for the {@link ObjectMapper}.
+	 * @param <B> type of the {@link MapperBuilder} to use.
+	 * @return a new {@link GenericJackson3JsonRedisSerializerBuilder}.
+	 */
+	public static <B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> GenericJackson3JsonRedisSerializerBuilder<B> builder(
+			Supplier<B> builderFactory) {
+
+		Assert.notNull(builderFactory, "MapperBuilder Factory must not be null");
+
+		return new GenericJackson3JsonRedisSerializerBuilder<>(builderFactory);
 	}
 
 	@Override
+	@Contract("_ -> !null")
 	public byte[] serialize(@Nullable Object value) throws SerializationException {
 
 		if (value == null) {
@@ -152,7 +171,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 
 		try {
 			return writer.write(mapper, value);
-		} catch (IOException | JacksonIOException ex) {
+		} catch (RuntimeException ex) {
 			throw new SerializationException("Could not write JSON: %s".formatted(ex.getMessage()), ex);
 		}
 	}
@@ -181,7 +200,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	public <T> @Nullable T deserialize(byte @Nullable [] source, Class<T> type) throws SerializationException {
 
 		Assert.notNull(type, "Deserialization type must not be null;"
-				+ " Please provide Object.class to make use of Jackson2 default typing.");
+				+ " Please provide Object.class to make use of Jackson3 default typing.");
 
 		if (SerializationUtils.isEmpty(source)) {
 			return null;
@@ -235,21 +254,28 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * {@link JsonMapperConfigurer} wraps around a {@link JsonMapper.Builder} providing dedicated methods to configure
-	 * aspects like {@link NullValue} serialization strategy for the resulting {@link ObjectMapper} to be used with
-	 * {@link GenericJackson3JsonRedisSerializer} as well as potential Object/{@link Jackson3ObjectReader -reader} and
-	 * {@link Jackson3ObjectWriter -writer} settings.
-	 * 
-	 * @since 4.0
+	 * {@link GenericJackson3JsonRedisSerializerBuilder} wraps around a {@link JsonMapper.Builder} providing dedicated
+	 * methods to configure aspects like {@link NullValue} serialization strategy for the resulting {@link ObjectMapper}
+	 * to be used with {@link GenericJackson3JsonRedisSerializer} as well as potential Object/{@link Jackson3ObjectReader
+	 * -reader} and {@link Jackson3ObjectWriter -writer} settings.
+	 *
+	 * @param <B> type of the {@link MapperBuilder}.
 	 */
-	public static class JsonMapperConfigurer {
+	public static class GenericJackson3JsonRedisSerializerBuilder<B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> {
 
-		private final JsonMapper.Builder builder;
-		private @Nullable Jackson3ObjectWriter writer;
-		private @Nullable Jackson3ObjectReader reader;
+		private final Supplier<B> builderFactory;
 
-		public JsonMapperConfigurer(Builder builder) {
-			this.builder = builder;
+		private boolean cacheNullValueSupportEnabled = false;
+		private boolean defaultTyping = false;
+		private @Nullable String typePropertyName;
+		private PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
+				.allowIfBaseType(Object.class).allowIfSubType((ctx, clazz) -> true).build();
+		private Consumer<B> mapperBuilderCustomizer = (b) -> {};
+		private Jackson3ObjectWriter writer = Jackson3ObjectWriter.create();
+		private Jackson3ObjectReader reader = Jackson3ObjectReader.create();
+
+		private GenericJackson3JsonRedisSerializerBuilder(Supplier<B> builderFactory) {
+			this.builderFactory = builderFactory;
 		}
 
 		/**
@@ -257,19 +283,13 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * type property. Please make sure to active
 		 * {@link JsonMapper.Builder#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
 		 * default typing} accordingly.
-		 * 
+		 *
 		 * @return this.
 		 */
 		@Contract("-> this")
-		public JsonMapperConfigurer enableSpringCacheNullValueSupport() {
+		public GenericJackson3JsonRedisSerializerBuilder<B> enableSpringCacheNullValueSupport() {
 
-			builder.addModules(new GenericJackson3RedisSerializerModule(() -> {
-				TypeResolverBuilder<?> defaultTyper = builder.baseSettings().getDefaultTyper();
-				if (defaultTyper instanceof StdTypeResolverBuilder stdTypeResolverBuilder) {
-					return stdTypeResolverBuilder.getTypeProperty();
-				}
-				return "@class";
-			}));
+			this.cacheNullValueSupportEnabled = true;
 			return this;
 		}
 
@@ -279,13 +299,13 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * {@link JsonMapper.Builder#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
 		 * default typing} accordingly.
 		 *
-		 * @return this.
+		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public JsonMapperConfigurer enableSpringCacheNullValueSupport(String typePropertyName) {
+		public GenericJackson3JsonRedisSerializerBuilder<B> enableSpringCacheNullValueSupport(String typePropertyName) {
 
-			builder.addModules(new GenericJackson3RedisSerializerModule(() -> typePropertyName));
-			return this;
+			typePropertyName(typePropertyName);
+			return enableSpringCacheNullValueSupport();
 		}
 
 		/**
@@ -296,28 +316,73 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * <strong>WARNING</strong>: without restrictions of the {@link PolymorphicTypeValidator} deserialization is
 		 * vulnerable to arbitrary code execution when reading from untrusted sources.
 		 *
-		 * @return this.
+		 * @return {@code this} builder.
 		 * @see <a href=
 		 *      "https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data">https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data</a>
 		 */
 		@Contract("-> this")
-		public JsonMapperConfigurer unsafeDefaultTyping() {
+		public GenericJackson3JsonRedisSerializerBuilder<B> enableUnsafeDefaultTyping() {
 
-			builder.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
-					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-					.activateDefaultTypingAsProperty(BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class)
-							.allowIfSubType((ctx, clazz) -> true).build(), DefaultTyping.NON_FINAL, "@class");
+			this.defaultTyping = true;
+			return this;
+		}
+
+		/**
+		 * Enables
+		 * {@link JsonMapper.Builder#activateDefaultTypingAsProperty(PolymorphicTypeValidator, DefaultTyping, String)
+		 * default typing} using the given {@link PolymorphicTypeValidator}.
+		 *
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public GenericJackson3JsonRedisSerializerBuilder<B> enableDefaultTyping(PolymorphicTypeValidator typeValidator) {
+
+			typeValidator(typeValidator);
+
+			this.defaultTyping = true;
+			return this;
+		}
+
+		/**
+		 * Provide a {@link PolymorphicTypeValidator} to validate polymorphic types during deserialization.
+		 *
+		 * @param typeValidator the validator to use, defaults to a permissive validator that allows all types.
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public GenericJackson3JsonRedisSerializerBuilder<B> typeValidator(PolymorphicTypeValidator typeValidator) {
+
+			Assert.notNull(typeValidator, "Type validator must not be null");
+
+			this.typeValidator = typeValidator;
+			return this;
+		}
+
+		/**
+		 * Configure the type property name used for default typing and {@link #enableSpringCacheNullValueSupport()}.
+		 *
+		 * @return {@code this} builder.
+		 */
+		@Contract("_ -> this")
+		public GenericJackson3JsonRedisSerializerBuilder<B> typePropertyName(String typePropertyName) {
+
+			Assert.hasText(typePropertyName, "Property name must not be null or empty");
+
+			this.typePropertyName = typePropertyName;
 			return this;
 		}
 
 		/**
 		 * Configures the {@link Jackson3ObjectWriter}.
-		 * 
+		 *
 		 * @param writer must not be {@literal null}.
-		 * @return this.
+		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public JsonMapperConfigurer writer(Jackson3ObjectWriter writer) {
+		public GenericJackson3JsonRedisSerializerBuilder<B> writer(Jackson3ObjectWriter writer) {
+
+			Assert.notNull(writer, "Jackson3ObjectWriter must not be null");
+
 			this.writer = writer;
 			return this;
 		}
@@ -326,40 +391,72 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * Configures the {@link Jackson3ObjectReader}.
 		 *
 		 * @param reader must not be {@literal null}.
-		 * @return this.
+		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public JsonMapperConfigurer reader(Jackson3ObjectReader reader) {
+		public GenericJackson3JsonRedisSerializerBuilder<B> reader(Jackson3ObjectReader reader) {
+
+			Assert.notNull(reader, "Jackson3ObjectReader must not be null");
 
 			this.reader = reader;
 			return this;
 		}
 
 		/**
-		 * Callback hook to interact with the raw {@link Builder}.
+		 * Provide a {@link Consumer customizer} to configure the {@link ObjectMapper} through its {@link MapperBuilder}.
 		 *
-		 * @param builderCustomizer
-		 * @return this.
+		 * @param mapperBuilderCustomizer the configurer to apply to the {@link ObjectMapper} builder.
+		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public JsonMapperConfigurer customize(Consumer<Builder> builderCustomizer) {
+		public GenericJackson3JsonRedisSerializerBuilder<B> customize(Consumer<B> mapperBuilderCustomizer) {
 
-			builderCustomizer.accept(builder);
+			Assert.notNull(mapperBuilderCustomizer, "JSON mapper configurer must not be null");
+
+			this.mapperBuilderCustomizer = mapperBuilderCustomizer;
 			return this;
 		}
 
-		Jackson3ObjectReader getReader() {
-			return reader != null ? reader : Jackson3ObjectReader.create();
+		/**
+		 * Build a new {@link GenericJackson3JsonRedisSerializer} instance using the configured settings.
+		 *
+		 * @return a new {@link GenericJackson3JsonRedisSerializer} instance.
+		 */
+		@Contract("-> new")
+		public GenericJackson3JsonRedisSerializer build() {
+
+			B mapperBuilder = builderFactory.get();
+
+			if (cacheNullValueSupportEnabled) {
+
+				String typePropertyName = StringUtils.hasText(this.typePropertyName) ? this.typePropertyName : "@class";
+				mapperBuilder.addModules(new GenericJackson3RedisSerializerModule(() -> {
+					tools.jackson.databind.jsontype.TypeResolverBuilder<?> defaultTyper = mapperBuilder.baseSettings()
+							.getDefaultTyper();
+					if (defaultTyper instanceof StdTypeResolverBuilder stdTypeResolverBuilder) {
+						return stdTypeResolverBuilder.getTypeProperty();
+					}
+					return typePropertyName;
+				}));
+			}
+
+			if (defaultTyping) {
+
+				GenericJackson3JsonRedisSerializer.TypeResolverBuilder resolver = new GenericJackson3JsonRedisSerializer.TypeResolverBuilder(
+						typeValidator, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY, JsonTypeInfo.Id.CLASS, typePropertyName);
+
+				mapperBuilder.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
+						.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+						.setDefaultTyping(resolver);
+			}
+
+			mapperBuilderCustomizer.accept(mapperBuilder);
+
+			return new GenericJackson3JsonRedisSerializer(mapperBuilder.build(), reader, writer);
 		}
 
-		Jackson3ObjectWriter getWriter() {
-			return writer != null ? writer : Jackson3ObjectWriter.create();
-		}
 	}
 
-	/**
-	 * @since 4.0
-	 */
 	static class TypeResolver {
 
 		private final ObjectMapper mapper;
@@ -430,7 +527,6 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	 * {@link NullValue}.
 	 *
 	 * @author Christoph Strobl
-	 * @since 4.0
 	 */
 	private static class NullValueSerializer extends StdSerializer<NullValue> {
 
@@ -442,6 +538,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		NullValueSerializer(Supplier<String> classIdentifier) {
 
 			super(NullValue.class);
+
 			this.classIdentifier = Lazy.of(() -> {
 				String identifier = classIdentifier.get();
 				return StringUtils.hasText(identifier) ? identifier : "@class";
@@ -465,11 +562,14 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 				gen.writeNull();
 			}
 		}
+
+		@Override
+		public void serializeWithType(NullValue value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer)
+				throws JacksonException {
+			serialize(value, gen, ctxt);
+		}
 	}
 
-	/**
-	 * @since 4.0
-	 */
 	private static class GenericJackson3RedisSerializerModule extends JacksonModule {
 
 		private final Supplier<String> classIdentifier;
@@ -490,10 +590,77 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 
 		@Override
 		public void setupModule(SetupContext context) {
-
-			List<ValueSerializer<?>> valueSerializers = new ArrayList<>();
-			valueSerializers.add(new NullValueSerializer(classIdentifier));
-			context.addSerializers(new SimpleSerializers(valueSerializers));
+			context.addSerializers(new SimpleSerializers().addSerializer(new NullValueSerializer(classIdentifier)));
 		}
+
 	}
+
+	private static class TypeResolverBuilder extends DefaultTypeResolverBuilder {
+
+		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, JsonTypeInfo.As includeAs) {
+			super(subtypeValidator, t, includeAs);
+		}
+
+		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, String propertyName) {
+			super(subtypeValidator, t, propertyName);
+		}
+
+		public TypeResolverBuilder(PolymorphicTypeValidator subtypeValidator, DefaultTyping t, JsonTypeInfo.As includeAs,
+				JsonTypeInfo.Id idType, @Nullable String propertyName) {
+			super(subtypeValidator, t, includeAs, idType, propertyName);
+		}
+
+		@Override
+		public DefaultTypeResolverBuilder withDefaultImpl(Class<?> defaultImpl) {
+			return this;
+		}
+
+		/**
+		 * Method called to check if the default type handler should be used for given type. Note: "natural types" (String,
+		 * Boolean, Integer, Double) will never use typing; that is both due to them being concrete and final, and since
+		 * actual serializers and deserializers will also ignore any attempts to enforce typing.
+		 */
+		@Override
+		public boolean useForType(JavaType javaType) {
+
+			if (javaType.isJavaLangObject()) {
+				return true;
+			}
+
+			javaType = resolveArrayOrWrapper(javaType);
+
+			if (javaType.isEnumType() || ClassUtils.isPrimitiveOrWrapper(javaType.getRawClass())) {
+				return false;
+			}
+
+			if (javaType.isFinal() && !KotlinDetector.isKotlinType(javaType.getRawClass())
+					&& javaType.getRawClass().getPackageName().startsWith("java")) {
+				return false;
+			}
+
+			// [databind#88] Should not apply to JSON tree models:
+			return !TreeNode.class.isAssignableFrom(javaType.getRawClass());
+		}
+
+		private JavaType resolveArrayOrWrapper(JavaType type) {
+
+			while (type.isArrayType()) {
+				type = type.getContentType();
+				if (type.isReferenceType()) {
+					type = resolveArrayOrWrapper(type);
+				}
+			}
+
+			while (type.isReferenceType()) {
+				type = type.getReferencedType();
+				if (type.isArrayType()) {
+					type = resolveArrayOrWrapper(type);
+				}
+			}
+
+			return type;
+		}
+
+	}
+
 }

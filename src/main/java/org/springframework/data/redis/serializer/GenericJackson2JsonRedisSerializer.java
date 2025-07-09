@@ -74,6 +74,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * @since 1.6
  * @deprecated since 4.0 in favor of {@link GenericJackson3JsonRedisSerializer}
  */
+@SuppressWarnings("removal")
 @Deprecated(since = "4.0", forRemoval = true)
 public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Object> {
 

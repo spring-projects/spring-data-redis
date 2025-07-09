@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.redis.serializer;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
 
@@ -26,10 +23,11 @@ import tools.jackson.databind.ObjectMapper;
  * holding JSON to an Object considering the target type.
  * <p>
  * Reader functions can customize how the actual JSON is being deserialized by e.g. obtaining a customized
- * {@link com.fasterxml.jackson.databind.ObjectReader} applying serialization features, date formats, or views.
+ * {@link tools.jackson.databind.ObjectReader} applying serialization features, date formats, or views.
  *
+ * @author Christoph Strobl
  * @author Mark Paluch
- * @since 3.0
+ * @since 4.0
  */
 @FunctionalInterface
 public interface Jackson3ObjectReader {
@@ -41,12 +39,12 @@ public interface Jackson3ObjectReader {
 	 * @param source the JSON to deserialize.
 	 * @param type the Java target type
 	 * @return the deserialized Java object.
-	 * @throws IOException if an I/O error or JSON deserialization error occurs.
 	 */
-	Object read(ObjectMapper mapper, byte[] source, JavaType type) throws IOException;
+	Object read(ObjectMapper mapper, byte[] source, JavaType type);
 
 	/**
-	 * Create a default {@link Jackson3ObjectReader} delegating to {@link ObjectMapper#readValue(InputStream, JavaType)}.
+	 * Create a default {@link Jackson3ObjectReader} delegating to
+	 * {@link ObjectMapper#readValue(byte[], int, int, JavaType)}.
 	 *
 	 * @return the default {@link Jackson3ObjectReader}.
 	 */

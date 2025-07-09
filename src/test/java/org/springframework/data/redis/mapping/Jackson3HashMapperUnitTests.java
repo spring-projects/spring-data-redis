@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 package org.springframework.data.redis.mapping;
 
+import static org.assertj.core.api.Assertions.*;
+
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -28,31 +34,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
-import org.springframework.data.redis.hash.Jackson2HashMapper;
 import org.springframework.data.redis.hash.Jackson3HashMapper;
 
 /**
- * Unit tests for {@link Jackson2HashMapper}.
+ * Support class for {@link Jackson3HashMapper} unit tests.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
  */
-public abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTests {
+abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTests {
 
 	private final Jackson3HashMapper mapper;
 
-	public Jackson3HashMapperUnitTests(Jackson3HashMapper mapper) {
+	Jackson3HashMapperUnitTests(Jackson3HashMapper mapper) {
 
 		this.mapper = mapper;
 	}
 
-	protected Jackson3HashMapper getMapper() {
+	Jackson3HashMapper getMapper() {
 		return this.mapper;
 	}
 
@@ -179,7 +184,6 @@ public abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTest
 	}
 
 	@Test // GH-1566
-	@Disabled("Jackson removed default typing for final types")
 	void mapFinalClass() {
 
 		MeFinal source = new MeFinal();
@@ -213,6 +217,25 @@ public abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTest
 		source.value = SpringDataEnum.REDIS;
 
 		assertBackAndForwardMapping(source);
+	}
+
+	@Test // GH-3292
+	void configuresObjectMapper() {
+
+		Jackson3HashMapper serializer = Jackson3HashMapper.builder(() -> new ObjectMapper().rebuild())
+				.customize(mb -> mb.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)).build();
+
+		assertThat(serializer).isNotNull();
+	}
+
+	@Test // GH-3292
+	void configuresJsonMapper() {
+
+		Jackson3HashMapper serializer = Jackson3HashMapper.create(b -> {
+			b.customize(mb -> mb.enable(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER));
+		});
+
+		assertThat(serializer).isNotNull();
 	}
 
 	public static class WithList {
