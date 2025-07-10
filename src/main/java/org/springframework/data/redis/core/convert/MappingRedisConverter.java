@@ -31,7 +31,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
@@ -173,7 +172,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	}
 
 	@Override
-	@SuppressWarnings({"unchecked", "NullAway"})
+	@SuppressWarnings({ "unchecked", "NullAway" })
 	public <R> R read(Class<R> type, RedisData source) {
 
 		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
@@ -188,8 +187,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		return source.getBucket().isEmpty() ? null : doReadInternal(path, type, source);
 	}
 
-	@SuppressWarnings({"unchecked", "NullAway"})
-	private <R>  R doReadInternal(String path, Class<R> type, RedisData source) {
+	@SuppressWarnings({ "unchecked", "NullAway" })
+	private <R> R doReadInternal(String path, Class<R> type, RedisData source) {
 
 		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
 
@@ -403,14 +402,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return;
 		}
 
-		if (source instanceof Collection) {
-			writeCollection(
-					sink.getKeyspace(),
-					"",
-					(List<?>) source,
-					TypeInformation.of(Object.class),
-					sink
-			);
+		if (source instanceof Collection collection) {
+			writeCollection(sink.getKeyspace(), "", collection, TypeInformation.of(Object.class), sink);
 			return;
 		}
 
@@ -432,8 +425,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		sink.setKeyspace(keySpace);
 
 		if (entity.getTypeInformation().isCollectionLike()) {
-			writeCollection(keySpace, "", (List) source, entity.getTypeInformation().getRequiredComponentType(),
-					sink);
+			writeCollection(keySpace, "", (List) source, entity.getTypeInformation().getRequiredComponentType(), sink);
 		} else {
 			writeInternal(keySpace, "", source, entity.getTypeInformation(), sink);
 		}
@@ -562,8 +554,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			writeMap(keySpace, pUpdate.getPropertyPath(), targetProperty.getMapValueType(), map, sink);
 		} else {
 
-			writeInternal(keySpace, pUpdate.getPropertyPath(), pUpdate.getValue(),
-					targetProperty.getTypeInformation(), sink);
+			writeInternal(keySpace, pUpdate.getPropertyPath(), pUpdate.getValue(), targetProperty.getTypeInformation(), sink);
 
 			Set<IndexedData> data = indexResolver.resolveIndexesFor(keySpace, pUpdate.getPropertyPath(),
 					targetProperty.getTypeInformation(), pUpdate.getValue());
@@ -586,8 +577,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			PersistentPropertyPath<RedisPersistentProperty> persistentPropertyPath = mappingContext
 					.getPersistentPropertyPath(path, type);
 			return persistentPropertyPath.getLeafProperty();
-		} catch (Exception ignore) {
-		}
+		} catch (Exception ignore) {}
 
 		return null;
 	}
@@ -694,7 +684,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		Assert.notNull(referenceResolver, "ReferenceResolver must not be null");
 		return referenceResolver;
-    }
+	}
 
 	private void writeAssociation(String path, RedisPersistentEntity<?> entity, @Nullable Object value, RedisData sink) {
 
@@ -822,7 +812,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	}
 
 	@SuppressWarnings("NullAway")
-	private @Nullable Object readCollectionOrArray(String path, Class<?> collectionType, Class<?> valueType, Bucket bucket) {
+	private @Nullable Object readCollectionOrArray(String path, Class<?> collectionType, Class<?> valueType,
+			Bucket bucket) {
 
 		List<String> keys = new ArrayList<>(bucket.extractAllKeysFor(path));
 		keys.sort(listKeyComparator);
@@ -991,7 +982,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @return
 	 * @throws ConverterNotFoundException
 	 */
-	public byte@Nullable[] toBytes(Object source) {
+	public byte @Nullable [] toBytes(Object source) {
 
 		if (source instanceof byte[] bytes) {
 			return bytes;
