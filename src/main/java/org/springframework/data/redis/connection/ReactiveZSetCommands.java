@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import static org.springframework.data.redis.connection.ReactiveRedisConnection.*;
 
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -51,6 +52,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Seongil Kim
  * @since 2.0
  */
 public interface ReactiveZSetCommands {
@@ -737,7 +739,24 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
-	 * Determine the index of element with {@literal value} in a sorted set when scored high to low.
+	 * Determine the index and score of element with {@literal value} in a sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 */
+	default Mono<RankAndScore> zRankWithScore(ByteBuffer key, ByteBuffer value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return zRankWithScore(Mono.just(ZRankCommand.indexOf(value).storedWithin(key))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
+	 * Determine the index and score of element with {@literal value} in a sorted set when scored high to low.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -754,6 +773,23 @@ public interface ReactiveZSetCommands {
 	}
 
 	/**
+	 * Determine the index and score of element with {@literal value} in a sorted set when scored high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 */
+	default Mono<RankAndScore> zRevRankWithScore(ByteBuffer key, ByteBuffer value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return zRankWithScore(Mono.just(ZRankCommand.reverseIndexOf(value).storedWithin(key))).next()
+				.map(CommandResponse::getOutput);
+	}
+
+	/**
 	 * Determine the index of element with {@literal value} in a sorted set when scored by
 	 * {@link ZRankCommand#getDirection()}.
 	 *
@@ -763,6 +799,17 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
 	Flux<NumericResponse<ZRankCommand, Long>> zRank(Publisher<ZRankCommand> commands);
+
+	/**
+	 * Determine the index and score of element with {@literal value} in a sorted set when scored by
+	 * {@link ZRankCommand#getDirection()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 */
+	Flux<CommandResponse<ZRankCommand, RankAndScore>> zRankWithScore(Publisher<ZRankCommand> commands);
 
 	/**
 	 * {@code ZRANGE}/{@literal ZREVRANGE} command parameters.

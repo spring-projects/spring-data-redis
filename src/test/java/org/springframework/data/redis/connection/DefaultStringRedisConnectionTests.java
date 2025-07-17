@@ -59,6 +59,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -72,6 +73,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Mark Paluch
  * @author dengliming
  * @author ihaohong
+ * @author Seongil Kim
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -1520,10 +1522,24 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testZRankWithScoreBytes() {
+		doReturn(new RankAndScore(0L, 3.0)).when(nativeConnection).zRankWithScore(fooBytes, barBytes);
+		actual.add(connection.zRankWithScore(fooBytes, barBytes));
+		verifyResults(Collections.singletonList(new RankAndScore(0L, 3.0)));
+	}
+
+	@Test
 	public void testZRank() {
 		doReturn(5L).when(nativeConnection).zRank(fooBytes, barBytes);
 		actual.add(connection.zRank(foo, bar));
 		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testZRankWithScore() {
+		doReturn(new RankAndScore(0L, 3.0)).when(nativeConnection).zRankWithScore(fooBytes, barBytes);
+		actual.add(connection.zRankWithScore(foo, bar));
+		verifyResults(Collections.singletonList(new RankAndScore(0L, 3.0)));
 	}
 
 	@Test
@@ -1604,10 +1620,24 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testZRevRankWithScoreBytes() {
+		doReturn(new RankAndScore(0L, 3.0)).when(nativeConnection).zRevRankWithScore(fooBytes, barBytes);
+		actual.add(connection.zRevRankWithScore(fooBytes, barBytes));
+		verifyResults(Collections.singletonList(new RankAndScore(0L, 3.0)));
+	}
+
+	@Test
 	public void testZRevRank() {
 		doReturn(5L).when(nativeConnection).zRevRank(fooBytes, barBytes);
 		actual.add(connection.zRevRank(foo, bar));
 		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testZRevRankWithScore() {
+		doReturn(new RankAndScore(0L, 3.0)).when(nativeConnection).zRevRankWithScore(fooBytes, barBytes);
+		actual.add(connection.zRevRankWithScore(foo, bar));
+		verifyResults(Collections.singletonList(new RankAndScore(0L, 3.0)));
 	}
 
 	@Test

@@ -15,22 +15,23 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
+import org.springframework.data.redis.connection.zset.Tuple;
+import org.springframework.data.redis.connection.zset.Weights;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.util.Assert;
+
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.NullUnmarked;
-import org.springframework.data.domain.Range;
-import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.zset.Aggregate;
-import org.springframework.data.redis.connection.zset.Tuple;
-import org.springframework.data.redis.connection.zset.Weights;
-import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.util.Assert;
 
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
@@ -40,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
+ * @author Seongil Kim
  */
 @NullUnmarked
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
@@ -175,6 +177,15 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Long rank(@NonNull Object o);
 
 	/**
+	 * Determine the index and score of element with {@code value} in a sorted set.
+	 *
+	 * @param o the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 */
+	RankAndScore rankWithScore(@NonNull Object o);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param o the value.
@@ -182,6 +193,15 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
 	Long reverseRank(@NonNull Object o);
+
+	/**
+	 * Determine the index and score of element with {@code value} in a sorted set when scored high to low.
+	 *
+	 * @param o the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 */
+	RankAndScore reverseRankWithScore(@NonNull Object o);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.

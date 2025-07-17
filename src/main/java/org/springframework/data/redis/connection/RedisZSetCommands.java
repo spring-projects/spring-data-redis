@@ -25,6 +25,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -42,6 +43,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author Seongil Kim
  * @see RedisCommands
  */
 @NullUnmarked
@@ -502,6 +504,17 @@ public interface RedisZSetCommands {
 	Long zRank(byte @NonNull [] key, byte @NonNull [] value);
 
 	/**
+	 * Determine the index and score of element with {@code value} in a sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value the value. Must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 */
+	@Nullable
+	RankAndScore zRankWithScore(byte[] key, byte[] value);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param key must not be {@literal null}.
@@ -510,6 +523,17 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
 	Long zRevRank(byte @NonNull [] key, byte @NonNull [] value);
+
+	/**
+	 * Determine the index and score of element with {@code value} in a sorted set when scored high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 */
+	@Nullable
+	RankAndScore zRevRankWithScore(byte[] key, byte[] value);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.

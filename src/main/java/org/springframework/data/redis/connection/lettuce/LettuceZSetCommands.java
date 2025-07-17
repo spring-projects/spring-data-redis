@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs.Flag;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -53,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Seongil Kim
  * @since 2.0
  */
 @NullUnmarked
@@ -148,11 +150,31 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
+	public RankAndScore zRankWithScore(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zrankWithScore, key, value)
+				.get(LettuceConverters::toRankAndScore);
+	}
+
+	@Override
 	public Long zRevRank(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisSortedSetAsyncCommands::zrevrank, key, value);
+	}
+
+	@Override
+	public RankAndScore zRevRankWithScore(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return connection.invoke().from(RedisSortedSetAsyncCommands::zrevrankWithScore, key, value)
+				.get(LettuceConverters::toRankAndScore);
 	}
 
 	@Override

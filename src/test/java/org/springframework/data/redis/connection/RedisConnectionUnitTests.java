@@ -36,6 +36,7 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -51,6 +52,7 @@ import org.springframework.util.ObjectUtils;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author Dennis Neufeld
+ * @author Seongil Kim
  */
 class RedisConnectionUnitTests {
 
@@ -545,6 +547,10 @@ class RedisConnectionUnitTests {
 			return delegate.zRank(key, value);
 		}
 
+		public RankAndScore zRankWithScore(byte[] key, byte[] value) {
+			return delegate.zRankWithScore(key, value);
+		}
+
 		public Properties info() {
 			return delegate.info();
 		}
@@ -571,6 +577,10 @@ class RedisConnectionUnitTests {
 
 		public Long zRevRank(byte[] key, byte[] value) {
 			return delegate.zRevRank(key, value);
+		}
+
+		public RankAndScore zRevRankWithScore(byte[] key, byte[] value) {
+			return delegate.zRevRankWithScore(key, value);
 		}
 
 		public Boolean expire(byte[] key, long seconds) {

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.ConvertingCursor;
 import org.springframework.data.redis.core.Cursor;
@@ -39,6 +40,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Shlykov
+ * @author Seongil Kim
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
@@ -441,8 +443,18 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
+	public RankAndScore rankWithScore(Object o) {
+		return boundZSetOps.rankWithScore(o);
+	}
+
+	@Override
 	public Long reverseRank(Object o) {
 		return boundZSetOps.reverseRank(o);
+	}
+
+	@Override
+	public RankAndScore reverseRankWithScore(Object o) {
+		return boundZSetOps.reverseRankWithScore(o);
 	}
 
 	@Override
