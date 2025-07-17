@@ -31,6 +31,9 @@ class ObservabilityConfiguration {
 }
 ----
 
+NOTE: When using Spring Boot, `LettuceMetricsAutoConfiguration` configures Lettuce's `MicrometerCommandLatencyRecorder`.
+Depending on whether you want only Metrics or Metrics and Tracing, you might want to exclude this auto-configuration class in your application.
+
 See also for further reference:
 * https://redis.github.io/lettuce/advanced-usage/#micrometer[Lettuce Tracing]
 * https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/database/#redis[OpenTelemetry Semantic Conventions] .
