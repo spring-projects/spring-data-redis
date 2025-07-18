@@ -51,6 +51,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.ConvertingCursor;
@@ -81,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
+ * @author Seongil Kim
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -1182,6 +1184,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public RankAndScore zRankWithScore(byte[] key, byte[] value) {
+		return convertAndReturn(delegate.zRankWithScore(key, value), Converters.identityConverter());
+	}
+
+	@Override
 	public Long zRem(byte[] key, byte[]... values) {
 		return convertAndReturn(delegate.zRem(key, values), Converters.identityConverter());
 	}
@@ -1219,6 +1226,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
 		return convertAndReturn(delegate.zRevRank(key, value), Converters.identityConverter());
+	}
+
+	@Override
+	public RankAndScore zRevRankWithScore(byte[] key, byte[] value) {
+		return convertAndReturn(delegate.zRevRankWithScore(key, value), Converters.identityConverter());
 	}
 
 	@Override
@@ -2140,6 +2152,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public RankAndScore zRankWithScore(String key, String value) {
+		return zRankWithScore(serialize(key), serialize(value));
+	}
+
+	@Override
 	public Long zRem(String key, String... values) {
 		return zRem(serialize(key), serializeMulti(values));
 	}
@@ -2193,6 +2210,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zRevRank(String key, String value) {
 		return zRevRank(serialize(key), serialize(value));
+	}
+
+	@Override
+	public RankAndScore zRevRankWithScore(String key, String value) {
+		return zRevRankWithScore(serialize(key), serialize(value));
 	}
 
 	@Override
