@@ -344,7 +344,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadPendingMessagesForGroupAndIdle() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -369,7 +369,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadEmptyPendingMessagesForGroupAndIdleWhenDurationNotExceeded() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -392,7 +392,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadPendingMessagesForGroupNameAndConsumerNameAndIdle() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -420,7 +420,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadEmptyPendingMessagesForGroupNameAndConsumerNameAndIdleWhenDurationNotExceeded() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -444,7 +444,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadPendingMessageesForConsumerAndIdle() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -472,7 +472,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadEmptyPendingMessagesForConsumerAndIdleWhenDurationNotExceeded() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
