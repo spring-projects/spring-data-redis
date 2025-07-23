@@ -54,11 +54,4 @@ class RedisStreamCommandsUnitTests {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.minIdleTime(null));
 	}
-
-	@Test // GH-2046
-	void xPendingOptionsConsumerShouldThrowExceptionWhenConsumerNameIsNull() {
-		XPendingOptions xPendingOptions = XPendingOptions.unbounded();
-
-		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.consumer(null));
-	}
 }

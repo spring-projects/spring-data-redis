@@ -701,15 +701,14 @@ public interface RedisStreamCommands {
 	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
-	 * @since 3.5
+	 * @since 4.0
 	 */
-	@Nullable
-	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count, Duration minIdleTime) {
-		return xPending(key, groupName, XPendingOptions.range(range, count).minIdleTime(minIdleTime));
+	default PendingMessages xPending(byte[] key, String groupName, Range<?> range, Long count, Duration idle) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).minIdleTime(idle));
 	}
 
 	/**
@@ -740,9 +739,8 @@ public interface RedisStreamCommands {
 	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
-	 * @since 3.5
+	 * @since 4.0
 	 */
-	@Nullable
 	default PendingMessages xPending(byte[] key, Consumer consumer, Range<?> range, Long count, Duration minIdleTime) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, minIdleTime);
 	}
@@ -775,17 +773,15 @@ public interface RedisStreamCommands {
 	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
 	 * @param range the range of messages ids to search within. Must not be {@literal null}.
 	 * @param count limit the number of results. Must not be {@literal null}.
-	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @param idle the minimum idle time to filter pending messages. Must not be {@literal null}.
 	 * @return pending messages for the given {@literal consumer} in given {@literal consumer group} or {@literal null}
 	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
-	 * @since 3.5
+	 * @since 4.0
 	 */
-	@Nullable
 	default PendingMessages xPending(byte[] key, String groupName, String consumerName, Range<?> range, Long count,
-			Duration minIdleTime) {
-		return xPending(key, groupName,
-				XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(minIdleTime));
+			Duration idle) {
+		return xPending(key, groupName, XPendingOptions.range(range, count).consumer(consumerName).minIdleTime(idle));
 	}
 
 	/**
@@ -879,13 +875,18 @@ public interface RedisStreamCommands {
 		/**
 		 * Append given minimum idle time.
 		 *
-		 * @param minIdleTime must not be {@literal null}.
+		 * @param minIdleTime can be {@literal null} for none.
 		 * @return new instance of {@link XPendingOptions}.
+		 * @since 4.0
 		 */
-		public XPendingOptions minIdleTime(Duration minIdleTime) {
+		public XPendingOptions minIdleTime(@Nullable Duration minIdleTime) {
 
 			Assert.notNull(minIdleTime, "Idle must not be null");
 
+			return new XPendingOptions(consumerName, range, count, minIdleTime);
+		}
+
+		XPendingOptions withRange(Range<?> range, Long count) {
 			return new XPendingOptions(consumerName, range, count, minIdleTime);
 		}
 
@@ -912,22 +913,10 @@ public interface RedisStreamCommands {
 
 		/**
 		 * @return can be {@literal null}.
+		 * @since 4.0
 		 */
-		@Nullable
-		public Duration getMinIdleTime() {
+		public @Nullable Duration getMinIdleTime() {
 			return minIdleTime;
-		}
-
-		/**
-		 * @return can be {@literal null}.
-		 */
-		@Nullable
-		public Long getIdleMillis() {
-			if (minIdleTime == null) {
-				return null;
-			}
-
-			return minIdleTime.toMillis();
 		}
 
 		/**
@@ -947,7 +936,7 @@ public interface RedisStreamCommands {
 		/**
 		 * @return {@literal true} if idle time is set.
 		 */
-		public boolean hasIdle() {
+		public boolean hasMinIdleTime() {
 			return minIdleTime != null;
 		}
 	}

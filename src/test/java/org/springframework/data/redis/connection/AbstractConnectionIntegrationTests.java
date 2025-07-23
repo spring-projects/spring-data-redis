@@ -4115,85 +4115,85 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.getPendingMessagesPerConsumer()).isEmpty();
 	}
 
-	// @Test // GH-2046
-	// @EnabledOnCommand("XADD")
-	// void xPendingShouldLoadPendingMessagesForConsumer() {
-	//
-	// actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-	// actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-	// actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-	// StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
-	//
-	// actual.add(connection.xPending(KEY_1, Consumer.from("my-group", "my-consumer")));
-	//
-	// List<Object> results = getResults();
-	// assertThat(results).hasSize(4);
-	// PendingMessages pending = (PendingMessages) results.get(3);
-	//
-	// assertThat(pending.size()).isOne();
-	// assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
-	// assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
-	// assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
-	// assertThat(pending.get(0).getIdAsString()).isNotNull();
-	// }
+	@Test // GH-2046
+	@EnabledOnCommand("XADD")
+	void xPendingShouldLoadPendingMessagesForConsumer() {
 
-	// @Test // GH-2046
-	// @EnabledOnCommand("XADD")
-	// void xPendingShouldLoadEmptyPendingMessagesForNotExistingConsumer() {
-	//
-	// actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-	// actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-	// actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-	// StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
-	//
-	// actual.add(connection.xPending(KEY_1, Consumer.from("my-group", "my-consumer2")));
-	//
-	// List<Object> results = getResults();
-	// assertThat(results).hasSize(4);
-	// PendingMessages pending = (PendingMessages) results.get(3);
-	//
-	// assertThat(pending.size()).isZero();
-	// }
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
-	// @Test // GH-2046
-	// @EnabledOnCommand("XADD")
-	// void xPendingShouldLoadPendingMessagesForGroupNameAndConsumerName() {
-	//
-	// actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-	// actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-	// actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-	// StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
-	//
-	// actual.add(connection.xPending(KEY_1, "my-group", "my-consumer"));
-	//
-	// List<Object> results = getResults();
-	// assertThat(results).hasSize(4);
-	// PendingMessages pending = (PendingMessages) results.get(3);
-	//
-	// assertThat(pending.size()).isOne();
-	// assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
-	// assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
-	// assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
-	// assertThat(pending.get(0).getIdAsString()).isNotNull();
-	// }
+		actual.add(connection.xPending(KEY_1, Consumer.from("my-group", "my-consumer"), Range.unbounded(), 10L));
 
-	// @Test // GH-2046
-	// @EnabledOnCommand("XADD")
-	// void xPendingShouldLoadEmptyPendingMessagesForNonExistingConsumerName() {
-	//
-	// actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
-	// actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
-	// actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
-	// StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
-	//
-	// actual.add(connection.xPending(KEY_1, "my-group", "my-consumer-2"));
-	//
-	// List<Object> results = getResults();
-	// assertThat(results).hasSize(4);
-	// PendingMessages pending = (PendingMessages) results.get(3);
-	//
-	// assertThat(pending.size()).isZero();
-	// }
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
+
+		assertThat(pending.size()).isOne();
+		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+		assertThat(pending.get(0).getIdAsString()).isNotNull();
+	}
+
+	@Test // GH-2046
+	@EnabledOnCommand("XADD")
+	void xPendingShouldLoadEmptyPendingMessagesForNotExistingConsumer() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xPending(KEY_1, Consumer.from("my-group", "my-consumer2"), Range.unbounded(), 10L));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
+
+		assertThat(pending.size()).isZero();
+	}
+
+	@Test // GH-2046
+	@EnabledOnCommand("XADD")
+	void xPendingShouldLoadPendingMessagesForGroupNameAndConsumerName() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer", Range.unbounded(), 10L));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
+
+		assertThat(pending.size()).isOne();
+		assertThat(pending.get(0).getConsumerName()).isEqualTo("my-consumer");
+		assertThat(pending.get(0).getGroupName()).isEqualTo("my-group");
+		assertThat(pending.get(0).getTotalDeliveryCount()).isOne();
+		assertThat(pending.get(0).getIdAsString()).isNotNull();
+	}
+
+	@Test // GH-2046
+	@EnabledOnCommand("XADD")
+	void xPendingShouldLoadEmptyPendingMessagesForNonExistingConsumerName() {
+
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
+		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
+				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
+
+		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer-2", Range.unbounded(), 10L));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		PendingMessages pending = (PendingMessages) results.get(3);
+
+		assertThat(pending.size()).isZero();
+	}
 
 	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
@@ -4239,15 +4239,17 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2046
 	@EnabledOnCommand("XADD")
-	void xPendingShouldLoadPendingMessagesForIdle() {
+	public void xPendingShouldLoadPendingMessagesForIdle() throws InterruptedException {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
 		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
+		Thread.sleep(50);
+
 		actual.add(connection.xPending(KEY_1, "my-group", "my-consumer", org.springframework.data.domain.Range.unbounded(),
-				10L, Duration.ZERO));
+				10L, Duration.ofMillis(1)));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);
@@ -4324,15 +4326,17 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-2046
 	@EnabledOnCommand("XADD")
-	void xPendingShouldLoadPendingMessagesForIdleWithConsumer() {
+	public void xPendingShouldLoadPendingMessagesForIdleWithConsumer() throws InterruptedException {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
 		actual.add(connection.xReadGroupAsString(Consumer.from("my-group", "my-consumer"),
 				StreamOffset.create(KEY_1, ReadOffset.lastConsumed())));
 
+		Thread.sleep(50);
+
 		actual.add(connection.xPending(KEY_1, Consumer.from("my-group", "my-consumer"),
-				org.springframework.data.domain.Range.unbounded(), 10L, Duration.ZERO));
+				org.springframework.data.domain.Range.unbounded(), 10L, Duration.ofMillis(1)));
 
 		List<Object> results = getResults();
 		assertThat(results).hasSize(4);

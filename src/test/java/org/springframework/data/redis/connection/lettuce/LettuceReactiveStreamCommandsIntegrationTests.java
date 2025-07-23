@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.XReadArgs;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -26,9 +28,6 @@ import java.util.Collections;
 
 import org.assertj.core.data.Offset;
 import org.junit.Ignore;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedClass;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Limit;
@@ -344,7 +343,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadPendingMessagesForGroupAndIdle() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -355,7 +354,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		connection.streamCommands()
 				.xReadGroup(Consumer.from("my-group", "my-consumer"),
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed()))
-				.then().as(StepVerifier::create).verifyComplete();
+				.delayElements(Duration.ofSeconds(1)).then().as(StepVerifier::create).verifyComplete();
 
 		Duration exceededIdle = Duration.of(1, ChronoUnit.MILLIS);
 
@@ -369,7 +368,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadEmptyPendingMessagesForGroupAndIdleWhenDurationNotExceeded() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -392,7 +391,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadPendingMessagesForGroupNameAndConsumerNameAndIdle() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -420,7 +419,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadEmptyPendingMessagesForGroupNameAndConsumerNameAndIdleWhenDurationNotExceeded() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -444,7 +443,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadPendingMessageesForConsumerAndIdle() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -472,7 +471,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedRedisTest // GH-2046
+	@Test // GH-2046
 	void xPendingShouldLoadEmptyPendingMessagesForConsumerAndIdleWhenDurationNotExceeded() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -654,8 +653,8 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
 				.delayElements(Duration.ofMillis(5)).next() //
 				.flatMapMany(record -> connection.streamCommands().xClaimJustId(KEY_1_BBUFFER, "my-group", "my-consumer",
-						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId()))
-				).as(StepVerifier::create) //
+						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId())))
+				.as(StepVerifier::create) //
 				.assertNext(it -> assertThat(it.getValue()).isEqualTo(expected)) //
 				.verifyComplete();
 	}

@@ -173,5 +173,4 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	@Override
 	@Disabled
 	public void testDbSize() {}
-
 }

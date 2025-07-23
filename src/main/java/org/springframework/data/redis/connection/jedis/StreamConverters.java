@@ -304,6 +304,7 @@ class StreamConverters {
 
 	}
 
+	@SuppressWarnings("NullAway")
 	public static XPendingParams toXPendingParams(RedisStreamCommands.XPendingOptions options) {
 
 		Range<String> range = (Range<String>) options.getRange();
@@ -313,8 +314,8 @@ class StreamConverters {
 		if (options.hasConsumer()) {
 			xPendingParams.consumer(options.getConsumerName());
 		}
-		if (options.hasIdle()) {
-			xPendingParams.idle(options.getIdleMillis());
+		if (options.hasMinIdleTime()) {
+			xPendingParams.idle(options.getMinIdleTime().toMillis());
 		}
 
 		return xPendingParams;

@@ -363,9 +363,9 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
 	 *         transaction.
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
-	 * @since 3.5
+	 * @since 4.0
 	 */
-	PendingMessages pending(K key, String group, Range<?> range, long count, Duration minIdleTime);
+	PendingMessages pending(@NonNull K key, @NonNull String group, @NonNull Range<?> range, long count, @NonNull Duration minIdleTime);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
@@ -394,7 +394,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	PendingMessages pending(K key, Consumer consumer, Range<?> range, long count, Duration minIdleTime);
+	PendingMessages pending(@NonNull K key, @NonNull Consumer consumer, @NonNull Range<?> range, long count, @NonNull Duration minIdleTime);
 
 	/**
 	 * Get the length of a stream.
