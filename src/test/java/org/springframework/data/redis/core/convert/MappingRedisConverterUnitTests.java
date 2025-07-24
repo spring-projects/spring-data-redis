@@ -78,6 +78,7 @@ import org.springframework.data.redis.core.convert.KeyspaceConfiguration.Keyspac
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.test.util.RedisTestData;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -1994,16 +1995,22 @@ class MappingRedisConverterUnitTests {
 		assertThat(generic.entity.name).isEqualTo("hello");
 	}
 
-	@Test // GH-2168
+	@Test // GH-2168, GH-3179
 	void writePlainList() {
-
 		List<Object> source = Arrays.asList("Hello", "stream", "message", 100L);
 		RedisTestData target = write(source);
+		Object classValue = target.getBucket().get("_class");
 
-		assertThat(target).containsEntry("[0]", "Hello") //
-			.containsEntry("[1]", "stream") //
-			.containsEntry("[2]", "message") //
-			.containsEntry("[3]", "100");
+		assertThat(classValue)
+				.as("_class metadata should be written")
+				.isNotNull()
+				.isInstanceOf(byte[].class);
+		assertThat(new String((byte[]) classValue, StandardCharsets.UTF_8))
+				.isEqualTo(ClassUtils.getUserClass(source).getName());
+		assertThat(target).containsEntry("[0]", "Hello")
+				.containsEntry("[1]", "stream")
+				.containsEntry("[2]", "message")
+				.containsEntry("[3]", "100");
 	}
 
 	@Test // DATAREDIS-1175
