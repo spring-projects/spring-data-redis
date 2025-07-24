@@ -403,6 +403,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 
 		if (source instanceof Collection collection) {
+			typeMapper.writeType(ClassUtils.getUserClass(source), sink.getBucket().getPath());
 			writeCollection(sink.getKeyspace(), "", collection, TypeInformation.of(Object.class), sink);
 			return;
 		}
