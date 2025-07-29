@@ -159,8 +159,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 */
 	public static final String ORIGINAL_DEFAULT_LISTENER_METHOD = "handleMessage";
 
-	/** Logger available to subclasses */
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected static final Log logger = LogFactory.getLog(MessageListenerAdapter.class);
 
 	private volatile @Nullable Object delegate;
 
