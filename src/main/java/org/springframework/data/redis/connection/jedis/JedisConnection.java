@@ -79,6 +79,8 @@ import org.springframework.util.CollectionUtils;
  */
 public class JedisConnection extends AbstractRedisConnection {
 
+	private static final Log LOGGER = LogFactory.getLog(JedisConnection.class);
+
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
 			new FallbackExceptionTranslationStrategy(JedisExceptionConverter.INSTANCE);
 
@@ -107,8 +109,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final JedisStreamCommands streamCommands = new JedisStreamCommands(this);
 	private final JedisStringCommands stringCommands = new JedisStringCommands(this);
 	private final JedisZSetCommands zSetCommands = new JedisZSetCommands(this);
-
-	private final Log LOGGER = LogFactory.getLog(getClass());
 
 	@SuppressWarnings("rawtypes")
 	private List<JedisResult> pipelinedResults = new ArrayList<>();

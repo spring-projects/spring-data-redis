@@ -120,6 +120,8 @@ import org.springframework.util.StringUtils;
 public class LettuceConnectionFactory implements RedisConnectionFactory, ReactiveRedisConnectionFactory,
 		InitializingBean, DisposableBean, SmartLifecycle {
 
+	private static final Log log = LogFactory.getLog(LettuceConnectionFactory.class);
+
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
 
@@ -143,8 +145,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 	private @Nullable LettuceConnectionProvider connectionProvider;
 	private @Nullable LettuceConnectionProvider reactiveConnectionProvider;
-
-	private final Log log = LogFactory.getLog(getClass());
 
 	private final Lock lock = new ReentrantLock();
 

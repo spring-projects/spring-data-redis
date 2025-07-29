@@ -107,6 +107,8 @@ import org.springframework.util.backoff.FixedBackOff;
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
+	protected static final Log logger = LogFactory.getLog(RedisMessageListenerContainer.class);
+
 	/**
 	 * The default recovery interval: 5000 ms = 5 seconds.
 	 */
@@ -122,9 +124,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class)
 			+ "-";
-
-	/** Logger available to subclasses */
-	protected final Log logger = LogFactory.getLog(getClass());
 
 	// whether the container has been initialized via afterPropertiesSet
 	private boolean afterPropertiesSet = false;

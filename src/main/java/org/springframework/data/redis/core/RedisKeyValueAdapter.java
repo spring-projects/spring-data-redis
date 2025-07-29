@@ -113,7 +113,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	private static final int PHANTOM_KEY_TTL = 300;
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private static final Log logger = LogFactory.getLog(RedisKeyValueAdapter.class);
 	private final AtomicReference<State> state = new AtomicReference<>(State.CREATED);
 
 	private RedisOperations<?, ?> redisOps;
