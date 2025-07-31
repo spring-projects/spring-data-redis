@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -178,7 +179,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		TypeInformation<?> readType = typeMapper.readType(source.getBucket().getPath(), TypeInformation.of(type));
 
 		return readType.isCollectionLike()
-				? (R) readCollectionOrArray("", ArrayList.class, Object.class, source.getBucket())
+				? (R) readCollectionOrArray("", readType.getType(), Object.class, source.getBucket())
 				: doReadInternal("", type, source);
 
 	}
@@ -403,7 +404,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 
 		if (source instanceof Collection collection) {
-			typeMapper.writeType(ClassUtils.getUserClass(source), sink.getBucket().getPath());
+
+			Class<?> collectionTargetType = Collection.class;
+			if (collection instanceof List) {
+				collectionTargetType = List.class;
+			} else if (collection instanceof Set) {
+				collectionTargetType = collection instanceof EnumSet ? EnumSet.class : Set.class;
+			}
+			typeMapper.writeType(collectionTargetType, sink.getBucket().getPath());
 			writeCollection(sink.getKeyspace(), "", collection, TypeInformation.of(Object.class), sink);
 			return;
 		}
