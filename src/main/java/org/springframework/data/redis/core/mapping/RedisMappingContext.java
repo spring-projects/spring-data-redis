@@ -92,6 +92,14 @@ public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentE
 	}
 
 	@Override
+	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> typeInformation) {
+		if (typeInformation.isMap() || typeInformation.isCollectionLike()) {
+			return false;
+		}
+		return super.shouldCreatePersistentEntityFor(typeInformation);
+	}
+
+	@Override
 	protected RedisPersistentProperty createPersistentProperty(Property property, RedisPersistentEntity<?> owner,
 			SimpleTypeHolder simpleTypeHolder) {
 		return new RedisPersistentProperty(property, owner, simpleTypeHolder);
