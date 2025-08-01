@@ -854,7 +854,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	Tuple bZPopMin(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit);
+	Tuple bZPopMin(byte @NonNull [] key, double timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
@@ -888,7 +888,7 @@ public interface RedisZSetCommands {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	Tuple bZPopMax(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit);
+	Tuple bZPopMax(byte @NonNull [] key, double timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Get the size of sorted set with {@code key}.

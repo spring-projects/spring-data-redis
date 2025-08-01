@@ -286,7 +286,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple bZPopMin(byte @NonNull [] key, long timeout, TimeUnit unit) {
+	public Tuple bZPopMin(byte @NonNull [] key, double timeout, TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
@@ -299,7 +299,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		}
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisSortedSetAsyncCommands::bzpopmin, unit.toSeconds(timeout), key)
+				.from(RedisSortedSetAsyncCommands::bzpopmin, timeout, key)
 				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 	}
 
@@ -321,7 +321,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple bZPopMax(byte @NonNull [] key, long timeout, TimeUnit unit) {
+	public Tuple bZPopMax(byte @NonNull [] key, double timeout, TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
@@ -334,7 +334,7 @@ class LettuceZSetCommands implements RedisZSetCommands {
 		}
 
 		return connection.invoke(connection.getAsyncDedicatedConnection())
-				.from(RedisSortedSetAsyncCommands::bzpopmax, unit.toSeconds(timeout), key)
+				.from(RedisSortedSetAsyncCommands::bzpopmax, timeout, key)
 				.get(it -> it.map(LettuceConverters::toTuple).getValueOrElse(null));
 	}
 

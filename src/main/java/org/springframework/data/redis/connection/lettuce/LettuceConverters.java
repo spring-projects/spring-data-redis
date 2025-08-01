@@ -565,16 +565,16 @@ public abstract class LettuceConverters extends Converters {
 				switch (expiration.getTimeUnit()) {
 					case MILLISECONDS -> {
 						if (expiration.isUnixTimestamp()) {
-							args.pxAt(expiration.getConverted(TimeUnit.MILLISECONDS));
+							args.pxAt(Double.valueOf(expiration.getConverted(TimeUnit.MILLISECONDS)).longValue());
 						} else {
-							args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+							args.px(Double.valueOf(expiration.getConverted(TimeUnit.MILLISECONDS)).longValue());
 						}
 					}
 					default -> {
 						if (expiration.isUnixTimestamp()) {
-							args.exAt(expiration.getConverted(TimeUnit.SECONDS));
+							args.exAt(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue());
 						} else {
-							args.ex(expiration.getConverted(TimeUnit.SECONDS));
+							args.ex(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue());
 						}
 					}
 				}
@@ -611,13 +611,13 @@ public abstract class LettuceConverters extends Converters {
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
 			if (expiration.isUnixTimestamp()) {
-				return args.pxAt(expiration.getExpirationTime());
+				return args.pxAt(Double.valueOf(expiration.getExpirationTime()).longValue());
 			}
-			return args.px(expiration.getExpirationTime());
+			return args.px(Double.valueOf(expiration.getExpirationTime()).longValue());
 		}
 
-		return expiration.isUnixTimestamp() ? args.exAt(expiration.getConverted(TimeUnit.SECONDS))
-				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
+		return expiration.isUnixTimestamp() ? args.exAt(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue())
+				: args.ex(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue());
 	}
 
 	@SuppressWarnings("NullAway")
