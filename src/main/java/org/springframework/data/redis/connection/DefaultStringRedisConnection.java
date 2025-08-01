@@ -261,17 +261,17 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+	public List<byte[]> bLPop(double timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bLPop(timeout, keys), Converters.identityConverter());
 	}
 
 	@Override
-	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+	public List<byte[]> bRPop(double timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bRPop(timeout, keys), Converters.identityConverter());
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+	public byte[] bRPopLPush(double timeout, byte[] srcKey, byte[] dstKey) {
 		return convertAndReturn(delegate.bRPopLPush(timeout, srcKey, dstKey), Converters.identityConverter());
 	}
 
@@ -1421,17 +1421,17 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public List<String> bLPop(int timeout, String... keys) {
+	public List<String> bLPop(double timeout, String... keys) {
 		return convertAndReturn(delegate.bLPop(timeout, serializeMulti(keys)), byteListToStringList);
 	}
 
 	@Override
-	public List<String> bRPop(int timeout, String... keys) {
+	public List<String> bRPop(double timeout, String... keys) {
 		return convertAndReturn(delegate.bRPop(timeout, serializeMulti(keys)), byteListToStringList);
 	}
 
 	@Override
-	public String bRPopLPush(int timeout, String srcKey, String dstKey) {
+	public String bRPopLPush(double timeout, String srcKey, String dstKey) {
 		return convertAndReturn(delegate.bRPopLPush(timeout, serialize(srcKey), serialize(dstKey)), bytesToString);
 	}
 
@@ -2009,12 +2009,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public @Nullable Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+	public @Nullable Tuple bZPopMin(byte[] key, double timeout, TimeUnit unit) {
 		return delegate.bZPopMin(key, timeout, unit);
 	}
 
 	@Override
-	public @Nullable StringTuple bZPopMin(String key, long timeout, TimeUnit unit) {
+	public @Nullable StringTuple bZPopMin(String key, double timeout, TimeUnit unit) {
 		return convertAndReturn(delegate.bZPopMin(serialize(key), timeout, unit), tupleConverter);
 	}
 
@@ -2039,12 +2039,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public @Nullable Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+	public @Nullable Tuple bZPopMax(byte[] key, double timeout, TimeUnit unit) {
 		return delegate.bZPopMax(key, timeout, unit);
 	}
 
 	@Override
-	public @Nullable StringTuple bZPopMax(String key, long timeout, TimeUnit unit) {
+	public @Nullable StringTuple bZPopMax(String key, double timeout, TimeUnit unit) {
 		return convertAndReturn(delegate.bZPopMax(serialize(key), timeout, unit), tupleConverter);
 	}
 

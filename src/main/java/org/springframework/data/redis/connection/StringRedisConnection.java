@@ -1013,9 +1013,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
-	 * @see RedisListCommands#bLPop(int, byte[]...)
+	 * @see RedisListCommands#bLPop(double, byte[]...)
 	 */
-	List<String> bLPop(int timeout, @NonNull String @NonNull... keys);
+	List<String> bLPop(double timeout, @NonNull String @NonNull... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys} (see: {@link #rPop(byte[])}). <br>
@@ -1025,9 +1025,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
-	 * @see RedisListCommands#bRPop(int, byte[]...)
+	 * @see RedisListCommands#bRPop(double, byte[]...)
 	 */
-	List<String> bRPop(int timeout, @NonNull String @NonNull... keys);
+	List<String> bRPop(double timeout, @NonNull String @NonNull... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.
@@ -1050,9 +1050,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @param dstKey must not be {@literal null}.
 	 * @return
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
-	 * @see RedisListCommands#bRPopLPush(int, byte[], byte[])
+	 * @see RedisListCommands#bRPopLPush(double, byte[], byte[])
 	 */
-	String bRPopLPush(int timeout, @NonNull String srcKey, @NonNull String dstKey);
+	String bRPopLPush(double timeout, @NonNull String srcKey, @NonNull String dstKey);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with Redis Sets
@@ -1616,7 +1616,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bzpopmin">Redis Documentation: BZPOPMIN</a>
 	 * @since 2.6
 	 */
-	StringTuple bZPopMin(@NonNull String key, long timeout, @NonNull TimeUnit unit);
+	StringTuple bZPopMin(@NonNull String key, double timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Remove and return the value with its score having the highest score from sorted set at {@code key}.
@@ -1650,7 +1650,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/bzpopmax">Redis Documentation: BZPOPMAX</a>
 	 * @since 2.6
 	 */
-	StringTuple bZPopMax(@NonNull String key, long timeout, @NonNull TimeUnit unit);
+	StringTuple bZPopMax(@NonNull String key, double timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Get the size of sorted set with {@code key}.
