@@ -45,25 +45,43 @@ public enum RedisCommand {
 	// -- A
 	APPEND("rw", 2, 2), //
 	AUTH("rw", 1, 1), //
+
 	// -- B
 	BGREWRITEAOF("r", 0, 0, "bgwriteaof"), //
 	BGSAVE("r", 0, 0), //
 	BITCOUNT("r", 1, 3), //
+	BITFIELD("rw", 1), //
+	BITFIELD_RO("r", 1),
 	BITOP("rw", 3), //
 	BITPOS("r", 2, 4), //
+	BLMOVE("rw", 4), //
+	BLMPOP("rw", 4), //
 	BLPOP("rw", 2), //
 	BRPOP("rw", 2), //
 	BRPOPLPUSH("rw", 3), //
+	BZMPOP("rw", 3), //
+	BZPOPMAX("rw", 2), //
+	BZPOPMIN("rw", 2), //
+
 	// -- C
+	CLIENT_GETREDIR("r", 0, 0), //
+	CLIENT_ID("r", 0, 0), //
+	CLIENT_INFO("r", 0, 0), //
 	CLIENT_KILL("rw", 1, 1), //
 	CLIENT_LIST("r", 0, 0), //
 	CLIENT_GETNAME("r", 0, 0), //
 	CLIENT_PAUSE("rw", 1, 1), //
+	CLIENT_SETINFO("w", 1), //
 	CLIENT_SETNAME("w", 1, 1), //
+	CLIENT_NO_EVICT("w", 1, 1, "client no-evict"), //
+	CLIENT_NO_TOUCH("w", 1, 1,  "client no-touch"), //
+	CLIENT_TRACKING("rw", 1), //
 	CONFIG_GET("r", 1, 1, "getconfig"), //
 	CONFIG_REWRITE("rw", 0, 0), //
 	CONFIG_SET("w", 2, 2, "setconfig"), //
 	CONFIG_RESETSTAT("w", 0, 0, "resetconfigstats"), //
+	COPY("rw", 2), //
+
 	// -- D
 	DBSIZE("r", 0, 0), //
 	DECR("w", 1, 1), //
@@ -71,60 +89,93 @@ public enum RedisCommand {
 	DEL("rw", 1), //
 	DISCARD("rw", 0, 0), //
 	DUMP("r", 1, 1), //
+
 	// -- E
 	ECHO("r", 1, 1), //
 	EVAL("rw", 2), //
+	EVAL_RO("r", 2), //
 	EVALSHA("rw", 2), //
+	EVALSHA_RO("r", 2), //
 	EXEC("rw", 0, 0), //
 	EXISTS("r", 1, 1), //
 	EXPIRE("rw", 2, 2), //
 	EXPIREAT("rw", 2, 2), //
+	EXPIRETIME("r", 1), //
 	// -- F
+	FCALL("rw", 2), //
+	FCALL_RO("r", 2), //
 	FLUSHALL("w", 0, 0), //
 	FLUSHDB("w", 0, 0), //
+	FUNCTION_DELETE("w", 1), //
+	FUNCTION_DUMP("w", 0, 0), //
+	FUNCTION_FLUSH("w", 0, 0), //
+	FUNCTION_KILL("w", 0, 0), //
+
 	// -- G
 	GET("r", 1, 1), //
 	GETBIT("r", 2, 2), //
+	GETDEL("rw", 1), //
+	GETEX("rw", 1), //
 	GETRANGE("r", 3, 3), //
 	GETSET("rw", 2, 2), //
 	GEOADD("w", 3), //
 	GEODIST("r", 2), //
 	GEOHASH("r", 2), //
 	GEOPOS("r", 2), //
-	GEORADIUS("r", 4), //
-	GEORADIUSBYMEMBER("r", 3), //
+	GEORADIUS("rw", 4), //
+	GEORADIUS_RO("r", 4), //
+	GEORADIUSBYMEMBER("rw", 3), //
+	GEORADIUSBYMEMBER_RO("r", 3), //
+	GEOSEARCH("r", 1), //
+	GEOSEARCH_STORE("rw", 1), //
+
 	// -- H
 	HDEL("rw", 2), //
+	HELLO("rw", 0, 0), //
 	HEXISTS("r", 2, 2), //
 	HGET("r", 2, 2), //
 	HGETALL("r", 1, 1), //
+	HGETDEL("rw", 2), //
+	HGETEX("rw", 2), //
 	HINCRBY("rw", 3, 3), //
 	HINCBYFLOAT("rw", 3, 3), //
 	HKEYS("r", 1), //
 	HLEN("r", 1), //
 	HMGET("r", 2), //
 	HMSET("w", 3), //
+	HPOP("rw", 3),
 	HSET("w", 3, 3), //
 	HSETNX("w", 3, 3), //
 	HVALS("r", 1, 1), //
+	HSCAN("r", 2), //
+	HSTRLEN("r", 2), //
+
 	// -- I
 	INCR("rw", 1), //
+	INCRBY("rw", 2, 2), //
 	INCRBYFLOAT("rw", 2, 2), //
 	INFO("r", 0), //
+
 	// -- K
 	KEYS("r", 1), //
+
 	// -- L
+	LCS("r", 2), //
 	LASTSAVE("r", 0), //
 	LINDEX("r", 2, 2), //
 	LINSERT("rw", 4, 4), //
 	LLEN("r", 1, 1), //
+	LMOVE("rw", 2), //
+	LMPOP("rw", 2), //
 	LPOP("rw", 1, 1), //
+	LPOS("r", 2), //
 	LPUSH("rw", 2), //
 	LPUSHX("rw", 2), //
 	LRANGE("r", 3, 3), //
 	LREM("rw", 3, 3), //
 	LSET("w", 3, 3), //
 	LTRIM("w", 3, 3), //
+
 	// -- M
 	MGET("r", 1), //
 	MIGRATE("rw", 0), //
@@ -133,19 +184,26 @@ public enum RedisCommand {
 	MSET("w", 2), //
 	MSETNX("w", 2), //
 	MULTI("rw", 0, 0), //
+
 	// -- P
 	PERSIST("rw", 1, 1), //
 	PEXPIRE("rw", 2, 2), //
 	PEXPIREAT("rw", 2, 2), //
+	PEXPIRETIME("r", 1), //
+	PFADD("w", 10), //
+	PFCOUNT("r", 1), //
+	PFMERGE("rw", 2), //
 	PING("r", 0, 0), //
 	PSETEX("w", 3), //
 	PSUBSCRIBE("r", 1), //
 	PTTL("r", 1, 1), //
 	// -- Q
 	QUIT("rw", 0, 0), //
+
 	// -- R
 	RANDOMKEY("r", 0, 0), //
-
+	READONLY("w", 0, 0), //
+	READWRITE("w", 0, 0), //
 	RENAME("w", 2, 2), //
 	RENAMENX("w", 2, 2), //
 	REPLICAOF("w", 2), //
@@ -154,9 +212,11 @@ public enum RedisCommand {
 	RPOPLPUSH("rw", 2, 2), //
 	RPUSH("rw", 2), //
 	RPUSHX("rw", 2, 2), //
+
 	// -- S
 	SADD("rw", 2), //
 	SAVE("rw", 0, 0), //
+	SCAN("r", 1), //
 	SCARD("r", 1, 1), //
 	SCRIPT_EXISTS("r", 1), //
 	SCRIPT_FLUSH("rw", 0, 0), //
@@ -172,6 +232,7 @@ public enum RedisCommand {
 	SETRANGE("rw", 3, 3), //
 	SHUTDOWN("rw", 0), //
 	SINTER("r", 1), //
+	SINTERCARD("r", 1), //
 	SINTERSTORE("rw", 2), //
 	SISMEMBER("r", 2), //
 	SLAVEOF("w", 2), //
@@ -179,21 +240,39 @@ public enum RedisCommand {
 	SMEMBERS("r", 1, 1), //
 	SMOVE("rw", 3, 3), //
 	SORT("rw", 1), //
+	SORT_RO("r", 1), //
 	SPOP("rw", 1, 1), //
 	SRANDMEMBER("r", 1, 1), //
 	SREM("rw", 2), //
+	SSCAN("r", 1), //
 	STRLEN("r", 1, 1), //
 	SUBSCRIBE("rw", 1), //
+	SUBSTR("r", 3), //
 	SUNION("r", 1), //
 	SUNIONSTORE("rw ", 2), //
 	SYNC("rw", 0, 0), //
+
 	// -- T
 	TIME("r", 0, 0), //
 	TTL("r", 1, 1), //
 	TYPE("r", 1, 1), //
+
 	// -- U
+	UNLINK("w", 1), //
 	UNSUBSCRIBE("rw", 0), //
 	UNWATCH("rw", 0, 0), //
+
+	// -- V
+	VADD("w", 3), //
+	VCARD("r", 1), //
+	VDIM("r", 1), //
+	VEMB("r", 2), //
+	VISMEMBER("r", 2), //
+	VLINKS("r", 2, 3), //
+	VRANDMEMBER("r", 1, 2), //
+	VREM("w", 2), //
+	VSIM("w", 1), //
+
 	// -- W
 	WATCH("rw", 1), //
 	// -- Z
@@ -213,10 +292,8 @@ public enum RedisCommand {
 	ZREVRANK("r", 2, 2), //
 	ZSCORE("r", 2, 2), //
 	ZUNIONSTORE("rw", 3), //
-	SCAN("r", 1), //
-	SSCAN("r", 2), //
-	HSCAN("r", 2), //
 	ZSCAN("r", 2), //
+
 	// -- UNKNOWN / DEFAULT
 	UNKNOWN("rw", -1);
 
