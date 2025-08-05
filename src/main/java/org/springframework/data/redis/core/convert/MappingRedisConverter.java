@@ -409,10 +409,15 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			if (collection instanceof List) {
 				collectionTargetType = List.class;
 			} else if (collection instanceof Set) {
-				collectionTargetType = collection instanceof EnumSet ? EnumSet.class : Set.class;
+				if (collection instanceof EnumSet<?>) {
+					collectionTargetType = EnumSet.class;
+				} else {
+					collectionTargetType = Set.class;
+				}
 			}
+
 			typeMapper.writeType(collectionTargetType, sink.getBucket().getPath());
-			writeCollection(sink.getKeyspace(), "", collection, TypeInformation.of(Object.class), sink);
+			writeCollection(sink.getKeyspace(), "", collection, TypeInformation.OBJECT, sink);
 			return;
 		}
 
@@ -829,7 +834,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		boolean isArray = collectionType.isArray();
 		Class<?> collectionTypeToUse = isArray ? ArrayList.class : collectionType;
-		Collection<Object> target = CollectionFactory.createCollection(collectionTypeToUse, valueType, keys.size());
+		Class<?> valueTypeToUse = valueType;
+
+		if (collectionTypeToUse == EnumSet.class) {
+			valueTypeToUse = findFirstElementType(bucket, keys, valueType);
+		}
+
+		Collection<Object> target = CollectionFactory.createCollection(collectionTypeToUse, valueTypeToUse, keys.size());
 
 		for (String key : keys) {
 
@@ -975,6 +986,17 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 
 		return conversionService.convert(toBytes(mapKey), targetType);
+	}
+
+	private Class<?> findFirstElementType(Bucket bucket, List<String> keys, Class<?> fallbackType) {
+
+		Optional<String> firstElement = keys.stream().filter(typeMapper::isTypeKey)
+				.map(it -> it.substring(0, it.indexOf(']') + 1)).findFirst();
+		if (firstElement.isEmpty()) {
+			return fallbackType;
+		}
+
+		return getTypeHint(firstElement.get(), bucket, fallbackType);
 	}
 
 	private Class<?> getTypeHint(String path, Bucket bucket, Class<?> fallback) {

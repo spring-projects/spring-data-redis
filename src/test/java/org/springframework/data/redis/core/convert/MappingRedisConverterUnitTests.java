@@ -59,6 +59,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -2044,11 +2045,14 @@ class MappingRedisConverterUnitTests {
 
 		Object target = this.converter.read(Object.class, source.getRedisData());
 
-		assertThat(target).isInstanceOf(type).asInstanceOf(InstanceOfAssertFactories.COLLECTION).containsExactlyElementsOf(collection);
+		assertThat(target).isInstanceOf(type).asInstanceOf(InstanceOfAssertFactories.COLLECTION)
+				.containsExactlyElementsOf(collection);
 	}
 
 	private static Stream<Arguments> justCollections() {
-		return Stream.of(Arguments.of(List.class, Arrays.asList("Hello", "stream", "message", 100L)), Arguments.of(Set.class, Set.of("Hello", "stream", "message", 100L)));
+		return Stream.of(Arguments.of(List.class, Arrays.asList("Hello", "stream", "message", 100L)),
+				Arguments.of(Set.class, Set.of("Hello", "stream", "message", 100L)),
+				Arguments.of(EnumSet.class, EnumSet.allOf(Gender.class)));
 	}
 
 	private RedisTestData write(Object source) {
