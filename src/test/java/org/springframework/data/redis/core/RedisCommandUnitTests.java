@@ -135,7 +135,7 @@ class RedisCommandUnitTests {
 
 		Arrays.stream(RedisCommand.values())
 				.forEach(command -> assertThat(command.requiresExactNumberOfArguments())
-						.describedAs("Redis command [%s] failed requires exact arguments check").isEqualTo(
+						.describedAs("Redis command [%s] failed requires exact arguments check".formatted(command.name())).isEqualTo(
 								ReflectionTestUtils.getField(command, "minArgs") == ReflectionTestUtils.getField(command, "maxArgs")));
 	}
 
