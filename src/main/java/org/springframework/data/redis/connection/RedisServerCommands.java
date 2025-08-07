@@ -298,6 +298,6 @@ public interface RedisServerCommands {
 	 * @see <a href="https://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
 	void migrate(byte @NonNull [] key, @NonNull RedisNode target, int dbIndex, @Nullable MigrateOption option,
-			long timeout);
+		long timeout);
 
 }
