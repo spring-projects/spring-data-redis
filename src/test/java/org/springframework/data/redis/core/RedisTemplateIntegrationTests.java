@@ -37,6 +37,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -161,7 +162,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 	void testStringTemplateExecutesWithStringConn() {
 		assumeThat(redisTemplate instanceof StringRedisTemplate).isTrue();
 		String value = redisTemplate.execute((RedisCallback<String>) connection -> {
-			StringRedisConnection stringConn = (StringRedisConnection) connection;
+			StringRedisConnection stringConn = new DefaultStringRedisConnection(connection);
 			stringConn.set("test", "it");
 			return stringConn.get("test");
 		});
@@ -307,7 +308,7 @@ public class RedisTemplateIntegrationTests<K, V> {
 		assumeThat(redisTemplate instanceof StringRedisTemplate).isTrue();
 
 		List<Object> results = redisTemplate.executePipelined((RedisCallback) connection -> {
-			StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
+			StringRedisConnection stringRedisConn = new DefaultStringRedisConnection(connection);
 			stringRedisConn.set("foo", "5");
 			stringRedisConn.get("foo");
 			stringRedisConn.rPush("foolist", "10");
