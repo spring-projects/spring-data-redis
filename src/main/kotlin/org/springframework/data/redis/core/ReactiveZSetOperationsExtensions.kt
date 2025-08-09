@@ -22,6 +22,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.Limit
 import org.springframework.data.redis.connection.zset.Aggregate
+import org.springframework.data.redis.connection.zset.RankAndScore
 import org.springframework.data.redis.connection.zset.Weights
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple
 
@@ -71,6 +72,15 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rankAndAwait(key: K,
 		rank(key, value).awaitFirstOrNull()
 
 /**
+ * Coroutines variant of [ReactiveZSetOperations.rankWithScore].
+ *
+ * @author Seongil Kim
+ * @since 3.6
+ */
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rankWithScoreAndAwait(key: K, value: V): RankAndScore? =
+	rankWithScore(key, value).awaitFirstOrNull()
+
+/**
  * Coroutines variant of [ReactiveZSetOperations.reverseRank].
  *
  * @author Mark Paluch
@@ -78,6 +88,15 @@ suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.rankAndAwait(key: K,
  */
 suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRankAndAwait(key: K, value: V): Long? =
 		reverseRank(key, value).awaitFirstOrNull()
+
+/**
+ * Coroutines variant of [ReactiveZSetOperations.reverseRankWithScore].
+ *
+ * @author Seongil Kim
+ * @since 3.6
+ */
+suspend fun <K : Any, V : Any> ReactiveZSetOperations<K, V>.reverseRankWithScoreAndAwait(key: K, value: V): RankAndScore? =
+	reverseRankWithScore(key, value).awaitFirstOrNull()
 
 /**
  * Coroutines variant of [ReactiveZSetOperations.range].
