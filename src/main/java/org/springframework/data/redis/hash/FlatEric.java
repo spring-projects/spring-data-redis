@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -380,7 +381,7 @@ class FlatEric {
 
 		Collection<Map.Entry<String, JsonNodeAdapter>> properties();
 
-		Object getDirectValue();
+		@Nullable Object getDirectValue();
 	}
 
 }
