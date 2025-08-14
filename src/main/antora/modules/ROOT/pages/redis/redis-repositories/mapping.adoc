@@ -183,7 +183,7 @@ NOTE: Custom conversions have no effect on index resolution. xref:redis/redis-re
 == Customizing Type Mapping
 
 If you want to avoid writing the entire Java class name as type information and would rather like to use a key, you can use the `@TypeAlias` annotation on the entity class being persisted.
-If you need to customize the mapping even more, look at the https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/convert/TypeInformationMapper.html[`TypeInformationMapper`] interface.
+If you need to customize the mapping even more, look at the {spring-data-commons-javadoc-base}/org/springframework/data/convert/TypeInformationMapper.html[`TypeInformationMapper`] interface.
 An instance of that interface can be configured at the `DefaultRedisTypeMapper`, which can be configured on `MappingRedisConverter`.
 
 The following example shows how to define a type alias for an entity:
