@@ -29,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.util.Assert;
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author Seongil Kim
  */
 @NullUnmarked
 public interface ZSetOperations<K, V> {
@@ -217,6 +219,16 @@ public interface ZSetOperations<K, V> {
 	Long rank(@NonNull K key, @NonNull Object o);
 
 	/**
+	 * Determine the index and score of element with {@code value} in a sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 */
+	RankAndScore rankWithScore(K key, Object o);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param key must not be {@literal null}.
@@ -225,6 +237,16 @@ public interface ZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
 	Long reverseRank(@NonNull K key, @NonNull Object o);
+
+	/**
+	 * Determine the index and score of element with {@code value} in a sorted set when scored high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o the value.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 */
+	RankAndScore reverseRankWithScore(K key, Object o);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.

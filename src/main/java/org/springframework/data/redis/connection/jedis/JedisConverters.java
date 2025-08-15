@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import redis.clients.jedis.GeoCoordinate;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Protocol;
@@ -30,6 +31,7 @@ import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.util.KeyValue;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -104,6 +106,7 @@ import org.springframework.util.StringUtils;
  * @author Guy Korland
  * @author dengliming
  * @author John Blum
+ * @author Seongil Kim
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
@@ -150,6 +153,15 @@ abstract class JedisConverters extends Converters {
 
 	static List<Tuple> toTupleList(List<redis.clients.jedis.resps.Tuple> source) {
 		return tuplesToTuples().convert(source);
+	}
+
+	static RankAndScore toRankAndScore(KeyValue<Long, Double> source) {
+
+		Assert.notNull(source, "KeyValue must not be null");
+		Assert.notNull(source.getKey(), "Key must not be null");
+		Assert.notNull(source.getValue(), "Value must not be null");
+
+		return new RankAndScore(source.getKey(), source.getValue());
 	}
 
 	/**

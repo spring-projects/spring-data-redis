@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
@@ -41,6 +42,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Andrey Shlykov
+ * @author Seongil Kim
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -574,6 +576,15 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Long rank(Object o);
 
 	/**
+	 * Returns the rank (position) and score of the given element in the set, in ascending order. Returns null if the element is not
+	 * contained by the set.
+	 *
+	 * @param o object
+	 * @return rank and score of the given object
+	 */
+	RankAndScore rankWithScore(Object o);
+
+	/**
 	 * Returns the rank (position) of the given element in the set, in descending order. Returns null if the element is
 	 * not contained by the set.
 	 *
@@ -581,6 +592,15 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @return reverse rank of the given object
 	 */
 	Long reverseRank(Object o);
+
+	/**
+	 * Returns the rank (position) and score of the given element in the set, in descending order. Returns null if the element is
+	 * not contained by the set.
+	 *
+	 * @param o object
+	 * @return reverse rank and score of the given object
+	 */
+	RankAndScore reverseRankWithScore(Object o);
 
 	/**
 	 * Returns the default score used by this set.
