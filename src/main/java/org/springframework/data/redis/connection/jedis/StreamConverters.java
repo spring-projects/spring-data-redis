@@ -56,6 +56,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  *
  * @author dengliming
  * @author Mark Paluch
+ * @author Jeonggyu Choi
  * @since 2.3
  */
 class StreamConverters {
@@ -303,6 +304,7 @@ class StreamConverters {
 
 	}
 
+	@SuppressWarnings("NullAway")
 	public static XPendingParams toXPendingParams(RedisStreamCommands.XPendingOptions options) {
 
 		Range<String> range = (Range<String>) options.getRange();
@@ -311,6 +313,9 @@ class StreamConverters {
 
 		if (options.hasConsumer()) {
 			xPendingParams.consumer(options.getConsumerName());
+		}
+		if (options.hasMinIdleTime()) {
+			xPendingParams.idle(options.getMinIdleTime().toMillis());
 		}
 
 		return xPendingParams;

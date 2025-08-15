@@ -56,17 +56,25 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.convert.converter.Converter;
@@ -78,6 +86,7 @@ import org.springframework.data.redis.core.convert.KeyspaceConfiguration.Keyspac
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.test.util.RedisTestData;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -1994,16 +2003,20 @@ class MappingRedisConverterUnitTests {
 		assertThat(generic.entity.name).isEqualTo("hello");
 	}
 
-	@Test // GH-2168
+	@Test // GH-2168, GH-3179
 	void writePlainList() {
 
 		List<Object> source = Arrays.asList("Hello", "stream", "message", 100L);
 		RedisTestData target = write(source);
 
-		assertThat(target).containsEntry("[0]", "Hello") //
-			.containsEntry("[1]", "stream") //
-			.containsEntry("[2]", "message") //
-			.containsEntry("[3]", "100");
+		assertThat(target) //
+			.containsEntry("_class", "java.util.List") //
+				.containsEntry("[0]", "Hello") //
+				.containsEntry("[0]._class", "java.lang.String") //
+				.containsEntry("[1]", "stream") //
+				.containsEntry("[2]", "message") //
+				.containsEntry("[3]", "100") //
+				.containsEntry("[3]._class", "java.lang.Long");
 	}
 
 	@Test // DATAREDIS-1175
@@ -2022,6 +2035,24 @@ class MappingRedisConverterUnitTests {
 		List target = read(List.class, source);
 
 		assertThat(target).containsExactly("Hello", "stream", "message", 100L);
+	}
+
+	@ParameterizedTest // GH-3179
+	@MethodSource("justCollections")
+	void readsPlainCollectionIfObjectTypeRequested(Class<?> type, Collection<Object> collection) {
+
+		RedisTestData source = write(collection);
+
+		Object target = this.converter.read(Object.class, source.getRedisData());
+
+		assertThat(target).isInstanceOf(type).asInstanceOf(InstanceOfAssertFactories.COLLECTION)
+				.containsExactlyElementsOf(collection);
+	}
+
+	private static Stream<Arguments> justCollections() {
+		return Stream.of(Arguments.of(List.class, Arrays.asList("Hello", "stream", "message", 100L)),
+				Arguments.of(Set.class, Set.of("Hello", "stream", "message", 100L)),
+				Arguments.of(EnumSet.class, EnumSet.allOf(Gender.class)));
 	}
 
 	private RedisTestData write(Object source) {

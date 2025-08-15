@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOpt
  * Unit tests for {@link RedisStreamCommands}.
  *
  * @author jinkshower
+ * @author Jeonggyu Choi
  */
 class RedisStreamCommandsUnitTests {
 
@@ -45,5 +46,12 @@ class RedisStreamCommandsUnitTests {
 		Range<?> range = Range.closed("0", "10");
 
 		assertThatIllegalArgumentException().isThrownBy(() -> XPendingOptions.range(range, -1L));
+	}
+
+	@Test // GH-2046
+	void xPendingOptionsIdleShouldThrowExceptionWhenIdleIsNull() {
+		XPendingOptions xPendingOptions = XPendingOptions.unbounded();
+
+		assertThatIllegalArgumentException().isThrownBy(() -> xPendingOptions.minIdleTime(null));
 	}
 }

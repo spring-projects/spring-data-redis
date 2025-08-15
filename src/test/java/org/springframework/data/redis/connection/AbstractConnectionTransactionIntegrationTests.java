@@ -148,6 +148,16 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 		super.xClaim();
 	}
 
+	@Test
+	@Override
+	@Disabled
+	public void xPendingShouldLoadPendingMessagesForIdle() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void xPendingShouldLoadPendingMessagesForIdleWithConsumer() {}
+
 	@Override
 	protected void initConnection() {
 		connection.multi();

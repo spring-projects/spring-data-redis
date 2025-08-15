@@ -75,6 +75,8 @@ import org.springframework.util.CollectionUtils;
  * @author ihaohong
  * @author Shyngys Sapraliyev
  * @author Seongil Kim
+ * @author Jeonggyu Choi
+ * @author Seongil Kim
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -3164,6 +3166,35 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	PendingMessagesSummary xPending(@NonNull String key, @NonNull String groupName);
 
+	// /**
+	// * Obtained detailed information about all pending messages for a given {@link Consumer}.
+	// *
+	// * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	// * @param consumer the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
+	// * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	// * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	// * @since 3.5
+	// */
+	// @Nullable
+	// default PendingMessages xPending(String key, Consumer consumer) {
+	// return xPending(key, consumer.getGroup(), consumer.getName());
+	// }
+
+	// /**
+	// * Obtained detailed information about all pending messages for a given {@literal consumer}.
+	// *
+	// * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	// * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	// * @param consumerName the consumer to fetch {@link PendingMessages} for. Must not be {@literal null}.
+	// * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	// * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	// * @since 3.5
+	// */
+	// @Nullable
+	// default PendingMessages xPending(String key, String groupName, String consumerName) {
+	// return xPending(key, groupName, XPendingOptions.unbounded().consumer(consumerName));
+	// }
+
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
 	 * {@link org.springframework.data.domain.Range} within a {@literal consumer group}.
@@ -3183,6 +3214,61 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
+	 * {@link org.springframework.data.domain.Range} and {@literal consumer} within a {@literal consumer group} and over a
+	 * given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param consumerName the name of the {@literal consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer} in given {@literal consumer group} or {@literal null}
+	 *         when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 4.0
+	 */
+	PendingMessages xPending(@NonNull String key, @NonNull String groupName, @NonNull String consumerName,
+			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count, @NonNull Duration minIdleTime);
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
+	 * {@link org.springframework.data.domain.Range} and {@link Consumer} within a {@literal consumer group}.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 4.0
+	 */
+	default PendingMessages xPending(@NonNull String key, @NonNull Consumer consumer, org.springframework.data.domain.@NonNull Range<String> range,
+		@NonNull Long count) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
+	 * {@link org.springframework.data.domain.Range} and {@link Consumer} within a {@literal consumer group} and over a
+	 * given {@link Duration} of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param consumer the name of the {@link Consumer}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@link Consumer} or {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 4.0
+	 */
+	default PendingMessages xPending(@NonNull String key, @NonNull Consumer consumer, org.springframework.data.domain.@NonNull Range<String> range,
+		@NonNull Long count, @NonNull Duration minIdleTime) {
+		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, minIdleTime);
+	}
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
 	 * {@link org.springframework.data.domain.Range} within a {@literal consumer group}.
 	 *
 	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
@@ -3196,6 +3282,24 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	PendingMessages xPending(@NonNull String key, @NonNull String groupName,
 			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count);
+
+	/**
+	 * Obtain detailed information about pending {@link PendingMessage messages} for a given
+	 * {@link org.springframework.data.domain.Range} within a {@literal consumer group} and over a given {@link Duration}
+	 * of idle time.
+	 *
+	 * @param key the {@literal key} the stream is stored at. Must not be {@literal null}.
+	 * @param groupName the name of the {@literal consumer group}. Must not be {@literal null}.
+	 * @param range the range of messages ids to search within. Must not be {@literal null}.
+	 * @param count limit the number of results. Must not be {@literal null}.
+	 * @param minIdleTime the minimum idle time to filter pending messages. Must not be {@literal null}.
+	 * @return pending messages for the given {@literal consumer group} or {@literal null} when used in pipeline /
+	 *         transaction.
+	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
+	 * @since 4.0
+	 */
+	PendingMessages xPending(@NonNull String key, @NonNull String groupName, org.springframework.data.domain.@NonNull Range<String> range,
+		@NonNull Long count, @NonNull Duration minIdleTime);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions

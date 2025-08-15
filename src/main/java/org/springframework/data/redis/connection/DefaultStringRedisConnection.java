@@ -82,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author ihaohong
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
+ * @author Jeonggyu Choi
  * @author Seongil Kim
  */
 @NullUnmarked
@@ -2944,9 +2945,23 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public PendingMessages xPending(String key, String groupName, String consumerName,
+			org.springframework.data.domain.Range<String> range, Long count, Duration minIdleTime) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, consumerName, range, count, minIdleTime),
+				Converters.identityConverter());
+	}
+
+	@Override
 	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
 			Long count) {
 		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count), Converters.identityConverter());
+	}
+
+	@Override
+	public PendingMessages xPending(String key, String groupName, org.springframework.data.domain.Range<String> range,
+			Long count, Duration minIdleTime) {
+		return convertAndReturn(delegate.xPending(serialize(key), groupName, range, count, minIdleTime),
+				Converters.identityConverter());
 	}
 
 	@Override

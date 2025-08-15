@@ -160,6 +160,16 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		super.xClaim();
 	}
 
+	@Test
+	@Override
+	@Disabled
+	public void xPendingShouldLoadPendingMessagesForIdle() {}
+
+	@Test
+	@Override
+	@Disabled
+	public void xPendingShouldLoadPendingMessagesForIdleWithConsumer() {}
+
 	@Override
 	protected void initConnection() {
 		connection.openPipeline();

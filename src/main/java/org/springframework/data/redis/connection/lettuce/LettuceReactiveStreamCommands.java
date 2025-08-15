@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.XAddArgs;
 import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
+import io.lettuce.core.XPendingArgs;
 import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XReadArgs.StreamOffset;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
@@ -56,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Tugdual Grall
  * @author Dengliming
  * @author Mark John Moreno
+ * @author Jeonggyu Choi
  * @since 2.2
  */
 class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
@@ -238,9 +240,17 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			io.lettuce.core.Limit limit = command.isLimited() ? io.lettuce.core.Limit.from(command.getCount())
 					: io.lettuce.core.Limit.unlimited();
 
-			Flux<PendingMessage> publisher = command.hasConsumer() ? cmd.xpending(command.getKey(),
-					io.lettuce.core.Consumer.from(groupName, ByteUtils.getByteBuffer(command.getConsumerName())), range, limit)
-					: cmd.xpending(command.getKey(), groupName, range, limit);
+			XPendingArgs<ByteBuffer> xPendingArgs = XPendingArgs.Builder.xpending(groupName, range, limit);
+			if (command.hasConsumer()) {
+				io.lettuce.core.Consumer<ByteBuffer> consumer = io.lettuce.core.Consumer.from(groupName,
+						ByteUtils.getByteBuffer(command.getConsumerName()));
+				xPendingArgs.consumer(consumer);
+			}
+			if (command.hasMinIdleTime()) {
+				xPendingArgs.idle(command.getMinIdleTime());
+			}
+
+			Flux<PendingMessage> publisher = cmd.xpending(command.getKey(), xPendingArgs);
 
 			return publisher.collectList().map(it -> {
 
@@ -334,7 +344,7 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getGroupName(), "Command.getGroupName() must not be null");
-			
+
 			ByteBuffer groupName = ByteUtils.getByteBuffer(command.getGroupName());
 			return new CommandResponse<>(command, cmd.xinfoConsumers(command.getKey(), groupName)
 					.map(it -> new XInfoConsumer(command.getGroupName(), (List<Object>) it)));

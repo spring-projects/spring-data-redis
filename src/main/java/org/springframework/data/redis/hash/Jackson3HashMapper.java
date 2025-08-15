@@ -655,7 +655,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		}
 
 		@Override
-		public Object getDirectValue() {
+		public @Nullable Object getDirectValue() {
 			return new DirectFieldAccessFallbackBeanWrapper(node()).getPropertyValue("_value");
 		}
 

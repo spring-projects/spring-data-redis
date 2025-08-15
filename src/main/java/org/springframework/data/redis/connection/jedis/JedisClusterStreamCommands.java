@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Dengliming
+ * @author Jeonggyu Choi
  * @since 2.3
  */
 class JedisClusterStreamCommands implements RedisStreamCommands {
@@ -261,6 +262,7 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public PendingMessages xPending(byte[] key, String groupName, XPendingOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -271,18 +273,7 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 
-			@SuppressWarnings("all")
-			XPendingParams pendingParams = new XPendingParams(
-					JedisConverters.toBytes(StreamConverters.getLowerValue(range)),
-					JedisConverters.toBytes(StreamConverters.getUpperValue(range)),
-					options.getCount().intValue());
-
-			String consumerName = options.getConsumerName();
-
-			if (StringUtils.hasText(consumerName)) {
-				pendingParams = pendingParams.consumer(consumerName);
-			}
-
+			XPendingParams pendingParams = StreamConverters.toXPendingParams(options);
 			List<Object> response = connection.getCluster().xpending(key, group, pendingParams);
 
 			return StreamConverters.toPendingMessages(groupName, range,
