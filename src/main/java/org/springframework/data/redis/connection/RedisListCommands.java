@@ -301,7 +301,7 @@ public interface RedisListCommands {
 	 * @see #lPop(byte[])
 	 */
 	@Nullable
-	List<byte @NonNull []> bLPop(int timeout, byte @NonNull [] @NonNull... keys);
+	List<byte @NonNull []> bLPop(double timeout, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Removes and returns last element from lists stored at {@code keys}. <br>
@@ -314,7 +314,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 * @see #rPop(byte[])
 	 */
-	List<byte @NonNull []> bRPop(int timeout, byte @NonNull [] @NonNull... keys);
+	List<byte @NonNull []> bRPop(double timeout, byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.
@@ -337,5 +337,5 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 * @see #rPopLPush(byte[], byte[])
 	 */
-	byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey);
+	byte[] bRPopLPush(double timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey);
 }
