@@ -19,6 +19,7 @@ import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.cluster.pubsub.StatefulRedisClusterPubSubConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
@@ -38,6 +39,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Krzysztof Debski
  * @since 2.1
  */
 class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider {
@@ -68,7 +70,8 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 	public <T extends StatefulConnection<?, ?>> T getConnection(Class<T> connectionType) {
 
 		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
-			throw new UnsupportedOperationException("Pub/Sub connections not supported with Master/Replica configurations");
+
+			return connectionType.cast(client.connectPubSub(codec, getPubSubUri()));
 		}
 
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
@@ -85,6 +88,12 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 	@Override
 	public <T extends StatefulConnection<?, ?>> CompletionStage<T> getConnectionAsync(Class<T> connectionType) {
 
+		if (connectionType.equals(StatefulRedisPubSubConnection.class)) {
+
+			return client.connectPubSubAsync(codec, getPubSubUri())
+						 .thenApply(connectionType::cast);
+		}
+
 		if (StatefulConnection.class.isAssignableFrom(connectionType)) {
 
 			CompletableFuture<? extends StatefulRedisMasterReplicaConnection<?, ?>> connection = MasterReplica
@@ -98,5 +107,9 @@ class StaticMasterReplicaConnectionProvider implements LettuceConnectionProvider
 		}
 
 		throw new UnsupportedOperationException("Connection type %s not supported".formatted(connectionType));
+	}
+
+	private RedisURI getPubSubUri() {
+		return nodes.iterator().next();
 	}
 }
