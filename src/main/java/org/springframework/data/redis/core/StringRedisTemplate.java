@@ -55,9 +55,4 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 		setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
 	}
-
-	protected RedisConnection preProcessConnection(RedisConnection connection, boolean existingConnection) {
-		return new DefaultStringRedisConnection(connection);
-	}
-
 }
