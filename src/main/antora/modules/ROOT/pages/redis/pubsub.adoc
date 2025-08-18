@@ -12,6 +12,8 @@ This is an example of the pattern often called Publish/Subscribe (Pub/Sub for sh
 
 The `org.springframework.data.redis.connection` and `org.springframework.data.redis.listener` packages provide the core functionality for Redis messaging.
 
+For static Master/Replica configuration, Pub/Sub operations always use the first node because messages are not replicated between nodes.
+
 [[redis:pubsub:publish]]
 == Publishing (Sending Messages)
 

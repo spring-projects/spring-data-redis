@@ -59,6 +59,7 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Krzysztof Debski
  */
 @ExtendWith(LettuceConnectionFactoryExtension.class)
 class LettuceConnectionFactoryTests {
@@ -427,7 +428,7 @@ class LettuceConnectionFactoryTests {
 	}
 
 	@Test // DATAREDIS-1093
-	void pubSubDoesNotSupportMasterReplicaConnections() {
+	void factoryConnectionSupportsSubscriptionForMasterReplicaConnections() {
 
 		assumeTrue("No replicas connected to %s:%d".formatted(SettingsUtils.getHost(), SettingsUtils.getPort()),
 				connection.info("replication").getProperty("connected_slaves", "0").compareTo("0") > 0);
@@ -441,10 +442,13 @@ class LettuceConnectionFactoryTests {
 
 		RedisConnection connection = factory.getConnection();
 
-		assertThatThrownBy(() -> connection.pSubscribe((message, pattern) -> {}, "foo".getBytes()))
-				.isInstanceOf(RedisConnectionFailureException.class).hasCauseInstanceOf(UnsupportedOperationException.class);
+		try {
+			connection.pSubscribe((message, pattern) -> {}, "foo".getBytes());
+			assertThat(connection.isSubscribed()).isTrue();
+		} finally {
+			connection.close();
+		}
 
-		connection.close();
 		factory.destroy();
 	}
 
