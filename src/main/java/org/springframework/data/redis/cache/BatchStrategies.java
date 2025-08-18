@@ -16,11 +16,10 @@
 package org.springframework.data.redis.cache;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisKeyCommands;
@@ -34,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author John Blum
+ * @author Yong-Hyun Kim
  * @since 2.6
  */
 public abstract class BatchStrategies {
@@ -82,14 +82,15 @@ public abstract class BatchStrategies {
 
 			RedisKeyCommands commands = connection.keyCommands();
 
-			byte[][] keys = Optional.ofNullable(commands.keys(pattern)).orElse(Collections.emptySet())
-					.toArray(new byte[0][]);
+            Set<byte[]> keys = commands.keys(pattern);
 
-			if (keys.length > 0) {
-				commands.del(keys);
-			}
+            if (keys == null || keys.isEmpty()) {
+                return 0;
+            }
 
-			return keys.length;
+            commands.del(keys.toArray(new byte[0][]));
+
+			return keys.size();
 		}
 	}
 
