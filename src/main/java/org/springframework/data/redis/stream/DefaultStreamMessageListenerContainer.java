@@ -39,6 +39,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
 
@@ -50,6 +51,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Edsuns
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -229,8 +231,18 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 					: this.readOptions;
 			Consumer consumer = consumerStreamRequest.getConsumer();
 
-			return (offset) -> template.execute((RedisCallback<List<ByteRecord>>) connection -> connection.streamCommands()
-					.xReadGroup(consumer, readOptions, StreamOffset.create(rawKey, offset)));
+			return (offset) -> {
+				List<ByteRecord> records = template.execute((RedisCallback<List<ByteRecord>>) connection -> connection.streamCommands()
+						.xReadGroup(consumer, readOptions, StreamOffset.create(rawKey, offset)));
+				if (CollectionUtils.isEmpty(records) && !ReadOffset.lastConsumed().equals(offset)) {
+					// see https://redis.io/docs/latest/commands/xreadgroup/
+					// if ID in XREADGROUP command is other than >, new messages won't be read
+					// so reads new messages here
+					return template.execute((RedisCallback<List<ByteRecord>>) connection -> connection.streamCommands()
+							.xReadGroup(consumer, readOptions, StreamOffset.create(rawKey, ReadOffset.lastConsumed())));
+				}
+				return records;
+			};
 		}
 
 		return (offset) -> template.execute((RedisCallback<List<ByteRecord>>) connection -> connection.streamCommands()
