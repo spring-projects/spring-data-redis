@@ -70,6 +70,8 @@ import org.springframework.util.ObjectUtils;
 public class LettuceClusterConnection extends LettuceConnection
 		implements RedisClusterConnection, DefaultedRedisClusterConnection {
 
+	private static final Log log = LogFactory.getLog(LettuceClusterConnection.class);
+
 	static final ExceptionTranslationStrategy exceptionConverter = new PassThroughExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
 
@@ -78,8 +80,6 @@ public class LettuceClusterConnection extends LettuceConnection
 	private ClusterCommandExecutor clusterCommandExecutor;
 
 	private ClusterTopologyProvider topologyProvider;
-
-	private final Log log = LogFactory.getLog(getClass());
 
 	private final LettuceClusterGeoCommands geoCommands = new LettuceClusterGeoCommands(this);
 	private final LettuceClusterHashCommands hashCommands = new LettuceClusterHashCommands(this);
