@@ -219,7 +219,7 @@ class LettuceListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte @NonNull []> bLPop(int timeout, byte @NonNull [] @NonNull... keys) {
+	public List<byte @NonNull []> bLPop(double timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -229,7 +229,7 @@ class LettuceListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte @NonNull []> bRPop(int timeout, byte @NonNull [] @NonNull... keys) {
+	public List<byte @NonNull []> bRPop(double timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -248,7 +248,7 @@ class LettuceListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
+	public byte[] bRPopLPush(double timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
