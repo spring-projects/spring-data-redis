@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Yong-Hyun Kim
  * @since 2.0
  */
 public class RedisPassword {
@@ -55,10 +56,11 @@ public class RedisPassword {
 	 */
 	public static RedisPassword of(@Nullable String passwordAsString) {
 
-		return Optional.ofNullable(passwordAsString) //
-				.filter(StringUtils::hasText) //
-				.map(it -> new RedisPassword(it.toCharArray())) //
-				.orElseGet(RedisPassword::none);
+        if (!StringUtils.hasText(passwordAsString)) {
+            return none();
+        }
+
+        return new RedisPassword(passwordAsString.toCharArray());
 	}
 
 	/**
@@ -69,10 +71,11 @@ public class RedisPassword {
 	 */
 	public static RedisPassword of(char @Nullable[] passwordAsChars) {
 
-		return Optional.ofNullable(passwordAsChars) //
-				.filter(it -> !ObjectUtils.isEmpty(passwordAsChars)) //
-				.map(it -> new RedisPassword(Arrays.copyOf(it, it.length))) //
-				.orElseGet(RedisPassword::none);
+        if (ObjectUtils.isEmpty(passwordAsChars)) {
+            return none();
+        }
+
+        return new RedisPassword(Arrays.copyOf(passwordAsChars, passwordAsChars.length));
 	}
 
 	/**
