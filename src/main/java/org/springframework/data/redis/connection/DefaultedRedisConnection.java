@@ -67,6 +67,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  * @author Tihomir Mateev
+ * @author Mingi Lee
  * @since 2.0
  */
 @Deprecated
@@ -888,6 +889,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default Long sInterStore(byte[] destKey, byte[]... keys) {
 		return setCommands().sInterStore(destKey, keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
+	@Override
+	@Deprecated
+	default Long sInterCard(byte[]... keys) {
+		return setCommands().sInterCard(keys);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
