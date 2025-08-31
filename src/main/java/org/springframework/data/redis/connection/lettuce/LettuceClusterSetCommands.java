@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  * @since 2.0
  */
 class LettuceClusterSetCommands extends LettuceSetCommands {
@@ -116,6 +117,21 @@ class LettuceClusterSetCommands extends LettuceSetCommands {
 			return 0L;
 		}
 		return sAdd(destKey, result.toArray(new byte[result.size()][]));
+	}
+
+	@Override
+	public Long sInterCard(byte[]... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+			return super.sInterCard(keys);
+		}
+
+		// For multi-slot clusters, calculate intersection cardinality by performing intersection
+		Set<byte[]> result = sInter(keys);
+		return (long) result.size();
 	}
 
 	@Override

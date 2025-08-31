@@ -33,6 +33,7 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  */
 public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements RedisSet<E> {
 
@@ -115,6 +116,16 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	public RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<>(boundSetOps.getOperations().boundSetOps(destKey));
+	}
+
+	@Override
+	public Long intersectSize(RedisSet<?> set) {
+		return boundSetOps.intersectSize(set.getKey());
+	}
+
+	@Override
+	public Long intersectSize(Collection<? extends RedisSet<?>> sets) {
+		return boundSetOps.intersectSize(CollectionUtils.extractKeys(sets));
 	}
 
 	@Override

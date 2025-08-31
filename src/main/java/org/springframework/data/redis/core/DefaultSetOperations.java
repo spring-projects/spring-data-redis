@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Roman Bezpalko
+ * @author Mingi Lee
  */
 class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 
@@ -138,6 +139,25 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		byte[] rawDestKey = rawKey(destKey);
 
 		return execute(connection -> connection.sInterStore(rawDestKey, rawKeys));
+	}
+
+	@Override
+	public Long intersectSize(K key, K otherKey) {
+		return intersectSize(Arrays.asList(key, otherKey));
+	}
+
+	@Override
+	public Long intersectSize(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return execute(connection -> connection.sInterCard(rawKeys));
+	}
+
+	@Override
+	public Long intersectSize(Collection<K> keys) {
+
+		byte[][] rawKeys = rawKeys(keys);
+		return execute(connection -> connection.sInterCard(rawKeys));
 	}
 
 	@Override

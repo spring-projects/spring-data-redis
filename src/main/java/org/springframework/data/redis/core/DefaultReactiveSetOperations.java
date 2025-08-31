@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Roman Bezpalko
  * @author John Blum
+ * @author Mingi Lee
  * @since 2.0
  */
 class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> {
@@ -211,6 +212,35 @@ class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> 
 				.map(this::rawKey) //
 				.collectList() //
 				.flatMap(rawKeys -> setCommands.sInterStore(rawKey(destKey), rawKeys)));
+	}
+
+	@Override
+	public Mono<Long> intersectSize(K key, K otherKey) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(otherKey, "Other key must not be null");
+
+		return intersectSize(key, Collections.singleton(otherKey));
+	}
+
+	@Override
+	public Mono<Long> intersectSize(K key, Collection<K> otherKeys) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(otherKeys, "Other keys must not be null");
+
+		return intersectSize(getKeys(key, otherKeys));
+	}
+
+	@Override
+	public Mono<Long> intersectSize(Collection<K> keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		return createMono(setCommands -> Flux.fromIterable(keys) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(setCommands::sInterCard));
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import org.jspecify.annotations.NullUnmarked;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Roman Bezpalko
+ * @author Mingi Lee
  */
 @NullUnmarked
 public interface SetOperations<K, V> {
@@ -177,6 +178,38 @@ public interface SetOperations<K, V> {
 	 * @since 2.2
 	 */
 	Long intersectAndStore(@NonNull Collection<@NonNull K> keys, @NonNull K destKey);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of {@code key} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(@NonNull K key, @NonNull K otherKey);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of {@code key} and {@code otherKeys}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of all given sets at {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Union all sets at given {@code keys} and {@code otherKey}.

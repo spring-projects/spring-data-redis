@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  */
 public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -121,6 +122,28 @@ public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 	 * @since 1.0
 	 */
 	RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of this set and another
+	 * {@link RedisSet}.
+	 *
+	 * @param set must not be {@literal null}.
+	 * @return the cardinality of the intersection.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(RedisSet<?> set);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of this set and other
+	 * {@link RedisSet}s.
+	 *
+	 * @param sets must not be {@literal null}.
+	 * @return the cardinality of the intersection.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(Collection<? extends RedisSet<?>> sets);
 
 	/**
 	 * Get random element from the set.
