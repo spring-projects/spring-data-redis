@@ -141,6 +141,25 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 	@Override
+	public Long intersectSize(K key, K otherKey) {
+		return intersectSize(Arrays.asList(key, otherKey));
+	}
+
+	@Override
+	public Long intersectSize(K key, Collection<K> otherKeys) {
+
+		byte[][] rawKeys = rawKeys(key, otherKeys);
+		return execute(connection -> connection.sInterCard(rawKeys));
+	}
+
+	@Override
+	public Long intersectSize(Collection<K> keys) {
+
+		byte[][] rawKeys = rawKeys(keys);
+		return execute(connection -> connection.sInterCard(rawKeys));
+	}
+
+	@Override
 	public Boolean isMember(K key, Object o) {
 
 		byte[] rawKey = rawKey(key);
