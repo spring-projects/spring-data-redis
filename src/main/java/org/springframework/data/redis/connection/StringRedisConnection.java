@@ -74,6 +74,7 @@ import org.springframework.util.CollectionUtils;
  * @author ihaohong
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
+ * @author Mingi Lee
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -1168,6 +1169,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisSetCommands#sInterStore(byte[], byte[]...)
 	 */
 	Long sInterStore(@NonNull String destKey, @NonNull String @NonNull... keys);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of all the given sets.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @see RedisSetCommands#sInterCard(byte[]...)
+	 * @since 3.4
+	 */
+	Long sInterCard(@NonNull String @NonNull... keys);
 
 	/**
 	 * Union all sets at given {@code keys}.
