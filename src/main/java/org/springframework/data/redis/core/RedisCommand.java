@@ -136,7 +136,6 @@ public enum RedisCommand {
 	HGET("r", 2, 2), //
 	HGETALL("r", 1, 1), //
 	HGETDEL("rw", 2), //
-	HGETEX("rw", 2), //
 	HINCRBY("rw", 3, 3), //
 	HINCBYFLOAT("rw", 3, 3), //
 	HKEYS("r", 1), //

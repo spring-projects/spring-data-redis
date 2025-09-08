@@ -17,9 +17,10 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -106,37 +107,34 @@ class RedisCommandUnitTests {
 				.withMessageContaining("ZADD command requires at least 3 arguments");
 	}
 
-	@Test // GH-2644
-	void isRepresentedByIsCorrectForAllCommandsAndTheirAliases() {
+	@ParameterizedTest(name = "{0}") // GH-2644
+	@EnumSource(RedisCommand.class)
+	void isRepresentedByIsCorrectForAllCommandsAndTheirAliases(RedisCommand command) {
 
-		for (RedisCommand command : RedisCommand.values()) {
+		assertThat(command.isRepresentedBy(command.name())).isTrue();
+		assertThat(command.isRepresentedBy(command.name().toLowerCase())).isTrue();
 
-			assertThat(command.isRepresentedBy(command.name())).isTrue();
-			assertThat(command.isRepresentedBy(command.name().toLowerCase())).isTrue();
-
-			for (String alias : command.getAliases()) {
-				assertThat(command.isRepresentedBy(alias)).isTrue();
-				assertThat(command.isRepresentedBy(alias.toUpperCase())).isTrue();
-			}
+		for (String alias : command.getAliases()) {
+			assertThat(command.isRepresentedBy(alias)).isTrue();
+			assertThat(command.isRepresentedBy(alias.toUpperCase())).isTrue();
 		}
 	}
 
-	@Test // GH-2646
-	void commandRequiresArgumentsIsCorrect() {
+	@ParameterizedTest(name = "{0}") // GH-2646
+	@EnumSource(RedisCommand.class)
+	void commandRequiresArgumentsIsCorrect(RedisCommand command) {
 
-		Arrays.stream(RedisCommand.values())
-				.forEach(command -> assertThat(command.requiresArguments())
-						.describedAs("Redis command [%s] failed required arguments check", command)
-						.isEqualTo((int) ReflectionTestUtils.getField(command, "minArgs") > 0));
+		assertThat(command.requiresArguments()).describedAs("Redis command [%s] failed required arguments check", command)
+				.isEqualTo((int) ReflectionTestUtils.getField(command, "minArgs") > 0);
 	}
 
-	@Test // GH-2646
-	void commandRequiresExactNumberOfArgumentsIsCorrect() {
+	@ParameterizedTest(name = "{0}") // GH-2646
+	@EnumSource(RedisCommand.class)
+	void commandRequiresExactNumberOfArgumentsIsCorrect(RedisCommand command) {
 
-		Arrays.stream(RedisCommand.values())
-				.forEach(command -> assertThat(command.requiresExactNumberOfArguments())
-						.describedAs("Redis command [%s] failed requires exact arguments check".formatted(command.name())).isEqualTo(
-								ReflectionTestUtils.getField(command, "minArgs") == ReflectionTestUtils.getField(command, "maxArgs")));
+		assertThat(command.requiresExactNumberOfArguments())
+				.describedAs("Redis command [%s] failed requires exact arguments check".formatted(command.name())).isEqualTo(
+						ReflectionTestUtils.getField(command, "minArgs") == ReflectionTestUtils.getField(command, "maxArgs"));
 	}
 
 }
