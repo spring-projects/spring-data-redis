@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -35,6 +36,7 @@ import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -44,14 +46,16 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
+ * Transactional integration tests for {@link StringRedisTemplate}.
+ *
  * @author Christoph Strobl
  */
 @ParameterizedClass
 @MethodSource("argumentsStream")
-public class TransactionalStringRedisTemplateTests {
+class TransactionalStringRedisTemplateTests {
 
-	RedisConnectionFactory redisConnectionFactory;
-	StringRedisTemplate stringTemplate;
+	private RedisConnectionFactory redisConnectionFactory;
+	private StringRedisTemplate stringTemplate;
 
 	TransactionalStringRedisTemplateTests(RedisConnectionFactory redisConnectionFactory) {
 		this.redisConnectionFactory = redisConnectionFactory;
@@ -86,8 +90,8 @@ public class TransactionalStringRedisTemplateTests {
 
 		stringTemplate.opsForSet().add("myset", "outside");
 
-		DataSource ds = Mockito.mock(DataSource.class);
-		Mockito.when(ds.getConnection()).thenReturn(Mockito.mock(Connection.class));
+		DataSource ds = mock(DataSource.class);
+		Mockito.when(ds.getConnection()).thenReturn(mock(Connection.class));
 
 		DataSourceTransactionManager txMgr = new DataSourceTransactionManager(ds);
 
