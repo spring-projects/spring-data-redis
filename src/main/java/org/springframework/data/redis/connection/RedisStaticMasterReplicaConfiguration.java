@@ -39,10 +39,17 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 
 	private static final int DEFAULT_PORT = 6379;
 
-	private List<RedisStandaloneConfiguration> nodes = new ArrayList<>();
+	private final List<RedisStandaloneConfiguration> nodes = new ArrayList<>();
 	private int database;
 	private @Nullable String username = null;
 	private RedisPassword password = RedisPassword.none();
+
+	/**
+	 * Create a new default {@link RedisStaticMasterReplicaConfiguration}.
+	 *
+	 * @since 4.0
+	 */
+	public RedisStaticMasterReplicaConfiguration() {}
 
 	/**
 	 * Create a new {@link StaticMasterReplicaConfiguration} given {@code hostName}.

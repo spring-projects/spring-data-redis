@@ -543,8 +543,9 @@ class LettuceConnectionFactoryTests {
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().build();
 
-		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration(
-				SettingsUtils.getHost()).node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
+		RedisStaticMasterReplicaConfiguration elastiCache = new RedisStaticMasterReplicaConfiguration()
+				.node(SettingsUtils.getHost(), SettingsUtils.getPort())
+				.node(SettingsUtils.getHost(), SettingsUtils.getPort() + 1);
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(elastiCache, configuration);
 		factory.setEagerInitialization(true);
