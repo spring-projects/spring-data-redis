@@ -68,13 +68,13 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	private @Nullable String sentinelUsername = null;
 
 	/**
-	 * Creates a new, default {@link RedisSentinelConfiguration}.
+	 * Creates a new, default {@code RedisSentinelConfiguration}.
 	 */
 	public RedisSentinelConfiguration() {
 	}
 
 	/**
-	 * Creates a new {@link RedisSentinelConfiguration} for given {@link String hostPort} combinations.
+	 * Creates a new {@code RedisSentinelConfiguration} for given {@link String hostPort} combinations.
 	 *
 	 * <pre class="code">
 	 * sentinelHostAndPorts[0] = 127.0.0.1:23679
@@ -97,10 +97,10 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	}
 
 	/**
-	 * Construct a new {@link RedisSentinelConfiguration} from the given {@link PropertySource}.
+	 * Construct a new {@code RedisSentinelConfiguration} from the given {@link PropertySource}.
 	 *
 	 * @param propertySource must not be {@literal null}.
-	 * @return a new {@link RedisSentinelConfiguration} configured from the given {@link PropertySource}.
+	 * @return a new {@code RedisSentinelConfiguration} configured from the given {@link PropertySource}.
 	 * @since 3.3
 	 */
 	public static RedisSentinelConfiguration of(PropertySource<?> propertySource) {

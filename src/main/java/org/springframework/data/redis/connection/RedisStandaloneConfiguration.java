@@ -47,12 +47,12 @@ public class RedisStandaloneConfiguration
 	private @Nullable String username = null;
 
 	/**
-	 * Create a new default {@link RedisStandaloneConfiguration}.
+	 * Create a new default {@code RedisStandaloneConfiguration}.
 	 */
 	public RedisStandaloneConfiguration() {}
 
 	/**
-	 * Create a new {@link RedisStandaloneConfiguration} given {@code hostName}.
+	 * Create a new {@code RedisStandaloneConfiguration} given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 */
@@ -61,7 +61,7 @@ public class RedisStandaloneConfiguration
 	}
 
 	/**
-	 * Create a new {@link RedisStandaloneConfiguration} given {@code hostName} and {@code port}.
+	 * Create a new {@code RedisStandaloneConfiguration} given {@code hostName} and {@code port}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).

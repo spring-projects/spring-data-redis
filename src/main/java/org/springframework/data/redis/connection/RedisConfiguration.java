@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 
 /**
  * Marker interface for configuration classes related to Redis connection setup. As the setup scenarios are quite
- * diverse instead of struggling with unifying those, {@link RedisConfiguration} provides means to identify
+ * diverse instead of struggling with unifying those, {@code RedisConfiguration} provides means to identify
  * configurations for the individual purposes.
  *
  * @author Christoph Strobl
@@ -38,11 +38,11 @@ import org.springframework.util.Assert;
 public interface RedisConfiguration {
 
 	/**
-	 * Get the configured database index if the current {@link RedisConfiguration} is
+	 * Get the configured database index if the current {@code RedisConfiguration} is
 	 * {@link #isDatabaseIndexAware(RedisConfiguration) database aware} or evaluate and return the value of the given
 	 * {@link Supplier}.
 	 *
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isDatabaseIndexAware(RedisConfiguration) database aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -52,11 +52,11 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * Get the configured {@link RedisPassword} if the current {@link RedisConfiguration} is
+	 * Get the configured {@link RedisPassword} if the current {@code RedisConfiguration} is
 	 * {@link #isAuthenticationAware(RedisConfiguration) password aware} or evaluate and return the value of the given
 	 * {@link Supplier}.
 	 *
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isAuthenticationAware(RedisConfiguration) password aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -67,7 +67,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithPassword}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link WithPassword}.
 	 */
 	@Contract("null -> false")
 	static boolean isAuthenticationAware(@Nullable RedisConfiguration configuration) {
@@ -76,7 +76,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithDatabaseIndex}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link WithDatabaseIndex}.
 	 */
 	@Contract("null -> false")
 	static boolean isDatabaseIndexAware(@Nullable RedisConfiguration configuration) {
@@ -85,7 +85,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link SentinelConfiguration}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link SentinelConfiguration}.
 	 */
 	@Contract("null -> false")
 	static boolean isSentinelConfiguration(@Nullable RedisConfiguration configuration) {
@@ -94,7 +94,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithHostAndPort}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link WithHostAndPort}.
 	 * @since 2.1.6
 	 */
 	@Contract("null -> false")
@@ -104,7 +104,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link ClusterConfiguration}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link ClusterConfiguration}.
 	 */
 	@Contract("null -> false")
 	static boolean isClusterConfiguration(@Nullable RedisConfiguration configuration) {
@@ -113,7 +113,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link StaticMasterReplicaConfiguration}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link StaticMasterReplicaConfiguration}.
 	 */
 	@Contract("null -> false")
 	static boolean isStaticMasterReplicaConfiguration(@Nullable RedisConfiguration configuration) {
@@ -122,7 +122,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link DomainSocketConfiguration}.
+	 * @return {@code true} if given {@code RedisConfiguration} is instance of {@link DomainSocketConfiguration}.
 	 */
 	@Contract("null -> false")
 	static boolean isDomainSocketConfiguration(@Nullable RedisConfiguration configuration) {
@@ -131,7 +131,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isDatabaseIndexAware(RedisConfiguration) database aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -144,7 +144,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isAuthenticationAware(RedisConfiguration) password aware}.
 	 * @return can be {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -158,7 +158,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isAuthenticationAware(RedisConfiguration) password aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -171,7 +171,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isHostAndPortAware(RedisConfiguration) port aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -185,7 +185,7 @@ public interface RedisConfiguration {
 
 	/**
 	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 * @param other a {@code Supplier} whose result is returned if given {@code RedisConfiguration} is not
 	 *          {@link #isHostAndPortAware(RedisConfiguration) host aware}.
 	 * @return never {@literal null}.
 	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
@@ -198,7 +198,7 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that may use authentication when connecting.
+	 * {@code RedisConfiguration} part suitable for configurations that may use authentication when connecting.
 	 *
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
@@ -255,7 +255,7 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that may use authentication when connecting.
+	 * {@code RedisConfiguration} part suitable for configurations that may use authentication when connecting.
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -265,7 +265,7 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that use a specific database.
+	 * {@code RedisConfiguration} part suitable for configurations that use a specific database.
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -288,7 +288,7 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that use host/port combinations for connecting.
+	 * {@code RedisConfiguration} part suitable for configurations that use host/port combinations for connecting.
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -323,7 +323,7 @@ public interface RedisConfiguration {
 	}
 
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that use native domain sockets for connecting.
+	 * {@code RedisConfiguration} part suitable for configurations that use native domain sockets for connecting.
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1

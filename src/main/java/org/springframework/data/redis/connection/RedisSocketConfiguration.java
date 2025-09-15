@@ -38,12 +38,12 @@ public class RedisSocketConfiguration implements RedisConfiguration, DomainSocke
 	private RedisPassword password = RedisPassword.none();
 
 	/**
-	 * Create a new default {@link RedisSocketConfiguration}.
+	 * Create a new default {@code RedisSocketConfiguration}.
 	 */
 	public RedisSocketConfiguration() {}
 
 	/**
-	 * Create a new {@link RedisSocketConfiguration} given {@code socket}.
+	 * Create a new {@code RedisSocketConfiguration} given {@code socket}.
 	 *
 	 * @param socket must not be {@literal null} or empty.
 	 */

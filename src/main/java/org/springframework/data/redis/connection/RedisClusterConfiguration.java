@@ -53,12 +53,12 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	private @Nullable String username = null;
 
 	/**
-	 * Creates a new, default {@link RedisClusterConfiguration}.
+	 * Creates a new, default {@code RedisClusterConfiguration}.
 	 */
 	public RedisClusterConfiguration() {}
 
 	/**
-	 * Creates a new {@link RedisClusterConfiguration} for given {@link String hostPort} combinations.
+	 * Creates a new {@code RedisClusterConfiguration} for given {@link String hostPort} combinations.
 	 *
 	 * <pre class="code">
 	 * clusterHostAndPorts[0] = 127.0.0.1:23679
@@ -74,7 +74,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	}
 
 	/**
-	 * Creates a new {@link RedisClusterConfiguration} looking up configuration values from the given
+	 * Creates a new {@code RedisClusterConfiguration} looking up configuration values from the given
 	 * {@link PropertySource}.
 	 *
 	 * <pre class="code">
@@ -83,7 +83,7 @@ public class RedisClusterConfiguration implements RedisConfiguration, ClusterCon
 	 * </pre>
 	 *
 	 * @param propertySource must not be {@literal null}.
-	 * @return a new {@link RedisClusterConfiguration} configured from the given {@link PropertySource}.
+	 * @return a new {@code RedisClusterConfiguration} configured from the given {@link PropertySource}.
 	 * @since 3.3
 	 */
 	public static RedisClusterConfiguration of(PropertySource<?> propertySource) {

@@ -26,9 +26,11 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using the provided
- * Master / Replica configuration to nodes know to not change address. Eg. when connecting to
- * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a>. <br/>
- * Please also note that a Master/Replica connection cannot be used for Pub/Sub operations.
+ * Master / Replica configuration to nodes know to not change address. Useful when connecting to
+ * <a href="https://aws.amazon.com/documentation/elasticache/">AWS ElastiCache with Read Replicas</a>.
+ * <p>
+ * A Master/Replica connection cannot be used for Pub/Sub operations as Pub/Sub messages are not broadcasted across
+ * replicas. Pub/Sub broadcasting is only available using {@link RedisClusterConfiguration Redis Cluster}.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
@@ -52,7 +54,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	public RedisStaticMasterReplicaConfiguration() {}
 
 	/**
-	 * Create a new {@link StaticMasterReplicaConfiguration} given {@code hostName}.
+	 * Create a new {@code StaticMasterReplicaConfiguration} given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 */
@@ -61,7 +63,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	}
 
 	/**
-	 * Create a new {@link StaticMasterReplicaConfiguration} given {@code hostName} and {@code port}.
+	 * Create a new {@code StaticMasterReplicaConfiguration} given {@code hostName} and {@code port}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).
@@ -98,7 +100,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	 * Add a {@link RedisStandaloneConfiguration node} to the list of nodes given {@code hostName}.
 	 *
 	 * @param hostName must not be {@literal null} or empty.
-	 * @return {@code this} {@link StaticMasterReplicaConfiguration}.
+	 * @return {@code this} {@code StaticMasterReplicaConfiguration}.
 	 */
 	public RedisStaticMasterReplicaConfiguration node(String hostName) {
 		return node(hostName, DEFAULT_PORT);
@@ -109,7 +111,7 @@ public class RedisStaticMasterReplicaConfiguration implements RedisConfiguration
 	 *
 	 * @param hostName must not be {@literal null} or empty.
 	 * @param port a valid TCP port (1-65535).
-	 * @return {@code this} {@link StaticMasterReplicaConfiguration}.
+	 * @return {@code this} {@code StaticMasterReplicaConfiguration}.
 	 */
 	public RedisStaticMasterReplicaConfiguration node(String hostName, int port) {
 
