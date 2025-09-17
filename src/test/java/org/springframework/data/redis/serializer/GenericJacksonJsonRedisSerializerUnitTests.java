@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -57,18 +55,18 @@ import org.springframework.cache.support.NullValue;
 import com.fasterxml.jackson.annotation.JsonView;
 
 /**
- * Unit tests for {@link GenericJackson3JsonRedisSerializer}.
+ * Unit tests for {@link GenericJacksonJsonRedisSerializer}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
  */
-class GenericJackson3JsonRedisSerializerUnitTests {
+class GenericJacksonJsonRedisSerializerUnitTests {
 
 	private static final SimpleObject SIMPLE_OBJECT = new SimpleObject(1L);
 	private static final ComplexObject COMPLEX_OBJECT = new ComplexObject("steelheart", SIMPLE_OBJECT);
 
-	private final GenericJackson3JsonRedisSerializer serializer = GenericJackson3JsonRedisSerializer
+	private final GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer
 			.create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
 
 	@Test // DATAREDIS-392, GH-2878
@@ -94,7 +92,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // DATAREDIS-392
 	void deserializeShouldBeAbleToRestoreSimpleObjectAfterSerialization() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		assertThat((SimpleObject) serializer.deserialize(serializer.serialize(SIMPLE_OBJECT))).isEqualTo(SIMPLE_OBJECT);
 	}
@@ -102,7 +100,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // DATAREDIS-392
 	void deserializeShouldBeAbleToRestoreComplexObjectAfterSerialization() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		assertThat((ComplexObject) serializer.deserialize(serializer.serialize(COMPLEX_OBJECT))).isEqualTo(COMPLEX_OBJECT);
 	}
@@ -115,7 +113,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 				.thenThrow(JacksonIOException.construct(new IOException("doesn't work")));
 
 		assertThatExceptionOfType(SerializationException.class)
-				.isThrownBy(() -> new GenericJackson3JsonRedisSerializer(objectMapperMock).serialize(SIMPLE_OBJECT));
+				.isThrownBy(() -> new GenericJacksonJsonRedisSerializer(objectMapperMock).serialize(SIMPLE_OBJECT));
 	}
 
 	@Test // DATAREDIS-392
@@ -125,13 +123,13 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 		when(objectMapperMock.readValue(any(byte[].class), any(Class.class))).thenThrow(new StreamReadException("conflux"));
 
 		assertThatExceptionOfType(SerializationException.class)
-				.isThrownBy(() -> new GenericJackson3JsonRedisSerializer(objectMapperMock).deserialize(new byte[] { 1 }));
+				.isThrownBy(() -> new GenericJacksonJsonRedisSerializer(objectMapperMock).deserialize(new byte[] { 1 }));
 	}
 
 	@Test // DATAREDIS-553, DATAREDIS-865
 	void shouldSerializeNullValueSoThatItCanBeDeserializedWithDefaultTypingEnabled() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		serializeAndDeserializeNullValue(serializer);
 	}
@@ -139,7 +137,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // DATAREDIS-865
 	void shouldSerializeNullValueWithCustomObjectMapper() {
 
-		GenericJackson3JsonRedisSerializer serializer = GenericJackson3JsonRedisSerializer.create(configHelper -> {
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(configHelper -> {
 			configHelper.enableSpringCacheNullValueSupport() //
 					.customize(mapperBuilder -> {
 						mapperBuilder.activateDefaultTypingAsProperty(BasicPolymorphicTypeValidator.builder().build(),
@@ -153,7 +151,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-1566
 	void deserializeShouldBeAbleToRestoreFinalObjectAfterSerialization() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		FinalObject source = new FinalObject();
 		source.longValue = 1L;
@@ -162,8 +160,8 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 
 		assertThat(serializer.deserialize(serializer.serialize(source))).isEqualTo(source);
 		assertThat(serializer.deserialize(
-				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$FinalObject\",\"longValue\":1,\"myArray\":[1,2,3],\n"
-						+ "\"simpleObject\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":2}}")
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$FinalObject\",\"longValue\":1,\"myArray\":[1,2,3],\n"
+						+ "\"simpleObject\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":2}}")
 						.getBytes()))
 				.isEqualTo(source);
 	}
@@ -171,9 +169,9 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2361
 	void shouldDeserializePrimitiveArrayWithoutTypeHint() {
 
-		GenericJackson3JsonRedisSerializer gs = serializer;
+		GenericJacksonJsonRedisSerializer gs = serializer;
 		CountAndArray result = (CountAndArray) gs.deserialize(
-				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$CountAndArray\", \"count\":1, \"available\":[0,1]}")
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$CountAndArray\", \"count\":1, \"available\":[0,1]}")
 						.getBytes());
 
 		assertThat(result.getCount()).isEqualTo(1);
@@ -183,7 +181,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2322
 	void readsToMapForNonDefaultTyping() {
 
-		GenericJackson3JsonRedisSerializer serializer = new GenericJackson3JsonRedisSerializer(JsonMapper.shared());
+		GenericJacksonJsonRedisSerializer serializer = new GenericJacksonJsonRedisSerializer(JsonMapper.shared());
 
 		User user = new User();
 		user.email = "walter@heisenberg.com";
@@ -204,7 +202,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 		user.id = 42;
 		user.name = "Walter White";
 
-		GenericJackson3JsonRedisSerializer serializer = GenericJackson3JsonRedisSerializer.create(configHelper -> {
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(configHelper -> {
 			configHelper.writer((mapper, source) -> mapper.writerWithView(Views.Basic.class).writeValueAsBytes(source));
 		});
 
@@ -221,7 +219,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 		user.id = 42;
 		user.name = "Walter White";
 
-		GenericJackson3JsonRedisSerializer serializer = GenericJackson3JsonRedisSerializer.create(configHelper -> {
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(configHelper -> {
 
 			configHelper.enableUnsafeDefaultTyping();
 			configHelper.reader((mapper, source, type) -> {
@@ -247,9 +245,9 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2361
 	void shouldDeserializePrimitiveWrapperArrayWithoutTypeHint() {
 
-		GenericJackson3JsonRedisSerializer gs = this.serializer;
+		GenericJacksonJsonRedisSerializer gs = this.serializer;
 		CountAndArray result = (CountAndArray) gs.deserialize(
-				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$CountAndArray\", \"count\":1, \"arrayOfPrimitiveWrapper\":[0,1]}")
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$CountAndArray\", \"count\":1, \"arrayOfPrimitiveWrapper\":[0,1]}")
 						.getBytes());
 
 		assertThat(result.getCount()).isEqualTo(1);
@@ -259,7 +257,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2361
 	void doesNotIncludeTypingForPrimitiveArrayWrappers() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		WithWrapperTypes source = new WithWrapperTypes();
 		source.primitiveWrapper = new AtomicReference<>();
@@ -283,7 +281,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2361
 	void doesNotIncludeTypingForPrimitiveWrappers() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		WithWrapperTypes source = new WithWrapperTypes();
 		source.primitiveWrapper = new AtomicReference<>(123L);
@@ -305,7 +303,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2361
 	void includesTypingForWrappedObjectTypes() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		SimpleObject simpleObject = new SimpleObject(100L);
 		WithWrapperTypes source = new WithWrapperTypes();
@@ -315,7 +313,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 
 		assertThat(new String(serializedValue)) //
 				.contains(
-						"\"simpleObjectWrapper\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":100}");
+						"\"simpleObjectWrapper\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":100}");
 
 		assertThat(serializer.deserialize(serializedValue)) //
 				.isInstanceOf(WithWrapperTypes.class) //
@@ -328,7 +326,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2396
 	void verifySerializeUUIDIntoBytes() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		UUID source = UUID.fromString("730145fe-324d-4fb1-b12f-60b89a045730");
 		assertThat(serializer.serialize(source)).isEqualTo(("\"" + source + "\"").getBytes(StandardCharsets.UTF_8));
@@ -337,7 +335,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2396
 	void deserializesUUIDFromBytes() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 		UUID deserializedUuid = serializer
 				.deserialize("\"730145fe-324d-4fb1-b12f-60b89a045730\"".getBytes(StandardCharsets.UTF_8), UUID.class);
 
@@ -347,7 +345,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2396
 	void serializesEnumIntoBytes() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		assertThat(serializer.serialize(EnumType.ONE)).isEqualTo(("\"ONE\"").getBytes(StandardCharsets.UTF_8));
 	}
@@ -355,7 +353,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2396
 	void deserializesEnumFromBytes() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
 				.isEqualTo(EnumType.TWO);
@@ -364,23 +362,23 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-2396
 	void serializesJavaTimeIntoBytes() {
 
-		GenericJackson3JsonRedisSerializer serializer = this.serializer;
+		GenericJacksonJsonRedisSerializer serializer = this.serializer;
 
 		WithJsr310 source = new WithJsr310();
 		source.myDate = LocalDate.of(2022, 9, 2);
 
 		byte[] serialized = serializer.serialize(source);
 		assertThat(serialized).isEqualTo(
-				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":\"2022-09-02\"}")
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":\"2022-09-02\"}")
 						.getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Test // GH-2396
 	void deserializesJavaTimeFromBytes() {
 
-		GenericJackson3JsonRedisSerializer serializer = new GenericJackson3JsonRedisSerializer(JsonMapper.shared());
+		GenericJacksonJsonRedisSerializer serializer = new GenericJacksonJsonRedisSerializer(JsonMapper.shared());
 
-		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":\"2022-09-02\"}"
+		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":\"2022-09-02\"}"
 				.getBytes(StandardCharsets.UTF_8);
 		assertThat(serializer.deserialize(source, WithJsr310.class).myDate).isEqualTo(LocalDate.of(2022, 9, 2));
 	}
@@ -388,7 +386,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-3292
 	void configuresObjectMapper() {
 
-		GenericJackson3JsonRedisSerializer serializer = GenericJackson3JsonRedisSerializer
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer
 				.builder(() -> new ObjectMapper().rebuild())
 				.customize(mb -> mb.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)).build();
 
@@ -398,14 +396,14 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 	@Test // GH-3292
 	void configuresJsonMapper() {
 
-		GenericJackson3JsonRedisSerializer serializer = GenericJackson3JsonRedisSerializer.create(b -> {
+		GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(b -> {
 			b.customize(mb -> mb.enable(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER));
 		});
 
 		assertThat(serializer).isNotNull();
 	}
 
-	private static void serializeAndDeserializeNullValue(GenericJackson3JsonRedisSerializer serializer) {
+	private static void serializeAndDeserializeNullValue(GenericJacksonJsonRedisSerializer serializer) {
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
 
@@ -416,7 +414,7 @@ class GenericJackson3JsonRedisSerializerUnitTests {
 		assertThat(deserializedValue).isInstanceOf(NullValue.class);
 	}
 
-	private @Nullable TypeResolverBuilder<?> extractTypeResolver(GenericJackson3JsonRedisSerializer serializer) {
+	private @Nullable TypeResolverBuilder<?> extractTypeResolver(GenericJacksonJsonRedisSerializer serializer) {
 
 		ObjectMapper mapper = (ObjectMapper) getField(serializer, "mapper");
 		return mapper.serializationConfig()

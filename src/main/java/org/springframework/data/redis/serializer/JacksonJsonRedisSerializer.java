@@ -32,79 +32,79 @@ import org.springframework.util.Assert;
  * This serializer can be used to bind to typed beans, or untyped {@link java.util.HashMap HashMap} instances.
  * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  * <p>
- * JSON reading and writing can be customized by configuring {@link Jackson3ObjectReader} respective
- * {@link Jackson3ObjectWriter}.
+ * JSON reading and writing can be customized by configuring {@link JacksonObjectReader} respective
+ * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
  * @since 4.0
  */
-public class Jackson3JsonRedisSerializer<T> implements RedisSerializer<T> {
+public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	private final JavaType javaType;
 
 	private final ObjectMapper mapper;
 
-	private final Jackson3ObjectReader reader;
+	private final JacksonObjectReader reader;
 
-	private final Jackson3ObjectWriter writer;
+	private final JacksonObjectWriter writer;
 
 	/**
-	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link Class}.
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link Class}.
 	 *
 	 * @param type must not be {@literal null}.
 	 */
-	public Jackson3JsonRedisSerializer(Class<T> type) {
+	public JacksonJsonRedisSerializer(Class<T> type) {
 		this(JsonMapper.shared(), type);
 	}
 
 	/**
-	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link JavaType}.
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link JavaType}.
 	 *
 	 * @param javaType must not be {@literal null}.
 	 */
-	public Jackson3JsonRedisSerializer(JavaType javaType) {
+	public JacksonJsonRedisSerializer(JavaType javaType) {
 		this(JsonMapper.shared(), javaType);
 	}
 
 	/**
-	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link Class}.
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link Class}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param type must not be {@literal null}.
 	 */
-	public Jackson3JsonRedisSerializer(ObjectMapper mapper, Class<T> type) {
+	public JacksonJsonRedisSerializer(ObjectMapper mapper, Class<T> type) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null");
 		Assert.notNull(type, "Java type must not be null");
 
 		this.javaType = getJavaType(type);
 		this.mapper = mapper;
-		this.reader = Jackson3ObjectReader.create();
-		this.writer = Jackson3ObjectWriter.create();
+		this.reader = JacksonObjectReader.create();
+		this.writer = JacksonObjectWriter.create();
 	}
 
 	/**
-	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link JavaType}.
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link JavaType}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param javaType must not be {@literal null}.
 	 */
-	public Jackson3JsonRedisSerializer(ObjectMapper mapper, JavaType javaType) {
-		this(mapper, javaType, Jackson3ObjectReader.create(), Jackson3ObjectWriter.create());
+	public JacksonJsonRedisSerializer(ObjectMapper mapper, JavaType javaType) {
+		this(mapper, javaType, JacksonObjectReader.create(), JacksonObjectWriter.create());
 	}
 
 	/**
-	 * Creates a new {@link Jackson3JsonRedisSerializer} for the given target {@link JavaType}.
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link JavaType}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 * @param javaType must not be {@literal null}.
-	 * @param reader the {@link Jackson3ObjectReader} function to read objects using {@link ObjectMapper}.
-	 * @param writer the {@link Jackson3ObjectWriter} function to write objects using {@link ObjectMapper}.
+	 * @param reader the {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
 	 */
-	public Jackson3JsonRedisSerializer(ObjectMapper mapper, JavaType javaType, Jackson3ObjectReader reader,
-			Jackson3ObjectWriter writer) {
+	public JacksonJsonRedisSerializer(ObjectMapper mapper, JavaType javaType, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null");
 		Assert.notNull(reader, "Reader must not be null");

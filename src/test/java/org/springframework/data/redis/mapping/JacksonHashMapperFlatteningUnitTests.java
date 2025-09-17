@@ -23,18 +23,18 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.data.redis.hash.Jackson3HashMapper;
+import org.springframework.data.redis.hash.JacksonHashMapper;
 
 /**
- * Unit tests for {@link Jackson3HashMapper} using flattening mode.
+ * Unit tests for {@link JacksonHashMapper} using flattening mode.
  *
  * @author Christoph Strobl
  * @author John Blum
  */
-class Jackson3HashMapperFlatteningUnitTests extends Jackson3HashMapperUnitTests {
+class JacksonHashMapperFlatteningUnitTests extends JacksonHashMapperUnitTests {
 
-	Jackson3HashMapperFlatteningUnitTests() {
-		super(Jackson3HashMapper.flattening());
+	JacksonHashMapperFlatteningUnitTests() {
+		super(JacksonHashMapper.flattening());
 	}
 
 	@Test // GH-2593
