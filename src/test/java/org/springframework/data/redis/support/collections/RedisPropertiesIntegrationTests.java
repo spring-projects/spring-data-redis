@@ -42,7 +42,7 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
 import org.springframework.data.redis.test.extension.RedisStandalone;
@@ -196,8 +196,8 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(
 				String.class);
-		Jackson3JsonRedisSerializer<Person> jackson3JsonSerializer = new Jackson3JsonRedisSerializer<>(Person.class);
-		Jackson3JsonRedisSerializer<String> jackson3JsonStringSerializer = new Jackson3JsonRedisSerializer<>(
+		JacksonJsonRedisSerializer<Person> jackson3JsonSerializer = new JacksonJsonRedisSerializer<>(Person.class);
+		JacksonJsonRedisSerializer<String> jackson3JsonStringSerializer = new JacksonJsonRedisSerializer<>(
 			String.class);
 
 		// create Jedis Factory

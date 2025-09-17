@@ -160,26 +160,26 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * @author Mark Paluch
  * @since 4.0
  */
-public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
+public class JacksonHashMapper implements HashMapper<Object, String, Object> {
 
-	private static final Lazy<Jackson3HashMapper> sharedFlattening = Lazy
-			.of(() -> create(Jackson3HashMapperBuilder::flatten));
-	private static final Lazy<Jackson3HashMapper> sharedHierarchical = Lazy
-			.of(() -> create(Jackson3HashMapperBuilder::hierarchical));
+	private static final Lazy<JacksonHashMapper> sharedFlattening = Lazy
+			.of(() -> create(JacksonHashMapperBuilder::flatten));
+	private static final Lazy<JacksonHashMapper> sharedHierarchical = Lazy
+			.of(() -> create(JacksonHashMapperBuilder::hierarchical));
 
 	private final ObjectMapper typingMapper;
 	private final ObjectMapper untypedMapper;
 	private final boolean flatten;
 
 	/**
-	 * Creates a new {@link Jackson3HashMapper} initialized with a custom Jackson {@link ObjectMapper}.
+	 * Creates a new {@link JacksonHashMapper} initialized with a custom Jackson {@link ObjectMapper}.
 	 *
 	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects}; must not be
 	 *          {@literal null}.
 	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties will be un/flattened
 	 *          using {@literal dot notation}, or whether to retain the hierarchical node structure created by Jackson.
 	 */
-	public Jackson3HashMapper(ObjectMapper mapper, boolean flatten) {
+	public JacksonHashMapper(ObjectMapper mapper, boolean flatten) {
 
 		Assert.notNull(mapper, "Mapper must not be null");
 
@@ -189,63 +189,61 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 	}
 
 	/**
-	 * Returns a flattening {@link Jackson3HashMapper} using {@literal dot notation} for properties.
+	 * Returns a flattening {@link JacksonHashMapper} using {@literal dot notation} for properties.
 	 *
-	 * @return a flattening {@link Jackson3HashMapper} instance.
+	 * @return a flattening {@link JacksonHashMapper} instance.
 	 */
-	public static Jackson3HashMapper flattening() {
+	public static JacksonHashMapper flattening() {
 		return sharedFlattening.get();
 	}
 
 	/**
-	 * Returns a {@link Jackson3HashMapper} retain the hierarchical node structure created by Jackson.
+	 * Returns a {@link JacksonHashMapper} retain the hierarchical node structure created by Jackson.
 	 *
-	 * @return a hierarchical {@link Jackson3HashMapper} instance.
+	 * @return a hierarchical {@link JacksonHashMapper} instance.
 	 */
-	public static Jackson3HashMapper hierarchical() {
+	public static JacksonHashMapper hierarchical() {
 		return sharedHierarchical.get();
 	}
 
 	/**
-	 * Creates a new {@link Jackson3HashMapper} allowing further configuration through {@code configurer}.
+	 * Creates a new {@link JacksonHashMapper} allowing further configuration through {@code configurer}.
 	 *
-	 * @param configurer the configurer for {@link Jackson3HashMapperBuilder}.
-	 * @return a new {@link Jackson3HashMapper} instance.
+	 * @param configurer the configurer for {@link JacksonHashMapperBuilder}.
+	 * @return a new {@link JacksonHashMapper} instance.
 	 */
-	public static Jackson3HashMapper create(
-			Consumer<Jackson3HashMapperBuilder<JsonMapper.Builder>> configurer) {
+	public static JacksonHashMapper create(Consumer<JacksonHashMapperBuilder<JsonMapper.Builder>> configurer) {
 
 		Assert.notNull(configurer, "Builder configurer must not be null");
 
-		Jackson3HashMapperBuilder<JsonMapper.Builder> builder = builder();
+		JacksonHashMapperBuilder<JsonMapper.Builder> builder = builder();
 		configurer.accept(builder);
 
 		return builder.build();
 	}
 
 	/**
-	 * Creates a {@link Jackson3HashMapperBuilder} to build a {@link Jackson3HashMapper} instance using
-	 * {@link JsonMapper}.
+	 * Creates a {@link JacksonHashMapperBuilder} to build a {@link JacksonHashMapper} instance using {@link JsonMapper}.
 	 *
-	 * @return a {@link Jackson3HashMapperBuilder} to build a {@link Jackson3HashMapper} instance.
+	 * @return a {@link JacksonHashMapperBuilder} to build a {@link JacksonHashMapper} instance.
 	 */
-	public static Jackson3HashMapperBuilder<JsonMapper.Builder> builder() {
+	public static JacksonHashMapperBuilder<JsonMapper.Builder> builder() {
 		return builder(JsonMapper::builder);
 	}
 
 	/**
-	 * Creates a new {@link Jackson3HashMapperBuilder} to configure and build a {@link Jackson3HashMapper}.
+	 * Creates a new {@link JacksonHashMapperBuilder} to configure and build a {@link JacksonHashMapper}.
 	 *
 	 * @param builderFactory factory to create a {@link MapperBuilder} for the {@link ObjectMapper}.
 	 * @param <B> type of the {@link MapperBuilder} to use.
-	 * @return a new {@link Jackson3HashMapperBuilder}.
+	 * @return a new {@link JacksonHashMapperBuilder}.
 	 */
-	public static <B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> Jackson3HashMapperBuilder<B> builder(
+	public static <B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> JacksonHashMapperBuilder<B> builder(
 			Supplier<B> builderFactory) {
 
 		Assert.notNull(builderFactory, "MapperBuilder Factory must not be null");
 
-		return new Jackson3HashMapperBuilder<>(builderFactory);
+		return new JacksonHashMapperBuilder<>(builderFactory);
 	}
 
 	/**
@@ -272,7 +270,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 	public Map<String, Object> toHash(@Nullable Object source) {
 
 		JsonNode tree = this.typingMapper.valueToTree(source);
-		return this.flatten ? FlatEric.flatten(Jackson3AdapterFactory.INSTANCE, tree.properties())
+		return this.flatten ? FlatEric.flatten(JacksonAdapterFactory.INSTANCE, tree.properties())
 				: this.untypedMapper.convertValue(tree, Map.class);
 	}
 
@@ -299,11 +297,11 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 
 
 	/**
-	 * Builder to create a {@link Jackson3HashMapper} instance.
+	 * Builder to create a {@link JacksonHashMapper} instance.
 	 *
 	 * @param <B> type of the {@link MapperBuilder}.
 	 */
-	public static class Jackson3HashMapperBuilder<B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> {
+	public static class JacksonHashMapperBuilder<B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> {
 
 		private final Supplier<B> builderFactory;
 
@@ -313,7 +311,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		private boolean flatten = false;
 		private Consumer<B> mapperBuilderCustomizer = builder -> {};
 
-		private Jackson3HashMapperBuilder(Supplier<B> builderFactory) {
+		private JacksonHashMapperBuilder(Supplier<B> builderFactory) {
 			this.builderFactory = builderFactory;
 		}
 
@@ -323,7 +321,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		 * @return {@code this} builder.
 		 */
 		@Contract("-> this")
-		public Jackson3HashMapperBuilder<B> flatten() {
+		public JacksonHashMapperBuilder<B> flatten() {
 			return flatten(true);
 		}
 
@@ -333,7 +331,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		 * @return {@code this} builder.
 		 */
 		@Contract("-> this")
-		public Jackson3HashMapperBuilder<B> hierarchical() {
+		public JacksonHashMapperBuilder<B> hierarchical() {
 			return flatten(false);
 		}
 
@@ -347,7 +345,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public Jackson3HashMapperBuilder<B> flatten(boolean flatten) {
+		public JacksonHashMapperBuilder<B> flatten(boolean flatten) {
 			this.flatten = flatten;
 			return this;
 		}
@@ -359,7 +357,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		 * @return {@code this} builder.
 		 */
 		@Contract("-> this")
-		public Jackson3HashMapperBuilder<B> jackson2CompatibilityMode() {
+		public JacksonHashMapperBuilder<B> jackson2CompatibilityMode() {
 			this.jackson2CompatibilityMode = true;
 			return this;
 		}
@@ -371,7 +369,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public Jackson3HashMapperBuilder<B> typeValidator(PolymorphicTypeValidator typeValidator) {
+		public JacksonHashMapperBuilder<B> typeValidator(PolymorphicTypeValidator typeValidator) {
 
 			Assert.notNull(typeValidator, "Type validator must not be null");
 
@@ -386,7 +384,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public Jackson3HashMapperBuilder<B> customize(Consumer<B> mapperBuilderCustomizer) {
+		public JacksonHashMapperBuilder<B> customize(Consumer<B> mapperBuilderCustomizer) {
 
 			Assert.notNull(mapperBuilderCustomizer, "JSON mapper customizer must not be null");
 
@@ -395,12 +393,12 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		}
 
 		/**
-		 * Build a new {@link Jackson3HashMapper} instance with the configured settings.
+		 * Build a new {@link JacksonHashMapper} instance with the configured settings.
 		 *
-		 * @return a new {@link Jackson3HashMapper} instance.
+		 * @return a new {@link JacksonHashMapper} instance.
 		 */
 		@Contract("-> new")
-		public Jackson3HashMapper build() {
+		public JacksonHashMapper build() {
 
 			B mapperBuilder = builderFactory.get();
 
@@ -409,7 +407,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 
 			mapperBuilderCustomizer.accept(mapperBuilder);
 
-			return new Jackson3HashMapper(mapperBuilder.build(), flatten);
+			return new JacksonHashMapper(mapperBuilder.build(), flatten);
 		}
 
 		private static TypeResolverBuilder<?> getDefaultTyping(PolymorphicTypeValidator typeValidator, boolean flatten,
@@ -564,14 +562,14 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		}
 	}
 
-	private enum Jackson3AdapterFactory implements FlatEric.JsonNodeAdapterFactory {
+	private enum JacksonAdapterFactory implements FlatEric.JsonNodeAdapterFactory {
 
 		INSTANCE;
 
 
 		@Override
 		public FlatEric.JsonNodeAdapter adapt(Object node) {
-			return node instanceof FlatEric.JsonNodeAdapter na ? na : new Jackson3JsonNodeAdapter((JsonNode) node);
+			return node instanceof FlatEric.JsonNodeAdapter na ? na : new JacksonJsonNodeAdapter((JsonNode) node);
 		}
 
 		@Override
@@ -580,7 +578,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		}
 	}
 
-	private record Jackson3JsonNodeAdapter(JsonNode node) implements FlatEric.JsonNodeAdapter {
+	private record JacksonJsonNodeAdapter(JsonNode node) implements FlatEric.JsonNodeAdapter {
 
 		@Override
 		public FlatEric.JsonNodeType getNodeType() {
@@ -594,7 +592,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 
 		@Override
 		public Collection<? extends FlatEric.JsonNodeAdapter> values() {
-			return node().valueStream().map(Jackson3JsonNodeAdapter::new).toList();
+			return node().valueStream().map(JacksonJsonNodeAdapter::new).toList();
 		}
 
 		@Override
@@ -650,7 +648,7 @@ public class Jackson3HashMapper implements HashMapper<Object, String, Object> {
 		@Override
 		public Collection<Entry<String, FlatEric.JsonNodeAdapter>> properties() {
 			return node().propertyStream()
-					.map(it -> Map.entry(it.getKey(), (FlatEric.JsonNodeAdapter) new Jackson3JsonNodeAdapter(it.getValue())))
+					.map(it -> Map.entry(it.getKey(), (FlatEric.JsonNodeAdapter) new JacksonJsonNodeAdapter(it.getValue())))
 					.toList();
 		}
 

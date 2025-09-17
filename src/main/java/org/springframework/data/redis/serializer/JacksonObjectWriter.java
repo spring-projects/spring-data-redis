@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,20 @@
  */
 package org.springframework.data.redis.serializer;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Defines the contract for Object Mapping writers. Implementations of this interface can serialize a given Object to a
  * {@code byte[]} containing JSON.
  * <p>
  * Writer functions can customize how the actual JSON is being written by e.g. obtaining a customized
- * {@link com.fasterxml.jackson.databind.ObjectWriter} applying serialization features, date formats, or views.
+ * {@link tools.jackson.databind.ObjectWriter} applying serialization features, date formats, or views.
  *
+ * @author Christoph Strobl
  * @author Mark Paluch
- * @since 3.0
- * @deprecated since 4.0 in favor of {@link Jackson3ObjectWriter}.
+ * @since 4.0
  */
 @FunctionalInterface
-@Deprecated(since = "4.0", forRemoval = true)
 public interface JacksonObjectWriter {
 
 	/**
@@ -40,9 +37,8 @@ public interface JacksonObjectWriter {
 	 * @param mapper the object mapper to use.
 	 * @param source the root of the object graph to marshal.
 	 * @return a byte array containing the serialized object graph.
-	 * @throws IOException if an I/O error or JSON serialization error occurs.
 	 */
-	byte[] write(ObjectMapper mapper, Object source) throws IOException;
+	byte[] write(ObjectMapper mapper, Object source);
 
 	/**
 	 * Create a default {@link JacksonObjectWriter} delegating to {@link ObjectMapper#writeValueAsBytes(Object)}.
