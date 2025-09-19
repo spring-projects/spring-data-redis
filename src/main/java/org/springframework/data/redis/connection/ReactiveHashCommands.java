@@ -58,6 +58,7 @@ public interface ReactiveHashCommands {
 	 *
 	 * @author Christoph Strobl
 	 * @author Tihomir Mateev
+     * @author Viktoriya Kutsarova
 	 */
 	class HashFieldsCommand extends KeyCommand {
 
@@ -1255,4 +1256,255 @@ public interface ReactiveHashCommands {
 	 */
 	Flux<NumericResponse<HashFieldsCommand, Long>> hpTtl(Publisher<HashFieldsCommand> commands);
 
+
+    /**
+     * {@literal HGETDEL} {@link Command}.
+     *
+     * @author Viktoriya Kutsarova
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    class HGetDelCommand extends HashFieldsCommand {
+
+        private HGetDelCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
+            super(key, fields);
+        }
+
+        /**
+         * Creates a new {@link HGetDelCommand} given a {@link ByteBuffer field name}.
+         *
+         * @param field must not be {@literal null}.
+         * @return a new {@link HGetDelCommand} for a {@link ByteBuffer field name}.
+         */
+        public static HGetDelCommand field(ByteBuffer field) {
+
+            Assert.notNull(field, "Field must not be null");
+
+            return new HGetDelCommand(null, Collections.singletonList(field));
+        }
+
+        /**
+         * Creates a new {@link HGetDelCommand} given a {@link Collection} of field names.
+         *
+         * @param fields must not be {@literal null}.
+         * @return a new {@link HGetDelCommand} for a {@link Collection} of field names.
+         */
+        public static HGetDelCommand fields(Collection<ByteBuffer> fields) {
+
+            Assert.notNull(fields, "Fields must not be null");
+
+            return new HGetDelCommand(null, new ArrayList<>(fields));
+        }
+
+        /**
+         * Applies the hash {@literal key}. Constructs a new command instance with all previously configured properties.
+         *
+         * @param key must not be {@literal null}.
+         * @return a new {@link HGetDelCommand} with {@literal key} applied.
+         */
+        public HGetDelCommand from(ByteBuffer key) {
+
+            Assert.notNull(key, "Key must not be null");
+
+            return new HGetDelCommand(key, getFields());
+        }
+    }
+
+
+    /**
+     * Get and delete the value of one or more {@literal fields} from hash at {@literal key}. Values are returned in the
+     * order of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    default Mono<List<ByteBuffer>> hGetDel(ByteBuffer key, Collection<ByteBuffer> fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return hGetDel(Mono.just(HGetDelCommand.fields(fields).from(key))).next().map(MultiValueResponse::getOutput);
+    }
+
+    /**
+     * Get and delete the value of one or more {@literal fields} from hash at {@literal key}. Values are returned in the
+     * order of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param commands must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    Flux<MultiValueResponse<HGetDelCommand, ByteBuffer>> hGetDel(Publisher<HGetDelCommand> commands);
+
+    class HGetExCommand extends HashFieldsCommand {
+
+        private final Expiration expiration;
+
+        private HGetExCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields, Expiration expiration) {
+
+            super(key, fields);
+
+            this.expiration = expiration;
+        }
+
+        /**
+         * Creates a new {@link HGetExCommand}.
+         *
+         * @param fields the {@code fields} names to apply expiration to
+         * @param expiration the {@link Expiration} to apply to the given {@literal fields}.
+         * @return new instance of {@link HGetExCommand}.
+         */
+        public static HGetExCommand expire(List<ByteBuffer> fields, Expiration expiration) {
+            return new HGetExCommand(null, fields, expiration);
+        }
+
+        /**
+         * @param key the {@literal key} from which to expire the {@literal fields} from.
+         * @return new instance of {@link HashExpireCommand}.
+         */
+        public HGetExCommand from(ByteBuffer key) {
+            return new HGetExCommand(key, getFields(), expiration);
+        }
+
+        /**
+         * Creates a new {@link HGetExCommand}.
+         *
+         * @param fields the {@code fields} names to apply expiration to
+         * @return new instance of {@link HGetExCommand}.
+         */
+        public HGetExCommand fields(Collection<ByteBuffer> fields) {
+            return new HGetExCommand(getKey(), new ArrayList<>(fields), expiration);
+        }
+
+        public Expiration getExpiration() {
+            return expiration;
+        }
+    }
+
+    /**
+     * Get the value of one or more {@literal fields} from hash at {@literal key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@literal fields}.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     */
+    default Mono<List<ByteBuffer>> hGetEx(ByteBuffer key, Expiration expiration, List<ByteBuffer> fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return hGetEx(Mono.just(HGetExCommand.expire(fields, expiration).from(key))).next().map(MultiValueResponse::getOutput);
+    }
+
+    /**
+     * Get the value of one or more {@literal fields} from hash at {@literal key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@literal fields}.
+     *
+     * @param commands must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     */
+    Flux<MultiValueResponse<HGetExCommand, ByteBuffer>> hGetEx(Publisher<HGetExCommand> commands);
+
+    /**
+     * {@literal HSETEX} {@link Command}.
+     *
+     * @author Viktoriya Kutsarova
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    class HSetExCommand extends KeyCommand {
+
+        private final Map<ByteBuffer, ByteBuffer> fieldValueMap;
+        private final RedisHashCommands.HashFieldSetOption condition;
+        private final Expiration expiration;
+
+        private HSetExCommand(@Nullable ByteBuffer key, Map<ByteBuffer, ByteBuffer> fieldValueMap,
+                              RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+            super(key);
+            this.fieldValueMap = fieldValueMap;
+            this.condition = condition;
+            this.expiration = expiration;
+        }
+
+        /**
+         * Creates a new {@link HSetExCommand} for setting field-value pairs with condition and expiration.
+         *
+         * @param fieldValueMap the field-value pairs to set; must not be {@literal null}.
+         * @param condition the condition for setting fields; must not be {@literal null}.
+         * @param expiration the expiration to apply; must not be {@literal null}.
+         * @return new instance of {@link HSetExCommand}.
+         */
+        public static HSetExCommand setWithConditionAndExpiration(Map<ByteBuffer, ByteBuffer> fieldValueMap,
+                                                                  RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+            return new HSetExCommand(null, fieldValueMap, condition, expiration);
+        }
+
+        /**
+         * Applies the hash {@literal key}. Constructs a new command instance with all previously configured properties.
+         *
+         * @param key must not be {@literal null}.
+         * @return a new {@link HSetExCommand} with {@literal key} applied.
+         */
+        public HSetExCommand from(ByteBuffer key) {
+            Assert.notNull(key, "Key must not be null");
+            return new HSetExCommand(key, fieldValueMap, condition, expiration);
+        }
+
+        /**
+         * @return the field-value map.
+         */
+        public Map<ByteBuffer, ByteBuffer> getFieldValueMap() {
+            return fieldValueMap;
+        }
+
+        /**
+         * @return the condition for setting fields.
+         */
+        public RedisHashCommands.HashFieldSetOption getCondition() {
+            return condition;
+        }
+
+        /**
+         * @return the expiration to apply.
+         */
+        public Expiration getExpiration() {
+            return expiration;
+        }
+    }
+
+    /**
+     * Set field-value pairs in hash at {@literal key} with condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param fieldValueMap the field-value pairs to set; must not be {@literal null}.
+     * @param condition the condition for setting fields; must not be {@literal null}.
+     * @param expiration the expiration to apply; must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    default Mono<Boolean> hSetEx(ByteBuffer key, Map<ByteBuffer, ByteBuffer> fieldValueMap,
+                                 RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fieldValueMap, "Field-value map must not be null");
+        Assert.notNull(condition, "Condition must not be null");
+        Assert.notNull(expiration, "Expiration must not be null");
+
+        return hSetEx(Mono.just(HSetExCommand.setWithConditionAndExpiration(fieldValueMap, condition, expiration).from(key)))
+                .next().map(CommandResponse::getOutput);
+    }
+
+    /**
+     * Set field-value pairs in hash at {@literal key} with condition and expiration.
+     *
+     * @param commands must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    Flux<BooleanResponse<HSetExCommand>> hSetEx(Publisher<HSetExCommand> commands);
 }

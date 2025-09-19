@@ -1243,8 +1243,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZRANGEBYSCORE, ValueListOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZREVRANGE, ValueListOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZREVRANGEBYSCORE, ValueListOutput.class);
+            COMMAND_OUTPUT_TYPE_MAPPING.put(HGETDEL, ValueListOutput.class);
+            COMMAND_OUTPUT_TYPE_MAPPING.put(HGETEX, ValueListOutput.class);
 
-			// BOOLEAN
+            // BOOLEAN
 			COMMAND_OUTPUT_TYPE_MAPPING.put(EXISTS, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(EXPIRE, BooleanOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(EXPIREAT, BooleanOutput.class);

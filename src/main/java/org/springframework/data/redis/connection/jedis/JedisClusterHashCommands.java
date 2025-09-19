@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.core.types.Expiration;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -413,6 +414,45 @@ class JedisClusterHashCommands implements RedisHashCommands {
 			throw convertJedisAccessException(ex);
 		}
 	}
+
+    @Override
+    public List<byte[]> hGetDel(byte[] key, byte[]... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        try {
+            return connection.getCluster().hgetdel(key, fields);
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        try {
+            return connection.getCluster().hgetex(key, JedisConverters.toHGetExParams(expiration), fields);
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
+    @Override
+    public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(hashes, "Fields must not be null");
+
+        try {
+            return JedisConverters.toBoolean(connection.getCluster().hsetex(key, JedisConverters.toHSetExParams(condition, expiration), hashes));
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
 
 	@Nullable
 	@Override

@@ -3725,6 +3725,258 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { List.of(-2L), List.of(-2L) }));
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsValueAndDeletesField() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, List.of("value-1"), Boolean.FALSE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsNullWhenFieldDoesNotExist() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hGetDel("hash-hgetdel", "missing-field"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Arrays.asList((Object) null), Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.hGetDel("missing-hash", "field-1"));
+
+		verifyResults(Arrays.asList(Arrays.asList((Object) null)));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelMultipleFieldsReturnsValuesAndDeletesFields() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hSet("hash-hgetdel", "field-3", "value-3"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "field-2"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-2"));
+		actual.add(connection.hExists("hash-hgetdel", "field-3"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+			Arrays.asList("value-1", "value-2"),
+			Boolean.FALSE, Boolean.FALSE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelMultipleFieldsWithNonExistentFields() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "missing-field"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE,
+			Arrays.asList("value-1", null),
+			Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelDeletesKeyWhenAllFieldsRemoved() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "field-2"));
+		actual.add(connection.exists("hash-hgetdel"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE,
+			Arrays.asList("value-1", "value-2"),
+			Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsValueAndSetsExpiration() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetex", "field-2", "value-2"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(60), "field-1"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+		actual.add(connection.hExists("hash-hgetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, List.of("value-1"), Boolean.TRUE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenFieldDoesNotExist() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(60), "missing-field"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Arrays.asList((Object) null), Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.hGetEx("missing-hash", Expiration.seconds(60), "field-1"));
+
+		verifyResults(Arrays.asList(Arrays.asList((Object) null)));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsReturnsValuesAndSetsExpiration() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetex", "field-2", "value-2"));
+		actual.add(connection.hSet("hash-hgetex", "field-3", "value-3"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(120), "field-1", "field-2"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+		actual.add(connection.hExists("hash-hgetex", "field-2"));
+		actual.add(connection.hExists("hash-hgetex", "field-3"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+			Arrays.asList("value-1", "value-2"),
+			Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsWithNonExistentFields() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(60), "field-1", "missing-field"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE,
+			Arrays.asList("value-1", null),
+			Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExUpsertConditionSetsFieldsWithExpiration() {
+
+		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60)));
+		actual.add(connection.hExists("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "value-1", "value-2"));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
+
+		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60)));
+		actual.add(connection.hExists("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "value-1", "value-2"));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionFailsWhenSomeFieldsExist() {
+
+		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
+		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.FALSE, "existing-value", Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionSucceedsWhenAllFieldsExist() {
+
+		actual.add(connection.hSet("hash-hsetex", "field-1", "old-value-1"));
+		actual.add(connection.hSet("hash-hsetex", "field-2", "old-value-2"));
+		Map<String, String> fieldMap = Map.of("field-1", "new-value-1", "field-2", "new-value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "new-value-1", "new-value-2"));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionFailsWhenSomeFieldsMissing() {
+
+		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
+		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.FALSE, "existing-value", Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExWithDifferentExpirationPolicies() {
+
+		// Test with seconds expiration
+		Map<String, String> fieldMap1 = Map.of("field-1", "value-1");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60)));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-1"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-1"));
+
+		// Test with milliseconds expiration
+		Map<String, String> fieldMap2 = Map.of("field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap2, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.milliseconds(120000)));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-2"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-2"));
+
+		// Test with Duration expiration
+		Map<String, String> fieldMap3 = Map.of("field-3", "value-3");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap3, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.from(Duration.ofMinutes(3))));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-3"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-3"));
+
+		// Test with unix timestamp expiration (5 minutes from now)
+		long futureTimestamp = System.currentTimeMillis() / 1000 + 300; // 5 minutes from now
+		Map<String, String> fieldMap4 = Map.of("field-4", "value-4");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap4, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.unixTimestamp(futureTimestamp, TimeUnit.SECONDS)));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-4"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-4"));
+
+		// Test with keepTtl expiration
+		Map<String, String> fieldMap5 = Map.of("field-5", "value-5");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap5, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.keepTtl()));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-5"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-5"));
+
+		verifyResults(Arrays.asList(
+			Boolean.TRUE, Boolean.TRUE, "value-1",  // seconds
+			Boolean.TRUE, Boolean.TRUE, "value-2",  // milliseconds
+			Boolean.TRUE, Boolean.TRUE, "value-3",  // Duration
+			Boolean.TRUE, Boolean.TRUE, "value-4",  // unix timestamp
+			Boolean.TRUE, Boolean.TRUE, "value-5"   // keepTtl
+		));
+	}
+
 	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 
