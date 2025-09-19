@@ -685,4 +685,150 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 				.expectNext(true) //
 				.verifyComplete();
 	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void getAndDeleteSingleKey() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		hashOperations.getAndDelete(key, Arrays.asList(hashkey1)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).containsExactly(hashvalue1);
+				})
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey1).as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey2).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void getAndDeletePartialKeys() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		hashOperations.getAndDelete(key, Arrays.asList(hashkey1)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).containsExactly(hashvalue1);
+				})
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey1).as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey2).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		hashOperations.get(key, hashkey2).as(StepVerifier::create)
+				.expectNext(hashvalue2)
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void getAndDeleteNonExistentKeys() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+		HK nonExistentKey = hashKeyFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		hashOperations.getAndDelete(key, Arrays.asList(nonExistentKey)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).containsExactly((HV) null);
+				})
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey1).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey2).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void getAndDeleteKeyDeletionBehavior() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		redisTemplate.hasKey(key).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		hashOperations.getAndDelete(key, Arrays.asList(hashkey1, hashkey2)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(2).containsSequence(hashvalue1, hashvalue2);
+				})
+				.verifyComplete();
+
+		hashOperations.size(key).as(StepVerifier::create)
+				.expectNext(0L)
+				.verifyComplete();
+
+        redisTemplate.hasKey(key).as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void getAndDeleteFromNonExistentHash() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K nonExistentKey = keyFactory.instance();
+		HK hashkey = hashKeyFactory.instance();
+
+		hashOperations.getAndDelete(nonExistentKey, Arrays.asList(hashkey)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).containsExactly((HV) null);
+				})
+				.verifyComplete();
+	}
 }

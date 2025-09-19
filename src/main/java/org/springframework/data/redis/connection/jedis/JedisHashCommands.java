@@ -332,6 +332,15 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(Jedis::hpttl, PipelineBinaryCommands::hpttl, key, fields);
 	}
 
+    @Override
+    public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return connection.invoke().just(Jedis::hgetdel, PipelineBinaryCommands::hgetdel, key, fields);
+    }
+
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {

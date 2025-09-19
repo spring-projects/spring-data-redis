@@ -3725,6 +3725,83 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { List.of(-2L), List.of(-2L) }));
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsValueAndDeletesField() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, List.of("value-1"), Boolean.FALSE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsNullWhenFieldDoesNotExist() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hGetDel("hash-hgetdel", "missing-field"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Arrays.asList((Object) null), Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.hGetDel("missing-hash", "field-1"));
+
+		verifyResults(Arrays.asList(Arrays.asList((Object) null)));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelMultipleFieldsReturnsValuesAndDeletesFields() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hSet("hash-hgetdel", "field-3", "value-3"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "field-2"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-2"));
+		actual.add(connection.hExists("hash-hgetdel", "field-3"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+			Arrays.asList("value-1", "value-2"),
+			Boolean.FALSE, Boolean.FALSE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelMultipleFieldsWithNonExistentFields() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "missing-field"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE,
+			Arrays.asList("value-1", null),
+			Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelDeletesKeyWhenAllFieldsRemoved() {
+
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "field-2"));
+		actual.add(connection.exists("hash-hgetdel"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE,
+			Arrays.asList("value-1", "value-2"),
+			Boolean.FALSE));
+	}
+
 	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 

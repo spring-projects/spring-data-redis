@@ -23,6 +23,7 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
@@ -1609,6 +1610,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.hVals(serialize(key)), byteListToStringList);
 	}
 
+    @Override
+    public List<String> hGetDel(String key, String... fields) {
+        return convertAndReturn(delegate.hGetDel(serialize(key), serializeMulti(fields)), byteListToStringList);
+    }
+
 	@Override
 	public Long incr(String key) {
 		return incr(serialize(key));
@@ -2581,6 +2587,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
 		return this.delegate.hTtl(key, timeUnit, fields);
 	}
+
+    @Override
+    public List<byte[]> hGetDel(@NotNull byte[] key, @NotNull byte[]... fields) {
+        return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
+    }
 
 	public @Nullable List<Long> applyExpiration(String key,
 			org.springframework.data.redis.core.types.Expiration expiration,

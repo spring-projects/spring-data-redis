@@ -34,6 +34,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tihomir Mateev
+ * @author Viktoriya Kutsarova
  * @see RedisCommands
  */
 @NullUnmarked
@@ -541,4 +542,16 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	List<@NonNull Long> hpTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
+
+    /**
+     * Get and delete the value of one or more {@code fields} from hash at {@code key}. Values are returned in the order of
+     * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 }

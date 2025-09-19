@@ -265,6 +265,16 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hpttl, key, fields).toList();
 	}
 
+    @Override
+    public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull []... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return connection.invoke().fromMany(RedisHashAsyncCommands::hgetdel, key, fields)
+                .toList(source -> source.getValueOrElse(null));
+    }
+
 	/**
 	 * @param key
 	 * @param cursorId

@@ -405,4 +405,64 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 			assertThat(expirations.expirationOf(key2).isPersistent()).isTrue();
 		});
 	}
+
+    @Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void testGetAndDelete() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		HK key3 = hashKeyFactory.instance();
+		HV val3 = hashValueFactory.instance();
+
+		// Set up test data
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+		hashOps.put(key, key3, val3);
+
+		// Test single field get and delete
+		List<HV> result = hashOps.getAndDelete(key, List.of(key1));
+		assertThat(result).hasSize(1).containsExactly(val1);
+		assertThat(hashOps.hasKey(key, key1)).isFalse(); // Field should be deleted
+		assertThat(hashOps.hasKey(key, key2)).isTrue();  // Other fields should remain
+
+		// Test multiple fields get and delete
+		List<HV> multiResult = hashOps.getAndDelete(key, List.of(key2, key3));
+		assertThat(multiResult).hasSize(2).containsExactly(val2, val3);
+		assertThat(hashOps.hasKey(key, key2)).isFalse(); // Both fields should be deleted
+		assertThat(hashOps.hasKey(key, key3)).isFalse();
+		assertThat(hashOps.size(key)).isEqualTo(0L); // Hash should be empty
+
+		// Test get and delete on non-existent field
+		HK nonExistentKey = hashKeyFactory.instance();
+		List<HV> emptyResult = hashOps.getAndDelete(key, List.of(nonExistentKey));
+		assertThat(emptyResult).hasSize(1);
+		assertThat(emptyResult.get(0)).isNull();
+
+		// Test get and delete on non-existent hash
+		K nonExistentHash = keyFactory.instance();
+		List<HV> nonExistentHashResult = hashOps.getAndDelete(nonExistentHash, List.of(key1));
+		assertThat(nonExistentHashResult).hasSize(1);
+		assertThat(nonExistentHashResult.get(0)).isNull();
+
+		// Test that key is deleted when all fields are removed
+		K keyForDeletion = keyFactory.instance();
+		HK field1 = hashKeyFactory.instance();
+		HK field2 = hashKeyFactory.instance();
+		HV value1 = hashValueFactory.instance();
+		HV value2 = hashValueFactory.instance();
+
+		// Set up hash with two fields
+		hashOps.put(keyForDeletion, field1, value1);
+		hashOps.put(keyForDeletion, field2, value2);
+		assertThat(redisTemplate.hasKey(keyForDeletion)).isTrue(); // Key should exist
+
+		// Delete all fields at once - key should be deleted
+		List<HV> allFieldsResult = hashOps.getAndDelete(keyForDeletion, List.of(field1, field2));
+		assertThat(allFieldsResult).hasSize(2).containsExactly(value1, value2);
+		assertThat(redisTemplate.hasKey(keyForDeletion)).isFalse(); // Key should be deleted when last field is removed
+	}
 }

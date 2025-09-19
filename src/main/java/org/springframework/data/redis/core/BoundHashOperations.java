@@ -246,4 +246,13 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	@NonNull
 	RedisOperations<H, ?> getOperations();
 
+	/**
+	 * Get and remove the value for given {@code hashFields} from the hash at the bound key. Values are in the order of the
+	 * requested hash fields. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 *
+	 * @param hashFields must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 3.1
+	 */
+    List<HV> getAndDelete(@NonNull Collection<@NonNull HK> hashFields);
 }

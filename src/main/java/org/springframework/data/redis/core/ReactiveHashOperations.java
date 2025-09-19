@@ -41,6 +41,7 @@ import org.springframework.data.redis.core.types.Expirations;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Viktoriya Kutsarova
  * @since 2.0
  */
 public interface ReactiveHashOperations<H, HK, HV> {
@@ -81,6 +82,18 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @return
 	 */
 	Mono<List<HV>> multiGet(H key, Collection<HK> hashKeys);
+    
+    /**
+     * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashKeys must not be {@literal null}.
+     * @return never {@literal null}.
+     * @since 4.0
+     */
+    Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.

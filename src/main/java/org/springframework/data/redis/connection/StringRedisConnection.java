@@ -2552,6 +2552,18 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	List<Long> hpTtl(@NonNull String key, @NonNull String @NonNull... fields);
 
+    /**
+     * Get and delete the value of one or more {@code fields} from hash at {@code key}. When the last field is deleted,
+     * the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
+     * @see RedisHashCommands#hMGet(byte[], byte[]...)
+     */
+    List<String> hGetDel(@NonNull String key, @NonNull String @NonNull... fields);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog
 	// -------------------------------------------------------------------------

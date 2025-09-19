@@ -111,6 +111,18 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.flatMap(hks -> hashCommands.hMGet(rawKey(key), hks)).map(this::deserializeHashValues));
 	}
 
+    @Override
+    public Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys) {
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(hashKeys, "Hash keys must not be null");
+        Assert.notEmpty(hashKeys, "Hash keys must not be empty");
+
+        return createMono(hashCommands -> Flux.fromIterable(hashKeys) //
+                .map(this::rawHashKey) //
+                .collectList() //
+                .flatMap(hks -> hashCommands.hGetDel(rawKey(key), hks)).map(this::deserializeHashValues));
+    }
+
 	@Override
 	public Mono<Long> increment(H key, HK hashKey, long delta) {
 

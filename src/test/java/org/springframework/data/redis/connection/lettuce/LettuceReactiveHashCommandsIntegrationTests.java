@@ -339,4 +339,85 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 
 		assertThat(nativeCommands.httl(KEY_1, FIELD_1, FIELD_2)).allSatisfy(it -> assertThat(it).isEqualTo(-1L));
 	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void hGetDelShouldReturnValueAndDeleteField() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+
+		connection.hashCommands().hGetDel(KEY_1_BBUFFER, Collections.singletonList(FIELD_1_BBUFFER)).as(StepVerifier::create)
+				.expectNext(Collections.singletonList(VALUE_1_BBUFFER)).verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isFalse();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void hGetDelShouldReturnNullForNonExistentField() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		connection.hashCommands().hGetDel(KEY_1_BBUFFER, Collections.singletonList(FIELD_2_BBUFFER)).as(StepVerifier::create)
+				.expectNext(Collections.singletonList(null)).verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void hGetDelShouldReturnNullForNonExistentKey() {
+
+		connection.hashCommands().hGetDel(KEY_1_BBUFFER, Collections.singletonList(FIELD_1_BBUFFER)).as(StepVerifier::create)
+				.expectNext(Collections.singletonList(null)).verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void hGetDelShouldHandleMultipleFields() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
+
+		connection.hashCommands().hGetDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER))
+				.verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isFalse();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isFalse();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_3)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void hGetDelShouldHandleMultipleFieldsWithNonExistent() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		connection.hashCommands().hGetDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Arrays.asList(VALUE_1_BBUFFER, null))
+				.verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isFalse();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	void hGetDelShouldDeleteKeyWhenAllFieldsRemoved() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+
+		connection.hashCommands().hGetDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER))
+				.verifyComplete();
+
+		assertThat(nativeCommands.hlen(KEY_1)).isEqualTo(0L);
+	}
 }

@@ -38,6 +38,7 @@ import org.springframework.data.redis.core.types.Expirations;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Tihomir Mateev
+ * @author Viktoriya Kutsarova
  */
 @NullUnmarked
 public interface HashOperations<H, HK, HV> {
@@ -78,6 +79,17 @@ public interface HashOperations<H, HK, HV> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	List<HV> multiGet(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
+
+    /**
+     * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashKeys must not be {@literal null}.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @since 4.0
+     */
+    List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.

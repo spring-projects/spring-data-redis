@@ -147,6 +147,7 @@ public enum RedisCommand {
 	HMSET("w", 3), //
 	HPOP("rw", 3),
 	HSET("w", 3, 3), //
+    HSETEX("w", 3), //
 	HSETNX("w", 3, 3), //
 	HVALS("r", 1, 1), //
 	HEXPIRE("w", 5), //

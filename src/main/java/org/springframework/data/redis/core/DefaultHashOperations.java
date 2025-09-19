@@ -195,6 +195,25 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
+    @Override
+    public List<HV> getAndDelete(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
+
+		if (fields.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = new byte[fields.size()][];
+        int counter = 0;
+		for (@NonNull
+		HK hashKey : fields) {
+			rawHashKeys[counter++] = rawHashKey(hashKey);
+		}
+        List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
+
+		return deserializeHashValues(rawValues);
+	}
+
 	@Override
 	public void put(@NonNull K key, @NonNull HK hashKey, HV value) {
 

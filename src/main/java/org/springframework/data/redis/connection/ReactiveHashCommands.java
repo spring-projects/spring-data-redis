@@ -58,6 +58,7 @@ public interface ReactiveHashCommands {
 	 *
 	 * @author Christoph Strobl
 	 * @author Tihomir Mateev
+     * @author Viktoriya Kutsarova
 	 */
 	class HashFieldsCommand extends KeyCommand {
 
@@ -1255,4 +1256,86 @@ public interface ReactiveHashCommands {
 	 */
 	Flux<NumericResponse<HashFieldsCommand, Long>> hpTtl(Publisher<HashFieldsCommand> commands);
 
+
+    /**
+     * {@literal HGETDEL} {@link Command}.
+     *
+     * @author Viktoriya Kutsarova
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    class HGetDelCommand extends HashFieldsCommand {
+
+        private HGetDelCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields) {
+            super(key, fields);
+        }
+
+        /**
+         * Creates a new {@link HGetDelCommand} given a {@link ByteBuffer field name}.
+         *
+         * @param field must not be {@literal null}.
+         * @return a new {@link HGetDelCommand} for a {@link ByteBuffer field name}.
+         */
+        public static HGetDelCommand field(ByteBuffer field) {
+
+            Assert.notNull(field, "Field must not be null");
+
+            return new HGetDelCommand(null, Collections.singletonList(field));
+        }
+
+        /**
+         * Creates a new {@link HGetDelCommand} given a {@link Collection} of field names.
+         *
+         * @param fields must not be {@literal null}.
+         * @return a new {@link HGetDelCommand} for a {@link Collection} of field names.
+         */
+        public static HGetDelCommand fields(Collection<ByteBuffer> fields) {
+
+            Assert.notNull(fields, "Fields must not be null");
+
+            return new HGetDelCommand(null, new ArrayList<>(fields));
+        }
+
+        /**
+         * Applies the hash {@literal key}. Constructs a new command instance with all previously configured properties.
+         *
+         * @param key must not be {@literal null}.
+         * @return a new {@link HGetDelCommand} with {@literal key} applied.
+         */
+        public HGetDelCommand from(ByteBuffer key) {
+
+            Assert.notNull(key, "Key must not be null");
+
+            return new HGetDelCommand(key, getFields());
+        }
+    }
+
+
+    /**
+     * Get and delete the value of one or more {@literal fields} from hash at {@literal key}. Values are returned in the
+     * order of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    default Mono<List<ByteBuffer>> hGetDel(ByteBuffer key, Collection<ByteBuffer> fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return hGetDel(Mono.just(HGetDelCommand.fields(fields).from(key))).next().map(MultiValueResponse::getOutput);
+    }
+
+    /**
+     * Get and delete the value of one or more {@literal fields} from hash at {@literal key}. Values are returned in the
+     * order of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param commands must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    Flux<MultiValueResponse<HGetDelCommand, ByteBuffer>> hGetDel(Publisher<HGetDelCommand> commands);
 }

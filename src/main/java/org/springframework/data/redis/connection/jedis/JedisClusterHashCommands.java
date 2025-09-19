@@ -414,6 +414,20 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		}
 	}
 
+    @Override
+    public List<byte[]> hGetDel(byte[] key, byte[]... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        try {
+            return connection.getCluster().hgetdel(key, fields);
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+
+    }
+
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
