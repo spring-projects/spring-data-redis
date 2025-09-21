@@ -109,6 +109,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	private final JedisStreamCommands streamCommands = new JedisStreamCommands(this);
 	private final JedisStringCommands stringCommands = new JedisStringCommands(this);
 	private final JedisZSetCommands zSetCommands = new JedisZSetCommands(this);
+	private final JedisVectorSetCommands vectorSetCommands = new JedisVectorSetCommands(this);
 
 	private final Log LOGGER = LogFactory.getLog(getClass());
 
@@ -282,6 +283,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public RedisServerCommands serverCommands() {
 		return serverCommands;
+	}
+
+	@Override
+	public RedisVectorSetCommands vectorSetCommands() {
+		return vectorSetCommands;
 	}
 
 	@Override
