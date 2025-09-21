@@ -103,6 +103,7 @@ import org.springframework.util.ObjectUtils;
  * @author Tamil Selvan
  * @author ihaohong
  * @author John Blum
+ * @author Anne Lee
  */
 @NullUnmarked
 public class LettuceConnection extends AbstractRedisConnection {

@@ -76,6 +76,7 @@ import org.springframework.util.CollectionUtils;
  * @author Guy Korland
  * @author Dengliming
  * @author John Blum
+ * @author Anne Lee
  * @see redis.clients.jedis.Jedis
  */
 @NullUnmarked

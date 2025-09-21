@@ -115,6 +115,7 @@ import org.springframework.util.StringUtils;
  * @author Guy Korland
  * @author dengliming
  * @author John Blum
+ * @author Anne Lee
  */
 @SuppressWarnings("ConstantConditions")
 abstract class JedisConverters extends Converters {
