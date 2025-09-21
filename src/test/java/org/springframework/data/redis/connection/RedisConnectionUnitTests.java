@@ -162,7 +162,12 @@ class RedisConnectionUnitTests {
 			return null;
 		}
 
-		@Override
+        @Override
+        public RedisVectorSetCommands vectorSetCommands() {
+            return null;
+        }
+
+        @Override
 		protected boolean isActive(RedisNode node) {
 			return ObjectUtils.nullSafeEquals(activeNode, node);
 		}
@@ -265,6 +270,14 @@ class RedisConnectionUnitTests {
 
 		public Boolean zAdd(byte[] key, double score, byte[] value) {
 			return delegate.zAdd(key, score, value);
+		}
+
+		public Boolean vAdd(byte[] key, byte[] values, byte[] element, RedisVectorSetCommands.VAddOptions options) {
+			return delegate.vectorSetCommands().vAdd(key, values, element, options);
+		}
+
+		public Boolean vAdd(byte[] key, double[] values, byte[] element, RedisVectorSetCommands.VAddOptions options) {
+			return delegate.vectorSetCommands().vAdd(key, values, element, options);
 		}
 
 		public Long publish(byte[] channel, byte[] message) {

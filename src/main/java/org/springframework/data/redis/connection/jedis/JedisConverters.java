@@ -30,9 +30,13 @@ import redis.clients.jedis.params.HSetExParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
+import redis.clients.jedis.params.VAddParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.util.SafeEncoder;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -50,6 +54,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -73,6 +78,7 @@ import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.RedisVectorSetCommands.VAddOptions;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -680,6 +686,67 @@ abstract class JedisConverters extends Converters {
 		}
 
 		return target;
+	}
+
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+	/**
+	 * Convert {@link VAddOptions} into {@link VAddParams}.
+	 *
+	 * @param source can be {@literal null}.
+	 * @return new instance of {@link VAddParams} or {@literal null} if source is {@literal null}.
+	 * @since 3.5
+	 */
+	@Nullable
+	static VAddParams toVAddParams(@Nullable VAddOptions source) {
+		
+		if (source == null) {
+			return null;
+		}
+		
+		VAddParams params = new VAddParams();
+		
+		// CAS option
+		if (source.isCas()) {
+			params.cas();
+		}
+
+		// Quantization type
+		if (source.getQuantization() != null) {
+			switch (source.getQuantization()) {
+				case NOQUANT:
+					params.noQuant();
+					break;
+				case Q8:
+					params.q8();
+					break;
+				case BIN:
+					params.bin();
+					break;
+			}
+		}
+		
+		// EF build-exploration-factor
+		if (source.getEfBuildFactor() != null) {
+			params.ef(source.getEfBuildFactor());
+		}
+		
+		// Attributes as JSON
+		if (source.getAttributes() != null) {
+			try {
+				String jsonAttributes = OBJECT_MAPPER.writeValueAsString(source.getAttributes());
+				params.setAttr(jsonAttributes);
+			} catch (JsonProcessingException e) {
+				throw new InvalidDataAccessApiUsageException("Failed to serialize attributes to JSON", e);
+			}
+		}
+
+		// M numlinks
+		if (source.getMaxConnections() != null) {
+			params.m(source.getMaxConnections());
+		}
+		
+		return params;
 	}
 
 	/**

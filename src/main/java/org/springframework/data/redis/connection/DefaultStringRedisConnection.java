@@ -248,7 +248,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return this;
 	}
 
-	@Override
+    @Override
+    public RedisVectorSetCommands vectorSetCommands() { return delegate.vectorSetCommands(); }
+
+    @Override
 	public Long append(byte[] key, byte[] value) {
 		return convertAndReturn(delegate.append(key, value), Converters.identityConverter());
 	}

@@ -118,4 +118,12 @@ public interface RedisCommandsProvider {
 	 * @since 2.0
 	 */
 	RedisZSetCommands zSetCommands();
+
+	/**
+	 * Get {@link RedisVectorSetCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 3.5
+	 */
+	RedisVectorSetCommands vectorSetCommands();
 }
