@@ -82,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
+ * @author Anne Lee
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -247,7 +248,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
     @Override
-    public RedisVectorSetCommands vectorSetCommands() { return delegate.vectorSetCommands(); }
+    public RedisVectorSetCommands vectorSetCommands() {
+		return delegate.vectorSetCommands();
+	}
 
     @Override
 	public Long append(byte[] key, byte[] value) {
