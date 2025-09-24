@@ -56,6 +56,7 @@ import org.springframework.data.redis.test.condition.EnabledIfLongRunningTest;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Andrey Muchnik
+ * @author Kim Sumin
  */
 @ExtendWith(LettuceConnectionFactoryExtension.class)
 public class RedisKeyValueAdapterTests {
@@ -787,6 +788,61 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.getExpire("persons:1")).isNotPositive();
 		assertThat(template.hasKey("persons:1:phantom")).isFalse();
 	}
+
+	@Test // GH-2294
+	void shouldUseDELByDefault() {
+		// given
+		RedisKeyValueAdapter adapter = new RedisKeyValueAdapter(template, mappingContext);
+
+		// when & then
+		assertThat(adapter.getDeletionStrategy()).isEqualTo(RedisKeyValueAdapter.DeletionStrategy.DEL);
+	}
+
+	@Test // GH -2294
+	void shouldAllowUNLINKConfiguration() {
+		// given
+		RedisKeyValueAdapter adapter = new RedisKeyValueAdapter(template, mappingContext);
+
+		// when
+		adapter.setDeletionStrategy(RedisKeyValueAdapter.DeletionStrategy.UNLINK);
+
+		// then
+		assertThat(adapter.getDeletionStrategy()).isEqualTo(RedisKeyValueAdapter.DeletionStrategy.UNLINK);
+	}
+
+	@Test // GH-2294
+	void shouldRejectNullDeletionStrategy() {
+		// given
+		RedisKeyValueAdapter adapter = new RedisKeyValueAdapter(template, mappingContext);
+
+		// when & then
+		assertThatIllegalArgumentException().isThrownBy(() -> adapter.setDeletionStrategy(null))
+				.withMessageContaining("DeletionStrategy must not be null");
+	}
+
+	@Test // GH-2294
+	void shouldMaintainFunctionalityWithUNLINKStrategy() {
+		// given
+		adapter.setDeletionStrategy(RedisKeyValueAdapter.DeletionStrategy.UNLINK);
+
+		Person person = new Person();
+		person.id = "unlink-test";
+		person.firstname = "test";
+
+		// when & then
+		adapter.put(person.id, person, "persons");
+		assertThat(adapter.get(person.id, "persons", Person.class)).isNotNull();
+
+		person.firstname = "updated";
+		adapter.put(person.id, person, "persons");
+
+		Person result = adapter.get(person.id, "persons", Person.class);
+		assertThat(result.firstname).isEqualTo("updated");
+
+		adapter.delete(person.id, "persons");
+		assertThat(adapter.get(person.id, "persons", Person.class)).isNull();
+	}
+
 
 	/**
 	 * Wait up to 5 seconds until {@code key} is no longer available in Redis.
