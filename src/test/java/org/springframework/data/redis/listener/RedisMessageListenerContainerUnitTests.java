@@ -239,4 +239,27 @@ class RedisMessageListenerContainerUnitTests {
 
 		assertThatNoException().isThrownBy(() -> container.removeMessageListener(null, Collections.singletonList(topic)));
 	}
+
+    @Test // GH-3208
+    void defaultPhaseShouldBeMaxValue() {
+        assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
+    }
+
+    @Test // GH-3208
+    void shouldApplyConfiguredPhase() {
+        container.setPhase(3208);
+        assertThat(container.getPhase()).isEqualTo(3208);
+    }
+
+    @Test // GH-3208
+    void defaultAutoStartupShouldBeTrue() {
+        assertThat(container.isAutoStartup()).isEqualTo(true);
+    }
+
+    @Test // GH-3208
+    void shouldApplyConfiguredAutoStartup() {
+        container.setAutoStartup(false);
+        assertThat(container.isAutoStartup()).isEqualTo(false);
+    }
+
 }

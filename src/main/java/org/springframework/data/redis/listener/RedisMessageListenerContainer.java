@@ -103,6 +103,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author Mark Paluch
  * @author John Blum
  * @author Seongjun Lee
+ * @author Su Ko
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -167,6 +168,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private @Nullable String beanName;
 
 	private @Nullable Subscriber subscriber;
+
+    private int phase = Integer.MAX_VALUE;
+    private boolean autoStartup = true;
 
 	/**
 	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown while processing a Message. By default,
@@ -617,6 +621,40 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		removeMessageListener(listener, Collections.emptySet());
 	}
+
+    @Override
+    public int getPhase() {
+        return this.phase;
+    }
+
+    /**
+     * Specify the lifecycle phase for this container.
+     * Lower values start earlier and stop later.
+     * The default is {@code Integer.MAX_VALUE}.
+     *
+     * @see SmartLifecycle#getPhase()
+     * @since 4.0
+     */
+    public void setPhase(int phase) {
+        this.phase = phase;
+    }
+
+    @Override
+    public boolean isAutoStartup() {
+        return this.autoStartup;
+    }
+
+    /**
+     * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
+     * the containing ApplicationContext gets refreshed.
+     * The default is {@code true}.
+     *
+     * @see SmartLifecycle#isAutoStartup()
+     * @since 4.0
+     */
+    public void setAutoStartup(boolean autoStartup) {
+        this.autoStartup = autoStartup;
+    }
 
 	private void initMapping(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
 

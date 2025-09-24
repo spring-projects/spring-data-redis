@@ -384,6 +384,44 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
+    @Test // GH-3208
+    void defaultPhaseShouldBeMaxValue() {
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, containerOptions);
+
+        assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
+    }
+
+    @Test // GH-3208
+    void shouldApplyConfiguredPhase() {
+        StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions.builder()
+                .phase(3208)
+                .build();
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, options);
+
+        assertThat(container.getPhase()).isEqualTo(3208);
+    }
+
+    @Test // GH-3208
+    void defaultAutoStartupShouldBeFalse() {
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, containerOptions);
+
+        assertThat(container.isAutoStartup()).isEqualTo(false);
+    }
+
+    @Test // GH-3208
+    void shouldApplyConfiguredAutoStartup() {
+        StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions.builder()
+                .autoStartup(true)
+                .build();
+        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+                .create(connectionFactory, options);
+
+        assertThat(container.isAutoStartup()).isEqualTo(true);
+    }
+
 	private static void cancelAwait(Subscription subscription) {
 
 		subscription.cancel();

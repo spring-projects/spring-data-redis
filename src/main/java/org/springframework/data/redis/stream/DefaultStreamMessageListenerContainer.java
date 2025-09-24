@@ -50,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Su Ko
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -66,6 +67,9 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	private final List<Subscription> subscriptions = new ArrayList<>();
 
 	private boolean running = false;
+
+    private int phase = Integer.MAX_VALUE;
+    private boolean autoStartup = false;
 
 	/**
 	 * Create a new {@link DefaultStreamMessageListenerContainer}.
@@ -90,6 +94,14 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		} else {
 			this.streamOperations = this.template.opsForStream();
 		}
+
+        if(containerOptions.isAutoStartup().isPresent()){
+            this.autoStartup = containerOptions.isAutoStartup().get();
+        }
+
+        if(containerOptions.getPhase().isPresent()){
+            this.phase = containerOptions.getPhase().getAsInt();
+        }
 	}
 
 	private static StreamReadOptions getStreamReadOptions(StreamMessageListenerContainerOptions<?, ?> options) {
@@ -123,8 +135,20 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 	@Override
 	public boolean isAutoStartup() {
-		return false;
+		return this.autoStartup;
 	}
+
+    /**
+     * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
+     * the containing ApplicationContext gets refreshed.
+     * The default is {@code false}.
+     *
+     * @see org.springframework.context.SmartLifecycle#isAutoStartup()
+     * @since 4.0
+     */
+    public void setAutoStartup(boolean autoStartup) {
+        this.autoStartup = autoStartup;
+    }
 
 	@Override
 	public void stop(Runnable callback) {
@@ -177,8 +201,20 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 	@Override
 	public int getPhase() {
-		return Integer.MAX_VALUE;
+		return this.phase;
 	}
+
+    /**
+     * Specify the lifecycle phase for this container.
+     * Lower values start earlier and stop later.
+     * The default is {@code Integer.MAX_VALUE}.
+     *
+     * @see org.springframework.context.SmartLifecycle#getPhase()
+     * @since 4.0
+     */
+    public void setPhase(int phase) {
+        this.phase = phase;
+    }
 
 	@Override
 	public Subscription register(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {
