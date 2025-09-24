@@ -80,7 +80,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisExceptionConverter.INSTANCE);
 
-	private final Log log = LogFactory.getLog(getClass());
+	private static final Log log = LogFactory.getLog(JedisClusterConnection.class);
 
 	private final JedisCluster cluster;
 	private final JedisClusterGeoCommands geoCommands = new JedisClusterGeoCommands(this);
