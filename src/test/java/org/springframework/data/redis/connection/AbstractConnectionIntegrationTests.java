@@ -3802,6 +3802,69 @@ public abstract class AbstractConnectionIntegrationTests {
 			Boolean.FALSE));
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsValueAndSetsExpiration() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetex", "field-2", "value-2"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(60), "field-1"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+		actual.add(connection.hExists("hash-hgetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, List.of("value-1"), Boolean.TRUE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenFieldDoesNotExist() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(60), "missing-field"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Arrays.asList((Object) null), Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenKeyDoesNotExist() {
+
+		actual.add(connection.hGetEx("missing-hash", Expiration.seconds(60), "field-1"));
+
+		verifyResults(Arrays.asList(Arrays.asList((Object) null)));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsReturnsValuesAndSetsExpiration() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetex", "field-2", "value-2"));
+		actual.add(connection.hSet("hash-hgetex", "field-3", "value-3"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(120), "field-1", "field-2"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+		actual.add(connection.hExists("hash-hgetex", "field-2"));
+		actual.add(connection.hExists("hash-hgetex", "field-3"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+			Arrays.asList("value-1", "value-2"),
+			Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsWithNonExistentFields() {
+
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(60), "field-1", "missing-field"));
+		actual.add(connection.hExists("hash-hgetex", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE,
+			Arrays.asList("value-1", null),
+			Boolean.TRUE));
+	}
+
 	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 

@@ -40,6 +40,7 @@ import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -272,6 +273,17 @@ class LettuceHashCommands implements RedisHashCommands {
         Assert.notNull(fields, "Fields must not be null");
 
         return connection.invoke().fromMany(RedisHashAsyncCommands::hgetdel, key, fields)
+                .toList(source -> source.getValueOrElse(null));
+    }
+
+    @Override
+    public List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration, byte @NonNull []... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return connection.invoke().fromMany(RedisHashAsyncCommands::hgetex, key,
+                LettuceConverters.toHGetExArgs(expiration), fields)
                 .toList(source -> source.getValueOrElse(null));
     }
 

@@ -1615,6 +1615,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
         return convertAndReturn(delegate.hGetDel(serialize(key), serializeMulti(fields)), byteListToStringList);
     }
 
+    @Override
+    public List<String> hGetEx(String key, Expiration expiration, String... fields) {
+        return convertAndReturn(delegate.hGetEx(serialize(key), expiration, serializeMulti(fields)), byteListToStringList);
+    }
+
 	@Override
 	public Long incr(String key) {
 		return incr(serialize(key));
@@ -2591,6 +2596,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
     @Override
     public List<byte[]> hGetDel(@NotNull byte[] key, @NotNull byte[]... fields) {
         return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
+    }
+
+    @Override
+    public List<byte[]> hGetEx(@NotNull byte[] key, Expiration expiration, @NotNull byte[]... fields) {
+        return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
     }
 
 	public @Nullable List<Long> applyExpiration(String key,

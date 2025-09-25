@@ -91,6 +91,18 @@ public interface HashOperations<H, HK, HV> {
      */
     List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
 
+    /**
+     * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of
+     * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     *
+     * @param key must not be {@literal null}.
+     * @param expiration is optional.
+     * @param hashKeys must not be {@literal null}.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @since 4.0
+     */
+    List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
+
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.
 	 *
@@ -362,6 +374,8 @@ public interface HashOperations<H, HK, HV> {
 			@NonNull Collection<@NonNull HK> hashFields) {
 		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> hashFields);
 	}
+
+
 
 	/**
 	 * @return the underlying {@link RedisOperations} used to execute commands.

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.core.types.Expiration;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -425,7 +426,19 @@ class JedisClusterHashCommands implements RedisHashCommands {
         } catch (Exception ex) {
             throw convertJedisAccessException(ex);
         }
+    }
 
+    @Override
+    public List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        try {
+            return connection.getCluster().hgetex(key, JedisConverters.toHGetExParams(expiration), fields);
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
     }
 
 	@Nullable

@@ -2564,6 +2564,18 @@ public interface StringRedisConnection extends RedisConnection {
      */
     List<String> hGetDel(@NonNull String key, @NonNull String @NonNull... fields);
 
+    /**
+     * Get the value of one or more {@code fields} from hash at {@code key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@code fields}.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     * @see RedisHashCommands#hGetEx(byte[], Expiration, byte[]...)
+     */
+    List<String> hGetEx(@NonNull String key, Expiration expiration, @NonNull String @NonNull... fields);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog
 	// -------------------------------------------------------------------------

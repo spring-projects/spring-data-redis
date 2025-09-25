@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.springframework.data.redis.core.types.Expiration;
 import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
@@ -419,5 +420,74 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 
 		assertThat(nativeCommands.hlen(KEY_1)).isEqualTo(0L);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void hGetExShouldReturnValueAndSetExpiration() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+
+		connection.hashCommands().hGetEx(KEY_1_BBUFFER, Expiration.seconds(60), Collections.singletonList(FIELD_1_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Collections.singletonList(VALUE_1_BBUFFER)).verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void hGetExShouldReturnNullForNonExistentField() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		connection.hashCommands().hGetEx(KEY_1_BBUFFER, Expiration.seconds(60), Collections.singletonList(FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Collections.singletonList(null)).verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void hGetExShouldReturnNullForNonExistentKey() {
+
+		connection.hashCommands().hGetEx(KEY_1_BBUFFER, Expiration.seconds(60), Collections.singletonList(FIELD_1_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Collections.singletonList(null)).verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void hGetExShouldHandleMultipleFields() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
+
+		connection.hashCommands().hGetEx(KEY_1_BBUFFER, Expiration.seconds(120), Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER))
+				.verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isTrue();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_3)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void hGetExShouldHandleMultipleFieldsWithNonExistent() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		connection.hashCommands().hGetEx(KEY_1_BBUFFER, Expiration.seconds(60), Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER))
+				.as(StepVerifier::create)
+				.expectNext(Arrays.asList(VALUE_1_BBUFFER, null))
+				.verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
 	}
 }

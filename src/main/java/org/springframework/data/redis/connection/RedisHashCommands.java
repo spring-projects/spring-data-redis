@@ -25,6 +25,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -554,4 +555,17 @@ public interface RedisHashCommands {
      * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
      */
     List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
+
+    /**
+     * Get the value of one or more {@code fields} from hash at {@code key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@code fields}.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     */
+    List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration,
+                                byte @NonNull [] @NonNull... fields);
+
 }

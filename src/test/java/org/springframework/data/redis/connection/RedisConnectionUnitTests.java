@@ -449,6 +449,10 @@ class RedisConnectionUnitTests {
             return delegate.hGetDel(key, fields);
         }
 
+        public List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+            return delegate.hGetEx(key, expiration, fields);
+        }
+
 		public Long zRem(byte[] key, byte[]... values) {
 			return delegate.zRem(key, values);
 		}

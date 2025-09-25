@@ -1388,6 +1388,73 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsValueAndSetsExpiration() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenFieldDoesNotExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_3_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isNull();
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenKeyDoesNotExist() {
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isNull();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsReturnsValuesAndSetsExpiration() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+		nativeConnection.hset(KEY_1, "field3", "value3");
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(120), KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isEqualTo(VALUE_2_BYTES);
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, "field3".getBytes())).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsWithNonExistentFields() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isNull();
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+	}
+
 	@Test // DATAREDIS-315
 	public void hValsShouldRetrieveValuesCorrectly() {
 

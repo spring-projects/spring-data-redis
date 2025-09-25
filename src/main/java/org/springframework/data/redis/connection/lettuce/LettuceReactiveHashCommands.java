@@ -370,6 +370,20 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
         }));
     }
 
+    @Override
+    public Flux<MultiValueResponse<HGetExCommand, ByteBuffer>> hGetEx(Publisher<HGetExCommand> commands) {
+
+        return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+            Assert.notNull(command.getKey(), "Key must not be null");
+            Assert.notNull(command.getFields(), "Fields must not be null");
+
+            return cmd.hgetex(command.getKey(), LettuceConverters.toHGetExArgs(command.getExpiration()), command.getFields().toArray(ByteBuffer[]::new)).collectList()
+                    .map(value -> new MultiValueResponse<>(command, value.stream().map(v -> v.getValueOrElse(null))
+                            .collect(Collectors.toList())));
+        }));
+    }
+
 	private static Map.Entry<ByteBuffer, ByteBuffer> toEntry(KeyValue<ByteBuffer, ByteBuffer> kv) {
 
 		return new Entry<ByteBuffer, ByteBuffer>() {

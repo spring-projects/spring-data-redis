@@ -1338,4 +1338,76 @@ public interface ReactiveHashCommands {
      * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
      */
     Flux<MultiValueResponse<HGetDelCommand, ByteBuffer>> hGetDel(Publisher<HGetDelCommand> commands);
+
+    class HGetExCommand extends HashFieldsCommand {
+
+        private final Expiration expiration;
+
+        private HGetExCommand(@Nullable ByteBuffer key, List<ByteBuffer> fields, Expiration expiration) {
+
+            super(key, fields);
+
+            this.expiration = expiration;
+        }
+
+        /**
+         * Creates a new {@link HGetExCommand}.
+         *
+         * @param fields the {@code fields} names to apply expiration to
+         * @param expiration the {@link Expiration} to apply to the given {@literal fields}.
+         * @return new instance of {@link HGetExCommand}.
+         */
+        public static HGetExCommand expire(List<ByteBuffer> fields, Expiration expiration) {
+            return new HGetExCommand(null, fields, expiration);
+        }
+
+        /**
+         * @param key the {@literal key} from which to expire the {@literal fields} from.
+         * @return new instance of {@link HashExpireCommand}.
+         */
+        public HGetExCommand from(ByteBuffer key) {
+            return new HGetExCommand(key, getFields(), expiration);
+        }
+
+        /**
+         * Creates a new {@link HGetExCommand}.
+         *
+         * @param fields the {@code fields} names to apply expiration to
+         * @return new instance of {@link HGetExCommand}.
+         */
+        public HGetExCommand fields(Collection<ByteBuffer> fields) {
+            return new HGetExCommand(getKey(), new ArrayList<>(fields), expiration);
+        }
+
+        public Expiration getExpiration() {
+            return expiration;
+        }
+    }
+
+    /**
+     * Get the value of one or more {@literal fields} from hash at {@literal key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@literal fields}.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     */
+    default Mono<List<ByteBuffer>> hGetEx(ByteBuffer key, Expiration expiration, List<ByteBuffer> fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return hGetEx(Mono.just(HGetExCommand.expire(fields, expiration).from(key))).next().map(MultiValueResponse::getOutput);
+    }
+
+    /**
+     * Get the value of one or more {@literal fields} from hash at {@literal key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@literal fields}.
+     *
+     * @param commands must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     */
+    Flux<MultiValueResponse<HGetExCommand, ByteBuffer>> hGetEx(Publisher<HGetExCommand> commands);
 }

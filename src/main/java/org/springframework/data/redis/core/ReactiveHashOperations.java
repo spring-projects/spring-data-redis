@@ -95,6 +95,18 @@ public interface ReactiveHashOperations<H, HK, HV> {
      */
     Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys);
 
+    /**
+     * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     *
+     * @param key must not be {@literal null}.
+     * @param expiration is optional.
+     * @param hashKeys must not be {@literal null}.
+     * @return never {@literal null}.
+     * @since 4.0
+     */
+    Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys);
+
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.
 	 *

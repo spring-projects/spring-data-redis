@@ -21,10 +21,7 @@ import static org.assertj.core.api.Assumptions.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -40,6 +37,7 @@ import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations.TimeToLive;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.RedisStandalone;
@@ -302,6 +300,53 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void testBoundHashOperationsGetAndExpire() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		HK key3 = hashKeyFactory.instance();
+		HV val3 = hashValueFactory.instance();
+
+		// Set up test data
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+		hashOps.put(key, key3, val3);
+
+		BoundHashOperations<K, HK, HV> boundHashOps = redisTemplate.boundHashOps(key);
+
+		// Test single field get and expire
+		List<HV> result1 = boundHashOps.getAndExpire(Expiration.seconds(60), Arrays.asList(key1));
+		assertThat(result1).hasSize(1).containsExactly(val1);
+
+		// Verify field still exists but has expiration
+		assertThat(boundHashOps.hasKey(key1)).isTrue();
+		assertThat(boundHashOps.get(key1)).isEqualTo(val1);
+
+		// Test multiple fields get and expire
+		List<HV> result2 = boundHashOps.getAndExpire(Expiration.seconds(120), Arrays.asList(key2, key3));
+		assertThat(result2).hasSize(2).containsExactly(val2, val3);
+
+		// Verify fields still exist but have expiration
+		assertThat(boundHashOps.hasKey(key2)).isTrue();
+		assertThat(boundHashOps.hasKey(key3)).isTrue();
+		assertThat(boundHashOps.get(key2)).isEqualTo(val2);
+		assertThat(boundHashOps.get(key3)).isEqualTo(val3);
+
+		// Test non-existent field
+		HK nonExistentKey = hashKeyFactory.instance();
+		List<HV> result3 = boundHashOps.getAndExpire(Expiration.seconds(60), Arrays.asList(nonExistentKey));
+		assertThat(result3).hasSize(1).containsExactly((HV) null);
+
+		// Test empty fields collection
+		List<HV> result4 = boundHashOps.getAndExpire(Expiration.seconds(60), Collections.emptyList());
+		assertThat(result4).isEmpty();
+	}
+
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
 	void testExpireAtAndGetExpireMillis() {
@@ -464,5 +509,64 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		List<HV> allFieldsResult = hashOps.getAndDelete(keyForDeletion, List.of(field1, field2));
 		assertThat(allFieldsResult).hasSize(2).containsExactly(value1, value2);
 		assertThat(redisTemplate.hasKey(keyForDeletion)).isFalse(); // Key should be deleted when last field is removed
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void testGetAndExpire() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		HK key3 = hashKeyFactory.instance();
+		HV val3 = hashValueFactory.instance();
+
+		// Set up test data
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+		hashOps.put(key, key3, val3);
+
+		// Test single field get and expire
+		List<HV> result1 = hashOps.getAndExpire(key, Expiration.seconds(60), Arrays.asList(key1));
+		assertThat(result1).hasSize(1).containsExactly(val1);
+
+		// Verify field still exists but has expiration
+		assertThat(hashOps.hasKey(key, key1)).isTrue();
+		assertThat(hashOps.get(key, key1)).isEqualTo(val1);
+
+		// Test multiple fields get and expire
+		List<HV> result2 = hashOps.getAndExpire(key, Expiration.seconds(120), Arrays.asList(key2, key3));
+		assertThat(result2).hasSize(2).containsExactly(val2, val3);
+
+		// Verify fields still exist but have expiration
+		assertThat(hashOps.hasKey(key, key2)).isTrue();
+		assertThat(hashOps.hasKey(key, key3)).isTrue();
+		assertThat(hashOps.get(key, key2)).isEqualTo(val2);
+		assertThat(hashOps.get(key, key3)).isEqualTo(val3);
+
+		// Test non-existent field
+		HK nonExistentKey = hashKeyFactory.instance();
+		List<HV> result3 = hashOps.getAndExpire(key, Expiration.seconds(60), Arrays.asList(nonExistentKey));
+		assertThat(result3).hasSize(1).containsExactly((HV) null);
+
+		// Test mixed existing and non-existent fields
+		HK key4 = hashKeyFactory.instance();
+		HV val4 = hashValueFactory.instance();
+		hashOps.put(key, key4, val4);
+
+		List<HV> result4 = hashOps.getAndExpire(key, Expiration.seconds(60), Arrays.asList(key4, nonExistentKey));
+		assertThat(result4).hasSize(2);
+		assertThat(result4.get(0)).isEqualTo(val4);
+		assertThat(result4.get(1)).isNull();
+
+		// Verify existing field still exists with expiration
+		assertThat(hashOps.hasKey(key, key4)).isTrue();
+		assertThat(hashOps.get(key, key4)).isEqualTo(val4);
+
+		// Test empty fields collection
+		List<HV> result5 = hashOps.getAndExpire(key, Expiration.seconds(60), Collections.emptyList());
+		assertThat(result5).isEmpty();
 	}
 }

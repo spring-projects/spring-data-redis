@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.junit.jupiter.api.condition.OS.*;
 
+import org.springframework.data.redis.core.types.Expiration;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -826,6 +827,83 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 
 		hashOperations.getAndDelete(nonExistentKey, Arrays.asList(hashkey)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).containsExactly((HV) null);
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void getAndExpireSingleKey() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		hashOperations.getAndExpire(key, Expiration.seconds(60), Arrays.asList(hashkey1)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).containsExactly(hashvalue1);
+				})
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey1).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey2).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void getAndExpireMultipleKeys() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+		HV hashvalue1 = hashValueFactory.instance();
+		HK hashkey2 = hashKeyFactory.instance();
+		HV hashvalue2 = hashValueFactory.instance();
+
+		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
+
+		hashOperations.getAndExpire(key, Expiration.seconds(120), Arrays.asList(hashkey1, hashkey2)).as(StepVerifier::create)
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(2).containsExactly(hashvalue1, hashvalue2);
+				})
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey1).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		hashOperations.hasKey(key, hashkey2).as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	void getAndExpireNonExistentKey() {
+
+		assumeThat(hashKeyFactory instanceof StringObjectFactory && hashValueFactory instanceof StringObjectFactory)
+				.isTrue();
+
+		K key = keyFactory.instance();
+		HK hashkey1 = hashKeyFactory.instance();
+
+		hashOperations.getAndExpire(key, Expiration.seconds(60), Arrays.asList(hashkey1)).as(StepVerifier::create)
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(1).containsExactly((HV) null);
 				})
