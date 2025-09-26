@@ -31,7 +31,7 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.XstreamOxmSerializerSingleton;
@@ -49,7 +49,7 @@ public abstract class CollectionTestParams {
 
 		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
-		Jackson3JsonRedisSerializer<Person> jackson3JsonSerializer = new Jackson3JsonRedisSerializer<>(Person.class);
+		JacksonJsonRedisSerializer<Person> jackson3JsonSerializer = new JacksonJsonRedisSerializer<>(Person.class);
 		StringRedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
 
 		// create Jedis Factory

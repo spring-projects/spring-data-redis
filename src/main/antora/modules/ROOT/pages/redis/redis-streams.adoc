@@ -291,7 +291,7 @@ You may provide a `HashMapper` suitable for your requirements when obtaining `St
 [source,java]
 ----
 redisTemplate()
-    .opsForStream(new Jackson3HashMapper(true))
+    .opsForStream(new JacksonHashMapper(true))
     .add(record); <1>
 ----
 <1> XADD user-logon * "firstname" "night" "@class" "com.example.User" "lastname" "angel"

@@ -74,7 +74,7 @@ class Jackson2JsonRedisSerializerTests {
 	void shouldConsiderWriter() {
 
 		serializer = new Jackson2JsonRedisSerializer<>(new ObjectMapper(),
-				TypeFactory.defaultInstance().constructType(Person.class), JacksonObjectReader.create(),
+				TypeFactory.defaultInstance().constructType(Person.class), Jackson2ObjectReader.create(),
 				(mapper, source) -> "foo".getBytes());
 		Person person = new PersonObjectFactory().instance();
 		assertThat(serializer.serialize(person)).isEqualTo("foo".getBytes());

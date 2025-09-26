@@ -23,18 +23,18 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.data.redis.hash.Jackson3HashMapper;
+import org.springframework.data.redis.hash.JacksonHashMapper;
 
 /**
- * Unit tests for {@link Jackson3HashMapper} using hierarchical mode.
+ * Unit tests for {@link JacksonHashMapper} using hierarchical mode.
  *
  * @author Christoph Strobl
  * @author John Blum
  */
-class Jackson3HashMapperNonFlatteningUnitTests extends Jackson3HashMapperUnitTests {
+class JacksonHashMapperNonFlatteningUnitTests extends JacksonHashMapperUnitTests {
 
-	Jackson3HashMapperNonFlatteningUnitTests() {
-		super(Jackson3HashMapper.hierarchical());
+	JacksonHashMapperNonFlatteningUnitTests() {
+		super(JacksonHashMapper.hierarchical());
 	}
 
 	@Test // GH-2593

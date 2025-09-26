@@ -64,20 +64,20 @@ import com.fasterxml.jackson.core.TreeNode;
 /**
  * Generic Jackson 3-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON}.
  * <p>
- * {@literal JSON} reading and writing can be customized by configuring a {@link Jackson3ObjectReader} and
- * {@link Jackson3ObjectWriter}.
+ * {@literal JSON} reading and writing can be customized by configuring a {@link JacksonObjectReader} and
+ * {@link JacksonObjectWriter}.
  *
  * @author Christoph Strobl
- * @see Jackson3ObjectReader
- * @see Jackson3ObjectWriter
+ * @see JacksonObjectReader
+ * @see JacksonObjectWriter
  * @see ObjectMapper
  * @since 4.0
  */
-public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Object> {
+public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object> {
 
-	private final Jackson3ObjectReader reader;
+	private final JacksonObjectReader reader;
 
-	private final Jackson3ObjectWriter writer;
+	private final JacksonObjectWriter writer;
 
 	private final Lazy<Boolean> defaultTypingEnabled;
 
@@ -86,24 +86,24 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	private final TypeResolver typeResolver;
 
 	/**
-	 * Create a {@link GenericJackson3JsonRedisSerializer} with a custom-configured {@link ObjectMapper}.
+	 * Create a {@link GenericJacksonJsonRedisSerializer} with a custom-configured {@link ObjectMapper}.
 	 *
 	 * @param mapper must not be {@literal null}.
 	 */
-	public GenericJackson3JsonRedisSerializer(ObjectMapper mapper) {
-		this(mapper, Jackson3ObjectReader.create(), Jackson3ObjectWriter.create());
+	public GenericJacksonJsonRedisSerializer(ObjectMapper mapper) {
+		this(mapper, JacksonObjectReader.create(), JacksonObjectWriter.create());
 	}
 
 	/**
-	 * Create a {@link GenericJackson3JsonRedisSerializer} with a custom-configured {@link ObjectMapper} considering
-	 * potential Object/{@link Jackson3ObjectReader -reader} and {@link Jackson3ObjectWriter -writer}.
+	 * Create a {@link GenericJacksonJsonRedisSerializer} with a custom-configured {@link ObjectMapper} considering
+	 * potential Object/{@link JacksonObjectReader -reader} and {@link JacksonObjectWriter -writer}.
 	 *
 	 * @param mapper must not be {@literal null}.
-	 * @param reader the {@link Jackson3ObjectReader} function to read objects using {@link ObjectMapper}.
-	 * @param writer the {@link Jackson3ObjectWriter} function to write objects using {@link ObjectMapper}.
+	 * @param reader the {@link JacksonObjectReader} function to read objects using {@link ObjectMapper}.
+	 * @param writer the {@link JacksonObjectWriter} function to write objects using {@link ObjectMapper}.
 	 */
-	protected GenericJackson3JsonRedisSerializer(ObjectMapper mapper, Jackson3ObjectReader reader,
-			Jackson3ObjectWriter writer) {
+	protected GenericJacksonJsonRedisSerializer(ObjectMapper mapper, JacksonObjectReader reader,
+			JacksonObjectWriter writer) {
 
 		Assert.notNull(mapper, "ObjectMapper must not be null");
 		Assert.notNull(reader, "Reader must not be null");
@@ -120,45 +120,45 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * Prepare a new {@link GenericJackson3JsonRedisSerializer} instance.
+	 * Prepare a new {@link GenericJacksonJsonRedisSerializer} instance.
 	 *
-	 * @param configurer the configurer for {@link GenericJackson3JsonRedisSerializerBuilder}.
-	 * @return new instance of {@link GenericJackson3JsonRedisSerializer}.
+	 * @param configurer the configurer for {@link GenericJacksonJsonRedisSerializerBuilder}.
+	 * @return new instance of {@link GenericJacksonJsonRedisSerializer}.
 	 */
-	public static GenericJackson3JsonRedisSerializer create(
-			Consumer<GenericJackson3JsonRedisSerializerBuilder<JsonMapper.Builder>> configurer) {
+	public static GenericJacksonJsonRedisSerializer create(
+			Consumer<GenericJacksonJsonRedisSerializerBuilder<JsonMapper.Builder>> configurer) {
 
 		Assert.notNull(configurer, "Builder configurer must not be null");
 
-		GenericJackson3JsonRedisSerializerBuilder<JsonMapper.Builder> builder = builder();
+		GenericJacksonJsonRedisSerializerBuilder<JsonMapper.Builder> builder = builder();
 		configurer.accept(builder);
 		return builder.build();
 	}
 
 	/**
-	 * Creates a new {@link GenericJackson3JsonRedisSerializerBuilder} to configure and build a
-	 * {@link GenericJackson3JsonRedisSerializer} using {@link JsonMapper}.
+	 * Creates a new {@link GenericJacksonJsonRedisSerializerBuilder} to configure and build a
+	 * {@link GenericJacksonJsonRedisSerializer} using {@link JsonMapper}.
 	 *
-	 * @return a new {@link GenericJackson3JsonRedisSerializerBuilder}.
+	 * @return a new {@link GenericJacksonJsonRedisSerializerBuilder}.
 	 */
-	public static GenericJackson3JsonRedisSerializerBuilder<JsonMapper.Builder> builder() {
+	public static GenericJacksonJsonRedisSerializerBuilder<JsonMapper.Builder> builder() {
 		return builder(JsonMapper::builder);
 	}
 
 	/**
-	 * Creates a new {@link GenericJackson3JsonRedisSerializerBuilder} to configure and build a
-	 * {@link GenericJackson3JsonRedisSerializer}.
+	 * Creates a new {@link GenericJacksonJsonRedisSerializerBuilder} to configure and build a
+	 * {@link GenericJacksonJsonRedisSerializer}.
 	 *
 	 * @param builderFactory factory to create a {@link MapperBuilder} for the {@link ObjectMapper}.
 	 * @param <B> type of the {@link MapperBuilder} to use.
-	 * @return a new {@link GenericJackson3JsonRedisSerializerBuilder}.
+	 * @return a new {@link GenericJacksonJsonRedisSerializerBuilder}.
 	 */
-	public static <B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> GenericJackson3JsonRedisSerializerBuilder<B> builder(
+	public static <B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> GenericJacksonJsonRedisSerializerBuilder<B> builder(
 			Supplier<B> builderFactory) {
 
 		Assert.notNull(builderFactory, "MapperBuilder Factory must not be null");
 
-		return new GenericJackson3JsonRedisSerializerBuilder<>(builderFactory);
+		return new GenericJacksonJsonRedisSerializerBuilder<>(builderFactory);
 	}
 
 	@Override
@@ -254,14 +254,14 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * {@link GenericJackson3JsonRedisSerializerBuilder} wraps around a {@link JsonMapper.Builder} providing dedicated
+	 * {@link GenericJacksonJsonRedisSerializerBuilder} wraps around a {@link JsonMapper.Builder} providing dedicated
 	 * methods to configure aspects like {@link NullValue} serialization strategy for the resulting {@link ObjectMapper}
-	 * to be used with {@link GenericJackson3JsonRedisSerializer} as well as potential Object/{@link Jackson3ObjectReader
-	 * -reader} and {@link Jackson3ObjectWriter -writer} settings.
+	 * to be used with {@link GenericJacksonJsonRedisSerializer} as well as potential Object/{@link JacksonObjectReader
+	 * -reader} and {@link JacksonObjectWriter -writer} settings.
 	 *
 	 * @param <B> type of the {@link MapperBuilder}.
 	 */
-	public static class GenericJackson3JsonRedisSerializerBuilder<B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> {
+	public static class GenericJacksonJsonRedisSerializerBuilder<B extends MapperBuilder<? extends ObjectMapper, ? extends MapperBuilder<?, ?>>> {
 
 		private final Supplier<B> builderFactory;
 
@@ -271,10 +271,10 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		private PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
 				.allowIfBaseType(Object.class).allowIfSubType((ctx, clazz) -> true).build();
 		private Consumer<B> mapperBuilderCustomizer = (b) -> {};
-		private Jackson3ObjectWriter writer = Jackson3ObjectWriter.create();
-		private Jackson3ObjectReader reader = Jackson3ObjectReader.create();
+		private JacksonObjectWriter writer = JacksonObjectWriter.create();
+		private JacksonObjectReader reader = JacksonObjectReader.create();
 
-		private GenericJackson3JsonRedisSerializerBuilder(Supplier<B> builderFactory) {
+		private GenericJacksonJsonRedisSerializerBuilder(Supplier<B> builderFactory) {
 			this.builderFactory = builderFactory;
 		}
 
@@ -287,7 +287,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return this.
 		 */
 		@Contract("-> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> enableSpringCacheNullValueSupport() {
+		public GenericJacksonJsonRedisSerializerBuilder<B> enableSpringCacheNullValueSupport() {
 
 			this.cacheNullValueSupportEnabled = true;
 			return this;
@@ -302,7 +302,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> enableSpringCacheNullValueSupport(String typePropertyName) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> enableSpringCacheNullValueSupport(String typePropertyName) {
 
 			typePropertyName(typePropertyName);
 			return enableSpringCacheNullValueSupport();
@@ -321,7 +321,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 *      "https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data">https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data</a>
 		 */
 		@Contract("-> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> enableUnsafeDefaultTyping() {
+		public GenericJacksonJsonRedisSerializerBuilder<B> enableUnsafeDefaultTyping() {
 
 			this.defaultTyping = true;
 			return this;
@@ -335,7 +335,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> enableDefaultTyping(PolymorphicTypeValidator typeValidator) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> enableDefaultTyping(PolymorphicTypeValidator typeValidator) {
 
 			typeValidator(typeValidator);
 
@@ -350,7 +350,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> typeValidator(PolymorphicTypeValidator typeValidator) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> typeValidator(PolymorphicTypeValidator typeValidator) {
 
 			Assert.notNull(typeValidator, "Type validator must not be null");
 
@@ -364,7 +364,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> typePropertyName(String typePropertyName) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> typePropertyName(String typePropertyName) {
 
 			Assert.hasText(typePropertyName, "Property name must not be null or empty");
 
@@ -373,13 +373,13 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		/**
-		 * Configures the {@link Jackson3ObjectWriter}.
+		 * Configures the {@link JacksonObjectWriter}.
 		 *
 		 * @param writer must not be {@literal null}.
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> writer(Jackson3ObjectWriter writer) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> writer(JacksonObjectWriter writer) {
 
 			Assert.notNull(writer, "Jackson3ObjectWriter must not be null");
 
@@ -388,13 +388,13 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		/**
-		 * Configures the {@link Jackson3ObjectReader}.
+		 * Configures the {@link JacksonObjectReader}.
 		 *
 		 * @param reader must not be {@literal null}.
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> reader(Jackson3ObjectReader reader) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> reader(JacksonObjectReader reader) {
 
 			Assert.notNull(reader, "Jackson3ObjectReader must not be null");
 
@@ -409,7 +409,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		 * @return {@code this} builder.
 		 */
 		@Contract("_ -> this")
-		public GenericJackson3JsonRedisSerializerBuilder<B> customize(Consumer<B> mapperBuilderCustomizer) {
+		public GenericJacksonJsonRedisSerializerBuilder<B> customize(Consumer<B> mapperBuilderCustomizer) {
 
 			Assert.notNull(mapperBuilderCustomizer, "JSON mapper configurer must not be null");
 
@@ -418,19 +418,19 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		}
 
 		/**
-		 * Build a new {@link GenericJackson3JsonRedisSerializer} instance using the configured settings.
+		 * Build a new {@link GenericJacksonJsonRedisSerializer} instance using the configured settings.
 		 *
-		 * @return a new {@link GenericJackson3JsonRedisSerializer} instance.
+		 * @return a new {@link GenericJacksonJsonRedisSerializer} instance.
 		 */
 		@Contract("-> new")
-		public GenericJackson3JsonRedisSerializer build() {
+		public GenericJacksonJsonRedisSerializer build() {
 
 			B mapperBuilder = builderFactory.get();
 
 			if (cacheNullValueSupportEnabled) {
 
 				String typePropertyName = StringUtils.hasText(this.typePropertyName) ? this.typePropertyName : "@class";
-				mapperBuilder.addModules(new GenericJackson3RedisSerializerModule(() -> {
+				mapperBuilder.addModules(new GenericJacksonRedisSerializerModule(() -> {
 					tools.jackson.databind.jsontype.TypeResolverBuilder<?> defaultTyper = mapperBuilder.baseSettings()
 							.getDefaultTyper();
 					if (defaultTyper instanceof StdTypeResolverBuilder stdTypeResolverBuilder) {
@@ -442,7 +442,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 
 			if (defaultTyping) {
 
-				GenericJackson3JsonRedisSerializer.TypeResolverBuilder resolver = new GenericJackson3JsonRedisSerializer.TypeResolverBuilder(
+				GenericJacksonJsonRedisSerializer.TypeResolverBuilder resolver = new GenericJacksonJsonRedisSerializer.TypeResolverBuilder(
 						typeValidator, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY, JsonTypeInfo.Id.CLASS, typePropertyName);
 
 				mapperBuilder.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
@@ -452,7 +452,7 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 
 			mapperBuilderCustomizer.accept(mapperBuilder);
 
-			return new GenericJackson3JsonRedisSerializer(mapperBuilder.build(), reader, writer);
+			return new GenericJacksonJsonRedisSerializer(mapperBuilder.build(), reader, writer);
 		}
 
 	}
@@ -570,11 +570,11 @@ public class GenericJackson3JsonRedisSerializer implements RedisSerializer<Objec
 		}
 	}
 
-	private static class GenericJackson3RedisSerializerModule extends JacksonModule {
+	private static class GenericJacksonRedisSerializerModule extends JacksonModule {
 
 		private final Supplier<String> classIdentifier;
 
-		GenericJackson3RedisSerializerModule(Supplier<String> classIdentifier) {
+		GenericJacksonRedisSerializerModule(Supplier<String> classIdentifier) {
 			this.classIdentifier = classIdentifier;
 		}
 

@@ -365,7 +365,7 @@ Multiple implementations are available (including two that have been already men
 * javadoc:org.springframework.data.redis.serializer.JdkSerializationRedisSerializer[], which is used by default for javadoc:org.springframework.data.redis.cache.RedisCache[] and javadoc:org.springframework.data.redis.core.RedisTemplate[].
 * the `StringRedisSerializer`.
 
-However, one can use `OxmSerializer` for Object/XML mapping through Spring {spring-framework-docs}/data-access.html#oxm[OXM] support or javadoc:org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer[] or javadoc:org.springframework.data.redis.serializer.GenericJackson3JsonRedisSerializer[] for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
+However, one can use `OxmSerializer` for Object/XML mapping through Spring {spring-framework-docs}/data-access.html#oxm[OXM] support or javadoc:org.springframework.data.redis.serializer.JacksonJsonRedisSerializer[] or javadoc:org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer[] for storing data in https://en.wikipedia.org/wiki/JSON[JSON] format.
 
 Do note that the storage format is not limited only to values.
 It can be used for keys, values, or hashes without any restrictions.
