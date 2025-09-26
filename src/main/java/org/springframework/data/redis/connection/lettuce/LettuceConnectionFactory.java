@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
@@ -64,7 +65,6 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConfiguration.ClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex;
 import org.springframework.data.redis.connection.RedisConfiguration.WithPassword;
-import org.springframework.data.util.Optionals;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -1194,8 +1194,13 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 
 		doInLock(() -> {
 
-			Optionals.toStream(Optional.ofNullable(this.connection), Optional.ofNullable(this.reactiveConnection))
-					.forEach(SharedConnection::resetConnection);
+			if (this.connection != null) {
+				this.connection.resetConnection();
+			}
+
+			if (this.reactiveConnection != null) {
+				this.reactiveConnection.resetConnection();
+			}
 
 			this.connection = null;
 			this.reactiveConnection = null;
