@@ -20,10 +20,10 @@ pipeline {
 	stages {
 		stage("Docker Images") {
 			parallel {
-				stage('Publish JDK 17 + Redis 6.2 Docker Image') {
+				stage('Publish JDK 25 + Redis 6.2 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk17-redis-6.2/Dockerfile"
+							changeset "ci/openjdk25-redis-6.2/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -33,17 +33,17 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.6.version']} -f ci/openjdk17-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.6.version']} -f ci/openjdk25-redis-6.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
 						}
 					}
 				}
-				stage('Publish JDK 17 + Redis 7.2 Docker Image') {
+				stage('Publish JDK 25 + Redis 7.2 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk17-redis-7.2/Dockerfile"
+							changeset "ci/openjdk25-redis-7.2/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -53,17 +53,17 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.7.version']} -f ci/openjdk17-redis-7.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.7.version']} -f ci/openjdk25-redis-7.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
 						}
 					}
 				}
-				stage('Publish JDK 17 + Valkey 8.0 Docker Image') {
+				stage('Publish JDK 25 + Valkey 8.0 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk17-valkey-8.0/Dockerfile"
+							changeset "ci/openjdk25-valkey-8.0/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -73,27 +73,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-valkey-8.0:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.valkey.8.version']} -f ci/openjdk17-valkey-8.0/Dockerfile .")
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								image.push()
-							}
-						}
-					}
-				}
-				stage('Publish JDK 21 + Redis 6.2 Docker Image') {
-					when {
-						anyOf {
-							changeset "ci/openjdk21-redis-6.2/Dockerfile"
-							changeset "Makefile"
-							changeset "ci/pipeline.properties"
-						}
-					}
-					agent { label 'data' }
-					options { timeout(time: 20, unit: 'MINUTES') }
-
-					steps {
-						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.next.tag']}", "--build-arg BASE=${p['docker.java.next.image']} --build-arg VERSION=${p['docker.redis.6.version']} -f ci/openjdk21-redis-6.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-valkey-8.0:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.valkey.8.version']} -f ci/openjdk25-valkey-8.0/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
