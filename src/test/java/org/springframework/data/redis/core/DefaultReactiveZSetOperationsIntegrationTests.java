@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -51,6 +52,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Andrey Shlykov
+ * @author Seongil Kim
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -200,6 +202,20 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.rank(key, value1).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
+	@Test
+	void rankWithScore() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.rankWithScore(key, value1).as(StepVerifier::create)
+				.expectNext(new RankAndScore(1L, 42.1)).verifyComplete();
+	}
+
 	@Test // DATAREDIS-602
 	void reverseRank() {
 
@@ -211,6 +227,20 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
 
 		zSetOperations.reverseRank(key, value1).as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Test
+	void reverseRankWithScore() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		zSetOperations.add(key, value1, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
+		zSetOperations.add(key, value2, 10).as(StepVerifier::create).expectNext(true).verifyComplete();
+
+		zSetOperations.reverseRankWithScore(key, value1).as(StepVerifier::create)
+				.expectNext(new RankAndScore(0L, 42.1)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

@@ -29,11 +29,13 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 
 /**
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Ninad Divadkar
+ * @author Seongil Kim
  */
 public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConnectionTests {
 
@@ -1227,9 +1229,21 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
+	public void testZRankWithScoreBytes() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).exec();
+		super.testZRankWithScoreBytes();
+	}
+
+	@Test
 	public void testZRank() {
 		doReturn(Collections.singletonList(5L)).when(nativeConnection).exec();
 		super.testZRank();
+	}
+
+	@Test
+	public void testZRankWithScore() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).exec();
+		super.testZRankWithScore();
 	}
 
 	@Test
@@ -1299,9 +1313,21 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
+	public void testZRevRankWithScoreBytes() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).exec();
+		super.testZRevRankWithScoreBytes();
+	}
+
+	@Test
 	public void testZRevRank() {
 		doReturn(Collections.singletonList(5L)).when(nativeConnection).exec();
 		super.testZRevRank();
+	}
+
+	@Test
+	public void testZRevRankWithScore() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).exec();
+		super.testZRevRankWithScore();
 	}
 
 	@Test

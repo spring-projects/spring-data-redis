@@ -53,6 +53,7 @@ import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.KeyScanOptions;
 import org.springframework.data.redis.core.ScanOptions;
@@ -82,6 +83,7 @@ import org.springframework.util.StringUtils;
  * @author Vikas Garg
  * @author John Blum
  * @author Roman Osadchuk
+ * @author Seongil Kim
  */
 @SuppressWarnings("ConstantConditions")
 public abstract class LettuceConverters extends Converters {
@@ -847,6 +849,13 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	static long getUpperBoundIndex(org.springframework.data.domain.Range<Long> range) {
 		return getUpperBound(range).orElse(INDEXED_RANGE_END);
+	}
+
+	public static RankAndScore toRankAndScore(@Nullable ScoredValue<Long> source) {
+
+		return source != null && source.hasValue()
+				? new RankAndScore(source.getValue(), source.getScore())
+				: null;
 	}
 
 	static LMoveArgs toLmoveArgs(Enum<?> from, Enum<?> to) {

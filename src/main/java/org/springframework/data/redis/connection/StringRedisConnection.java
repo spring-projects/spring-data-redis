@@ -45,6 +45,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -73,7 +74,9 @@ import org.springframework.util.CollectionUtils;
  * @author Andrey Shlykov
  * @author ihaohong
  * @author Shyngys Sapraliyev
+ * @author Seongil Kim
  * @author Jeonggyu Choi
+ * @author Seongil Kim
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -1393,6 +1396,17 @@ public interface StringRedisConnection extends RedisConnection {
 	Long zRank(@NonNull String key, String value);
 
 	/**
+	 * Determine the index and score of element with {@code value} in a sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value the value.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 * @see RedisZSetCommands#zRankWithScore(byte[], byte[])
+	 */
+	RankAndScore zRankWithScore(String key, String value);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param key must not be {@literal null}.
@@ -1402,6 +1416,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisZSetCommands#zRevRank(byte[], byte[])
 	 */
 	Long zRevRank(@NonNull String key, String value);
+
+	/**
+	 * Determine the index and score of element with {@code value} in a sorted set when scored high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value the value.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 * @see RedisZSetCommands#zRevRankWithScore(byte[], byte[])
+	 */
+	RankAndScore zRevRankWithScore(String key, String value);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.

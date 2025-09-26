@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -45,6 +46,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Andrey Shlykov
+ * @author Seongil Kim
  * @see <a href="https://redis.io/commands#zset">Redis Documentation: Sorted Set Commands</a>
  * @since 2.0
  */
@@ -172,6 +174,16 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Long> rank(@NonNull K key, @NonNull Object o);
 
 	/**
+	 * Determine the index and score of element with {@code value} in a sorted set.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o the value.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
+	 */
+	Mono<RankAndScore> rankWithScore(K key, Object o);
+
+	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param key must not be {@literal null}.
@@ -180,6 +192,16 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
 	Mono<Long> reverseRank(@NonNull K key, @NonNull Object o);
+
+	/**
+	 * Determine the index and score of element with {@code value} in a sorted set when scored high to low.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o the value.
+	 * @return
+	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
+	 */
+	Mono<RankAndScore> reverseRankWithScore(K key, Object o);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.
