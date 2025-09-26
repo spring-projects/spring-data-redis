@@ -219,19 +219,21 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte @NonNull []> bLPop(int timeout, byte @NonNull []... keys) {
+	public List<byte @NonNull []> bLPop(double t, byte @NonNull []... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
+		int timeout = (int)t;
 
 		return connection.invoke().just(j -> j.blpop(timeout, keys), j -> j.blpop(timeout, keys));
 	}
 
 	@Override
-	public List<byte @NonNull []> bRPop(int timeout, byte @NonNull []... keys) {
+	public List<byte @NonNull []> bRPop(double t, byte @NonNull []... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
+		int timeout = (int) t;
 
 		return connection.invoke().just(j -> j.brpop(timeout, keys), j -> j.brpop(timeout, keys));
 	}
@@ -246,10 +248,11 @@ class JedisListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
+	public byte[] bRPopLPush(double t, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
+		int timeout = (int) t;
 
 		return connection.invoke().just(JedisBinaryCommands::brpoplpush, PipelineBinaryCommands::brpoplpush, srcKey, dstKey,
 				timeout);
