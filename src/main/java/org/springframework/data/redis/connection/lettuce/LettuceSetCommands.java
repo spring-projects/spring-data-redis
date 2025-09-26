@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  * @since 2.0
  */
 @NullUnmarked
@@ -104,6 +105,15 @@ class LettuceSetCommands implements RedisSetCommands {
 		Assert.noNullElements(keys, "Source keys must not contain null elements");
 
 		return connection.invoke().just(RedisSetAsyncCommands::sinterstore, destKey, keys);
+	}
+
+	@Override
+	public Long sInterCard(byte @NonNull [] @NonNull... keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+		Assert.noNullElements(keys, "Keys must not contain null elements");
+
+		return connection.invoke().just(RedisSetAsyncCommands::sintercard, keys);
 	}
 
 	@Override

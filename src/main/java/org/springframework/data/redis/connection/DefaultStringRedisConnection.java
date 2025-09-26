@@ -82,6 +82,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
+ * @author Mingi Lee
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -830,6 +831,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		return convertAndReturn(delegate.sInterStore(destKey, keys), Converters.identityConverter());
+	}
+
+	@Override
+	public Long sInterCard(byte[]... keys) {
+		return convertAndReturn(delegate.sInterCard(keys), Converters.identityConverter());
 	}
 
 	@Override
@@ -1822,6 +1828,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long sInterStore(String destKey, String... keys) {
 		return sInterStore(serialize(destKey), serializeMulti(keys));
+	}
+
+	@Override
+	public Long sInterCard(String... keys) {
+		return sInterCard(serializeMulti(keys));
 	}
 
 	@Override
