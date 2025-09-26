@@ -239,4 +239,15 @@ class RedisMessageListenerContainerUnitTests {
 
 		assertThatNoException().isThrownBy(() -> container.removeMessageListener(null, Collections.singletonList(topic)));
 	}
+
+    @Test // GH-3208
+    void defaultPhaseShouldBeMaxValue() {
+        assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
+    }
+
+    @Test // GH-3208
+    void shouldApplyConfiguredPhase() {
+        container.setPhase(3208);
+        assertThat(container.getPhase()).isEqualTo(3208);
+    }
 }
