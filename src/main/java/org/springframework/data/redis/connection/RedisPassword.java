@@ -142,11 +142,6 @@ public class RedisPassword {
 	}
 
 	@Override
-	public String toString() {
-		return "%s[%s]".formatted(getClass().getSimpleName(), isPresent() ? "*****" : "<none>");
-	}
-
-	@Override
 	public boolean equals(@Nullable Object o) {
 
 		if (this == o)
@@ -163,4 +158,10 @@ public class RedisPassword {
 	public int hashCode() {
 		return ObjectUtils.nullSafeHashCode(thePassword);
 	}
+
+	@Override
+	public String toString() {
+		return "%s[%s]".formatted(getClass().getSimpleName(), isPresent() ? "*****" : "<none>");
+	}
+
 }

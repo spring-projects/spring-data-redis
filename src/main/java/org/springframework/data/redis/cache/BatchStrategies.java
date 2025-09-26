@@ -22,9 +22,11 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisKeyCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Collection of predefined {@link BatchStrategy} implementations using the Redis {@code KEYS} or {@code SCAN} command.
@@ -81,13 +83,13 @@ public abstract class BatchStrategies {
 
 			RedisKeyCommands commands = connection.keyCommands();
 
-            Set<byte[]> keys = commands.keys(pattern);
+			Set<byte[]> keys = commands.keys(pattern);
 
-            if (keys == null || keys.isEmpty()) {
-                return 0;
-            }
+			if (CollectionUtils.isEmpty(keys)) {
+				return 0;
+			}
 
-            commands.del(keys.toArray(new byte[0][]));
+			commands.del(keys.toArray(new byte[0][]));
 
 			return keys.size();
 		}

@@ -118,7 +118,6 @@ public class QueryByExampleRedisExecutor<T>
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
-
 		return Optional.ofNullable(doFindOne(example));
 	}
 
