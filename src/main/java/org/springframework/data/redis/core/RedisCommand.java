@@ -292,12 +292,16 @@ public enum RedisCommand {
 	ZINTERSTORE("rw", 3), //
 	ZRANGE("r", 3), //
 	ZRANGEBYSCORE("r", 3), //
+	ZRANGEWITHSCORES("r", 3), //
+	ZRANGEBYSCOREWITHSCORES("r", 2), //
 	ZRANK("r", 2, 2), //
 	ZREM("rw", 2), //
 	ZREMRANGEBYRANK("rw", 3, 3), //
 	ZREMRANGEBYSCORE("rw", 3, 3), //
 	ZREVRANGE("r", 3), //
 	ZREVRANGEBYSCORE("r", 3), //
+	ZREVRANGEWITHSCORES("r", 3), //
+	ZREVRANGEBYSCOREWITHSCORES("r", 2), //
 	ZREVRANK("r", 2, 2), //
 	ZSCORE("r", 2, 2), //
 	ZUNIONSTORE("rw", 3), //
