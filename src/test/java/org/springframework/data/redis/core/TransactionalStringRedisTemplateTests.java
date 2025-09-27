@@ -49,6 +49,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Transactional integration tests for {@link StringRedisTemplate}.
  *
  * @author Christoph Strobl
+ * @author LeeHyungGeol
  */
 @ParameterizedClass
 @MethodSource("argumentsStream")
@@ -114,6 +115,35 @@ class TransactionalStringRedisTemplateTests {
 
 		assertThat(result).containsEntry("isMember(outside)", true).containsEntry("add", null)
 				.containsEntry("isMember(inside)", false);
+	}
+
+	@Test // GH-3187
+	void allRangeWithScoresMethodsInTransactionShouldNotReturnNull() throws SQLException {
+
+		DataSource ds = mock(DataSource.class);
+		when(ds.getConnection()).thenReturn(mock(Connection.class));
+
+		DataSourceTransactionManager txMgr = new DataSourceTransactionManager(ds);
+		TransactionTemplate txTemplate = new TransactionTemplate(txMgr);
+		txTemplate.afterPropertiesSet();
+
+		stringTemplate.opsForZSet().add("testzset", "member1", 1.0);
+		stringTemplate.opsForZSet().add("testzset", "member2", 2.0);
+
+		Map<String, Object> result = txTemplate.execute(x -> {
+			Map<String, Object> ops = new LinkedHashMap<>();
+			ops.put("rangeWithScores", stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
+			ops.put("reverseRangeWithScores", stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
+			ops.put("rangeByScoreWithScores", stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 2.0));
+			ops.put("reverseRangeByScoreWithScores", stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 2.0));
+			return ops;
+		});
+
+		// Issue #3187: All should return data, not null
+		assertThat(result.get("rangeWithScores")).isNotNull();
+		assertThat(result.get("reverseRangeWithScores")).isNotNull();
+		assertThat(result.get("rangeByScoreWithScores")).isNotNull();
+		assertThat(result.get("reverseRangeByScoreWithScores")).isNotNull();
 	}
 
 	static Stream<Arguments> argumentsStream() {
