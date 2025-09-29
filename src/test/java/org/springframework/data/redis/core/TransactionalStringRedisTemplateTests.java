@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.sql.DataSource;
@@ -42,6 +43,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -117,8 +119,9 @@ class TransactionalStringRedisTemplateTests {
 				.containsEntry("isMember(inside)", false);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test // GH-3187
-	void allRangeWithScoresMethodsInTransactionShouldNotReturnNull() throws SQLException {
+	void allRangeWithScoresMethodsShouldExecuteImmediatelyInTransaction() throws SQLException {
 
 		DataSource ds = mock(DataSource.class);
 		when(ds.getConnection()).thenReturn(mock(Connection.class));
@@ -127,23 +130,83 @@ class TransactionalStringRedisTemplateTests {
 		TransactionTemplate txTemplate = new TransactionTemplate(txMgr);
 		txTemplate.afterPropertiesSet();
 
-		stringTemplate.opsForZSet().add("testzset", "member1", 1.0);
-		stringTemplate.opsForZSet().add("testzset", "member2", 2.0);
+		// Add data outside transaction
+		stringTemplate.opsForZSet().add("testzset", "outside1", 1.0);
+		stringTemplate.opsForZSet().add("testzset", "outside2", 2.0);
 
 		Map<String, Object> result = txTemplate.execute(x -> {
 			Map<String, Object> ops = new LinkedHashMap<>();
-			ops.put("rangeWithScores", stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
-			ops.put("reverseRangeWithScores", stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
-			ops.put("rangeByScoreWithScores", stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 2.0));
-			ops.put("reverseRangeByScoreWithScores", stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 2.0));
+
+			// Query data added outside transaction (should execute immediately)
+			ops.put("rangeWithScores_before",
+				stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
+			ops.put("reverseRangeWithScores_before",
+				stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
+			ops.put("rangeByScoreWithScores_before",
+				stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 2.0));
+			ops.put("reverseRangeByScoreWithScores_before",
+				stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 2.0));
+
+			// Add inside transaction (goes into multi/exec queue)
+			ops.put("add_result", stringTemplate.opsForZSet().add("testzset", "inside", 3.0));
+
+			// Changes made inside transaction should not be visible yet (read executes immediately)
+			ops.put("rangeWithScores_after",
+				stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
+			ops.put("reverseRangeWithScores_after",
+				stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
+			ops.put("rangeByScoreWithScores_after",
+				stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 3.0));
+			ops.put("reverseRangeByScoreWithScores_after",
+				stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 3.0));
+
 			return ops;
 		});
 
-		// Issue #3187: All should return data, not null
-		assertThat(result.get("rangeWithScores")).isNotNull();
-		assertThat(result.get("reverseRangeWithScores")).isNotNull();
-		assertThat(result.get("rangeByScoreWithScores")).isNotNull();
-		assertThat(result.get("reverseRangeByScoreWithScores")).isNotNull();
+		// add result is null (no result until exec)
+		assertThat(result).containsEntry("add_result", null);
+
+		// before: only data added outside transaction is visible
+		assertThat((Set<TypedTuple<String>>) result.get("rangeWithScores_before"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside1", "outside2");
+
+		assertThat((Set<TypedTuple<String>>) result.get("reverseRangeWithScores_before"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside2", "outside1");
+
+		assertThat((Set<TypedTuple<String>>) result.get("rangeByScoreWithScores_before"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside1", "outside2");
+
+		assertThat((Set<TypedTuple<String>>) result.get("reverseRangeByScoreWithScores_before"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside2", "outside1");
+
+		// after: changes made inside transaction are still not visible
+		assertThat((Set<TypedTuple<String>>) result.get("rangeWithScores_after"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside1", "outside2");
+
+		assertThat((Set<TypedTuple<String>>) result.get("reverseRangeWithScores_after"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside2", "outside1");
+
+		assertThat((Set<TypedTuple<String>>) result.get("rangeByScoreWithScores_after"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside1", "outside2");
+
+		assertThat((Set<TypedTuple<String>>) result.get("reverseRangeByScoreWithScores_after"))
+			.hasSize(2)
+			.extracting(TypedTuple::getValue)
+			.containsExactly("outside2", "outside1");
 	}
 
 	static Stream<Arguments> argumentsStream() {
