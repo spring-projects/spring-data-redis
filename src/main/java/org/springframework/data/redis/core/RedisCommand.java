@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Oscar Cai
  * @author Sébastien Volle
  * @author John Blum
+ * @author LeeHyungGeol
  * @since 1.3
  * @link <a href=
  *       "https://github.com/antirez/redis/blob/843de8b786562d8d77c78d83a971060adc61f77a/src/server.c#L180">Redis
@@ -282,12 +283,16 @@ public enum RedisCommand {
 	ZINTERSTORE("rw", 3), //
 	ZRANGE("r", 3), //
 	ZRANGEBYSCORE("r", 3), //
+	ZRANGEWITHSCORES("r", 3), //
+	ZRANGEBYSCOREWITHSCORES("r", 2), //
 	ZRANK("r", 2, 2), //
 	ZREM("rw", 2), //
 	ZREMRANGEBYRANK("rw", 3, 3), //
 	ZREMRANGEBYSCORE("rw", 3, 3), //
 	ZREVRANGE("r", 3), //
 	ZREVRANGEBYSCORE("r", 3), //
+	ZREVRANGEWITHSCORES("r", 3), //
+	ZREVRANGEBYSCOREWITHSCORES("r", 2), //
 	ZREVRANK("r", 2, 2), //
 	ZSCORE("r", 2, 2), //
 	ZUNIONSTORE("rw", 3), //
