@@ -633,6 +633,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
      * The default is {@code Integer.MAX_VALUE}.
      *
      * @see SmartLifecycle#getPhase()
+     * @since 4.0
      */
     public void setPhase(int phase) {
         this.phase = phase;
@@ -649,6 +650,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
      * The default is {@code true}.
      *
      * @see SmartLifecycle#isAutoStartup()
+     * @since 4.0
      */
     public void setAutoStartup(boolean autoStartup) {
         this.autoStartup = autoStartup;
