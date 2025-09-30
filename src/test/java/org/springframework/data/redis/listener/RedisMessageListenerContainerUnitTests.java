@@ -250,4 +250,16 @@ class RedisMessageListenerContainerUnitTests {
         container.setPhase(3208);
         assertThat(container.getPhase()).isEqualTo(3208);
     }
+
+    @Test // GH-3208
+    void defaultAutoStartupShouldBeMaxValue() {
+        assertThat(container.isAutoStartup()).isEqualTo(true);
+    }
+
+    @Test // GH-3208
+    void shouldApplyConfiguredAutoStartup() {
+        container.setAutoStartup(false);
+        assertThat(container.isAutoStartup()).isEqualTo(false);
+    }
+
 }

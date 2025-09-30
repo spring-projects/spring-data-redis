@@ -170,6 +170,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private @Nullable Subscriber subscriber;
 
     private int phase = Integer.MAX_VALUE;
+    private boolean autoStartup = true;
 
 	/**
 	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown while processing a Message. By default,
@@ -635,6 +636,22 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
      */
     public void setPhase(int phase) {
         this.phase = phase;
+    }
+
+    @Override
+    public boolean isAutoStartup() {
+        return this.autoStartup;
+    }
+
+    /**
+     * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
+     * the containing ApplicationContext gets refreshed.
+     * The default is {@code true}.
+     *
+     * @see SmartLifecycle#isAutoStartup()
+     */
+    public void setAutoStartup(boolean autoStartup) {
+        this.autoStartup = autoStartup;
     }
 
 	private void initMapping(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
