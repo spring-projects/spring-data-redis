@@ -19,6 +19,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
@@ -50,6 +54,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Han Li
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -159,9 +164,22 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		synchronized (lifecycleMonitor) {
 
 			if (this.running) {
-
-				subscriptions.forEach(Cancelable::cancel);
-
+				subscriptions.stream()
+						.map(subscription -> CompletableFuture.runAsync(() -> {
+							subscription.cancel();
+							while (subscription.isActive()) {
+								// NO-OP
+							}
+						}, taskExecutor))
+						.forEach(f -> {
+							try {
+								f.get(this.containerOptions.getShutdownTimeout().toNanos(), TimeUnit.NANOSECONDS);
+							} catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+							} catch (ExecutionException | TimeoutException e) {
+								// ignore
+							}
+						});
 				running = false;
 			}
 		}
