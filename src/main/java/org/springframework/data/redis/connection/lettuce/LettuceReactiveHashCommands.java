@@ -384,6 +384,23 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
         }));
     }
 
+    @Override
+    public Flux<BooleanResponse<HSetExCommand>> hSetEx(Publisher<HSetExCommand> commands) {
+        return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+            Assert.notNull(command.getKey(), "Key must not be null");
+            Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null");
+
+            Map<ByteBuffer, ByteBuffer> entries = command.getFieldValueMap();
+
+            return cmd.hsetex(command.getKey(),
+                    LettuceConverters.toHSetExArgs(command.getCondition(), command.getExpiration()), entries)
+                    .map(LettuceConverters.longToBooleanConverter()::convert)
+                    .map(value -> new BooleanResponse<>(command, value));
+
+        }));
+    }
+
 	private static Map.Entry<ByteBuffer, ByteBuffer> toEntry(KeyValue<ByteBuffer, ByteBuffer> kv) {
 
 		return new Entry<ByteBuffer, ByteBuffer>() {

@@ -28,6 +28,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 
@@ -102,6 +103,19 @@ public interface HashOperations<H, HK, HV> {
      * @since 4.0
      */
     List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
+
+    /**
+     * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param m must not be {@literal null}.
+     * @param condition is optional.
+     * @param expiration is optional.
+     * @return {@literal null} when used in pipeline / transaction.
+     * @since 4.0
+     */
+    Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
+                         RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.

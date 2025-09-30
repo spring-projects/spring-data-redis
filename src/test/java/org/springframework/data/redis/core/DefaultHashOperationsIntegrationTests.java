@@ -34,6 +34,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.core.ExpireChanges.ExpiryChangeState;
@@ -568,5 +569,165 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		// Test empty fields collection
 		List<HV> result5 = hashOps.getAndExpire(key, Expiration.seconds(60), Collections.emptyList());
 		assertThat(result5).isEmpty();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void testPutAndExpire() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		HK key3 = hashKeyFactory.instance();
+		HV val3 = hashValueFactory.instance();
+
+		// Test UPSERT condition - should always set fields
+		Map<HK, HV> fieldMap1 = Map.of(key1, val1, key2, val2);
+		Boolean result1 = hashOps.putAndExpire(key, fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+		assertThat(result1).isTrue();
+
+		// Verify fields were set and exist
+		assertThat(hashOps.hasKey(key, key1)).isTrue();
+		assertThat(hashOps.hasKey(key, key2)).isTrue();
+		assertThat(hashOps.get(key, key1)).isEqualTo(val1);
+		assertThat(hashOps.get(key, key2)).isEqualTo(val2);
+
+		// Test IF_NONE_EXIST condition - should not change existing fields
+		Map<HK, HV> fieldMap2 = Map.of(key1, val3, key3, val3);
+		Boolean result2 = hashOps.putAndExpire(key, fieldMap2, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(120));
+		assertThat(result2).isFalse();
+
+		// Verify original values unchanged (IF_NONE_EXIST failed because key1 exists)
+		assertThat(hashOps.get(key, key1)).isEqualTo(val1);
+		assertThat(hashOps.hasKey(key, key3)).isFalse();
+
+		// Test IF_ALL_EXIST condition - should succeed because all fields exist
+		Map<HK, HV> fieldMap3 = Map.of(key1, val3, key2, val3);
+		Boolean result3 = hashOps.putAndExpire(key, fieldMap3, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(180));
+		assertThat(result3).isTrue();
+
+		// Verify values were updated
+		assertThat(hashOps.get(key, key1)).isEqualTo(val3);
+		assertThat(hashOps.get(key, key2)).isEqualTo(val3);
+
+		// Test IF_ALL_EXIST condition with non-existent field - should not change anything
+		HK nonExistentKey = hashKeyFactory.instance();
+		Map<HK, HV> fieldMap4 = Map.of(key1, val1, nonExistentKey, val1);
+		Boolean result4 = hashOps.putAndExpire(key, fieldMap4, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+		assertThat(result4).isFalse();
+
+		// Verify values unchanged (IF_ALL_EXIST failed because nonExistentKey doesn't exist)
+		assertThat(hashOps.get(key, key1)).isEqualTo(val3);
+		assertThat(hashOps.hasKey(key, nonExistentKey)).isFalse();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void testBoundHashOperationsPutAndExpire() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		HK key3 = hashKeyFactory.instance();
+		HV val3 = hashValueFactory.instance();
+
+		BoundHashOperations<K, HK, HV> boundHashOps = redisTemplate.boundHashOps(key);
+
+		// Test UPSERT condition - should always set fields
+		Map<HK, HV> fieldMap1 = Map.of(key1, val1, key2, val2);
+		boundHashOps.putAndExpire(fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+
+		// Verify fields were set and exist
+		assertThat(boundHashOps.hasKey(key1)).isTrue();
+		assertThat(boundHashOps.hasKey(key2)).isTrue();
+		assertThat(boundHashOps.get(key1)).isEqualTo(val1);
+		assertThat(boundHashOps.get(key2)).isEqualTo(val2);
+
+		// Test IF_NONE_EXIST condition - should not change existing fields
+		Map<HK, HV> fieldMap2 = Map.of(key1, val3, key3, val3);
+		boundHashOps.putAndExpire(fieldMap2, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(120));
+
+		// Verify original values unchanged (IF_NONE_EXIST failed because key1 exists)
+		assertThat(boundHashOps.get(key1)).isEqualTo(val1);
+		assertThat(boundHashOps.hasKey(key3)).isFalse();
+
+		// Test IF_ALL_EXIST condition - should succeed because all fields exist
+		Map<HK, HV> fieldMap3 = Map.of(key1, val3, key2, val3);
+		boundHashOps.putAndExpire(fieldMap3, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(180));
+
+		// Verify values were updated
+		assertThat(boundHashOps.get(key1)).isEqualTo(val3);
+		assertThat(boundHashOps.get(key2)).isEqualTo(val3);
+
+		// Test IF_ALL_EXIST condition with non-existent field - should not change anything
+		HK nonExistentKey = hashKeyFactory.instance();
+		Map<HK, HV> fieldMap4 = Map.of(key1, val1, nonExistentKey, val1);
+		boundHashOps.putAndExpire(fieldMap4, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+
+		// Verify values unchanged (IF_ALL_EXIST failed because nonExistentKey doesn't exist)
+		assertThat(boundHashOps.get(key1)).isEqualTo(val3);
+		assertThat(boundHashOps.hasKey(nonExistentKey)).isFalse();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void testPutAndExpireWithDifferentExpirationPolicies() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		HK key3 = hashKeyFactory.instance();
+		HV val3 = hashValueFactory.instance();
+		HK key4 = hashKeyFactory.instance();
+		HV val4 = hashValueFactory.instance();
+		HK key5 = hashKeyFactory.instance();
+		HV val5 = hashValueFactory.instance();
+
+		// Test with seconds expiration
+		Map<HK, HV> fieldMap1 = Map.of(key1, val1);
+		Boolean result1 = hashOps.putAndExpire(key, fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+		assertThat(result1).isTrue();
+		assertThat(hashOps.hasKey(key, key1)).isTrue();
+		assertThat(hashOps.get(key, key1)).isEqualTo(val1);
+
+		// Test with milliseconds expiration
+		Map<HK, HV> fieldMap2 = Map.of(key2, val2);
+		Boolean result2 = hashOps.putAndExpire(key, fieldMap2, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.milliseconds(120000));
+		assertThat(result2).isTrue();
+		assertThat(hashOps.hasKey(key, key2)).isTrue();
+		assertThat(hashOps.get(key, key2)).isEqualTo(val2);
+
+		// Test with Duration expiration
+		Map<HK, HV> fieldMap3 = Map.of(key3, val3);
+		Boolean result3 = hashOps.putAndExpire(key, fieldMap3, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.from(Duration.ofMinutes(3)));
+		assertThat(result3).isTrue();
+		assertThat(hashOps.hasKey(key, key3)).isTrue();
+		assertThat(hashOps.get(key, key3)).isEqualTo(val3);
+
+		// Test with unix timestamp expiration (5 minutes from now)
+		long futureTimestamp = System.currentTimeMillis() / 1000 + 300; // 5 minutes from now
+		Map<HK, HV> fieldMap4 = Map.of(key4, val4);
+		Boolean result4 = hashOps.putAndExpire(key, fieldMap4, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.unixTimestamp(futureTimestamp, TimeUnit.SECONDS));
+		assertThat(result4).isTrue();
+		assertThat(hashOps.hasKey(key, key4)).isTrue();
+		assertThat(hashOps.get(key, key4)).isEqualTo(val4);
+
+		// Test with keepTtl expiration (should preserve existing TTL)
+		// First set a field with TTL, then update it with keepTtl
+		hashOps.put(key, key5, val5);
+		hashOps.expire(key, Duration.ofMinutes(4), Arrays.asList(key5)); // Set initial TTL
+
+		Map<HK, HV> fieldMap5 = Map.of(key5, val5);
+		Boolean result5 = hashOps.putAndExpire(key, fieldMap5, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.keepTtl());
+		assertThat(result5).isTrue();
+		assertThat(hashOps.hasKey(key, key5)).isTrue();
+		assertThat(hashOps.get(key, key5)).isEqualTo(val5);
+		// TTL should be preserved (we can't easily test the exact value, but field should still exist)
 	}
 }

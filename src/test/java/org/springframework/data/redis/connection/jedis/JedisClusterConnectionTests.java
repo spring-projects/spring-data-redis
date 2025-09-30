@@ -1391,6 +1391,77 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExUpsertConditionSetsFieldsWithExpiration() {
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+
+		assertThat(result).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(VALUE_2_BYTES);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
+
+		assertThat(result).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(VALUE_2_BYTES);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionFailsWhenSomeFieldsExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_2_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
+
+		assertThat(result).isFalse();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse(); // not set
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionSucceedsWhenAllFieldsExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, "new-value-1".getBytes(), KEY_3_BYTES, "new-value-2".getBytes());
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+
+		assertThat(result).isTrue();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo("new-value-1".getBytes()); // updated
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo("new-value-2".getBytes()); // updated
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionFailsWhenSomeFieldsMissing() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_2_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+
+		assertThat(result).isFalse();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse(); // not set
+	}
+
 	@Test // DATAREDIS-315
 	public void hValsShouldRetrieveValuesCorrectly() {
 

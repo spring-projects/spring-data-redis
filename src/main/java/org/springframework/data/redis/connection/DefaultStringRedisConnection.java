@@ -24,6 +24,7 @@ import java.util.function.IntFunction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
@@ -1620,6 +1621,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
         return convertAndReturn(delegate.hGetEx(serialize(key), expiration, serializeMulti(fields)), byteListToStringList);
     }
 
+    @Override
+    public Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition, Expiration expiration) {
+        return convertAndReturn(delegate.hSetEx(serialize(key), serialize(hashes), condition, expiration), Converters.identityConverter());
+    }
+
 	@Override
 	public Long incr(String key) {
 		return incr(serialize(key));
@@ -2601,6 +2607,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
     @Override
     public List<byte[]> hGetEx(@NotNull byte[] key, Expiration expiration, @NotNull byte[]... fields) {
         return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
+    }
+
+    @Override
+    public Boolean hSetEx(@NotNull byte[] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+        return convertAndReturn(delegate.hSetEx(key, hashes, condition, expiration), Converters.identityConverter());
     }
 
 	public @Nullable List<Long> applyExpiration(String key,

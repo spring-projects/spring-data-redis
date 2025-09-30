@@ -1608,6 +1608,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
         return hashCommands().hGetEx(key, expiration, fields);
     }
 
+    /** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+    @Override
+    @Deprecated
+    default Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+        return hashCommands().hSetEx(key, hashes, condition, expiration);
+    }
+
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated

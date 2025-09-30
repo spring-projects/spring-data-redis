@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.RedisHashCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -94,6 +95,19 @@ public interface ReactiveHashOperations<H, HK, HV> {
      * @since 4.0
      */
     Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys);
+
+    /**
+     * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param map must not be {@literal null}.
+     * @param condition is optional.
+     * @param expiration is optional.
+     * @return never {@literal null}.
+     * @since 4.0
+     */
+    Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition,
+                               Expiration expiration);
 
     /**
      * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the

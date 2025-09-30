@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.types.Expiration;
 import reactor.test.StepVerifier;
 
@@ -489,5 +490,91 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 
 		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void hSetExShouldSetFieldsWithUpsertCondition() {
+
+		Map<ByteBuffer, ByteBuffer> fieldMap = Map.of(FIELD_1_BBUFFER, VALUE_1_BBUFFER, FIELD_2_BBUFFER, VALUE_2_BBUFFER);
+
+		connection.hashCommands().hSetEx(KEY_1_BBUFFER, fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60))
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isTrue();
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.hget(KEY_1, FIELD_2)).isEqualTo(VALUE_2);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void hSetExShouldSucceedWithIfNoneExistWhenNoFieldsExist() {
+
+		Map<ByteBuffer, ByteBuffer> fieldMap = Map.of(FIELD_1_BBUFFER, VALUE_1_BBUFFER, FIELD_2_BBUFFER, VALUE_2_BBUFFER);
+
+		connection.hashCommands().hSetEx(KEY_1_BBUFFER, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60))
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_1)).isTrue();
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isTrue();
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.hget(KEY_1, FIELD_2)).isEqualTo(VALUE_2);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void hSetExShouldFailWithIfNoneExistWhenSomeFieldsExist() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		Map<ByteBuffer, ByteBuffer> fieldMap = Map.of(FIELD_1_BBUFFER, VALUE_2_BBUFFER, FIELD_2_BBUFFER, VALUE_2_BBUFFER);
+
+		connection.hashCommands().hSetEx(KEY_1_BBUFFER, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60))
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_1); // unchanged
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isFalse(); // not set
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void hSetExShouldSucceedWithIfAllExistWhenAllFieldsExist() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
+
+		Map<ByteBuffer, ByteBuffer> fieldMap = Map.of(FIELD_1_BBUFFER, VALUE_3_BBUFFER, FIELD_2_BBUFFER, VALUE_3_BBUFFER);
+
+		connection.hashCommands().hSetEx(KEY_1_BBUFFER, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60))
+				.as(StepVerifier::create)
+				.expectNext(true)
+				.verifyComplete();
+
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_3); // updated
+		assertThat(nativeCommands.hget(KEY_1, FIELD_2)).isEqualTo(VALUE_3); // updated
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	void hSetExShouldFailWithIfAllExistWhenSomeFieldsMissing() {
+
+		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
+
+		Map<ByteBuffer, ByteBuffer> fieldMap = Map.of(FIELD_1_BBUFFER, VALUE_2_BBUFFER, FIELD_2_BBUFFER, VALUE_2_BBUFFER);
+
+		connection.hashCommands().hSetEx(KEY_1_BBUFFER, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60))
+				.as(StepVerifier::create)
+				.expectNext(false)
+				.verifyComplete();
+
+		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_1); // unchanged
+		assertThat(nativeCommands.hexists(KEY_1, FIELD_2)).isFalse(); // not set
 	}
 }

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.RedisHashCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -121,6 +122,16 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
                 .map(this::rawHashKey) //
                 .collectList() //
                 .flatMap(hks -> hashCommands.hGetDel(rawKey(key), hks)).map(this::deserializeHashValues));
+    }
+
+    @Override
+    public Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(map, "Map must not be null");
+
+        return createMono(hashCommands -> Flux.fromIterable(() -> map.entrySet().iterator()) //
+                .collectMap(entry -> rawHashKey(entry.getKey()), entry -> rawHashValue(entry.getValue())) //
+                .flatMap(serialized -> hashCommands.hSetEx(rawKey(key), serialized, condition, expiration)));
     }
 
     @Override

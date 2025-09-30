@@ -1410,4 +1410,101 @@ public interface ReactiveHashCommands {
      * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
      */
     Flux<MultiValueResponse<HGetExCommand, ByteBuffer>> hGetEx(Publisher<HGetExCommand> commands);
+
+    /**
+     * {@literal HSETEX} {@link Command}.
+     *
+     * @author Viktoriya Kutsarova
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    class HSetExCommand extends KeyCommand {
+
+        private final Map<ByteBuffer, ByteBuffer> fieldValueMap;
+        private final RedisHashCommands.HashFieldSetOption condition;
+        private final Expiration expiration;
+
+        private HSetExCommand(@Nullable ByteBuffer key, Map<ByteBuffer, ByteBuffer> fieldValueMap,
+                              RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+            super(key);
+            this.fieldValueMap = fieldValueMap;
+            this.condition = condition;
+            this.expiration = expiration;
+        }
+
+        /**
+         * Creates a new {@link HSetExCommand} for setting field-value pairs with condition and expiration.
+         *
+         * @param fieldValueMap the field-value pairs to set; must not be {@literal null}.
+         * @param condition the condition for setting fields; must not be {@literal null}.
+         * @param expiration the expiration to apply; must not be {@literal null}.
+         * @return new instance of {@link HSetExCommand}.
+         */
+        public static HSetExCommand setWithConditionAndExpiration(Map<ByteBuffer, ByteBuffer> fieldValueMap,
+                                                                  RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+            return new HSetExCommand(null, fieldValueMap, condition, expiration);
+        }
+
+        /**
+         * Applies the hash {@literal key}. Constructs a new command instance with all previously configured properties.
+         *
+         * @param key must not be {@literal null}.
+         * @return a new {@link HSetExCommand} with {@literal key} applied.
+         */
+        public HSetExCommand from(ByteBuffer key) {
+            Assert.notNull(key, "Key must not be null");
+            return new HSetExCommand(key, fieldValueMap, condition, expiration);
+        }
+
+        /**
+         * @return the field-value map.
+         */
+        public Map<ByteBuffer, ByteBuffer> getFieldValueMap() {
+            return fieldValueMap;
+        }
+
+        /**
+         * @return the condition for setting fields.
+         */
+        public RedisHashCommands.HashFieldSetOption getCondition() {
+            return condition;
+        }
+
+        /**
+         * @return the expiration to apply.
+         */
+        public Expiration getExpiration() {
+            return expiration;
+        }
+    }
+
+    /**
+     * Set field-value pairs in hash at {@literal key} with condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param fieldValueMap the field-value pairs to set; must not be {@literal null}.
+     * @param condition the condition for setting fields; must not be {@literal null}.
+     * @param expiration the expiration to apply; must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    default Mono<Boolean> hSetEx(ByteBuffer key, Map<ByteBuffer, ByteBuffer> fieldValueMap,
+                                 RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fieldValueMap, "Field-value map must not be null");
+        Assert.notNull(condition, "Condition must not be null");
+        Assert.notNull(expiration, "Expiration must not be null");
+
+        return hSetEx(Mono.just(HSetExCommand.setWithConditionAndExpiration(fieldValueMap, condition, expiration).from(key)))
+                .next().map(CommandResponse::getOutput);
+    }
+
+    /**
+     * Set field-value pairs in hash at {@literal key} with condition and expiration.
+     *
+     * @param commands must not be {@literal null}.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    Flux<BooleanResponse<HSetExCommand>> hSetEx(Publisher<HSetExCommand> commands);
 }

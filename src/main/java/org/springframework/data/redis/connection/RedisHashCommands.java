@@ -568,4 +568,60 @@ public interface RedisHashCommands {
     List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration,
                                 byte @NonNull [] @NonNull... fields);
 
+    /**
+     * Set field-value pairs in hash at {@literal key} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashes the field-value pairs to set; must not be {@literal null}.
+     * @param hashFieldSetOption the optional condition for setting fields.
+     * @param expiration the optional expiration to apply.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption hashFieldSetOption,
+                   Expiration expiration);
+
+    /**
+     * {@code HSETEX} command arguments for {@code FNX}, {@code FXX}.
+     *
+     * @author Viktoriya Kutsarova
+     */
+    enum HashFieldSetOption {
+
+        /**
+         * Do not set any additional command argument.
+         */
+        UPSERT,
+
+        /**
+         * {@code FNX}
+         */
+        IF_NONE_EXIST,
+
+        /**
+         * {@code FXX}
+         */
+        IF_ALL_EXIST;
+
+        /**
+         * Do not set any additional command argument.
+         */
+        public static HashFieldSetOption upsert() {
+            return UPSERT;
+        }
+
+        /**
+         * {@code FNX}
+         */
+        public static HashFieldSetOption ifNoneExist() {
+            return IF_NONE_EXIST;
+        }
+
+        /**
+         * {@code FXX}
+         */
+        public static HashFieldSetOption ifAllExist() {
+            return IF_ALL_EXIST;
+        }
+    }
 }

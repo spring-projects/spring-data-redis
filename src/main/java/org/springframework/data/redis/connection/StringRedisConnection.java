@@ -2576,6 +2576,20 @@ public interface StringRedisConnection extends RedisConnection {
      */
     List<String> hGetEx(@NonNull String key, Expiration expiration, @NonNull String @NonNull... fields);
 
+    /**
+     * Set field-value pairs in hash at {@literal key} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashes the field-value pairs to set; must not be {@literal null}.
+     * @param condition the optional condition for setting fields.
+     * @param expiration the optional expiration to apply.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     * @see RedisHashCommands#hSetEx(byte[], Map, HashFieldSetOption, Expiration)
+     */
+    Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition,
+                   Expiration expiration);
+
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog
 	// -------------------------------------------------------------------------

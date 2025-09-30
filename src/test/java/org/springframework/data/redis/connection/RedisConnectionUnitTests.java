@@ -453,6 +453,10 @@ class RedisConnectionUnitTests {
             return delegate.hGetEx(key, expiration, fields);
         }
 
+        public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+            return delegate.hSetEx(key, hashes, condition, expiration);
+        }
+
 		public Long zRem(byte[] key, byte[]... values) {
 			return delegate.zRem(key, values);
 		}

@@ -287,6 +287,17 @@ class LettuceHashCommands implements RedisHashCommands {
                 .toList(source -> source.getValueOrElse(null));
     }
 
+    public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
+                          Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(hashes, "Hashes must not be null");
+
+        return connection.invoke().from(RedisHashAsyncCommands::hsetex, key,
+                LettuceConverters.toHSetExArgs(condition, expiration), hashes)
+                .get(LettuceConverters.longToBooleanConverter());
+    }
+
 	/**
 	 * @param key
 	 * @param cursorId

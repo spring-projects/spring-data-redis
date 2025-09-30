@@ -3865,6 +3865,118 @@ public abstract class AbstractConnectionIntegrationTests {
 			Boolean.TRUE));
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExUpsertConditionSetsFieldsWithExpiration() {
+
+		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60)));
+		actual.add(connection.hExists("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "value-1", "value-2"));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
+
+		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60)));
+		actual.add(connection.hExists("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "value-1", "value-2"));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionFailsWhenSomeFieldsExist() {
+
+		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
+		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.FALSE, "existing-value", Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionSucceedsWhenAllFieldsExist() {
+
+		actual.add(connection.hSet("hash-hsetex", "field-1", "old-value-1"));
+		actual.add(connection.hSet("hash-hsetex", "field-2", "old-value-2"));
+		Map<String, String> fieldMap = Map.of("field-1", "new-value-1", "field-2", "new-value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "new-value-1", "new-value-2"));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionFailsWhenSomeFieldsMissing() {
+
+		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
+		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hExists("hash-hsetex", "field-2"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.FALSE, "existing-value", Boolean.FALSE));
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExWithDifferentExpirationPolicies() {
+
+		// Test with seconds expiration
+		Map<String, String> fieldMap1 = Map.of("field-1", "value-1");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60)));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-1"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-1"));
+
+		// Test with milliseconds expiration
+		Map<String, String> fieldMap2 = Map.of("field-2", "value-2");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap2, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.milliseconds(120000)));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-2"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-2"));
+
+		// Test with Duration expiration
+		Map<String, String> fieldMap3 = Map.of("field-3", "value-3");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap3, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.from(Duration.ofMinutes(3))));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-3"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-3"));
+
+		// Test with unix timestamp expiration (5 minutes from now)
+		long futureTimestamp = System.currentTimeMillis() / 1000 + 300; // 5 minutes from now
+		Map<String, String> fieldMap4 = Map.of("field-4", "value-4");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap4, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.unixTimestamp(futureTimestamp, TimeUnit.SECONDS)));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-4"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-4"));
+
+		// Test with keepTtl expiration
+		Map<String, String> fieldMap5 = Map.of("field-5", "value-5");
+		actual.add(connection.hSetEx("hash-hsetex-exp", fieldMap5, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.keepTtl()));
+		actual.add(connection.hExists("hash-hsetex-exp", "field-5"));
+		actual.add(connection.hGet("hash-hsetex-exp", "field-5"));
+
+		verifyResults(Arrays.asList(
+			Boolean.TRUE, Boolean.TRUE, "value-1",  // seconds
+			Boolean.TRUE, Boolean.TRUE, "value-2",  // milliseconds
+			Boolean.TRUE, Boolean.TRUE, "value-3",  // Duration
+			Boolean.TRUE, Boolean.TRUE, "value-4",  // unix timestamp
+			Boolean.TRUE, Boolean.TRUE, "value-5"   // keepTtl
+		));
+	}
+
 	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 

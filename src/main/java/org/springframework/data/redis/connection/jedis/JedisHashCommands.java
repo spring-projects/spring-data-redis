@@ -351,6 +351,18 @@ class JedisHashCommands implements RedisHashCommands {
         return connection.invoke().just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key, JedisConverters.toHGetExParams(expiration), fields);
     }
 
+    @Override
+    public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
+                          Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(hashes, "Hashes must not be null");
+
+        return connection.invoke().from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key,
+                JedisConverters.toHSetExParams(condition, expiration), hashes)
+                .get(Converters::toBoolean);
+    }
+
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {

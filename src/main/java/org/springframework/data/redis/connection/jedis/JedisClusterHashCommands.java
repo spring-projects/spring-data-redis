@@ -441,6 +441,19 @@ class JedisClusterHashCommands implements RedisHashCommands {
         }
     }
 
+    @Override
+    public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(hashes, "Fields must not be null");
+
+        try {
+            return JedisConverters.toBoolean(connection.getCluster().hsetex(key, JedisConverters.toHSetExParams(condition, expiration), hashes));
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
 	@Nullable
 	@Override
 	public Long hStrLen(byte[] key, byte[] field) {
