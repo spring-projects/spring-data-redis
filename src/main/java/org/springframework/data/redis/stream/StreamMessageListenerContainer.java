@@ -107,6 +107,8 @@ import org.springframework.util.ErrorHandler;
  * @author Christoph Strobl
  * @author Christian Rest
  * @author DongCheol Kim
+ * @author Wilson Chuks
+ *
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -640,12 +642,12 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		/**
 		 * Configure a batch size for the {@code COUNT} option during reading.
 		 *
-		 * @param messagesPerPoll must not be greater zero.
+		 * @param messagesPerPoll must be greater than zero.
 		 * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
 		 */
 		public StreamMessageListenerContainerOptionsBuilder<K, V> batchSize(int messagesPerPoll) {
 
-			Assert.isTrue(messagesPerPoll > 0, "Batch size must be greater zero");
+			Assert.isTrue(messagesPerPoll > 0, "Batch size must be greater than zero");
 
 			this.batchSize = messagesPerPoll;
 			return this;
