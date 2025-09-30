@@ -28,6 +28,7 @@ import org.jspecify.annotations.NullUnmarked;
  *
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Mingi Lee
  */
 @NullUnmarked
 public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
@@ -130,6 +131,26 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	void intersectAndStore(@NonNull Collection<@NonNull K> keys, @NonNull K destKey);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of the bound key and {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(@NonNull K key);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of the bound key and {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long intersectSize(@NonNull Collection<@NonNull K> keys);
 
 	/**
 	 * Union all sets at given {@code key} and {@code key}.
