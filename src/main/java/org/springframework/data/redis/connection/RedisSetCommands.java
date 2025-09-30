@@ -160,7 +160,7 @@ public interface RedisSetCommands {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
-	 * @since 3.4
+	 * @since 4.0
 	 */
 	Long sInterCard(byte @NonNull [] @NonNull... keys);
 

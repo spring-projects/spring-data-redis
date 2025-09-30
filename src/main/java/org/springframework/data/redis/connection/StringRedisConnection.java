@@ -1177,7 +1177,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
 	 * @see RedisSetCommands#sInterCard(byte[]...)
-	 * @since 3.4
+	 * @since 4.0
 	 */
 	Long sInterCard(@NonNull String @NonNull... keys);
 

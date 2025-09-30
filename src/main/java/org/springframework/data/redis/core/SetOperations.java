@@ -186,7 +186,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKey must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
-	 * @since 3.4
+	 * @since 4.0
 	 */
 	Long intersectSize(@NonNull K key, @NonNull K otherKey);
 
@@ -197,7 +197,7 @@ public interface SetOperations<K, V> {
 	 * @param otherKeys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
-	 * @since 3.4
+	 * @since 4.0
 	 */
 	Long intersectSize(@NonNull K key, @NonNull Collection<@NonNull K> otherKeys);
 
@@ -207,7 +207,7 @@ public interface SetOperations<K, V> {
 	 * @param keys must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
-	 * @since 3.4
+	 * @since 4.0
 	 */
 	Long intersectSize(@NonNull Collection<@NonNull K> keys);
 
