@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  * @since 2.0
  */
 class LettuceReactiveSetCommands implements ReactiveSetCommands {
@@ -171,6 +172,18 @@ class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Destination key must not be null");
 
 			return cmd.sinterstore(command.getKey(), command.getKeys().toArray(new ByteBuffer[0]))
+					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<NumericResponse<SInterCardCommand, Long>> sInterCard(Publisher<SInterCardCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKeys(), "Keys must not be null");
+
+			return cmd.sintercard(command.getKeys().toArray(new ByteBuffer[0]))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}

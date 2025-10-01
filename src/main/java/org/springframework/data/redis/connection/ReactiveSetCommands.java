@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  * @since 2.0
  */
 public interface ReactiveSetCommands {
@@ -774,6 +775,73 @@ public interface ReactiveSetCommands {
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands);
+
+	/**
+	 * {@code SINTERCARD} command parameters.
+	 *
+	 * @author Mingi Lee
+	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 */
+	class SInterCardCommand implements Command {
+
+		private final List<ByteBuffer> keys;
+
+		private SInterCardCommand(List<ByteBuffer> keys) {
+			this.keys = keys;
+		}
+
+		/**
+		 * Creates a new {@link SInterCardCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SInterCardCommand} for a {@link Collection} of keys.
+		 */
+		public static SInterCardCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null");
+
+			return new SInterCardCommand(new ArrayList<>(keys));
+		}
+
+		@Override
+		public @Nullable ByteBuffer getKey() {
+			return null;
+		}
+
+		/**
+		 * @return never {@literal null}.
+		 */
+		public List<ByteBuffer> getKeys() {
+			return keys;
+		}
+	}
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of all given sets at {@literal keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	default Mono<Long> sInterCard(Collection<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Keys must not be null");
+
+		return sInterCard(Mono.just(SInterCardCommand.keys(keys))).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of all given sets at
+	 * {@link SInterCardCommand#getKeys()}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Flux<NumericResponse<SInterCardCommand, Long>> sInterCard(Publisher<SInterCardCommand> commands);
 
 	/**
 	 * {@code SUNION} command parameters.
