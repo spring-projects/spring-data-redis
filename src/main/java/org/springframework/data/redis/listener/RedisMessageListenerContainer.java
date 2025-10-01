@@ -627,14 +627,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
         return this.phase;
     }
 
-    /**
-     * Specify the lifecycle phase for this container.
-     * Lower values start earlier and stop later.
-     * The default is {@code Integer.MAX_VALUE}.
-     *
-     * @see SmartLifecycle#getPhase()
-     * @since 4.0
-     */
+	/**
+	 * Configure the lifecycle phase that this listener container is supposed to run in. The default is
+	 * {@code Integer.MAX_VALUE}.
+	 *
+	 * @see org.springframework.context.SmartLifecycle#getPhase()
+	 * @since 4.0
+	 */
     public void setPhase(int phase) {
         this.phase = phase;
     }
@@ -644,14 +643,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
         return this.autoStartup;
     }
 
-    /**
-     * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
-     * the containing ApplicationContext gets refreshed.
-     * The default is {@code true}.
-     *
-     * @see SmartLifecycle#isAutoStartup()
-     * @since 4.0
-     */
+	/**
+	 * Configure if this listener container should get started automatically at the time that the containing
+	 * {@code ApplicationContext} gets refreshed. The default is {@code true}.
+	 *
+	 * @see org.springframework.context.SmartLifecycle#isAutoStartup()
+	 * @since 4.0
+	 */
     public void setAutoStartup(boolean autoStartup) {
         this.autoStartup = autoStartup;
     }

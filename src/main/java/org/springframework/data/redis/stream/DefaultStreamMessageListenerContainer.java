@@ -69,7 +69,7 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	private boolean running = false;
 
     private int phase = Integer.MAX_VALUE;
-    private boolean autoStartup = false;
+    private boolean autoStartup;
 
 	/**
 	 * Create a new {@link DefaultStreamMessageListenerContainer}.
@@ -95,11 +95,11 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 			this.streamOperations = this.template.opsForStream();
 		}
 
-        if(containerOptions.isAutoStartup().isPresent()){
+        if (containerOptions.isAutoStartup().isPresent()) {
             this.autoStartup = containerOptions.isAutoStartup().get();
         }
 
-        if(containerOptions.getPhase().isPresent()){
+        if (containerOptions.getPhase().isPresent()) {
             this.phase = containerOptions.getPhase().getAsInt();
         }
 	}
@@ -132,23 +132,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 		return template;
 	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-    /**
-     * Configure if this Lifecycle connection factory should get started automatically by the container at the time that
-     * the containing ApplicationContext gets refreshed.
-     * The default is {@code false}.
-     *
-     * @see org.springframework.context.SmartLifecycle#isAutoStartup()
-     * @since 4.0
-     */
-    public void setAutoStartup(boolean autoStartup) {
-        this.autoStartup = autoStartup;
-    }
 
 	@Override
 	public void stop(Runnable callback) {
@@ -204,17 +187,10 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		return this.phase;
 	}
 
-    /**
-     * Specify the lifecycle phase for this container.
-     * Lower values start earlier and stop later.
-     * The default is {@code Integer.MAX_VALUE}.
-     *
-     * @see org.springframework.context.SmartLifecycle#getPhase()
-     * @since 4.0
-     */
-    public void setPhase(int phase) {
-        this.phase = phase;
-    }
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
 
 	@Override
 	public Subscription register(StreamReadRequest<K> streamRequest, StreamListener<K, V> listener) {

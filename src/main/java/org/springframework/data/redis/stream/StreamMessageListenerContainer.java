@@ -605,7 +605,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		}
 
         /**
-         * @return the phase.
+         * @return the configured phase to use for the container lifecycle or {@code empty} if the phase was not
+		 * specified on the options.
          * @since 4.0
          */
         public OptionalInt getPhase() {
@@ -613,7 +614,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
         }
 
         /**
-         * @return the autoStartup.
+         * @return the configured autoStartup to use for the container lifecycle or {@code empty} if the autoStartup
+		 * was not specified on the options.
          * @since 4.0
          */
         public Optional<Boolean> isAutoStartup() {
@@ -703,7 +705,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		}
 
         /**
-         * Configure a phase for the {@link SmartLifecycle}
+         * Configure the phase to use for the container {@link SmartLifecycle}
          *
          * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
          * @since 4.0
@@ -714,7 +716,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
         }
 
         /**
-         * Configure a autoStartup for the {@link SmartLifecycle}
+         * Configure the autoStartup to use for the container {@link SmartLifecycle}
          *
          * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
          * @since 4.0
