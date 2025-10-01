@@ -94,6 +94,14 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		} else {
 			this.streamOperations = this.template.opsForStream();
 		}
+
+        if(containerOptions.isAutoStartup().isPresent()){
+            this.autoStartup = containerOptions.isAutoStartup().get();
+        }
+
+        if(containerOptions.getPhase().isPresent()){
+            this.phase = containerOptions.getPhase().getAsInt();
+        }
 	}
 
 	private static StreamReadOptions getStreamReadOptions(StreamMessageListenerContainerOptions<?, ?> options) {

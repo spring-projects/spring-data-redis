@@ -252,7 +252,7 @@ class RedisMessageListenerContainerUnitTests {
     }
 
     @Test // GH-3208
-    void defaultAutoStartupShouldBeMaxValue() {
+    void defaultAutoStartupShouldBeTrue() {
         assertThat(container.isAutoStartup()).isEqualTo(true);
     }
 
