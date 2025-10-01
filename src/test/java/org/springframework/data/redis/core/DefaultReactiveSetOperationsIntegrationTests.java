@@ -40,6 +40,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Mingi Lee
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -228,6 +229,39 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 
 		setOperations.isMember(destKey, shared).as(StepVerifier::create).expectNext(true).verifyComplete();
+	}
+
+	@Test
+	@EnabledOnCommand("SINTERCARD")
+	void intersectSize() {
+
+		K key = keyFactory.instance();
+		K otherKey = keyFactory.instance();
+		K thirdKey = keyFactory.instance();
+
+		V onlyInKey = valueFactory.instance();
+		V shared1 = valueFactory.instance();
+		V shared2 = valueFactory.instance();
+		V onlyInOtherKey = valueFactory.instance();
+
+		setOperations.add(key, onlyInKey, shared1, shared2).as(StepVerifier::create).expectNext(3L).verifyComplete();
+		setOperations.add(otherKey, onlyInOtherKey, shared1, shared2).as(StepVerifier::create).expectNext(3L)
+				.verifyComplete();
+		setOperations.add(thirdKey, shared1).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		// Test intersectSize(key, otherKey)
+		setOperations.intersectSize(key, otherKey).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		// Test intersectSize(key, Collection)
+		setOperations.intersectSize(key, Arrays.asList(otherKey)).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		// Test intersectSize(Collection) with multiple keys
+		setOperations.intersectSize(Arrays.asList(key, otherKey, thirdKey)).as(StepVerifier::create).expectNext(1L)
+				.verifyComplete();
+
+		// Test with empty intersection
+		K emptyKey = keyFactory.instance();
+		setOperations.intersectSize(key, emptyKey).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602, DATAREDIS-873
