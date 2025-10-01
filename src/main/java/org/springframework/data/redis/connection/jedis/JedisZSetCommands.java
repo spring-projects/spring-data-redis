@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
@@ -53,6 +54,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Seongil Kim
  * @since 2.0
  */
 @NullUnmarked
@@ -158,11 +160,31 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
+	public RankAndScore zRankWithScore(byte[] key, byte[] value) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		return connection.invoke()
+				.from(Jedis::zrankWithScore, PipelineBinaryCommands::zrankWithScore, key, value)
+				.get(JedisConverters::toRankAndScore);
+	}
+
+	@Override
 	public Long zRevRank(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::zrevrank, PipelineBinaryCommands::zrevrank, key, value);
+	}
+
+	@Override
+	public RankAndScore zRevRankWithScore(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return connection.invoke()
+				.from(Jedis::zrevrankWithScore, PipelineBinaryCommands::zrevrankWithScore, key, value)
+				.get(JedisConverters::toRankAndScore);
 	}
 
 	@Override

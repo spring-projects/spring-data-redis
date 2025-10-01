@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.Cursor;
@@ -67,6 +68,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  * @author Tihomir Mateev
+ * @author Seongil Kim
  * @since 2.0
  */
 @Deprecated
@@ -1245,6 +1247,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
+	default RankAndScore zRankWithScore(byte[] key, byte[] value) {
+		return zSetCommands().zRankWithScore(key, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
 	default Long zRem(byte[] key, byte[]... values) {
 		return zSetCommands().zRem(key, values);
 	}
@@ -1289,6 +1298,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Deprecated
 	default Long zRevRank(byte[] key, byte[] value) {
 		return zSetCommands().zRevRank(key, value);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
+	@Override
+	@Deprecated
+	default RankAndScore zRevRankWithScore(byte[] key, byte[] value) {
+		return zSetCommands().zRevRankWithScore(key, value);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */

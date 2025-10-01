@@ -29,6 +29,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection} that executes commands in a pipeline
@@ -38,6 +39,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author dengliming
+ * @author Seongil Kim
  */
 public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedisConnectionTests {
 
@@ -1241,9 +1243,21 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
+	public void testZRankWithScoreBytes() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).closePipeline();
+		super.testZRankWithScoreBytes();
+	}
+
+	@Test
 	public void testZRank() {
 		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
 		super.testZRank();
+	}
+
+	@Test
+	public void testZRankWithScore() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).closePipeline();
+		super.testZRankWithScore();
 	}
 
 	@Test
@@ -1313,9 +1327,21 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
+	public void testZRevRankWithScoreBytes() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).closePipeline();
+		super.testZRevRankWithScoreBytes();
+	}
+
+	@Test
 	public void testZRevRank() {
 		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
 		super.testZRevRank();
+	}
+
+	@Test
+	public void testZRevRankWithScore() {
+		doReturn(Collections.singletonList(new RankAndScore(0L, 3.0))).when(nativeConnection).closePipeline();
+		super.testZRevRankWithScore();
 	}
 
 	@Test

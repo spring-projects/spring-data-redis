@@ -82,6 +82,7 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyScanOptions;
@@ -117,6 +118,7 @@ import org.springframework.util.ObjectUtils;
  * @author Roman Osadchuk
  * @author Tihomir Mateev
  * @author Jeonggyu Choi
+ * @author Seongil Kim
  */
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -2345,6 +2347,16 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	void testZRankWithScore() {
+
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zRankWithScore("myset", "James"));
+		actual.add(connection.zRankWithScore("myset", "Bob"));
+		verifyResults(Arrays.asList(new Object[]{true, true, new RankAndScore(0L, 1.0), new RankAndScore(1L, 2.0)}));
+	}
+
+	@Test
 	void testZRem() {
 
 		actual.add(connection.zAdd("myset", 2, "Bob"));
@@ -2416,6 +2428,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 3, "Joe"));
 		actual.add(connection.zRevRank("myset", "Joe"));
 		verifyResults(Arrays.asList(new Object[] { true, true, true, 0L }));
+	}
+
+	@Test
+	void testZRevRankWithScore() {
+
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 3, "Joe"));
+		actual.add(connection.zRevRankWithScore("myset", "Joe"));
+		verifyResults(Arrays.asList(new Object[]{true, true, true, new RankAndScore(0L, 3.0)}));
 	}
 
 	@Test

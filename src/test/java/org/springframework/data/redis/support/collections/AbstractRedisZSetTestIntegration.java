@@ -38,6 +38,7 @@ import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.DefaultTypedTuple;
@@ -54,6 +55,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Mark Paluch
  * @author Andrey Shlykov
  * @author Christoph Strobl
+ * @author Seongil Kim
  */
 public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisCollectionIntegrationTests<T> {
 
@@ -232,6 +234,21 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 	}
 
 	@Test
+	void testRankWithScore() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 3);
+		zSet.add(t2, 4);
+		zSet.add(t3, 5);
+
+		assertThat(zSet.rankWithScore(t1)).isEqualTo(new RankAndScore(0L, 3.0));
+		assertThat(zSet.rankWithScore(t2)).isEqualTo(new RankAndScore(1L, 4.0));
+		assertThat(zSet.rankWithScore(t3)).isEqualTo(new RankAndScore(2L, 5.0));
+	}
+
+	@Test
 	void testReverseRank() {
 		T t1 = getT();
 		T t2 = getT();
@@ -245,6 +262,21 @@ public abstract class AbstractRedisZSetTestIntegration<T> extends AbstractRedisC
 		assertThat(zSet.reverseRank(t2)).isEqualTo(Long.valueOf(1));
 		assertThat(zSet.reverseRank(t1)).isEqualTo(Long.valueOf(2));
 		assertThat(zSet.rank(getT())).isNull();
+	}
+
+	@Test
+	void testReverseRankWithScore() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 3);
+		zSet.add(t2, 4);
+		zSet.add(t3, 5);
+
+		assertThat(zSet.reverseRankWithScore(t3)).isEqualTo(new RankAndScore(0L, 5.0));
+		assertThat(zSet.reverseRankWithScore(t2)).isEqualTo(new RankAndScore(1L, 4.0));
+		assertThat(zSet.reverseRankWithScore(t1)).isEqualTo(new RankAndScore(2L, 3.0));
 	}
 
 	@Test // DATAREDIS-729

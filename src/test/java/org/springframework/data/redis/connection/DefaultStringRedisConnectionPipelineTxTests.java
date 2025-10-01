@@ -30,6 +30,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 
 /**
  * @author Jennifer Hickey
@@ -37,6 +38,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author Ninad Divadkar
  * @author Mark Paluch
  * @author dengliming
+ * @author Seongil Kim
  */
 public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRedisConnectionTxTests {
 
@@ -1340,9 +1342,21 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	}
 
 	@Test
+	public void testZRankWithScoreBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(new RankAndScore(0L, 3.0)))).when(nativeConnection).closePipeline();
+		super.testZRankWithScoreBytes();
+	}
+
+	@Test
 	public void testZRank() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testZRank();
+	}
+
+	@Test
+	public void testZRankWithScore() {
+		doReturn(Collections.singletonList(Collections.singletonList(new RankAndScore(0L, 3.0)))).when(nativeConnection).closePipeline();
+		super.testZRankWithScore();
 	}
 
 	@Test
@@ -1416,9 +1430,21 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	}
 
 	@Test
+	public void testZRevRankWithScoreBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(new RankAndScore(0L, 3.0)))).when(nativeConnection).closePipeline();
+		super.testZRevRankWithScoreBytes();
+	}
+
+	@Test
 	public void testZRevRank() {
 		doReturn(Collections.singletonList(Collections.singletonList(5L))).when(nativeConnection).closePipeline();
 		super.testZRevRank();
+	}
+
+	@Test
+	public void testZRevRankWithScore() {
+		doReturn(Collections.singletonList(Collections.singletonList(new RankAndScore(0L, 3.0)))).when(nativeConnection).closePipeline();
+		super.testZRevRankWithScore();
 	}
 
 	@Test

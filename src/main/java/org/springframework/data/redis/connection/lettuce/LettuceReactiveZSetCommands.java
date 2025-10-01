@@ -23,6 +23,7 @@ import io.lettuce.core.ScoredValue;
 import io.lettuce.core.Value;
 import io.lettuce.core.ZAddArgs;
 import io.lettuce.core.ZStoreArgs;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -55,6 +56,7 @@ import org.springframework.util.ObjectUtils;
  * @author Michele Mancioppi
  * @author Andrey Shlykov
  * @author John Blum
+ * @author Seongil Kim
  * @since 2.0
  */
 class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
@@ -191,6 +193,22 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 					: reactiveCommands.zrevrank(command.getKey(), command.getValue());
 
 			return result.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<ZRankCommand, RankAndScore>> zRankWithScore(Publisher<ZRankCommand> commands) {
+
+		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getValue(), "Value must not be null");
+
+			Mono<RankAndScore> result = ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)
+					? reactiveCommands.zrankWithScore(command.getKey(), command.getValue()).map(this::toRankAndScore)
+					: reactiveCommands.zrevrankWithScore(command.getKey(), command.getValue()).map(this::toRankAndScore);
+
+			return result.map(value -> new CommandResponse<>(command, value));
 		}));
 	}
 
@@ -752,6 +770,10 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 	private Tuple toTuple(ByteBuffer value, double score) {
 		return new DefaultTuple(ByteUtils.getBytes(value), score);
+	}
+
+	private RankAndScore toRankAndScore(ScoredValue<Long> scoredValue) {
+		return new RankAndScore(scoredValue.getValue(), scoredValue.getScore());
 	}
 
 	protected LettuceReactiveRedisConnection getConnection() {

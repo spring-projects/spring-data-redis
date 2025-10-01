@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.ZParams;
@@ -58,6 +59,7 @@ import org.springframework.util.Assert;
  * @author Jens Deppe
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Seongil Kim
  * @since 2.0
  */
 @NullUnmarked
@@ -193,6 +195,20 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
+	public RankAndScore zRankWithScore(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		try {
+			KeyValue<Long, Double> rankWithScore = connection.getCluster().zrankWithScore(key, value);
+			return new RankAndScore(rankWithScore.getKey(), rankWithScore.getValue());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Long zRevRank(byte @NonNull [] key, byte @NonNull [] value) {
 
 		Assert.notNull(key, "Key must not be null");
@@ -200,6 +216,20 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 
 		try {
 			return connection.getCluster().zrevrank(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public RankAndScore zRevRankWithScore(byte[] key, byte[] value) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(value, "Value must not be null");
+
+		try {
+			KeyValue<Long, Double> rankWithScore = connection.getCluster().zrevrankWithScore(key, value);
+			return new RankAndScore(rankWithScore.getKey(), rankWithScore.getValue());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

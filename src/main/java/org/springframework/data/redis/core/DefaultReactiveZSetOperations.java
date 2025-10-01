@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Andrey Shlykov
+ * @author Seongil Kim
  * @since 2.0
  */
 @NullUnmarked
@@ -172,12 +174,27 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
+	public Mono<RankAndScore> rankWithScore(K key, Object o) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return createMono(zSetCommands -> zSetCommands.zRankWithScore(rawKey(key), rawValue((V) o)));
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public Mono<Long> reverseRank( @NonNull K key,  @NonNull Object o) {
 
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(zSetCommands -> zSetCommands.zRevRank(rawKey(key), rawValue((V) o)));
+	}
+
+	@Override
+	public Mono<RankAndScore> reverseRankWithScore(K key, Object o) {
+		Assert.notNull(key, "Key must not be null");
+
+		return createMono(zSetCommands -> zSetCommands.zRevRankWithScore(rawKey(key), rawValue((V) o)));
 	}
 
 	@Override

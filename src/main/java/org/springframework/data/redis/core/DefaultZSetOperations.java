@@ -29,6 +29,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
 import org.springframework.data.redis.connection.zset.Aggregate;
+import org.springframework.data.redis.connection.zset.RankAndScore;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.util.Assert;
@@ -45,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Seongil Kim
  */
 @NullUnmarked
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
@@ -361,6 +363,18 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
+	public RankAndScore rankWithScore(K key, Object o) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(o);
+
+		return execute(connection -> {
+			RankAndScore rankAndScore = connection.zRankWithScore(rawKey, rawValue);
+			return (rankAndScore != null && rankAndScore.getRank() >= 0 ? rankAndScore : null);
+		});
+	}
+
+	@Override
 	public Long reverseRank(@NonNull K key, @NonNull Object o) {
 
 		byte[] rawKey = rawKey(key);
@@ -369,6 +383,18 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return execute(connection -> {
 			Long zRank = connection.zRevRank(rawKey, rawValue);
 			return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
+		});
+	}
+
+	@Override
+	public RankAndScore reverseRankWithScore(K key, Object o) {
+
+		byte[] rawKey = rawKey(key);
+		byte[] rawValue = rawValue(o);
+
+		return execute(connection -> {
+			RankAndScore rankAndScore = connection.zRevRankWithScore(rawKey, rawValue);
+			return (rankAndScore != null && rankAndScore.getRank() >= 0 ? rankAndScore : null);
 		});
 	}
 
