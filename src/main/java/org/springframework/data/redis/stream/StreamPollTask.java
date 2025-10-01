@@ -43,6 +43,7 @@ import org.springframework.util.ErrorHandler;
  * {@link Task} that invokes a {@link BiFunction read function} to poll on a Redis Stream.
  *
  * @author Mark Paluch
+ * @author JiHongKim98
  * @see 2.2
  */
 class StreamPollTask<K, V extends Record<K, ?>> implements Task {
@@ -55,6 +56,8 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 	private final PollState pollState;
 	private final TypeDescriptor targetType;
+
+	private final CountDownLatch cancelLatch = new CountDownLatch(1);
 
 	private volatile boolean isInEventLoop = false;
 
@@ -85,6 +88,12 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 	@Override
 	public void cancel() throws DataAccessResourceFailureException {
 		this.pollState.cancel();
+
+		try {
+			cancelLatch.await();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	@Override
@@ -114,6 +123,7 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 			doLoop();
 		} finally {
 			isInEventLoop = false;
+			cancelLatch.countDown();
 		}
 	}
 
@@ -131,11 +141,13 @@ class StreamPollTask<K, V extends Record<K, ?>> implements Task {
 
 			} catch (InterruptedException ex) {
 
+				cancelLatch.countDown();
 				cancel();
 				Thread.currentThread().interrupt();
 			} catch (RuntimeException ex) {
 
 				if (cancelSubscriptionOnError.test(ex)) {
+					cancelLatch.countDown();
 					cancel();
 				}
 
