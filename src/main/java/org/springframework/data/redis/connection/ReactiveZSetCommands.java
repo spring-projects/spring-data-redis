@@ -1744,11 +1744,11 @@ public interface ReactiveZSetCommands {
 		private final PopDirection direction;
 
 		private final @Nullable TimeUnit timeUnit;
-		private final @Nullable Long timeout;
+		private final @Nullable Double timeout;
 
 		private final long count;
 
-		private BZPopCommand(@Nullable ByteBuffer key, @Nullable Long timeout, @Nullable TimeUnit timeUnit, long count,
+		private BZPopCommand(@Nullable ByteBuffer key, @Nullable Double timeout, @Nullable TimeUnit timeUnit, long count,
 				PopDirection direction) {
 
 			super(key);
@@ -1809,7 +1809,7 @@ public interface ReactiveZSetCommands {
 
 			Assert.notNull(timeout, "Timeout must not be null");
 
-			return blockingFor(timeout.toMillis(), TimeUnit.MILLISECONDS);
+			return blockingFor((double)timeout.toMillis(), TimeUnit.MILLISECONDS);
 		}
 
 		/**
@@ -1819,7 +1819,7 @@ public interface ReactiveZSetCommands {
 		 * @param timeUnit must not be {@literal null}.
 		 * @return a new {@link BZPopCommand} with {@link Duration timeout} applied.
 		 */
-		public BZPopCommand blockingFor(long timeout, TimeUnit timeUnit) {
+		public BZPopCommand blockingFor(Double timeout, TimeUnit timeUnit) {
 
 			Assert.notNull(timeUnit, "TimeUnit must not be null");
 
@@ -1833,7 +1833,7 @@ public interface ReactiveZSetCommands {
 			return direction;
 		}
 
-		public @Nullable Long getTimeout() {
+		public @Nullable Double getTimeout() {
 			return timeout;
 		}
 

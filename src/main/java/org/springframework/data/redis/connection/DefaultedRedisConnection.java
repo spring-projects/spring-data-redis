@@ -822,14 +822,14 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
-	default List<byte[]> bLPop(int timeout, byte[]... keys) {
+	default List<byte[]> bLPop(double timeout, byte[]... keys) {
 		return listCommands().bLPop(timeout, keys);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
-	default List<byte[]> bRPop(int timeout, byte[]... keys) {
+	default List<byte[]> bRPop(double timeout, byte[]... keys) {
 		return listCommands().bRPop(timeout, keys);
 	}
 
@@ -843,7 +843,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
 	@Override
 	@Deprecated
-	default byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+	default byte[] bRPopLPush(double timeout, byte[] srcKey, byte[] dstKey) {
 		return listCommands().bRPopLPush(timeout, srcKey, dstKey);
 	}
 
@@ -1036,7 +1036,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Tuple bZPopMin(byte[] key, long timeout, TimeUnit unit) {
+	default Tuple bZPopMin(byte[] key, double timeout, TimeUnit unit) {
 		return zSetCommands().bZPopMin(key, timeout, unit);
 	}
 
@@ -1057,7 +1057,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#zSetCommands()}}. */
 	@Override
 	@Deprecated
-	default Tuple bZPopMax(byte[] key, long timeout, TimeUnit unit) {
+	default Tuple bZPopMax(byte[] key, double timeout, TimeUnit unit) {
 		return zSetCommands().bZPopMax(key, timeout, unit);
 	}
 

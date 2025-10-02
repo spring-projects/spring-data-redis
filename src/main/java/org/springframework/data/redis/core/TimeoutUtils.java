@@ -86,6 +86,14 @@ public abstract class TimeoutUtils {
 		};
 	}
 
+	public static double toDoubleSeconds(double timeout, TimeUnit unit) {
+
+		return switch (unit) {
+			case MILLISECONDS, MICROSECONDS, NANOSECONDS -> timeout;
+			default -> unit.toSeconds(Double.valueOf(timeout).longValue());
+		};
+	}
+
 	/**
 	 * Converts the given timeout to milliseconds.
 	 * <p>
