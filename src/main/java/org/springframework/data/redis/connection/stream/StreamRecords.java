@@ -30,6 +30,7 @@ import org.springframework.util.ObjectUtils;
  * {@link StreamRecords} provides utilities to create specific {@link Record} instances.
  *
  * @author Christoph Strobl
+ * @author Seo Bo Gyeong
  * @since 2.2
  */
 public class StreamRecords {
@@ -197,8 +198,24 @@ public class StreamRecords {
 		 */
 		public ByteRecord ofBytes(Map<byte[], byte[]> value) {
 
-			// todo auto conversion of known values
-			return new ByteMapBackedRecord((byte[]) stream, id, value);
+			byte[] streamKey = convertStreamToByteArray(stream);
+			return new ByteMapBackedRecord(streamKey, id, value);
+		}
+
+		private byte[] convertStreamToByteArray(@Nullable Object stream) {
+			if (stream instanceof byte[]) {
+				return (byte[]) stream;
+			} else if (stream instanceof String) {
+				return ((String) stream).getBytes();
+			} else if (stream instanceof ByteBuffer buffer) {
+				byte[] result = new byte[buffer.remaining()];
+				buffer.get(result);
+				return result;
+			} else if (stream == null) {
+				return null;
+			} else {
+				throw new IllegalArgumentException("Stream key %s cannot be converted to byte array".formatted(stream));
+			}
 		}
 
 		/**
