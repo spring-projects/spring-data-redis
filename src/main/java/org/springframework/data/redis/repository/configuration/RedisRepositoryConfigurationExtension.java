@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.DeletionStrategy;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.ShadowCopy;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
@@ -44,6 +45,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Kim Sumin
  * @since 1.7
  */
 public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryConfigurationExtension {
@@ -145,7 +147,9 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 						configuration.getRequiredAttribute("enableKeyspaceEvents", EnableKeyspaceEvents.class)) //
 				.addPropertyValue("keyspaceNotificationsConfigParameter",
 						configuration.getAttribute("keyspaceNotificationsConfigParameter", String.class).orElse("")) //
-				.addPropertyValue("shadowCopy", configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class));
+				.addPropertyValue("shadowCopy", configuration.getRequiredAttribute("shadowCopy", ShadowCopy.class))
+				.addPropertyValue("deletionStrategy",
+						configuration.getRequiredAttribute("deletionStrategy", DeletionStrategy.class));
 
 		configuration.getAttribute("messageListenerContainerRef")
 				.ifPresent(it -> builder.addPropertyReference("messageListenerContainer", it));
