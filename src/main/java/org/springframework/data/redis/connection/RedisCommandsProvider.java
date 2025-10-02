@@ -19,6 +19,7 @@ package org.springframework.data.redis.connection;
  * Provides access to {@link RedisCommands} and the segregated command interfaces.
  *
  * @author Mark Paluch
+ * @author Anne Lee
  * @since 3.0
  */
 public interface RedisCommandsProvider {
@@ -118,4 +119,12 @@ public interface RedisCommandsProvider {
 	 * @since 2.0
 	 */
 	RedisZSetCommands zSetCommands();
+
+	/**
+	 * Get {@link RedisVectorSetCommands}.
+	 *
+	 * @return never {@literal null}.
+	 * @since 3.5
+	 */
+	RedisVectorSetCommands vectorSetCommands();
 }
