@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
  * @author John Blum
+ * @author Gunha Hwang
  */
 @NullUnmarked
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
@@ -349,10 +350,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Long rank(@NonNull K key, @NonNull Object o) {
+	public Long rank(@NonNull K key, @NonNull Object value) {
 
 		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(o);
+		byte[] rawValue = rawValue(value);
 
 		return execute(connection -> {
 			Long zRank = connection.zRank(rawKey, rawValue);
@@ -361,10 +362,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Long reverseRank(@NonNull K key, @NonNull Object o) {
+	public Long reverseRank(@NonNull K key, @NonNull Object value) {
 
 		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(o);
+		byte[] rawValue = rawValue(value);
 
 		return execute(connection -> {
 			Long zRank = connection.zRevRank(rawKey, rawValue);
@@ -406,10 +407,10 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	@Override
-	public Double score(@NonNull K key, Object o) {
+	public Double score(@NonNull K key, Object value) {
 
 		byte[] rawKey = rawKey(key);
-		byte[] rawValue = rawValue(o);
+		byte[] rawValue = rawValue(value);
 
 		return execute(connection -> connection.zScore(rawKey, rawValue));
 	}
