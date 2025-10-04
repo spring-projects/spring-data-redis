@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.core.types.Expiration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
@@ -331,6 +332,36 @@ class JedisHashCommands implements RedisHashCommands {
 	public List<@NonNull Long> hpTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
 		return connection.invoke().just(Jedis::hpttl, PipelineBinaryCommands::hpttl, key, fields);
 	}
+
+    @Override
+    public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return connection.invoke().just(Jedis::hgetdel, PipelineBinaryCommands::hgetdel, key, fields);
+    }
+
+    @Override
+    public List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration, byte @NonNull [] @NonNull... fields) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(fields, "Fields must not be null");
+
+        return connection.invoke().just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key, JedisConverters.toHGetExParams(expiration), fields);
+    }
+
+    @Override
+    public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
+                          Expiration expiration) {
+
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(hashes, "Hashes must not be null");
+
+        return connection.invoke().from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key,
+                JedisConverters.toHSetExParams(condition, expiration), hashes)
+                .get(Converters::toBoolean);
+    }
 
 	@Nullable
 	@Override

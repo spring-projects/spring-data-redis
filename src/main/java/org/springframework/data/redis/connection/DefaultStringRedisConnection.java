@@ -23,6 +23,8 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
@@ -82,6 +84,7 @@ import org.springframework.util.ObjectUtils;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
+ * @author Mingi Lee
  */
 @NullUnmarked
 @SuppressWarnings({ "ConstantConditions", "deprecation" })
@@ -830,6 +833,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		return convertAndReturn(delegate.sInterStore(destKey, keys), Converters.identityConverter());
+	}
+
+	@Override
+	public Long sInterCard(byte[]... keys) {
+		return convertAndReturn(delegate.sInterCard(keys), Converters.identityConverter());
 	}
 
 	@Override
@@ -1609,6 +1617,21 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.hVals(serialize(key)), byteListToStringList);
 	}
 
+    @Override
+    public List<String> hGetDel(String key, String... fields) {
+        return convertAndReturn(delegate.hGetDel(serialize(key), serializeMulti(fields)), byteListToStringList);
+    }
+
+    @Override
+    public List<String> hGetEx(String key, Expiration expiration, String... fields) {
+        return convertAndReturn(delegate.hGetEx(serialize(key), expiration, serializeMulti(fields)), byteListToStringList);
+    }
+
+    @Override
+    public Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition, Expiration expiration) {
+        return convertAndReturn(delegate.hSetEx(serialize(key), serialize(hashes), condition, expiration), Converters.identityConverter());
+    }
+
 	@Override
 	public Long incr(String key) {
 		return incr(serialize(key));
@@ -1822,6 +1845,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long sInterStore(String destKey, String... keys) {
 		return sInterStore(serialize(destKey), serializeMulti(keys));
+	}
+
+	@Override
+	public Long sInterCard(String... keys) {
+		return sInterCard(serializeMulti(keys));
 	}
 
 	@Override
@@ -2581,6 +2609,21 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	public List<Long> hTtl(byte[] key, TimeUnit timeUnit, byte[]... fields) {
 		return this.delegate.hTtl(key, timeUnit, fields);
 	}
+
+    @Override
+    public List<byte[]> hGetDel(@NotNull byte[] key, @NotNull byte[]... fields) {
+        return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
+    }
+
+    @Override
+    public List<byte[]> hGetEx(@NotNull byte[] key, Expiration expiration, @NotNull byte[]... fields) {
+        return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
+    }
+
+    @Override
+    public Boolean hSetEx(@NotNull byte[] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+        return convertAndReturn(delegate.hSetEx(key, hashes, condition, expiration), Converters.identityConverter());
+    }
 
 	public @Nullable List<Long> applyExpiration(String key,
 			org.springframework.data.redis.core.types.Expiration expiration,

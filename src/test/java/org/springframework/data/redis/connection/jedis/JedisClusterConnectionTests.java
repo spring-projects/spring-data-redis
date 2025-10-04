@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.data.Offset.*;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
@@ -1239,13 +1238,237 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_3_BYTES, KEY_2_BYTES)).contains(-2L);
 	}
 
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsValueAndDeletesField() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetDel(KEY_1_BYTES, KEY_2_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isFalse();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsNullWhenFieldDoesNotExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetDel(KEY_1_BYTES, KEY_3_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isNull();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelReturnsNullWhenKeyDoesNotExist() {
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetDel(KEY_1_BYTES, KEY_2_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isNull();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelMultipleFieldsReturnsValuesAndDeletesFields() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+		nativeConnection.hset(KEY_1, "field3", "value3");
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetDel(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isEqualTo(VALUE_2_BYTES);
+
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isFalse();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, "field3".getBytes())).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelMultipleFieldsWithNonExistentFields() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetDel(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isNull();
+
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isFalse();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETDEL")
+	public void hGetDelDeletesKeyWhenAllFieldsRemoved() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetDel(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isEqualTo(VALUE_2_BYTES);
+
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isFalse();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsValueAndSetsExpiration() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenFieldDoesNotExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_3_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isNull();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExReturnsNullWhenKeyDoesNotExist() {
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES);
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0)).isNull();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsReturnsValuesAndSetsExpiration() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+		nativeConnection.hset(KEY_1, "field3", "value3");
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(120), KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isEqualTo(VALUE_2_BYTES);
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, "field3".getBytes())).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HGETEX")
+	public void hGetExMultipleFieldsWithNonExistentFields() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES, KEY_3_BYTES);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
+		assertThat(result.get(1)).isNull();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExUpsertConditionSetsFieldsWithExpiration() {
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+
+		assertThat(result).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(VALUE_2_BYTES);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
+
+		assertThat(result).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(VALUE_2_BYTES);
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfNoneExistConditionFailsWhenSomeFieldsExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_2_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
+
+		assertThat(result).isFalse();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse(); // not set
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionSucceedsWhenAllFieldsExist() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, "new-value-1".getBytes(), KEY_3_BYTES, "new-value-2".getBytes());
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+
+		assertThat(result).isTrue();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo("new-value-1".getBytes()); // updated
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo("new-value-2".getBytes()); // updated
+	}
+
+	@Test // GH-3211
+	@EnabledOnCommand("HSETEX")
+	public void hSetExIfAllExistConditionFailsWhenSomeFieldsMissing() {
+
+		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
+
+		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_2_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+
+		assertThat(result).isFalse();
+		assertThat(clusterConnection.hashCommands().hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
+		assertThat(clusterConnection.hashCommands().hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse(); // not set
+	}
+
 	@Test // DATAREDIS-315
 	public void hValsShouldRetrieveValuesCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
 		nativeConnection.hset(KEY_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
 
-		assertThat(clusterConnection.hVals(KEY_1_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
+		assertThat(clusterConnection.hashCommands().hVals(KEY_1_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
 	@Test // DATAREDIS-315

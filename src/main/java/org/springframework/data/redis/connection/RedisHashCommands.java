@@ -25,6 +25,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Tihomir Mateev
+ * @author Viktoriya Kutsarova
  * @see RedisCommands
  */
 @NullUnmarked
@@ -541,4 +543,87 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	List<@NonNull Long> hpTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
+
+    /**
+     * Get and delete the value of one or more {@code fields} from hash at {@code key}. Values are returned in the order of
+     * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     * When the last field is deleted, the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return list of values for deleted {@code fields} ({@literal null} for fields that does not exist) or an
+	 * empty {@link List} if key does not exist or {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
+     */
+    List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
+
+    /**
+     * Get the value of one or more {@code fields} from hash at {@code key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@code fields}.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+	 * @return list of values for given {@code fields} or an empty {@link List} if key does not
+	 * exist or {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     */
+    List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration,
+                                byte @NonNull [] @NonNull... fields);
+
+    /**
+     * Set field-value pairs in hash at {@literal key} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashes the field-value pairs to set; must not be {@literal null}.
+     * @param hashFieldSetOption the optional condition for setting fields.
+     * @param expiration the optional expiration to apply.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     */
+    Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption hashFieldSetOption,
+                   Expiration expiration);
+
+    /**
+     * {@code HSETEX} command arguments for {@code FNX}, {@code FXX}.
+     *
+     * @author Viktoriya Kutsarova
+     */
+    enum HashFieldSetOption {
+
+        /**
+         * Do not set any additional command argument.
+         */
+        UPSERT,
+
+        /**
+         * {@code FNX}
+         */
+        IF_NONE_EXIST,
+
+        /**
+         * {@code FXX}
+         */
+        IF_ALL_EXIST;
+
+        /**
+         * Do not set any additional command argument.
+         */
+        public static HashFieldSetOption upsert() {
+            return UPSERT;
+        }
+
+        /**
+         * {@code FNX}
+         */
+        public static HashFieldSetOption ifNoneExist() {
+            return IF_NONE_EXIST;
+        }
+
+        /**
+         * {@code FXX}
+         */
+        public static HashFieldSetOption ifAllExist() {
+            return IF_ALL_EXIST;
+        }
+    }
 }

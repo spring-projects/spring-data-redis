@@ -31,6 +31,7 @@ import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
@@ -194,6 +195,63 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		return deserializeHashValues(rawValues);
 	}
+
+    @Override
+    public List<HV> getAndDelete(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
+
+		if (fields.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = new byte[fields.size()][];
+        int counter = 0;
+		for (@NonNull
+		HK hashKey : fields) {
+			rawHashKeys[counter++] = rawHashKey(hashKey);
+		}
+        List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
+
+		return deserializeHashValues(rawValues);
+	}
+
+    @Override
+    public List<HV> getAndExpire(@NonNull K key, @NonNull Expiration expiration,
+			@NonNull Collection<@NonNull HK> fields) {
+
+		if (fields.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		byte[] rawKey = rawKey(key);
+		byte[][] rawHashKeys = new byte[fields.size()][];
+		int counter = 0;
+		for (@NonNull
+		HK hashKey : fields) {
+			rawHashKeys[counter++] = rawHashKey(hashKey);
+		}
+		List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetEx(rawKey, expiration, rawHashKeys));
+
+		return deserializeHashValues(rawValues);
+	}
+
+    @Override
+    public Boolean putAndExpire(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
+                                RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+        if (m.isEmpty()) {
+            return false;
+        }
+
+        byte[] rawKey = rawKey(key);
+
+        Map<byte[], byte[]> hashes = new LinkedHashMap<>(m.size());
+
+        for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
+            hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
+        }
+
+        return execute(connection -> connection.hashCommands().hSetEx(rawKey, hashes, condition, expiration));
+    }
 
 	@Override
 	public void put(@NonNull K key, @NonNull HK hashKey, HV value) {

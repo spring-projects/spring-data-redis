@@ -29,6 +29,7 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingi Lee
  * @see RedisCommands
  */
 @NullUnmarked
@@ -152,6 +153,16 @@ public interface RedisSetCommands {
 	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	Long sInterStore(byte @NonNull [] destKey, byte @NonNull [] @NonNull... keys);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of all the given sets.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @since 4.0
+	 */
+	Long sInterCard(byte @NonNull [] @NonNull... keys);
 
 	/**
 	 * Union all sets at given {@code keys}.

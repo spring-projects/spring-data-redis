@@ -74,6 +74,7 @@ import org.springframework.util.CollectionUtils;
  * @author ihaohong
  * @author Shyngys Sapraliyev
  * @author Jeonggyu Choi
+ * @author Mingi Lee
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -1168,6 +1169,17 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see RedisSetCommands#sInterStore(byte[], byte[]...)
 	 */
 	Long sInterStore(@NonNull String destKey, @NonNull String @NonNull... keys);
+
+	/**
+	 * Returns the cardinality of the set which would result from the intersection of all the given sets.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @see <a href="https://redis.io/commands/sintercard">Redis Documentation: SINTERCARD</a>
+	 * @see RedisSetCommands#sInterCard(byte[]...)
+	 * @since 4.0
+	 */
+	Long sInterCard(@NonNull String @NonNull... keys);
 
 	/**
 	 * Union all sets at given {@code keys}.
@@ -2551,6 +2563,44 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.5
 	 */
 	List<Long> hpTtl(@NonNull String key, @NonNull String @NonNull... fields);
+
+    /**
+     * Get and delete the value of one or more {@code fields} from hash at {@code key}. When the last field is deleted,
+     * the key will also be deleted.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
+     * @see RedisHashCommands#hMGet(byte[], byte[]...)
+     */
+    List<String> hGetDel(@NonNull String key, @NonNull String @NonNull... fields);
+
+    /**
+     * Get the value of one or more {@code fields} from hash at {@code key} and optionally set expiration time or
+     * time-to-live (TTL) for given {@code fields}.
+     *
+     * @param key must not be {@literal null}.
+     * @param fields must not be {@literal null}.
+     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
+     * @see RedisHashCommands#hGetEx(byte[], Expiration, byte[]...)
+     */
+    List<String> hGetEx(@NonNull String key, Expiration expiration, @NonNull String @NonNull... fields);
+
+    /**
+     * Set field-value pairs in hash at {@literal key} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashes the field-value pairs to set; must not be {@literal null}.
+     * @param condition the optional condition for setting fields.
+     * @param expiration the optional expiration to apply.
+     * @return never {@literal null}.
+     * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+     * @see RedisHashCommands#hSetEx(byte[], Map, HashFieldSetOption, Expiration)
+     */
+    Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition,
+                   Expiration expiration);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog

@@ -23,6 +23,8 @@ import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -619,6 +621,94 @@ public abstract class LettuceConverters extends Converters {
 		return expiration.isUnixTimestamp() ? args.exAt(expiration.getConverted(TimeUnit.SECONDS))
 				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
+
+    /**
+     * Convert {@link Expiration} to {@link HGetExArgs}.
+     *
+     * @param expiration can be {@literal null}.
+     * @since 4.0
+     */
+    static HGetExArgs toHGetExArgs(@Nullable Expiration expiration) {
+
+        HGetExArgs args = new HGetExArgs();
+
+        if (expiration == null) {
+            return args;
+        }
+
+        if (expiration.isPersistent()) {
+            return args.persist();
+        }
+
+        if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+            if (expiration.isUnixTimestamp()) {
+                return args.pxAt(Instant.ofEpochSecond(expiration.getExpirationTime()));
+            }
+            return args.px(Duration.ofMillis(expiration.getExpirationTime()));
+        }
+
+        return expiration.isUnixTimestamp() ? args.exAt(Instant.ofEpochSecond(expiration.getConverted(TimeUnit.SECONDS)))
+                : args.ex(Duration.ofSeconds(expiration.getConverted(TimeUnit.SECONDS)));
+    }
+
+    /**
+     * Convert {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to {@link HSetExArgs} for the Redis {@code HSETEX} command.
+     *
+     * <p>Condition mapping:</p>
+     * <ul>
+     *   <li>{@code IF_NONE_EXIST}  {@code FNX}</li>
+     *   <li>{@code IF_ALL_EXIST}  {@code FXX}</li>
+     *   <li>{@code UPSERT}  no condition flag</li>
+     * </ul>
+     *
+     * <p>Expiration mapping:</p>
+     * <ul>
+     *   <li>{@link Expiration#keepTtl()}  {@code KEEPTTL}</li>
+     *   <li>Unix timestamp  {@code EXAT}/{@code PXAT} depending on time unit</li>
+     *   <li>Relative expiration  {@code EX}/{@code PX} depending on time unit</li>
+     *   <li>{@code null} expiration  no TTL argument</li>
+     * </ul>
+     *
+     * @param condition must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
+     * @param expiration can be {@literal null} to omit TTL.
+     * @return never {@literal null}.
+     * @since 4.0
+     */
+    static HSetExArgs toHSetExArgs(RedisHashCommands.HashFieldSetOption condition, @Nullable Expiration expiration) {
+
+        HSetExArgs args = new HSetExArgs();
+
+        if (condition == null && expiration == null) {
+            return args;
+        }
+
+        if (condition != null ) {
+            if (condition.equals(RedisHashCommands.HashFieldSetOption.ifNoneExist())) {
+                args.fnx();
+            }
+            if (condition.equals(RedisHashCommands.HashFieldSetOption.ifAllExist())) {
+                args.fxx();
+            }
+        }
+
+        if (expiration == null) {
+            return args;
+        }
+
+        if (expiration.isKeepTtl()) {
+            return args.keepttl();
+        }
+
+        if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+            if (expiration.isUnixTimestamp()) {
+                return args.pxAt(Instant.ofEpochSecond(expiration.getExpirationTime()));
+            }
+            return args.px(Duration.ofMillis(expiration.getExpirationTime()));
+        }
+
+        return expiration.isUnixTimestamp() ? args.exAt(Instant.ofEpochSecond(expiration.getConverted(TimeUnit.SECONDS)))
+                : args.ex(Duration.ofSeconds(expiration.getConverted(TimeUnit.SECONDS)));
+    }
 
 	@SuppressWarnings("NullAway")
 	static Converter<List<byte[]>, Long> toTimeConverter(TimeUnit timeUnit) {

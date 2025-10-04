@@ -38,6 +38,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Mingi Lee
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -327,6 +328,38 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 
 		assertThat(setOps.intersectAndStore(sourceKey1, sourceKey2, destinationKey)).isEqualTo(2L);
 		assertThat(setOps.intersectAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey)).isEqualTo(2L);
+	}
+
+	@Test // GH-2906
+	@EnabledOnCommand("SINTERCARD")
+	void intersectSizeShouldReturnIntersectionCardinality() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+		K sourceKey3 = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+		V v5 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+		setOps.add(sourceKey3, v3, v4, v5);
+
+		// Test two keys intersection
+		assertThat(setOps.intersectSize(sourceKey1, sourceKey2)).isEqualTo(2L);
+
+		// Test key and collection intersection
+		assertThat(setOps.intersectSize(sourceKey1, Arrays.asList(sourceKey2, sourceKey3))).isEqualTo(1L);
+
+		// Test collection intersection
+		assertThat(setOps.intersectSize(Arrays.asList(sourceKey1, sourceKey2, sourceKey3))).isEqualTo(1L);
+
+		// Test empty intersection
+		K emptyKey = keyFactory.instance();
+		assertThat(setOps.intersectSize(sourceKey1, emptyKey)).isEqualTo(0L);
 	}
 
 	@Test // GH-2037

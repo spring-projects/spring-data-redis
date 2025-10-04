@@ -356,6 +356,51 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 		}));
 	}
 
+    @Override
+    public Flux<MultiValueResponse<HGetDelCommand, ByteBuffer>> hGetDel(Publisher<HGetDelCommand> commands) {
+
+        return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+            Assert.notNull(command.getKey(), "Key must not be null");
+            Assert.notNull(command.getFields(), "Fields must not be null");
+
+            return cmd.hgetdel(command.getKey(), command.getFields().toArray(ByteBuffer[]::new)).collectList()
+                    .map(value -> new MultiValueResponse<>(command, value.stream().map(v -> v.getValueOrElse(null))
+                            .collect(Collectors.toList())));
+        }));
+    }
+
+    @Override
+    public Flux<MultiValueResponse<HGetExCommand, ByteBuffer>> hGetEx(Publisher<HGetExCommand> commands) {
+
+        return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+            Assert.notNull(command.getKey(), "Key must not be null");
+            Assert.notNull(command.getFields(), "Fields must not be null");
+
+            return cmd.hgetex(command.getKey(), LettuceConverters.toHGetExArgs(command.getExpiration()), command.getFields().toArray(ByteBuffer[]::new)).collectList()
+                    .map(value -> new MultiValueResponse<>(command, value.stream().map(v -> v.getValueOrElse(null))
+                            .collect(Collectors.toList())));
+        }));
+    }
+
+    @Override
+    public Flux<BooleanResponse<HSetExCommand>> hSetEx(Publisher<HSetExCommand> commands) {
+        return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+            Assert.notNull(command.getKey(), "Key must not be null");
+            Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null");
+
+            Map<ByteBuffer, ByteBuffer> entries = command.getFieldValueMap();
+
+            return cmd.hsetex(command.getKey(),
+                    LettuceConverters.toHSetExArgs(command.getCondition(), command.getExpiration()), entries)
+                    .map(LettuceConverters.longToBooleanConverter()::convert)
+                    .map(value -> new BooleanResponse<>(command, value));
+
+        }));
+    }
+
 	private static Map.Entry<ByteBuffer, ByteBuffer> toEntry(KeyValue<ByteBuffer, ByteBuffer> kv) {
 
 		return new Entry<ByteBuffer, ByteBuffer>() {

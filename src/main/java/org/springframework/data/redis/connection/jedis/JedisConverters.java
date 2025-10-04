@@ -25,6 +25,8 @@ import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.GeoSearchParam;
 import redis.clients.jedis.params.GetExParams;
+import redis.clients.jedis.params.HGetExParams;
+import redis.clients.jedis.params.HSetExParams;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
@@ -62,6 +64,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisServer;
@@ -397,6 +400,105 @@ abstract class JedisConverters extends Converters {
 		return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
 				: params.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
+
+	/**
+	 * Converts a given {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to the according
+	 * {@code HSETEX} command argument.
+	 * <dl>
+	 * <dt>{@link RedisHashCommands.HashFieldSetOption#ifNoneExist()}</dt>
+	 * <dd>{@code FNX}</dd>
+	 * <dt>{@link RedisHashCommands.HashFieldSetOption#ifAllExist()}</dt>
+	 * <dd>{@code FXX}</dd>
+	 * <dt>{@link RedisHashCommands.HashFieldSetOption#upsert()}</dt>
+	 * <dd>no condition flag</dd>
+	 * </dl>
+	 * <dl>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX|PXAT}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX|EXAT}</dd>
+	 * </dl>
+	 *
+	 * @param condition can be {@literal null}.
+	 * @param expiration can be {@literal null}.
+	 * @since 4.0
+	 */
+	static HSetExParams toHSetExParams(RedisHashCommands.@Nullable HashFieldSetOption condition, @Nullable Expiration expiration) {
+		return toHSetExParams(condition, expiration, new HSetExParams());
+	}
+
+	static HSetExParams toHSetExParams(RedisHashCommands.@Nullable HashFieldSetOption condition, @Nullable Expiration expiration, HSetExParams params) {
+
+		if (condition == null && expiration == null) {
+			return params;
+		}
+
+		if (condition != null) {
+			if (condition.equals(RedisHashCommands.HashFieldSetOption.ifNoneExist())) {
+				params.fnx();
+			} else if (condition.equals(RedisHashCommands.HashFieldSetOption.ifAllExist())) {
+				params.fxx();
+			}
+		}
+
+		if (expiration == null) {
+			return params;
+		}
+
+		if (expiration.isKeepTtl()) {
+			return params.keepTtl();
+		}
+
+		if (expiration.isPersistent()) {
+			return params;
+		}
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ? params.pxAt(expiration.getExpirationTime())
+					: params.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
+				: params.ex(expiration.getConverted(TimeUnit.SECONDS));
+	}
+
+    /**
+     * Converts a given {@link Expiration} to the according {@code HGETEX} command argument depending on
+     * {@link Expiration#isUnixTimestamp()}.
+     * <dl>
+     * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+     * <dd>{@code PX|PXAT}</dd>
+     * <dt>{@link TimeUnit#SECONDS}</dt>
+     * <dd>{@code EX|EXAT}</dd>
+     * </dl>
+     *
+     * @param expiration must not be {@literal null}.
+     * @since 4.0
+     */
+    static HGetExParams toHGetExParams(Expiration expiration) {
+        return toHGetExParams(expiration, new HGetExParams());
+    }
+
+    static HGetExParams toHGetExParams(Expiration expiration, HGetExParams params) {
+
+        if (expiration == null) {
+            return params;
+        }
+
+        if (expiration.isPersistent()) {
+            return params.persist();
+        }
+
+        if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+            if (expiration.isUnixTimestamp()) {
+                return params.pxAt(expiration.getExpirationTime());
+            }
+            return params.px(expiration.getExpirationTime());
+        }
+
+        return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
+                : params.ex(expiration.getConverted(TimeUnit.SECONDS));
+    }
 
 	/**
 	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />

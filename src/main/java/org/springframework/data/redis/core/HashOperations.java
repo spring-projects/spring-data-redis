@@ -28,6 +28,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 
@@ -38,6 +39,7 @@ import org.springframework.data.redis.core.types.Expirations;
  * @author Christoph Strobl
  * @author Ninad Divadkar
  * @author Tihomir Mateev
+ * @author Viktoriya Kutsarova
  */
 @NullUnmarked
 public interface HashOperations<H, HK, HV> {
@@ -78,6 +80,42 @@ public interface HashOperations<H, HK, HV> {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 */
 	List<HV> multiGet(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
+
+    /**
+     * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     *
+     * @param key must not be {@literal null}.
+     * @param hashKeys must not be {@literal null}.
+	 * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
+     * @since 4.0
+     */
+    List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
+
+    /**
+     * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of
+     * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+     *
+     * @param key must not be {@literal null}.
+     * @param expiration is optional.
+     * @param hashKeys must not be {@literal null}.
+     * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
+     * @since 4.0
+     */
+    List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
+
+    /**
+     * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+     *
+     * @param key must not be {@literal null}.
+     * @param m must not be {@literal null}.
+     * @param condition is optional.
+     * @param expiration is optional.
+     * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
+     * @since 4.0
+     */
+    Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
+                         RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.
@@ -350,6 +388,8 @@ public interface HashOperations<H, HK, HV> {
 			@NonNull Collection<@NonNull HK> hashFields) {
 		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> hashFields);
 	}
+
+
 
 	/**
 	 * @return the underlying {@link RedisOperations} used to execute commands.

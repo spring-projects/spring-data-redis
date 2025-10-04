@@ -16,6 +16,7 @@
 package org.springframework.data.redis.stream;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
@@ -107,6 +108,7 @@ import org.springframework.util.ErrorHandler;
  * @author Christoph Strobl
  * @author Christian Rest
  * @author DongCheol Kim
+ * @author Su Ko
  * @param <K> Stream key and Stream field type.
  * @param <V> Stream value type.
  * @since 2.2
@@ -503,12 +505,14 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private final @Nullable HashMapper<Object, Object, Object> hashMapper;
 		private final ErrorHandler errorHandler;
 		private final Executor executor;
+        private final @Nullable Integer phase;
+        private final @Nullable Boolean autoStartup;
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		private StreamMessageListenerContainerOptions(Duration pollTimeout, @Nullable Integer batchSize,
 				RedisSerializer<K> keySerializer, RedisSerializer<Object> hashKeySerializer,
 				RedisSerializer<Object> hashValueSerializer, @Nullable Class<?> targetType,
-				@Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler, Executor executor) {
+				@Nullable HashMapper<V, ?, ?> hashMapper, ErrorHandler errorHandler, Executor executor,@Nullable Integer phase, @Nullable Boolean autoStartup) {
 			this.pollTimeout = pollTimeout;
 			this.batchSize = batchSize;
 			this.keySerializer = keySerializer;
@@ -518,6 +522,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			this.hashMapper = (HashMapper) hashMapper;
 			this.errorHandler = errorHandler;
 			this.executor = executor;
+            this.phase = phase;
+            this.autoStartup = autoStartup;
 		}
 
 		/**
@@ -598,6 +604,23 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			return executor;
 		}
 
+        /**
+         * @return the configured phase to use for the container lifecycle or {@code empty} if the phase was not
+		 * specified on the options.
+         * @since 4.0
+         */
+        public OptionalInt getPhase() {
+            return phase != null ? OptionalInt.of(phase) : OptionalInt.empty();
+        }
+
+        /**
+         * @return the configured autoStartup to use for the container lifecycle or {@code empty} if the autoStartup
+		 * was not specified on the options.
+         * @since 4.0
+         */
+        public Optional<Boolean> isAutoStartup() {
+            return autoStartup != null ? Optional.of(autoStartup) : Optional.empty();
+        }
 	}
 
 	/**
@@ -618,6 +641,8 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 		private @Nullable Class<?> targetType;
 		private ErrorHandler errorHandler = LoggingErrorHandler.INSTANCE;
 		private Executor executor = new SimpleAsyncTaskExecutor();
+        private @Nullable Integer phase;
+        private @Nullable Boolean autoStartup;
 
 		@SuppressWarnings("NullAway")
 		private StreamMessageListenerContainerOptionsBuilder() {}
@@ -678,6 +703,28 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			this.errorHandler = errorHandler;
 			return this;
 		}
+
+        /**
+         * Configure the phase to use for the container {@link SmartLifecycle}
+         *
+         * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
+         * @since 4.0
+         */
+        public StreamMessageListenerContainerOptionsBuilder<K, V> phase(int phase) {
+            this.phase = phase;
+            return this;
+        }
+
+        /**
+         * Configure the autoStartup to use for the container {@link SmartLifecycle}
+         *
+         * @return {@code this} {@link StreamMessageListenerContainerOptionsBuilder}.
+         * @since 4.0
+         */
+        public StreamMessageListenerContainerOptionsBuilder<K, V> autoStartup(boolean autoStartup) {
+            this.autoStartup = autoStartup;
+            return this;
+        }
 
 		/**
 		 * Configure a key, hash key and hash value serializer.
@@ -796,7 +843,7 @@ public interface StreamMessageListenerContainer<K, V extends Record<K, ?>> exten
 			Assert.notNull(hashValueSerializer, "Hash Value Serializer must not be null");
 
 			return new StreamMessageListenerContainerOptions<>(pollTimeout, batchSize, keySerializer, hashKeySerializer,
-					hashValueSerializer, targetType, hashMapper, errorHandler, executor);
+					hashValueSerializer, targetType, hashMapper, errorHandler, executor,phase,autoStartup);
 		}
 
 	}

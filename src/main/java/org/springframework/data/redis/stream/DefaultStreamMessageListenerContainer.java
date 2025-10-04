@@ -50,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Su Ko
  * @since 2.2
  */
 class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implements StreamMessageListenerContainer<K, V> {
@@ -66,6 +67,9 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 	private final List<Subscription> subscriptions = new ArrayList<>();
 
 	private boolean running = false;
+
+    private int phase = Integer.MAX_VALUE;
+    private boolean autoStartup;
 
 	/**
 	 * Create a new {@link DefaultStreamMessageListenerContainer}.
@@ -90,6 +94,14 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		} else {
 			this.streamOperations = this.template.opsForStream();
 		}
+
+        if (containerOptions.isAutoStartup().isPresent()) {
+            this.autoStartup = containerOptions.isAutoStartup().get();
+        }
+
+        if (containerOptions.getPhase().isPresent()) {
+            this.phase = containerOptions.getPhase().getAsInt();
+        }
 	}
 
 	private static StreamReadOptions getStreamReadOptions(StreamMessageListenerContainerOptions<?, ?> options) {
@@ -119,11 +131,6 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 		template.afterPropertiesSet();
 
 		return template;
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return false;
 	}
 
 	@Override
@@ -177,7 +184,12 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 	@Override
 	public int getPhase() {
-		return Integer.MAX_VALUE;
+		return this.phase;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
 	}
 
 	@Override

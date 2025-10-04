@@ -67,6 +67,7 @@ import org.springframework.data.redis.domain.geo.GeoShape;
  * @author Dennis Neufeld
  * @author Shyngys Sapraliyev
  * @author Tihomir Mateev
+ * @author Mingi Lee
  * @since 2.0
  */
 @Deprecated
@@ -893,6 +894,13 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
 	@Override
 	@Deprecated
+	default Long sInterCard(byte[]... keys) {
+		return setCommands().sInterCard(keys);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#setCommands()}}. */
+	@Override
+	@Deprecated
 	default Boolean sIsMember(byte[] key, byte[] value) {
 		return setCommands().sIsMember(key, value);
 	}
@@ -1593,6 +1601,27 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	default List<Long> hpTtl(byte[] key, byte[]... fields) {
 		return hashCommands().hpTtl(key, fields);
 	}
+
+    /** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+    @Override
+    @Deprecated
+    default List<byte[]> hGetDel(byte[] key, byte[]... fields) {
+        return hashCommands().hGetDel(key, fields);
+    }
+
+    /** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+    @Override
+    @Deprecated
+    default List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+        return hashCommands().hGetEx(key, expiration, fields);
+    }
+
+    /** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
+    @Override
+    @Deprecated
+    default Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+        return hashCommands().hSetEx(key, hashes, condition, expiration);
+    }
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
