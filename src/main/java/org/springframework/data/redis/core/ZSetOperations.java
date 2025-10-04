@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Wongoo (望哥)
  * @author Andrey Shlykov
  * @author Shyngys Sapraliyev
+ * @author Gunha Hwang
  */
 @NullUnmarked
 public interface ZSetOperations<K, V> {
@@ -210,21 +211,21 @@ public interface ZSetOperations<K, V> {
 	 * Determine the index of element with {@code value} in a sorted set.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param o the value.
+	 * @param value the value.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrank">Redis Documentation: ZRANK</a>
 	 */
-	Long rank(@NonNull K key, @NonNull Object o);
+	Long rank(@NonNull K key, @NonNull Object value);
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param o the value.
+	 * @param value the value.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zrevrank">Redis Documentation: ZREVRANK</a>
 	 */
-	Long reverseRank(@NonNull K key, @NonNull Object o);
+	Long reverseRank(@NonNull K key, @NonNull Object value);
 
 	/**
 	 * Get elements between {@code start} and {@code end} from sorted set.
@@ -525,11 +526,11 @@ public interface ZSetOperations<K, V> {
 	 * Get the score of element with {@code value} from sorted set with key {@code key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param o the value.
+	 * @param value the value.
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/zscore">Redis Documentation: ZSCORE</a>
 	 */
-	Double score(@NonNull K key, Object o);
+	Double score(@NonNull K key, Object value);
 
 	/**
 	 * Get the scores of elements with {@code values} from sorted set with key {@code key}.
