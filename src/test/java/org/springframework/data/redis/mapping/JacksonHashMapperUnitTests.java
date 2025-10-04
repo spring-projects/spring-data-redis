@@ -39,25 +39,25 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.hash.HashMapper;
-import org.springframework.data.redis.hash.Jackson3HashMapper;
+import org.springframework.data.redis.hash.JacksonHashMapper;
 
 /**
- * Support class for {@link Jackson3HashMapper} unit tests.
+ * Support class for {@link JacksonHashMapper} unit tests.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author John Blum
  */
-abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTests {
+abstract class JacksonHashMapperUnitTests extends AbstractHashMapperTests {
 
-	private final Jackson3HashMapper mapper;
+	private final JacksonHashMapper mapper;
 
-	Jackson3HashMapperUnitTests(Jackson3HashMapper mapper) {
+	JacksonHashMapperUnitTests(JacksonHashMapper mapper) {
 
 		this.mapper = mapper;
 	}
 
-	Jackson3HashMapper getMapper() {
+	JacksonHashMapper getMapper() {
 		return this.mapper;
 	}
 
@@ -222,7 +222,7 @@ abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTests {
 	@Test // GH-3292
 	void configuresObjectMapper() {
 
-		Jackson3HashMapper serializer = Jackson3HashMapper.builder(() -> new ObjectMapper().rebuild())
+		JacksonHashMapper serializer = JacksonHashMapper.builder(() -> new ObjectMapper().rebuild())
 				.customize(mb -> mb.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)).build();
 
 		assertThat(serializer).isNotNull();
@@ -231,7 +231,7 @@ abstract class Jackson3HashMapperUnitTests extends AbstractHashMapperTests {
 	@Test // GH-3292
 	void configuresJsonMapper() {
 
-		Jackson3HashMapper serializer = Jackson3HashMapper.create(b -> {
+		JacksonHashMapper serializer = JacksonHashMapper.create(b -> {
 			b.customize(mb -> mb.enable(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER));
 		});
 

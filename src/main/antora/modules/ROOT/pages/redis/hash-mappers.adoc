@@ -1,7 +1,10 @@
 [[redis.hashmappers.root]]
 = Hash Mapping
 
-Data can be stored by using various data structures within Redis. javadoc:org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer[] can convert objects in https://en.wikipedia.org/wiki/JSON[JSON] format. Ideally, JSON can be stored as a value by using plain keys. You can achieve a more sophisticated mapping of structured objects by using Redis hashes. Spring Data Redis offers various strategies for mapping data to hashes (depending on the use case):
+Data can be stored by using various data structures within Redis. javadoc:org.springframework.data.redis.serializer.JacksonJsonRedisSerializer[] can convert objects in https://en.wikipedia.org/wiki/JSON[JSON] format.
+Ideally, JSON can be stored as a value by using plain keys.
+You can achieve a more sophisticated mapping of structured objects by using Redis hashes.
+Spring Data Redis offers various strategies for mapping data to hashes (depending on the use case):
 
 * Direct mapping, by using javadoc:org.springframework.data.redis.core.HashOperations[] and a xref:redis.adoc#redis:serializer[serializer]
 * Using xref:repositories.adoc[Redis Repositories]
@@ -16,7 +19,7 @@ Multiple implementations are available:
 
 * javadoc:org.springframework.data.redis.hash.BeanUtilsHashMapper[] using Spring's {spring-framework-javadoc}/org/springframework/beans/BeanUtils.html[BeanUtils].
 * javadoc:org.springframework.data.redis.hash.ObjectHashMapper[] using xref:redis/redis-repositories/mapping.adoc[Object-to-Hash Mapping].
-* <<redis.hashmappers.jackson3,`Jackson3HashMapper`>> using https://github.com/FasterXML/jackson[FasterXML Jackson 3].
+* <<redis.hashmappers.jackson3,`JacksonHashMapper`>> using https://github.com/FasterXML/jackson[FasterXML Jackson 3].
 * <<redis.hashmappers.jackson2,`Jackson2HashMapper`>> (deprecated) using https://github.com/FasterXML/jackson[FasterXML Jackson 2].
 
 The following example shows one way to implement hash mapping:
@@ -52,10 +55,10 @@ public class HashMapping {
 ----
 
 [[redis.hashmappers.jackson3]]
-=== Jackson3HashMapper
+=== JacksonHashMapper
 
-javadoc:org.springframework.data.redis.hash.Jackson3HashMapper[] provides Redis Hash mapping for domain objects by using https://github.com/FasterXML/jackson[FasterXML Jackson 3].
-`Jackson3HashMapper` can map top-level properties as Hash field names and, optionally, flatten the structure.
+javadoc:org.springframework.data.redis.hash.JacksonHashMapper[] provides Redis Hash mapping for domain objects by using https://github.com/FasterXML/jackson[FasterXML Jackson 3].
+`JacksonHashMapper` can map top-level properties as Hash field names and, optionally, flatten the structure.
 Simple types map to simple values. Complex types (nested objects, collections, maps, and so on) are represented as nested JSON.
 
 Flattening creates individual hash entries for all nested properties and resolves complex types into simple types, as far as possible.

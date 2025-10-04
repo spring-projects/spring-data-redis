@@ -35,7 +35,7 @@ import org.springframework.data.redis.connection.lettuce.extension.LettuceConnec
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -101,7 +101,7 @@ abstract public class ReactiveOperationsTestParams {
 		ReactiveRedisTemplate<String, Person> jackson2JsonPersonTemplate = new ReactiveRedisTemplate(
 				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson2JsonSerializer));
 
-		Jackson3JsonRedisSerializer<Person> jackson3JsonSerializer = new Jackson3JsonRedisSerializer<>(Person.class);
+		JacksonJsonRedisSerializer<Person> jackson3JsonSerializer = new JacksonJsonRedisSerializer<>(Person.class);
 		ReactiveRedisTemplate<String, Person> jackson3JsonPersonTemplate = new ReactiveRedisTemplate(
 			lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson3JsonSerializer));
 

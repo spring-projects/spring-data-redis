@@ -20,21 +20,21 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Map;
 
 import org.springframework.data.redis.hash.Jackson2HashMapper;
-import org.springframework.data.redis.hash.Jackson3HashMapper;
+import org.springframework.data.redis.hash.JacksonHashMapper;
 
 /**
- * TCK-style tests to assert {@link Jackson3HashMapper} interoperability with {@link Jackson2HashMapper} in hierarchical
+ * TCK-style tests to assert {@link JacksonHashMapper} interoperability with {@link Jackson2HashMapper} in hierarchical
  * mode.
  *
  * @author Christoph Strobl
  */
 @SuppressWarnings("removal")
-class Jackson3CompatibilityTests extends Jackson3HashMapperUnitTests {
+class JacksonCompatibilityTests extends JacksonHashMapperUnitTests {
 
 	private final Jackson2HashMapper jackson2HashMapper;
 
-	Jackson3CompatibilityTests() {
-		super(Jackson3HashMapper.builder().jackson2CompatibilityMode().build());
+	JacksonCompatibilityTests() {
+		super(JacksonHashMapper.builder().jackson2CompatibilityMode().build());
 		this.jackson2HashMapper = new Jackson2HashMapper(false);
 	}
 
