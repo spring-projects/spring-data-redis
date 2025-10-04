@@ -287,6 +287,7 @@ class LettuceHashCommands implements RedisHashCommands {
                 .toList(source -> source.getValueOrElse(null));
     }
 
+	@Override
     public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
                           Expiration expiration) {
 

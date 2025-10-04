@@ -87,7 +87,7 @@ public interface HashOperations<H, HK, HV> {
      *
      * @param key must not be {@literal null}.
      * @param hashKeys must not be {@literal null}.
-     * @return {@literal null} when used in pipeline / transaction.
+	 * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
      * @since 4.0
      */
     List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
@@ -99,7 +99,7 @@ public interface HashOperations<H, HK, HV> {
      * @param key must not be {@literal null}.
      * @param expiration is optional.
      * @param hashKeys must not be {@literal null}.
-     * @return {@literal null} when used in pipeline / transaction.
+     * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
      * @since 4.0
      */
     List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
@@ -111,7 +111,7 @@ public interface HashOperations<H, HK, HV> {
      * @param m must not be {@literal null}.
      * @param condition is optional.
      * @param expiration is optional.
-     * @return {@literal null} when used in pipeline / transaction.
+     * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
      * @since 4.0
      */
     Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,

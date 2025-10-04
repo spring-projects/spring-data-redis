@@ -551,7 +551,8 @@ public interface RedisHashCommands {
      *
      * @param key must not be {@literal null}.
      * @param fields must not be {@literal null}.
-     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+     * @return list of values for deleted {@code fields} ({@literal null} for fields that does not exist) or an
+	 * empty {@link List} if key does not exist or {@literal null} when used in pipeline / transaction.
      * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
      */
     List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
@@ -562,7 +563,8 @@ public interface RedisHashCommands {
      *
      * @param key must not be {@literal null}.
      * @param fields must not be {@literal null}.
-     * @return empty {@link List} if key does not exist. {@literal null} when used in pipeline / transaction.
+	 * @return list of values for given {@code fields} or an empty {@link List} if key does not
+	 * exist or {@literal null} when used in pipeline / transaction.
      * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
      */
     List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration,
