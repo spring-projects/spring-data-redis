@@ -58,7 +58,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
  */
 class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver<K, V> {
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private static final Log logger = LogFactory.getLog(DefaultStreamReceiver.class);
 	private final ReactiveRedisTemplate<K, ?> template;
 	private final ReactiveStreamOperations<K, Object, Object> streamOperations;
 	private final StreamReadOptions readOptions;

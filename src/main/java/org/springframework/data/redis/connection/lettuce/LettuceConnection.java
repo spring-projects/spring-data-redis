@@ -104,6 +104,8 @@ import org.springframework.util.ObjectUtils;
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
+	private static final Log LOGGER = LogFactory.getLog(LettuceConnection.class);
+
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			LettuceExceptionConverter.INSTANCE);
 
@@ -153,8 +155,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private final LettuceZSetCommands zSetCommands = new LettuceZSetCommands(this);
 
 	private @Nullable List<LettuceResult<?, ?>> ppline;
-
-	private final Log LOGGER = LogFactory.getLog(getClass());
 
 	private PipeliningFlushPolicy pipeliningFlushPolicy = PipeliningFlushPolicy.flushEachCommand();
 

@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractRedisConnection implements RedisConnection {
 
-	private final Log LOGGER = LogFactory.getLog(getClass());
+	private static final Log LOGGER = LogFactory.getLog(AbstractRedisConnection.class);
 
 	private @Nullable RedisSentinelConfiguration sentinelConfiguration;
 	private final Map<RedisNode, RedisSentinelConnection> connectionCache = new ConcurrentHashMap<>();

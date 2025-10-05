@@ -51,7 +51,7 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
  */
 public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 
-	private final Log log = LogFactory.getLog(RedisRepositoryExtension.class);
+	private static final Log log = LogFactory.getLog(RedisRepositoryExtension.class);
 	private final Map<Set<Annotation>, Bean<RedisKeyValueAdapter>> redisKeyValueAdapters = new HashMap<>();
 	private final Map<Set<Annotation>, Bean<KeyValueOperations>> redisKeyValueTemplates = new HashMap<>();
 	private final Map<Set<Annotation>, Bean<RedisOperations<?, ?>>> redisOperations = new HashMap<>();
