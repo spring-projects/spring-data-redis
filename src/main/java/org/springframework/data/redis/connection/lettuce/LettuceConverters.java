@@ -663,10 +663,10 @@ public abstract class LettuceConverters extends Converters {
      *
      * <p>Expiration mapping:</p>
      * <ul>
-     *   <li>{@link Expiration#keepTtl()}  {@code KEEPTTL}</li>
-     *   <li>Unix timestamp  {@code EXAT}/{@code PXAT} depending on time unit</li>
-     *   <li>Relative expiration  {@code EX}/{@code PX} depending on time unit</li>
-     *   <li>{@code null} expiration  no TTL argument</li>
+     *   <li>{@link Expiration#keepTtl()}  {@code KEEPTTL}</li>
+     *   <li>Unix timestamp {@code EXAT}/{@code PXAT} depending on time unit</li>
+     *   <li>Relative expiration {@code EX}/{@code PX} depending on time unit</li>
+     *   <li>{@code null} expiration no TTL argument</li>
      * </ul>
      *
      * @param condition must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
