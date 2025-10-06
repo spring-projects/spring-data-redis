@@ -1261,6 +1261,7 @@ public interface ReactiveHashCommands {
 	 * {@literal HGETDEL} {@link Command}.
 	 *
 	 * @author Viktoriya Kutsarova
+	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
 	 */
 	class HGetDelCommand extends HashFieldsCommand {
@@ -1318,6 +1319,7 @@ public interface ReactiveHashCommands {
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
 	 * @return never {@literal null}.
+	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
 	 */
 	default Mono<List<ByteBuffer>> hGetDel(ByteBuffer key, Collection<ByteBuffer> fields) {
@@ -1335,6 +1337,7 @@ public interface ReactiveHashCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return never {@literal null}.
+	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
 	 */
 	Flux<MultiValueResponse<HGetDelCommand, ByteBuffer>> hGetDel(Publisher<HGetDelCommand> commands);

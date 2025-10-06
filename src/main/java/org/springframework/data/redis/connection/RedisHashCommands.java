@@ -587,6 +587,7 @@ public interface RedisHashCommands {
 	 * {@code HSETEX} command arguments for {@code FNX}, {@code FXX}.
 	 *
 	 * @author Viktoriya Kutsarova
+	 * @since 4.0
 	 */
 	enum HashFieldSetOption {
 

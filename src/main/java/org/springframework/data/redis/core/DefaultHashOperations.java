@@ -186,8 +186,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[][] rawHashKeys = new byte[fields.size()][];
 
 		int counter = 0;
-		for (@NonNull
-		HK hashKey : fields) {
+		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 
@@ -206,8 +205,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = new byte[fields.size()][];
         int counter = 0;
-		for (@NonNull
-		HK hashKey : fields) {
+		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
         List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
@@ -226,8 +224,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = new byte[fields.size()][];
 		int counter = 0;
-		for (@NonNull
-		HK hashKey : fields) {
+		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 		List<byte[]> rawValues = execute(connection -> connection.hashCommands()

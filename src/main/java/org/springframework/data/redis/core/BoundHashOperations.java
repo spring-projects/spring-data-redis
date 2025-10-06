@@ -254,7 +254,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *
 	 * @param hashFields must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
-	 * @since 3.1
+	 * @since 4.0
 	 */
 	List<HV> getAndDelete(@NonNull Collection<@NonNull HK> hashFields);
 
@@ -279,6 +279,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 *                  fields if all of them already exist, or {@link RedisHashCommands.HashFieldSetOption#UPSERT} to set the fields
 	 *                  unconditionally.
 	 * @param expiration is optional.
+	 * @since 4.0
 	 */
 	void putAndExpire(Map<? extends @NonNull HK, ? extends HV> m, RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
 }
