@@ -112,40 +112,40 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 				.flatMap(hks -> hashCommands.hMGet(rawKey(key), hks)).map(this::deserializeHashValues));
 	}
 
-    @Override
-    public Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys) {
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(hashKeys, "Hash keys must not be null");
-        Assert.notEmpty(hashKeys, "Hash keys must not be empty");
+	@Override
+	public Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashKeys, "Hash keys must not be null");
+		Assert.notEmpty(hashKeys, "Hash keys must not be empty");
 
-        return createMono(hashCommands -> Flux.fromIterable(hashKeys) //
-                .map(this::rawHashKey) //
-                .collectList() //
-                .flatMap(hks -> hashCommands.hGetDel(rawKey(key), hks)).map(this::deserializeHashValues));
-    }
+		return createMono(hashCommands -> Flux.fromIterable(hashKeys) //
+				.map(this::rawHashKey) //
+				.collectList() //
+				.flatMap(hks -> hashCommands.hGetDel(rawKey(key), hks)).map(this::deserializeHashValues));
+	}
 
-    @Override
-    public Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(map, "Map must not be null");
+	@Override
+	public Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(map, "Map must not be null");
 
-        return createMono(hashCommands -> Flux.fromIterable(() -> map.entrySet().iterator()) //
-                .collectMap(entry -> rawHashKey(entry.getKey()), entry -> rawHashValue(entry.getValue())) //
-                .flatMap(serialized -> hashCommands.hSetEx(rawKey(key), serialized, condition, expiration)));
-    }
+		return createMono(hashCommands -> Flux.fromIterable(() -> map.entrySet().iterator()) //
+				.collectMap(entry -> rawHashKey(entry.getKey()), entry -> rawHashValue(entry.getValue())) //
+				.flatMap(serialized -> hashCommands.hSetEx(rawKey(key), serialized, condition, expiration)));
+	}
 
-    @Override
-    public Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys) {
+	@Override
+	public Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(hashKeys, "Hash keys must not be null");
-        Assert.notEmpty(hashKeys, "Hash keys must not be empty");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashKeys, "Hash keys must not be null");
+		Assert.notEmpty(hashKeys, "Hash keys must not be empty");
 
-        return createMono(hashCommands -> Flux.fromIterable(hashKeys) //
-                .map(this::rawHashKey) //
-                .collectList() //
-                .flatMap(hks -> hashCommands.hGetEx(rawKey(key), expiration, hks)).map(this::deserializeHashValues));
-    }
+		return createMono(hashCommands -> Flux.fromIterable(hashKeys) //
+				.map(this::rawHashKey) //
+				.collectList() //
+				.flatMap(hks -> hashCommands.hGetEx(rawKey(key), expiration, hks)).map(this::deserializeHashValues));
+	}
 
 	@Override
 	public Mono<Long> increment(H key, HK hashKey, long delta) {

@@ -215,8 +215,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-    @Override
-    public List<HV> getAndExpire(@NonNull K key, @NonNull Expiration expiration,
+	@Override
+	public List<HV> getAndExpire(@NonNull K key, @NonNull Expiration expiration,
 			@NonNull Collection<@NonNull HK> fields) {
 
 		if (fields.isEmpty()) {
@@ -230,28 +230,29 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
-		List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetEx(rawKey, expiration, rawHashKeys));
+		List<byte[]> rawValues = execute(connection -> connection.hashCommands()
+				.hGetEx(rawKey, expiration, rawHashKeys));
 
 		return deserializeHashValues(rawValues);
 	}
 
-    @Override
-    public Boolean putAndExpire(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
-                                RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
-        if (m.isEmpty()) {
-            return false;
-        }
+	@Override
+	public Boolean putAndExpire(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
+			RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+		if (m.isEmpty()) {
+			return false;
+		}
 
-        byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 
-        Map<byte[], byte[]> hashes = new LinkedHashMap<>(m.size());
+		Map<byte[], byte[]> hashes = new LinkedHashMap<>(m.size());
 
-        for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
-            hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
-        }
+		for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
+			hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
+		}
 
-        return execute(connection -> connection.hashCommands().hSetEx(rawKey, hashes, condition, expiration));
-    }
+		return execute(connection -> connection.hashCommands().hSetEx(rawKey, hashes, condition, expiration));
+	}
 
 	@Override
 	public void put(@NonNull K key, @NonNull HK hashKey, HV value) {

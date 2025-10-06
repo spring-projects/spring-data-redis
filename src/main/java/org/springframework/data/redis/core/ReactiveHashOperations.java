@@ -83,43 +83,43 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @return
 	 */
 	Mono<List<HV>> multiGet(H key, Collection<HK> hashKeys);
-    
-    /**
-     * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
-     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-     * When the last field is deleted, the key will also be deleted.
-     *
-     * @param key must not be {@literal null}.
-     * @param hashKeys must not be {@literal null}.
-     * @return never {@literal null}.
-     * @since 4.0
-     */
-    Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys);
 
-    /**
-     * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
-     *
-     * @param key must not be {@literal null}.
-     * @param map must not be {@literal null}.
-     * @param condition is optional.
-     * @param expiration is optional.
-     * @return never {@literal null}.
-     * @since 4.0
-     */
-    Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition,
-                               Expiration expiration);
+	/**
+	 * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+	 * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 * When the last field is deleted, the key will also be deleted.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param hashKeys must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 4.0
+	 */
+	Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys);
 
-    /**
-     * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
-     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-     *
-     * @param key must not be {@literal null}.
-     * @param expiration is optional.
-     * @param hashKeys must not be {@literal null}.
-     * @return never {@literal null}.
-     * @since 4.0
-     */
-    Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys);
+	/**
+	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param map must not be {@literal null}.
+	 * @param condition is optional.
+	 * @param expiration is optional.
+	 * @return never {@literal null}.
+	 * @since 4.0
+	 */
+	Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition,
+			Expiration expiration);
+
+	/**
+	 * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+	 * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration is optional.
+	 * @param hashKeys must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 4.0
+	 */
+	Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.

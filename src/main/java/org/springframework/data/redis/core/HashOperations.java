@@ -92,30 +92,30 @@ public interface HashOperations<H, HK, HV> {
      */
     List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
 
-    /**
-     * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of
-     * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-     *
-     * @param key must not be {@literal null}.
-     * @param expiration is optional.
-     * @param hashKeys must not be {@literal null}.
-     * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
-     * @since 4.0
-     */
-    List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
+	/**
+	 * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of
+	 * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expiration is optional.
+	 * @param hashKeys must not be {@literal null}.
+	 * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
+	 * @since 4.0
+	 */
+	List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
 
-    /**
-     * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
-     *
-     * @param key must not be {@literal null}.
-     * @param m must not be {@literal null}.
-     * @param condition is optional.
-     * @param expiration is optional.
-     * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
-     * @since 4.0
-     */
-    Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
-                         RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
+	/**
+	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param m must not be {@literal null}.
+	 * @param condition is optional.
+	 * @param expiration is optional.
+	 * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
+	 * @since 4.0
+	 */
+	Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
+			RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.
