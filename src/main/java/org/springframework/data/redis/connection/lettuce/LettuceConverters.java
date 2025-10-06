@@ -656,9 +656,9 @@ public abstract class LettuceConverters extends Converters {
      *
      * <p>Condition mapping:</p>
      * <ul>
-     *   <li>{@code IF_NONE_EXIST}  {@code FNX}</li>
-     *   <li>{@code IF_ALL_EXIST}  {@code FXX}</li>
-     *   <li>{@code UPSERT}  no condition flag</li>
+     *   <li>{@code IF_NONE_EXIST} {@code FNX}</li>
+     *   <li>{@code IF_ALL_EXIST} {@code FXX}</li>
+     *   <li>{@code UPSERT} no condition flag</li>
      * </ul>
      *
      * <p>Expiration mapping:</p>
