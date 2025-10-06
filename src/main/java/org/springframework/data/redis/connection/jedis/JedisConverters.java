@@ -45,8 +45,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
@@ -402,105 +402,6 @@ abstract class JedisConverters extends Converters {
 	}
 
 	/**
-	 * Converts a given {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to the according
-	 * {@code HSETEX} command argument.
-	 * <dl>
-	 * <dt>{@link RedisHashCommands.HashFieldSetOption#ifNoneExist()}</dt>
-	 * <dd>{@code FNX}</dd>
-	 * <dt>{@link RedisHashCommands.HashFieldSetOption#ifAllExist()}</dt>
-	 * <dd>{@code FXX}</dd>
-	 * <dt>{@link RedisHashCommands.HashFieldSetOption#upsert()}</dt>
-	 * <dd>no condition flag</dd>
-	 * </dl>
-	 * <dl>
-	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
-	 * <dd>{@code PX|PXAT}</dd>
-	 * <dt>{@link TimeUnit#SECONDS}</dt>
-	 * <dd>{@code EX|EXAT}</dd>
-	 * </dl>
-	 *
-	 * @param condition can be {@literal null}.
-	 * @param expiration can be {@literal null}.
-	 * @since 4.0
-	 */
-	static HSetExParams toHSetExParams(RedisHashCommands.@Nullable HashFieldSetOption condition, @Nullable Expiration expiration) {
-		return toHSetExParams(condition, expiration, new HSetExParams());
-	}
-
-	static HSetExParams toHSetExParams(RedisHashCommands.@Nullable HashFieldSetOption condition, @Nullable Expiration expiration, HSetExParams params) {
-
-		if (condition == null && expiration == null) {
-			return params;
-		}
-
-		if (condition != null) {
-			if (condition.equals(RedisHashCommands.HashFieldSetOption.ifNoneExist())) {
-				params.fnx();
-			} else if (condition.equals(RedisHashCommands.HashFieldSetOption.ifAllExist())) {
-				params.fxx();
-			}
-		}
-
-		if (expiration == null) {
-			return params;
-		}
-
-		if (expiration.isKeepTtl()) {
-			return params.keepTtl();
-		}
-
-		if (expiration.isPersistent()) {
-			return params;
-		}
-
-		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return expiration.isUnixTimestamp() ? params.pxAt(expiration.getExpirationTime())
-					: params.px(expiration.getExpirationTime());
-		}
-
-		return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
-				: params.ex(expiration.getConverted(TimeUnit.SECONDS));
-	}
-
-    /**
-     * Converts a given {@link Expiration} to the according {@code HGETEX} command argument depending on
-     * {@link Expiration#isUnixTimestamp()}.
-     * <dl>
-     * <dt>{@link TimeUnit#MILLISECONDS}</dt>
-     * <dd>{@code PX|PXAT}</dd>
-     * <dt>{@link TimeUnit#SECONDS}</dt>
-     * <dd>{@code EX|EXAT}</dd>
-     * </dl>
-     *
-     * @param expiration must not be {@literal null}.
-     * @since 4.0
-     */
-    static HGetExParams toHGetExParams(Expiration expiration) {
-        return toHGetExParams(expiration, new HGetExParams());
-    }
-
-    static HGetExParams toHGetExParams(Expiration expiration, HGetExParams params) {
-
-        if (expiration == null) {
-            return params;
-        }
-
-        if (expiration.isPersistent()) {
-            return params.persist();
-        }
-
-        if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-            if (expiration.isUnixTimestamp()) {
-                return params.pxAt(expiration.getExpirationTime());
-            }
-            return params.px(expiration.getExpirationTime());
-        }
-
-        return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
-                : params.ex(expiration.getConverted(TimeUnit.SECONDS));
-    }
-
-	/**
 	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
 	 * <dl>
 	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
@@ -541,6 +442,96 @@ abstract class JedisConverters extends Converters {
 			case SET_IF_ABSENT -> paramsToUse.nx();
 			default -> paramsToUse;
 		};
+	}
+
+	/**
+	 * Converts a given {@link Expiration} to the according {@code HGETEX} command argument depending on
+	 * {@link Expiration#isUnixTimestamp()}.
+	 * <dl>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX|PXAT}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX|EXAT}</dd>
+	 * </dl>
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @since 4.0
+	 */
+	static HGetExParams toHGetExParams(@Nullable Expiration expiration) {
+
+		HGetExParams params = new HGetExParams();
+
+		if (expiration == null) {
+			return params;
+		}
+
+		if (expiration.isPersistent()) {
+			return params.persist();
+		}
+
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ?
+				params.pxAt(expiration.getExpirationTime()) :
+				params.px(expiration.getExpirationTime());
+		}
+
+		return expiration.isUnixTimestamp() ?
+				params.exAt(expiration.getExpirationTimeInSeconds()) :
+				params.ex(expiration.getExpirationTimeInSeconds());
+	}
+
+	/**
+	 * Converts a given {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to the according
+	 * {@code HSETEX} command argument.
+	 * <dl>
+	 * <dt>{@link RedisHashCommands.HashFieldSetOption#ifNoneExist()}</dt>
+	 * <dd>{@code FNX}</dd>
+	 * <dt>{@link RedisHashCommands.HashFieldSetOption#ifAllExist()}</dt>
+	 * <dd>{@code FXX}</dd>
+	 * <dt>{@link RedisHashCommands.HashFieldSetOption#upsert()}</dt>
+	 * <dd>no condition flag</dd>
+	 * </dl>
+	 * <dl>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX|PXAT}</dd>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX|EXAT}</dd>
+	 * </dl>
+	 *
+	 * @param condition  must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
+	 * @param expiration can be {@literal null} to omit TTL.
+	 * @return never {@literal null}.
+	 * @since 4.0
+	 */
+	static HSetExParams toHSetExParams(RedisHashCommands.@NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration) {
+
+		HSetExParams params = new HSetExParams();
+
+		switch (condition) {
+			case IF_NONE_EXIST -> params.fnx();
+			case IF_ALL_EXIST -> params.fxx();
+		}
+
+		if (expiration == null || expiration.isPersistent()) {
+			return params;
+		}
+
+		if (expiration.isKeepTtl()) {
+			return params.keepTtl();
+		}
+
+		// PX | PXAT
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ?
+					params.pxAt(expiration.getExpirationTime()) :
+					params.px(expiration.getExpirationTime());
+		}
+
+		// EX | EXAT
+		return expiration.isUnixTimestamp() ?
+				params.exAt(expiration.getExpirationTimeInSeconds()) :
+				params.ex(expiration.getExpirationTimeInSeconds());
 	}
 
 	private static byte[] boundaryToBytes(org.springframework.data.domain.Range.Bound<?> boundary, byte[] inclPrefix,

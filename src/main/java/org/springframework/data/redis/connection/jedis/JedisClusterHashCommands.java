@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.core.types.Expiration;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
@@ -27,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.ExpirationOptions;
@@ -35,6 +35,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -415,44 +416,47 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		}
 	}
 
-    @Override
-    public List<byte[]> hGetDel(byte[] key, byte[]... fields) {
+	@Override
+	public List<byte[]> hGetDel(byte[] key, byte[]... fields) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(fields, "Fields must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-        try {
-            return connection.getCluster().hgetdel(key, fields);
-        } catch (Exception ex) {
-            throw convertJedisAccessException(ex);
-        }
-    }
+		try {
+			return connection.getCluster().hgetdel(key, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
-    @Override
-    public List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+	@Override
+	public List<byte[]> hGetEx(byte[] key, @Nullable Expiration expiration, byte[]... fields) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(fields, "Fields must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-        try {
-            return connection.getCluster().hgetex(key, JedisConverters.toHGetExParams(expiration), fields);
-        } catch (Exception ex) {
-            throw convertJedisAccessException(ex);
-        }
-    }
+		try {
+			return connection.getCluster().hgetex(key, JedisConverters.toHGetExParams(expiration), fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
-    @Override
-    public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+	@Override
+	public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, @NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(hashes, "Fields must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashes, "Fields must not be null");
+		Assert.notNull(condition, "Condition must not be null");
 
-        try {
-            return JedisConverters.toBoolean(connection.getCluster().hsetex(key, JedisConverters.toHSetExParams(condition, expiration), hashes));
-        } catch (Exception ex) {
-            throw convertJedisAccessException(ex);
-        }
-    }
+		try {
+			return JedisConverters.toBoolean(
+					connection.getCluster().hsetex(key, JedisConverters.toHSetExParams(condition, expiration), hashes));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
 	@Nullable
 	@Override

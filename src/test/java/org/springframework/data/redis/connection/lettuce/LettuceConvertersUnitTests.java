@@ -27,16 +27,20 @@ import io.lettuce.core.SetArgs;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
@@ -328,5 +332,132 @@ class LettuceConvertersUnitTests {
 			assertThat(sentinel.getUsername()).isNull();
 			assertThat(sentinel.getPassword()).isNull();
 		});
+	}
+
+	@Nested // GH-3211
+	class ToHGetExArgsShould {
+
+		@Test
+		void notSetAnyFieldsForNullExpiration() {
+
+			assertThat(LettuceConverters.toHGetExArgs(null)).extracting("ex", "exAt", "px", "pxAt", "persist")
+					.containsExactly(null, null, null, null, Boolean.FALSE);
+		}
+
+		@Test
+		void setPersistForNonExpiringExpiration() {
+
+			assertThat(LettuceConverters.toHGetExArgs(Expiration.persistent())).extracting("persist").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void setPxForExpirationWithMillisTimeUnit() {
+
+			assertThat(LettuceConverters.toHGetExArgs(Expiration.from(30_000, TimeUnit.MILLISECONDS))).extracting("px")
+					.isEqualTo(30_000L);
+		}
+
+		@Test
+		void setPxAtForExpirationWithMillisUnixTimestamp() {
+
+			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
+			assertThat(LettuceConverters.toHGetExArgs(
+					Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS))).extracting("pxAt")
+					.isEqualTo(fourHoursFromNowMillis);
+		}
+
+		@Test
+		void setExForExpirationWithNonMillisTimeUnit() {
+
+			assertThat(LettuceConverters.toHGetExArgs(Expiration.from(30, TimeUnit.SECONDS))).extracting("ex").isEqualTo(30L);
+		}
+
+		@Test
+		void setExAtForExpirationWithNonMillisUnixTimestamp() {
+
+			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
+			assertThat(
+					LettuceConverters.toHGetExArgs(Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS))).extracting(
+					"exAt").isEqualTo(fourHoursFromNowSecs);
+		}
+	}
+	
+	@Nested
+	class ToHSetExArgsShould {
+
+		@Test
+		void setFnxForNoneExistCondition() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.IF_NONE_EXIST, null)).extracting(
+					"fnx").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void setFxxForAllExistCondition() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.IF_ALL_EXIST, null)).extracting(
+					"fxx").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void notSetFnxNorFxxForUpsertCondition() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, null)).extracting("fnx",
+					"fxx").containsExactly(Boolean.FALSE, Boolean.FALSE);
+		}
+
+		@Test
+		void notSetAnyTimeFieldsForNullExpiration() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, null)).extracting("ex",
+					"exAt", "px", "pxAt").containsExactly(null, null, null, null);
+		}
+
+		@Test
+		void notSetAnyTimeFieldsForNonExpiringExpiration() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT,
+					Expiration.persistent())).extracting("ex", "exAt", "px", "pxAt").containsExactly(null, null, null, null);
+		}
+
+		@Test
+		void setKeepTtlForKeepTtlExpiration() {
+
+			assertThat(
+					LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, Expiration.keepTtl())).extracting(
+					"keepttl").isEqualTo(Boolean.TRUE);
+		}
+
+		@Test
+		void setPxForExpirationWithMillisTimeUnit() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT,
+					Expiration.from(30_000, TimeUnit.MILLISECONDS))).extracting("px").isEqualTo(30_000L);
+		}
+
+		@Test
+		void setPxAtForExpirationWithMillisUnixTimestamp() {
+
+			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
+			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration)).extracting(
+					"pxAt").isEqualTo(fourHoursFromNowMillis);
+		}
+
+		@Test
+		void setExForExpirationWithNonMillisTimeUnit() {
+
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT,
+					Expiration.from(30, TimeUnit.SECONDS))).extracting("ex").isEqualTo(30L);
+		}
+
+		@Test
+		void setExAtForExpirationWithNonMillisUnixTimestamp() {
+
+			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
+			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration)).extracting(
+					"exAt").isEqualTo(fourHoursFromNowSecs);
+		}
 	}
 }

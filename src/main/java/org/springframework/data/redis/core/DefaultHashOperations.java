@@ -186,8 +186,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[][] rawHashKeys = new byte[fields.size()][];
 
 		int counter = 0;
-		for (@NonNull
-		HK hashKey : fields) {
+		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 
@@ -196,8 +195,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-    @Override
-    public List<HV> getAndDelete(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
+	@Override
+	public List<HV> getAndDelete(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
 
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
@@ -205,18 +204,17 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = new byte[fields.size()][];
-        int counter = 0;
-		for (@NonNull
-		HK hashKey : fields) {
+		int counter = 0;
+		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
-        List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
+		List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
 
 		return deserializeHashValues(rawValues);
 	}
 
-    @Override
-    public List<HV> getAndExpire(@NonNull K key, @NonNull Expiration expiration,
+	@Override
+	public List<HV> getAndExpire(@NonNull K key, @Nullable Expiration expiration,
 			@NonNull Collection<@NonNull HK> fields) {
 
 		if (fields.isEmpty()) {
@@ -226,8 +224,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = new byte[fields.size()][];
 		int counter = 0;
-		for (@NonNull
-		HK hashKey : fields) {
+		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
 		List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetEx(rawKey, expiration, rawHashKeys));
@@ -235,23 +232,23 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-    @Override
-    public Boolean putAndExpire(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
-                                RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
-        if (m.isEmpty()) {
-            return false;
-        }
+	@Override
+	public Boolean putAndExpire(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
+			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration) {
+		if (m.isEmpty()) {
+			return false;
+		}
 
-        byte[] rawKey = rawKey(key);
+		byte[] rawKey = rawKey(key);
 
-        Map<byte[], byte[]> hashes = new LinkedHashMap<>(m.size());
+		Map<byte[], byte[]> hashes = new LinkedHashMap<>(m.size());
 
-        for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
-            hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
-        }
+		for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
+			hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
+		}
 
-        return execute(connection -> connection.hashCommands().hSetEx(rawKey, hashes, condition, expiration));
-    }
+		return execute(connection -> connection.hashCommands().hSetEx(rawKey, hashes, condition, expiration));
+	}
 
 	@Override
 	public void put(@NonNull K key, @NonNull HK hashKey, HV value) {

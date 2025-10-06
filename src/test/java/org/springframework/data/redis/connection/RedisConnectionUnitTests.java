@@ -445,17 +445,17 @@ class RedisConnectionUnitTests {
 			return delegate.hMGet(key, fields);
 		}
 
-        public List<byte[]> hGetDel(byte[] key, byte[]... fields) {
-            return delegate.hGetDel(key, fields);
-        }
+		public List<byte[]> hGetDel(byte[] key, byte[]... fields) {
+			return delegate.hGetDel(key, fields);
+		}
 
-        public List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
-            return delegate.hGetEx(key, expiration, fields);
-        }
+		public List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+			return delegate.hGetEx(key, expiration, fields);
+		}
 
-        public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
-            return delegate.hSetEx(key, hashes, condition, expiration);
-        }
+		public Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+			return delegate.hSetEx(key, hashes, condition, expiration);
+		}
 
 		public Long zRem(byte[] key, byte[]... values) {
 			return delegate.zRem(key, values);

@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.convert.converter.Converter;
@@ -622,93 +623,87 @@ public abstract class LettuceConverters extends Converters {
 				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
 	}
 
-    /**
-     * Convert {@link Expiration} to {@link HGetExArgs}.
-     *
-     * @param expiration can be {@literal null}.
-     * @since 4.0
-     */
-    static HGetExArgs toHGetExArgs(@Nullable Expiration expiration) {
+	/**
+	 * Convert {@link Expiration} to {@link HGetExArgs}.
+	 *
+	 * @param expiration can be {@literal null}.
+	 * @since 4.0
+	 */
+	static HGetExArgs toHGetExArgs(@Nullable Expiration expiration) {
 
-        HGetExArgs args = new HGetExArgs();
+		HGetExArgs args = new HGetExArgs();
 
-        if (expiration == null) {
-            return args;
-        }
+		if (expiration == null) {
+			return args;
+		}
 
-        if (expiration.isPersistent()) {
-            return args.persist();
-        }
+		if (expiration.isPersistent()) {
+			return args.persist();
+		}
 
-        if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-            if (expiration.isUnixTimestamp()) {
-                return args.pxAt(Instant.ofEpochSecond(expiration.getExpirationTime()));
-            }
-            return args.px(Duration.ofMillis(expiration.getExpirationTime()));
-        }
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ?
+					args.pxAt(Instant.ofEpochMilli(expiration.getExpirationTime())) :
+					args.px(Duration.ofMillis(expiration.getExpirationTime()));
+		}
 
-        return expiration.isUnixTimestamp() ? args.exAt(Instant.ofEpochSecond(expiration.getConverted(TimeUnit.SECONDS)))
-                : args.ex(Duration.ofSeconds(expiration.getConverted(TimeUnit.SECONDS)));
-    }
+		return expiration.isUnixTimestamp() ?
+				args.exAt(Instant.ofEpochSecond(expiration.getExpirationTimeInSeconds())) :
+				args.ex(Duration.ofSeconds(expiration.getExpirationTimeInSeconds()));
+	}
 
-    /**
-     * Convert {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to {@link HSetExArgs} for the Redis {@code HSETEX} command.
-     *
-     * <p>Condition mapping:</p>
-     * <ul>
-     *   <li>{@code IF_NONE_EXIST}  {@code FNX}</li>
-     *   <li>{@code IF_ALL_EXIST}  {@code FXX}</li>
-     *   <li>{@code UPSERT}  no condition flag</li>
-     * </ul>
-     *
-     * <p>Expiration mapping:</p>
-     * <ul>
-     *   <li>{@link Expiration#keepTtl()}  {@code KEEPTTL}</li>
-     *   <li>Unix timestamp  {@code EXAT}/{@code PXAT} depending on time unit</li>
-     *   <li>Relative expiration  {@code EX}/{@code PX} depending on time unit</li>
-     *   <li>{@code null} expiration  no TTL argument</li>
-     * </ul>
-     *
-     * @param condition must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
-     * @param expiration can be {@literal null} to omit TTL.
-     * @return never {@literal null}.
-     * @since 4.0
-     */
-    static HSetExArgs toHSetExArgs(RedisHashCommands.HashFieldSetOption condition, @Nullable Expiration expiration) {
+	/**
+	 * Convert {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to {@link HSetExArgs} for the Redis
+	 * {@code HSETEX} command.
+	 * <p>Condition mapping:</p>
+	 * <ul>
+	 *   <li>{@code IF_NONE_EXIST} {@code FNX}</li>
+	 *   <li>{@code IF_ALL_EXIST} {@code FXX}</li>
+	 *   <li>{@code UPSERT} no condition flag</li>
+	 * </ul>
+	 * <p>Expiration mapping:</p>
+	 * <ul>
+	 *   <li>{@link Expiration#keepTtl()}  {@code KEEPTTL}</li>
+	 *   <li>Unix timestamp {@code EXAT}/{@code PXAT} depending on time unit</li>
+	 *   <li>Relative expiration {@code EX}/{@code PX} depending on time unit</li>
+	 *   <li>{@code null} expiration no TTL argument</li>
+	 * </ul>
+	 *
+	 * @param condition  must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
+	 * @param expiration can be {@literal null} to omit TTL.
+	 * @return never {@literal null}.
+	 * @since 4.0
+	 */
+	static HSetExArgs toHSetExArgs(RedisHashCommands.@NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration) {
 
-        HSetExArgs args = new HSetExArgs();
+		HSetExArgs args = new HSetExArgs();
 
-        if (condition == null && expiration == null) {
-            return args;
-        }
+		switch (condition) {
+			case IF_NONE_EXIST -> args.fnx();
+			case IF_ALL_EXIST -> args.fxx();
+		}
 
-        if (condition != null ) {
-            if (condition.equals(RedisHashCommands.HashFieldSetOption.ifNoneExist())) {
-                args.fnx();
-            }
-            if (condition.equals(RedisHashCommands.HashFieldSetOption.ifAllExist())) {
-                args.fxx();
-            }
-        }
+		if (expiration == null || expiration.isPersistent()) {
+			return args;
+		}
 
-        if (expiration == null) {
-            return args;
-        }
+		if (expiration.isKeepTtl()) {
+			return args.keepttl();
+		}
 
-        if (expiration.isKeepTtl()) {
-            return args.keepttl();
-        }
+		// PX | PXAT
+		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
+			return expiration.isUnixTimestamp() ?
+				args.pxAt(Instant.ofEpochMilli(expiration.getExpirationTime())) :
+				args.px(Duration.ofMillis(expiration.getExpirationTime()));
+		}
 
-        if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-            if (expiration.isUnixTimestamp()) {
-                return args.pxAt(Instant.ofEpochSecond(expiration.getExpirationTime()));
-            }
-            return args.px(Duration.ofMillis(expiration.getExpirationTime()));
-        }
-
-        return expiration.isUnixTimestamp() ? args.exAt(Instant.ofEpochSecond(expiration.getConverted(TimeUnit.SECONDS)))
-                : args.ex(Duration.ofSeconds(expiration.getConverted(TimeUnit.SECONDS)));
-    }
+		// EX | EXAT
+		return expiration.isUnixTimestamp() ?
+				args.exAt(Instant.ofEpochSecond(expiration.getExpirationTimeInSeconds())) :
+				args.ex(Duration.ofSeconds(expiration.getExpirationTimeInSeconds()));
+	}
 
 	@SuppressWarnings("NullAway")
 	static Converter<List<byte[]>, Long> toTimeConverter(TimeUnit timeUnit) {

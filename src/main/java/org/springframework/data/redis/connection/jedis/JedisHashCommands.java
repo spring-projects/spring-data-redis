@@ -333,35 +333,38 @@ class JedisHashCommands implements RedisHashCommands {
 		return connection.invoke().just(Jedis::hpttl, PipelineBinaryCommands::hpttl, key, fields);
 	}
 
-    @Override
-    public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
+	@Override
+	public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull ... fields) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(fields, "Fields must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-        return connection.invoke().just(Jedis::hgetdel, PipelineBinaryCommands::hgetdel, key, fields);
-    }
+		return connection.invoke().just(Jedis::hgetdel, PipelineBinaryCommands::hgetdel, key, fields);
+	}
 
-    @Override
-    public List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration, byte @NonNull [] @NonNull... fields) {
+	@Override
+	public List<byte[]> hGetEx(byte @NonNull [] key, @Nullable Expiration expiration,
+			byte @NonNull [] @NonNull ... fields) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(fields, "Fields must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-        return connection.invoke().just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key, JedisConverters.toHGetExParams(expiration), fields);
-    }
+		return connection.invoke()
+				.just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key, JedisConverters.toHGetExParams(expiration), fields);
+	}
 
-    @Override
-    public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
-                          Expiration expiration) {
+	@Override
+	public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes,
+			@NonNull HashFieldSetOption condition, @Nullable Expiration expiration) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(hashes, "Hashes must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashes, "Hashes must not be null");
+		Assert.notNull(condition, "Condition must not be null");
 
-        return connection.invoke().from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key,
-                JedisConverters.toHSetExParams(condition, expiration), hashes)
-                .get(Converters::toBoolean);
-    }
+		return connection.invoke()
+				.from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key, JedisConverters.toHSetExParams(condition, expiration),
+						hashes).get(Converters::toBoolean);
+	}
 
 	@Nullable
 	@Override
