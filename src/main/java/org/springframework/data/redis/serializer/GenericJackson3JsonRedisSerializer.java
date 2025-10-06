@@ -19,6 +19,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.TreeNode;
 import tools.jackson.core.Version;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.DeserializationConfig;
@@ -59,7 +60,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.TreeNode;
 
 /**
  * Generic Jackson 3-based {@link RedisSerializer} that maps {@link Object objects} to and from {@literal JSON}.
