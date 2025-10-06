@@ -89,6 +89,7 @@ public interface HashOperations<H, HK, HV> {
      * @param hashKeys must not be {@literal null}.
 	 * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
      * @since 4.0
+	 * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
      */
     List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
 
@@ -101,6 +102,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param hashKeys must not be {@literal null}.
 	 * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
 	 * @since 4.0
+	 * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
 	 */
 	List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
 
@@ -113,6 +115,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param expiration is optional.
 	 * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
 	 * @since 4.0
+	 *@see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 */
 	Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
 			RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
