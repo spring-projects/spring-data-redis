@@ -2599,8 +2599,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 * @see RedisHashCommands#hSetEx(byte[], Map, HashFieldSetOption, Expiration)
 	 */
-	Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition,
-			Expiration expiration);
+	Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes,
+			@NonNull HashFieldSetOption condition, @Nullable Expiration expiration);
 
 	// -------------------------------------------------------------------------
 	// Methods dealing with HyperLogLog

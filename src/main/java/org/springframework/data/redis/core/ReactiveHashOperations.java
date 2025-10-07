@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -101,13 +102,13 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param map must not be {@literal null}.
-	 * @param condition is optional.
+	 * @param condition must not be {@literal null}.
 	 * @param expiration is optional.
 	 * @return never {@literal null}.
 	 * @since 4.0
 	 */
-	Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition,
-			Expiration expiration);
+	Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map,
+			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration);
 
 	/**
 	 * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
@@ -119,7 +120,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @return never {@literal null}.
 	 * @since 4.0
 	 */
-	Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys);
+	Mono<List<HV>> getAndExpire(H key, @Nullable Expiration expiration, Collection<HK> hashKeys);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.

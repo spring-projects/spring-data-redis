@@ -23,6 +23,8 @@ import java.util.Set;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.types.Expiration;
 
@@ -269,14 +271,14 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 */
-	List<HV> getAndExpire(Expiration expiration, @NonNull Collection<@NonNull HK> hashFields);
+	List<HV> getAndExpire(@Nullable Expiration expiration, @NonNull Collection<@NonNull HK> hashFields);
 
 	/**
 	 * Set the value of one or more fields using data provided in {@code m} at the bound key, and optionally set their
 	 * expiration time or time-to-live (TTL). The {@code condition} determines whether the fields are set.
 	 *
 	 * @param m must not be {@literal null}.
-	 * @param condition is optional. Use {@link RedisHashCommands.HashFieldSetOption#IF_NONE_EXIST} (FNX) to only set the fields if
+	 * @param condition must not be {@literal null}. Use {@link RedisHashCommands.HashFieldSetOption#IF_NONE_EXIST} (FNX) to only set the fields if
 	 * none of them already exist, {@link RedisHashCommands.HashFieldSetOption#IF_ALL_EXIST} (FXX) to only set the
 	 * fields if all of them already exist, or {@link RedisHashCommands.HashFieldSetOption#UPSERT} to set the fields
 	 * unconditionally.
@@ -284,5 +286,6 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 */
-	void putAndExpire(Map<? extends @NonNull HK, ? extends HV> m, RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
+	void putAndExpire(Map<? extends @NonNull HK, ? extends HV> m, RedisHashCommands.@NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration);
 }

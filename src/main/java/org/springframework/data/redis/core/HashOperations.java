@@ -104,21 +104,21 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
 	 */
-	List<HV> getAndExpire(@NonNull H key, Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
+	List<HV> getAndExpire(@NonNull H key, @Nullable Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
 
 	/**
 	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param m must not be {@literal null}.
-	 * @param condition is optional.
+	 * @param condition must not be {@literal}.
 	 * @param expiration is optional.
 	 * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
 	 * @since 4.0
 	 *@see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 */
 	Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
-			RedisHashCommands.HashFieldSetOption condition, Expiration expiration);
+			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration);
 
 	/**
 	 * Increment {@code value} of a hash {@code hashKey} by the given {@code delta}.

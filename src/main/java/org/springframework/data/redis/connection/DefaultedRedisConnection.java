@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.geo.Circle;
@@ -1612,14 +1613,15 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default List<byte[]> hGetEx(byte[] key, Expiration expiration, byte[]... fields) {
+	default List<byte[]> hGetEx(byte[] key, @Nullable Expiration expiration, byte[]... fields) {
 		return hashCommands().hGetEx(key, expiration, fields);
 	}
 
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+	default Boolean hSetEx(byte[] key, Map<byte[], byte[]> hashes, @NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration) {
 		return hashCommands().hSetEx(key, hashes, condition, expiration);
 	}
 

@@ -195,8 +195,8 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-    @Override
-    public List<HV> getAndDelete(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
+	@Override
+	public List<HV> getAndDelete(@NonNull K key, @NonNull Collection<@NonNull HK> fields) {
 
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
@@ -204,17 +204,17 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 		byte[] rawKey = rawKey(key);
 		byte[][] rawHashKeys = new byte[fields.size()][];
-        int counter = 0;
+		int counter = 0;
 		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
-        List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
+		List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetDel(rawKey, rawHashKeys));
 
 		return deserializeHashValues(rawValues);
 	}
 
 	@Override
-	public List<HV> getAndExpire(@NonNull K key, @NonNull Expiration expiration,
+	public List<HV> getAndExpire(@NonNull K key, @Nullable Expiration expiration,
 			@NonNull Collection<@NonNull HK> fields) {
 
 		if (fields.isEmpty()) {
@@ -227,15 +227,14 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		for (@NonNull HK hashKey : fields) {
 			rawHashKeys[counter++] = rawHashKey(hashKey);
 		}
-		List<byte[]> rawValues = execute(connection -> connection.hashCommands()
-				.hGetEx(rawKey, expiration, rawHashKeys));
+		List<byte[]> rawValues = execute(connection -> connection.hashCommands().hGetEx(rawKey, expiration, rawHashKeys));
 
 		return deserializeHashValues(rawValues);
 	}
 
 	@Override
 	public Boolean putAndExpire(@NonNull K key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
-			RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration) {
 		if (m.isEmpty()) {
 			return false;
 		}

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.RedisHashCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -36,6 +35,7 @@ import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveHashCommands.HashExpireCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
@@ -125,9 +125,11 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	@Override
-	public Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map, RedisHashCommands.HashFieldSetOption condition, Expiration expiration) {
+	public Mono<Boolean> putAndExpire(H key, Map<? extends HK, ? extends HV> map,
+			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration) {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(map, "Map must not be null");
+		Assert.notNull(condition, "Condition must not be null");
 
 		return createMono(hashCommands -> Flux.fromIterable(() -> map.entrySet().iterator()) //
 				.collectMap(entry -> rawHashKey(entry.getKey()), entry -> rawHashValue(entry.getValue())) //
@@ -135,7 +137,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 	}
 
 	@Override
-	public Mono<List<HV>> getAndExpire(H key, Expiration expiration, Collection<HK> hashKeys) {
+	public Mono<List<HV>> getAndExpire(H key, @Nullable Expiration expiration, Collection<HK> hashKeys) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKeys, "Hash keys must not be null");

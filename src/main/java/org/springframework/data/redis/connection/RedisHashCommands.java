@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -562,12 +564,13 @@ public interface RedisHashCommands {
 	 * time-to-live (TTL) for given {@code fields}.
 	 *
 	 * @param key must not be {@literal null}.
+	 * @param expiration the optional expiration to apply.
 	 * @param fields must not be {@literal null}.
 	 * @return list of values for given {@code fields} or an empty {@link List} if key does not
 	 * exist or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
 	 */
-	List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration,
+	List<byte[]> hGetEx(byte @NonNull [] key, @Nullable Expiration expiration,
 			byte @NonNull [] @NonNull ... fields);
 
 	/**
@@ -575,13 +578,13 @@ public interface RedisHashCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashes the field-value pairs to set; must not be {@literal null}.
-	 * @param hashFieldSetOption the optional condition for setting fields.
+	 * @param hashFieldSetOption the condition for setting fields; must not be {@literal null}.
 	 * @param expiration the optional expiration to apply.
 	 * @return never {@literal null}.
 	 * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 */
-	Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption hashFieldSetOption,
-			Expiration expiration);
+	Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes,
+			@NonNull HashFieldSetOption hashFieldSetOption, @Nullable Expiration expiration);
 
 	/**
 	 * {@code HSETEX} command arguments for {@code FNX}, {@code FXX}.

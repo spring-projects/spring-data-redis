@@ -2609,20 +2609,21 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return this.delegate.hTtl(key, timeUnit, fields);
 	}
 
-    @Override
-    public List<byte[]> hGetDel(@NonNull byte[] key, @NonNull byte[]... fields) {
-        return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
-    }
+	@Override
+	public List<byte[]> hGetDel(@NonNull byte[] key, @NonNull byte[]... fields) {
+		return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
+	}
 
-    @Override
-    public List<byte[]> hGetEx(@NonNull byte[] key, Expiration expiration, @NonNull byte[]... fields) {
-        return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
-    }
+	@Override
+	public List<byte[]> hGetEx(@NonNull byte[] key, @Nullable Expiration expiration, @NonNull byte[]... fields) {
+		return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
+	}
 
-    @Override
-    public Boolean hSetEx(@NonNull byte[] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
-        return convertAndReturn(delegate.hSetEx(key, hashes, condition, expiration), Converters.identityConverter());
-    }
+	@Override
+	public Boolean hSetEx(@NonNull byte[] key, @NonNull Map<byte[], byte[]> hashes, @NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration) {
+		return convertAndReturn(delegate.hSetEx(key, hashes, condition, expiration), Converters.identityConverter());
+	}
 
 	public @Nullable List<Long> applyExpiration(String key,
 			org.springframework.data.redis.core.types.Expiration expiration,

@@ -391,6 +391,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null");
+			Assert.notNull(command.getCondition(), "Condition must not be null");
 
 			Map<ByteBuffer, ByteBuffer> entries = command.getFieldValueMap();
 
