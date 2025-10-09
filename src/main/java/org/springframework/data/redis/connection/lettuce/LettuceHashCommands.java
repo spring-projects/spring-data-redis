@@ -266,38 +266,39 @@ class LettuceHashCommands implements RedisHashCommands {
 		return connection.invoke().fromMany(RedisHashAsyncCommands::hpttl, key, fields).toList();
 	}
 
-    @Override
-    public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull []... fields) {
+	@Override
+	public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull []... fields) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(fields, "Fields must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-        return connection.invoke().fromMany(RedisHashAsyncCommands::hgetdel, key, fields)
-                .toList(source -> source.getValueOrElse(null));
-    }
-
-    @Override
-    public List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration, byte @NonNull []... fields) {
-
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(fields, "Fields must not be null");
-
-        return connection.invoke().fromMany(RedisHashAsyncCommands::hgetex, key,
-                LettuceConverters.toHGetExArgs(expiration), fields)
-                .toList(source -> source.getValueOrElse(null));
-    }
+		return connection.invoke().fromMany(RedisHashAsyncCommands::hgetdel, key, fields)
+				.toList(source -> source.getValueOrElse(null));
+	}
 
 	@Override
-    public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
-                          Expiration expiration) {
+	public List<byte[]> hGetEx(byte @NonNull [] key, Expiration expiration, byte @NonNull []... fields) {
 
-        Assert.notNull(key, "Key must not be null");
-        Assert.notNull(hashes, "Hashes must not be null");
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(fields, "Fields must not be null");
 
-        return connection.invoke().from(RedisHashAsyncCommands::hsetex, key,
-                LettuceConverters.toHSetExArgs(condition, expiration), hashes)
-                .get(LettuceConverters.longToBooleanConverter());
-    }
+		return connection.invoke()
+				.fromMany(RedisHashAsyncCommands::hgetex, key, LettuceConverters.toHGetExArgs(expiration), fields)
+				.toList(source -> source.getValueOrElse(null));
+	}
+
+	@Override
+	public Boolean hSetEx(byte @NonNull [] key, @NonNull Map<byte[], byte[]> hashes,
+			@NonNull HashFieldSetOption condition, @Nullable Expiration expiration) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(hashes, "Hashes must not be null");
+		Assert.notNull(condition, "Condition must not be null");
+
+		return connection.invoke()
+				.from(RedisHashAsyncCommands::hsetex, key, LettuceConverters.toHSetExArgs(condition, expiration),
+						hashes).get(LettuceConverters.longToBooleanConverter());
+	}
 
 	/**
 	 * @param key
