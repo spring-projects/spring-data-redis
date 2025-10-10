@@ -23,7 +23,6 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
@@ -2611,17 +2610,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
     @Override
-    public List<byte[]> hGetDel(@NotNull byte[] key, @NotNull byte[]... fields) {
+		public List<byte[]> hGetDel(@NonNull byte[] key, @NonNull byte[]... fields) {
         return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
     }
 
     @Override
-    public List<byte[]> hGetEx(@NotNull byte[] key, Expiration expiration, @NotNull byte[]... fields) {
+		public List<byte[]> hGetEx(@NonNull byte[] key, Expiration expiration, @NonNull byte[]... fields) {
         return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
     }
 
     @Override
-    public Boolean hSetEx(@NotNull byte[] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition, Expiration expiration) {
+		public Boolean hSetEx(@NonNull byte[] key, @NonNull Map<byte[], byte[]> hashes, HashFieldSetOption condition,
+				Expiration expiration) {
         return convertAndReturn(delegate.hSetEx(key, hashes, condition, expiration), Converters.identityConverter());
     }
 
