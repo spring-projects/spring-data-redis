@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisHashCommands;
@@ -409,138 +410,152 @@ class JedisConvertersUnitTests {
 		return map;
 	}
 
-	@Test // GH-3211
-	void toHGetExArgsShouldNotSetAnyFieldsForNullExpiration() {
+	@Nested
+	class ToHGetExParamsShould {
 
-		assertThatParamsHasExpiration(JedisConverters.toHGetExParams(null),
-				null, null);
+		@Test
+		void notSetAnyFieldsForNullExpiration() {
+
+			assertThatParamsHasExpiration(JedisConverters.toHGetExParams(null), null, null);
+		}
+
+		@Test
+		void setPersistForNonExpiringExpiration() {
+
+			assertThatParamsHasExpiration(JedisConverters.toHGetExParams(Expiration.persistent()), Protocol.Keyword.PERSIST,
+					null);
+		}
+
+		@Test
+		void setPxForExpirationWithMillisTimeUnit() {
+
+			HGetExParams params = JedisConverters.toHGetExParams(Expiration.from(30_000, TimeUnit.MILLISECONDS));
+			assertThatParamsHasExpiration(params, Protocol.Keyword.PX, 30_000L);
+		}
+
+		@Test
+		void setPxAtForExpirationWithMillisUnixTimestamp() {
+
+			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
+			HGetExParams params = JedisConverters.toHGetExParams(
+					Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS));
+			assertThatParamsHasExpiration(params, Protocol.Keyword.PXAT, fourHoursFromNowMillis);
+		}
+
+		@Test
+		void setExForExpirationWithNonMillisTimeUnit() {
+
+			HGetExParams params = JedisConverters.toHGetExParams(Expiration.from(30, TimeUnit.SECONDS));
+			assertThatParamsHasExpiration(params, Protocol.Keyword.EX, 30L);
+		}
+
+		@Test
+		void setExAtForExpirationWithNonMillisUnixTimestamp() {
+
+			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
+			HGetExParams params = JedisConverters.toHGetExParams(
+					Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS));
+			assertThatParamsHasExpiration(params, Protocol.Keyword.EXAT, fourHoursFromNowSecs);
+		}
+
+		private void assertThatParamsHasExpiration(HGetExParams params, Protocol.Keyword expirationType,
+				Long expirationValue) {
+			assertThat(params).extracting("expiration", "expirationValue").containsExactly(expirationType, expirationValue);
+		}
 	}
+	
+	@Nested
+	class ToHSetExParamsShould {
 
-	@Test // GH-3211
-	void toHGetExArgsShouldSetPersistForNonExpiringExpiration() {
+		@Test
+		void setFnxForNoneExistCondition() {
 
-		assertThatParamsHasExpiration(JedisConverters.toHGetExParams(Expiration.persistent()),
-				Protocol.Keyword.PERSIST, null);
+			HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.IF_NONE_EXIST, null);
+			assertThatParamsHasExistance(params, Protocol.Keyword.FNX);
+		}
+
+		@Test
+		void setFxxForAllExistCondition() {
+
+			HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.IF_ALL_EXIST, null);
+			assertThatParamsHasExistance(params, Protocol.Keyword.FXX);
+		}
+
+		@Test
+		void notSetFnxNorFxxForUpsertCondition() {
+
+			HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, null);
+			assertThatParamsHasExistance(params, null);
+		}
+
+		@Test
+		void notSetAnyTimeFieldsForNullExpiration() {
+
+			HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, null);
+			assertThatParamsHasExpiration(params, null, null);
+		}
+
+		@Test
+		void notSetAnyTimeFieldsForNonExpiringExpiration() {
+
+			HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT,
+					Expiration.persistent());
+			assertThatParamsHasExpiration(params, null, null);
+		}
+
+		@Test
+		void setKeepTtlForKeepTtlExpiration() {
+
+			HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT,
+					Expiration.keepTtl());
+			assertThatParamsHasExpiration(params, Protocol.Keyword.KEEPTTL, null);
+		}
+
+		@Test
+		void setPxForExpirationWithMillisTimeUnit() {
+
+			Expiration expiration = Expiration.from(30_000, TimeUnit.MILLISECONDS);
+			assertThatParamsHasExpiration(
+					JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration), Protocol.Keyword.PX,
+					30_000L);
+		}
+
+		@Test
+		void setPxAtForExpirationWithMillisUnixTimestamp() {
+
+			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
+			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS);
+			assertThatParamsHasExpiration(
+					JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration),
+					Protocol.Keyword.PXAT, fourHoursFromNowMillis);
+		}
+
+		@Test
+		void setExForExpirationWithNonMillisTimeUnit() {
+
+			Expiration expiration = Expiration.from(30, TimeUnit.SECONDS);
+			assertThatParamsHasExpiration(
+					JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration), Protocol.Keyword.EX,
+					30L);
+		}
+
+		@Test
+		void setExAtForExpirationWithNonMillisUnixTimestamp() {
+
+			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
+			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS);
+			assertThatParamsHasExpiration(
+					JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration),
+					Protocol.Keyword.EXAT, fourHoursFromNowSecs);
+		}
+
+		private void assertThatParamsHasExistance(HSetExParams params, Protocol.Keyword existance) {
+			assertThat(params).extracting("existance").isEqualTo(existance);
+		}
+
+		private void assertThatParamsHasExpiration(HSetExParams params, Protocol.Keyword expirationType,
+				Long expirationValue) {
+			assertThat(params).extracting("expiration", "expirationValue").containsExactly(expirationType, expirationValue);
+		}
 	}
-
-	@Test // GH-3211
-	void toHGetExArgsShouldSetPxForExpirationWithMillisTimeUnit() {
-
-		HGetExParams params = JedisConverters.toHGetExParams(Expiration.from(30_000, TimeUnit.MILLISECONDS));
-		assertThatParamsHasExpiration(params, Protocol.Keyword.PX, 30_000L);
-	}
-
-	@Test // GH-3211
-	void toHGetExArgsShouldSetPxAtForExpirationWithMillisUnixTimestamp() {
-
-		long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
-		HGetExParams params = JedisConverters.toHGetExParams(Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS));
-		assertThatParamsHasExpiration(params, Protocol.Keyword.PXAT, fourHoursFromNowMillis);
-	}
-
-	@Test // GH-3211
-	void toHGetExArgsShouldSetExForExpirationWithNonMillisTimeUnit() {
-
-		HGetExParams params = JedisConverters.toHGetExParams(Expiration.from(30, TimeUnit.SECONDS));
-		assertThatParamsHasExpiration(params,  Protocol.Keyword.EX, 30L);
-	}
-
-	@Test // GH-3211
-	void toHGetExArgsShouldSetExAtForExpirationWithNonMillisUnixTimestamp() {
-
-		long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
-		HGetExParams params = JedisConverters.toHGetExParams(Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS));
-		assertThatParamsHasExpiration(params,  Protocol.Keyword.EXAT, fourHoursFromNowSecs);
-	}
-
-	private void assertThatParamsHasExpiration(HGetExParams params, Protocol.Keyword expirationType, Long expirationValue) {
-		assertThat(params).extracting("expiration", "expirationValue")
-				.containsExactly(expirationType, expirationValue);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetFnxForNoneExistCondition() {
-
-		HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.IF_NONE_EXIST, null);
-		assertThatParamsHasExistance(params, Protocol.Keyword.FNX);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetFxxForAllExistCondition() {
-
-		HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.IF_ALL_EXIST, null);
-		assertThatParamsHasExistance(params, Protocol.Keyword.FXX);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldNotSetFnxNorFxxForUpsertCondition() {
-
-		HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, null);
-		assertThatParamsHasExistance(params, null);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldNotSetAnyTimeFieldsForNullExpiration() {
-
-		HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, null);
-		assertThatParamsHasExpiration(params, null, null);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldNotSetAnyTimeFieldsForNonExpiringExpiration() {
-
-		HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, Expiration.persistent());
-		assertThatParamsHasExpiration(params, null, null);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetKeepTtlForKeepTtlExpiration() {
-
-		HSetExParams params = JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, Expiration.keepTtl());
-		assertThatParamsHasExpiration(params, Protocol.Keyword.KEEPTTL, null);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetPxForExpirationWithMillisTimeUnit() {
-
-		Expiration expiration = Expiration.from(30_000, TimeUnit.MILLISECONDS);
-		assertThatParamsHasExpiration(JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration),
-				Protocol.Keyword.PX, 30_000L);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetPxAtForExpirationWithMillisUnixTimestamp() {
-
-		long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
-		Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS);
-		assertThatParamsHasExpiration(JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration),
-				Protocol.Keyword.PXAT, fourHoursFromNowMillis);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetExForExpirationWithNonMillisTimeUnit() {
-
-		Expiration expiration = Expiration.from(30, TimeUnit.SECONDS);
-		assertThatParamsHasExpiration(JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration),
-				Protocol.Keyword.EX, 30L);
-	}
-
-	@Test // GH-3211
-	void toHSetExArgsShouldSetExAtForExpirationWithNonMillisUnixTimestamp() {
-
-		long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
-		Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS);
-		assertThatParamsHasExpiration(JedisConverters.toHSetExParams(RedisHashCommands.HashFieldSetOption.UPSERT, expiration),
-				Protocol.Keyword.EXAT, fourHoursFromNowSecs);
-	}
-
-	private void assertThatParamsHasExistance(HSetExParams params, Protocol.Keyword existance) {
-		assertThat(params).extracting("existance").isEqualTo(existance);
-	}
-
-	private void assertThatParamsHasExpiration(HSetExParams params, Protocol.Keyword expirationType, Long expirationValue) {
-		assertThat(params).extracting("expiration", "expirationValue")
-				.containsExactly(expirationType, expirationValue);
-	}
-
 }
