@@ -642,15 +642,14 @@ public abstract class LettuceConverters extends Converters {
 		}
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			if (expiration.isUnixTimestamp()) {
-				return args.pxAt(Instant.ofEpochSecond(expiration.getExpirationTime()));
-			}
-			return args.px(Duration.ofMillis(expiration.getExpirationTime()));
+			return expiration.isUnixTimestamp() ?
+					args.pxAt(Instant.ofEpochMilli(expiration.getExpirationTime())) :
+					args.px(Duration.ofMillis(expiration.getExpirationTime()));
 		}
 
 		return expiration.isUnixTimestamp() ?
-				args.exAt(Instant.ofEpochSecond(expiration.getConverted(TimeUnit.SECONDS))) :
-				args.ex(Duration.ofSeconds(expiration.getConverted(TimeUnit.SECONDS)));
+				args.exAt(Instant.ofEpochSecond(expiration.getExpirationTimeInSeconds())) :
+				args.ex(Duration.ofSeconds(expiration.getExpirationTimeInSeconds()));
 	}
 
 	/**
@@ -684,7 +683,6 @@ public abstract class LettuceConverters extends Converters {
 			case IF_NONE_EXIST -> args.fnx();
 			case IF_ALL_EXIST -> args.fxx();
 		}
-		;
 
 		if (expiration == null || expiration.isPersistent()) {
 			return args;
@@ -696,16 +694,15 @@ public abstract class LettuceConverters extends Converters {
 
 		// PX | PXAT
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			if (expiration.isUnixTimestamp()) {
-				return args.pxAt(Instant.ofEpochSecond(expiration.getExpirationTime()));
-			}
-			return args.px(Duration.ofMillis(expiration.getExpirationTime()));
+			return expiration.isUnixTimestamp() ?
+				args.pxAt(Instant.ofEpochMilli(expiration.getExpirationTime())) :
+				args.px(Duration.ofMillis(expiration.getExpirationTime()));
 		}
 
 		// EX | EXAT
 		return expiration.isUnixTimestamp() ?
-				args.exAt(Instant.ofEpochSecond(expiration.getConverted(TimeUnit.SECONDS))) :
-				args.ex(Duration.ofSeconds(expiration.getConverted(TimeUnit.SECONDS)));
+				args.exAt(Instant.ofEpochSecond(expiration.getExpirationTimeInSeconds())) :
+				args.ex(Duration.ofSeconds(expiration.getExpirationTimeInSeconds()));
 	}
 
 	@SuppressWarnings("NullAway")

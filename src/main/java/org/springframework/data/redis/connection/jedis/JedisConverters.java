@@ -470,15 +470,14 @@ abstract class JedisConverters extends Converters {
 		}
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			if (expiration.isUnixTimestamp()) {
-				return params.pxAt(expiration.getExpirationTime());
-			}
-			return params.px(expiration.getExpirationTime());
+			return expiration.isUnixTimestamp() ?
+				params.pxAt(expiration.getExpirationTime()) :
+				params.px(expiration.getExpirationTime());
 		}
 
 		return expiration.isUnixTimestamp() ?
-				params.exAt(expiration.getConverted(TimeUnit.SECONDS)) :
-				params.ex(expiration.getConverted(TimeUnit.SECONDS));
+				params.exAt(expiration.getExpirationTimeInSeconds()) :
+				params.ex(expiration.getExpirationTimeInSeconds());
 	}
 
 	/**
@@ -513,7 +512,6 @@ abstract class JedisConverters extends Converters {
 			case IF_NONE_EXIST -> params.fnx();
 			case IF_ALL_EXIST -> params.fxx();
 		}
-		;
 
 		if (expiration == null || expiration.isPersistent()) {
 			return params;
@@ -532,8 +530,8 @@ abstract class JedisConverters extends Converters {
 
 		// EX | EXAT
 		return expiration.isUnixTimestamp() ?
-				params.exAt(expiration.getConverted(TimeUnit.SECONDS)) :
-				params.ex(expiration.getConverted(TimeUnit.SECONDS));
+				params.exAt(expiration.getExpirationTimeInSeconds()) :
+				params.ex(expiration.getExpirationTimeInSeconds());
 	}
 
 	private static byte[] boundaryToBytes(org.springframework.data.domain.Range.Bound<?> boundary, byte[] inclPrefix,
