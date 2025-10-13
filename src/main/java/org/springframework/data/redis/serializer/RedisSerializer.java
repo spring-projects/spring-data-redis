@@ -55,13 +55,14 @@ public interface RedisSerializer<T> {
 
 	/**
 	 * Obtain a {@link RedisSerializer} that can read and write JSON using
-	 * <a href="https://github.com/FasterXML/jackson-core">Jackson</a>.
+	 * <a href="https://github.com/FasterXML/jackson-core">Jackson</a> with default typing enabled.
 	 *
 	 * @return never {@literal null}.
 	 * @since 2.1
 	 */
 	static RedisSerializer<Object> json() {
-		return new GenericJackson2JsonRedisSerializer();
+        return GenericJacksonJsonRedisSerializer
+            .create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
 	}
 
 	/**

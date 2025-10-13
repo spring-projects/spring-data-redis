@@ -30,6 +30,7 @@ import org.springframework.data.redis.connection.jedis.extension.JedisConnection
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -89,10 +90,13 @@ class CacheTestParams {
 
 		OxmSerializer oxmSerializer = XstreamOxmSerializerSingleton.getInstance();
 		GenericJackson2JsonRedisSerializer jackson2Serializer = new GenericJackson2JsonRedisSerializer();
+		GenericJacksonJsonRedisSerializer jacksonSerializer = GenericJacksonJsonRedisSerializer
+            .create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
 		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
 
 		return connectionFactories().stream().flatMap(factory -> Arrays.asList( //
 				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jdkSerializer) }, //
+				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jacksonSerializer) }, //
 				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(jackson2Serializer) }, //
 				new Object[] { factory, new FixDamnedJunitParameterizedNameForRedisSerializer(oxmSerializer) }).stream())
 				.collect(Collectors.toList());

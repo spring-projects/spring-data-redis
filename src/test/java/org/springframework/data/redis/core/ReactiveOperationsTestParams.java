@@ -33,6 +33,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
@@ -109,6 +110,11 @@ abstract public class ReactiveOperationsTestParams {
 		ReactiveRedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new ReactiveRedisTemplate(
 				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(genericJackson2JsonSerializer));
 
+		GenericJacksonJsonRedisSerializer genericJacksonJsonSerializer = GenericJacksonJsonRedisSerializer
+            .create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
+		ReactiveRedisTemplate<String, Person> genericJacksonJsonPersonTemplate = new ReactiveRedisTemplate(
+				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(genericJacksonJsonSerializer));
+
 		List<Fixture<?, ?>> list = Arrays.asList( //
 				new Fixture<>(stringTemplate, stringFactory, stringFactory, stringRedisSerializer, "String"), //
 				new Fixture<>(objectTemplate, personFactory, personFactory, jdkSerializationRedisSerializer, "Person/JDK"), //
@@ -122,7 +128,9 @@ abstract public class ReactiveOperationsTestParams {
 				new Fixture<>(jackson2JsonPersonTemplate, stringFactory, personFactory, jackson2JsonSerializer, "Jackson2"), //
 				new Fixture<>(jackson3JsonPersonTemplate, stringFactory, personFactory, jackson2JsonSerializer, "Jackson3"), //
 				new Fixture<>(genericJackson2JsonPersonTemplate, stringFactory, personFactory, genericJackson2JsonSerializer,
-						"Generic Jackson 2"));
+						"Generic Jackson 2"),
+				new Fixture<>(genericJacksonJsonPersonTemplate, stringFactory, personFactory, genericJacksonJsonSerializer,
+						"Generic Jackson 3"));
 
 		if (clusterAvailable()) {
 

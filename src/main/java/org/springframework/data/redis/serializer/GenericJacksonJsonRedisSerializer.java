@@ -479,7 +479,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 			JsonNode root = readTree(source);
 			JsonNode jsonNode = root.get(hintName.get());
 
-			if (jsonNode.isString() && jsonNode.asString() != null) {
+			if (jsonNode != null && jsonNode.isString() && jsonNode.asString() != null) {
 				return typeFactory.get().constructFromCanonical(jsonNode.asString());
 			}
 

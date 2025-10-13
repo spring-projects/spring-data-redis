@@ -48,6 +48,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
@@ -143,6 +144,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
 				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJacksonJsonRedisSerializer)
 				&& !(serializer instanceof JdkSerializationRedisSerializer) && !(serializer instanceof OxmSerializer));
 
 		K key = keyFactory.instance();
@@ -165,7 +167,8 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	void addShouldAddReadSimpleMessageWithRawSerializer() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
-				&& !(serializer instanceof GenericJackson2JsonRedisSerializer));
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJacksonJsonRedisSerializer));
 
 		SerializationPair<K> keySerializer = redisTemplate.getSerializationContext().getKeySerializationPair();
 
@@ -223,6 +226,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
 				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJacksonJsonRedisSerializer)
 				&& !(serializer instanceof JdkSerializationRedisSerializer) && !(serializer instanceof OxmSerializer));
 
 		K key = keyFactory.instance();
@@ -249,7 +253,8 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	void addMaxLenShouldLimitSimpleMessageWithRawSerializerSize() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
-				&& !(serializer instanceof GenericJackson2JsonRedisSerializer));
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJacksonJsonRedisSerializer));
 
 		SerializationPair<K> keySerializer = redisTemplate.getSerializationContext().getKeySerializationPair();
 
@@ -378,8 +383,9 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	@Test // DATAREDIS-864
 	void reverseRangeShouldConvertSimpleMessages() {
 
-		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
-				&& !(serializer instanceof GenericJackson2JsonRedisSerializer));
+        assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
+            && !(serializer instanceof GenericJackson2JsonRedisSerializer)
+            && !(serializer instanceof GenericJacksonJsonRedisSerializer));
 
 		K key = keyFactory.instance();
 		HK hashKey = hashKeyFactory.instance();
