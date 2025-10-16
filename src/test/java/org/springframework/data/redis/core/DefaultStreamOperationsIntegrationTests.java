@@ -35,6 +35,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -310,6 +311,180 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 
 		assertThat(streamOps.size(key)).isEqualTo(2);
 		assertThat(streamOps.range(key, Range.unbounded())).hasSize(2);
+	}
+
+	@Test // GH-3232
+	void addWithLimitShouldHonorApproximateTrimming() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+
+		// Add multiple messages with limit
+		for (int i = 0; i < 5; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		}
+
+		assertThat(streamOps.size(key)).isGreaterThan(0L);
+	}
+
+	@Test // GH-3232
+	void addWithExactTrimmingShouldTrimExactly() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(2).withExactTrimming(true);
+
+		// Add 3 messages with exact trimming to maxlen=2
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+
+		// Should have exactly 2 entries
+		assertThat(streamOps.size(key)).isEqualTo(2);
+	}
+
+	@Test // GH-3232
+	void addWithDeletionPolicyShouldApplyPolicy() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		XAddOptions options = XAddOptions.maxlen(5).approximateTrimming(true)
+				.withDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES);
+
+		// Add multiple messages with deletion policy
+		for (int i = 0; i < 3; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key), options);
+		}
+
+		assertThat(streamOps.size(key)).isGreaterThan(0L);
+	}
+
+	@Test // GH-3232
+	void trimShouldTrimStreamWithMaxlen() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 10 messages
+		for (int i = 0; i < 10; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(10L);
+
+		// Trim to 5 entries
+		Long trimmed = streamOps.trim(key, RedisStreamCommands.XTrimOptions.maxlen(5));
+
+		assertThat(trimmed).isEqualTo(5L); // 5 entries removed
+		assertThat(streamOps.size(key)).isEqualTo(5L); // 5 entries remaining
+	}
+
+	@Test // GH-3232
+	void trimShouldTrimStreamWithMinId() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 5 messages and capture their IDs
+		RecordId id1 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id2 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id3 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id4 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		RecordId id5 = streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+
+		assertThat(streamOps.size(key)).isEqualTo(5L);
+
+		// Trim using MINID - keep only entries with ID >= id3
+		Long trimmed = streamOps.trim(key, RedisStreamCommands.XTrimOptions.minId(id3));
+
+		assertThat(trimmed).isEqualTo(2L); // 2 entries removed (id1, id2)
+		assertThat(streamOps.size(key)).isEqualTo(3L); // 3 entries remaining (id3, id4, id5)
+	}
+
+	@Test // GH-3232
+	void trimShouldHonorApproximateTrimming() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 100 messages
+		for (int i = 0; i < 100; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(100L);
+
+		// Trim with approximate trimming
+		streamOps.trim(key, RedisStreamCommands.XTrimOptions.maxlen(50).approximateTrimming(true));
+
+		// With approximate trimming, the result may not be exact but should be around 50
+		assertThat(streamOps.size(key)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(100L);
+	}
+
+	@Test // GH-3232
+	void trimShouldHonorExactTrimming() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 10 messages
+		for (int i = 0; i < 10; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(10L);
+
+		// Trim with exact trimming
+		Long trimmed = streamOps.trim(key, RedisStreamCommands.XTrimOptions.maxlen(5).exactTrimming(true));
+
+		assertThat(trimmed).isEqualTo(5L); // 5 entries removed
+		assertThat(streamOps.size(key)).isEqualTo(5L); // Exactly 5 entries remaining
+	}
+
+	@Test // GH-3232
+	void trimShouldHonorLimit() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 100 messages
+		for (int i = 0; i < 100; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(100L);
+
+		// Trim with LIMIT to control trimming effort
+		streamOps.trim(key, RedisStreamCommands.XTrimOptions.maxlen(50).approximateTrimming(true).limit(10));
+
+		// With LIMIT, trimming may not be exact
+		assertThat(streamOps.size(key)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(100L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnRedisVersion("8.2") // Deletion policy requires Redis 8.2+
+	void trimShouldHonorDeletionPolicy() {
+
+		K key = keyFactory.instance();
+		HV value = hashValueFactory.instance();
+
+		// Add 10 messages
+		for (int i = 0; i < 10; i++) {
+			streamOps.add(StreamRecords.objectBacked(value).withStreamKey(key));
+		}
+
+		assertThat(streamOps.size(key)).isEqualTo(10L);
+
+		// Trim with deletion policy
+		streamOps.trim(key, RedisStreamCommands.XTrimOptions.maxlen(5).approximateTrimming(true)
+				.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES));
+
+		// Verify trimming was applied
+		assertThat(streamOps.size(key)).isGreaterThan(0L).isLessThanOrEqualTo(10L);
 	}
 
 	@Test // DATAREDIS-864

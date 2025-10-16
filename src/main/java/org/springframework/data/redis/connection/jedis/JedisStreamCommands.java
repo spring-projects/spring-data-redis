@@ -24,6 +24,7 @@ import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
+import redis.clients.jedis.params.XTrimParams;
 import redis.clients.jedis.resps.StreamConsumerInfo;
 import redis.clients.jedis.resps.StreamGroupInfo;
 
@@ -317,6 +318,17 @@ class JedisStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, count, approximateTrimming);
+	}
+
+	@Override
+	public Long xTrim(byte @NonNull [] key, @NonNull XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XTrimOptions must not be null");
+
+		XTrimParams xTrimParams = StreamConverters.toXTrimParams(options);
+
+		return connection.invoke().just(Jedis::xtrim, PipelineBinaryCommands::xtrim, key, xTrimParams);
 	}
 
 }

@@ -29,6 +29,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.Record;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
@@ -648,6 +649,21 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	Long trim(@NonNull K key, long count, boolean approximateTrimming);
+
+	/**
+	 * Trims the stream according to the specified {@link XTrimOptions}.
+	 * <p>
+	 * Supports various trimming strategies including {@literal MAXLEN} (limit by count) and
+	 * {@literal MINID} (evict entries older than a specific ID), with options for approximate
+	 * or exact trimming.
+	 *
+	 * @param key the stream key.
+	 * @param options the trimming options specifying the strategy and parameters. Must not be {@literal null}.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	Long trim(@NonNull K key, @NonNull XTrimOptions options);
 
 	/**
 	 * Get the {@link HashMapper} for a specific type.
