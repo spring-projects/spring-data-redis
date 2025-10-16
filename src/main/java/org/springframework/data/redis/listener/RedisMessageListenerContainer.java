@@ -104,6 +104,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * @author John Blum
  * @author Seongjun Lee
  * @author Su Ko
+ * @author Mingi Lee
  * @see MessageListener
  * @see SubscriptionListener
  */
@@ -591,7 +592,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @param listener message listener.
 	 * @param topics message listener topics.
 	 */
-	public void removeMessageListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
+	public void removeMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
 		removeListener(listener, topics);
 	}
 
@@ -605,7 +606,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @param listener message listener.
 	 * @param topic message topic.
 	 */
-	public void removeMessageListener(@Nullable MessageListener listener, Topic topic) {
+	public void removeMessageListener(MessageListener listener, Topic topic) {
 		removeMessageListener(listener, Collections.singleton(topic));
 	}
 
@@ -744,11 +745,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return mapping.computeIfAbsent(topic, k -> new CopyOnWriteArraySet<>());
 	}
 
-	private void removeListener(@Nullable MessageListener listener, Collection<? extends Topic> topics) {
+	private void removeListener(MessageListener listener, Collection<? extends Topic> topics) {
 
+		Assert.notNull(listener, "MessageListener must not be null");
 		Assert.notNull(topics, "Topics must not be null");
 
-		if (listener != null && listenerTopics.get(listener) == null) {
+		if (listenerTopics.get(listener) == null) {
 			// Listener not subscribed
 			return;
 		}
