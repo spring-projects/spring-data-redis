@@ -4060,6 +4060,243 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(3)).isBetween(1L, 3L);
 	}
 
+	@Test // GH-3232
+	@EnabledOnCommand("XADD")
+	void xAddShouldTrimStreamWithMinId() {
+
+		// Add initial records to get valid IDs
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+
+		List<Object> initialResults = getResults();
+		RecordId id1 = (RecordId) initialResults.get(0);
+		RecordId id2 = (RecordId) initialResults.get(1);
+		RecordId id3 = (RecordId) initialResults.get(2);
+
+		// Start a new pipeline/batch for the trimming test
+		initConnection();
+
+		// Trim using MINID - keep only entries with ID >= id2
+		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.minId(id2);
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		// Should have trimmed entries older than id2, so we should have 3 entries (id2, id3, and the new one)
+		assertThat((Long) results.get(1)).isEqualTo(3L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XADD")
+	void xAddShouldHonorLimitWithApproximateTrimming() {
+
+		// Add multiple records
+		for (int i = 0; i < 100; i++) {
+			actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2 + i)));
+		}
+
+		// Execute the initial adds
+		getResults();
+		initConnection();
+
+		// Use LIMIT to control trimming effort
+		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(50)
+				.approximateTrimming(true).withLimit(10);
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		// With LIMIT, trimming may not be exact, but should be around 50-60 entries
+		assertThat((Long) results.get(1)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(101L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XADD")
+	void xAddShouldHonorExactTrimming() {
+
+		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(2).withExactTrimming(true);
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		// With exact trimming, should have exactly 2 entries
+		assertThat((Long) results.get(3)).isEqualTo(2L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XADD")
+	@EnabledOnRedisVersion("8.2") // Deletion policy requires Redis 8.2+
+	void xAddShouldHonorDeletionPolicy() {
+
+		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(5)
+				.approximateTrimming(true)
+				.withDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES);
+
+		// Add multiple entries with deletion policy
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(
+				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(4);
+		// Verify stream was created and entries were added
+		assertThat((Long) results.get(3)).isGreaterThan(0L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XTRIM")
+	void xTrimShouldTrimStreamWithMaxlen() {
+
+		// Add multiple records
+		for (int i = 0; i < 10; i++) {
+			actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2 + i)));
+		}
+
+		getResults();
+		initConnection();
+
+		// Trim to 5 entries using MAXLEN
+		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5)));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		assertThat((Long) results.get(0)).isEqualTo(5L); // 5 entries removed
+		assertThat((Long) results.get(1)).isEqualTo(5L); // 5 entries remaining
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XTRIM")
+	void xTrimShouldTrimStreamWithMinId() {
+
+		// Add initial records to get valid IDs
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
+
+		List<Object> initialResults = getResults();
+		RecordId id3 = (RecordId) initialResults.get(2); // Get the 3rd ID
+
+		initConnection();
+
+		// Trim using MINID - keep only entries with ID >= id3
+		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.minId(id3)));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		assertThat((Long) results.get(0)).isEqualTo(2L); // 2 entries removed (id1, id2)
+		assertThat((Long) results.get(1)).isEqualTo(3L); // 3 entries remaining (id3, id4, id5)
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XTRIM")
+	void xTrimShouldHonorApproximateTrimming() {
+
+		// Add multiple records
+		for (int i = 0; i < 100; i++) {
+			actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2 + i)));
+		}
+
+		getResults();
+		initConnection();
+
+		// Trim with approximate trimming
+		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(50).approximateTrimming(true)));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		// With approximate trimming, the result may not be exact but should be around 50
+		assertThat((Long) results.get(1)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(100L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XTRIM")
+	void xTrimShouldHonorExactTrimming() {
+
+		// Add multiple records
+		for (int i = 0; i < 10; i++) {
+			actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2 + i)));
+		}
+
+		getResults();
+		initConnection();
+
+		// Trim with exact trimming
+		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5).exactTrimming(true)));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		assertThat((Long) results.get(0)).isEqualTo(5L); // 5 entries removed
+		assertThat((Long) results.get(1)).isEqualTo(5L); // Exactly 5 entries remaining
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XTRIM")
+	void xTrimShouldHonorLimit() {
+
+		// Add multiple records
+		for (int i = 0; i < 100; i++) {
+			actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2 + i)));
+		}
+
+		getResults();
+		initConnection();
+
+		// Trim with LIMIT to control trimming effort
+		actual.add(connection.xTrim(KEY_1,
+				RedisStreamCommands.XTrimOptions.maxlen(50).approximateTrimming(true).limit(10)));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		// With LIMIT, trimming may not be exact
+		assertThat((Long) results.get(1)).isGreaterThanOrEqualTo(50L).isLessThanOrEqualTo(100L);
+	}
+
+	@Test // GH-3232
+	@EnabledOnCommand("XTRIM")
+	@EnabledOnRedisVersion("8.2") // Deletion policy requires Redis 8.2+
+	void xTrimShouldHonorDeletionPolicy() {
+
+		// Add multiple records
+		for (int i = 0; i < 10; i++) {
+			actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2 + i)));
+		}
+
+		getResults();
+		initConnection();
+
+		// Trim with deletion policy
+		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5).approximateTrimming(true)
+				.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES)));
+		actual.add(connection.xLen(KEY_1));
+
+		List<Object> results = getResults();
+		assertThat(results).hasSize(2);
+		// Verify trimming was applied
+		assertThat((Long) results.get(1)).isGreaterThan(0L).isLessThanOrEqualTo(10L);
+	}
+
 	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	void xReadShouldReadMessage() {

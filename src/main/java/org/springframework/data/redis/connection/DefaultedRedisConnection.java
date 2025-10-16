@@ -692,6 +692,12 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 		return streamCommands().xTrim(key, count, approximateTrimming);
 	}
 
+	@Override
+	@Deprecated
+	default Long xTrim(byte[] key, XTrimOptions options) {
+		return streamCommands().xTrim(key, options);
+	}
+
 	// LIST COMMANDS
 
 	/** @deprecated in favor of {@link RedisConnection#listCommands()}}. */
