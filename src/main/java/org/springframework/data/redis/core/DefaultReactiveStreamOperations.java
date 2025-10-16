@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -328,6 +329,14 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(key, "Key must not be null");
 
 		return createMono(streamCommands -> streamCommands.xTrim(rawKey(key), count, approximateTrimming));
+	}
+
+	@Override
+	public Mono<Long> trim(@NonNull K key, @NonNull XTrimOptions options) {
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XTrimOptions must not be null");
+
+		return createMono(streamCommands -> streamCommands.xTrim(rawKey(key), options));
 	}
 
 	@Override

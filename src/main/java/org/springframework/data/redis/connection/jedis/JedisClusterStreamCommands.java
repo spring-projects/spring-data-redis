@@ -44,6 +44,7 @@ import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.util.Assert;
+import redis.clients.jedis.params.XTrimParams;
 
 /**
  * @author Dengliming
@@ -375,6 +376,20 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 
 		try {
 			return connection.getCluster().xtrim(key, count, approximateTrimming);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long xTrim(byte[] key, XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		XTrimParams xTrimParams = StreamConverters.toXTrimParams(options);
+
+		try {
+			return connection.getCluster().xtrim(key, xTrimParams);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
