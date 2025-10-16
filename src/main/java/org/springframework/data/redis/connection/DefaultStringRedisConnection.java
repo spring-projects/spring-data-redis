@@ -3022,6 +3022,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
+	public Long xTrim(String key, XTrimOptions options) {
+		return convertAndReturn(delegate.xTrim(serialize(key), options), Converters.identityConverter());
+	}
+
+	@Override
 	public Long xAck(byte[] key, String group, RecordId... recordIds) {
 		return delegate.xAck(key, group, recordIds);
 	}
@@ -3127,6 +3132,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		return delegate.xTrim(key, count, approximateTrimming);
+	}
+
+	@Override
+	public Long xTrim(byte[] key, XTrimOptions options) {
+		return delegate.xTrim(key, options);
 	}
 
 	/**

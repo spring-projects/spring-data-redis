@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
@@ -200,20 +201,13 @@ public interface ReactiveStreamCommands {
 	class AddStreamRecord extends KeyCommand {
 
 		private final ByteBufferRecord record;
-		private final boolean nomkstream;
-		private final @Nullable Long maxlen;
-		private final boolean approximateTrimming;
-		private final @Nullable RecordId minId;
+		private final XAddOptions options;
 
-		private AddStreamRecord(ByteBufferRecord record, @Nullable Long maxlen, boolean nomkstream,
-				boolean approximateTrimming, @Nullable RecordId minId) {
+		private AddStreamRecord(ByteBufferRecord record, XAddOptions options) {
 
 			super(record.getStream());
 			this.record = record;
-			this.maxlen = maxlen;
-			this.nomkstream = nomkstream;
-			this.approximateTrimming = approximateTrimming;
-			this.minId = minId;
+			this.options = options;
 		}
 
 		/**
@@ -226,7 +220,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(record, "Record must not be null");
 
-			return new AddStreamRecord(record, null, false, false, null);
+			return new AddStreamRecord(record, XAddOptions.none());
 		}
 
 		/**
@@ -239,7 +233,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(body, "Body must not be null");
 
-			return new AddStreamRecord(StreamRecords.rawBuffer(body), null, false, false, null);
+			return new AddStreamRecord(StreamRecords.rawBuffer(body), XAddOptions.none());
 		}
 
 		/**
@@ -249,7 +243,7 @@ public interface ReactiveStreamCommands {
 		 * @return a new {@link ReactiveGeoCommands.GeoAddCommand} with {@literal key} applied.
 		 */
 		public AddStreamRecord to(ByteBuffer key) {
-			return new AddStreamRecord(record.withStreamKey(key), maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record.withStreamKey(key), options);
 		}
 
 		/**
@@ -259,7 +253,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream() {
-			return new AddStreamRecord(record, maxlen, true, approximateTrimming, minId);
+			return new AddStreamRecord(record, XAddOptions.makeNoStream());
 		}
 
 		/**
@@ -270,7 +264,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public AddStreamRecord makeNoStream(boolean makeNoStream) {
-			return new AddStreamRecord(record, maxlen, makeNoStream, approximateTrimming, minId);
+			return new AddStreamRecord(record, XAddOptions.makeNoStream(makeNoStream));
 		}
 
 		/**
@@ -279,7 +273,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord maxlen(long maxlen) {
-			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record, XAddOptions.maxlen(maxlen));
 		}
 
 		/**
@@ -290,7 +284,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.7
 		 */
 		public AddStreamRecord minId(RecordId minId) {
-			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record, options.minId(minId));
 		}
 
 		/**
@@ -299,7 +293,23 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link AddStreamRecord}.
 		 */
 		public AddStreamRecord approximateTrimming(boolean approximateTrimming) {
-			return new AddStreamRecord(record, maxlen, nomkstream, approximateTrimming, minId);
+			return new AddStreamRecord(record, options.approximateTrimming(approximateTrimming));
+		}
+
+		/**
+		 * Apply the given {@link XAddOptions} to configure the {@literal XADD} command.
+		 * <p>
+		 * This method allows setting all XADD options at once, including trimming strategies
+		 * ({@literal MAXLEN}, {@literal MINID}), stream creation behavior ({@literal NOMKSTREAM}),
+		 * and other parameters. Constructs a new command instance with all previously configured
+		 * properties except the options, which are replaced by the provided {@link XAddOptions}.
+		 *
+		 * @param options the {@link XAddOptions} to apply. Must not be {@literal null}.
+		 * @return a new {@link AddStreamRecord} with the specified options applied.
+		 * @since 4.0
+		 */
+		public AddStreamRecord withOptions(XAddOptions options) {
+			return new AddStreamRecord(record, options);
 		}
 
 		/**
@@ -318,7 +328,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.6
 		 */
 		public boolean isNoMkStream() {
-			return nomkstream;
+			return options.isNoMkStream();
 		}
 
 		/**
@@ -328,23 +338,21 @@ public interface ReactiveStreamCommands {
 		 * @since 2.3
 		 */
 		public @Nullable Long getMaxlen() {
-			return maxlen;
+			return options.getMaxlen();
 		}
 
 		/**
 		 * @return {@literal true} if {@literal MAXLEN} is set.
 		 * @since 2.3
 		 */
-		public boolean hasMaxlen() {
-			return maxlen != null;
-		}
+		public boolean hasMaxlen() { return options.hasMaxlen(); }
 
 		/**
 		 * @return {@literal true} if {@literal approximateTrimming} is set.
 		 * @since 2.7
 		 */
 		public boolean isApproximateTrimming() {
-			return approximateTrimming;
+			return options.isApproximateTrimming();
 		}
 
 		/**
@@ -352,7 +360,7 @@ public interface ReactiveStreamCommands {
 		 * @since 2.7
 		 */
 		public @Nullable RecordId getMinId() {
-			return minId;
+			return options.getMinId();
 		}
 
 		/**
@@ -360,7 +368,15 @@ public interface ReactiveStreamCommands {
 		 * @since 2.7
 		 */
 		public boolean hasMinId() {
-			return minId != null;
+			return options.hasMinId();
+		}
+
+		/**
+		 * @return the XAddOptions options.
+		 * @since 4.0
+		 */
+		public XAddOptions getOptions() {
+			return options;
 		}
 	}
 
@@ -409,18 +425,8 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(record, "Record must not be null");
 		Assert.notNull(xAddOptions, "XAddOptions must not be null");
 
-		AddStreamRecord addStreamRecord = AddStreamRecord.of(record)
-				.approximateTrimming(xAddOptions.isApproximateTrimming()).makeNoStream(xAddOptions.isNoMkStream());
-
-		if (xAddOptions.hasMaxlen()) {
-			addStreamRecord = addStreamRecord.maxlen(xAddOptions.getMaxlen());
-		}
-
-		if (xAddOptions.hasMinId()) {
-			addStreamRecord = addStreamRecord.minId(xAddOptions.getMinId());
-		}
-
-		return xAdd(Mono.just(addStreamRecord)).next().map(CommandResponse::getOutput);
+		return xAdd(Mono.just(AddStreamRecord.of(record).withOptions(xAddOptions))).next()
+				.map(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1565,13 +1571,11 @@ public interface ReactiveStreamCommands {
 	 */
 	class TrimCommand extends KeyCommand {
 
-		private @Nullable Long count;
-		private boolean approximateTrimming;
+		private final XTrimOptions options;
 
-		private TrimCommand(@Nullable ByteBuffer key, @Nullable Long count, boolean approximateTrimming) {
+		private TrimCommand(@Nullable ByteBuffer key, XTrimOptions options) {
 			super(key);
-			this.count = count;
-			this.approximateTrimming = approximateTrimming;
+			this.options = options;
 		}
 
 		/**
@@ -1584,18 +1588,18 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new TrimCommand(key, null, false);
+			return new TrimCommand(key, XTrimOptions.none());
 		}
 
 		/**
-		 * Applies the numeric {@literal count}. Constructs a new command instance with all previously configured
+		 * Applies the numeric {@literal limit}. Constructs a new command instance with all previously configured
 		 * properties.
 		 *
-		 * @param count
-		 * @return a new {@link TrimCommand} with {@literal count} applied.
+		 * @param limit
+		 * @return a new {@link TrimCommand} with {@literal limit} applied.
 		 */
-		public TrimCommand to(long count) {
-			return new TrimCommand(getKey(), count, approximateTrimming);
+		public TrimCommand to(long limit) {
+			return new TrimCommand(getKey(), options.limit(limit));
 		}
 
 		/**
@@ -1616,18 +1620,39 @@ public interface ReactiveStreamCommands {
 		 * @since 2.4
 		 */
 		public TrimCommand approximate(boolean approximateTrimming) {
-			return new TrimCommand(getKey(), count, approximateTrimming);
+			return new TrimCommand(getKey(), options.approximateTrimming(approximateTrimming));
+		}
+
+		/**
+		 * Apply the given {@link XTrimOptions} to configure the {@literal XTRIM} command.
+		 * <p>
+		 * This method allows setting all XTRIM options at once, including trimming strategies
+		 * ({@literal MAXLEN}, {@literal MINID}), stream creation behavior ({@literal NOMKSTREAM}),
+		 * and other parameters. Constructs a new command instance with all previously configured
+		 * properties except the options, which are replaced by the provided {@link XTrimOptions}.
+		 *
+		 * @param options the {@link XTrimOptions} to apply. Must not be {@literal null}.
+		 * @return a new {@link TrimCommand} with the specified options applied.
+		 * @since 4.0
+		 */
+		public TrimCommand withOptions(XTrimOptions options) {
+			return new TrimCommand(getKey(), options);
 		}
 
 		/**
 		 * @return can be {@literal null}.
 		 */
 		public @Nullable Long getCount() {
-			return count;
+			return options.getLimit();
 		}
 
+
 		public boolean isApproximateTrimming() {
-			return approximateTrimming;
+			return options.isApproximateTrimming();
+		}
+
+		public XTrimOptions getOptions() {
+			return options;
 		}
 	}
 
@@ -1658,6 +1683,14 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return xTrim(Mono.just(TrimCommand.stream(key).to(count).approximate(approximateTrimming))).next()
+				.map(NumericResponse::getOutput);
+	}
+
+	default Mono<Long> xTrim(ByteBuffer key, XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+
+		return xTrim(Mono.just(TrimCommand.stream(key).withOptions(options))).next()
 				.map(NumericResponse::getOutput);
 	}
 

@@ -22,7 +22,9 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -219,4 +221,18 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	Long trim(long count, boolean approximateTrimming);
+
+	/**
+	 * Trims the stream according to the specified {@link RedisStreamCommands.XTrimOptions}.
+	 * <p>
+	 * Supports various trimming strategies including {@literal MAXLEN} (limit by count) and
+	 * {@literal MINID} (evict entries older than a specific ID), with options for approximate
+	 * or exact trimming.
+	 *
+	 * @param options the trimming options specifying the strategy and parameters. Must not be {@literal null}.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @since 2.7.4
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	Long trim(@NonNull XTrimOptions options);
 }

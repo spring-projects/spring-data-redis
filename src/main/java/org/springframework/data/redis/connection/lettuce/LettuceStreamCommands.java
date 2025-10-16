@@ -20,6 +20,7 @@ import io.lettuce.core.XClaimArgs;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XPendingArgs;
 import io.lettuce.core.XReadArgs;
+import io.lettuce.core.XTrimArgs;
 import io.lettuce.core.api.async.RedisStreamAsyncCommands;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 
@@ -84,16 +85,7 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(record.getStream(), "Stream must not be null");
 		Assert.notNull(record, "Record must not be null");
 
-		XAddArgs args = new XAddArgs();
-		args.id(record.getId().getValue());
-		if (options.hasMaxlen()) {
-			args.maxlen(options.getMaxlen());
-		}
-		if (options.hasMinId()) {
-			args.minId(options.getMinId().toString());
-		}
-		args.nomkstream(options.isNoMkStream());
-		args.approximateTrimming(options.isApproximateTrimming());
+		XAddArgs args = StreamConverters.toXAddArgs(record.getId(), options);
 
 		return connection.invoke().from(RedisStreamAsyncCommands::xadd, record.getStream(), args, record.getValue())
 				.get(RecordId::of);
@@ -322,6 +314,17 @@ class LettuceStreamCommands implements RedisStreamCommands {
 		Assert.notNull(key, "Key must not be null");
 
 		return connection.invoke().just(RedisStreamAsyncCommands::xtrim, key, approximateTrimming, count);
+	}
+
+	@Override
+	public Long xTrim(byte @NonNull [] key, @NonNull XTrimOptions options) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XTrimOptions must not be null");
+
+		XTrimArgs xTrimArgs = StreamConverters.toXTrimArgs(options);
+
+		return connection.invoke().just(RedisStreamAsyncCommands::xtrim, key, xTrimArgs);
 	}
 
 	RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
