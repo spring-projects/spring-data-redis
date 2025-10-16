@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -326,6 +327,12 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	public Long trim(@NonNull K key, long count, boolean approximateTrimming) {
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xTrim(rawKey, count, approximateTrimming));
+	}
+
+	@Override
+	public Long trim(@NonNull K key, @NonNull XTrimOptions options) {
+		byte[] rawKey = rawKey(key);
+		return execute(connection -> connection.streamCommands().xTrim(rawKey, options));
 	}
 
 	@Override

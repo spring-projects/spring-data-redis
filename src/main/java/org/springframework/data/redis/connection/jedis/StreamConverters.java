@@ -15,13 +15,16 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import redis.clients.jedis.BuilderFactory;
 import redis.clients.jedis.StreamEntryID;
+import redis.clients.jedis.args.StreamDeletionPolicy;
 import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XClaimParams;
 import redis.clients.jedis.params.XPendingParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.params.XReadParams;
+import redis.clients.jedis.params.XTrimParams;
 import redis.clients.jedis.resps.StreamEntry;
 import redis.clients.jedis.resps.StreamPendingEntry;
 
@@ -37,7 +40,10 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
-import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
@@ -57,6 +63,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
  * @author dengliming
  * @author Mark Paluch
  * @author Jeonggyu Choi
+ * @author Viktoriya Kutsarova
  * @since 2.3
  */
 class StreamConverters {
@@ -207,7 +214,7 @@ class StreamConverters {
 	}
 
 	@SuppressWarnings("NullAway")
-	public static XAddParams toXAddParams(RecordId recordId, RedisStreamCommands.XAddOptions options) {
+	public static XAddParams toXAddParams(RecordId recordId, XAddOptions options) {
 
 		XAddParams params = new XAddParams();
 		params.id(toStreamEntryId(recordId.getValue()));
@@ -226,6 +233,49 @@ class StreamConverters {
 
 		if (options.isApproximateTrimming()) {
 			params.approximateTrimming();
+		}
+
+		if (options.isExactTrimming()) {
+			params.exactTrimming();
+		}
+
+		if (options.hasLimit()) {
+			params.limit(options.getLimit());
+		}
+
+		if (options.hasDeletionPolicy()) {
+			params.trimmingMode(toStreamDeletionPolicy(options.getDeletionPolicy()));
+		}
+
+		return params;
+	}
+
+	public static XTrimParams toXTrimParams(XTrimOptions options) {
+
+		XTrimParams params = new XTrimParams();
+
+		if (options.hasMaxlen()) {
+			params.maxLen(options.getMaxlen());
+		}
+
+		if (options.hasMinId()) {
+			params.minId(options.getMinId().getValue());
+		}
+
+		if (options.isApproximateTrimming()) {
+			params.approximateTrimming();
+		}
+
+		if (options.isExactTrimming()) {
+			params.exactTrimming();
+		}
+
+		if (options.hasLimit()) {
+			params.limit(options.getLimit());
+		}
+
+		if (options.hasDeletionPolicy()) {
+			params.trimmingMode(toStreamDeletionPolicy(options.getDeletionPolicy()));
 		}
 
 		return params;
@@ -248,7 +298,16 @@ class StreamConverters {
 		return new StreamEntryID(value);
 	}
 
-	public static XClaimParams toXClaimParams(RedisStreamCommands.XClaimOptions options) {
+	private static StreamDeletionPolicy toStreamDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy deletionPolicy) {
+
+		return switch (deletionPolicy) {
+			case KEEP_REFERENCES -> StreamDeletionPolicy.KEEP_REFERENCES;
+			case DELETE_REFERENCES -> StreamDeletionPolicy.DELETE_REFERENCES;
+			case DELETE_ACKNOWLEDGED_REFERENCES -> StreamDeletionPolicy.ACKNOWLEDGED;
+		};
+	}
+
+	public static XClaimParams toXClaimParams(XClaimOptions options) {
 
 		XClaimParams params = XClaimParams.xClaimParams();
 
@@ -305,7 +364,7 @@ class StreamConverters {
 	}
 
 	@SuppressWarnings("NullAway")
-	public static XPendingParams toXPendingParams(RedisStreamCommands.XPendingOptions options) {
+	public static XPendingParams toXPendingParams(XPendingOptions options) {
 
 		Range<String> range = (Range<String>) options.getRange();
 		XPendingParams xPendingParams = XPendingParams.xPendingParams(StreamConverters.getLowerValue(range),
