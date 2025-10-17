@@ -45,7 +45,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	@Override
-	public List<byte[]> bLPop(int timeout, byte @NonNull [] @NonNull... keys) {
+	public List<byte[]> bLPop(double timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -68,7 +68,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	@Override
-	public List<byte[]> bRPop(int timeout, byte @NonNull [] @NonNull... keys) {
+	public List<byte[]> bRPop(double timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Keys must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
@@ -106,7 +106,7 @@ class LettuceClusterListCommands extends LettuceListCommands {
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
+	public byte[] bRPopLPush(double timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");

@@ -326,13 +326,13 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple bZPopMin(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit) {
+	public Tuple bZPopMin(byte @NonNull [] key, double timeout, @NonNull TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
 		return connection.invoke()
-				.from(Jedis::bzpopmin, PipelineBinaryCommands::bzpopmin, JedisConverters.toSeconds(timeout, unit), key)
+				.from(Jedis::bzpopmin, PipelineBinaryCommands::bzpopmin, timeout, key)
 				.get(JedisZSetCommands::toTuple);
 	}
 
@@ -354,13 +354,13 @@ class JedisZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple bZPopMax(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit) {
+	public Tuple bZPopMax(byte @NonNull [] key, double timeout, @NonNull TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
 		return connection.invoke()
-				.from(Jedis::bzpopmax, PipelineBinaryCommands::bzpopmax, JedisConverters.toSeconds(timeout, unit), key)
+				.from(Jedis::bzpopmax, PipelineBinaryCommands::bzpopmax, timeout, key)
 				.get(JedisZSetCommands::toTuple);
 	}
 

@@ -32,6 +32,7 @@ import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.util.KeyValue;
 import redis.clients.jedis.util.SafeEncoder;
 
 import java.nio.ByteBuffer;
@@ -334,6 +335,9 @@ abstract class JedisConverters extends Converters {
 		return toSetCommandExPxArgument(expiration, SetParams.setParams());
 	}
 
+	public static List<byte[]> kvToList(KeyValue<byte[], byte[]> source) {
+		return List.of(source.getKey(), source.getValue());
+	}
 	/**
 	 * Converts a given {@link Expiration} to the according {@code SET} command argument.
 	 * <dl>
@@ -359,12 +363,12 @@ abstract class JedisConverters extends Converters {
 		}
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(expiration.getExpirationTime())
-					: paramsToUse.px(expiration.getExpirationTime());
+			return expiration.isUnixTimestamp() ? paramsToUse.pxAt(Double.valueOf(expiration.getExpirationTime()).longValue())
+					: paramsToUse.px(Double.valueOf(expiration.getExpirationTime()).longValue());
 		}
 
-		return expiration.isUnixTimestamp() ? paramsToUse.exAt(expiration.getConverted(TimeUnit.SECONDS))
-				: paramsToUse.ex(expiration.getConverted(TimeUnit.SECONDS));
+		return expiration.isUnixTimestamp() ? paramsToUse.exAt(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue())
+				: paramsToUse.ex(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue());
 	}
 
 	/**
@@ -392,13 +396,13 @@ abstract class JedisConverters extends Converters {
 
 		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
 			if (expiration.isUnixTimestamp()) {
-				return params.pxAt(expiration.getExpirationTime());
+				return params.pxAt(Double.valueOf(expiration.getExpirationTime()).longValue());
 			}
-			return params.px(expiration.getExpirationTime());
+			return params.px(Double.valueOf(expiration.getExpirationTime()).longValue());
 		}
 
-		return expiration.isUnixTimestamp() ? params.exAt(expiration.getConverted(TimeUnit.SECONDS))
-				: params.ex(expiration.getConverted(TimeUnit.SECONDS));
+		return expiration.isUnixTimestamp() ? params.exAt(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue())
+				: params.ex(Double.valueOf(expiration.getConverted(TimeUnit.SECONDS)).longValue());
 	}
 
 	/**

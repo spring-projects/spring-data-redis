@@ -413,7 +413,7 @@ class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				return new CommandResponse<>(command, result.filter(Value::hasValue).map(this::toTuple).flux());
 			} else {
 
-				long timeout = command.getTimeUnit().toSeconds(command.getTimeout());
+				double timeout = command.getTimeout();
 
 				Mono<KeyValue<ByteBuffer, ScoredValue<ByteBuffer>>> commandResult = command.getDirection() == PopDirection.MIN
 						? reactiveCommands.bzpopmin(timeout, command.getKey())

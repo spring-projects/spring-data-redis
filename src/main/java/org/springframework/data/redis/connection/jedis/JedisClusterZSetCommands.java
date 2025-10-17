@@ -349,13 +349,13 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple bZPopMin(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit) {
+	public Tuple bZPopMin(byte @NonNull [] key, double timeout, @NonNull TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
 		try {
-			return toTuple(connection.getCluster().bzpopmin(JedisConverters.toSeconds(timeout, unit), key));
+			return toTuple(connection.getCluster().bzpopmin(timeout, key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -387,13 +387,13 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 	}
 
 	@Override
-	public Tuple bZPopMax(byte @NonNull [] key, long timeout, @NonNull TimeUnit unit) {
+	public Tuple bZPopMax(byte @NonNull [] key, double timeout, @NonNull TimeUnit unit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(unit, "TimeUnit must not be null");
 
 		try {
-			return toTuple(connection.getCluster().bzpopmax(JedisConverters.toSeconds(timeout, unit), key));
+			return toTuple(connection.getCluster().bzpopmax(timeout, key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

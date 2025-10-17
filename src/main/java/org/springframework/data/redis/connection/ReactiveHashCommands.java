@@ -873,7 +873,7 @@ public interface ReactiveHashCommands {
 		 * @param unit the unit of measure for the {@code timeout}.
 		 * @return new instance of {@link HashExpireCommand}.
 		 */
-		public static HashExpireCommand expire(List<ByteBuffer> fields, long timeout, TimeUnit unit) {
+		public static HashExpireCommand expire(List<ByteBuffer> fields, double timeout, TimeUnit unit) {
 
 			Assert.notNull(fields, "Field must not be null");
 			return expire(fields, Expiration.from(timeout, unit));

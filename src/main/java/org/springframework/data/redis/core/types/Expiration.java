@@ -78,20 +78,21 @@ public class Expiration {
 	 * Defaulted to {@link TimeUnit#SECONDS}
 	 * @return a new {@link Expiration} configured with the given {@link Long length of time} in {@link TimeUnit}.
 	 */
-	public static Expiration from(long expirationTime, @Nullable TimeUnit timeUnit) {
+	public static Expiration from(double expirationTime, @Nullable TimeUnit timeUnit) {
 
 		if(timeUnit == null) {
 			return new Expiration(expirationTime, TimeUnit.SECONDS);
 		}
+		return new Expiration(expirationTime, timeUnit);
 
-		if (TimeUnit.NANOSECONDS.equals(timeUnit)
-			|| TimeUnit.MICROSECONDS.equals(timeUnit)
-			|| TimeUnit.MILLISECONDS.equals(timeUnit)) {
-
-			return new Expiration(timeUnit.toMillis(expirationTime), TimeUnit.MILLISECONDS);
-		}
-
-		return new Expiration(timeUnit.toSeconds(expirationTime), TimeUnit.SECONDS);
+//		if (TimeUnit.NANOSECONDS.equals(timeUnit)
+//			|| TimeUnit.MICROSECONDS.equals(timeUnit)
+//			|| TimeUnit.MILLISECONDS.equals(timeUnit)) {
+//
+//			return new Expiration(expirationTime, TimeUnit.MILLISECONDS);
+//		}
+//
+//		return new Expiration(expirationTime, TimeUnit.SECONDS);
 	}
 
 	/**
@@ -135,7 +136,7 @@ public class Expiration {
 		return new Expiration(-1, TimeUnit.SECONDS);
 	}
 
-	private final long expirationTime;
+	private final double expirationTime;
 
 	private final TimeUnit timeUnit;
 
@@ -145,7 +146,7 @@ public class Expiration {
 	 * @param expirationTime {@link Long length of time} for expiration. Defaulted to {@link TimeUnit#SECONDS}.
 	 * @param timeUnit {@link TimeUnit} used to measure {@link Long expirationTime}.
 	 */
-	protected Expiration(long expirationTime, @Nullable TimeUnit timeUnit) {
+	protected Expiration(double expirationTime, @Nullable TimeUnit timeUnit) {
 
 		this.expirationTime = expirationTime;
 		this.timeUnit = timeUnit != null ? timeUnit : TimeUnit.SECONDS;
@@ -156,7 +157,7 @@ public class Expiration {
 	 *
 	 * @return the {@link Long length of time} for this {@link Expiration}.
 	 */
-	public long getExpirationTime() {
+	public double getExpirationTime() {
 		return this.expirationTime;
 	}
 
@@ -166,7 +167,7 @@ public class Expiration {
 	 * @return the expiration time converted into {@link TimeUnit#MILLISECONDS}.
 	 */
 	public long getExpirationTimeInMilliseconds() {
-		return getConverted(TimeUnit.MILLISECONDS);
+		return Double.valueOf(getConverted(TimeUnit.MILLISECONDS)).longValue();
 	}
 
 	/**
@@ -175,7 +176,7 @@ public class Expiration {
 	 * @return the {@link Long expiration time} converted into {@link TimeUnit#SECONDS}.
 	 */
 	public long getExpirationTimeInSeconds() {
-		return getConverted(TimeUnit.SECONDS);
+		return Double.valueOf(getConverted(TimeUnit.SECONDS)).longValue();
 	}
 
 	/**
@@ -195,11 +196,18 @@ public class Expiration {
 	 * @return the {@link #getExpirationTime() expiration time} converted into the given, desired {@link TimeUnit}.
 	 * @throws IllegalArgumentException if the given {@link TimeUnit} is {@literal null}.
 	 */
-	public long getConverted(TimeUnit targetTimeUnit) {
+	public double getConverted(TimeUnit targetTimeUnit) {
 
 		Assert.notNull(targetTimeUnit, "TimeUnit must not be null");
 
-		return targetTimeUnit.convert(getExpirationTime(), getTimeUnit());
+		if(timeUnit.equals(TimeUnit.MILLISECONDS) && targetTimeUnit.equals(TimeUnit.MILLISECONDS)) {
+			return getExpirationTime();
+		}
+		if(timeUnit.equals(TimeUnit.MILLISECONDS) && targetTimeUnit.equals(TimeUnit.NANOSECONDS)) {
+			return targetTimeUnit.convert((long)(expirationTime * 1000000D), getTimeUnit());
+		}
+
+		return targetTimeUnit.convert(Double.valueOf(getExpirationTime()).longValue(), getTimeUnit());
 	}
 
 	/**
@@ -226,17 +234,15 @@ public class Expiration {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-
-		if (this == obj) {
+	public boolean equals(Object o) {
+		if (o == this) {
 			return true;
 		}
-
-		if (!(obj instanceof Expiration that)) {
+		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-
-		return this.getTimeUnit().toMillis(getExpirationTime()) == that.getTimeUnit().toMillis(that.getExpirationTime());
+		Expiration that = (Expiration) o;
+		return Double.compare(expirationTime, that.expirationTime) == 0 && timeUnit == that.timeUnit;
 	}
 
 	@Override

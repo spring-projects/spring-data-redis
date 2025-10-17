@@ -353,14 +353,14 @@ class LettuceClusterConnectionUnitTests {
 
 		when(connectionProviderMock.getConnection(StatefulConnection.class)).thenReturn(dedicatedConnection);
 		when(dedicatedConnection.async()).thenReturn(async);
-		when(async.blpop(anyLong(), any())).thenReturn(mock(RedisFuture.class));
+		when(async.blpop(anyDouble(), any())).thenReturn(mock(RedisFuture.class));
 
 		LettuceClusterConnection connection = new LettuceClusterConnection(sharedConnectionMock, connectionProviderMock,
 				topologyProviderMock, executorMock, Duration.ZERO);
 
 		connection.listCommands().bLPop(1, KEY_1_BYTES);
 
-		verify(async).blpop(1, KEY_1_BYTES);
+		verify(async).blpop(1.0D, KEY_1_BYTES);
 		verify(connectionProviderMock).getConnection(StatefulConnection.class);
 		verifyNoMoreInteractions(connectionProviderMock);
 		verifyNoInteractions(sharedConnectionMock);

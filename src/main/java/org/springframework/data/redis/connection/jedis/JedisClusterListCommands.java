@@ -294,14 +294,14 @@ class JedisClusterListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public List<byte @NonNull []> bLPop(int timeout, byte @NonNull [] @NonNull... keys) {
+	public List<byte @NonNull []> bLPop(double timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
-				return connection.getCluster().blpop(timeout, keys);
+				return JedisConverters.kvToList(connection.getCluster().blpop(timeout, keys));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -309,20 +309,20 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand(
-						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.blpop(timeout, key),
+						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> JedisConverters.kvToList(client.blpop(timeout, key)),
 						Arrays.asList(keys))
 				.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 	}
 
 	@Override
-	public List<byte @NonNull []> bRPop(int timeout, byte @NonNull [] @NonNull... keys) {
+	public List<byte @NonNull []> bRPop(double timeout, byte @NonNull [] @NonNull... keys) {
 
 		Assert.notNull(keys, "Key must not be null");
 		Assert.noNullElements(keys, "Keys must not contain null elements");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
 			try {
-				return connection.getCluster().brpop(timeout, keys);
+				return JedisConverters.kvToList(connection.getCluster().brpop(timeout, keys));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -330,7 +330,7 @@ class JedisClusterListCommands implements RedisListCommands {
 
 		return connection.getClusterCommandExecutor()
 				.executeMultiKeyCommand(
-						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> client.brpop(timeout, key),
+						(JedisMultiKeyClusterCommandCallback<List<byte[]>>) (client, key) -> JedisConverters.kvToList(client.brpop(timeout, key)),
 						Arrays.asList(keys))
 				.getFirstNonNullNotEmptyOrDefault(Collections.<byte[]> emptyList());
 	}
@@ -355,14 +355,14 @@ class JedisClusterListCommands implements RedisListCommands {
 	}
 
 	@Override
-	public byte[] bRPopLPush(int timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
+	public byte[] bRPopLPush(double timeout, byte @NonNull [] srcKey, byte @NonNull [] dstKey) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(srcKey, dstKey)) {
 			try {
-				return connection.getCluster().brpoplpush(srcKey, dstKey, timeout);
+				return connection.getCluster().brpoplpush(srcKey, dstKey, Double.valueOf(timeout).intValue());
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
