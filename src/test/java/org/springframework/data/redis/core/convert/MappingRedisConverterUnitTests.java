@@ -100,6 +100,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Mark Paluch
  * @author Golam Mazid Sajib
  * @author John Blum
+ * @author Edwin Ing
  */
 @ExtendWith(MockitoExtension.class)
 class MappingRedisConverterUnitTests {
@@ -1080,7 +1081,15 @@ class MappingRedisConverterUnitTests {
 		address.city = "unknown";
 		rand.address = address;
 
-		assertThat(write(rand)).containsEntry("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+		ObjectMapper mapper = new ObjectMapper();
+		assertThat(write(rand))
+				.hasEntrySatisfying("address", addr -> {
+					try {
+						assertThat(mapper.readTree(addr)).isEqualTo(mapper.readTree("{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+					} catch (Exception e) {
+						throw new AssertionError("Error during JSON comparison: " + e.getMessage(), e);
+					}
+				});
 	}
 
 	@Test // DATAREDIS-425
@@ -1775,7 +1784,15 @@ class MappingRedisConverterUnitTests {
 
 		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("address", address);
 
-		assertThat(write(update)).containsEntry("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+        ObjectMapper mapper = new ObjectMapper();
+        assertThat(write(update))
+                .hasEntrySatisfying("address", addr -> {
+                    try {
+                        assertThat(mapper.readTree(addr)).isEqualTo(mapper.readTree("{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+                    } catch (Exception e) {
+                        throw new AssertionError("Error during JSON comparison: " + e.getMessage(), e);
+                    }
+                });
 	}
 
 	@Test // DATAREDIS-471
