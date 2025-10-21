@@ -37,9 +37,11 @@ import org.springframework.data.redis.core.convert.RedisData;
 public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAssert> {
 
 	private final RedisData redisData;
+	private final Map<String, String> stringMap;
 
-	RedisTestData(RedisData redisData) {
+	private RedisTestData(RedisData redisData) {
 		this.redisData = redisData;
+		this.stringMap = toStringMap(redisData.getBucket().asMap());
 	}
 
 	public static RedisTestData from(RedisData data) {
@@ -48,7 +50,11 @@ public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAs
 
 	@Override
 	public RedisBucketAssert assertThat() {
-		return new RedisBucketAssert(redisData);
+		return new RedisBucketAssert(redisData, stringMap);
+	}
+
+	public String get(String key) {
+		return stringMap.get(key);
 	}
 
 	public Bucket getBucket() {
@@ -69,9 +75,9 @@ public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAs
 
 		private final RedisData redisData;
 
-		RedisBucketAssert(RedisData redisData) {
+		RedisBucketAssert(RedisData redisData, Map<String, String> stringMap) {
 
-			super(toStringMap(redisData.getBucket().asMap()));
+			super(stringMap);
 			this.redisData = redisData;
 		}
 
@@ -154,6 +160,6 @@ public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAs
 
 	@Override
 	public String toString() {
-		return toStringMap(getBucket().asMap()).toString();
+		return stringMap.toString();
 	}
 }

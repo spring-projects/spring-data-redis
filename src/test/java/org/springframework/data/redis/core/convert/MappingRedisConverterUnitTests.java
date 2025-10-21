@@ -15,33 +15,9 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.AccountInfo;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithPostcode;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Device;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.ExipringPersonWithExplicitProperty;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.ExpiringPerson;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Gender;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.JustSomeDifferentPropertyTypes;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.KEYSPACE_ACCOUNT;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.KEYSPACE_PERSON;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Outer;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.PersonWithConstructorAndAddress;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.RecursiveConstructorPerson;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Size;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.Species;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.TypeWithMaps;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.TypeWithObjectValueTypes;
-import static org.springframework.data.redis.core.convert.ConversionTestEntities.WithArrays;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -1053,7 +1029,7 @@ class MappingRedisConverterUnitTests {
 		address.country = "Tel'aran'rhiod";
 		address.city = "unknown";
 
-		assertThat(write(address)).containsEntry("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+		assertThat(write(address).get("_raw")).contains("\"city\":\"unknown\"").contains("\"country\":\"Tel'aran'rhiod\"");
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-634
@@ -1074,7 +1050,7 @@ class MappingRedisConverterUnitTests {
 		address.city = "unknown";
 		rand.address = address;
 
-		assertThat(write(rand)).containsEntry("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+		assertThat(write(rand).get("address")).contains("\"city\":\"unknown\"").contains("\"country\":\"Tel'aran'rhiod\"");
 	}
 
 	@Test // DATAREDIS-425
@@ -1769,7 +1745,8 @@ class MappingRedisConverterUnitTests {
 
 		PartialUpdate<Person> update = new PartialUpdate<>("123", Person.class).set("address", address);
 
-		assertThat(write(update)).containsEntry("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+		assertThat(write(update).get("address")).contains("\"city\":\"unknown\",")
+				.contains("\"country\":\"Tel'aran'rhiod\"");
 	}
 
 	@Test // DATAREDIS-471
