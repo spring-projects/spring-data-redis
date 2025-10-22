@@ -244,6 +244,9 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
 	 * Remove the given key from Redis.
+	 * <p>
+	 * Actual eviction may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entry.
 	 *
 	 * @param name cache name must not be {@literal null}.
 	 * @param key key for the cache entry. Must not be {@literal null}.
@@ -251,12 +254,43 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	void remove(String name, byte[] key);
 
 	/**
+	 * Remove the given key from Redis if it is present, expecting the key to be immediately invisible for subsequent
+	 * lookups.
+	 *
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @return {@code true} if the cache was known to have a mapping for this key before, {@code false} if it did not (or
+	 *         if prior presence could not be determined).
+	 */
+	default boolean removeIfPresent(String name, byte[] key) {
+		remove(name, key);
+		return false;
+	}
+
+	/**
 	 * Remove all keys following the given pattern.
+	 * <p>
+	 * Actual clearing may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entries.
 	 *
 	 * @param name cache name must not be {@literal null}.
 	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
 	 */
 	void clean(String name, byte[] pattern);
+
+	/**
+	 * Remove all keys following the given pattern expecting all entries to be immediately invisible for subsequent
+	 * lookups.
+	 *
+	 * @param name cache name must not be {@literal null}.
+	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
+	 * @return {@code true} if the cache was known to have mappings before, {@code false} if it did not (or if prior
+	 *         presence of entries could not be determined).
+	 */
+	default boolean invalidate(String name, byte[] pattern) {
+		clean(name, pattern);
+		return false;
+	}
 
 	/**
 	 * Reset all statistics counters and gauges for this cache.
@@ -323,4 +357,5 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		Duration getTimeToLive(Object key, @Nullable Object value);
 
 	}
+
 }

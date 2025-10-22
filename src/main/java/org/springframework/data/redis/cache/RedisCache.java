@@ -235,15 +235,23 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
-	 * Clear keys that match the given {@link String keyPattern}.
+	 * Clear keys that match the given {@link String keyPattern}. Useful when cache keys are formatted in a style where
+	 * Redis patterns can be used for matching these.
 	 * <p>
-	 * Useful when cache keys are formatted in a style where Redis patterns can be used for matching these.
+	 * Actual clearing may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entries. This may for example be the case with transactional cache decorators. Use {@link #invalidate()}
+	 * for guaranteed immediate removal of entries.
 	 *
 	 * @param keyPattern {@link String pattern} used to match Redis keys to clear.
 	 * @since 3.0
 	 */
 	public void clear(String keyPattern) {
 		getCacheWriter().clean(getName(), createAndConvertCacheKey(keyPattern));
+	}
+
+	@Override
+	public boolean invalidate() {
+		return getCacheWriter().invalidate(getName(), createAndConvertCacheKey("*"));
 	}
 
 	/**
@@ -258,6 +266,11 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	@Override
 	public void evict(Object key) {
 		getCacheWriter().remove(getName(), createAndConvertCacheKey(key));
+	}
+
+	@Override
+	public boolean evictIfPresent(Object key) {
+		return getCacheWriter().removeIfPresent(getName(), createAndConvertCacheKey(key));
 	}
 
 	@Override

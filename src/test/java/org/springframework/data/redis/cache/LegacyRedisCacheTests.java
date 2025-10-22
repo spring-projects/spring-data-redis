@@ -29,6 +29,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
@@ -147,6 +148,10 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key2)).isNull();
 		cache.put(key2, value2);
 		cache.clear();
+
+		Awaitility.await().until(() -> cache.get(key1) == null);
+		Awaitility.await().until(() -> cache.get(key2) == null);
+
 		assertThat(cache.get(key2)).isNull();
 		assertThat(cache.get(key1)).isNull();
 	}

@@ -18,7 +18,6 @@ package org.springframework.data.redis.cache;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.cache.RedisCacheWriter.*;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import org.awaitility.Awaitility;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -263,7 +263,7 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@Test // DATAREDIS-481, DATAREDIS-1082
-	void removeShouldDeleteEntry() {
+	void removeShouldDeleteEntry() throws InterruptedException {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
@@ -271,6 +271,27 @@ public class DefaultRedisCacheWriterTests {
 				.withStatisticsCollector(CacheStatisticsCollector.create());
 
 		writer.remove(CACHE_NAME, binaryCacheKey);
+
+		if (writer.supportsAsyncRetrieve()) {
+			doWithConnection(connection -> {
+				Awaitility.await().until(() -> !connection.exists(binaryCacheKey));
+			});
+		}
+
+		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
+	}
+
+	@Test // GH-3236
+	void removeShouldDeleteEntryIfExists() {
+
+		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		assertThat(writer.removeIfPresent(CACHE_NAME, binaryCacheKey)).isTrue();
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 
@@ -288,7 +309,34 @@ public class DefaultRedisCacheWriterTests {
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
 
-		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(Charset.forName("UTF-8")));
+		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
+
+		if (writer.supportsAsyncRetrieve()) {
+			doWithConnection(connection -> {
+				Awaitility.await().until(() -> !connection.exists(binaryCacheKey));
+			});
+		}
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("foo".getBytes())).isTrue();
+		});
+
+		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
+	}
+
+	@Test // GH-3236
+	void invalidateShouldRemoveAllKeysByPattern() {
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryCacheValue);
+			connection.set("foo".getBytes(), "bar".getBytes());
+		});
+
+		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
+				.withStatisticsCollector(CacheStatisticsCollector.create());
+
+		assertThat(writer.invalidate(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8))).isTrue();
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();

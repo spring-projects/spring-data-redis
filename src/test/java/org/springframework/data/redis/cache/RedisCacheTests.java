@@ -30,10 +30,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.assertj.core.api.ThrowingConsumer;
+import org.awaitility.Awaitility;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,7 @@ import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -115,6 +117,8 @@ public class RedisCacheTests {
 		String keyPattern = "*" + key.substring(1);
 		cache.clear(keyPattern);
 
+		maybeWaitForNonBlockingClean();
+
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 	}
 
@@ -125,6 +129,8 @@ public class RedisCacheTests {
 
 		String keyPattern = "*" + key.substring(1) + "tail";
 		cache.clear(keyPattern);
+
+		maybeWaitForNonBlockingClean();
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
@@ -289,6 +295,25 @@ public class RedisCacheTests {
 
 		cache.evict(key);
 
+		Awaitility.await().until(() -> cache.get(key) == null);
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
+		});
+	}
+
+	@Test // GH-3236
+	void evictShouldRemoveKeyIfPresent() {
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
+		});
+
+		assertThat(cache.evictIfPresent(key)).isTrue();
+		assertThat(cache.evictIfPresent(key)).isFalse();
+
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
 			assertThat(connection.exists("other".getBytes())).isTrue();
@@ -304,6 +329,24 @@ public class RedisCacheTests {
 		});
 
 		cache.clear();
+
+		maybeWaitForNonBlockingClean();
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
+		});
+	}
+
+	@Test // GH-2028
+	void clearShouldInvalidateCache() {
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
+		});
+
+		assertThat(cache.invalidate()).isTrue();
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -326,6 +369,8 @@ public class RedisCacheTests {
 		});
 
 		cache.clear();
+
+		maybeWaitForNonBlockingClean();
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -712,10 +757,20 @@ public class RedisCacheTests {
 		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}
 
-	void doWithConnection(Consumer<RedisConnection> callback) {
+	void doWithConnection(ThrowingConsumer<RedisConnection> callback) {
 		try (RedisConnection connection = connectionFactory.getConnection()) {
 			callback.accept(connection);
 		}
+	}
+
+	private void maybeWaitForNonBlockingClean() {
+		doWithConnection(redisConnection -> {
+			// Cache interface specifies non-blocking behavior, so we've need to wait for Lettuce async to avoid races between
+			// the process and our assertion here.
+			if (redisConnection instanceof LettuceConnection) {
+				Thread.sleep(250);
+			}
+		});
 	}
 
 	static class Person implements Serializable {

@@ -27,9 +27,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.data.redis.connection.ReactiveKeyCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
@@ -37,6 +40,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
@@ -311,8 +315,20 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		execute(name, connection -> connection.keyCommands().del(key));
+		if (supportsAsyncRetrieve()) {
+			asyncCacheWriter.remove(name, key).thenRun(() -> statistics.incDeletes(name));
+		} else {
+			removeIfPresent(name, key);
+		}
+	}
+
+	@Override
+	public boolean removeIfPresent(String name, byte[] key) {
+
+		Long removals = execute(name, connection -> connection.keyCommands().del(key));
 		statistics.incDeletes(name);
+
+		return removals > 0;
 	}
 
 	@Override
@@ -321,7 +337,22 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		execute(name, connection -> {
+		if (supportsAsyncRetrieve()) {
+			asyncCacheWriter.clean(name, pattern, batchStrategy)
+					.thenAccept(deleteCount -> statistics.incDeletesBy(name, deleteCount.intValue()));
+			return;
+		}
+
+		invalidate(name, pattern);
+	}
+
+	@Override
+	public boolean invalidate(String name, byte[] pattern) {
+
+		Assert.notNull(name, "Name must not be null");
+		Assert.notNull(pattern, "Pattern must not be null");
+
+		return execute(name, connection -> {
 
 			try {
 				if (isLockingCacheWriter()) {
@@ -337,13 +368,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 				statistics.incDeletesBy(name, (int) deleteCount);
 
+				return deleteCount > 0;
 			} finally {
 				if (isLockingCacheWriter()) {
 					doUnlock(name, connection);
 				}
 			}
-
-			return "OK";
 		});
 	}
 
@@ -499,6 +529,25 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		 */
 		CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl);
 
+		/**
+		 * Remove a cache entry asynchronously.
+		 *
+		 * @param name the cache name which to store the cache entry to.
+		 * @param key the key for the cache entry. Must not be {@literal null}.
+		 * @return a future that signals completion.
+		 */
+		CompletableFuture<Void> remove(String name, byte[] key);
+
+		/**
+		 * Clear the cache asynchronously.
+		 *
+		 * @param name the cache name which to store the cache entry to.
+		 * @param pattern {@link String pattern} used to match Redis keys to clear.
+		 * @param batchStrategy strategy to use.
+		 * @return a future that signals completion emitting the number of removed keys.
+		 */
+		CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy);
+
 	}
 
 	/**
@@ -524,6 +573,17 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		public CompletableFuture<Void> store(String name, byte[] key, byte[] value, @Nullable Duration ttl) {
 			throw new UnsupportedOperationException("async store not supported");
 		}
+
+		@Override
+		public CompletableFuture<Void> remove(String name, byte[] key) {
+			throw new UnsupportedOperationException("async remove not supported");
+		}
+
+		@Override
+		public CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy) {
+			throw new UnsupportedOperationException("async clean not supported");
+		}
+
 	}
 
 	/**
@@ -533,6 +593,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @since 3.2
 	 */
 	class AsynchronousCacheWriterDelegate implements AsyncCacheWriter {
+
+		private static final int DEFAULT_SCAN_BATCH_SIZE = 64;
+		private final int cleanBatchSize;
+
+		public AsynchronousCacheWriterDelegate() {
+			this.cleanBatchSize = batchStrategy instanceof BatchStrategies.Scan scan ? scan.batchSize
+					: DEFAULT_SCAN_BATCH_SIZE;
+		}
 
 		@Override
 		public boolean isSupported() {
@@ -561,18 +629,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 			return doWithConnection(connection -> {
 
-				Mono<?> mono = isLockingCacheWriter() ? doStoreWithLocking(name, key, value, ttl, connection)
-						: doStore(key, value, ttl, connection);
+				Mono<?> mono = doWithLocking(name, key, value, connection, () -> doStore(key, value, ttl, connection));
 
 				return mono.then().toFuture();
 			});
-		}
-
-		private Mono<Boolean> doStoreWithLocking(String name, byte[] key, byte[] value, @Nullable Duration ttl,
-				ReactiveRedisConnection connection) {
-
-			return Mono.usingWhen(doLock(name, key, value, connection), unused -> doStore(key, value, ttl, connection),
-					unused -> doUnlock(name, connection));
 		}
 
 		@SuppressWarnings("NullAway")
@@ -588,6 +648,65 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			} else {
 				return connection.stringCommands().set(wrappedKey, wrappedValue);
 			}
+		}
+
+		@Override
+		public CompletableFuture<Void> remove(String name, byte[] key) {
+
+			return doWithConnection(connection -> {
+
+				Mono<?> mono = doWithLocking(name, key, null, connection, () -> doRemove(key, connection));
+
+				return mono.then().toFuture();
+			});
+		}
+
+		@Override
+		public CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy) {
+
+			return doWithConnection(connection -> {
+
+				Mono<Long> mono = doWithLocking(name, pattern, null, connection, () -> doClean(pattern, connection));
+
+				return mono.toFuture();
+			});
+		}
+
+		private Mono<Long> doClean(byte[] pattern, ReactiveRedisConnection connection) {
+
+			ReactiveKeyCommands commands = connection.keyCommands();
+
+			Flux<ByteBuffer> keys;
+
+			if (batchStrategy instanceof BatchStrategies.Keys) {
+				keys = commands.keys(ByteBuffer.wrap(pattern)).flatMapMany(Flux::fromIterable);
+			} else {
+				keys = commands.scan(ScanOptions.scanOptions().count(cleanBatchSize).match(pattern).build());
+			}
+
+			return keys
+					.buffer(cleanBatchSize) //
+					.flatMap(commands::mUnlink) //
+					.collect(Collectors.summingLong(Long::longValue));
+		}
+
+		@SuppressWarnings("NullAway")
+		private Mono<Long> doRemove(byte[] cacheKey, ReactiveRedisConnection connection) {
+
+			ByteBuffer wrappedKey = ByteBuffer.wrap(cacheKey);
+
+			return connection.keyCommands().unlink(wrappedKey);
+		}
+
+		private <T> Mono<T> doWithLocking(String name, byte[] key, byte @Nullable [] value,
+				ReactiveRedisConnection connection, Supplier<Mono<T>> action) {
+
+			if (isLockingCacheWriter()) {
+				return Mono.usingWhen(doLock(name, key, value, connection), unused -> action.get(),
+						unused -> doUnlock(name, connection));
+			}
+
+			return action.get();
 		}
 
 		private Mono<Object> doLock(String name, Object contextualKey, @Nullable Object contextualValue,
@@ -631,5 +750,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					ReactiveRedisConnection::closeLater) //
 					.toFuture();
 		}
+
 	}
+
 }
