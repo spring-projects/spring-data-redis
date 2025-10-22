@@ -100,7 +100,7 @@ public abstract class BatchStrategies {
 	 */
 	static class Scan implements BatchStrategy {
 
-		private final int batchSize;
+		final int batchSize;
 
 		Scan(int batchSize) {
 			this.batchSize = batchSize;

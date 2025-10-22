@@ -25,10 +25,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedClass;
@@ -57,7 +59,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class LegacyRedisCacheTests {
 
 	private static final String CACHE_NAME = "testCache";
-
 	private final boolean allowCacheNullValues;
 
 	private ObjectFactory<Object> keyFactory;
@@ -81,7 +82,7 @@ public class LegacyRedisCacheTests {
 
 		Collection<Object[]> params = AbstractOperationsTestParams.testParams();
 
-		Collection<Object[]> target = new ArrayList<>();
+		List<Object[]> target = new ArrayList<>();
 		for (Object[] source : params) {
 
 			Object[] cacheNullDisabled = Arrays.copyOf(source, source.length + 1);
@@ -106,7 +107,8 @@ public class LegacyRedisCacheTests {
 			cacheConfiguration = cacheConfiguration.disableCachingNullValues();
 		}
 
-		return new RedisCache(CACHE_NAME, RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+		return new RedisCache(CACHE_NAME,
+				RedisCacheWriter.create(connectionFactory, RedisCacheWriter.RedisCacheWriterConfigurer::immediateWrites),
 				cacheConfiguration);
 	}
 
@@ -147,6 +149,7 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key2)).isNull();
 		cache.put(key2, value2);
 		cache.clear();
+
 		assertThat(cache.get(key2)).isNull();
 		assertThat(cache.get(key1)).isNull();
 	}
@@ -333,7 +336,7 @@ public class LegacyRedisCacheTests {
 	@Test // DATAREDIS-553
 	void testCacheGetSynchronizedNullAllowingNull() {
 
-		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
+		Assumptions.assumeTrue(allowCacheNullValues, "Only suitable when cache does allow null values.");
 
 		Object key = getKey();
 		Object value = cache.get(key, () -> null);
