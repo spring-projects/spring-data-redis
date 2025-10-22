@@ -27,10 +27,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
@@ -298,7 +298,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			if (command.getExpiration().isUnixTimestamp()) {
 
-				if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+				if (command.getExpiration().isPrecise()) {
 					return cmd
 							.hpexpireat(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args, fields)
 							.map(value -> new NumericResponse<>(command, value));
@@ -307,7 +307,7 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 						.map(value -> new NumericResponse<>(command, value));
 			}
 
-			if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+			if (command.getExpiration().isPrecise()) {
 				return cmd.hpexpire(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args, fields)
 						.map(value -> new NumericResponse<>(command, value));
 			}

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.types;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -161,12 +162,50 @@ public class Expiration {
 	}
 
 	/**
+	 * Get the {@link Instant time} for this {@link Expiration}.
+	 *
+	 * @param precision time precision. Must be {@link TimeUnit#SECONDS for EX} or {@link TimeUnit#MILLISECONDS for PX}
+	 *          operations.
+	 * @return the {@link Instant time} for this {@link Expiration}.
+	 * @since 4.0
+	 */
+	public Instant getExpirationInstant(TimeUnit precision) {
+
+		assertPrecision(precision);
+		return precision == TimeUnit.MILLISECONDS ? Instant.ofEpochMilli(getExpirationTime())
+				: Instant.ofEpochSecond(getExpirationTimeInSeconds());
+	}
+
+	private void assertPrecision(TimeUnit precision) {
+
+		Assert.notNull(precision, "Precision must not be null");
+		Assert.isTrue(precision == TimeUnit.MILLISECONDS || precision == TimeUnit.SECONDS,
+				"Precision must be MILLISECONDS or SECONDS");
+	}
+
+	/**
 	 * Get the {@link Long expiration time} converted into {@link TimeUnit#MILLISECONDS}.
 	 *
 	 * @return the expiration time converted into {@link TimeUnit#MILLISECONDS}.
 	 */
 	public long getExpirationTimeInMilliseconds() {
 		return getConverted(TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Get the {@link Duration length of time} for this {@link Expiration}.
+	 *
+	 * @param precision time precision. Must be {@link TimeUnit#SECONDS for EX} or {@link TimeUnit#MILLISECONDS for PX}
+	 *          operations.
+	 * @return the {@link Duration length of time} for this {@link Expiration}.
+	 * @since 4.0
+	 */
+	public Duration getExpirationDuration(TimeUnit precision) {
+
+		assertPrecision(precision);
+
+		return precision == TimeUnit.MILLISECONDS ? Duration.ofMillis(getExpirationTime())
+				: Duration.ofSeconds(getExpirationTimeInSeconds());
 	}
 
 	/**
@@ -185,6 +224,15 @@ public class Expiration {
 	 */
 	public TimeUnit getTimeUnit() {
 		return this.timeUnit;
+	}
+
+	/**
+	 * @return {@literal true} if the expiration is precise using millisecond-precision; {@literal false} otherwise for
+	 *         seconds precision.
+	 * @since 4.0
+	 */
+	public boolean isPrecise() {
+		return getTimeUnit() == TimeUnit.MILLISECONDS;
 	}
 
 	/**

@@ -201,7 +201,7 @@ public interface RedisKeyCommands {
 		}
 
 		if (ObjectUtils.nullSafeEquals(ExpirationOptions.none(), options)) {
-			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+			if (expiration.isPrecise()) {
 				if (expiration.isUnixTimestamp()) {
 					return expireAt(key, expiration.getExpirationTimeInMilliseconds());
 				}
@@ -213,7 +213,7 @@ public interface RedisKeyCommands {
 			return expire(key, expiration.getExpirationTimeInSeconds());
 		}
 
-		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+		if (expiration.isPrecise()) {
 			if (expiration.isUnixTimestamp()) {
 				return expireAt(key, expiration.getExpirationTimeInMilliseconds(), options.getCondition());
 			}

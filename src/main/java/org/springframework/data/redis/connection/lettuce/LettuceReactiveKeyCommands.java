@@ -27,7 +27,6 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
 
@@ -238,7 +237,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 
 			if (command.getExpiration().isUnixTimestamp()) {
 
-				if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+				if (command.getExpiration().isPrecise()) {
 					return cmd.pexpireat(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args)
 							.map(value -> new BooleanResponse<>(command, value));
 				}
@@ -246,7 +245,7 @@ class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 						.map(value -> new BooleanResponse<>(command, value));
 			}
 
-			if (command.getExpiration().getTimeUnit().equals(TimeUnit.MILLISECONDS)) {
+			if (command.getExpiration().isPrecise()) {
 				return cmd.pexpire(command.getKey(), command.getExpiration().getExpirationTimeInMilliseconds(), args)
 						.map(value -> new BooleanResponse<>(command, value));
 			}

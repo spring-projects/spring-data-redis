@@ -281,7 +281,7 @@ public interface RedisHashCommands {
 		}
 
 		if (ObjectUtils.nullSafeEquals(ExpirationOptions.none(), options)) {
-			if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+			if (expiration.isPrecise()) {
 				if (expiration.isUnixTimestamp()) {
 					return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), fields);
 				}
@@ -293,7 +293,7 @@ public interface RedisHashCommands {
 			return hExpire(key, expiration.getExpirationTimeInSeconds(), fields);
 		}
 
-		if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+		if (expiration.isPrecise()) {
 			if (expiration.isUnixTimestamp()) {
 				return hpExpireAt(key, expiration.getExpirationTimeInMilliseconds(), options.getCondition(), fields);
 			}

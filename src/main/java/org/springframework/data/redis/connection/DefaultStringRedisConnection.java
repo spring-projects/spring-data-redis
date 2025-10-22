@@ -132,7 +132,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private class SerializingConverter implements Converter<String, byte[]> {
 
 		@Override
-		public byte @Nullable[] convert(String source) {
+		public byte @Nullable [] convert(String source) {
 			return serializer.serialize(source);
 		}
 	}
@@ -393,9 +393,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.get(key), Converters.identityConverter());
 	}
 
-
 	@Override
-	public byte @Nullable[] getDel(byte[] key) {
+	public byte @Nullable [] getDel(byte[] key) {
 		return convertAndReturn(delegate.getDel(key), Converters.identityConverter());
 	}
 
@@ -404,9 +403,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return convertAndReturn(delegate.getDel(serialize(key)), bytesToString);
 	}
 
-
 	@Override
-	public byte @Nullable[] getEx(byte[] key, Expiration expiration) {
+	public byte @Nullable [] getEx(byte[] key, Expiration expiration) {
 		return convertAndReturn(delegate.getEx(key, expiration), Converters.identityConverter());
 	}
 
@@ -1387,8 +1385,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@SuppressWarnings("unchecked")
 	private GeoReference<byte[]> serialize(GeoReference<String> data) {
 		return data instanceof GeoReference.GeoMemberReference
-				? GeoReference
-						.fromMember(serializer.serialize(((GeoMemberReference<String>) data).getMember()))
+				? GeoReference.fromMember(serializer.serialize(((GeoMemberReference<String>) data).getMember()))
 				: (GeoReference) data;
 	}
 
@@ -1538,9 +1535,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return hIncrBy(serialize(key), serialize(field), delta);
 	}
 
-
 	@Override
-	public byte @Nullable[] hRandField(byte[] key) {
+	public byte @Nullable [] hRandField(byte[] key) {
 		return convertAndReturn(delegate.hRandField(key), Converters.identityConverter());
 	}
 
@@ -1627,8 +1623,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition, Expiration expiration) {
-		return convertAndReturn(delegate.hSetEx(serialize(key), serialize(hashes), condition, expiration), Converters.identityConverter());
+	public Boolean hSetEx(@NonNull String key, @NonNull Map<@NonNull String, String> hashes, HashFieldSetOption condition,
+			Expiration expiration) {
+		return convertAndReturn(delegate.hSetEx(serialize(key), serialize(hashes), condition, expiration),
+				Converters.identityConverter());
 	}
 
 	@Override
@@ -2563,8 +2561,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	public @Nullable List<Long> applyHashFieldExpiration(byte[] key,
-			org.springframework.data.redis.core.types.Expiration expiration,
-			ExpirationOptions options, byte[]... fields) {
+			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options, byte[]... fields) {
 		return this.delegate.applyHashFieldExpiration(key, expiration, options, fields);
 	}
 
@@ -2609,25 +2606,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return this.delegate.hTtl(key, timeUnit, fields);
 	}
 
-    @Override
-		public List<byte[]> hGetDel(@NonNull byte[] key, @NonNull byte[]... fields) {
-        return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
-    }
+	@Override
+	public List<byte[]> hGetDel(@NonNull byte[] key, @NonNull byte[]... fields) {
+		return convertAndReturn(delegate.hGetDel(key, fields), Converters.identityConverter());
+	}
 
-    @Override
-		public List<byte[]> hGetEx(@NonNull byte[] key, @Nullable Expiration expiration, @NonNull byte[]... fields) {
+	@Override
+	public List<byte[]> hGetEx(@NonNull byte[] key, @Nullable Expiration expiration, @NonNull byte[]... fields) {
 		return convertAndReturn(delegate.hGetEx(key, expiration, fields), Converters.identityConverter());
 	}
 
-    @Override
-		public Boolean hSetEx(@NonNull byte[] key, @NonNull Map<byte[], byte[]> hashes, @NonNullHashFieldSetOption condition,
-				@Nullable Expiration expiration) {
+	@Override
+	public Boolean hSetEx(@NonNull byte[] key, @NonNull Map<byte[], byte[]> hashes, @NonNull HashFieldSetOption condition,
+			@Nullable Expiration expiration) {
 		return convertAndReturn(delegate.hSetEx(key, hashes, condition, expiration), Converters.identityConverter());
 	}
 
 	public @Nullable List<Long> applyExpiration(String key,
-			org.springframework.data.redis.core.types.Expiration expiration,
-			ExpirationOptions options, String... fields) {
+			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options, String... fields) {
 		return this.applyHashFieldExpiration(serialize(key), expiration, options, serializeMulti(fields));
 	}
 
@@ -2816,16 +2812,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
-								 org.springframework.data.domain.Range<byte[]> range,
-								 org.springframework.data.redis.connection.Limit limit) {
-		return convertAndReturn(delegate.zRangeStoreByLex(dstKey, srcKey, range, limit),
-				Converters.identityConverter());
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByLex(dstKey, srcKey, range, limit), Converters.identityConverter());
 	}
 
 	@Override
-	public Long zRangeStoreByLex(String dstKey, String srcKey,
-			org.springframework.data.domain.Range<String> range, org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeStoreByLex(serialize(dstKey), serialize(srcKey), serialize(range), limit),
 				Converters.identityConverter());
 	}
@@ -2846,9 +2840,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
 			org.springframework.data.domain.Range<? extends Number> range,
-								   org.springframework.data.redis.connection.Limit limit) {
-		return convertAndReturn(delegate.zRangeStoreByScore(dstKey, srcKey, range, limit),
-				Converters.identityConverter());
+			org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByScore(dstKey, srcKey, range, limit), Converters.identityConverter());
 	}
 
 	@Override

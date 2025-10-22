@@ -27,6 +27,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.LongFunction;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NonNull;
@@ -565,21 +567,12 @@ public abstract class LettuceConverters extends Converters {
 				args.keepttl();
 			} else if (!expiration.isPersistent()) {
 
-				switch (expiration.getTimeUnit()) {
-					case MILLISECONDS -> {
-						if (expiration.isUnixTimestamp()) {
-							args.pxAt(expiration.getConverted(TimeUnit.MILLISECONDS));
-						} else {
-							args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
-						}
-					}
-					default -> {
-						if (expiration.isUnixTimestamp()) {
-							args.exAt(expiration.getConverted(TimeUnit.SECONDS));
-						} else {
-							args.ex(expiration.getConverted(TimeUnit.SECONDS));
-						}
-					}
+				ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+				if (adapter.isPrecise()) {
+					adapter.apply(args::px, args::pxAt);
+				} else {
+					adapter.apply(args::ex, args::exAt);
 				}
 			}
 		}
@@ -612,15 +605,13 @@ public abstract class LettuceConverters extends Converters {
 			return args.persist();
 		}
 
-		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			if (expiration.isUnixTimestamp()) {
-				return args.pxAt(expiration.getExpirationTime());
-			}
-			return args.px(expiration.getExpirationTime());
+		ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+		if (adapter.isPrecise()) {
+			return adapter.apply(args::px, args::pxAt);
 		}
 
-		return expiration.isUnixTimestamp() ? args.exAt(expiration.getConverted(TimeUnit.SECONDS))
-				: args.ex(expiration.getConverted(TimeUnit.SECONDS));
+		return adapter.apply(args::ex, args::exAt);
 	}
 
 	/**
@@ -641,15 +632,13 @@ public abstract class LettuceConverters extends Converters {
 			return args.persist();
 		}
 
-		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return expiration.isUnixTimestamp() ?
-					args.pxAt(Instant.ofEpochMilli(expiration.getExpirationTime())) :
-					args.px(Duration.ofMillis(expiration.getExpirationTime()));
+		ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+		if (adapter.isPrecise()) {
+			return adapter.applyTemporal(args::px, args::pxAt);
 		}
 
-		return expiration.isUnixTimestamp() ?
-				args.exAt(Instant.ofEpochSecond(expiration.getExpirationTimeInSeconds())) :
-				args.ex(Duration.ofSeconds(expiration.getExpirationTimeInSeconds()));
+		return adapter.applyTemporal(args::ex, args::exAt);
 	}
 
 	/**
@@ -692,17 +681,13 @@ public abstract class LettuceConverters extends Converters {
 			return args.keepttl();
 		}
 
-		// PX | PXAT
-		if (expiration.getTimeUnit() == TimeUnit.MILLISECONDS) {
-			return expiration.isUnixTimestamp() ?
-				args.pxAt(Instant.ofEpochMilli(expiration.getExpirationTime())) :
-				args.px(Duration.ofMillis(expiration.getExpirationTime()));
+		ExpirationAdapter adapter = ExpirationAdapter.of(expiration);
+
+		if (adapter.isPrecise()) {
+			return adapter.applyTemporal(args::px, args::pxAt);
 		}
 
-		// EX | EXAT
-		return expiration.isUnixTimestamp() ?
-				args.exAt(Instant.ofEpochSecond(expiration.getExpirationTimeInSeconds())) :
-				args.ex(Duration.ofSeconds(expiration.getExpirationTimeInSeconds()));
+		return adapter.applyTemporal(args::ex, args::exAt);
 	}
 
 	@SuppressWarnings("NullAway")
@@ -1063,5 +1048,60 @@ public abstract class LettuceConverters extends Converters {
 						new Distance(source.getDistance() != null ? source.getDistance() : 0D, metric));
 			}
 		}
+	}
+
+	/**
+	 * Adapter to apply {@link Expiration}.
+	 */
+	record ExpirationAdapter(Expiration expiration) {
+
+		ExpirationAdapter {
+			Assert.isTrue(!expiration.isPersistent(), "Expiration does not define an expiry");
+		}
+
+		/**
+		 * Create a new ExpirationAdapter.
+		 *
+		 * @param expiration
+		 * @return
+		 */
+		public static ExpirationAdapter of(Expiration expiration) {
+			return new ExpirationAdapter(expiration);
+		}
+
+		public boolean isPrecise() {
+			return expiration.isPrecise();
+		}
+
+		/**
+		 * Apply expiration to
+		 *
+		 * @param expire expiration mapping function.
+		 * @param expireAt expiration-at mapping function.
+		 */
+		public <T> T applyTemporal(Function<Duration, T> expire, Function<Instant, T> expireAt) {
+
+			TimeUnit precision = expiration.isPrecise() ? TimeUnit.MILLISECONDS : TimeUnit.SECONDS;
+
+			if (expiration.isUnixTimestamp()) {
+				return expireAt.apply(expiration.getExpirationInstant(precision));
+			}
+
+			return expire.apply(expiration.getExpirationDuration(precision));
+		}
+
+		/**
+		 * Apply expiration to
+		 *
+		 * @param expire expiration mapping function.
+		 * @param expireAt expiration-at mapping function.
+		 */
+		public <T> T apply(LongFunction<T> expire, LongFunction<T> expireAt) {
+
+			long ttl = isPrecise() ? expiration.getExpirationTimeInMilliseconds() : expiration.getExpirationTimeInSeconds();
+
+			return expiration.isUnixTimestamp() ? expireAt.apply(ttl) : expire.apply(ttl);
+		}
+
 	}
 }
