@@ -493,9 +493,9 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		}
 
 		/**
-		 * Returns a {@link TtlFunction} to create persistent entires that do not expire.
+		 * Returns a {@link TtlFunction} to create persistent entries that do not expire.
 		 *
-		 * @return a {@link TtlFunction} to create persistent entires that do not expire.
+		 * @return a {@link TtlFunction} to create persistent entries that do not expire.
 		 */
 		static TtlFunction persistent() {
 			return just(NO_EXPIRATION);

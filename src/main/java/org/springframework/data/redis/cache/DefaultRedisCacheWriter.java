@@ -704,7 +704,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		private final int cleanBatchSize;
 
 		public AsynchronousCacheWriterDelegate() {
-			this.cleanBatchSize = batchStrategy instanceof BatchStrategies.Scan scan ? scan.batchSize
+			this.cleanBatchSize = batchStrategy instanceof BatchStrategies.Scan scan ? scan.batchSize()
 					: DEFAULT_SCAN_BATCH_SIZE;
 		}
 
