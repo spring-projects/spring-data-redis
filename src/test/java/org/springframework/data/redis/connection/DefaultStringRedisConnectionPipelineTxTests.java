@@ -439,6 +439,46 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	}
 
 	@Test
+	void hGetDelBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(Collections.singletonList(barBytes))))
+				.when(nativeConnection).closePipeline();
+		super.hGetDelBytes();
+	}
+
+	@Test
+	void hGetDel() {
+		doReturn(Collections.singletonList(Collections.singletonList(Collections.singletonList(barBytes))))
+				.when(nativeConnection).closePipeline();
+		super.hGetDel();
+	}
+
+	@Test
+	void hGetExBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(Collections.singletonList(barBytes))))
+				.when(nativeConnection).closePipeline();
+		super.hGetExBytes();
+	}
+
+	@Test
+	void hGetEx() {
+		doReturn(Collections.singletonList(Collections.singletonList(Collections.singletonList(barBytes))))
+				.when(nativeConnection).closePipeline();
+		super.hGetEx();
+	}
+
+	@Test
+	void hSetExBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
+		super.hSetExBytes();
+	}
+
+	@Test
+	void hSetEx() {
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
+		super.hSetEx();
+	}
+
+	@Test
 	public void testIncrBytes() {
 		doReturn(Collections.singletonList(Collections.singletonList(2L))).when(nativeConnection).closePipeline();
 		super.testIncrBytes();

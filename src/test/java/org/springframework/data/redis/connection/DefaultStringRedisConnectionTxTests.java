@@ -397,6 +397,42 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
+	void hGetDelBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.hGetDelBytes();
+	}
+
+	@Test
+	void hGetDel() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.hGetDel();
+	}
+
+	@Test
+	void hGetExBytes() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.hGetExBytes();
+	}
+
+	@Test
+	void hGetEx() {
+		doReturn(Collections.singletonList(Collections.singletonList(barBytes))).when(nativeConnection).exec();
+		super.hGetEx();
+	}
+
+	@Test
+	void hSetExBytes() {
+		doReturn(Collections.singletonList(true)).when(nativeConnection).exec();
+		super.hSetExBytes();
+	}
+
+	@Test
+	void hSetEx() {
+		doReturn(Collections.singletonList(true)).when(nativeConnection).exec();
+		super.hSetEx();
+	}
+
+	@Test
 	public void testIncrBytes() {
 		doReturn(Collections.singletonList(2L)).when(nativeConnection).exec();
 		super.testIncrBytes();
@@ -1776,6 +1812,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
 		super.xTrimApproximateShouldDelegateAndConvertCorrectly();
 	}
+
 
 	protected List<Object> getResults() {
 		return connection.exec();

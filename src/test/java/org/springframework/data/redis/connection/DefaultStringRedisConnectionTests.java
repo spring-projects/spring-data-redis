@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,7 +64,10 @@ import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
 import org.springframework.data.redis.connection.zset.Weights;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.ConcurrentLruCache;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection}
@@ -85,7 +89,7 @@ public class DefaultStringRedisConnectionTests {
 
 	protected DefaultStringRedisConnection connection;
 
-	protected StringRedisSerializer serializer = StringRedisSerializer.UTF_8;
+	protected RedisSerializer<String> serializer = new CachingSerializer(StringRedisSerializer.UTF_8);
 
 	protected String foo = "foo";
 
@@ -544,54 +548,56 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test // GH-3211
-	public void hGetDelBytes() {
+	void hGetDelBytes() {
 		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).hGetDel(fooBytes, barBytes);
-		List<byte[]> deleted = connection.hGetDel(fooBytes, barBytes);
-		assertThat(deleted).containsExactly(barBytes);
+		actual.add(connection.hGetDel(fooBytes, barBytes));
+		verifyResults(Collections.singletonList(Collections.singletonList(barBytes)));
 	}
 
 	@Test // GH-3211
-	public void hGetDel() {
+	void hGetDel() {
 		doReturn(Collections.singletonList(barBytes)).when(nativeConnection).hGetDel(fooBytes, barBytes);
-		List<String> deleted = connection.hGetDel(foo, bar);
-		assertThat(deleted).containsExactly(bar);
+		actual.add(connection.hGetDel(foo, bar));
+		verifyResults(Collections.singletonList(Collections.singletonList(bar)));
 	}
 
 	@Test // GH-3211
-	public void hGetExBytes() {
-		Expiration expiration = mock();
+	void hGetExBytes() {
+		Expiration expiration = Expiration.persistent();
 		doReturn(bytesList).when(nativeConnection).hGetEx(fooBytes, expiration, barBytes);
-		List<byte[]> values = connection.hGetEx(fooBytes, expiration, barBytes);
-		assertThat(values).containsExactly(barBytes);
+		actual.add(connection.hGetEx(fooBytes, expiration, barBytes));
+		verifyResults(Collections.singletonList(Collections.singletonList(barBytes)));
 	}
 
 	@Test // GH-3211
-	public void hGetEx() {
-		Expiration expiration = mock();
+	void hGetEx() {
+		Expiration expiration = Expiration.persistent();
 		doReturn(bytesList).when(nativeConnection).hGetEx(fooBytes, expiration, barBytes);
-		List<String> values = connection.hGetEx(foo, expiration, bar);
-		assertThat(values).containsExactly(bar);
+		actual.add(connection.hGetEx(foo, expiration, bar));
+		verifyResults(Collections.singletonList(Collections.singletonList(bar)));
 	}
 
 	@Test // GH-3211
-	public void hSetExBytes() {
-		Expiration expiration = mock();
-		RedisHashCommands.HashFieldSetOption setOption = mock();
+	void hSetExBytes() {
+		Expiration expiration = Expiration.persistent();
+		RedisHashCommands.HashFieldSetOption setOption = RedisHashCommands.HashFieldSetOption.upsert();
 		Map<byte[], byte[]> fieldMap = Map.of(barBytes, bar2Bytes);
 		doReturn(Boolean.TRUE).when(nativeConnection).hSetEx(fooBytes, fieldMap, setOption, expiration);
-		assertThat(connection.hSetEx(fooBytes, fieldMap, setOption, expiration)).isTrue();
+		actual.add(connection.hSetEx(fooBytes, fieldMap, setOption, expiration));
+		verifyResults(Collections.singletonList(true));
 	}
 
 	@Test // GH-3211
-	public void hSetEx() {
-		Expiration expiration = mock();
-		RedisHashCommands.HashFieldSetOption setOption = mock();
+	void hSetEx() {
+		Expiration expiration = Expiration.persistent();
+		RedisHashCommands.HashFieldSetOption setOption = RedisHashCommands.HashFieldSetOption.upsert();
 		Map<String, String> stringMap = Map.of(bar, bar2);
 		doReturn(Boolean.TRUE).when(nativeConnection).hSetEx(
 				eq(fooBytes),
 				argThat(fieldMap -> isFieldMap(fieldMap, stringMap)),
 				eq(setOption), eq(expiration));
-		assertThat(connection.hSetEx(foo, stringMap, setOption, expiration)).isTrue();
+		actual.add(connection.hSetEx(foo, stringMap, setOption, expiration));
+		verifyResults(Collections.singletonList(true));
 	}
 
 	private boolean isFieldMap(Map<byte[], byte[]> fieldMap, Map<String, String> stringMap) {
@@ -2295,5 +2301,37 @@ public class DefaultStringRedisConnectionTests {
 
 	protected void verifyResults(List<?> expected) {
 		assertThat(getResults()).isEqualTo(expected);
+	}
+
+	private class CachingSerializer implements RedisSerializer<String> {
+
+		private final ConcurrentLruCache<String, byte[]> cache;
+
+		private final RedisSerializer<String> delegate;
+
+		public CachingSerializer(RedisSerializer<String> serializer) {
+			cache = new ConcurrentLruCache<>(256, serializer::serialize);
+			delegate = serializer;
+		}
+
+		@Override
+		public byte[] serialize(@Nullable String value) throws SerializationException {
+			return cache.get(value);
+		}
+
+		@Override
+		public @Nullable String deserialize(byte @Nullable [] bytes) throws SerializationException {
+			return delegate.deserialize(bytes);
+		}
+
+		@Override
+		public boolean canSerialize(Class<?> type) {
+			return delegate.canSerialize(type);
+		}
+
+		@Override
+		public Class<?> getTargetType() {
+			return delegate.getTargetType();
+		}
 	}
 }
