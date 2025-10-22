@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,6 +103,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Andrey Muchnik
  * @author John Blum
+ * @author Kim Sumin
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -125,6 +127,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
 	private @Nullable String keyspaceNotificationsConfigParameter = null;
 	private ShadowCopy shadowCopy = ShadowCopy.DEFAULT;
+	private DeletionStrategy deletionStrategy = DeletionStrategy.DEL;
 
 	/**
 	 * Lifecycle state of this factory.
@@ -136,6 +139,43 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	@SuppressWarnings("NullAway")
 	protected RedisKeyValueAdapter() {
 		// I'm here for the sole sake of CDI
+	}
+
+	/**
+	 * Strategy for deleting Redis keys in Repository operations.
+	 * <p>
+	 * Allows configuration of whether to use synchronous {@literal DEL} or asynchronous {@literal UNLINK} commands for
+	 * key deletion operations.
+	 *
+	 * @author [Your Name]
+	 * @since 3.6
+	 * @see <a href="https://redis.io/commands/del">Redis DEL</a>
+	 * @see <a href="https://redis.io/commands/unlink">Redis UNLINK</a>
+	 */
+	public enum DeletionStrategy {
+
+		/**
+		 * Use Redis {@literal DEL} command for key deletion.
+		 * <p>
+		 * 기key from memory. The command blocks until the key is completely removed, which can cause performance issues when
+		 * deleting large data structures under high load.
+		 * <p>
+		 * This is the default strategy for backward compatibility.
+		 */
+		DEL,
+
+		/**
+		 * Use Redis {@literal UNLINK} command for key deletion.
+		 * <p>
+		 * This is a non-blocking operation that asynchronously removes the key. The key is immediately removed from the
+		 * keyspace, but the actual memory reclamation happens in the background, providing better performance for
+		 * applications with frequent updates on existing keys.
+		 * <p>
+		 * Requires Redis 4.0 or later.
+		 *
+		 * @since Redis 4.0
+		 */
+		UNLINK
 	}
 
 	/**
@@ -228,7 +268,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			byte[] key = toBytes(rdo.getId());
 			byte[] objectKey = createKey(rdo.getKeyspace(), rdo.getId());
 
-			boolean isNew = connection.del(objectKey) == 0;
+			boolean isNew = applyDeletionStrategy(connection, objectKey) == 0;
 
 			connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
@@ -245,11 +285,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				byte[] phantomKey = ByteUtils.concat(objectKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 
 				if (expires(rdo)) {
-					connection.del(phantomKey);
+					applyDeletionStrategy(connection, phantomKey);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive() + PHANTOM_KEY_TTL);
 				} else if (!isNew) {
-					connection.del(phantomKey);
+					applyDeletionStrategy(connection, phantomKey);
 				}
 			}
 
@@ -324,7 +364,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			redisOps.execute((RedisCallback<@Nullable Void>) connection -> {
 
-				connection.del(keyToDelete);
+				applyDeletionStrategy(connection, keyToDelete);
 				connection.sRem(binKeyspace, binId);
 				new IndexWriter(connection, converter).removeKeyFromIndexes(keyspace, binId);
 
@@ -336,7 +376,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 						byte[] phantomKey = ByteUtils.concat(keyToDelete, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX);
 
-						connection.del(phantomKey);
+						applyDeletionStrategy(connection, phantomKey);
 					}
 				}
 				return null;
@@ -488,7 +528,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					connection.persist(redisKey);
 
 					if (keepShadowCopy()) {
-						connection.del(ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
+						applyDeletionStrategy(connection, ByteUtils.concat(redisKey, BinaryKeyspaceIdentifier.PHANTOM_SUFFIX));
 					}
 				}
 			}
@@ -496,6 +536,18 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			new IndexWriter(connection, converter).updateIndexes(toBytes(id), rdo.getIndexedData());
 			return null;
 		});
+	}
+
+	/**
+	 * Apply the configured deletion strategy to delete the given key.
+	 *
+	 * @param connection the Redis connection
+	 * @param key the key to delete
+	 * @return the number of keys that were removed
+	 */
+	private Long applyDeletionStrategy(RedisConnection connection, byte[] key) {
+		return Objects
+				.requireNonNull(deletionStrategy == DeletionStrategy.UNLINK ? connection.unlink(key) : connection.del(key));
 	}
 
 	private RedisUpdateObject fetchDeletePathsFromHashAndUpdateIndex(RedisUpdateObject redisUpdateObject, String path,
@@ -709,6 +761,30 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
+	 * Configure the deletion strategy for Redis keys.
+	 * <p>
+	 * {@link DeletionStrategy#DEL DEL} performs synchronous key deletion, while {@link DeletionStrategy#UNLINK UNLINK}
+	 * performs asynchronous deletion which can improve performance under high load scenarios.
+	 *
+	 * @param deletionStrategy the strategy to use for key deletion operations
+	 * @since 3.6
+	 */
+	public void setDeletionStrategy(DeletionStrategy deletionStrategy) {
+		Assert.notNull(deletionStrategy, "DeletionStrategy must not be null");
+		this.deletionStrategy = deletionStrategy;
+	}
+
+	/**
+	 * Get the current deletion strategy.
+	 *
+	 * @return the current deletion strategy
+	 * @since 3.6
+	 */
+	public DeletionStrategy getDeletionStrategy() {
+		return this.deletionStrategy;
+	}
+
+	/**
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 * @since 1.8
 	 */
@@ -799,7 +875,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		if (this.expirationListener.get() == null) {
 			MappingExpirationListener listener = new MappingExpirationListener(messageListenerContainer, this.redisOps,
-					this.converter, this.shadowCopy);
+					this.converter, this.shadowCopy, this.deletionStrategy);
 
 			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
 
@@ -827,17 +903,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		private final RedisOperations<?, ?> ops;
 		private final RedisConverter converter;
 		private final ShadowCopy shadowCopy;
+		private final DeletionStrategy deletionStrategy;
 
 		/**
 		 * Creates new {@link MappingExpirationListener}.
 		 */
 		MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
-				RedisConverter converter, ShadowCopy shadowCopy) {
+				RedisConverter converter, ShadowCopy shadowCopy, DeletionStrategy deletionStrategy) {
 
 			super(listenerContainer);
 			this.ops = ops;
 			this.converter = converter;
 			this.shadowCopy = shadowCopy;
+			this.deletionStrategy = deletionStrategy;
 		}
 
 		@Override
@@ -891,7 +969,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				Map<byte[], byte[]> phantomValue = connection.hGetAll(phantomKey);
 
 				if (!CollectionUtils.isEmpty(phantomValue)) {
-					connection.del(phantomKey);
+					if (deletionStrategy == DeletionStrategy.UNLINK) {
+						connection.unlink(phantomKey);
+					} else {
+						connection.del(phantomKey);
+					}
 				}
 
 				return phantomValue;
