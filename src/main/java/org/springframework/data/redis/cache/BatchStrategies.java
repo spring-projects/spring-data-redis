@@ -98,13 +98,7 @@ public abstract class BatchStrategies {
 	/**
 	 * {@link BatchStrategy} using {@code SCAN}.
 	 */
-	static class Scan implements BatchStrategy {
-
-		final int batchSize;
-
-		Scan(int batchSize) {
-			this.batchSize = batchSize;
-		}
+	record Scan(int batchSize) implements BatchStrategy {
 
 		@Override
 		public long cleanCache(RedisConnection connection, String name, byte[] pattern) {
@@ -138,16 +132,7 @@ public abstract class BatchStrategies {
 	 *
 	 * @param <T>
 	 */
-	static class PartitionIterator<T> implements Iterator<List<T>> {
-
-		private final Iterator<T> iterator;
-		private final int size;
-
-		PartitionIterator(Iterator<T> iterator, int size) {
-
-			this.iterator = iterator;
-			this.size = size;
-		}
+	record PartitionIterator<T>(Iterator<T> iterator, int size) implements Iterator<List<T>> {
 
 		@Override
 		public boolean hasNext() {
