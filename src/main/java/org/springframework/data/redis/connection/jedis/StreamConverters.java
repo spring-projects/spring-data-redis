@@ -44,6 +44,8 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessage;
@@ -303,7 +305,7 @@ class StreamConverters {
 		return switch (deletionPolicy) {
 			case KEEP_REFERENCES -> StreamDeletionPolicy.KEEP_REFERENCES;
 			case DELETE_REFERENCES -> StreamDeletionPolicy.DELETE_REFERENCES;
-			case DELETE_ACKNOWLEDGED_REFERENCES -> StreamDeletionPolicy.ACKNOWLEDGED;
+			case ACKNOWLEDGED -> StreamDeletionPolicy.ACKNOWLEDGED;
 		};
 	}
 
@@ -378,6 +380,41 @@ class StreamConverters {
 		}
 
 		return xPendingParams;
+	}
+
+	public static StreamDeletionPolicy toStreamDeletionPolicy(XDelOptions options) {
+		return toStreamDeletionPolicy(options.getDeletionPolicy());
+	}
+
+	/**
+	 * Convert Jedis {@link redis.clients.jedis.resps.StreamEntryDeletionResult} to Spring Data Redis
+	 * {@link RedisStreamCommands.StreamEntryDeletionResult}.
+	 *
+	 * @param result the Jedis deletion result enum
+	 * @return the corresponding Spring Data Redis enum
+	 * @since 4.0
+	 */
+	public static RedisStreamCommands.StreamEntryDeletionResult toStreamEntryDeletionResult(
+			redis.clients.jedis.resps.StreamEntryDeletionResult result) {
+		return switch (result) {
+			case NOT_FOUND -> RedisStreamCommands.StreamEntryDeletionResult.NOT_FOUND;
+			case DELETED -> RedisStreamCommands.StreamEntryDeletionResult.DELETED;
+			case NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED ->
+					RedisStreamCommands.StreamEntryDeletionResult.NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
+		};
+	}
+
+	/**
+	 * Convert a list of Jedis {@link redis.clients.jedis.resps.StreamEntryDeletionResult} to a {@link List} of Spring Data Redis
+	 * {@link RedisStreamCommands.StreamEntryDeletionResult}.
+	 *
+	 * @param results the list of Jedis deletion result enums
+	 * @return the list of Spring Data Redis deletion result enums
+	 * @since 4.0
+	 */
+	public static List<StreamEntryDeletionResult> toStreamEntryDeletionResults(
+			List<redis.clients.jedis.resps.StreamEntryDeletionResult> results) {
+		return results.stream().map(StreamConverters::toStreamEntryDeletionResult).collect(Collectors.toList());
 	}
 
 }

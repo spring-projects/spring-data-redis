@@ -553,6 +553,20 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
+	default List<StreamEntryDeletionResult> xDelEx(byte[] key, XDelOptions options, RecordId... recordIds) {
+		return streamCommands().xDelEx(key, options, recordIds);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
+	default List<StreamEntryDeletionResult> xAckDel(byte[] key, String group, XDelOptions options, RecordId... recordIds) {
+		return streamCommands().xAckDel(key, group, options, recordIds);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
+	@Override
+	@Deprecated
 	default String xGroupCreate(byte[] key, String groupName, ReadOffset readOffset) {
 		return streamCommands().xGroupCreate(key, groupName, readOffset);
 	}
@@ -686,12 +700,14 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 		return xTrim(key, count, false);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
 	default Long xTrim(byte[] key, long count, boolean approximateTrimming) {
 		return streamCommands().xTrim(key, count, approximateTrimming);
 	}
 
+	/** @deprecated in favor of {@link RedisConnection#streamCommands()}}. */
 	@Override
 	@Deprecated
 	default Long xTrim(byte[] key, XTrimOptions options) {
