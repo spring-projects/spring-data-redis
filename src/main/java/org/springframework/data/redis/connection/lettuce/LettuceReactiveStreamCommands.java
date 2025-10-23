@@ -36,7 +36,10 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
+import org.springframework.data.redis.connection.ReactiveStreamCommands.AcknowledgeDeleteCommand;
+import org.springframework.data.redis.connection.ReactiveStreamCommands.DeleteExCommand;
 import org.springframework.data.redis.connection.ReactiveStreamCommands.GroupCommand.GroupCommandAction;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessages;
@@ -146,6 +149,43 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 			return cmd.xdel(command.getKey(), entryIdsToString(command.getRecordIds()))
 					.map(value -> new NumericResponse<>(command, value));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<DeleteExCommand, List<StreamEntryDeletionResult>>> xDelEx(Publisher<DeleteExCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getRecordIds(), "recordIds must not be null");
+
+			return cmd.xdelex(command.getKey(),
+					StreamConverters.toXDelArgs(command.getOptions()),
+					entryIdsToString(command.getRecordIds()))
+					.map(StreamConverters::toStreamEntryDeletionResult)
+					.collectList()
+					.map(results -> new CommandResponse<>(command, results));
+		}));
+	}
+
+	@Override
+	public Flux<CommandResponse<AcknowledgeDeleteCommand, List<StreamEntryDeletionResult>>> xAckDel(
+			Publisher<AcknowledgeDeleteCommand> commands) {
+
+		return connection.execute(cmd -> Flux.from(commands).concatMap(command -> {
+
+			Assert.notNull(command.getKey(), "Key must not be null");
+			Assert.notNull(command.getGroup(), "Group must not be null");
+			Assert.notNull(command.getRecordIds(), "recordIds must not be null");
+
+			return cmd.xackdel(command.getKey(),
+					ByteUtils.getByteBuffer(command.getGroup()),
+					StreamConverters.toXDelArgs(command.getOptions()),
+					entryIdsToString(command.getRecordIds()))
+					.map(StreamConverters::toStreamEntryDeletionResult)
+					.collectList()
+					.map(results -> new CommandResponse<>(command, results));
 		}));
 	}
 

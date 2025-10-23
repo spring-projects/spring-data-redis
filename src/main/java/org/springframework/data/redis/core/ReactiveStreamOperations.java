@@ -15,11 +15,13 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
@@ -28,8 +30,10 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.Record;
@@ -256,6 +260,92 @@ public interface ReactiveStreamOperations<K, HK, HV> extends HashMapperProvider<
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	Mono<Long> delete(@NonNull K key, @NonNull RecordId @NonNull... recordIds);
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key with extended options.
+	 *
+	 * @param key the stream key.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options, @NonNull String @NonNull... recordIds) {
+		return deleteWithOptions(key, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+	}
+
+	/**
+	 * Deletes a given {@link Record} from the stream with extended options.
+	 *
+	 * @param record must not be {@literal null}.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
+	 */
+	default Flux<StreamEntryDeletionResult> deleteWithOptions(@NonNull Record<K, ?> record, @NonNull XDelOptions options) {
+		Assert.notNull(record.getStream(), "Record.getStream() must not be null");
+		return deleteWithOptions(record.getStream(), options, record.getId());
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key with extended options.
+	 *
+	 * @param key the stream key.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	Flux<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options,
+			@NonNull RecordId @NonNull... recordIds);
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group at the specified key.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
+			@NonNull XDelOptions options, @NonNull String @NonNull... recordIds) {
+		return acknowledgeAndDelete(key, group, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+	}
+
+	/**
+	 * Acknowledges and conditionally deletes a given {@link Record} for a stream consumer group.
+	 *
+	 * @param group name of the consumer group.
+	 * @param record must not be {@literal null}.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	default Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull Record<K, ?> record,
+			@NonNull XDelOptions options) {
+		Assert.notNull(record.getStream(), "Record.getStream() must not be null");
+		return acknowledgeAndDelete(record.getStream(), group, options, record.getId());
+	}
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group at the specified key.
+	 *
+	 * @param key the stream key.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return {@link Flux} emitting a list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
+																			 @NonNull XDelOptions options,
+																			 @NonNull RecordId @NonNull... recordIds);
 
 	/**
 	 * Create a consumer group at the {@link ReadOffset#latest() latest offset}. This command creates the stream if it

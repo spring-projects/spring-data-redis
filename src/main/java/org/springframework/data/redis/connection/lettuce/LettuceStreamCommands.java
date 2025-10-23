@@ -127,6 +127,32 @@ class LettuceStreamCommands implements RedisStreamCommands {
 	}
 
 	@Override
+	public List<StreamEntryDeletionResult> xDelEx(byte @NonNull [] key, @NonNull XDelOptions options,
+			@NonNull RecordId @NonNull... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "Options must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
+
+		return connection.invoke().from(RedisStreamAsyncCommands::xdelex, key, StreamConverters.toXDelArgs(options),
+				entryIdsToString(recordIds)).get(StreamConverters::toStreamEntryDeletionResults);
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> xAckDel(byte @NonNull [] key, @NonNull String group,
+			@NonNull XDelOptions options, @NonNull RecordId @NonNull... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(group, "Group must not be null");
+		Assert.notNull(options, "Options must not be null");
+		Assert.notNull(recordIds, "recordIds must not be null");
+
+		return connection.invoke().from(RedisStreamAsyncCommands::xackdel, key, LettuceConverters.toBytes(group),
+				StreamConverters.toXDelArgs(options), entryIdsToString(recordIds))
+				.get(StreamConverters::toStreamEntryDeletionResults);
+	}
+
+	@Override
 	public String xGroupCreate(byte @NonNull [] key, @NonNull String groupName, @NonNull ReadOffset readOffset) {
 		return xGroupCreate(key, groupName, readOffset, false);
 	}
