@@ -30,9 +30,12 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -176,6 +179,25 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 
 		byte[] rawKey = rawKey(key);
 		return execute(connection -> connection.xDel(rawKey, recordIds));
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options,
+			@NonNull String @NonNull... recordIds) {
+
+		byte[] rawKey = rawKey(key);
+		RecordId[] recordIdArray = Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new);
+		return execute(connection -> connection.streamCommands().xDelEx(rawKey, options, recordIdArray));
+	}
+
+	@Override
+	public List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
+																					@NonNull XDelOptions options,
+																					@NonNull String @NonNull... recordIds) {
+
+		byte[] rawKey = rawKey(key);
+		RecordId[] recordIdArray = Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new);
+		return execute(connection -> connection.streamCommands().xAckDel(rawKey, group, options, recordIdArray));
 	}
 
 	@Override

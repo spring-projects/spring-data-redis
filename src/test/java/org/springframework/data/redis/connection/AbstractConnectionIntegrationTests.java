@@ -63,6 +63,7 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
@@ -4141,7 +4142,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(5)
 				.approximateTrimming(true)
-				.withDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES);
+				.withDeletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES);
 
 		// Add multiple entries with deletion policy
 		actual.add(
@@ -4288,7 +4289,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		// Trim with deletion policy
 		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5).approximateTrimming(true)
-				.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.DELETE_REFERENCES)));
+				.deletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES)));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
