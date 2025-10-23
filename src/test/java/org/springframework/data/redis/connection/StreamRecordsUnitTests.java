@@ -21,8 +21,12 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -39,6 +43,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  *
  * @author Christoph Strobl
  * @author Romain Beghi
+ * @author Seo Bo Gyeong
  */
 class StreamRecordsUnitTests {
 
@@ -99,9 +104,7 @@ class StreamRecordsUnitTests {
 		ByteRecord target = source.serialize(RedisSerializer.string());
 
 		assertThat(target.getId()).isEqualTo(RECORD_ID);
-		assertThat(target.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
-		assertThat(target.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
-		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
+		assertByteRecord(target);
 	}
 
 	@Test // DATAREDIS-993
@@ -137,14 +140,6 @@ class StreamRecordsUnitTests {
 		final Map<K, V> to;
 		final T from;
 
-		public StubValueReturningHashMapper(Map<K, V> to) {
-			this(to, (T) new Object());
-		}
-
-		public StubValueReturningHashMapper(T from) {
-			this(Collections.emptyMap(), from);
-		}
-
 		StubValueReturningHashMapper(Map<K, V> to, T from) {
 			this.to = to;
 			this.from = from;
@@ -165,35 +160,7 @@ class StreamRecordsUnitTests {
 		}
 	}
 
-	@Test // Stream key auto conversion for ofBytes method
-	void ofBytesWithStringStreamKey() {
-
-		ByteRecord record = StreamRecords.newRecord()
-				.in(STRING_STREAM_KEY)
-				.withId(RECORD_ID)
-				.ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL));
-
-		assertThat(record.getId()).isEqualTo(RECORD_ID);
-		assertThat(record.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
-		assertThat(record.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
-		assertThat(record.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
-	}
-
-	@Test // Stream key auto conversion for ofBytes method with byte array
-	void ofBytesWithByteArrayStreamKey() {
-
-		ByteRecord record = StreamRecords.newRecord()
-				.in(SERIALIZED_STRING_STREAM_KEY)
-				.withId(RECORD_ID)
-				.ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL));
-
-		assertThat(record.getId()).isEqualTo(RECORD_ID);
-		assertThat(record.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
-		assertThat(record.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
-		assertThat(record.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
-	}
-
-	@Test // Stream key auto conversion for ofBytes method with null stream key
+	@Test // GH-3204
 	void ofBytesWithNullStreamKey() {
 
 		ByteRecord record = StreamRecords.newRecord()
@@ -202,35 +169,42 @@ class StreamRecordsUnitTests {
 
 		assertThat(record.getId()).isEqualTo(RECORD_ID);
 		assertThat(record.getStream()).isNull();
-		assertThat(record.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
-		assertThat(record.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
 	}
 
-	@Test // Stream key auto conversion for ofBytes method with ByteBuffer stream key
-	void ofBytesWithByteBufferStreamKey() {
+	@Test // GH-3204
+	void ofBytesWithUnsupportedStreamKeyType() {
 
-		ByteBuffer streamKeyBuffer = ByteBuffer.wrap(SERIALIZED_STRING_STREAM_KEY);
+		assertThatIllegalArgumentException().isThrownBy(() -> StreamRecords.newRecord().in(123L) // Unsupported type
+				.withId(RECORD_ID).ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL)))
+				.withMessageContaining("Stream key '123' cannot be converted to byte array");
+	}
 
-		ByteRecord record = StreamRecords.newRecord()
-				.in(streamKeyBuffer)
-				.withId(RECORD_ID)
+	@ParameterizedTest // GH-3204
+	@MethodSource("ofBytesInStreamArgs")
+	void ofBytes(Object streamKey) {
+
+		ByteRecord record = StreamRecords.newRecord().in(streamKey).withId(RECORD_ID)
 				.ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL));
 
 		assertThat(record.getId()).isEqualTo(RECORD_ID);
-		assertThat(record.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
-		assertThat(record.getValue().keySet().iterator().next()).isEqualTo(SERIALIZED_STRING_MAP_KEY);
-		assertThat(record.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
+		assertByteRecord(record);
 	}
 
-	@Test // Stream key auto conversion for ofBytes method with unsupported type
-	void ofBytesWithUnsupportedStreamKeyType() {
+	static Stream<Arguments> ofBytesInStreamArgs() {
+		return Stream.of(Arguments.argumentSet("ByteBuffer", ByteBuffer.wrap(SERIALIZED_STRING_STREAM_KEY)), //
+				Arguments.argumentSet("byte[]", new Object[] { SERIALIZED_STRING_STREAM_KEY }), //
+				Arguments.argumentSet("String", STRING_STREAM_KEY));
+	}
 
-		assertThatThrownBy(() -> StreamRecords.newRecord()
-				.in(123L) // Unsupported type
-				.withId(RECORD_ID)
-				.ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL)))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("Stream key 123 cannot be converted to byte array");
+	private void assertByteRecord(ByteRecord target) {
+
+		assertThat(target.getStream()).isEqualTo(SERIALIZED_STRING_STREAM_KEY);
+		assertThat(target.getValue()).hasSize(1);
+
+		target.getValue().forEach((k, v) -> {
+			assertThat(k).isEqualTo(SERIALIZED_STRING_MAP_KEY);
+			assertThat(v).isEqualTo(SERIALIZED_STRING_VAL);
+		});
 	}
 
 }

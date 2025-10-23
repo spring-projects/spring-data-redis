@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -178,7 +179,7 @@ public class StreamRecords {
 		 * @see MapRecord
 		 */
 		public StringRecord ofStrings(Map<String, String> map) {
-			return new StringMapBackedRecord(ObjectUtils.nullSafeToString(stream), id, map);
+			return new StringMapBackedRecord(toString(stream), id, map);
 		}
 
 		/**
@@ -197,25 +198,7 @@ public class StreamRecords {
 		 * @return new instance of {@link ByteRecord}.
 		 */
 		public ByteRecord ofBytes(Map<byte[], byte[]> value) {
-
-			byte[] streamKey = convertStreamToByteArray(stream);
-			return new ByteMapBackedRecord(streamKey, id, value);
-		}
-
-		private byte[] convertStreamToByteArray(@Nullable Object stream) {
-			if (stream instanceof byte[]) {
-				return (byte[]) stream;
-			} else if (stream instanceof String) {
-				return ((String) stream).getBytes();
-			} else if (stream instanceof ByteBuffer buffer) {
-				byte[] result = new byte[buffer.remaining()];
-				buffer.get(result);
-				return result;
-			} else if (stream == null) {
-				return null;
-			} else {
-				throw new IllegalArgumentException("Stream key %s cannot be converted to byte array".formatted(stream));
-			}
+			return new ByteMapBackedRecord(toByteArray(stream), id, value);
 		}
 
 		/**
@@ -223,21 +206,47 @@ public class StreamRecords {
 		 * @return new instance of {@link ByteBufferRecord}.
 		 */
 		public ByteBufferRecord ofBuffer(Map<ByteBuffer, ByteBuffer> value) {
+			return new ByteBufferMapBackedRecord(toByteBuffer(stream), id, value);
+		}
 
-			ByteBuffer streamKey;
+		@Contract("null -> null; !null -> !null")
+		private static byte @Nullable [] toByteArray(@Nullable Object stream) {
 
-			if (stream instanceof ByteBuffer) {
-				streamKey = (ByteBuffer) stream;
-			} else if (stream instanceof String) {
-				streamKey = ByteUtils.getByteBuffer((String) stream);
-			} else if (stream instanceof byte[]) {
-				streamKey = ByteBuffer.wrap((byte[]) stream);
-			} else {
-				throw new IllegalArgumentException("Stream key %s cannot be converted to byte buffer".formatted(stream));
+			if (stream instanceof byte[] bytes) {
+				return bytes;
+			} else if (stream instanceof ByteBuffer buffer) {
+				return ByteUtils.getBytes(buffer);
+			} else if (stream instanceof CharSequence s) {
+				return s.toString().getBytes();
+			} else if (stream == null) {
+				return null;
 			}
 
-			return new ByteBufferMapBackedRecord(streamKey, id, value);
+			throw new IllegalArgumentException("Stream key '%s' cannot be converted to byte array".formatted(stream));
 		}
+
+		private static ByteBuffer toByteBuffer(@Nullable Object stream) {
+
+			if (stream instanceof byte[] bytes) {
+				return ByteBuffer.wrap(bytes);
+			} else if (stream instanceof ByteBuffer bb) {
+				return bb;
+			} else if (stream instanceof CharSequence cs) {
+				return ByteUtils.getByteBuffer(cs.toString());
+			}
+
+			throw new IllegalArgumentException("Stream key '%s' cannot be converted to byte buffer".formatted(stream));
+		}
+
+		private static String toString(@Nullable Object stream) {
+
+			if (stream instanceof byte[] || stream instanceof ByteBuffer) {
+				return new String(toByteArray(stream));
+			}
+
+			return ObjectUtils.nullSafeToString(stream);
+		}
+
 	}
 
 	/**
@@ -338,7 +347,7 @@ public class StreamRecords {
 	 */
 	static class ByteMapBackedRecord extends MapBackedRecord<byte[], byte[], byte[]> implements ByteRecord {
 
-		ByteMapBackedRecord(byte @Nullable[] stream, RecordId recordId, Map<byte[], byte[]> map) {
+		ByteMapBackedRecord(byte @Nullable [] stream, RecordId recordId, Map<byte[], byte[]> map) {
 			super(stream, recordId, map);
 		}
 
@@ -359,8 +368,7 @@ public class StreamRecords {
 	static class ByteBufferMapBackedRecord extends MapBackedRecord<ByteBuffer, ByteBuffer, ByteBuffer>
 			implements ByteBufferRecord {
 
-		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, RecordId recordId,
-				Map<ByteBuffer, ByteBuffer> map) {
+		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, RecordId recordId, Map<ByteBuffer, ByteBuffer> map) {
 			super(stream, recordId, map);
 		}
 
@@ -419,7 +427,6 @@ public class StreamRecords {
 		public S getStream() {
 			return stream;
 		}
-
 
 		@Override
 		public RecordId getId() {
