@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -36,6 +37,8 @@ import org.springframework.data.redis.connection.ReactiveStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -178,6 +181,30 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(recordIds, "MessageIds must not be null");
 
 		return createMono(streamCommands -> streamCommands.xDel(rawKey(key), recordIds));
+	}
+
+	@Override
+	public Flux<StreamEntryDeletionResult> deleteWithOptions(@NonNull K key, @NonNull XDelOptions options,
+															 @NonNull RecordId @NonNull... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(options, "XDelOptions must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
+
+		return createFlux(streamCommands -> streamCommands.xDelEx(rawKey(key), options, recordIds));
+	}
+
+	@Override
+	public Flux<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull K key, @NonNull String group,
+																@NonNull XDelOptions options,
+																@NonNull RecordId @NonNull... recordIds) {
+
+		Assert.notNull(key, "Key must not be null");
+		Assert.hasText(group, "Group must not be null or empty");
+		Assert.notNull(options, "XDelOptions must not be null");
+		Assert.notNull(recordIds, "RecordIds must not be null");
+
+		return createFlux(streamCommands -> streamCommands.xAckDel(rawKey(key), group, options, recordIds));
 	}
 
 	@Override

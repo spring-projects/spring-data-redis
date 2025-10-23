@@ -1147,6 +1147,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(SUNIONSTORE, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(STRLEN, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(TTL, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(XACK, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(XDEL, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(XLEN, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(XTRIM, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZADD, IntegerOutput.class);
@@ -1232,6 +1234,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(TYPE, StatusOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(WATCH, StatusOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(UNWATCH, StatusOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(XGROUP, StatusOutput.class);
 
 			// VALUE LIST
 			COMMAND_OUTPUT_TYPE_MAPPING.put(HMGET, ValueListOutput.class);
@@ -1277,6 +1280,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(SINTER, ValueSetOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(SMEMBERS, ValueSetOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(SUNION, ValueSetOutput.class);
+
+			// ENUM SET
+			COMMAND_OUTPUT_TYPE_MAPPING.put(XACKDEL, EnumSetOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(XDELEX, EnumSetOutput.class);
 		}
 
 		/**
