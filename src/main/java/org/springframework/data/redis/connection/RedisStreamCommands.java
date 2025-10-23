@@ -446,7 +446,61 @@ public interface RedisStreamCommands {
 		/**
 		 * Remove entries that are read and acknowledged and remove references.
 		 */
-		DELETE_ACKNOWLEDGED_REFERENCES
+		ACKNOWLEDGED
+	}
+
+	/**
+	 * Result of a stream entry deletion operation for {@literal XDELEX} and {@literal XACKDEL} commands.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 */
+	enum StreamEntryDeletionResult {
+
+		UNKNOWN(-2L),
+		/**
+		 * The entry ID does not exist in the stream.
+		 */
+		NOT_FOUND(-1L),
+		/**
+		 * The entry was successfully deleted from the stream.
+		 */
+		DELETED(1L),
+		/**
+		 * The entry was acknowledged but not deleted (when using ACKED deletion policy with dangling references).
+		 */
+		NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED(2L);
+
+		private final long code;
+
+		StreamEntryDeletionResult(long code) {
+			this.code = code;
+		}
+
+		/**
+		 * Get the numeric code for this deletion result.
+		 *
+		 * @return the numeric code: -1 for NOT_FOUND, 1 for DELETED, 2 for NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED
+		 */
+		public long getCode() {
+			return code;
+		}
+
+		/**
+		 * Convert a numeric code to a {@link StreamEntryDeletionResult}.
+		 *
+		 * @param code the numeric code
+		 * @return the corresponding {@link StreamEntryDeletionResult}
+		 * @throws IllegalArgumentException if the code is not valid
+		 */
+		public static StreamEntryDeletionResult fromCode(long code) {
+			return switch ((int) code) {
+				case -1 -> NOT_FOUND;
+				case 1 -> DELETED;
+				case 2 -> NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
+				default -> throw new IllegalArgumentException("Invalid deletion result code: " + code);
+			};
+		}
 	}
 
 	/**
@@ -720,6 +774,143 @@ public interface RedisStreamCommands {
 	 */
 	Long xDel(byte @NonNull [] key, @NonNull RecordId @NonNull... recordIds);
 
+	/**
+	 * Additional options applicable for {@literal XDELEX} and {@literal XACKDEL} commands.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 */
+	class XDelOptions {
+
+		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.KEEP_REFERENCES);
+
+		private final @NonNull StreamDeletionPolicy deletionPolicy;
+
+		private XDelOptions(@NonNull StreamDeletionPolicy deletionPolicy) {
+			this.deletionPolicy = deletionPolicy;
+		}
+
+		/**
+		 * Create an {@link XDelOptions} instance with default options.
+		 * <p>
+		 * This returns the default options for the {@literal XDELEX} and {@literal XACKDEL} commands
+		 * with {@link StreamDeletionPolicy#KEEP_REFERENCES} as the deletion policy, which preserves
+		 * existing references in consumer groups' PELs (similar to the behavior of {@literal XDEL}).
+		 *
+		 * @return a default {@link XDelOptions} instance with {@link StreamDeletionPolicy#KEEP_REFERENCES}.
+		 */
+		public static XDelOptions defaultOptions() {
+			return DEFAULT;
+		}
+
+		/**
+		 * Set the deletion policy for the delete operation.
+		 *
+		 * @param deletionPolicy the deletion policy to apply.
+		 * @return new instance of {@link XDelOptions}.
+		 */
+		public static XDelOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new XDelOptions(deletionPolicy);
+		}
+
+		/**
+		 * @return the deletion policy.
+		 */
+		@NonNull
+		public StreamDeletionPolicy getDeletionPolicy() {
+			return deletionPolicy;
+		}
+
+		@Override
+		public boolean equals(@Nullable Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof XDelOptions that)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(deletionPolicy);
+		}
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key.
+	 * <p>
+	 * XDELEX is an extension of the Redis Streams XDEL command that provides more control over how message entries
+	 * are deleted concerning consumer groups.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
+	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was not deleted but there are still dangling references (ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 */
+	default List<StreamEntryDeletionResult> xDelEx(byte @NonNull [] key, XDelOptions options, @NonNull String @NonNull... recordIds) {
+		return xDelEx(key, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key.
+	 * <p>
+	 * XDELEX is an extension of the Redis Streams XDEL command that provides more control over how message entries
+	 * are deleted concerning consumer groups.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
+	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was not deleted but there are still dangling references (ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 */
+	List<StreamEntryDeletionResult> xDelEx(byte @NonNull [] key, XDelOptions options, @NonNull RecordId @NonNull... recordIds);
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries (messages) for a stream consumer group at the specified key.
+	 * <p>
+	 * XACKDEL combines the functionality of XACK and XDEL in Redis Streams. It acknowledges the specified entry IDs in the
+	 * given consumer group and simultaneously attempts to delete the corresponding entries from the stream.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to acknowledge and remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
+	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was acknowledged but not deleted (when using ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 */
+	default List<StreamEntryDeletionResult> xAckDel(byte @NonNull [] key, @NonNull String group, XDelOptions options, @NonNull String @NonNull... recordIds) {
+		return xAckDel(key, group, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+	}
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries (messages) for a stream consumer group at the specified key.
+	 * <p>
+	 * XACKDEL combines the functionality of XACK and XDEL in Redis Streams. It acknowledges the specified entry IDs in the
+	 * given consumer group and simultaneously attempts to delete the corresponding entries from the stream.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to acknowledge and remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
+	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was acknowledged but not deleted (when using ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 */
+	List<StreamEntryDeletionResult> xAckDel(byte @NonNull [] key, @NonNull String group, XDelOptions options, @NonNull RecordId @NonNull... recordIds);
 	/**
 	 * Create a consumer group.
 	 *

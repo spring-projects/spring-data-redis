@@ -23,6 +23,7 @@ import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XTrimArgs;
 import io.lettuce.core.models.stream.PendingMessage;
 import io.lettuce.core.models.stream.PendingMessages;
+import io.lettuce.core.models.stream.StreamEntryDeletionResult;
 
 import java.time.Duration;
 import java.util.List;
@@ -32,6 +33,7 @@ import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.stream.ByteRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
@@ -84,6 +86,10 @@ class StreamConverters {
 
 	static XTrimArgs toXTrimArgs(XTrimOptions options) {
 		return XTrimOptionsToXTrimArgsConverter.INSTANCE.convert(options);
+	}
+
+	static StreamDeletionPolicy toXDelArgs(XDelOptions options) {
+		return toStreamDeletionPolicy(options.getDeletionPolicy());
 	}
 
 	static Converter<StreamMessage<byte[], byte[]>, ByteRecord> byteRecordConverter() {
@@ -253,12 +259,44 @@ class StreamConverters {
 		}
 	}
 
-	private static StreamDeletionPolicy toStreamDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy deletionPolicy) {
+	public static StreamDeletionPolicy toStreamDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy deletionPolicy) {
 
 		return switch (deletionPolicy) {
 			case KEEP_REFERENCES -> StreamDeletionPolicy.KEEP_REFERENCES;
 			case DELETE_REFERENCES -> StreamDeletionPolicy.DELETE_REFERENCES;
-			case DELETE_ACKNOWLEDGED_REFERENCES -> StreamDeletionPolicy.ACKNOWLEDGED;
+			case ACKNOWLEDGED -> StreamDeletionPolicy.ACKNOWLEDGED;
 		};
+	}
+
+	/**
+	 * Convert Lettuce {@link io.lettuce.core.models.stream.StreamEntryDeletionResult} to Spring Data Redis
+	 * {@link StreamEntryDeletionResult}.
+	 *
+	 * @param result the Lettuce deletion result enum
+	 * @return the corresponding Spring Data Redis enum
+	 * @since 4.0
+	 */
+	static RedisStreamCommands.StreamEntryDeletionResult toStreamEntryDeletionResult(
+			StreamEntryDeletionResult result) {
+		return switch (result) {
+			case UNKNOWN -> RedisStreamCommands.StreamEntryDeletionResult.UNKNOWN;
+			case NOT_FOUND -> RedisStreamCommands.StreamEntryDeletionResult.NOT_FOUND;
+			case DELETED -> RedisStreamCommands.StreamEntryDeletionResult.DELETED;
+			case NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED ->
+					RedisStreamCommands.StreamEntryDeletionResult.NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
+		};
+	}
+
+	/**
+	 * Convert a list of Lettuce {@link io.lettuce.core.models.stream.StreamEntryDeletionResult} to a {@link List} of Spring Data Redis
+	 * {@link RedisStreamCommands.StreamEntryDeletionResult}.
+	 *
+	 * @param results the list of Lettuce deletion result enums
+	 * @return the list of Spring Data Redis deletion result enums
+	 * @since 4.0
+	 */
+	static List<RedisStreamCommands.StreamEntryDeletionResult> toStreamEntryDeletionResults(
+			List<StreamEntryDeletionResult> results) {
+		return results.stream().map(StreamConverters::toStreamEntryDeletionResult).toList();
 	}
 }

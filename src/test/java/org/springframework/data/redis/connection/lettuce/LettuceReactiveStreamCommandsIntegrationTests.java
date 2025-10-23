@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.XReadArgs;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -32,7 +33,9 @@ import org.junit.jupiter.params.ParameterizedClass;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -657,6 +660,112 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 						XClaimOptions.minIdle(Duration.ofMillis(1)).ids(record.getId())))
 				.as(StepVerifier::create) //
 				.assertNext(it -> assertThat(it.getValue()).isEqualTo(expected)) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3232
+	void xDelExShouldDeleteEntries() {
+
+		RecordId messageId1 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+		RecordId messageId2 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+
+		connection.streamCommands().xLen(KEY_1_BBUFFER) //
+				.as(StepVerifier::create) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		XDelOptions options = XDelOptions.defaultOptions();
+
+		connection.streamCommands().xDelEx(KEY_1_BBUFFER, options, messageId1, messageId2) //
+				.as(StepVerifier::create) //
+				.expectNext(StreamEntryDeletionResult.DELETED) //
+				.expectNext(StreamEntryDeletionResult.DELETED) //
+				.verifyComplete();
+
+		connection.streamCommands().xLen(KEY_1_BBUFFER) //
+				.as(StepVerifier::create) //
+				.expectNext(0L) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3232
+	void xDelExWithStringIdsShouldDeleteEntries() {
+
+		RecordId messageId1 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+		RecordId messageId2 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+
+		XDelOptions options = XDelOptions.defaultOptions();
+
+		connection.streamCommands().xDelEx(KEY_1_BBUFFER, options, messageId1.getValue(), messageId2.getValue()) //
+				.as(StepVerifier::create) //
+				.expectNextCount(2) //
+				.verifyComplete();
+
+		connection.streamCommands().xLen(KEY_1_BBUFFER) //
+				.as(StepVerifier::create) //
+				.expectNext(0L) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3232
+	void xAckDelShouldAcknowledgeAndDeleteEntries() {
+
+		RecordId messageId1 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+		RecordId messageId2 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+
+		connection.streamCommands().xGroupCreate(KEY_1_BBUFFER, "my-group", ReadOffset.from("0-0"), true) //
+				.as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.as(StepVerifier::create) //
+				.expectNextCount(2) //
+				.verifyComplete();
+
+		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.ACKNOWLEDGED);
+
+		connection.streamCommands().xAckDel(KEY_1_BBUFFER, "my-group", options, messageId1, messageId2) //
+				.as(StepVerifier::create) //
+				.expectNext(StreamEntryDeletionResult.DELETED) //
+				.expectNext(StreamEntryDeletionResult.DELETED) //
+				.verifyComplete();
+	}
+
+	@Test // GH-3232
+	void xAckDelWithStringIdsShouldWork() {
+
+		RecordId messageId1 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+		RecordId messageId2 = connection.streamCommands()
+				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
+
+		connection.streamCommands().xGroupCreate(KEY_1_BBUFFER, "my-group", ReadOffset.from("0-0"), true) //
+				.as(StepVerifier::create) //
+				.expectNext("OK") //
+				.verifyComplete();
+
+		connection.streamCommands()
+				.xReadGroup(Consumer.from("my-group", "my-consumer"),
+						StreamOffset.create(KEY_1_BBUFFER, ReadOffset.lastConsumed())) //
+				.as(StepVerifier::create) //
+				.expectNextCount(2) //
+				.verifyComplete();
+
+		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.ACKNOWLEDGED);
+
+		connection.streamCommands().xAckDel(KEY_1_BBUFFER, "my-group", options, messageId1.getValue(),
+				messageId2.getValue()) //
+				.as(StepVerifier::create) //
+				.expectNextCount(2) //
 				.verifyComplete();
 	}
 }

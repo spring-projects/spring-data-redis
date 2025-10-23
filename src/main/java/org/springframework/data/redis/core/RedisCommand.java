@@ -284,6 +284,25 @@ public enum RedisCommand {
 
 	// -- W
 	WATCH("rw", 1), //
+
+	// -- X
+	XACK("rw", 3), //
+	XACKDEL("rw", 3), //
+	XADD("rw", 3), //
+	XAUTOCLAIM("rw", 4), //
+	XCLAIM("rw", 4), //
+	XDEL("rw", 2), //
+	XDELEX("rw", 2), //
+	XGROUP("rw", 2), //
+	XINFO("r", 1), //
+	XLEN("r", 1), //
+	XPENDING("r", 1), //
+	XRANGE("r", 2), //
+	XREVRANGE("r", 2), //
+	XREAD("r", 2), //
+	XREADGROUP("rw", 4), //
+	XTRIM("rw", 2), //
+
 	// -- Z
 	ZADD("rw", 3), //
 	ZCARD("r", 1), //

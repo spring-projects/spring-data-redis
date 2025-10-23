@@ -24,6 +24,8 @@ import io.lettuce.core.GetExArgs;
 import io.lettuce.core.Limit;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.SetArgs;
+import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XTrimArgs;
 import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
@@ -43,7 +45,12 @@ import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
@@ -450,6 +457,195 @@ class LettuceConvertersUnitTests {
 			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS);
 			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration))
 					.extracting("exAt").isEqualTo(fourHoursFromNowSecs);
+		}
+	}
+
+	@Nested // GH-3232
+	class ToXAddArgsShould {
+
+		@Test
+		void convertXAddOptionsWithMaxlen() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100);
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(args).extracting("maxlen").isEqualTo(100L);
+		}
+
+		@Test
+		void convertXAddOptionsWithMinId() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.minId(RecordId.of("1234567890-0"));
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(getField(args, "minid")).isEqualTo("1234567890-0");
+		}
+
+		@Test
+		void convertXAddOptionsWithApproximateTrimming() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true);
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(args).extracting("approximateTrimming").isEqualTo(true);
+		}
+
+		@Test
+		void convertXAddOptionsWithExactTrimming() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).exactTrimming(true);
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(args).extracting("exactTrimming").isEqualTo(true);
+		}
+
+		@Test
+		void convertXAddOptionsWithLimit() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(args).extracting("limit").isEqualTo(50L);
+		}
+
+		@Test
+		void convertXAddOptionsWithDeletionPolicy() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).withDeletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(args).extracting("trimmingMode").isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+
+		@Test
+		void convertXAddOptionsWithRecordId() {
+
+			RecordId recordId = RecordId.of("1234567890-0");
+			XAddOptions options = XAddOptions.none();
+
+			XAddArgs args = StreamConverters.toXAddArgs(recordId, options);
+
+			assertThat(getField(args, "id")).isEqualTo("1234567890-0");
+		}
+	}
+
+	@Nested // GH-3232
+	class ToXTrimArgsShould {
+
+		@Test
+		void convertXTrimOptionsWithMaxlen() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100);
+
+			XTrimArgs args = StreamConverters.toXTrimArgs(options);
+
+			assertThat(args).extracting("maxlen").isEqualTo(100L);
+		}
+
+		@Test
+		void convertXTrimOptionsWithMinId() {
+
+			XTrimOptions options = XTrimOptions.minId(RecordId.of("1234567890-0"));
+
+			XTrimArgs args = StreamConverters.toXTrimArgs(options);
+
+			assertThat(getField(args, "minId")).isEqualTo("1234567890-0");
+		}
+
+		@Test
+		void convertXTrimOptionsWithApproximateTrimming() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true);
+
+			XTrimArgs args = StreamConverters.toXTrimArgs(options);
+
+			assertThat(args).extracting("approximateTrimming").isEqualTo(true);
+		}
+
+		@Test
+		void convertXTrimOptionsWithExactTrimming() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).exactTrimming(true);
+
+			XTrimArgs args = StreamConverters.toXTrimArgs(options);
+
+			assertThat(args).extracting("exactTrimming").isEqualTo(true);
+		}
+
+		@Test
+		void convertXTrimOptionsWithLimit() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true).limit(50);
+
+			XTrimArgs args = StreamConverters.toXTrimArgs(options);
+
+			assertThat(args).extracting("limit").isEqualTo(50L);
+		}
+
+		@Test
+		void convertXTrimOptionsWithDeletionPolicy() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+
+			XTrimArgs args = StreamConverters.toXTrimArgs(options);
+
+			assertThat(args).extracting("trimmingMode").isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+	}
+
+	@Nested // GH-3232
+	class ToXDelArgsShould {
+
+		@Test
+		void convertDefaultOptions() {
+
+			XDelOptions options = XDelOptions.defaultOptions();
+
+			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
+
+			assertThat(policy).isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+
+		@Test
+		void convertKeepReferencesPolicy() {
+
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+
+			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
+
+			assertThat(policy).isEqualTo(io.lettuce.core.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+
+		@Test
+		void convertDeleteReferencesPolicy() {
+
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES);
+
+			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
+
+			assertThat(policy).isEqualTo(io.lettuce.core.StreamDeletionPolicy.DELETE_REFERENCES);
+		}
+
+		@Test
+		void convertAcknowledgedPolicy() {
+
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+
+			io.lettuce.core.StreamDeletionPolicy policy = StreamConverters.toXDelArgs(options);
+
+			assertThat(policy).isEqualTo(io.lettuce.core.StreamDeletionPolicy.ACKNOWLEDGED);
 		}
 	}
 }

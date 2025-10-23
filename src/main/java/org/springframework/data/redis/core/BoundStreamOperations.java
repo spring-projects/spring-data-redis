@@ -25,6 +25,8 @@ import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -37,6 +39,7 @@ import org.springframework.data.redis.connection.stream.StreamReadOptions;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Dengliming
+ * @author Viktoriya Kutsarova
  * @since 2.2
  */
 @NullUnmarked
@@ -81,6 +84,54 @@ public interface BoundStreamOperations<K, HK, HV> {
 	 * @see <a href="https://redis.io/commands/xdel">Redis Documentation: XDEL</a>
 	 */
 	Long delete(@NonNull String @NonNull... recordIds);
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key with extended options.
+	 *
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's as strings.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	List<StreamEntryDeletionResult> deleteWithOptions(@NonNull XDelOptions options, @NonNull String @NonNull ... recordIds);
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key with extended options.
+	 *
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 * @since 4.0
+	 */
+	List<StreamEntryDeletionResult> deleteWithOptions(@NonNull XDelOptions options, @NonNull RecordId @NonNull ... recordIds);
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group at the specified key.
+	 *
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's as strings.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull XDelOptions options,
+														 @NonNull String @NonNull ... recordIds);
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries for a stream consumer group at the specified key.
+	 *
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy.
+	 * @param recordIds stream record Id's.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 * @since 4.0
+	 */
+	List<StreamEntryDeletionResult> acknowledgeAndDelete(@NonNull String group, @NonNull XDelOptions options,
+														 @NonNull RecordId @NonNull ... recordIds);
 
 	/**
 	 * Create a consumer group.

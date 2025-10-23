@@ -24,10 +24,12 @@ import redis.clients.jedis.params.XTrimParams;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -49,148 +51,200 @@ class StreamConvertersUnitTest {
 		assertThat(xPendingParams).hasFieldOrPropertyWithValue("idle", Duration.of(1, ChronoUnit.HOURS).toMillis());
 	}
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithMaxlen() {
+	@Nested // GH-3232
+	class ToXAddParamsShould {
 
-		RecordId recordId = RecordId.autoGenerate();
-		XAddOptions options = XAddOptions.maxlen(100);
+		@Test
+		void convertXAddOptionsWithMaxlen() {
 
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100);
 
-		assertThat(params).hasFieldOrPropertyWithValue("maxLen", 100L);
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("maxLen", 100L);
+		}
+
+		@Test
+		void convertXAddOptionsWithMinId() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.minId(RecordId.of("1234567890-0"));
+
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("minId", "1234567890-0");
+		}
+
+		@Test
+		void convertXAddOptionsWithApproximateTrimming() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true);
+
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", true);
+		}
+
+		@Test
+		void convertXAddOptionsWithExactTrimming() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).withExactTrimming(true);
+
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
+		}
+
+		@Test
+		void convertXAddOptionsWithLimit() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("limit", 50L);
+		}
+
+		@Test
+		void convertXAddOptionsWithDeletionPolicy() {
+
+			RecordId recordId = RecordId.autoGenerate();
+			XAddOptions options = XAddOptions.maxlen(100).withDeletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("trimMode",
+					redis.clients.jedis.args.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
+
+		@Test
+		void convertXAddOptionsWithRecordId() {
+
+			RecordId recordId = RecordId.of("1234567890-0");
+			XAddOptions options = XAddOptions.none();
+
+			XAddParams params = StreamConverters.toXAddParams(recordId, options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("maxLen", null);
+			assertThat(params).hasFieldOrPropertyWithValue("minId", null);
+			assertThat(params).hasFieldOrPropertyWithValue("limit", null);
+			assertThat(params).hasFieldOrPropertyWithValue("trimMode", null);
+			assertThat(params).hasFieldOrPropertyWithValue("nomkstream", false);
+			assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
+			assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", false);
+		}
 	}
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithMinId() {
+	@Nested // GH-3232
+	class ToXTrimParamsShould {
 
-		RecordId recordId = RecordId.autoGenerate();
-		XAddOptions options = XAddOptions.minId(RecordId.of("1234567890-0"));
+		@Test
+		void convertXTrimOptionsWithMaxlen() {
 
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
+			XTrimOptions options = XTrimOptions.maxlen(100);
 
-		assertThat(params).hasFieldOrPropertyWithValue("minId", "1234567890-0");
+			XTrimParams params = StreamConverters.toXTrimParams(options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("maxLen", 100L);
+		}
+
+		@Test
+		void convertXTrimOptionsWithMinId() {
+
+			XTrimOptions options = XTrimOptions.minId(RecordId.of("1234567890-0"));
+
+			XTrimParams params = StreamConverters.toXTrimParams(options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("minId", "1234567890-0");
+		}
+
+		@Test
+		void convertXTrimOptionsWithApproximateTrimming() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true);
+
+			XTrimParams params = StreamConverters.toXTrimParams(options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", true);
+		}
+
+		@Test
+		void convertXTrimOptionsWithExactTrimming() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).exactTrimming(true);
+
+			XTrimParams params = StreamConverters.toXTrimParams(options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
+		}
+
+		@Test
+		void convertXTrimOptionsWithLimit() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true).limit(50);
+
+			XTrimParams params = StreamConverters.toXTrimParams(options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("limit", 50L);
+		}
+
+		@Test
+		void convertXTrimOptionsWithDeletionPolicy() {
+
+			XTrimOptions options = XTrimOptions.maxlen(100).deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+
+			XTrimParams params = StreamConverters.toXTrimParams(options);
+
+			assertThat(params).hasFieldOrPropertyWithValue("trimMode",
+					redis.clients.jedis.args.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
 	}
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithApproximateTrimming() {
+	@Nested // GH-3232
+	class ToStreamDeletionPolicyShould {
 
-		RecordId recordId = RecordId.autoGenerate();
-		XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true);
+		@Test
+		void convertDefaultOptions() {
 
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
+			XDelOptions options = XDelOptions.defaultOptions();
 
-		assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", true);
-	}
+			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithExactTrimming() {
+			assertThat(policy).isEqualTo(redis.clients.jedis.args.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
 
-		RecordId recordId = RecordId.autoGenerate();
-		XAddOptions options = XAddOptions.maxlen(100).withExactTrimming(true);
+		@Test
+		void convertKeepReferencesPolicy() {
 
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
 
-		assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
-	}
+			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithLimit() {
+			assertThat(policy).isEqualTo(redis.clients.jedis.args.StreamDeletionPolicy.KEEP_REFERENCES);
+		}
 
-		RecordId recordId = RecordId.autoGenerate();
-		XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+		@Test
+		void convertDeleteReferencesPolicy() {
 
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES);
 
-		assertThat(params).hasFieldOrPropertyWithValue("limit", 50L);
-	}
+			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithDeletionPolicy() {
+			assertThat(policy).isEqualTo(redis.clients.jedis.args.StreamDeletionPolicy.DELETE_REFERENCES);
+		}
 
-		RecordId recordId = RecordId.autoGenerate();
-		XAddOptions options = XAddOptions.maxlen(100).withDeletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+		@Test
+		void convertAcknowledgedPolicy() {
 
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
 
-		assertThat(params).hasFieldOrPropertyWithValue("trimMode",
-				redis.clients.jedis.args.StreamDeletionPolicy.KEEP_REFERENCES);
-	}
+			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
-	@Test // GH-3232
-	void shouldConvertXAddOptionsWithRecordId() {
-
-		RecordId recordId = RecordId.of("1234567890-0");
-		XAddOptions options = XAddOptions.none();
-
-		XAddParams params = StreamConverters.toXAddParams(recordId, options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("maxLen", null);
-		assertThat(params).hasFieldOrPropertyWithValue("minId", null);
-		assertThat(params).hasFieldOrPropertyWithValue("limit", null);
-		assertThat(params).hasFieldOrPropertyWithValue("trimMode", null);
-		assertThat(params).hasFieldOrPropertyWithValue("nomkstream", false);
-		assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
-		assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", false);
-	}
-
-	@Test // GH-3232
-	void shouldConvertXTrimOptionsWithMaxlen() {
-
-		XTrimOptions options = XTrimOptions.maxlen(100);
-
-		XTrimParams params = StreamConverters.toXTrimParams(options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("maxLen", 100L);
-	}
-
-	@Test // GH-3232
-	void shouldConvertXTrimOptionsWithMinId() {
-
-		XTrimOptions options = XTrimOptions.minId(RecordId.of("1234567890-0"));
-
-		XTrimParams params = StreamConverters.toXTrimParams(options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("minId", "1234567890-0");
-	}
-
-	@Test // GH-3232
-	void shouldConvertXTrimOptionsWithApproximateTrimming() {
-
-		XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true);
-
-		XTrimParams params = StreamConverters.toXTrimParams(options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", true);
-	}
-
-	@Test // GH-3232
-	void shouldConvertXTrimOptionsWithExactTrimming() {
-
-		XTrimOptions options = XTrimOptions.maxlen(100).exactTrimming(true);
-
-		XTrimParams params = StreamConverters.toXTrimParams(options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
-	}
-
-	@Test // GH-3232
-	void shouldConvertXTrimOptionsWithLimit() {
-
-		XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true).limit(50);
-
-		XTrimParams params = StreamConverters.toXTrimParams(options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("limit", 50L);
-	}
-
-	@Test // GH-3232
-	void shouldConvertXTrimOptionsWithDeletionPolicy() {
-
-		XTrimOptions options = XTrimOptions.maxlen(100).deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
-
-		XTrimParams params = StreamConverters.toXTrimParams(options);
-
-		assertThat(params).hasFieldOrPropertyWithValue("trimMode",
-				redis.clients.jedis.args.StreamDeletionPolicy.KEEP_REFERENCES);
+			assertThat(policy).isEqualTo(redis.clients.jedis.args.StreamDeletionPolicy.ACKNOWLEDGED);
+		}
 	}
 }

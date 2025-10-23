@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
+import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -593,5 +596,145 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 					assertThat(claimed.getValue()).isEqualTo(content);
 					assertThat(claimed.getId()).isEqualTo(messageId);
 				}).verifyComplete();
+	}
+
+	@Test // GH-3232
+	void deleteWithOptionsShouldDeleteEntries() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		RecordId messageId1 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId messageId2 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId messageId3 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(3L).verifyComplete();
+
+		XDelOptions options = XDelOptions.defaultOptions();
+
+		streamOperations.deleteWithOptions(key, options, messageId1, messageId2).as(StepVerifier::create)
+				.expectNext(StreamEntryDeletionResult.DELETED)
+				.expectNext(StreamEntryDeletionResult.DELETED)
+				.verifyComplete();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(1L).verifyComplete();
+	}
+
+	@Test // GH-3232
+	void deleteWithOptionsUsingStringIdsShouldDeleteEntries() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		RecordId messageId1 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId messageId2 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
+
+		XDelOptions options = XDelOptions.defaultOptions();
+
+		streamOperations.deleteWithOptions(key, options, messageId1.getValue(), messageId2.getValue())
+				.as(StepVerifier::create)
+				.expectNextCount(2)
+				.verifyComplete();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Test // GH-3232
+	void deleteWithOptionsUsingRecordShouldDeleteEntry() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		Map<HK, HV> content = Collections.singletonMap(hashKey, value);
+		RecordId messageId = streamOperations.add(key, content).block();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(1L).verifyComplete();
+
+		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId).ofMap(content);
+		XDelOptions options = XDelOptions.defaultOptions();
+
+		streamOperations.deleteWithOptions(record, options).as(StepVerifier::create)
+				.expectNext(StreamEntryDeletionResult.DELETED)
+				.verifyComplete();
+
+		streamOperations.size(key).as(StepVerifier::create).expectNext(0L).verifyComplete();
+	}
+
+	@Test // GH-3232
+	void acknowledgeAndDeleteShouldAcknowledgeAndDeleteEntries() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		RecordId messageId1 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId messageId2 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+
+		streamOperations.acknowledgeAndDelete(key, "my-group", options, messageId1, messageId2)
+				.as(StepVerifier::create)
+				.expectNext(StreamEntryDeletionResult.DELETED)
+				.expectNext(StreamEntryDeletionResult.DELETED)
+				.verifyComplete();
+	}
+
+	@Test // GH-3232
+	void acknowledgeAndDeleteUsingStringIdsShouldWork() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		RecordId messageId1 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+		RecordId messageId2 = streamOperations.add(key, Collections.singletonMap(hashKey, value)).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+
+		streamOperations.acknowledgeAndDelete(key, "my-group", options, messageId1.getValue(), messageId2.getValue())
+				.as(StepVerifier::create)
+				.expectNextCount(2)
+				.verifyComplete();
+	}
+
+	@Test // GH-3232
+	void acknowledgeAndDeleteUsingRecordShouldWork() {
+
+		K key = keyFactory.instance();
+		HK hashKey = hashKeyFactory.instance();
+		HV value = valueFactory.instance();
+
+		Map<HK, HV> content = Collections.singletonMap(hashKey, value);
+		RecordId messageId = streamOperations.add(key, content).block();
+
+		streamOperations.createGroup(key, ReadOffset.from("0-0"), "my-group").then().as(StepVerifier::create)
+				.verifyComplete();
+
+		streamOperations.read(Consumer.from("my-group", "my-consumer"), StreamOffset.create(key, ReadOffset.lastConsumed()))
+				.then().as(StepVerifier::create).verifyComplete();
+
+		MapRecord<K, HK, HV> record = StreamRecords.newRecord().in(key).withId(messageId).ofMap(content);
+		XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+
+		streamOperations.acknowledgeAndDelete("my-group", record, options).as(StepVerifier::create)
+				.expectNext(StreamEntryDeletionResult.DELETED)
+				.verifyComplete();
 	}
 }
