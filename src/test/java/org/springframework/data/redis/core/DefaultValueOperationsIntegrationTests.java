@@ -46,6 +46,7 @@ import org.springframework.data.redis.test.condition.EnabledOnCommand;
  * @author Jiahe Cai
  * @author Mark Paluch
  * @author Hendrik Duerkop
+ * @author Chris Bono
  */
 @ParameterizedClass
 @MethodSource("testParams")
@@ -154,6 +155,21 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 	}
 
 	@Test
+	void testMultiGet() {
+
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		K noSuchKey = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		valueOps.set(key1, value1);
+		valueOps.set(key2, value2);
+
+		assertThat(valueOps.multiGet(Arrays.asList(key1, noSuchKey, key2))).containsExactly(value1, null, value2);
+	}
+
+	@Test
 	void testMultiSetIfAbsent() {
 
 		Map<K, V> keysAndValues = new HashMap<>();
@@ -213,6 +229,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		valueOps.set(key, value);
 
 		assertThat(valueOps.get(key)).isEqualTo(value);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.get(noSuchKey)).isNull();
 	}
 
 	@Test // GH-2050
@@ -227,6 +246,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		assertThat(valueOps.getAndExpire(key, Duration.ofSeconds(10))).isEqualTo(value1);
 		assertThat(redisTemplate.getExpire(key)).isGreaterThan(1);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.getAndExpire(noSuchKey, Duration.ofSeconds(10))).isNull();
 	}
 
 	@Test // GH-2050
@@ -240,6 +262,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		assertThat(valueOps.getAndPersist(key)).isEqualTo(value1);
 		assertThat(redisTemplate.getExpire(key)).isEqualTo(-1);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.getAndPersist(noSuchKey)).isNull();
 	}
 
 	@Test // GH-2050
@@ -253,6 +278,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		assertThat(valueOps.getAndDelete(key)).isEqualTo(value1);
 		assertThat(redisTemplate.hasKey(key)).isFalse();
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.getAndDelete(noSuchKey)).isNull();
 	}
 
 	@Test
@@ -265,6 +293,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		valueOps.set(key, value1);
 
 		assertThat(valueOps.getAndSet(key, value2)).isEqualTo(value1);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.getAndSet(noSuchKey, value2)).isNull();
 	}
 
 	@Test
@@ -330,6 +361,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		assertThat(valueOps.setGet(key, value2, 1, TimeUnit.SECONDS)).isEqualTo(value1);
 		assertThat(valueOps.get(key)).isEqualTo(value2);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.setGet(noSuchKey, value2, 1, TimeUnit.SECONDS)).isNull();
 	}
 
 	@Test
@@ -343,6 +377,9 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 
 		assertThat(valueOps.setGet(key, value2, Duration.ofMillis(1000))).isEqualTo(value1);
 		assertThat(valueOps.get(key)).isEqualTo(value2);
+
+		K noSuchKey = keyFactory.instance();
+		assertThat(valueOps.setGet(noSuchKey, value2, Duration.ofMillis(1000))).isNull();
 	}
 
 	@Test
