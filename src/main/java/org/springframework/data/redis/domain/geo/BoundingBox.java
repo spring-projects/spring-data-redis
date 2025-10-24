@@ -32,15 +32,13 @@ import org.springframework.util.ObjectUtils;
  */
 public class BoundingBox implements Shape {
 
-	@Serial
-	private static final long serialVersionUID = 5215611530535947924L;
+	@Serial private static final long serialVersionUID = 5215611530535947924L;
 
 	private final Distance width;
 	private final Distance height;
 
 	/**
-	 * Creates a new {@link BoundingBox} from the given width and height. Both distances must use the same
-	 * {@link Metric}.
+	 * Creates a new {@link BoundingBox} from the given width and height. Both distances must use the same {@link Metric}.
 	 *
 	 * @param width must not be {@literal null}.
 	 * @param height must not be {@literal null}.

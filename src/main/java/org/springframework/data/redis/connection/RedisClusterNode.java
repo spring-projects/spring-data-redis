@@ -216,8 +216,8 @@ public class RedisClusterNode extends RedisNode {
 		}
 
 		/**
-		 * Determines whether this {@link SlotRange} contains the given {@link Integer slot}, which implies
-		 * this cluster nodes manages the slot holding data stored in Redis.
+		 * Determines whether this {@link SlotRange} contains the given {@link Integer slot}, which implies this cluster
+		 * nodes manages the slot holding data stored in Redis.
 		 *
 		 * @param slot {@link Integer slot} to evaluate.
 		 * @return true when slot is part of the range.
@@ -286,14 +286,8 @@ public class RedisClusterNode extends RedisNode {
 	 */
 	public enum Flag {
 
-		MYSELF("myself"),
-		MASTER("master"),
-		REPLICA("slave"),
-		FAIL("fail"),
-		PFAIL("fail?"),
-		HANDSHAKE("handshake"),
-		NOADDR("noaddr"),
-		NOFLAGS("noflags");
+		MYSELF("myself"), MASTER("master"), REPLICA("slave"), FAIL("fail"), PFAIL("fail?"), HANDSHAKE("handshake"), NOADDR(
+				"noaddr"), NOFLAGS("noflags");
 
 		private String raw;
 

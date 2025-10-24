@@ -272,10 +272,8 @@ class JedisClusterStreamCommands implements RedisStreamCommands {
 		try {
 
 			@SuppressWarnings("all")
-			XPendingParams pendingParams = new XPendingParams(
-					JedisConverters.toBytes(StreamConverters.getLowerValue(range)),
-					JedisConverters.toBytes(StreamConverters.getUpperValue(range)),
-					options.getCount().intValue());
+			XPendingParams pendingParams = new XPendingParams(JedisConverters.toBytes(StreamConverters.getLowerValue(range)),
+					JedisConverters.toBytes(StreamConverters.getUpperValue(range)), options.getCount().intValue());
 
 			String consumerName = options.getConsumerName();
 

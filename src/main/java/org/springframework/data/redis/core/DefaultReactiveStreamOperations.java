@@ -32,8 +32,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.ReactiveStreamCommands;
-import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -268,8 +268,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(streamCommands ->
-				streamCommands.xRange(rawKey(key), range, limit).map(this::deserializeRecord));
+		return createFlux(streamCommands -> streamCommands.xRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
 
 	@Override
@@ -289,8 +288,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions,
-			StreamOffset<K>... streams) {
+	public Flux<MapRecord<K, HK, HV>> read(Consumer consumer, StreamReadOptions readOptions, StreamOffset<K>... streams) {
 
 		Assert.notNull(consumer, "Consumer must not be null");
 		Assert.notNull(readOptions, "StreamReadOptions must not be null");
@@ -311,8 +309,8 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(streamCommands ->
-				streamCommands.xRevRange(rawKey(key), range, limit).map(this::deserializeRecord));
+		return createFlux(
+				streamCommands -> streamCommands.xRevRange(rawKey(key), range, limit).map(this::deserializeRecord));
 	}
 
 	@Override
@@ -361,8 +359,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		try {
 			return serializationContext.getHashKeySerializationPair().write(key);
-		} catch (IllegalStateException ignore) {
-		}
+		} catch (IllegalStateException ignore) {}
 
 		return ByteBuffer.wrap(objectMapper.getConversionService().convert(key, byte[].class));
 	}
@@ -371,8 +368,7 @@ class DefaultReactiveStreamOperations<K, HK, HV> implements ReactiveStreamOperat
 
 		try {
 			return serializationContext.getHashValueSerializationPair().write(value);
-		} catch (IllegalStateException ignore) {
-		}
+		} catch (IllegalStateException ignore) {}
 
 		return ByteBuffer.wrap(objectMapper.getConversionService().convert(value, byte[].class));
 	}

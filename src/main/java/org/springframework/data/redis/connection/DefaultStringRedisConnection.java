@@ -23,6 +23,7 @@ import java.util.function.IntFunction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -34,10 +35,19 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
-import org.springframework.data.redis.connection.stream.*;
+import org.springframework.data.redis.connection.stream.ByteRecord;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
+import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.StringRecord;
 import org.springframework.data.redis.connection.zset.Aggregate;
 import org.springframework.data.redis.connection.zset.DefaultTuple;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -1389,8 +1399,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@SuppressWarnings("unchecked")
 	private GeoReference<byte[]> serialize(GeoReference<String> data) {
 		return data instanceof GeoReference.GeoMemberReference
-				? GeoReference
-						.fromMember(serializer.serialize(((GeoMemberReference<String>) data).getMember()))
+				? GeoReference.fromMember(serializer.serialize(((GeoMemberReference<String>) data).getMember()))
 				: (GeoReference) data;
 	}
 
@@ -2710,16 +2719,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	}
 
 	@Override
-	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey,
-								 org.springframework.data.domain.Range<byte[]> range,
-								 org.springframework.data.redis.connection.Limit limit) {
-		return convertAndReturn(delegate.zRangeStoreByLex(dstKey, srcKey, range, limit),
-				Converters.identityConverter());
+	public Long zRangeStoreByLex(byte[] dstKey, byte[] srcKey, org.springframework.data.domain.Range<byte[]> range,
+			org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByLex(dstKey, srcKey, range, limit), Converters.identityConverter());
 	}
 
 	@Override
-	public Long zRangeStoreByLex(String dstKey, String srcKey,
-			org.springframework.data.domain.Range<String> range, org.springframework.data.redis.connection.Limit limit) {
+	public Long zRangeStoreByLex(String dstKey, String srcKey, org.springframework.data.domain.Range<String> range,
+			org.springframework.data.redis.connection.Limit limit) {
 		return convertAndReturn(delegate.zRangeStoreByLex(serialize(dstKey), serialize(srcKey), serialize(range), limit),
 				Converters.identityConverter());
 	}
@@ -2740,9 +2747,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Long zRangeStoreByScore(byte[] dstKey, byte[] srcKey,
 			org.springframework.data.domain.Range<? extends Number> range,
-								   org.springframework.data.redis.connection.Limit limit) {
-		return convertAndReturn(delegate.zRangeStoreByScore(dstKey, srcKey, range, limit),
-				Converters.identityConverter());
+			org.springframework.data.redis.connection.Limit limit) {
+		return convertAndReturn(delegate.zRangeStoreByScore(dstKey, srcKey, range, limit), Converters.identityConverter());
 	}
 
 	@Override

@@ -15,15 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -60,10 +53,8 @@ class RedisAccessorUnitTests {
 	@Test
 	void getRequiredConnectionFactoryWhenNull() {
 
-		assertThatIllegalStateException()
-			.isThrownBy(() -> new TestRedisAccessor().getRequiredConnectionFactory())
-			.withMessage("RedisConnectionFactory is required")
-			.withNoCause();
+		assertThatIllegalStateException().isThrownBy(() -> new TestRedisAccessor().getRequiredConnectionFactory())
+				.withMessage("RedisConnectionFactory is required").withNoCause();
 	}
 
 	@Test
@@ -82,6 +73,6 @@ class RedisAccessorUnitTests {
 		verifyNoMoreInteractions(redisAccessor);
 	}
 
-	static class TestRedisAccessor extends RedisAccessor { }
+	static class TestRedisAccessor extends RedisAccessor {}
 
 }

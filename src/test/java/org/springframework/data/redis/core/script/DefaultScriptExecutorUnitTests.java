@@ -77,8 +77,8 @@ class DefaultScriptExecutorUnitTests {
 	@Test // DATAREDIS-347
 	void excuteShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
-		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
-				new RedisSystemException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
+		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
+				.thenThrow(new RedisSystemException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
 
 		executor.execute(SCRIPT, null);
 
@@ -88,8 +88,8 @@ class DefaultScriptExecutorUnitTests {
 	@Test // DATAREDIS-347
 	void excuteShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
 
-		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
-				new UnsupportedOperationException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
+		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
+				.thenThrow(new UnsupportedOperationException("NOSCRIPT No matching script; Please use EVAL.", new Exception()));
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> executor.execute(SCRIPT, null));
 	}
@@ -97,8 +97,8 @@ class DefaultScriptExecutorUnitTests {
 	@Test // DATAREDIS-347
 	void excuteShouldThrowExceptionInCaseEvalShaFailsWithAlthoughTheScriptExists() {
 
-		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
-				new RedisSystemException("Found Script but could not execute it.", new Exception()));
+		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
+				.thenThrow(new RedisSystemException("Found Script but could not execute it.", new Exception()));
 
 		assertThatExceptionOfType(RedisSystemException.class).isThrownBy(() -> executor.execute(SCRIPT, null));
 	}

@@ -281,18 +281,17 @@ class LettuceStringCommands implements RedisStringCommands {
 			throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 		}
 
-		return connection.invoke().just(it ->
-			switch (op) {
-				case AND -> it.bitopAnd(destination, keys);
-				case OR -> it.bitopOr(destination, keys);
-				case XOR -> it.bitopXor(destination, keys);
-				case NOT -> {
-					if (keys.length != 1) {
-						throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
-					}
-					yield it.bitopNot(destination, keys[0]);
+		return connection.invoke().just(it -> switch (op) {
+			case AND -> it.bitopAnd(destination, keys);
+			case OR -> it.bitopOr(destination, keys);
+			case XOR -> it.bitopXor(destination, keys);
+			case NOT -> {
+				if (keys.length != 1) {
+					throw new IllegalArgumentException("Bitop NOT should only be performed against one key");
 				}
-      		});
+				yield it.bitopNot(destination, keys[0]);
+			}
+		});
 	}
 
 	@Nullable

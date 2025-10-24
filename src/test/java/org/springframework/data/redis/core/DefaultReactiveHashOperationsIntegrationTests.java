@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.junit.jupiter.api.condition.OS.*;
 
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.springframework.data.redis.connection.convert.Converters;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
@@ -30,6 +28,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
@@ -37,6 +36,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;

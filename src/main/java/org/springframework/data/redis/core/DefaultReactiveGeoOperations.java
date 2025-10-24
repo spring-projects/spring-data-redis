@@ -91,8 +91,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 
 			Mono<List<GeoLocation<ByteBuffer>>> serializedList = Flux
 					.fromIterable(() -> memberCoordinateMap.entrySet().iterator())
-					.map(entry -> new GeoLocation<>(rawValue(entry.getKey()), entry.getValue()))
-					.collectList();
+					.map(entry -> new GeoLocation<>(rawValue(entry.getKey()), entry.getValue())).collectList();
 
 			return serializedList.flatMap(list -> geoCommands.geoAdd(rawKey(key), list));
 		});
@@ -107,8 +106,7 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		return createMono(geoCommands -> {
 
 			Mono<List<GeoLocation<ByteBuffer>>> serializedList = Flux.fromIterable(geoLocations)
-					.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint()))
-					.collectList();
+					.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint())).collectList();
 
 			return serializedList.flatMap(list -> geoCommands.geoAdd(rawKey(key), list));
 		});
@@ -220,9 +218,8 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(member, "Member must not be null");
 
-		return createFlux(geoCommands ->
-				geoCommands.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
-						.map(this::readGeoResult));
+		return createFlux(geoCommands -> geoCommands.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
+				.map(this::readGeoResult));
 	}
 
 	@Override
@@ -271,29 +268,29 @@ class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> 
 	}
 
 	@Override
-	public Flux<GeoResult<GeoLocation<V>>> search(K key, GeoReference<V> reference,
-			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+	public Flux<GeoResult<GeoLocation<V>>> search(K key, GeoReference<V> reference, GeoShape geoPredicate,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(reference, "GeoReference must not be null");
 
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return createFlux(geoCommands -> geoCommands.geoSearch(rawKey(key), rawReference, geoPredicate, args)
-				.map(this::readGeoResult));
+		return createFlux(
+				geoCommands -> geoCommands.geoSearch(rawKey(key), rawReference, geoPredicate, args).map(this::readGeoResult));
 	}
 
 	@Override
-	public Mono<Long> searchAndStore(K key, K destKey, GeoReference<V> reference,
-			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+	public Mono<Long> searchAndStore(K key, K destKey, GeoReference<V> reference, GeoShape geoPredicate,
+			RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(reference, "GeoReference must not be null");
 
 		GeoReference<ByteBuffer> rawReference = getGeoReference(reference);
 
-		return createMono(geoCommands -> geoCommands.geoSearchStore(rawKey(destKey), rawKey(key),
-				rawReference, geoPredicate, args));
+		return createMono(
+				geoCommands -> geoCommands.geoSearchStore(rawKey(destKey), rawKey(key), rawReference, geoPredicate, args));
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveGeoCommands, Publisher<T>> function) {

@@ -59,40 +59,35 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 
 	@Test
 	public void testEvalShaNotFound() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> {
-					connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
-					getResults();
-				});
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> {
+			connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+			getResults();
+		});
 	}
 
 	@Test
 	public void testEvalShaArrayError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> {
-					connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1");
-					getResults();
-				});
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> {
+			connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1");
+			getResults();
+		});
 	}
 
 	@Test
 	public void testEvalArrayScriptError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> {
-					connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar");
-					getResults();
-				});
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> {
+			connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar");
+			getResults();
+		});
 	}
 
 	@Test
 	public void testEvalReturnSingleError() {
-		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(()-> {
-					connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
-					getResults();
-				});
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> {
+			connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+			getResults();
+		});
 	}
-
 
 	// Unsupported Ops
 	@Test

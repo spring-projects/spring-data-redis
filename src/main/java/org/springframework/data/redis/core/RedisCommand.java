@@ -52,8 +52,7 @@ public enum RedisCommand {
 	BGSAVE("r", 0, 0), //
 	BITCOUNT("r", 1, 3), //
 	BITFIELD("rw", 1), //
-	BITFIELD_RO("r", 1),
-	BITOP("rw", 3), //
+	BITFIELD_RO("r", 1), BITOP("rw", 3), //
 	BITPOS("r", 2, 4), //
 	BLMOVE("rw", 4), //
 	BLMPOP("rw", 4), //
@@ -75,7 +74,7 @@ public enum RedisCommand {
 	CLIENT_SETINFO("w", 1), //
 	CLIENT_SETNAME("w", 1, 1), //
 	CLIENT_NO_EVICT("w", 1, 1, "client no-evict"), //
-	CLIENT_NO_TOUCH("w", 1, 1,  "client no-touch"), //
+	CLIENT_NO_TOUCH("w", 1, 1, "client no-touch"), //
 	CLIENT_TRACKING("rw", 1), //
 	CONFIG_GET("r", 1, 1, "getconfig"), //
 	CONFIG_REWRITE("rw", 0, 0), //
@@ -143,8 +142,7 @@ public enum RedisCommand {
 	HLEN("r", 1), //
 	HMGET("r", 2), //
 	HMSET("w", 3), //
-	HPOP("rw", 3),
-	HSET("w", 3, 3), //
+	HPOP("rw", 3), HSET("w", 3, 3), //
 	HSETNX("w", 3, 3), //
 	HVALS("r", 1, 1), //
 	HSCAN("r", 2), //

@@ -67,9 +67,8 @@ class TestConfig {
 	@Bean
 	LettuceConnectionFactory connectionFactory(ClientResources clientResources) {
 
-		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
-				.shutdownTimeout(Duration.ZERO).shutdownQuietPeriod(Duration.ZERO)
-				.clientResources(clientResources).build();
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder().shutdownTimeout(Duration.ZERO)
+				.shutdownQuietPeriod(Duration.ZERO).clientResources(clientResources).build();
 
 		return new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration(), clientConfiguration);
 	}

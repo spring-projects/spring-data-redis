@@ -183,7 +183,6 @@ public interface RedisSetCommands {
 	@Nullable
 	Long sUnionStore(byte[] destKey, byte[]... keys);
 
-
 	/**
 	 * Get all elements of set at {@code key}.
 	 *

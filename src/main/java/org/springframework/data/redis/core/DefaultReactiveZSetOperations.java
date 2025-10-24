@@ -210,8 +210,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -220,8 +220,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRangeByScore(rawKey(key), range, limit)
-				.map(this::readRequiredValue));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRangeByScore(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -231,8 +231,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -250,8 +250,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRevRangeWithScores(rawKey(key), range).map(this::readTypedTuple));
+		return createFlux(zSetCommands -> zSetCommands.zRevRangeWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -260,8 +259,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range)
-				.map(this::readRequiredValue));
+		return createFlux(zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -270,8 +268,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -280,8 +278,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range, limit)
-				.map(this::readRequiredValue));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
@@ -291,8 +289,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -314,8 +312,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createMono(zSetCommands ->
-				zSetCommands.zRangeStoreRevByLex(rawKey(srcKey), rawKey(dstKey), range, limit));
+		return createMono(zSetCommands -> zSetCommands.zRangeStoreRevByLex(rawKey(srcKey), rawKey(dstKey), range, limit));
 	}
 
 	@Override
@@ -326,8 +323,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createMono(zSetCommands ->
-				zSetCommands.zRangeStoreByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
+		return createMono(zSetCommands -> zSetCommands.zRangeStoreByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
 	}
 
 	@Override
@@ -338,8 +334,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createMono(zSetCommands ->
-				zSetCommands.zRangeStoreRevByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
+		return createMono(zSetCommands -> zSetCommands.zRangeStoreRevByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
 	}
 
 	@Override
@@ -348,8 +343,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(options, "ScanOptions must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zScan(rawKey(key), options).map(this::readTypedTuple));
+		return createFlux(zSetCommands -> zSetCommands.zScan(rawKey(key), options).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -694,8 +688,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRevRangeByLex(rawKey(key), range, limit)
-				.map(this::readRequiredValue));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByLex(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override

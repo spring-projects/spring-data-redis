@@ -189,7 +189,8 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		assertThat(serializer.deserialize(
 				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$FinalObject\",\"longValue\":1,\"myArray\":[1,2,3],\n"
 						+ "\"simpleObject\":{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$SimpleObject\",\"longValue\":2}}")
-								.getBytes())).isEqualTo(source);
+						.getBytes()))
+				.isEqualTo(source);
 	}
 
 	@Test // GH-2361
@@ -231,7 +232,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
 				.writer((mapper, source) -> {
 					return mapper.writerWithView(Views.Basic.class).writeValueAsBytes(source);
-		}).build();
+				}).build();
 
 		byte[] result = serializer.serialize(user);
 
@@ -265,8 +266,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		user.name = "Walter White";
 
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.reader(
-				(mapper, source, type) -> {
+				.reader((mapper, source, type) -> {
 					if (type.getRawClass() == User.class) {
 						return mapper.readerWithView(Views.Basic.class).forType(type).readValue(source);
 					}
@@ -398,7 +398,8 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
-		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class)).isEqualTo(EnumType.TWO);
+		assertThat(serializer.deserialize("\"TWO\"".getBytes(StandardCharsets.UTF_8), EnumType.class))
+				.isEqualTo(EnumType.TWO);
 	}
 
 	@Test // GH-2396
@@ -407,9 +408,11 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
 		WithJsr310 source = new WithJsr310();
-		source.myDate = java.time.LocalDate.of(2022,9,2);
+		source.myDate = java.time.LocalDate.of(2022, 9, 2);
 
-		assertThat(serializer.serialize(source)).isEqualTo(("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}").getBytes(StandardCharsets.UTF_8));
+		assertThat(serializer.serialize(source)).isEqualTo(
+				("{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}")
+						.getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Test // GH-2396
@@ -417,8 +420,9 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
-		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}".getBytes(StandardCharsets.UTF_8);
-		assertThat(serializer.deserialize(source, WithJsr310.class).myDate).isEqualTo(java.time.LocalDate.of(2022,9,2));
+		byte[] source = "{\"@class\":\"org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializerUnitTests$WithJsr310\",\"myDate\":[2022,9,2]}"
+				.getBytes(StandardCharsets.UTF_8);
+		assertThat(serializer.deserialize(source, WithJsr310.class).myDate).isEqualTo(java.time.LocalDate.of(2022, 9, 2));
 	}
 
 	@Test // GH-2601
@@ -442,18 +446,15 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 	@Test // GH-2601
 	void configureWithNullConsumerThrowsIllegalArgumentException() {
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new GenericJackson2JsonRedisSerializer().configure(null))
-			.withMessage("Consumer used to configure and customize ObjectMapper must not be null")
-			.withNoCause();
+		assertThatIllegalArgumentException().isThrownBy(() -> new GenericJackson2JsonRedisSerializer().configure(null))
+				.withMessage("Consumer used to configure and customize ObjectMapper must not be null").withNoCause();
 	}
 
 	@Test
 	void defaultSerializeAndDeserializeNullValueWithBuilderClass() {
 
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.objectMapper(new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY))
-				.build();
+				.objectMapper(new ObjectMapper().enableDefaultTyping(DefaultTyping.EVERYTHING, As.PROPERTY)).build();
 
 		serializeAndDeserializeNullValue(serializer);
 	}
@@ -477,8 +478,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		};
 
 		GenericJackson2JsonRedisSerializer serializer = GenericJackson2JsonRedisSerializer.builder()
-				.nullValueSerializer(nullValueSerializer)
-				.build();
+				.nullValueSerializer(nullValueSerializer).build();
 
 		NullValue nv = BeanUtils.instantiateClass(NullValue.class);
 
@@ -555,8 +555,7 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 				return false;
 			}
 
-			return Objects.equals(this.simpleObject, that.simpleObject)
-				&& Objects.equals(this.stringValue, that.stringValue);
+			return Objects.equals(this.simpleObject, that.simpleObject) && Objects.equals(this.stringValue, that.stringValue);
 		}
 
 		@Override
@@ -607,8 +606,8 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 			}
 
 			return Objects.equals(this.getLongValue(), that.getLongValue())
-				&& Arrays.equals(this.getMyArray(), that.getMyArray())
-				&& Objects.equals(this.getSimpleObject(), that.getSimpleObject());
+					&& Arrays.equals(this.getMyArray(), that.getMyArray())
+					&& Objects.equals(this.getSimpleObject(), that.getSimpleObject());
 		}
 
 		@Override
@@ -658,12 +657,8 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 		@Override
 		public String toString() {
 
-			return "User{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", email='" + email + '\'' +
-				", mobile='" + mobile + '\'' +
-				'}';
+			return "User{" + "id=" + id + ", name='" + name + '\'' + ", email='" + email + '\'' + ", mobile='" + mobile + '\''
+					+ '}';
 		}
 	}
 
@@ -716,8 +711,8 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 			}
 
 			return Objects.equals(this.getCount(), that.getCount())
-				&& Objects.equals(this.getAvailable(), that.getAvailable())
-				&& Objects.equals(this.getArrayOfPrimitiveWrapper(), that.getArrayOfPrimitiveWrapper());
+					&& Objects.equals(this.getAvailable(), that.getAvailable())
+					&& Objects.equals(this.getArrayOfPrimitiveWrapper(), that.getArrayOfPrimitiveWrapper());
 		}
 
 		@Override
@@ -768,8 +763,8 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 			}
 
 			return Objects.equals(this.getPrimitiveWrapper(), that.getPrimitiveWrapper())
-			 	&& Objects.equals(this.getPrimitiveArrayWrapper(), that.getPrimitiveArrayWrapper())
-			 	&& Objects.equals(this.getSimpleObjectWrapper(), that.getSimpleObjectWrapper());
+					&& Objects.equals(this.getPrimitiveArrayWrapper(), that.getPrimitiveArrayWrapper())
+					&& Objects.equals(this.getSimpleObjectWrapper(), that.getSimpleObjectWrapper());
 		}
 
 		@Override
@@ -785,7 +780,6 @@ class GenericJackson2JsonRedisSerializerUnitTests {
 
 	static class WithJsr310 {
 		@JsonSerialize(using = LocalDateSerializer.class)
-		@JsonDeserialize(using = LocalDateDeserializer.class)
-		private LocalDate myDate;
+		@JsonDeserialize(using = LocalDateDeserializer.class) private LocalDate myDate;
 	}
 }

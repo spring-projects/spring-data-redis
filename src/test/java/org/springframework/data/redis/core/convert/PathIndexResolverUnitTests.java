@@ -210,8 +210,8 @@ class PathIndexResolverUnitTests {
 		rand.addressRef.id = "emond_s_field";
 		rand.addressRef.country = "andor";
 
-		Set<IndexedData> indexes = indexResolver
-				.resolveIndexesFor(TypeInformation.of(PersonWithAddressReference.class), rand);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(PersonWithAddressReference.class),
+				rand);
 
 		assertThat(indexes).isEmpty();
 	}
@@ -381,8 +381,7 @@ class PathIndexResolverUnitTests {
 		source.values.put("jon", "snow");
 		source.values.put("arya", "stark");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnMapField.class),
-				source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnMapField.class), source);
 
 		assertThat(indexes).hasSize(2);
 		assertThat(indexes).contains(
@@ -399,8 +398,7 @@ class PathIndexResolverUnitTests {
 		source.values.add("jon");
 		source.values.add("arya");
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnListField.class),
-				source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnListField.class), source);
 
 		assertThat(indexes).hasSize(2);
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "jon"),
@@ -413,8 +411,8 @@ class PathIndexResolverUnitTests {
 		IndexedOnPrimitiveArrayField source = new IndexedOnPrimitiveArrayField();
 		source.values = new int[] { 1, 2, 3 };
 
-		Set<IndexedData> indexes = indexResolver
-				.resolveIndexesFor(TypeInformation.of(IndexedOnPrimitiveArrayField.class), source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(IndexedOnPrimitiveArrayField.class),
+				source);
 
 		assertThat(indexes).hasSize(3);
 		assertThat(indexes).contains(
@@ -453,8 +451,7 @@ class PathIndexResolverUnitTests {
 		GeoIndexedOnPoint source = new GeoIndexedOnPoint();
 		source.location = new Point(1D, 2D);
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(GeoIndexedOnPoint.class),
-				source);
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(TypeInformation.of(GeoIndexedOnPoint.class), source);
 
 		assertThat(indexes).hasSize(1);
 		assertThat(indexes)

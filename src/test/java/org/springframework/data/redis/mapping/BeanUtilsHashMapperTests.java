@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.mapping;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.hash.BeanUtilsHashMapper;
 

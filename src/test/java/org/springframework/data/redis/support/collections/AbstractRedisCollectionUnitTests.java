@@ -44,7 +44,7 @@ class AbstractRedisCollectionUnitTests {
 
 	private AbstractRedisCollection<String> collection;
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private RedisTemplate redisTemplateSpy;
 	private @Mock RedisConnectionFactory connectionFactoryMock;
 	private @Mock(answer = Answers.RETURNS_MOCKS) RedisConnection connectionMock;

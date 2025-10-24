@@ -52,8 +52,8 @@ public abstract class RedisAccessor implements InitializingBean {
 	}
 
 	/**
-	 * Returns the required {@link RedisConnectionFactory}, throwing an {@link IllegalStateException}
-	 * if the {@link RedisConnectionFactory} is not set.
+	 * Returns the required {@link RedisConnectionFactory}, throwing an {@link IllegalStateException} if the
+	 * {@link RedisConnectionFactory} is not set.
 	 *
 	 * @return the configured {@link RedisConnectionFactory}.
 	 * @throws IllegalStateException if the {@link RedisConnectionFactory} is not set.

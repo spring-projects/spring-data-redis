@@ -72,7 +72,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	@ParameterizedRedisTest // GH-2037
 	@EnabledOnCommand("SMISMEMBER")
 	void testContainsAll() {
-		
+
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -324,7 +324,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	@ParameterizedRedisTest // GH-2049
 	void randMemberReturnsSomething() {
 
-		Object[] valuesArray = new Object[]{getT(), getT(), getT()};
+		Object[] valuesArray = new Object[] { getT(), getT(), getT() };
 
 		collection.addAll((List<T>) Arrays.asList(valuesArray));
 

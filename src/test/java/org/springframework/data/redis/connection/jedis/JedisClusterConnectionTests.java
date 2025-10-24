@@ -1186,7 +1186,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isEqualTo(VALUE_2_BYTES);
 		assertThat(
 				clusterConnection.bLMove(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES, Direction.RIGHT, Direction.LEFT, 0.01))
-						.isNull();
+				.isNull();
 
 		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_1, 0, -1)).isEmpty();
 		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
@@ -2786,13 +2786,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(1L);
+				.containsExactly(1L);
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(2L);
+				.containsExactly(2L);
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L)))
-						.containsExactly(3L);
+				.containsExactly(3L);
 		assertThat(clusterConnection.stringCommands()
 				.bitField(JedisConverters.toBytes(KEY_1),
 						create().incr(unsigned(2)).valueAt(BitFieldSubCommands.Offset.offset(102L)).overflow(FAIL).by(1L))
@@ -2804,7 +2804,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(signed(5)).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)))
-						.containsExactly(1L, 0L);
+				.containsExactly(1L, 0L);
 	}
 
 	@Test // DATAREDIS-562
@@ -2814,13 +2814,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 						create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).to(100L)
 								.set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()).to(200L)))
-										.containsExactly(0L, 0L);
+				.containsExactly(0L, 0L);
 		assertThat(
 				clusterConnection.stringCommands()
 						.bitField(JedisConverters.toBytes(KEY_1),
 								create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L).multipliedByTypeLength()).get(INT_8)
-										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength()))).containsExactly(100L,
-												-56L);
+										.valueAt(BitFieldSubCommands.Offset.offset(1L).multipliedByTypeLength())))
+				.containsExactly(100L, -56L);
 	}
 
 	@Test // DATAREDIS-1005
@@ -2965,7 +2965,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(topology).isInstanceOf(JedisClusterConnection.JedisClusterTopology.class);
 
 		assertThat(provider.shouldUseCachedValue(null)).isFalse();
-		assertThat(provider.shouldUseCachedValue(new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() - 101, 100))).isFalse();
+		assertThat(provider.shouldUseCachedValue(
+				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() - 101, 100))).isFalse();
 		assertThat(provider.shouldUseCachedValue(
 				new JedisClusterConnection.JedisClusterTopology(Set.of(), System.currentTimeMillis() + 100, 100))).isTrue();
 	}

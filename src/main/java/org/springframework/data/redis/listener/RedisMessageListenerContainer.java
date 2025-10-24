@@ -771,7 +771,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	private void remove(@Nullable MessageListener listener, Topic topic, ByteArrayWrapper holder,
-						Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
 		if (CollectionUtils.isEmpty(listeners)) {

@@ -84,9 +84,9 @@ class StreamObjectMapper {
 				@Override
 				public Object fromHash(Map<Object, Object> hash) {
 
-					Map<byte[], byte[]> map = hash.entrySet().stream().collect(Collectors.toMap(
-							keyMapper -> conversionService.convert(keyMapper.getKey(), byte[].class),
-							valueMapper -> conversionService.convert(valueMapper.getValue(), byte[].class)));
+					Map<byte[], byte[]> map = hash.entrySet().stream()
+							.collect(Collectors.toMap(keyMapper -> conversionService.convert(keyMapper.getKey(), byte[].class),
+									valueMapper -> conversionService.convert(valueMapper.getValue(), byte[].class)));
 
 					return ohm.fromHash(map);
 				}

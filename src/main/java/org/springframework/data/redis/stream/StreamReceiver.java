@@ -500,8 +500,7 @@ public interface StreamReceiver<K, V extends Record<K, ?>> {
 		 */
 		public StreamReceiverOptions<K, V> build() {
 			return new StreamReceiverOptions<>(pollTimeout, batchSize, resumeFunction, keySerializer, hashKeySerializer,
-					hashValueSerializer,
-					targetType, hashMapper);
+					hashValueSerializer, targetType, hashMapper);
 		}
 	}
 }

@@ -15,7 +15,11 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
+
+import redis.clients.jedis.ConnectionPool;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
 
 import java.util.Random;
 
@@ -25,10 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.data.redis.test.condition.EnabledOnRedisClusterAvailable;
 import org.springframework.data.redis.test.extension.JedisExtension;
 import org.springframework.util.StringUtils;
-
-import redis.clients.jedis.ConnectionPool;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
 
 /**
  * Unit tests for {@link ClusterSlotHashUtil}.
@@ -84,8 +84,8 @@ public class ClusterSlotHashUtilsTests {
 			int slot2 = ClusterSlotHashUtil.calculateSlot(key2);
 
 			assertThat(slot2)
-				.describedAs("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1, key2, slot1, slot2)
-				.isEqualTo(slot1);
+					.describedAs("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1, key2, slot1, slot2)
+					.isEqualTo(slot1);
 
 			Long serverSlot1 = jedis.clusterKeySlot(key1);
 			Long serverSlot2 = jedis.clusterKeySlot(key2);

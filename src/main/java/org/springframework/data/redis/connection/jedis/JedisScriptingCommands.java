@@ -97,8 +97,7 @@ class JedisScriptingCommands implements RedisScriptingCommands {
 		JedisScriptReturnConverter converter = new JedisScriptReturnConverter(returnType);
 		return (T) connection.invoke()
 				.from(Jedis::evalsha, ScriptingKeyPipelineBinaryCommands::evalsha, scriptSha, numKeys, keysAndArgs)
-				.getOrElse(converter, () -> converter.convert(null)
-		);
+				.getOrElse(converter, () -> converter.convert(null));
 	}
 
 }

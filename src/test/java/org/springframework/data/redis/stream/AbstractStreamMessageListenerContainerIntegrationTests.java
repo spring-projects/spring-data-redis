@@ -397,9 +397,8 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		if (connection instanceof LettuceConnection lettuce) {
 
-			String value = ((List) lettuce.execute("XPENDING",
-					new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
-							.toString();
+			String value = ((List) lettuce.execute("XPENDING", new NestedMultiOutput<>(StringCodec.UTF8),
+					new byte[][] { stream.getBytes(), group.getBytes() })).get(0).toString();
 			return NumberUtils.parseNumber(value, Integer.class);
 		}
 
@@ -445,7 +444,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 			}
 
 			return Objects.equals(this.getFirstName(), that.getFirstName())
-				&& Objects.equals(this.getLastName(), that.getLastName());
+					&& Objects.equals(this.getLastName(), that.getLastName());
 		}
 
 		@Override
@@ -456,10 +455,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		@Override
 		public String toString() {
 
-			return "LoginEvent{" +
-				"firstname='" + firstName + '\'' +
-				", lastname='" + lastName + '\'' +
-				'}';
+			return "LoginEvent{" + "firstname='" + firstName + '\'' + ", lastname='" + lastName + '\'' + '}';
 		}
 	}
 }

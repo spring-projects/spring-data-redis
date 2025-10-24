@@ -565,7 +565,6 @@ class JedisZSetCommands implements RedisZSetCommands {
 		return zScan(key, CursorId.initial(), options);
 	}
 
-
 	/**
 	 * @param key
 	 * @param cursorId

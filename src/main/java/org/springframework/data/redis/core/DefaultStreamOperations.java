@@ -141,7 +141,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	@Nullable
 	@Override
 	@SuppressWarnings("unchecked")
-	public RecordId add(Record<K , ?> record, XAddOptions options) {
+	public RecordId add(Record<K, ?> record, XAddOptions options) {
 
 		Assert.notNull(record, "Record must not be null");
 		Assert.notNull(options, "XAddOptions must not be null");

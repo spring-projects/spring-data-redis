@@ -65,6 +65,7 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
  * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
  * <h3>Example</h3>
+ *
  * <pre class="code">
  * class Person {
  * 	String firstname;
@@ -146,8 +147,8 @@ import com.fasterxml.jackson.databind.ser.std.DateSerializer;
  */
 public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
-	private static final boolean SOURCE_VERSION_PRESENT =
-			ClassUtils.isPresent("javax.lang.model.SourceVersion", Jackson2HashMapper.class.getClassLoader());
+	private static final boolean SOURCE_VERSION_PRESENT = ClassUtils.isPresent("javax.lang.model.SourceVersion",
+			Jackson2HashMapper.class.getClassLoader());
 
 	private final ObjectMapper typingMapper;
 	private final ObjectMapper untypedMapper;
@@ -156,9 +157,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	/**
 	 * Creates new {@link Jackson2HashMapper} with a default {@link ObjectMapper}.
 	 *
-	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties
-	 * will be un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure
-	 * created by Jackson.
+	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties will be un/flattened
+	 *          using {@literal dot notation}, or whether to retain the hierarchical node structure created by Jackson.
 	 */
 	public Jackson2HashMapper(boolean flatten) {
 
@@ -190,11 +190,11 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 			}
 		}.findAndRegisterModules(), flatten);
 
-		this.typingMapper.activateDefaultTyping(this.typingMapper.getPolymorphicTypeValidator(),
-				DefaultTyping.EVERYTHING, As.PROPERTY);
+		this.typingMapper.activateDefaultTyping(this.typingMapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
+				As.PROPERTY);
 		this.typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 
-		if(flatten) {
+		if (flatten) {
 			this.typingMapper.disable(MapperFeature.REQUIRE_TYPE_ID_FOR_SUBTYPES);
 		}
 
@@ -208,11 +208,10 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	/**
 	 * Creates new {@link Jackson2HashMapper} initialized with a custom Jackson {@link ObjectMapper}.
 	 *
-	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects};
-	 * must not be {@literal null}.
-	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties
-	 * will be un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure
-	 * created by Jackson.
+	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects}; must not be
+	 *          {@literal null}.
+	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties will be un/flattened
+	 *          using {@literal dot notation}, or whether to retain the hierarchical node structure created by Jackson.
 	 */
 	public Jackson2HashMapper(ObjectMapper mapper, boolean flatten) {
 
@@ -244,8 +243,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 				Map<String, Object> unflattenedHash = doUnflatten(hash);
 				byte[] unflattenedHashedBytes = this.untypedMapper.writeValueAsBytes(unflattenedHash);
-				Object hashedObject = this.typingMapper.reader().forType(Object.class)
-						.readValue(unflattenedHashedBytes);
+				Object hashedObject = this.typingMapper.reader().forType(Object.class).readValue(unflattenedHashedBytes);
 
 				return hashedObject;
 			}
@@ -279,8 +277,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 				if (result.containsKey(nonIndexedKeyName)) {
 					addValueToTypedListAtIndex((List<Object>) result.get(nonIndexedKeyName), index, entry.getValue());
-				}
-				else {
+				} else {
 					result.put(nonIndexedKeyName, createTypedListWithValue(index, entry.getValue()));
 				}
 			} else {
@@ -340,9 +337,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 		int indexOfLeftBracket = indexedValue.indexOf("[");
 
-		return indexOfLeftBracket > -1
-			? indexedValue.substring(0, indexOfLeftBracket)
-			: indexedValue;
+		return indexOfLeftBracket > -1 ? indexedValue.substring(0, indexOfLeftBracket) : indexedValue;
 	}
 
 	private Map<String, Object> flattenMap(Iterator<Entry<String, JsonNode>> source) {
@@ -409,8 +404,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 						try {
 							resultMap.put(propertyPrefix, next.binaryValue());
-						}
-						catch (IOException ex) {
+						} catch (IOException ex) {
 							throw new IllegalStateException("Cannot read binary value '%s'".formatted(propertyPrefix), ex);
 						}
 
@@ -433,7 +427,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 						throw new IllegalStateException(e);
 					}
 				}
-				default -> resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element).getPropertyValue("_value"));
+				default ->
+					resultMap.put(propertyPrefix, new DirectFieldAccessFallbackBeanWrapper(element).getPropertyValue("_value"));
 			}
 		}
 	}

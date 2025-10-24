@@ -68,14 +68,12 @@ class CacheTestParams {
 			// Jedis Cluster
 			JedisConnectionFactory jedisClusterConnectionFactory = JedisConnectionFactoryExtension
 					.getConnectionFactory(RedisCluster.class);
-			factoryList
-					.add(jedisClusterConnectionFactory);
+			factoryList.add(jedisClusterConnectionFactory);
 
 			// Lettuce Cluster
 			LettuceConnectionFactory lettuceClusterConnectionFactory = LettuceConnectionFactoryExtension
 					.getConnectionFactory(RedisCluster.class);
-			factoryList
-					.add(lettuceClusterConnectionFactory);
+			factoryList.add(lettuceClusterConnectionFactory);
 		}
 
 		return factoryList;

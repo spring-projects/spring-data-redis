@@ -254,8 +254,8 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 			}
 
 			return Objects.equals(this.getObjects(), that.getObjects())
-				&& Objects.equals(this.getPersons(), that.getPersons())
-				&& Objects.equals(this.getStrings(), that.getStrings());
+					&& Objects.equals(this.getPersons(), that.getPersons())
+					&& Objects.equals(this.getStrings(), that.getStrings());
 		}
 
 		@Override
@@ -306,8 +306,8 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 			}
 
 			return Objects.equals(this.getObjects(), that.getObjects())
-				&& Objects.equals(this.getPersons(), that.getPersons())
-				&& Objects.equals(this.getStrings(), that.getStrings());
+					&& Objects.equals(this.getPersons(), that.getPersons())
+					&& Objects.equals(this.getStrings(), that.getStrings());
 		}
 
 		@Override
@@ -376,10 +376,9 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 			}
 
 			return Objects.equals(this.getString(), that.getString())
-				&& Objects.equals(this.getCalendar(), that.getCalendar())
-				&& Objects.equals(this.getDate(), that.getDate())
-				&& Objects.equals(this.getLocalDate(), that.getLocalDate())
-				&& Objects.equals(this.getLocalDateTime(), that.getLocalDateTime());
+					&& Objects.equals(this.getCalendar(), that.getCalendar()) && Objects.equals(this.getDate(), that.getDate())
+					&& Objects.equals(this.getLocalDate(), that.getLocalDate())
+					&& Objects.equals(this.getLocalDateTime(), that.getLocalDateTime());
 		}
 
 		@Override
@@ -420,8 +419,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 				return false;
 			}
 
-			return Objects.equals(this.getBigD(), that.getBigD())
-				&& Objects.equals(this.getBigI(), that.getBigI());
+			return Objects.equals(this.getBigD(), that.getBigD()) && Objects.equals(this.getBigI(), that.getBigI());
 		}
 
 		@Override

@@ -132,7 +132,6 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	@Nullable
 	List<Point> position(M... members);
 
-
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
 	 *
@@ -247,8 +246,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	default GeoResults<GeoLocation<M>> search(GeoReference<M> reference, Distance radius,
-			GeoSearchCommandArgs args) {
+	default GeoResults<GeoLocation<M>> search(GeoReference<M> reference, Distance radius, GeoSearchCommandArgs args) {
 		return search(reference, GeoShape.byRadius(radius), args);
 	}
 
@@ -296,8 +294,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	GeoResults<GeoLocation<M>> search(GeoReference<M> reference, GeoShape geoPredicate,
-			GeoSearchCommandArgs args);
+	GeoResults<GeoLocation<M>> search(GeoReference<M> reference, GeoShape geoPredicate, GeoSearchCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} and store results at {@code destKey}.
@@ -340,8 +337,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	default Long searchAndStore(K destKey, GeoReference<M> reference, Distance radius,
-			GeoSearchStoreCommandArgs args) {
+	default Long searchAndStore(K destKey, GeoReference<M> reference, Distance radius, GeoSearchStoreCommandArgs args) {
 		return searchAndStore(destKey, reference, GeoShape.byRadius(radius), args);
 	}
 
@@ -389,7 +385,6 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @see <a href="https://redis.io/commands/geosearchstore">Redis Documentation: GEOSEARCHSTORE</a>
 	 */
 	@Nullable
-	Long searchAndStore(K destKey, GeoReference<M> reference, GeoShape geoPredicate,
-			GeoSearchStoreCommandArgs args);
+	Long searchAndStore(K destKey, GeoReference<M> reference, GeoShape geoPredicate, GeoSearchStoreCommandArgs args);
 
 }

@@ -318,7 +318,7 @@ class QueryByExampleRedisExecutorIntegrationTests {
 		private String lastname;
 		private City hometown;
 
-		Person() { }
+		Person() {}
 
 		Person(String firstname, String lastname) {
 			this.firstname = firstname;
@@ -368,10 +368,9 @@ class QueryByExampleRedisExecutorIntegrationTests {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getFirstname(), that.getFirstname())
-				&& Objects.equals(this.getLastname(), that.getLastname())
-				&& Objects.equals(this.getHometown(), that.getHometown());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getFirstname(), that.getFirstname())
+					&& Objects.equals(this.getLastname(), that.getLastname())
+					&& Objects.equals(this.getHometown(), that.getHometown());
 		}
 
 		@Override
@@ -384,7 +383,7 @@ class QueryByExampleRedisExecutorIntegrationTests {
 
 		private @Indexed String name;
 
-		public City() { }
+		public City() {}
 
 		public City(String name) {
 			this.name = name;

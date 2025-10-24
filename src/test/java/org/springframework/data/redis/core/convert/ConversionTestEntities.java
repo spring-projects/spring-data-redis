@@ -136,10 +136,9 @@ public class ConversionTestEntities {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getFirstname(), that.getFirstname())
-				&& Objects.equals(this.getLastname(), that.getLastname())
-				&& Objects.equals(this.getFather(), that.getFather());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getFirstname(), that.getFirstname())
+					&& Objects.equals(this.getLastname(), that.getLastname())
+					&& Objects.equals(this.getFather(), that.getFather());
 		}
 
 		@Override
@@ -150,10 +149,8 @@ public class ConversionTestEntities {
 		@Override
 		public String toString() {
 
-			return "ConversionTestEntities.RecursiveConstructorPerson(id=" + this.getId()
-				+ ", firstname=" + this.getFirstname()
-				+ ", father=" + this.getFather()
-				+ ", lastname=" + this.getLastname() + ")";
+			return "ConversionTestEntities.RecursiveConstructorPerson(id=" + this.getId() + ", firstname="
+					+ this.getFirstname() + ", father=" + this.getFather() + ", lastname=" + this.getLastname() + ")";
 		}
 	}
 
@@ -187,8 +184,7 @@ public class ConversionTestEntities {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getAddress(), that.getAddress());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getAddress(), that.getAddress());
 		}
 
 		@Override
@@ -198,8 +194,8 @@ public class ConversionTestEntities {
 
 		@Override
 		public String toString() {
-			return "ConversionTestEntities.PersonWithConstructorAndAddress(id=" + this.getId()
-				+ ", address=" + this.getAddress() + ")";
+			return "ConversionTestEntities.PersonWithConstructorAndAddress(id=" + this.getId() + ", address="
+					+ this.getAddress() + ")";
 		}
 	}
 
@@ -258,9 +254,8 @@ public class ConversionTestEntities {
 				return false;
 			}
 
-			return Objects.equals(this.id, that.id)
-				&& Objects.equals(this.name, that.name)
-				&& Objects.equals(this.address, that.address);
+			return Objects.equals(this.id, that.id) && Objects.equals(this.name, that.name)
+					&& Objects.equals(this.address, that.address);
 		}
 
 		@Override
@@ -423,9 +418,8 @@ public class ConversionTestEntities {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getAccount(), that.getAccount())
-				&& Objects.equals(this.getAccountName(), that.getAccountName());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getAccount(), that.getAccount())
+					&& Objects.equals(this.getAccountName(), that.getAccountName());
 		}
 
 		@Override
@@ -435,9 +429,8 @@ public class ConversionTestEntities {
 
 		@Override
 		public String toString() {
-			return "ConversionTestEntities.AccountInfo(id=" + this.getId()
-				+ ", account=" + this.getAccount()
-				+ ", accountName=" + this.getAccountName() + ")";
+			return "ConversionTestEntities.AccountInfo(id=" + this.getId() + ", account=" + this.getAccount()
+					+ ", accountName=" + this.getAccountName() + ")";
 		}
 	}
 }

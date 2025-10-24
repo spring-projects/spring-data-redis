@@ -66,8 +66,7 @@ class MessageListenerUnitTests {
 	}
 
 	@Test
-	void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself()
-			throws Exception {
+	void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself() throws Exception {
 		assertThat(adapter.getDelegate()).isSameAs(adapter);
 	}
 

@@ -35,9 +35,9 @@ import org.springframework.util.Assert;
  * Immutable {@link RedisCacheConfiguration} used to customize {@link RedisCache} behavior, such as caching
  * {@literal null} values, computing cache key prefixes and handling binary serialization.
  * <p>
- * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behavior
- * using the builder methods, such as {@link #entryTtl(Duration)}, {@link #serializeKeysWith(SerializationPair)}
- * and {@link #serializeValuesWith(SerializationPair)}.
+ * Start with {@link RedisCacheConfiguration#defaultCacheConfig()} and customize {@link RedisCache} behavior using the
+ * builder methods, such as {@link #entryTtl(Duration)}, {@link #serializeKeysWith(SerializationPair)} and
+ * {@link #serializeValuesWith(SerializationPair)}.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -110,14 +110,10 @@ public class RedisCacheConfiguration {
 
 		registerDefaultConverters(conversionService);
 
-		return new RedisCacheConfiguration(TtlFunction.persistent(),
-				DEFAULT_CACHE_NULL_VALUES,
-				DEFAULT_ENABLE_TIME_TO_IDLE_EXPIRATION,
-				DEFAULT_USE_PREFIX,
-				CacheKeyPrefix.simple(),
+		return new RedisCacheConfiguration(TtlFunction.persistent(), DEFAULT_CACHE_NULL_VALUES,
+				DEFAULT_ENABLE_TIME_TO_IDLE_EXPIRATION, DEFAULT_USE_PREFIX, CacheKeyPrefix.simple(),
 				SerializationPair.fromSerializer(RedisSerializer.string()),
-				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)),
-				conversionService);
+				SerializationPair.fromSerializer(RedisSerializer.java(classLoader)), conversionService);
 	}
 
 	private final boolean cacheNullValues;
@@ -189,9 +185,8 @@ public class RedisCacheConfiguration {
 	 * @return new {@link RedisCacheConfiguration}.
 	 */
 	public RedisCacheConfiguration disableCachingNullValues() {
-		return new RedisCacheConfiguration(getTtlFunction(), DO_NOT_CACHE_NULL_VALUES, isTimeToIdleEnabled(),
-				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
-				getConversionService());
+		return new RedisCacheConfiguration(getTtlFunction(), DO_NOT_CACHE_NULL_VALUES, isTimeToIdleEnabled(), usePrefix(),
+				getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -203,21 +198,22 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration disableKeyPrefix() {
 		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
-				DO_NOT_USE_PREFIX, getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), getConversionService());
+				DO_NOT_USE_PREFIX, getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
+				getConversionService());
 	}
 
 	/**
-	 * Enables {@literal time-to-idle (TTI) expiration} on {@link Cache} read operations,
-	 * such as {@link Cache#get(Object)}.
+	 * Enables {@literal time-to-idle (TTI) expiration} on {@link Cache} read operations, such as
+	 * {@link Cache#get(Object)}.
 	 * <p>
 	 * Enabling this option applies the same {@link #getTtlFunction() TTL expiration policy} to {@link Cache} read
 	 * operations as it does for {@link Cache} write operations. In effect, this will invoke the Redis {@literal GETEX}
 	 * command in place of {@literal GET}.
 	 * <p>
-	 * Redis does not support the concept of {@literal TTI}, only {@literal TTL}. However, if {@literal TTL} expiration
-	 * is applied to all {@link Cache} operations, both read and write alike, and {@link Cache} operations passed with
-	 * expiration are used consistently across the application, then in effect, an application can achieve
-	 * {@literal TTI} expiration-like behavior.
+	 * Redis does not support the concept of {@literal TTI}, only {@literal TTL}. However, if {@literal TTL} expiration is
+	 * applied to all {@link Cache} operations, both read and write alike, and {@link Cache} operations passed with
+	 * expiration are used consistently across the application, then in effect, an application can achieve {@literal TTI}
+	 * expiration-like behavior.
 	 * <p>
 	 * Requires Redis 6.2.0 or newer.
 	 *
@@ -227,8 +223,7 @@ public class RedisCacheConfiguration {
 	 */
 	public RedisCacheConfiguration enableTimeToIdle() {
 		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), USE_TIME_TO_IDLE_EXPIRATION,
-				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
-				getConversionService());
+				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -256,9 +251,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(ttlFunction, "TtlFunction must not be null");
 
-		return new RedisCacheConfiguration(ttlFunction, getAllowCacheNullValues(), isTimeToIdleEnabled(),
-				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(),
-				getConversionService());
+		return new RedisCacheConfiguration(ttlFunction, getAllowCacheNullValues(), isTimeToIdleEnabled(), usePrefix(),
+				getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -271,8 +265,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(keySerializationPair, "KeySerializationPair must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
-				usePrefix(), getKeyPrefix(), keySerializationPair, getValueSerializationPair(), getConversionService());
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(), usePrefix(),
+				getKeyPrefix(), keySerializationPair, getValueSerializationPair(), getConversionService());
 	}
 
 	/**
@@ -285,8 +279,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(valueSerializationPair, "ValueSerializationPair must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
-				usePrefix(), getKeyPrefix(), getKeySerializationPair(), valueSerializationPair, getConversionService());
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(), usePrefix(),
+				getKeyPrefix(), getKeySerializationPair(), valueSerializationPair, getConversionService());
 	}
 
 	/**
@@ -299,8 +293,8 @@ public class RedisCacheConfiguration {
 
 		Assert.notNull(conversionService, "ConversionService must not be null");
 
-		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(),
-				usePrefix(), getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), conversionService);
+		return new RedisCacheConfiguration(getTtlFunction(), getAllowCacheNullValues(), isTimeToIdleEnabled(), usePrefix(),
+				getKeyPrefix(), getKeySerializationPair(), getValueSerializationPair(), conversionService);
 	}
 
 	/**
@@ -316,7 +310,7 @@ public class RedisCacheConfiguration {
 	 * Use {@link #enableTimeToIdle()} to opt-in and enable {@literal time-to-idle (TTI) expiration} for caching.
 	 *
 	 * @return {@literal true} if {@literal time-to-idle (TTI) expiration} was configured and enabled for caching.
-	 * Defaults to {@literal false}.
+	 *         Defaults to {@literal false}.
 	 * @see <a href="https://redis.io/commands/getex/">GETEX</a>
 	 * @since 3.2.0
 	 */
@@ -400,8 +394,8 @@ public class RedisCacheConfiguration {
 	}
 
 	/**
-	 * Adds a {@link Converter} to extract the {@link String} representation of a {@literal cache key}
-	 * if no suitable {@link Object#toString()} method is present.
+	 * Adds a {@link Converter} to extract the {@link String} representation of a {@literal cache key} if no suitable
+	 * {@link Object#toString()} method is present.
 	 *
 	 * @param cacheKeyConverter {@link Converter} used to convert a {@literal cache key} into a {@link String}.
 	 * @throws IllegalStateException if {@link #getConversionService()} does not allow {@link Converter} registration.
@@ -415,8 +409,8 @@ public class RedisCacheConfiguration {
 	/**
 	 * Configure the underlying {@link ConversionService} used to extract the {@literal cache key}.
 	 *
-	 * @param registryConsumer {@link Consumer} used to register a {@link Converter}
-	 * with the configured {@link ConverterRegistry}; never {@literal null}.
+	 * @param registryConsumer {@link Consumer} used to register a {@link Converter} with the configured
+	 *          {@link ConverterRegistry}; never {@literal null}.
 	 * @throws IllegalStateException if {@link #getConversionService()} does not allow {@link Converter} registration.
 	 * @see org.springframework.core.convert.converter.ConverterRegistry
 	 * @since 2.2

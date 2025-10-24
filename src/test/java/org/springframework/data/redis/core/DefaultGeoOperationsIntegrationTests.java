@@ -475,9 +475,8 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.search(key,
-				GeoReference.fromCoordinate(POINT_PALERMO), new Distance(150, KILOMETERS),
-				newGeoSearchArgs().includeCoordinates().sortAscending());
+		GeoResults<GeoLocation<M>> result = geoOperations.search(key, GeoReference.fromCoordinate(POINT_PALERMO),
+				new Distance(150, KILOMETERS), newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
 		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
@@ -507,8 +506,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
 		GeoResults<GeoLocation<M>> result = geoOperations.search(key, GeoReference.fromMember(member1),
-				new Distance(150, KILOMETERS),
-				newGeoSearchArgs().includeCoordinates().sortAscending());
+				new Distance(150, KILOMETERS), newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
 		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
@@ -537,10 +535,8 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.search(key,
-				GeoReference.fromCoordinate(POINT_PALERMO),
-				new BoundingBox(180, 180, KILOMETERS),
-				newGeoSearchArgs().includeCoordinates().sortAscending());
+		GeoResults<GeoLocation<M>> result = geoOperations.search(key, GeoReference.fromCoordinate(POINT_PALERMO),
+				new BoundingBox(180, 180, KILOMETERS), newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
 		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
@@ -570,8 +566,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
 		GeoResults<GeoLocation<M>> result = geoOperations.search(key, GeoReference.fromMember(member1),
-				new BoundingBox(180, 180, KILOMETERS),
-				newGeoSearchArgs().includeCoordinates().sortAscending());
+				new BoundingBox(180, 180, KILOMETERS), newGeoSearchArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent()).hasSize(2);
 		assertThat(result.getContent().get(0).getContent().getPoint().getX()).isCloseTo(POINT_PALERMO.getX(), offset(0.05));
@@ -601,8 +596,8 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		geoOperations.add(key, POINT_CATANIA, member2);
 		geoOperations.add(key, POINT_ARIGENTO, member3);
 
-		Long result = geoOperations.searchAndStore(key, destKey,
-				GeoReference.fromCoordinate(POINT_PALERMO), new Distance(150, KILOMETERS),
+		Long result = geoOperations.searchAndStore(key, destKey, GeoReference.fromCoordinate(POINT_PALERMO),
+				new Distance(150, KILOMETERS),
 				RedisGeoCommands.GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().sortAscending());
 
 		assertThat(result).isEqualTo(2);

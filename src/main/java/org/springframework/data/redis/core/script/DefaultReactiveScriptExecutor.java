@@ -112,8 +112,8 @@ public class DefaultReactiveScriptExecutor<K> implements ReactiveScriptExecutor<
 				return connection.scriptingCommands().eval(scriptBytes(script), returnType, numKeys, keysAndArgs);
 			}
 
-			return Flux.error(cause instanceof RuntimeException ? cause
-					: new RedisSystemException(cause.getMessage(), cause));
+			return Flux
+					.error(cause instanceof RuntimeException ? cause : new RedisSystemException(cause.getMessage(), cause));
 		});
 
 		return script.returnsRawValue() ? result : deserializeResult(resultReader, result);

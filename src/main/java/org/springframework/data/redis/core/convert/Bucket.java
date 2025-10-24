@@ -57,8 +57,7 @@ public class Bucket {
 	/**
 	 * The Redis data as {@link Map} sorted by the keys.
 	 */
-	private final NavigableMap<String, byte[]> data = new TreeMap<>(
-			COMPARATOR);
+	private final NavigableMap<String, byte[]> data = new TreeMap<>(COMPARATOR);
 
 	/**
 	 * Creates a new empty bucket.
@@ -306,8 +305,7 @@ public class Bucket {
 
 		try {
 			return new String(raw, CHARSET);
-		} catch (Exception ignore) {
-		}
+		} catch (Exception ignore) {}
 
 		return null;
 	}

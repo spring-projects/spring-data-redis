@@ -150,7 +150,8 @@ class JedisHashCommands implements RedisHashCommands {
 
 					List<Entry<byte[], byte[]>> convertedMapEntryList = new ArrayList<>(mapEntryList.size());
 
-					mapEntryList.forEach(entry -> convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
+					mapEntryList
+							.forEach(entry -> convertedMapEntryList.add(Converters.entryOf(entry.getKey(), entry.getValue())));
 
 					return convertedMapEntryList;
 
@@ -237,8 +238,8 @@ class JedisHashCommands implements RedisHashCommands {
 
 				ScanParams params = JedisConverters.toScanParams(options);
 
-				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key,
-						JedisConverters.toBytes(cursorId), params);
+				ScanResult<Entry<byte[], byte[]>> result = connection.getJedis().hscan(key, JedisConverters.toBytes(cursorId),
+						params);
 				return new ScanIteration<>(CursorId.of(result.getCursor()), result.getResult());
 			}
 

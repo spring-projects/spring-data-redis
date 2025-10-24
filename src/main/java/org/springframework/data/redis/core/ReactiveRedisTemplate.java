@@ -396,7 +396,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return doCreateFlux(connection -> connection.keyCommands() //
 				.mDel(Flux.from(keys).map(this::rawKey).buffer(128)) //
 				.map(CommandResponse::getOutput)) //
-						.collect(Collectors.summingLong(value -> value));
+				.collect(Collectors.summingLong(value -> value));
 	}
 
 	@Override
@@ -423,7 +423,7 @@ public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V
 		return doCreateFlux(connection -> connection.keyCommands() //
 				.mUnlink(Flux.from(keys).map(this::rawKey).buffer(128)) //
 				.map(CommandResponse::getOutput)) //
-						.collect(Collectors.summingLong(value -> value));
+				.collect(Collectors.summingLong(value -> value));
 	}
 
 	@Override

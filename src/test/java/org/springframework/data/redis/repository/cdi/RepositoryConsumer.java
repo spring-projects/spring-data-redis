@@ -23,7 +23,8 @@ import jakarta.inject.Inject;
 class RepositoryConsumer {
 
 	@Inject PersonRepository unqualifiedRepo;
-	@Inject @PersonDB PersonRepository qualifiedRepo;
+	@Inject
+	@PersonDB PersonRepository qualifiedRepo;
 
 	public PersonRepository getUnqualifiedRepo() {
 		return unqualifiedRepo;

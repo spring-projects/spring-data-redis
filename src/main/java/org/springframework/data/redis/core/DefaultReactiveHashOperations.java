@@ -63,8 +63,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.noNullElements(hashKeys, "Hash keys must not contain null elements");
 
 		return createMono(hashCommands -> Flux.fromArray(hashKeys) //
-				.map(hashKey -> (HK) hashKey)
-				.map(this::rawHashKey) //
+				.map(hashKey -> (HK) hashKey).map(this::rawHashKey) //
 				.collectList() //
 				.flatMap(hks -> hashCommands.hDel(rawKey(key), hks)));
 	}
@@ -86,8 +85,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return createMono(hashCommands -> hashCommands.hGet(rawKey(key), rawHashKey((HK) hashKey))
-				.map(this::readHashValue));
+		return createMono(
+				hashCommands -> hashCommands.hGet(rawKey(key), rawHashKey((HK) hashKey)).map(this::readHashValue));
 	}
 
 	@Override
@@ -109,8 +108,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands()
-				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
+		return template
+				.doCreateMono(connection -> connection.numberCommands().hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
 	@Override
@@ -119,8 +118,8 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(hashKey, "Hash key must not be null");
 
-		return template.doCreateMono(connection -> connection.numberCommands()
-				.hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
+		return template
+				.doCreateMono(connection -> connection.numberCommands().hIncrBy(rawKey(key), rawHashKey(hashKey), delta));
 	}
 
 	@Override
@@ -137,8 +136,7 @@ class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(hashCommands -> hashCommands.hRandFieldWithValues(rawKey(key)))
-				.map(this::deserializeHashEntry);
+		return createMono(hashCommands -> hashCommands.hRandFieldWithValues(rawKey(key))).map(this::deserializeHashEntry);
 	}
 
 	@Override

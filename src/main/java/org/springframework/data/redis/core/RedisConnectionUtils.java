@@ -510,8 +510,7 @@ public abstract class RedisConnectionUtils {
 			try {
 
 				if (commandInterfaceMethod != null) {
-					target = ReflectionUtils.invokeMethod(commandInterfaceMethod,
-							connection);
+					target = ReflectionUtils.invokeMethod(commandInterfaceMethod, connection);
 				}
 
 				return invoke(method, target, args);

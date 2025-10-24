@@ -27,8 +27,7 @@ import org.springframework.dao.DataRetrievalFailureException;
  */
 public class TooManyClusterRedirectionsException extends DataRetrievalFailureException {
 
-	@Serial
-	private static final long serialVersionUID = -2818933672669154328L;
+	@Serial private static final long serialVersionUID = -2818933672669154328L;
 
 	/**
 	 * Creates new {@link TooManyClusterRedirectionsException}.

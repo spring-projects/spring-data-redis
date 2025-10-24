@@ -254,8 +254,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 				} catch (ExecutionException ex) {
 					entryIterator.remove();
 					exceptionCollector.addException(nodeExecution, ex.getCause());
-				} catch (TimeoutException ignore) {
-				} catch (InterruptedException ex) {
+				} catch (TimeoutException ignore) {} catch (InterruptedException ex) {
 					Thread.currentThread().interrupt();
 					exceptionCollector.addException(nodeExecution, ex);
 					break OUT;

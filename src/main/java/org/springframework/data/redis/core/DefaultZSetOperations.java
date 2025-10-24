@@ -336,8 +336,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count) {
 
 		byte[] rawKey = rawKey(key);
-		Set<Tuple> rawValues = execute(connection ->
-				connection.zRevRangeByScoreWithScores(rawKey, min, max, offset, count));
+		Set<Tuple> rawValues = execute(
+				connection -> connection.zRevRangeByScoreWithScores(rawKey, min, max, offset, count));
 
 		return deserializeTupleValues(rawValues);
 	}

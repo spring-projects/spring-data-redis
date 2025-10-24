@@ -171,8 +171,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		Assert.notNull(command, "Command must not be null");
 		Assert.notNull(args, "Args must not be null");
 
-		JedisClusterCommandCallback<Object> commandCallback = jedis ->
-				jedis.sendCommand(JedisClientUtils.getCommand(command), args);
+		JedisClusterCommandCallback<Object> commandCallback = jedis -> jedis
+				.sendCommand(JedisClientUtils.getCommand(command), args);
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(commandCallback).getValue();
 	}
@@ -190,8 +190,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		RedisClusterNode keyMaster = this.topologyProvider.getTopology().getKeyServingMasterNode(key);
 
-		JedisClusterCommandCallback<T> commandCallback = jedis ->
-			(T) jedis.sendCommand(JedisClientUtils.getCommand(command), commandArgs);
+		JedisClusterCommandCallback<T> commandCallback = jedis -> (T) jedis
+				.sendCommand(JedisClientUtils.getCommand(command), commandArgs);
 
 		return this.clusterCommandExecutor.executeCommandOnSingleNode(commandCallback, keyMaster).getValue();
 	}
@@ -240,8 +240,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		Assert.notNull(keys, "Key must not be null");
 		Assert.notNull(args, "Args must not be null");
 
-		JedisMultiKeyClusterCommandCallback<T> commandCallback = (jedis, key) ->
-			(T) jedis.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
+		JedisMultiKeyClusterCommandCallback<T> commandCallback = (jedis,
+				key) -> (T) jedis.sendCommand(JedisClientUtils.getCommand(command), getCommandArguments(key, args));
 
 		return this.clusterCommandExecutor.executeMultiKeyCommand(commandCallback, keys).resultsAsList();
 
@@ -418,7 +418,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		throw new InvalidDataAccessApiUsageException("Echo not supported in cluster mode");
 	}
 
-	@Override @Nullable
+	@Override
+	@Nullable
 	public String ping() {
 
 		JedisClusterCommandCallback<String> command = Jedis::ping;
@@ -462,8 +463,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		RedisClusterNode node = clusterGetNodeForSlot(slot);
 
-		JedisClusterCommandCallback<List<byte[]>> command = jedis ->
-				JedisConverters.stringListToByteList().convert(jedis.clusterGetKeysInSlot(slot, nullSafeIntValue(count)));
+		JedisClusterCommandCallback<List<byte[]>> command = jedis -> JedisConverters.stringListToByteList()
+				.convert(jedis.clusterGetKeysInSlot(slot, nullSafeIntValue(count)));
 
 		NodeResult<List<byte[]>> result = this.clusterCommandExecutor.executeCommandOnSingleNode(command, node);
 
@@ -555,8 +556,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Integer clusterGetSlotForKey(byte[] key) {
 
-		JedisClusterCommandCallback<Integer> command = jedis ->
-				Long.valueOf(jedis.clusterKeySlot(JedisConverters.toString(key))).intValue();
+		JedisClusterCommandCallback<Integer> command = jedis -> Long
+				.valueOf(jedis.clusterKeySlot(JedisConverters.toString(key))).intValue();
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
 	}
@@ -566,7 +567,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		return this.topologyProvider.getTopology().getKeyServingMasterNode(key);
 	}
 
-	@Override @Nullable
+	@Override
+	@Nullable
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
 		for (RedisClusterNode node : topologyProvider.getTopology().getSlotServingNodes(slot)) {
@@ -600,14 +602,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterReplicaMap() {
 
-		JedisClusterCommandCallback<Collection<RedisClusterNode>> command = jedis ->
-				JedisConverters.toSetOfRedisClusterNodes(jedis.clusterSlaves(jedis.clusterMyId()));
+		JedisClusterCommandCallback<Collection<RedisClusterNode>> command = jedis -> JedisConverters
+				.toSetOfRedisClusterNodes(jedis.clusterSlaves(jedis.clusterMyId()));
 
 		Set<RedisClusterNode> activeMasterNodes = this.topologyProvider.getTopology().getActiveMasterNodes();
 
-		List<NodeResult<Collection<RedisClusterNode>>> nodeResults =
-				this.clusterCommandExecutor.executeCommandAsyncOnNodes(command,activeMasterNodes)
-						.getResults();
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = this.clusterCommandExecutor
+				.executeCommandAsyncOnNodes(command, activeMasterNodes).getResults();
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<>();
 

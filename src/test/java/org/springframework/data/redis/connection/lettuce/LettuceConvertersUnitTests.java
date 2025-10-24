@@ -263,10 +263,8 @@ class LettuceConvertersUnitTests {
 		RedisPassword dataPassword = RedisPassword.of("data-secret");
 		RedisPassword sentinelPassword = RedisPassword.of("sentinel-secret");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379)
-				.sentinel("127.0.0.1", 26380);
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(dataPassword);
 
@@ -289,10 +287,8 @@ class LettuceConvertersUnitTests {
 
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379)
-				.sentinel("127.0.0.1", 26380);
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(password);
 		sentinelConfiguration.setSentinelPassword(password);
@@ -302,7 +298,7 @@ class LettuceConvertersUnitTests {
 		assertThat(redisURI.getUsername()).isEqualTo("app");
 
 		redisURI.getSentinels().forEach(sentinel -> {
- 			assertThat(sentinel.getUsername()).isNull();
+			assertThat(sentinel.getUsername()).isNull();
 			assertThat(sentinel.getPassword()).isNotNull();
 		});
 	}
@@ -312,10 +308,8 @@ class LettuceConvertersUnitTests {
 
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379)
-				.sentinel("127.0.0.1", 26380);
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(password);
 		sentinelConfiguration.setSentinelUsername("admin");

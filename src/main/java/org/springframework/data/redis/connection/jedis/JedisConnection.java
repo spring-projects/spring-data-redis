@@ -79,8 +79,8 @@ import org.springframework.util.CollectionUtils;
  */
 public class JedisConnection extends AbstractRedisConnection {
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION =
-			new FallbackExceptionTranslationStrategy(JedisExceptionConverter.INSTANCE);
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
+			JedisExceptionConverter.INSTANCE);
 
 	private boolean convertPipelineAndTxResults = true;
 
@@ -110,8 +110,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private final Log LOGGER = LogFactory.getLog(getClass());
 
-	@SuppressWarnings("rawtypes")
-	private List<JedisResult> pipelinedResults = new ArrayList<>();
+	@SuppressWarnings("rawtypes") private List<JedisResult> pipelinedResults = new ArrayList<>();
 
 	private final @Nullable Pool<Jedis> pool;
 
@@ -327,8 +326,7 @@ public class JedisConnection extends AbstractRedisConnection {
 		// Return connection to the pool
 		if (this.pool != null) {
 			jedis.close();
-		}
-		else {
+		} else {
 			doExceptionThrowingOperationSafely(jedis::disconnect, "Failed to disconnect during close");
 		}
 	}
@@ -709,14 +707,12 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			operation.run();
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(logMessage, ex);
 			}
 		}
 	}
-
 
 	@FunctionalInterface
 	private interface ExceptionThrowingOperation {

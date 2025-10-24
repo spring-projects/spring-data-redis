@@ -103,8 +103,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER))
-				.as(StepVerifier::create)
-				.consumeNextWith(actual -> {
+				.as(StepVerifier::create).consumeNextWith(actual -> {
 
 					assertThat(actual).contains(VALUE_1_BBUFFER, VALUE_3_BBUFFER);
 
@@ -120,13 +119,11 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_1_BBUFFER)).as(StepVerifier::create)
 				.expectNext(Collections.singletonList(VALUE_1_BBUFFER)).verifyComplete();
 
-		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_2_BBUFFER))
-				.as(StepVerifier::create)
+		connection.hashCommands().hMGet(KEY_1_BBUFFER, Collections.singletonList(FIELD_2_BBUFFER)).as(StepVerifier::create)
 				.expectNext(Collections.singletonList(null)).verifyComplete();
 
 		connection.hashCommands().hMGet(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER))
-				.as(StepVerifier::create)
-				.expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -193,8 +190,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
 		connection.hashCommands().hDel(KEY_1_BBUFFER, Arrays.asList(FIELD_1_BBUFFER, FIELD_3_BBUFFER))
-				.as(StepVerifier::create)
-				.expectNext(2L).verifyComplete();
+				.as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

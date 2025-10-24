@@ -131,7 +131,6 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-
 		long count = 0;
 		try (Cursor<Map.Entry<HK, HV>> it = hashOps.scan(key, ScanOptions.scanOptions().count(1).build())) {
 

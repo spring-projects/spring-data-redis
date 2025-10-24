@@ -101,8 +101,8 @@ public abstract class ClusterSlotHashUtil {
 	/**
 	 * Determines whether all keys will hash to the same slot.
 	 *
-	 * @param keys {@link Collection} of {@link ByteBuffer} objects containing the keys to evaluate;
-	 * must not be {@literal null}.
+	 * @param keys {@link Collection} of {@link ByteBuffer} objects containing the keys to evaluate; must not be
+	 *          {@literal null}.
 	 * @return a boolean value indicating whether all keys will hash to the same slot.
 	 * @throws IllegalArgumentException if the {@link Collection} of keys is {@literal null}.
 	 * @since 2.0
@@ -115,10 +115,8 @@ public abstract class ClusterSlotHashUtil {
 			return true;
 		}
 
-		return isSameSlotForAllKeys(keys.stream()
-				.map(ByteBuffer::duplicate)
-				.map(ByteUtils::getBytes)
-				.toArray(byte[][]::new));
+		return isSameSlotForAllKeys(
+				keys.stream().map(ByteBuffer::duplicate).map(ByteUtils::getBytes).toArray(byte[][]::new));
 	}
 
 	/**

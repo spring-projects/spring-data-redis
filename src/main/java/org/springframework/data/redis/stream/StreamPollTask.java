@@ -36,7 +36,6 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer.Cons
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
 import org.springframework.util.ErrorHandler;
 
-
 /**
  * {@link Task} that invokes a {@link BiFunction read function} to poll on a Redis Stream.
  *

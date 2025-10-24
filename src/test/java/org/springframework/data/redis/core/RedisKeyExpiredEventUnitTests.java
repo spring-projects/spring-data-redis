@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link RedisKeyExpiredEvent}.

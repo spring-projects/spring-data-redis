@@ -23,10 +23,8 @@ import static org.springframework.data.redis.connection.BitFieldSubCommands.BitF
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
-import org.junit.jupiter.api.condition.DisabledOnOs;
 import reactor.test.StepVerifier;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -406,17 +405,13 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(1L)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(1L)).verifyComplete();
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(2L)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(2L)).verifyComplete();
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(3L)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(3L)).verifyComplete();
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(null)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(null)).verifyComplete();
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-602

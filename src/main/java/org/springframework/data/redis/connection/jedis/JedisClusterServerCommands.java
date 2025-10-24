@@ -253,8 +253,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 		JedisClusterCommandCallback<Map<String, String>> command = jedis -> jedis.configGet(pattern);
 
 		List<NodeResult<Map<String, String>>> nodeResults = connection.getClusterCommandExecutor()
-				.executeCommandOnAllNodes(command)
-				.getResults();
+				.executeCommandOnAllNodes(command).getResults();
 
 		Properties nodesConfiguration = new Properties();
 

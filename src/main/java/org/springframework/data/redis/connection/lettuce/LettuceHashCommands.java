@@ -208,7 +208,6 @@ class LettuceHashCommands implements RedisHashCommands {
 		return hScan(key, CursorId.initial(), options);
 	}
 
-
 	/**
 	 * @param key
 	 * @param cursorId

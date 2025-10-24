@@ -91,7 +91,6 @@ class LettuceKeyCommands implements RedisKeyCommands {
 		return connection.invoke().just(RedisKeyAsyncCommands::del, keys);
 	}
 
-
 	@Override
 	public Long unlink(byte[]... keys) {
 

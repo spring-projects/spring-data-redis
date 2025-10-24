@@ -17,19 +17,20 @@ package org.springframework.data.redis.connection.lettuce.observability;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.exporter.FinishedSpan;
+import io.micrometer.tracing.test.SampleTestRunner;
+
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.tracing.exporter.FinishedSpan;
-import io.micrometer.tracing.test.SampleTestRunner;
 
 /**
  * Collection of tests that log metrics and tracing using the synchronous API.

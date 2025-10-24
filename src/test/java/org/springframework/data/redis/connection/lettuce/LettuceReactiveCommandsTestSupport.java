@@ -211,8 +211,7 @@ public abstract class LettuceReactiveCommandsTestSupport {
 			}
 
 			if (nativeBinaryCommands instanceof RedisAdvancedClusterCommands redisAdvancedClusterCommands) {
-				nativeBinaryConnectionProvider
-						.release((redisAdvancedClusterCommands).getStatefulConnection());
+				nativeBinaryConnectionProvider.release((redisAdvancedClusterCommands).getStatefulConnection());
 			}
 		}
 

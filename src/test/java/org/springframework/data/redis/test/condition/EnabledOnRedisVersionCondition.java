@@ -64,8 +64,8 @@ class EnabledOnRedisVersionCondition implements ExecutionCondition {
 		boolean requiredVersionMet = conditions.hasVersionGreaterOrEqualsTo(requiredVersion);
 
 		if (requiredVersionMet) {
-			return enabled("Enabled on version %s; actual version: %s".formatted(requiredVersion,
-					conditions.getRedisVersion()));
+			return enabled(
+					"Enabled on version %s; actual version: %s".formatted(requiredVersion, conditions.getRedisVersion()));
 		}
 
 		return disabled("Disabled; version %s not available on Redis version %s".formatted(requiredVersion,

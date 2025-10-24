@@ -118,8 +118,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 						for (List<ByteBuffer> intersecting : intersectings) {
 							source.retainAll(intersecting);
 						}
-				return source;
-			});
+						return source;
+					});
 
 			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
 		}));
@@ -179,8 +179,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 							source.removeAll(intersecting);
 						}
 
-				return source;
-			});
+						return source;
+					});
 
 			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
 

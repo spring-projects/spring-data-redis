@@ -32,8 +32,8 @@ public abstract class QueryUtils {
 
 	public static <K> SortParameters convertQuery(SortQuery<K> query, RedisSerializer<String> stringSerializer) {
 
-		return new DefaultSortParameters(stringSerializer.serialize(query.getBy()), query.getLimit(), serialize(
-				query.getGetPattern(), stringSerializer), query.getOrder(), query.isAlphabetic());
+		return new DefaultSortParameters(stringSerializer.serialize(query.getBy()), query.getLimit(),
+				serialize(query.getGetPattern(), stringSerializer), query.getOrder(), query.isAlphabetic());
 	}
 
 	private static byte[][] serialize(List<String> strings, RedisSerializer<String> stringSerializer) {

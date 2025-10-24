@@ -228,7 +228,7 @@ public class PathIndexResolver implements IndexResolver {
 			indexConfiguration.addIndexDefinition(indexDefinition);
 
 			data.add(indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value));
-		} else if (property != null &&  value != null && property.isAnnotationPresent(GeoIndexed.class)) {
+		} else if (property != null && value != null && property.isAnnotationPresent(GeoIndexed.class)) {
 
 			GeoIndexDefinition indexDefinition = new GeoIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);

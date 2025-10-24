@@ -15,17 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -56,10 +48,8 @@ class ConvertingCursorUnitTests {
 
 		Cursor<Object> mockCursor = mock(Cursor.class);
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new ConvertingCursor<>(mockCursor, null))
-			.withMessage("Converter must not be null")
-			.withNoCause();
+		assertThatIllegalArgumentException().isThrownBy(() -> new ConvertingCursor<>(mockCursor, null))
+				.withMessage("Converter must not be null").withNoCause();
 
 		verifyNoInteractions(mockCursor);
 	}
@@ -70,10 +60,8 @@ class ConvertingCursorUnitTests {
 
 		Converter<Object, Object> mockConverter = mock(Converter.class);
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new ConvertingCursor<>(null, mockConverter))
-			.withMessage("Cursor must not be null")
-			.withNoCause();
+		assertThatIllegalArgumentException().isThrownBy(() -> new ConvertingCursor<>(null, mockConverter))
+				.withMessage("Cursor must not be null").withNoCause();
 
 		verifyNoInteractions(mockConverter);
 	}

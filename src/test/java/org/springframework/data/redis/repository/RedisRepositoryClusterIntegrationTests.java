@@ -50,8 +50,8 @@ class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationT
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
 			keyspaceConfiguration = MyKeyspaceConfiguration.class,
-			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-					classes = { PersonRepository.class, CityRepository.class, ImmutableObjectRepository.class, UserRepository.class }) })
+			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { PersonRepository.class,
+					CityRepository.class, ImmutableObjectRepository.class, UserRepository.class }) })
 	static class Config {
 
 		@Bean

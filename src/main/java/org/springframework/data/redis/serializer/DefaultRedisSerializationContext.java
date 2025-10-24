@@ -36,8 +36,7 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 	private final SerializationPair<String> stringTuple;
 
 	private DefaultRedisSerializationContext(SerializationPair<K> keyTuple, SerializationPair<V> valueTuple,
-			SerializationPair<?> hashKeyTuple, SerializationPair<?> hashValueTuple,
-			SerializationPair<String> stringTuple) {
+			SerializationPair<?> hashKeyTuple, SerializationPair<?> hashValueTuple, SerializationPair<String> stringTuple) {
 
 		this.keyTuple = keyTuple;
 		this.valueTuple = valueTuple;
@@ -148,8 +147,8 @@ class DefaultRedisSerializationContext<K, V> implements RedisSerializationContex
 			Assert.notNull(this.hashKeyTuple, "HashKey SerializationPair must not be null");
 			Assert.notNull(this.hashValueTuple, "HashValue SerializationPair must not be null");
 
-			return new DefaultRedisSerializationContext<>(this.keyTuple, this.valueTuple,
-					this.hashKeyTuple, this.hashValueTuple, this.stringTuple);
+			return new DefaultRedisSerializationContext<>(this.keyTuple, this.valueTuple, this.hashKeyTuple,
+					this.hashValueTuple, this.stringTuple);
 		}
 	}
 }

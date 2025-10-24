@@ -64,7 +64,7 @@ public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 	 * @since 2.6
 	 */
 	@Nullable
-	Map.Entry<K,V> randomEntry();
+	Map.Entry<K, V> randomEntry();
 
 	/**
 	 * @since 1.4

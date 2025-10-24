@@ -96,10 +96,9 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	void copy() {
 
 		try (ReactiveRedisClusterConnection connection = redisTemplate.getConnectionFactory()
-				.getReactiveClusterConnection()){
+				.getReactiveClusterConnection()) {
 			assumeThat(connection).isNull();
-		} catch (InvalidDataAccessApiUsageException ignore) {
-		}
+		} catch (InvalidDataAccessApiUsageException ignore) {}
 
 		K key = keyFactory.instance();
 		K targetKey = keyFactory.instance();
@@ -299,8 +298,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		redisTemplate
 				.execute(new DefaultRedisScript<>("return redis.call('set', KEYS[1], ARGV[1])", String.class),
 						Collections.singletonList(key), Collections.singletonList(person), json.getWriter(), resultReader)
-				.as(StepVerifier::create)
-				.expectNext("OK").verifyComplete();
+				.as(StepVerifier::create).expectNext("OK").verifyComplete();
 
 		Flux<Person> execute = redisTemplate.execute(
 				new DefaultRedisScript<>("return redis.call('get', KEYS[1])", Person.class), Collections.singletonList(key),
@@ -396,8 +394,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		try (ReactiveRedisClusterConnection connection = redisTemplate.getConnectionFactory()
 				.getReactiveClusterConnection()) {
 			assumeThat(connection).isNull();
-		} catch (InvalidDataAccessApiUsageException ignore) {
-		}
+		} catch (InvalidDataAccessApiUsageException ignore) {}
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
@@ -483,7 +480,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		redisTemplate.listenToChannelLater(channel) //
 				.doOnNext(it -> redisTemplate.convertAndSend(channel, message).subscribe()).flatMapMany(Function.identity()) //
-				.cast(Message.class)  // why? java16 why?
+				.cast(Message.class) // why? java16 why?
 				.as(StepVerifier::create) //
 				.assertNext(received -> {
 

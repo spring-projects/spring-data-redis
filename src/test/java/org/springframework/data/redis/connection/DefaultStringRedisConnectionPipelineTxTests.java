@@ -60,29 +60,25 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testBlPopBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testBlPopBytes();
 	}
 
 	@Test
 	public void testBlPop() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testBlPop();
 	}
 
 	@Test
 	public void testBrPopBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testBrPopBytes();
 	}
 
 	@Test
 	public void testBrPop() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testBrPop();
 	}
 
@@ -164,43 +160,37 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testExistsBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testExistsBytes();
 	}
 
 	@Test
 	public void testExists() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testExists();
 	}
 
 	@Test
 	public void testExpireBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testExpireBytes();
 	}
 
 	@Test
 	public void testExpire() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testExpire();
 	}
 
 	@Test
 	public void testExpireAtBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testExpireAtBytes();
 	}
 
 	@Test
 	public void testExpireAt() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testExpireAt();
 	}
 
@@ -220,15 +210,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testGetBitBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testGetBitBytes();
 	}
 
 	@Test
 	public void testGetBit() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testGetBit();
 	}
 
@@ -238,15 +226,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		Properties results = new Properties();
 		results.put("foo", "bar");
 
-		doReturn(Collections.singletonList(Collections.singletonList(results))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(results))).when(nativeConnection).closePipeline();
 		super.testGetConfig();
 	}
 
 	@Test
 	public void testGetNativeConnection() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testGetNativeConnection();
 	}
 
@@ -292,15 +278,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testHExistsBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testHExistsBytes();
 	}
 
 	@Test
 	public void testHExists() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testHExists();
 	}
 
@@ -320,15 +304,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testHGetAllBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesMap))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesMap))).when(nativeConnection).closePipeline();
 		super.testHGetAllBytes();
 	}
 
 	@Test
 	public void testHGetAll() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesMap))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesMap))).when(nativeConnection).closePipeline();
 		super.testHGetAll();
 	}
 
@@ -358,15 +340,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testHKeysBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testHKeysBytes();
 	}
 
 	@Test
 	public void testHKeys() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testHKeys();
 	}
 
@@ -384,57 +364,49 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testHMGetBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testHMGetBytes();
 	}
 
 	@Test
 	public void testHMGet() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testHMGet();
 	}
 
 	@Test
 	public void testHSetBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testHSetBytes();
 	}
 
 	@Test
 	public void testHSet() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testHSet();
 	}
 
 	@Test
 	public void testHSetNXBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testHSetNXBytes();
 	}
 
 	@Test
 	public void testHSetNX() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testHSetNX();
 	}
 
 	@Test
 	public void testHValsBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testHValsBytes();
 	}
 
 	@Test
 	public void testHVals() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testHVals();
 	}
 
@@ -478,8 +450,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	public void testInfo() {
 		Properties props = new Properties();
 		props.put("foo", "bar");
-		doReturn(Collections.singletonList(Collections.singletonList(props))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(props))).when(nativeConnection).closePipeline();
 		super.testInfo();
 	}
 
@@ -487,22 +458,19 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	public void testInfoBySection() {
 		Properties props = new Properties();
 		props.put("foo", "bar");
-		doReturn(Collections.singletonList(Collections.singletonList(props))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(props))).when(nativeConnection).closePipeline();
 		super.testInfoBySection();
 	}
 
 	@Test
 	public void testKeysBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testKeysBytes();
 	}
 
 	@Test
 	public void testKeys() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testKeys();
 	}
 
@@ -602,15 +570,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testLRangeBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testLRangeBytes();
 	}
 
 	@Test
 	public void testLRange() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testLRange();
 	}
 
@@ -628,64 +594,55 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testMGetBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testMGetBytes();
 	}
 
 	@Test
 	public void testMGet() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testMGet();
 	}
 
 	@Test
 	public void testMSetNXBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testMSetNXBytes();
 	}
 
 	@Test
 	public void testMSetNXString() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testMSetNXString();
 	}
 
 	@Test
 	public void testPersistBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testPersistBytes();
 	}
 
 	@Test
 	public void testPersist() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testPersist();
 	}
 
 	@Test
 	public void testMoveBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testMoveBytes();
 	}
 
 	@Test
 	public void testMove() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testMove();
 	}
 
 	@Test
 	public void testPing() {
-		doReturn(Collections.singletonList(Collections.singletonList("pong"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("pong"))).when(nativeConnection).closePipeline();
 		super.testPing();
 	}
 
@@ -710,15 +667,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testRenameNXBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testRenameNXBytes();
 	}
 
 	@Test
 	public void testRenameNX() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testRenameNX();
 	}
 
@@ -812,15 +767,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testSDiffBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSDiffBytes();
 	}
 
 	@Test
 	public void testSDiff() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSDiff();
 	}
 
@@ -838,29 +791,25 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testSetNXBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testSetNXBytes();
 	}
 
 	@Test
 	public void testSetNX() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testSetNX();
 	}
 
 	@Test
 	public void testSInterBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSInterBytes();
 	}
 
 	@Test
 	public void testSInter() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSInter();
 	}
 
@@ -878,43 +827,37 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testSIsMemberBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testSIsMemberBytes();
 	}
 
 	@Test
 	public void testSIsMember() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testSIsMember();
 	}
 
 	@Test
 	public void testSMembersBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSMembersBytes();
 	}
 
 	@Test
 	public void testSMembers() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSMembers();
 	}
 
 	@Test
 	public void testSMoveBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testSMoveBytes();
 	}
 
 	@Test
 	public void testSMove() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testSMove();
 	}
 
@@ -932,15 +875,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testSortBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testSortBytes();
 	}
 
 	@Test
 	public void testSort() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testSort();
 	}
 
@@ -974,15 +915,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testSRandMemberCountBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testSRandMemberCountBytes();
 	}
 
 	@Test
 	public void testSRandMemberCount() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesList))).when(nativeConnection).closePipeline();
 		super.testSRandMemberCount();
 	}
 
@@ -1048,15 +987,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testSUnionBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSUnionBytes();
 	}
 
 	@Test
 	public void testSUnion() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testSUnion();
 	}
 
@@ -1109,15 +1046,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testZAddBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testZAddBytes();
 	}
 
 	@Test
 	public void testZAdd() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testZAdd();
 	}
 
@@ -1195,141 +1130,121 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testZRangeBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRangeBytes();
 	}
 
 	@Test
 	public void testZRange() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRange();
 	}
 
 	@Test
 	public void testZRangeByScoreOffsetCountBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreOffsetCountBytes();
 	}
 
 	@Test
 	public void testZRangeByScoreOffsetCount() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreOffsetCount();
 	}
 
 	@Test
 	public void testZRangeByScoreBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreBytes();
 	}
 
 	@Test
 	public void testZRangeByScore() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScore();
 	}
 
 	@Test
 	public void testZRangeByScoreWithScoresOffsetCountBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreWithScoresOffsetCountBytes();
 	}
 
 	@Test
 	public void testZRangeByScoreWithScoresOffsetCount() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreWithScoresOffsetCount();
 	}
 
 	@Test
 	public void testZRangeByScoreWithScoresBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreWithScoresBytes();
 	}
 
 	@Test
 	public void testZRangeByScoreWithScores() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRangeByScoreWithScores();
 	}
 
 	@Test
 	public void testZRangeWithScoresBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRangeWithScoresBytes();
 	}
 
 	@Test
 	public void testZRangeWithScores() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRangeWithScores();
 	}
 
 	@Test
 	public void testZRevRangeByScoreOffsetCountBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreOffsetCountBytes();
 	}
 
 	@Test
 	public void testZRevRangeByScoreOffsetCount() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreOffsetCount();
 	}
 
 	@Test
 	public void testZRevRangeByScoreBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreBytes();
 	}
 
 	@Test
 	public void testZRevRangeByScore() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScore();
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScoresOffsetCountBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreWithScoresOffsetCountBytes();
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScoresBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreWithScoresBytes();
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScores() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreWithScores();
 	}
 
@@ -1383,29 +1298,25 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testZRevRangeBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeBytes();
 	}
 
 	@Test
 	public void testZRevRange() {
-		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(bytesSet))).when(nativeConnection).closePipeline();
 		super.testZRevRange();
 	}
 
 	@Test
 	public void testZRevRangeWithScoresBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeWithScoresBytes();
 	}
 
 	@Test
 	public void testZRevRangeWithScores() {
-		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(tupleSet))).when(nativeConnection).closePipeline();
 		super.testZRevRangeWithScores();
 	}
 
@@ -1467,29 +1378,25 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testPExpireBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testPExpireBytes();
 	}
 
 	@Test
 	public void testPExpire() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testPExpire();
 	}
 
 	@Test
 	public void testPExpireAtBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testPExpireAtBytes();
 	}
 
 	@Test
 	public void testPExpireAt() {
-		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(true))).when(nativeConnection).closePipeline();
 		super.testPExpireAt();
 	}
 
@@ -1514,72 +1421,62 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	public void testScriptLoadBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testScriptLoadBytes();
 	}
 
 	@Test
 	public void testScriptLoad() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testScriptLoad();
 	}
 
 	@Test
 	public void testScriptExists() {
 		List<Boolean> results = Collections.singletonList(true);
-		doReturn(Collections.singletonList(Collections.singletonList(results))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList(results))).when(nativeConnection).closePipeline();
 		super.testScriptExists();
 	}
 
 	@Test
 	public void testEvalBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testEvalBytes();
 	}
 
 	@Test
 	public void testEval() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testEval();
 	}
 
 	@Test
 	public void testEvalShaBytes() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testEvalShaBytes();
 	}
 
 	@Test
 	public void testEvalSha() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testEvalSha();
 	}
 
 	@Test
 	public void testExecute() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testExecute();
 	}
 
 	@Test
 	public void testExecuteByteArgs() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testExecuteByteArgs();
 	}
 
 	@Test
 	public void testExecuteStringArgs() {
-		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Collections.singletonList("foo"))).when(nativeConnection).closePipeline();
 		super.testExecuteStringArgs();
 	}
 
@@ -1588,8 +1485,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		// Only call one method, but return 2 results from nativeConnection.exec()
 		// Emulates scenario where user has called some methods directly on the native connection
 		// while tx is open
-		doReturn(Collections.singletonList(Arrays.asList(barBytes, 3L))).when(nativeConnection)
-				.closePipeline();
+		doReturn(Collections.singletonList(Arrays.asList(barBytes, 3L))).when(nativeConnection).closePipeline();
 		doReturn(barBytes).when(nativeConnection).get(fooBytes);
 		connection.get(foo);
 		verifyResults(Arrays.asList(barBytes, 3L));
@@ -1597,16 +1493,14 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 	@Test
 	void testTwoTxs() {
-		doReturn(Arrays
-				.asList(Arrays.asList(new Object[] { barBytes }), Arrays.asList(new Object[] { fooBytes })))
-						.when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(Arrays.asList(new Object[] { barBytes }), Arrays.asList(new Object[] { fooBytes })))
+				.when(nativeConnection).closePipeline();
 		connection.get(foo);
 		connection.exec();
 		connection.get(bar);
 		connection.exec();
 		List<Object> results = connection.closePipeline();
-		assertThat(results).isEqualTo(
-				Arrays.asList(Collections.singletonList(bar), Collections.singletonList(foo)));
+		assertThat(results).isEqualTo(Arrays.asList(Collections.singletonList(bar), Collections.singletonList(foo)));
 	}
 
 	@Test // DATAREDIS-438
@@ -1669,8 +1563,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	public void testGeoDistBytes() {
 
 		doReturn(Collections.singletonList(Collections.singletonList(new Distance(102121.12d, DistanceUnit.METERS))))
-				.when(nativeConnection)
-				.closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.testGeoDistBytes();
 	}
 
@@ -1678,8 +1571,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	public void testGeoDist() {
 
 		doReturn(Collections.singletonList(Collections.singletonList(new Distance(102121.12d, DistanceUnit.METERS))))
-				.when(nativeConnection)
-				.closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.testGeoDist();
 	}
 
@@ -1852,7 +1744,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 		doReturn(Collections.singletonList(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xRangeShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1861,7 +1753,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 		doReturn(Collections.singletonList(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xReadShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1870,7 +1762,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 		doReturn(Collections.singletonList(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xReadGroupShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1879,7 +1771,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 
 		doReturn(Collections.singletonList(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xRevRangeShouldDelegateAndConvertCorrectly();
 	}
 
