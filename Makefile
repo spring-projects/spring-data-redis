@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION?=8.0.0
+VERSION?=8.2.2
 PROJECT?=redis
 GH_ORG?=redis
 SPRING_PROFILE?=ci

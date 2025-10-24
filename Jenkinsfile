@@ -20,10 +20,10 @@ pipeline {
 	stages {
 		stage("Docker Images") {
 			parallel {
-				stage('Publish JDK 25 + Redis 6.2 Docker Image') {
+				stage('Publish JDK 25 + Redis 8.2 Docker Image') {
 					when {
 						anyOf {
-							changeset "ci/openjdk25-redis-6.2/Dockerfile"
+							changeset "ci/openjdk25-redis-8.2/Dockerfile"
 							changeset "Makefile"
 							changeset "ci/pipeline.properties"
 						}
@@ -33,27 +33,7 @@ pipeline {
 
 					steps {
 						script {
-							def image = docker.build("springci/spring-data-with-redis-6.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.6.version']} -f ci/openjdk25-redis-6.2/Dockerfile .")
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								image.push()
-							}
-						}
-					}
-				}
-				stage('Publish JDK 25 + Redis 7.2 Docker Image') {
-					when {
-						anyOf {
-							changeset "ci/openjdk25-redis-7.2/Dockerfile"
-							changeset "Makefile"
-							changeset "ci/pipeline.properties"
-						}
-					}
-					agent { label 'data' }
-					options { timeout(time: 20, unit: 'MINUTES') }
-
-					steps {
-						script {
-							def image = docker.build("springci/spring-data-with-redis-7.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.7.version']} -f ci/openjdk25-redis-7.2/Dockerfile .")
+							def image = docker.build("springci/spring-data-with-redis-8.2:${p['java.main.tag']}", "--build-arg BASE=${p['docker.java.main.image']} --build-arg VERSION=${p['docker.redis.8.version']} -f ci/openjdk25-redis-8.2/Dockerfile .")
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								image.push()
 							}
@@ -102,7 +82,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-						docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
+						docker.image("springci/spring-data-with-redis-8.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 							sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 						}
 					}
@@ -131,46 +111,8 @@ pipeline {
 					steps {
 						script {
 							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-redis-6.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
+								docker.image("springci/spring-data-with-redis-8.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
 									sh "PROFILE=runtimehints LONG_TESTS=false JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
-								}
-							}
-						}
-					}
-				}
-				stage("test: baseline (next)") {
-					agent {
-						label 'data'
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					environment {
-						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
-					}
-					steps {
-						script {
-							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-redis-6.2:${p['java.next.tag']}").inside(p['docker.java.inside.docker']) {
-									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
-								}
-							}
-						}
-					}
-				}
-				stage("test: Redis 7") {
-					agent {
-						label 'data'
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					environment {
-					   	ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
-					}
-					steps {
-						script {
-							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-								docker.image("springci/spring-data-with-redis-7.2:${p['java.main.tag']}").inside(p['docker.java.inside.docker']) {
-									sh "PROFILE=none LONG_TESTS=true JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
 								}
 							}
 						}
