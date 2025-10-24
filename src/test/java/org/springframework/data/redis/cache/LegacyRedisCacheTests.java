@@ -30,8 +30,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionFactory;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -63,8 +61,6 @@ public class LegacyRedisCacheTests {
 	private static final String CACHE_NAME = "testCache";
 	private final boolean allowCacheNullValues;
 
-	static ConditionFactory await = Awaitility.with().pollDelay(Duration.ZERO).pollInSameThread();
-
 	private ObjectFactory<Object> keyFactory;
 	private ObjectFactory<Object> valueFactory;
 
@@ -84,7 +80,6 @@ public class LegacyRedisCacheTests {
 
 	public static Collection<Object[]> testParams() {
 
-		System.out.println("tp");
 		Collection<Object[]> params = AbstractOperationsTestParams.testParams();
 
 		List<Object[]> target = new ArrayList<>();
@@ -112,7 +107,8 @@ public class LegacyRedisCacheTests {
 			cacheConfiguration = cacheConfiguration.disableCachingNullValues();
 		}
 
-		return new RedisCache(CACHE_NAME, RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+		return new RedisCache(CACHE_NAME,
+				RedisCacheWriter.create(connectionFactory, RedisCacheWriter.RedisCacheWriterConfigurer::immediateWrites),
 				cacheConfiguration);
 	}
 
@@ -132,7 +128,7 @@ public class LegacyRedisCacheTests {
 
 		assertThat(value).isNotNull();
 		assertThat(cache.get(key)).isNull();
-		putNow(key, value);
+		cache.put(key, value);
 		ValueWrapper valueWrapper = cache.get(key);
 		if (valueWrapper != null) {
 			assertThat(valueWrapper.get()).isEqualTo(value);
@@ -153,8 +149,6 @@ public class LegacyRedisCacheTests {
 		assertThat(cache.get(key2)).isNull();
 		cache.put(key2, value2);
 		cache.clear();
-
-		await.until(() -> cache.get(key1) == null && cache.get(key2) == null);
 
 		assertThat(cache.get(key2)).isNull();
 		assertThat(cache.get(key1)).isNull();
@@ -182,7 +176,7 @@ public class LegacyRedisCacheTests {
 		Thread th = new Thread(() -> {
 			cache.clear();
 			cache.put(k1, v1);
-			putNow(k2, v2);
+			cache.put(k2, v2);
 			failed.set(v1.equals(cache.get(k1)));
 
 		}, "concurrent-cache-access");
@@ -197,7 +191,7 @@ public class LegacyRedisCacheTests {
 		final Object value4 = getValue();
 
 		cache.put(key3, value3);
-		putNow(key4, value4);
+		cache.put(key4, value4);
 
 		assertThat(cache.get(key1)).isNull();
 		assertThat(cache.get(key2)).isNull();
@@ -237,7 +231,7 @@ public class LegacyRedisCacheTests {
 
 		Object key = getKey();
 		Object value = getValue();
-		putNow(key, value);
+		cache.put(key, value);
 
 		assertThat(value).isEqualTo(cache.get(key, Object.class));
 	}
@@ -247,7 +241,7 @@ public class LegacyRedisCacheTests {
 
 		Object key = getKey();
 		Object value = getValue();
-		putNow(key, value);
+		cache.put(key, value);
 
 		assertThat(cache.get(key, value.getClass())).isInstanceOf(value.getClass());
 	}
@@ -257,7 +251,7 @@ public class LegacyRedisCacheTests {
 
 		Object key = getKey();
 		Object value = getValue();
-		putNow(key, value);
+		cache.put(key, value);
 
 		assertThatIllegalStateException().isThrownBy(() -> cache.get(key, Cache.class));
 	}
@@ -267,7 +261,7 @@ public class LegacyRedisCacheTests {
 
 		Object key = getKey();
 		Object value = getValue();
-		putNow(key, value);
+		cache.put(key, value);
 
 		Object invalidKey = "spring-data-redis".getBytes();
 		assertThat(cache.get(invalidKey, value.getClass())).isNull();
@@ -309,7 +303,7 @@ public class LegacyRedisCacheTests {
 		Object key = getKey();
 		Object value = getValue();
 
-		putNow(key, value);
+		cache.put(key, value);
 
 		assertThat(cache.get(key).get()).isEqualTo(value);
 
@@ -334,7 +328,7 @@ public class LegacyRedisCacheTests {
 		Object key = getKey();
 		Object value = getValue();
 
-		putNow(key, null);
+		cache.put(key, null);
 
 		assertThat(cache.get(key, String.class)).isNull();
 	}
@@ -378,24 +372,11 @@ public class LegacyRedisCacheTests {
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values").isTrue();
 
 		Object key = getKey();
-		putNow(key, null);
+		cache.put(key, null);
 
 		Object cachedValue = cache.get(key, () -> null);
 
 		assertThat(cachedValue).isNull();
-	}
-
-	private void putNow(Object key, Object value) {
-		putNow(cache, key, value);
-	}
-
-	private void putNow(RedisCache cache, Object key, Object value) {
-
-		cache.put(key, value);
-
-		if (cache.getCacheWriter().supportsAsyncRetrieve()) {
-			await.until(() -> cache.get(key) != null);
-		}
 	}
 
 	@SuppressWarnings("unused")

@@ -84,6 +84,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 	private final AsyncCacheWriter asyncCacheWriter;
 
+	private final boolean asynchronousWrites;
+
 	/**
 	 * @param connectionFactory must not be {@literal null}.
 	 * @param batchStrategy must not be {@literal null}.
@@ -99,19 +101,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	 * @param batchStrategy must not be {@literal null}.
 	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime, BatchStrategy batchStrategy) {
-		this(connectionFactory, sleepTime, TtlFunction.persistent(), CacheStatisticsCollector.none(), batchStrategy);
+		this(connectionFactory, sleepTime, TtlFunction.persistent(), CacheStatisticsCollector.none(), batchStrategy, true);
 	}
 
-	/**
-	 * @param connectionFactory must not be {@literal null}.
-	 * @param sleepTime sleep time between lock request attempts. Must not be {@literal null}. Use {@link Duration#ZERO}
-	 *          to disable locking.
-	 * @param lockTtl Lock TTL function must not be {@literal null}.
-	 * @param cacheStatisticsCollector must not be {@literal null}.
-	 * @param batchStrategy must not be {@literal null}.
-	 */
 	DefaultRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime, TtlFunction lockTtl,
-			CacheStatisticsCollector cacheStatisticsCollector, BatchStrategy batchStrategy) {
+			CacheStatisticsCollector cacheStatisticsCollector, BatchStrategy batchStrategy, boolean asynchronousWrites) {
 
 		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
 		Assert.notNull(sleepTime, "SleepTime must not be null");
@@ -126,10 +120,114 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		this.batchStrategy = batchStrategy;
 
 		if (REACTIVE_REDIS_CONNECTION_FACTORY_PRESENT && this.connectionFactory instanceof ReactiveRedisConnectionFactory) {
-			asyncCacheWriter = new AsynchronousCacheWriterDelegate();
+			this.asyncCacheWriter = new AsynchronousCacheWriterDelegate();
+			this.asynchronousWrites = asynchronousWrites;
 		} else {
 			asyncCacheWriter = UnsupportedAsyncCacheWriter.INSTANCE;
+			this.asynchronousWrites = false;
 		}
+	}
+
+	/**
+	 * Create a new {@code DefaultRedisCacheWriter} applying configuration through {@code configurerConsumer}.
+	 *
+	 * @param connectionFactory the connection factory to use.
+	 * @param configurerConsumer configuration consumer.
+	 * @return a new {@code DefaultRedisCacheWriter}.
+	 * @since 4.0
+	 */
+	public static DefaultRedisCacheWriter create(RedisConnectionFactory connectionFactory,
+			Consumer<RedisCacheWriterConfigurer> configurerConsumer) {
+
+		Assert.notNull(connectionFactory, "RedisConnectionFactory must not be null");
+		Assert.notNull(configurerConsumer, "RedisCacheWriterConfigurer function must not be null");
+
+		DefaultRedisCacheWriterConfigurer config = new DefaultRedisCacheWriterConfigurer();
+		configurerConsumer.accept(config);
+
+		return new DefaultRedisCacheWriter(connectionFactory, config.lockSleepTime, config.lockTtlFunction,
+				config.cacheStatisticsCollector, config.batchStrategy, !config.immediateWrites);
+	}
+
+	static class DefaultRedisCacheWriterConfigurer
+			implements RedisCacheWriterConfigurer, CacheLockingConfigurer, CacheLockingConfiguration {
+
+		CacheStatisticsCollector cacheStatisticsCollector = CacheStatisticsCollector.none();
+		BatchStrategy batchStrategy = BatchStrategies.keys();
+		Duration lockSleepTime = Duration.ZERO;
+		TtlFunction lockTtlFunction = TtlFunction.persistent();
+		boolean immediateWrites = false;
+
+		@Override
+		public RedisCacheWriterConfigurer collectStatistics(CacheStatisticsCollector cacheStatisticsCollector) {
+
+			Assert.notNull(cacheStatisticsCollector, "CacheStatisticsCollector must not be null");
+			this.cacheStatisticsCollector = cacheStatisticsCollector;
+
+			return this;
+		}
+
+		@Override
+		public RedisCacheWriterConfigurer batchStrategy(BatchStrategy batchStrategy) {
+
+			Assert.notNull(batchStrategy, "BatchStrategy must not be null");
+			this.batchStrategy = batchStrategy;
+
+			return this;
+		}
+
+		@Override
+		public RedisCacheWriterConfigurer cacheLocking(Consumer<CacheLockingConfigurer> configurerConsumer) {
+
+			Assert.notNull(configurerConsumer, "CacheLockingConfigurer function must not be null");
+			configurerConsumer.accept(this);
+
+			return this;
+		}
+
+		@Override
+		public RedisCacheWriterConfigurer immediateWrites(boolean enableImmediateWrites) {
+
+			this.immediateWrites = enableImmediateWrites;
+			return this;
+		}
+
+		@Override
+		public void disable() {
+			this.lockSleepTime = Duration.ZERO;
+		}
+
+		@Override
+		public void enable(Consumer<CacheLockingConfiguration> configurationConsumer) {
+
+			Assert.notNull(configurationConsumer, "CacheLockingConfigurer function must not be null");
+
+			if (this.lockSleepTime.isZero() || this.lockSleepTime.isNegative()) {
+				this.lockSleepTime = Duration.ofMillis(50);
+			}
+			configurationConsumer.accept(this);
+		}
+
+		@Override
+		public CacheLockingConfiguration sleepTime(Duration sleepTime) {
+
+			Assert.notNull(sleepTime, "Lock sleep time must not be null");
+			Assert.isTrue(!sleepTime.isZero() && !sleepTime.isNegative(),
+					"Lock sleep time must not be null zero or negative");
+
+			this.lockSleepTime = sleepTime;
+			return this;
+		}
+
+		@Override
+		public CacheLockingConfiguration lockTimeout(TtlFunction ttlFunction) {
+
+			Assert.notNull(ttlFunction, "TTL function must not be null");
+
+			this.lockTtlFunction = ttlFunction;
+			return this;
+		}
+
 	}
 
 	@Override
@@ -210,6 +308,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		return asyncCacheWriter.isSupported();
 	}
 
+	private boolean writeAsynchronously() {
+		return supportsAsyncRetrieve() && asynchronousWrites;
+	}
+
 	@Override
 	public CompletableFuture<byte[]> retrieve(String name, byte[] key, @Nullable Duration ttl) {
 
@@ -238,7 +340,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		if (supportsAsyncRetrieve()) {
+		if (writeAsynchronously()) {
 			asyncCacheWriter.store(name, key, value, ttl).thenRun(() -> statistics.incPuts(name));
 		} else {
 			execute(name, connection -> {
@@ -318,7 +420,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
 
-		if (supportsAsyncRetrieve()) {
+		if (writeAsynchronously()) {
 			asyncCacheWriter.remove(name, key).thenRun(() -> statistics.incDeletes(name));
 		} else {
 			removeIfPresent(name, key);
@@ -340,7 +442,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		if (supportsAsyncRetrieve()) {
+		if (writeAsynchronously()) {
 			asyncCacheWriter.clean(name, pattern, batchStrategy)
 					.thenAccept(deleteCount -> statistics.incDeletesBy(name, deleteCount.intValue()));
 			return;
@@ -393,7 +495,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	@Override
 	public RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector) {
 		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtl, cacheStatisticsCollector,
-				this.batchStrategy);
+				this.batchStrategy, this.asynchronousWrites);
 	}
 
 	/**
