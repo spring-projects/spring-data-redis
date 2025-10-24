@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Dengliming
  * @author Mark John Moreno
  * @author Jeonggyu Choi
+ * @author Viktoriya Kutsarova
  * @since 2.2
  * @see RedisCommands
  * @see <a href="https://redis.io/topics/streams-intro">Redis Documentation - Streams</a>
@@ -123,23 +124,35 @@ public interface RedisStreamCommands {
 	@NullMarked
 	class XAddOptions {
 
-		private static final XAddOptions NONE = new XAddOptions(null, false, false, null);
+		private static final XAddOptions NONE = new XAddOptions(null, null, false, false,
+				true, null, null);
 
 		private final @Nullable Long maxlen;
 		private final boolean nomkstream;
 		private final boolean approximateTrimming;
+		private final boolean exactTrimming;
 		private final @Nullable RecordId minId;
+		private final @Nullable Long limit;
+		private final @Nullable StreamDeletionPolicy deletionPolicy;
 
-		private XAddOptions(@Nullable Long maxlen, boolean nomkstream, boolean approximateTrimming,
-				@Nullable RecordId minId) {
+		private XAddOptions(@Nullable Long maxlen, @Nullable RecordId minId, boolean nomkstream, boolean approximateTrimming,
+							boolean exactTrimming, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
 			this.maxlen = maxlen;
+			this.minId = minId;
 			this.nomkstream = nomkstream;
 			this.approximateTrimming = approximateTrimming;
-			this.minId = minId;
+			this.exactTrimming = exactTrimming;
+			this.limit = limit;
+			this.deletionPolicy = deletionPolicy;
 		}
 
 		/**
-		 * @return
+		 * Create an {@link XAddOptions} instance with no additional options set.
+		 * <p>
+		 * This returns the default options for the {@literal XADD} command without any trimming strategy,
+		 * stream creation restrictions, or other modifications.
+		 *
+		 * @return a default {@link XAddOptions} instance with no options configured.
 		 */
 		public static XAddOptions none() {
 			return NONE;
@@ -152,7 +165,7 @@ public interface RedisStreamCommands {
 		 * @since 2.6
 		 */
 		public static XAddOptions makeNoStream() {
-			return new XAddOptions(null, true, false, null);
+			return new XAddOptions(null, null, true, false, true, null,  null);
 		}
 
 		/**
@@ -163,7 +176,7 @@ public interface RedisStreamCommands {
 		 * @since 2.6
 		 */
 		public static XAddOptions makeNoStream(boolean makeNoStream) {
-			return new XAddOptions(null, makeNoStream, false, null);
+			return new XAddOptions(null, null, makeNoStream, false, true, null, null);
 		}
 
 		/**
@@ -172,7 +185,37 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XAddOptions}.
 		 */
 		public static XAddOptions maxlen(long maxlen) {
-			return new XAddOptions(maxlen, false, false, null);
+			return new XAddOptions(maxlen, null, false, false, true, null, null);
+		}
+
+		/**
+		 * Limit the amount of work done by the trimming operation.
+		 *
+		 * @param limit the maximum number of entries to examine for trimming.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions limit(long limit) {
+			return new XAddOptions(null, null, false, false, true, limit, null);
+		}
+
+		/**
+		 * Apply exact trimming using the {@code =} flag.
+		 *
+		 * @param exactTrimming {@code true} to enable exact trimming.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions exactTrimming(boolean exactTrimming) {
+			return new XAddOptions(null, null, false, !exactTrimming, exactTrimming, null, null);
+		}
+
+		/**
+		 * Set the deletion policy for trimming.
+		 *
+		 * @param deletionPolicy the deletion policy to apply.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new XAddOptions(null, null, false, false, true, null, deletionPolicy);
 		}
 
 		/**
@@ -182,8 +225,69 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XAddOptions}.
 		 * @since 2.7
 		 */
-		public XAddOptions minId(RecordId minId) {
-			return new XAddOptions(maxlen, nomkstream, approximateTrimming, minId);
+		public static XAddOptions minId(RecordId minId) {
+			return new XAddOptions(null, minId, false, false, true, null, null);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param maxlen the maximum number of elements.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public XAddOptions withMaxlen(long maxlen) {
+			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Limit the amount of work done by the trimming operation.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param limit the maximum number of entries to examine for trimming.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public XAddOptions withLimit(long limit) {
+			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Apply exact trimming using the {@code =} flag.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param exactTrimming {@code true} to enable exact trimming.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public XAddOptions withExactTrimming(boolean exactTrimming) {
+			return new XAddOptions(maxlen, minId, nomkstream, !exactTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Set the deletion policy for trimming.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param deletionPolicy the deletion policy to apply.
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public XAddOptions withDeletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param minId the minimum record Id to retain.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.7
+		 */
+		public XAddOptions withMinId(RecordId minId) {
+			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
 		}
 
 		/**
@@ -192,7 +296,7 @@ public interface RedisStreamCommands {
 		 * @return new instance of {@link XAddOptions}.
 		 */
 		public XAddOptions approximateTrimming(boolean approximateTrimming) {
-			return new XAddOptions(maxlen, nomkstream, approximateTrimming, minId);
+			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, !approximateTrimming, limit, deletionPolicy);
 		}
 
 		/**
@@ -242,6 +346,46 @@ public interface RedisStreamCommands {
 			return minId != null;
 		}
 
+		/**
+		 * @return {@literal true} if {@literal EXACT} is set.
+		 * @since 4.0
+		 */
+		public boolean isExactTrimming() {
+			return exactTrimming;
+		}
+
+		/**
+		 * @return the limit to retain during trimming.
+		 * @since 4.0
+		 */
+		public @Nullable Long getLimit() {
+			return limit;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal LIMIT} is set.
+		 * @since 4.0
+		 */
+		public boolean hasLimit() {
+			return limit != null;
+		}
+
+		/**
+		 * @return the deletion policy.
+		 * @since 4.0
+		 */
+		public @Nullable StreamDeletionPolicy getDeletionPolicy() {
+			return deletionPolicy;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal DELETION_POLICY} is set.
+		 * @since 4.0
+		 */
+		public boolean hasDeletionPolicy() {
+			return deletionPolicy != null;
+		}
+
 		@Override
 		public boolean equals(@Nullable Object o) {
 			if (this == o) {
@@ -256,7 +400,16 @@ public interface RedisStreamCommands {
 			if (approximateTrimming != that.approximateTrimming) {
 				return false;
 			}
+			if (exactTrimming != that.exactTrimming) {
+				return false;
+			}
 			if (!ObjectUtils.nullSafeEquals(maxlen, that.maxlen)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(limit, that.limit)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy)) {
 				return false;
 			}
 			return ObjectUtils.nullSafeEquals(minId, that.minId);
@@ -265,10 +418,88 @@ public interface RedisStreamCommands {
 		@Override
 		public int hashCode() {
 			int result = ObjectUtils.nullSafeHashCode(maxlen);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(minId);
 			result = 31 * result + (nomkstream ? 1 : 0);
 			result = 31 * result + (approximateTrimming ? 1 : 0);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(minId);
+			result = 31 * result + (exactTrimming ? 1 : 0);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(deletionPolicy);
 			return result;
+		}
+	}
+
+	/**
+	 * Deletion policy for stream entries.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 */
+	enum StreamDeletionPolicy {
+		/**
+		 * Remove entries according to the specified strategy, but preserve existing references.
+		 */
+		KEEP_REFERENCES,
+		/**
+		 * Remove entries according to the specified strategy and remove references.
+		 */
+		DELETE_REFERENCES,
+		/**
+		 * Remove entries that are read and acknowledged and remove references.
+		 */
+		ACKNOWLEDGED
+	}
+
+	/**
+	 * Result of a stream entry deletion operation for {@literal XDELEX} and {@literal XACKDEL} commands.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 */
+	enum StreamEntryDeletionResult {
+
+		UNKNOWN(-2L),
+		/**
+		 * The entry ID does not exist in the stream.
+		 */
+		NOT_FOUND(-1L),
+		/**
+		 * The entry was successfully deleted from the stream.
+		 */
+		DELETED(1L),
+		/**
+		 * The entry was acknowledged but not deleted (when using ACKED deletion policy with dangling references).
+		 */
+		NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED(2L);
+
+		private final long code;
+
+		StreamEntryDeletionResult(long code) {
+			this.code = code;
+		}
+
+		/**
+		 * Get the numeric code for this deletion result.
+		 *
+		 * @return the numeric code: -1 for NOT_FOUND, 1 for DELETED, 2 for NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED
+		 */
+		public long getCode() {
+			return code;
+		}
+
+		/**
+		 * Convert a numeric code to a {@link StreamEntryDeletionResult}.
+		 *
+		 * @param code the numeric code
+		 * @return the corresponding {@link StreamEntryDeletionResult}
+		 * @throws IllegalArgumentException if the code is not valid
+		 */
+		public static StreamEntryDeletionResult fromCode(long code) {
+			return switch ((int) code) {
+				case -1 -> NOT_FOUND;
+				case 1 -> DELETED;
+				case 2 -> NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
+				default -> throw new IllegalArgumentException("Invalid deletion result code: " + code);
+			};
 		}
 	}
 
@@ -543,6 +774,143 @@ public interface RedisStreamCommands {
 	 */
 	Long xDel(byte @NonNull [] key, @NonNull RecordId @NonNull... recordIds);
 
+	/**
+	 * Additional options applicable for {@literal XDELEX} and {@literal XACKDEL} commands.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 */
+	class XDelOptions {
+
+		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.KEEP_REFERENCES);
+
+		private final @NonNull StreamDeletionPolicy deletionPolicy;
+
+		private XDelOptions(@NonNull StreamDeletionPolicy deletionPolicy) {
+			this.deletionPolicy = deletionPolicy;
+		}
+
+		/**
+		 * Create an {@link XDelOptions} instance with default options.
+		 * <p>
+		 * This returns the default options for the {@literal XDELEX} and {@literal XACKDEL} commands
+		 * with {@link StreamDeletionPolicy#KEEP_REFERENCES} as the deletion policy, which preserves
+		 * existing references in consumer groups' PELs (similar to the behavior of {@literal XDEL}).
+		 *
+		 * @return a default {@link XDelOptions} instance with {@link StreamDeletionPolicy#KEEP_REFERENCES}.
+		 */
+		public static XDelOptions defaultOptions() {
+			return DEFAULT;
+		}
+
+		/**
+		 * Set the deletion policy for the delete operation.
+		 *
+		 * @param deletionPolicy the deletion policy to apply.
+		 * @return new instance of {@link XDelOptions}.
+		 */
+		public static XDelOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new XDelOptions(deletionPolicy);
+		}
+
+		/**
+		 * @return the deletion policy.
+		 */
+		@NonNull
+		public StreamDeletionPolicy getDeletionPolicy() {
+			return deletionPolicy;
+		}
+
+		@Override
+		public boolean equals(@Nullable Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof XDelOptions that)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(deletionPolicy);
+		}
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key.
+	 * <p>
+	 * XDELEX is an extension of the Redis Streams XDEL command that provides more control over how message entries
+	 * are deleted concerning consumer groups.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
+	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was not deleted but there are still dangling references (ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 */
+	default List<StreamEntryDeletionResult> xDelEx(byte @NonNull [] key, XDelOptions options, @NonNull String @NonNull... recordIds) {
+		return xDelEx(key, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+	}
+
+	/**
+	 * Deletes one or multiple entries from the stream at the specified key.
+	 * <p>
+	 * XDELEX is an extension of the Redis Streams XDEL command that provides more control over how message entries
+	 * are deleted concerning consumer groups.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
+	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was not deleted but there are still dangling references (ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xdelex">Redis Documentation: XDELEX</a>
+	 */
+	List<StreamEntryDeletionResult> xDelEx(byte @NonNull [] key, XDelOptions options, @NonNull RecordId @NonNull... recordIds);
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries (messages) for a stream consumer group at the specified key.
+	 * <p>
+	 * XACKDEL combines the functionality of XACK and XDEL in Redis Streams. It acknowledges the specified entry IDs in the
+	 * given consumer group and simultaneously attempts to delete the corresponding entries from the stream.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to acknowledge and remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
+	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was acknowledged but not deleted (when using ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 */
+	default List<StreamEntryDeletionResult> xAckDel(byte @NonNull [] key, @NonNull String group, XDelOptions options, @NonNull String @NonNull... recordIds) {
+		return xAckDel(key, group, options, Arrays.stream(recordIds).map(RecordId::of).toArray(RecordId[]::new));
+	}
+
+	/**
+	 * Acknowledges and conditionally deletes one or multiple entries (messages) for a stream consumer group at the specified key.
+	 * <p>
+	 * XACKDEL combines the functionality of XACK and XDEL in Redis Streams. It acknowledges the specified entry IDs in the
+	 * given consumer group and simultaneously attempts to delete the corresponding entries from the stream.
+	 *
+	 * @param key the {@literal key} the stream is stored at.
+	 * @param group name of the consumer group.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param recordIds the id's of the records to acknowledge and remove.
+	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
+	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
+	 *         if the entry was acknowledged but not deleted (when using ACKED deletion policy).
+	 *         Returns {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xackdel">Redis Documentation: XACKDEL</a>
+	 */
+	List<StreamEntryDeletionResult> xAckDel(byte @NonNull [] key, @NonNull String group, XDelOptions options, @NonNull RecordId @NonNull... recordIds);
 	/**
 	 * Create a consumer group.
 	 *
@@ -1041,6 +1409,232 @@ public interface RedisStreamCommands {
 			@NonNull Limit limit);
 
 	/**
+	 * Additional options applicable for {@literal XTRIM} command.
+	 *
+	 * @author Viktoriya Kutsarova
+	 * @since 4.0
+	 */
+	@NullMarked
+	class XTrimOptions {
+
+		private static final XTrimOptions NONE = new XTrimOptions(null, null, false, true, null, null);
+
+		private final @Nullable Long maxlen;
+		private final @Nullable RecordId minId;
+		private final boolean approximateTrimming;
+		private final boolean exactTrimming;
+		private final @Nullable Long limit;
+		private final @Nullable StreamDeletionPolicy deletionPolicy;
+
+		private XTrimOptions(@Nullable Long maxlen, @Nullable RecordId minId, boolean approximateTrimming,
+				boolean exactTrimming, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
+			this.maxlen = maxlen;
+			this.minId = minId;
+			this.approximateTrimming = approximateTrimming;
+			this.exactTrimming = exactTrimming;
+			this.limit = limit;
+			this.deletionPolicy = deletionPolicy;
+		}
+
+		/**
+		 * Create an {@link XTrimOptions} instance with no additional options set.
+		 * <p>
+		 * This returns the default options for the {@literal XTRIM} command without any trimming strategy
+		 * or other modifications.
+		 *
+		 * @return a default {@link XTrimOptions} instance with no options configured.
+		 */
+		public static XTrimOptions none() {
+			return NONE;
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @param maxlen the maximum number of elements to retain.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public static XTrimOptions maxlen(long maxlen) {
+			return new XTrimOptions(maxlen, null, false, true, null, null);
+		}
+
+		/**
+		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
+		 *
+		 * @param minId the minimum record Id to retain.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public static XTrimOptions minId(RecordId minId) {
+			return new XTrimOptions(null, minId, false, true, null, null);
+		}
+
+		/**
+		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
+		 *
+		 * @param minId the minimum record Id to retain.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public XTrimOptions minId(String minId) {
+			return new XTrimOptions(maxlen, RecordId.of(minId), approximateTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Apply efficient trimming for capped streams using the {@code ~} flag.
+		 *
+		 * @param approximateTrimming {@code true} to enable approximate trimming.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public XTrimOptions approximateTrimming(boolean approximateTrimming) {
+			return new XTrimOptions(maxlen, minId, approximateTrimming, !approximateTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Apply exact trimming using the {@code =} flag.
+		 *
+		 * @param exactTrimming {@code true} to enable exact trimming.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public XTrimOptions exactTrimming(boolean exactTrimming) {
+			return new XTrimOptions(maxlen, minId, !exactTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Limit the amount of work done by the trimming operation.
+		 *
+		 * @param limit the maximum number of entries to examine for trimming.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public XTrimOptions limit(long limit) {
+			return new XTrimOptions(maxlen, minId, approximateTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Set the deletion policy for trimming.
+		 *
+		 * @param deletionPolicy the deletion policy to apply.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public XTrimOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new XTrimOptions(maxlen, minId, approximateTrimming, exactTrimming, limit, deletionPolicy);
+		}
+
+		/**
+		 * Get the maximum length for the stream.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable Long getMaxlen() {
+			return maxlen;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 */
+		public boolean hasMaxlen() {
+			return maxlen != null;
+		}
+
+		/**
+		 * Get the minimum record Id to retain during trimming.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable RecordId getMinId() {
+			return minId;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MINID} is set.
+		 */
+		public boolean hasMinId() {
+			return minId != null;
+		}
+
+		/**
+		 * @return {@literal true} if approximate trimming is enabled.
+		 */
+		public boolean isApproximateTrimming() {
+			return approximateTrimming;
+		}
+
+		/**
+		 * @return {@literal true} if exact trimming is enabled.
+		 */
+		public boolean isExactTrimming() {
+			return exactTrimming;
+		}
+
+		/**
+		 * Get the limit for trimming operations.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable Long getLimit() {
+			return limit;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal LIMIT} is set.
+		 */
+		public boolean hasLimit() {
+			return limit != null;
+		}
+
+		/**
+		 * Get the deletion policy.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable StreamDeletionPolicy getDeletionPolicy() {
+			return deletionPolicy;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal DELETION_POLICY} is set.
+		 */
+		public boolean hasDeletionPolicy() {
+			return deletionPolicy != null;
+		}
+
+		@Override
+		public boolean equals(@Nullable Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof XTrimOptions that)) {
+				return false;
+			}
+			if (approximateTrimming != that.approximateTrimming) {
+				return false;
+			}
+			if (exactTrimming != that.exactTrimming) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(maxlen, that.maxlen)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(limit, that.limit)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(minId, that.minId);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = ObjectUtils.nullSafeHashCode(maxlen);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(minId);
+			result = 31 * result + (approximateTrimming ? 1 : 0);
+			result = 31 * result + (exactTrimming ? 1 : 0);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(deletionPolicy);
+			return result;
+		}
+	}
+
+	/**
 	 * Trims the stream to {@code count} elements.
 	 *
 	 * @param key the stream key.
@@ -1061,4 +1655,14 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
 	 */
 	Long xTrim(byte @NonNull [] key, long count, boolean approximateTrimming);
+
+	/**
+	 * Trims the stream to {@code count} elements.
+	 *
+	 * @param key the stream key.
+	 * @param options the trimming options.
+	 * @return number of removed entries. {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/xtrim">Redis Documentation: XTRIM</a>
+	 */
+	Long xTrim(byte @NonNull [] key, @NonNull XTrimOptions options);
 }

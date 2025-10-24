@@ -482,7 +482,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 	fun trim() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
-		every { operations.trim(any(), any()) } returns Mono.just(1)
+		every { operations.trim(any(), any<Long>()) } returns Mono.just(1)
 
 		runBlocking {
 			assertThat(operations.trimAndAwait("foo", 1)).isEqualTo(1)
