@@ -3729,62 +3729,57 @@ public abstract class AbstractConnectionIntegrationTests {
 	@EnabledOnCommand("HGETDEL")
 	public void hGetDelWorksAsExpected() {
 
-		connection.hSet("hash-hgetdel", "field-1", "value-1");
-		connection.hSet("hash-hgetdel", "field-2", "value-2");
-		connection.hSet("hash-hgetdel", "field-3", "value-3");
+		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
+		actual.add(connection.hSet("hash-hgetdel", "field-3", "value-3"));
 
-		// hgetdel first 2 fields
-		assertThat(connection.hGetDel("hash-hgetdel", "field-1", "field-2")).containsExactly("value-1", "value-2");
-		assertThat(connection.hExists("hash-hgetdel", "field-1")).isFalse();
-		assertThat(connection.hExists("hash-hgetdel", "field-2")).isFalse();
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "field-2"));
+		actual.add(connection.hExists("hash-hgetdel", "field-1"));
+		actual.add(connection.hExists("hash-hgetdel", "field-2"));
 
-		// hgetdel non-existent field returns null
-		assertThat(connection.hGetDel("hash-hgetdel", "field-1")).containsExactly(null);
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1"));
 
-		// hgetdel last field
-		assertThat(connection.hGetDel("hash-hgetdel", "field-3")).containsExactly("value-3");
-		assertThat(connection.hExists("hash-hgetdel", "field-3")).isFalse();
-		assertThat(connection.exists("hash-hgetdel")).isFalse();
+		actual.add(connection.hGetDel("hash-hgetdel", "field-3"));
+		actual.add(connection.hExists("hash-hgetdel", "field-3"));
+		actual.add(connection.exists("hash-hgetdel"));
 
-		// hgetdel non-existent hash returns null
-		assertThat(connection.hGetDel("hash-hgetdel", "field-1")).containsExactly(null);
+		actual.add(connection.hGetDel("hash-hgetdel", "field-1"));
+
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+				Arrays.asList("value-1", "value-2"), Boolean.FALSE, Boolean.FALSE,
+				Collections.singletonList(null), Arrays.asList("value-3"), Boolean.FALSE, Boolean.FALSE,
+				Collections.singletonList(null)));
 	}
 
 	@Test // GH-3211
 	@EnabledOnCommand("HGETEX")
-	@LongRunningTest
 	public void hGetExWorksAsExpected() {
 
-		connection.hSet("hash-hgetex", "field-1", "value-1");
-		connection.hSet("hash-hgetex", "field-2", "value-2");
-		connection.hSet("hash-hgetex", "field-3", "value-3");
+		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
+		actual.add(connection.hSet("hash-hgetex", "field-2", "value-2"));
+		actual.add(connection.hSet("hash-hgetex", "field-3", "value-3"));
 
-		assertThat(connection.hGetEx("hash-hgetex", Expiration.seconds(2), "field-1", "field-2")).containsExactly("value-1",
-				"value-2");
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(2), "field-1", "field-2"));
 
-		// non-existent field returns null
-		assertThat(connection.hGetEx("hash-hgetex", null, "no-such-field")).containsExactly(null);
+		actual.add(connection.hGetEx("hash-hgetex", null, "no-such-field"));
 
-		// non-existent hash returns null
-		assertThat(connection.hGetEx("no-such-key", null, "field-1")).containsExactly(null);
+		actual.add(connection.hGetEx("no-such-key", null, "field-1"));
 
-		await().atMost(Duration.ofMillis(3000L))
-				.until(() -> !connection.hExists("hash-getex", "field-1") && !connection.hExists("hash-getex", "field-2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, "value-1", "value-2"));
 	}
 
 	@Test // GH-3211
 	@EnabledOnCommand("HSETEX")
-	@LongRunningTest
 	public void hSetExWorksAsExpected() {
 
 		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
-		assertThat(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(),
-				Expiration.seconds(2))).isTrue();
-		assertThat(connection.hGet("hash-hsetex", "field-1")).isEqualTo("value-1");
-		assertThat(connection.hGet("hash-hsetex", "field-2")).isEqualTo("value-2");
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.seconds(30)));
+		actual.add(connection.hGet("hash-hsetex", "field-1"));
+		actual.add(connection.hGet("hash-hsetex", "field-2"));
 
-		await().atMost(Duration.ofMillis(3000L))
-				.until(() -> !connection.hExists("hash-getex", "field-1") && !connection.hExists("hash-getex", "field-2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
+				Arrays.asList("value-1", "value-2"), Collections.singletonList(null), Collections.singletonList(null)));
 	}
 
 	@Test // GH-3211
