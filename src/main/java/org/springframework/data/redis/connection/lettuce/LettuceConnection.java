@@ -174,7 +174,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when instantiating a native connection
 	 */
-	public LettuceConnection(long timeout,  @NonNull RedisClient client) {
+	public LettuceConnection(long timeout, @NonNull RedisClient client) {
 		this(null, timeout, client);
 	}
 
@@ -187,7 +187,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param client The {@link RedisClient} to use when making pub/sub, blocking, and tx connections
 	 */
 	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-		@NonNull RedisClient client) {
+			@NonNull RedisClient client) {
 		this(sharedConnection, timeout, client, 0);
 	}
 
@@ -201,8 +201,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 1.7
 	 */
-	public LettuceConnection(@Nullable  StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
-			@NonNull  AbstractRedisClient client, int defaultDbIndex) {
+	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
+			@NonNull AbstractRedisClient client, int defaultDbIndex) {
 
 		this.connectionProvider = new StandaloneConnectionProvider((RedisClient) client, CODEC);
 		this.asyncSharedConnection = sharedConnection;
@@ -222,7 +222,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @since 2.0
 	 */
 	public LettuceConnection(@Nullable StatefulRedisConnection<byte[], byte[]> sharedConnection,
-		@NonNull LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
+			@NonNull LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
 		this((StatefulConnection<byte[], byte[]>) sharedConnection, connectionProvider, timeout, defaultDbIndex);
 	}
@@ -238,7 +238,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @since 2.1
 	 */
 	LettuceConnection(@Nullable StatefulConnection<byte[], byte[]> sharedConnection,
-		@NonNull LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
+			@NonNull LettuceConnectionProvider connectionProvider, long timeout, int defaultDbIndex) {
 
 		Assert.notNull(connectionProvider, "LettuceConnectionProvider must not be null");
 
@@ -657,7 +657,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@Override
-	public  byte@Nullable [] echo(byte[] message) {
+	public byte @Nullable [] echo(byte[] message) {
 		return invoke().just(RedisClusterAsyncCommands::echo, message);
 	}
 
@@ -1076,7 +1076,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private void validateCommand(ProtocolKeyword command, byte @Nullable[]... args) {
+	private void validateCommand(ProtocolKeyword command, byte @Nullable []... args) {
 
 		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(command.toString());
 

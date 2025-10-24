@@ -44,7 +44,7 @@ public class DecoratingStringHashMapper<T> implements HashMapper<T, String, Stri
 	public @Nullable Map<String, String> toHash(@Nullable T object) {
 
 		Map<?, ?> hash = delegate.toHash(object);
-		if(hash == null) {
+		if (hash == null) {
 			return null;
 		}
 

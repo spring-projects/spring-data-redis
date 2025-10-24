@@ -45,7 +45,7 @@ class LettuceReactiveClusterHyperLogLogCommandsIntegrationTests extends LettuceR
 
 		assertThat(connection.hyperLogLogCommands()
 				.pfMerge(SAME_SLOT_KEY_3_BBUFFER, Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER)).block())
-						.isTrue();
+				.isTrue();
 
 		assertThat(nativeCommands.pfcount(new String[] { SAME_SLOT_KEY_3 })).isEqualTo(3L);
 	}

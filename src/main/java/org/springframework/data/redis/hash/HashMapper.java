@@ -37,7 +37,8 @@ public interface HashMapper<T, K, V> {
 	 * @param object
 	 * @return
 	 */
-	@Nullable Map<K, V> toHash(@Nullable T object);
+	@Nullable
+	Map<K, V> toHash(@Nullable T object);
 
 	/**
 	 * Convert a {@code hash} (map) to an object.
@@ -45,6 +46,7 @@ public interface HashMapper<T, K, V> {
 	 * @param hash
 	 * @return
 	 */
-	@Nullable T fromHash(Map<K, V> hash);
+	@Nullable
+	T fromHash(Map<K, V> hash);
 
 }

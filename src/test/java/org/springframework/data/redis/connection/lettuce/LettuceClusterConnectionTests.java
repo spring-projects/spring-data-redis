@@ -1431,7 +1431,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
 		nativeConnection.hset(KEY_1, "field3", "value3");
 
-		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(120), KEY_2_BYTES, KEY_3_BYTES);
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(120), KEY_2_BYTES,
+				KEY_3_BYTES);
 
 		assertThat(result).hasSize(2);
 		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
@@ -1447,7 +1448,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
 
-		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES, KEY_3_BYTES);
+		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES,
+				KEY_3_BYTES);
 
 		assertThat(result).hasSize(2);
 		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
@@ -1460,7 +1462,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void hSetExUpsertConditionSetsFieldsWithExpiration() {
 
 		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
-		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap,
+				RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
 
 		assertThat(result).isTrue();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
@@ -1474,7 +1477,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
 
 		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
-		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap,
+				RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
 
 		assertThat(result).isTrue();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
@@ -1490,7 +1494,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
 
 		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_2_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
-		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap,
+				RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60));
 
 		assertThat(result).isFalse();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
@@ -1505,7 +1510,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.hset(KEY_1, KEY_3, VALUE_2);
 
 		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, "new-value-1".getBytes(), KEY_3_BYTES, "new-value-2".getBytes());
-		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap,
+				RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
 
 		assertThat(result).isTrue();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo("new-value-1".getBytes()); // updated
@@ -1519,7 +1525,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
 
 		Map<byte[], byte[]> fieldMap = Map.of(KEY_2_BYTES, VALUE_2_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
-		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+		Boolean result = clusterConnection.hashCommands().hSetEx(KEY_1_BYTES, fieldMap,
+				RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
 
 		assertThat(result).isFalse();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged

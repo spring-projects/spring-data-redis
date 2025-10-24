@@ -95,13 +95,11 @@ public class Jackson2HashMapperIntegrationTests {
 	@Test // GH-2565
 	public void shouldPreserveListPropertyOrderOnHashedSource() {
 
-		User jonDoe = User.as("Jon Doe")
-			.withPhoneNumber(9, 7, 1, 5, 5, 5, 4, 1, 8, 2);
+		User jonDoe = User.as("Jon Doe").withPhoneNumber(9, 7, 1, 5, 5, 5, 4, 1, 8, 2);
 
 		template.opsForHash().putAll("JON-DOE", mapper.toHash(jonDoe));
 
-		User deserializedJonDoe =
-			(User) mapper.fromHash(template.<String, Object>opsForHash().entries("JON-DOE"));
+		User deserializedJonDoe = (User) mapper.fromHash(template.<String, Object> opsForHash().entries("JON-DOE"));
 
 		assertThat(deserializedJonDoe).isNotNull();
 		assertThat(deserializedJonDoe).isNotSameAs(jonDoe);
@@ -118,7 +116,7 @@ public class Jackson2HashMapperIntegrationTests {
 		private String name;
 		private List<Integer> phoneNumber;
 
-		User() { }
+		User() {}
 
 		User(String name) {
 			this.name = name;
@@ -157,7 +155,7 @@ public class Jackson2HashMapperIntegrationTests {
 			}
 
 			return Objects.equals(this.getName(), that.getName())
-				&& Objects.equals(this.getPhoneNumber(), that.getPhoneNumber());
+					&& Objects.equals(this.getPhoneNumber(), that.getPhoneNumber());
 		}
 
 		@Override

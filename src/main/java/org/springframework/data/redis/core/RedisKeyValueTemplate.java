@@ -106,13 +106,15 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 				}
 
 				Iterable<?> ids = ClassUtils.isAssignable(Iterable.class, callbackResult.getClass())
-						? (Iterable<?>) callbackResult : Collections.singleton(callbackResult);
+						? (Iterable<?>) callbackResult
+						: Collections.singleton(callbackResult);
 
 				List<T> result = new ArrayList<>();
 				for (Object id : ids) {
 
 					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class)
-							? adapter.getConverter().getConversionService().convert(id, String.class) : id.toString();
+							? adapter.getConverter().getConversionService().convert(id, String.class)
+							: id.toString();
 
 					findById(idToUse, type).ifPresent(result::add);
 				}

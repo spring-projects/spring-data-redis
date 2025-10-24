@@ -61,8 +61,8 @@ public interface RedisSerializer<T> {
 	 * @since 2.1
 	 */
 	static RedisSerializer<Object> json() {
-        return GenericJacksonJsonRedisSerializer
-            .create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
+		return GenericJacksonJsonRedisSerializer
+				.create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
 	}
 
 	/**
@@ -101,7 +101,7 @@ public interface RedisSerializer<T> {
 	 * @return the equivalent object instance. Can be {@literal null}.
 	 */
 	@Nullable
-	T deserialize(byte @Nullable[] bytes) throws SerializationException;
+	T deserialize(byte @Nullable [] bytes) throws SerializationException;
 
 	/**
 	 * Check whether the given value {@code type} can be serialized by this serializer.

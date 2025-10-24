@@ -115,8 +115,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getValue(), "Value must not be null");
 
 			return reactiveCommands.setGet(command.getKey(), command.getValue())
-					.map(v -> new ByteBufferResponse<>(command, v))
-					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
+					.map(v -> new ByteBufferResponse<>(command, v)).defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
 
@@ -145,8 +144,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 
-			return reactiveCommands.get(command.getKey())
-					.map(value -> new ByteBufferResponse<>(command, value))
+			return reactiveCommands.get(command.getKey()).map(value -> new ByteBufferResponse<>(command, value))
 					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
@@ -158,8 +156,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null");
 
-			return reactiveCommands.getdel(command.getKey())
-					.map(value -> new ByteBufferResponse<>(command, value))
+			return reactiveCommands.getdel(command.getKey()).map(value -> new ByteBufferResponse<>(command, value))
 					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
@@ -173,8 +170,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			GetExArgs args = LettuceConverters.toGetExArgs(command.getExpiration());
 
-			return reactiveCommands.getex(command.getKey(), args)
-					.map(value -> new ByteBufferResponse<>(command, value))
+			return reactiveCommands.getex(command.getKey(), args).map(value -> new ByteBufferResponse<>(command, value))
 					.defaultIfEmpty(new AbsentByteBufferResponse<>(command));
 		}));
 	}
@@ -204,8 +200,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			long expirationTimeInSeconds = command.getExpiration().get().getExpirationTimeInSeconds();
 
 			return reactiveCommands.setex(command.getKey(), expirationTimeInSeconds, command.getValue())
-					.map(LettuceConverters::stringToBoolean)
-					.map((value) -> new BooleanResponse<>(command, value));
+					.map(LettuceConverters::stringToBoolean).map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -221,8 +216,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			long expirationTimeInSeconds = command.getExpiration().get().getExpirationTimeInMilliseconds();
 
 			return reactiveCommands.psetex(command.getKey(), expirationTimeInSeconds, command.getValue())
-					.map(LettuceConverters::stringToBoolean)
-					.map((value) -> new BooleanResponse<>(command, value));
+					.map(LettuceConverters::stringToBoolean).map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -233,8 +227,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notEmpty(command.getKeyValuePairs(), "Pairs must not be null or empty");
 
-			return reactiveCommands.mset(command.getKeyValuePairs())
-					.map(LettuceConverters::stringToBoolean)
+			return reactiveCommands.mset(command.getKeyValuePairs()).map(LettuceConverters::stringToBoolean)
 					.map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -246,8 +239,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Assert.notEmpty(command.getKeyValuePairs(), "Pairs must not be null or empty");
 
-			return reactiveCommands.msetnx(command.getKeyValuePairs())
-					.map((value) -> new BooleanResponse<>(command, value));
+			return reactiveCommands.msetnx(command.getKeyValuePairs()).map((value) -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -304,8 +296,7 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getOffset(), "Offset must not be null");
 
-			return reactiveCommands.getbit(command.getKey(), command.getOffset())
-					.map(LettuceConverters::toBoolean)
+			return reactiveCommands.getbit(command.getKey(), command.getOffset()).map(LettuceConverters::toBoolean)
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -332,9 +323,8 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 			Range<Long> range = command.getRange();
 
-			Mono<Long> bitcount = !Range.unbounded().equals(range)
-					? reactiveCommands.bitcount(command.getKey(), LettuceConverters.getLowerBoundIndex(range),
-							LettuceConverters.getUpperBoundIndex(range))
+			Mono<Long> bitcount = !Range.unbounded().equals(range) ? reactiveCommands.bitcount(command.getKey(),
+					LettuceConverters.getLowerBoundIndex(range), LettuceConverters.getUpperBoundIndex(range))
 					: reactiveCommands.bitcount(command.getKey());
 
 			return bitcount.map(responseValue -> new NumericResponse<>(command, responseValue));
@@ -351,9 +341,8 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 			BitFieldArgs args = LettuceConverters.toBitFieldArgs(command.getSubCommands());
 
 			return reactiveCommands.bitfield(command.getKey(), args).collectList()
-					.map(value -> new MultiValueResponse<>(command, value.stream()
-							.map(v -> v.getValueOrElse(null))
-							.collect(Collectors.toList())));
+					.map(value -> new MultiValueResponse<>(command,
+							value.stream().map(v -> v.getValueOrElse(null)).collect(Collectors.toList())));
 		}));
 	}
 
@@ -391,30 +380,30 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 
 		return this.connection.execute(reactiveCommands -> Flux.from(commands).flatMap(command -> {
 
-				Range<Long> range = command.getRange();
-				Mono<Long> result;
+			Range<Long> range = command.getRange();
+			Mono<Long> result;
 
-				if (range.getLowerBound().isBounded()) {
+			if (range.getLowerBound().isBounded()) {
 
-					result = reactiveCommands.bitpos(command.getKey(), command.getBit(), getLowerValue(range));
+				result = reactiveCommands.bitpos(command.getKey(), command.getBit(), getLowerValue(range));
 
-					if (range.getUpperBound().isBounded()) {
-						result = reactiveCommands.bitpos(command.getKey(), command.getBit(),
-								getLowerValue(range), getUpperValue(range));
-					}
-				} else {
-					result = reactiveCommands.bitpos(command.getKey(), command.getBit());
+				if (range.getUpperBound().isBounded()) {
+					result = reactiveCommands.bitpos(command.getKey(), command.getBit(), getLowerValue(range),
+							getUpperValue(range));
 				}
+			} else {
+				result = reactiveCommands.bitpos(command.getKey(), command.getBit());
+			}
 
-				return result.map(respValue -> new NumericResponse<>(command, respValue));
-			}));
+			return result.map(respValue -> new NumericResponse<>(command, respValue));
+		}));
 	}
 
 	@Override
 	public Flux<NumericResponse<KeyCommand, Long>> strLen(Publisher<KeyCommand> commands) {
 
-		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command ->
-				reactiveCommands.strlen(command.getKey()).map(respValue -> new NumericResponse<>(command, respValue))));
+		return this.connection.execute(reactiveCommands -> Flux.from(commands).concatMap(command -> reactiveCommands
+				.strlen(command.getKey()).map(respValue -> new NumericResponse<>(command, respValue))));
 	}
 
 	protected LettuceReactiveRedisConnection getConnection() {

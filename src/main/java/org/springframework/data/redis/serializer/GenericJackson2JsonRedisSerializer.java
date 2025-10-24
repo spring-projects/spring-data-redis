@@ -280,7 +280,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	@Override
-	public @Nullable Object deserialize(byte @Nullable[] source) throws SerializationException {
+	public @Nullable Object deserialize(byte @Nullable [] source) throws SerializationException {
 		return deserialize(source, Object.class);
 	}
 
@@ -298,7 +298,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	 *           {@link Class type}
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> @Nullable T deserialize(byte @Nullable[] source, Class<T> type) throws SerializationException {
+	public <T> @Nullable T deserialize(byte @Nullable [] source, Class<T> type) throws SerializationException {
 
 		Assert.notNull(type, "Deserialization type must not be null;"
 				+ " Please provide Object.class to make use of Jackson2 default typing.");

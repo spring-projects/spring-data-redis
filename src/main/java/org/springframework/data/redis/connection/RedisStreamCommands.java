@@ -989,7 +989,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xread">Redis Documentation: XREAD</a>
 	 */
 	List<@NonNull ByteRecord> xRead(@NonNull StreamReadOptions readOptions,
-		@NonNull StreamOffset<byte[]> @NonNull... streams);
+			@NonNull StreamOffset<byte[]> @NonNull... streams);
 
 	/**
 	 * Read records from one or more {@link StreamOffset}s using a consumer group.
@@ -1000,7 +1000,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	default List<@NonNull ByteRecord> xReadGroup(@NonNull Consumer consumer,
-		@NonNull StreamOffset<byte[]> @NonNull... streams) {
+			@NonNull StreamOffset<byte[]> @NonNull... streams) {
 		return xReadGroup(consumer, StreamReadOptions.empty(), streams);
 	}
 
@@ -1014,7 +1014,7 @@ public interface RedisStreamCommands {
 	 * @see <a href="https://redis.io/commands/xreadgroup">Redis Documentation: XREADGROUP</a>
 	 */
 	List<@NonNull ByteRecord> xReadGroup(@NonNull Consumer consumer, @NonNull StreamReadOptions readOptions,
-		@NonNull StreamOffset<byte[]> @NonNull... streams);
+			@NonNull StreamOffset<byte[]> @NonNull... streams);
 
 	/**
 	 * Read records from a stream within a specific {@link Range} in reverse order.

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.jspecify.annotations.NonNull;
-import org.springframework.data.redis.connection.RedisHashCommands;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,8 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.Expirations;
 
@@ -87,8 +88,8 @@ public interface ReactiveHashOperations<H, HK, HV> {
 
 	/**
 	 * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
-	 * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-	 * When the last field is deleted, the key will also be deleted.
+	 * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}. When the
+	 * last field is deleted, the key will also be deleted.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
@@ -98,7 +99,8 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<List<HV>> getAndDelete(H key, Collection<HK> hashKeys);
 
 	/**
-	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and
+	 * expiration.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param map must not be {@literal null}.
@@ -111,8 +113,8 @@ public interface ReactiveHashOperations<H, HK, HV> {
 			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration);
 
 	/**
-	 * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
-	 * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of
+	 * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param expiration is optional.

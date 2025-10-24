@@ -274,8 +274,7 @@ class LettuceConnectionFactoryTests {
 		try {
 			factory.getConnection();
 			fail("Expected connection failure exception");
-		} catch (RedisConnectionFailureException expected) {
-		}
+		} catch (RedisConnectionFailureException expected) {}
 	}
 
 	@Test

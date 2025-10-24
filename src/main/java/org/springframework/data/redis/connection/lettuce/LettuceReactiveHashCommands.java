@@ -365,8 +365,8 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getFields(), "Fields must not be null");
 
 			return cmd.hgetdel(command.getKey(), command.getFields().toArray(ByteBuffer[]::new)).collectList()
-					.map(value -> new MultiValueResponse<>(command, value.stream().map(v -> v.getValueOrElse(null))
-							.collect(Collectors.toList())));
+					.map(value -> new MultiValueResponse<>(command,
+							value.stream().map(v -> v.getValueOrElse(null)).collect(Collectors.toList())));
 		}));
 	}
 
@@ -378,10 +378,11 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getFields(), "Fields must not be null");
 
-			return cmd.hgetex(command.getKey(), LettuceConverters.toHGetExArgs(command.getExpiration()), command.getFields()
-							.toArray(ByteBuffer[]::new)).collectList()
-					.map(value -> new MultiValueResponse<>(command, value.stream().map(v -> v.getValueOrElse(null))
-							.collect(Collectors.toList())));
+			return cmd
+					.hgetex(command.getKey(), LettuceConverters.toHGetExArgs(command.getExpiration()),
+							command.getFields().toArray(ByteBuffer[]::new))
+					.collectList().map(value -> new MultiValueResponse<>(command,
+							value.stream().map(v -> v.getValueOrElse(null)).collect(Collectors.toList())));
 		}));
 	}
 
@@ -395,10 +396,10 @@ class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Map<ByteBuffer, ByteBuffer> entries = command.getFieldValueMap();
 
-			return cmd.hsetex(command.getKey(),
-							LettuceConverters.toHSetExArgs(command.getCondition(), command.getExpiration()), entries)
-					.map(LettuceConverters.longToBooleanConverter()::convert)
-					.map(value -> new BooleanResponse<>(command, value));
+			return cmd
+					.hsetex(command.getKey(), LettuceConverters.toHSetExArgs(command.getCondition(), command.getExpiration()),
+							entries)
+					.map(LettuceConverters.longToBooleanConverter()::convert).map(value -> new BooleanResponse<>(command, value));
 
 		}));
 	}

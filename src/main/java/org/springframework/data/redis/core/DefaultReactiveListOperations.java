@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.lang.Contract;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,12 +28,14 @@ import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveListCommands;
 import org.springframework.data.redis.connection.ReactiveListCommands.Direction;
 import org.springframework.data.redis.connection.ReactiveListCommands.LPosCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
 /**
@@ -120,8 +121,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(listCommands ->
-				listCommands.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
+		return createMono(
+				listCommands -> listCommands.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
 	}
 
 	@Override
@@ -163,8 +164,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(listCommands ->
-				listCommands.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
+		return createMono(
+				listCommands -> listCommands.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
 	}
 
 	@Override
@@ -230,8 +231,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(listCommands ->
-				listCommands.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
+		return createMono(
+				listCommands -> listCommands.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
 	}
 
 	@Override
@@ -297,8 +298,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(destinationKey, "Destination key must not be null");
 
-		return createMono(connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey))
-				.map(this::readRequiredValue));
+		return createMono(
+				connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey)).map(this::readRequiredValue));
 	}
 
 	@Override

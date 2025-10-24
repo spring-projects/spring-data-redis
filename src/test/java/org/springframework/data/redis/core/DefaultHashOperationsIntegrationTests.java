@@ -456,7 +456,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-    @Test // GH-3211
+	@Test // GH-3211
 	@EnabledOnCommand("HGETDEL")
 	void testGetAndDelete() {
 
@@ -477,7 +477,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		List<HV> result = hashOps.getAndDelete(key, List.of(key1));
 		assertThat(result).hasSize(1).containsExactly(val1);
 		assertThat(hashOps.hasKey(key, key1)).isFalse(); // Field should be deleted
-		assertThat(hashOps.hasKey(key, key2)).isTrue();  // Other fields should remain
+		assertThat(hashOps.hasKey(key, key2)).isTrue(); // Other fields should remain
 
 		// Test multiple fields get and delete
 		List<HV> multiResult = hashOps.getAndDelete(key, List.of(key2, key3));
@@ -589,7 +589,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		// Test UPSERT condition - should always set fields
 		Map<HK, HV> fieldMap1 = Map.of(key1, val1, key2, val2);
-		Boolean result1 = hashOps.putAndExpire(key, fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+		Boolean result1 = hashOps.putAndExpire(key, fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.seconds(60));
 		assertThat(result1).isTrue();
 
 		// Verify fields were set and exist
@@ -600,7 +601,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		// Test IF_NONE_EXIST condition - should not change existing fields
 		Map<HK, HV> fieldMap2 = Map.of(key1, val3, key3, val3);
-		Boolean result2 = hashOps.putAndExpire(key, fieldMap2, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(120));
+		Boolean result2 = hashOps.putAndExpire(key, fieldMap2, RedisHashCommands.HashFieldSetOption.ifNoneExist(),
+				Expiration.seconds(120));
 		assertThat(result2).isFalse();
 
 		// Verify original values unchanged (IF_NONE_EXIST failed because key1 exists)
@@ -609,7 +611,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		// Test IF_ALL_EXIST condition - should succeed because all fields exist
 		Map<HK, HV> fieldMap3 = Map.of(key1, val3, key2, val3);
-		Boolean result3 = hashOps.putAndExpire(key, fieldMap3, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(180));
+		Boolean result3 = hashOps.putAndExpire(key, fieldMap3, RedisHashCommands.HashFieldSetOption.ifAllExist(),
+				Expiration.seconds(180));
 		assertThat(result3).isTrue();
 
 		// Verify values were updated
@@ -619,7 +622,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		// Test IF_ALL_EXIST condition with non-existent field - should not change anything
 		HK nonExistentKey = hashKeyFactory.instance();
 		Map<HK, HV> fieldMap4 = Map.of(key1, val1, nonExistentKey, val1);
-		Boolean result4 = hashOps.putAndExpire(key, fieldMap4, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60));
+		Boolean result4 = hashOps.putAndExpire(key, fieldMap4, RedisHashCommands.HashFieldSetOption.ifAllExist(),
+				Expiration.seconds(60));
 		assertThat(result4).isFalse();
 
 		// Verify values unchanged (IF_ALL_EXIST failed because nonExistentKey doesn't exist)
@@ -695,21 +699,24 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 
 		// Test with seconds expiration
 		Map<HK, HV> fieldMap1 = Map.of(key1, val1);
-		Boolean result1 = hashOps.putAndExpire(key, fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(60));
+		Boolean result1 = hashOps.putAndExpire(key, fieldMap1, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.seconds(60));
 		assertThat(result1).isTrue();
 		assertThat(hashOps.hasKey(key, key1)).isTrue();
 		assertThat(hashOps.get(key, key1)).isEqualTo(val1);
 
 		// Test with milliseconds expiration
 		Map<HK, HV> fieldMap2 = Map.of(key2, val2);
-		Boolean result2 = hashOps.putAndExpire(key, fieldMap2, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.milliseconds(120000));
+		Boolean result2 = hashOps.putAndExpire(key, fieldMap2, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.milliseconds(120000));
 		assertThat(result2).isTrue();
 		assertThat(hashOps.hasKey(key, key2)).isTrue();
 		assertThat(hashOps.get(key, key2)).isEqualTo(val2);
 
 		// Test with Duration expiration
 		Map<HK, HV> fieldMap3 = Map.of(key3, val3);
-		Boolean result3 = hashOps.putAndExpire(key, fieldMap3, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.from(Duration.ofMinutes(3)));
+		Boolean result3 = hashOps.putAndExpire(key, fieldMap3, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.from(Duration.ofMinutes(3)));
 		assertThat(result3).isTrue();
 		assertThat(hashOps.hasKey(key, key3)).isTrue();
 		assertThat(hashOps.get(key, key3)).isEqualTo(val3);
@@ -717,7 +724,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		// Test with unix timestamp expiration (5 minutes from now)
 		long futureTimestamp = System.currentTimeMillis() / 1000 + 300; // 5 minutes from now
 		Map<HK, HV> fieldMap4 = Map.of(key4, val4);
-		Boolean result4 = hashOps.putAndExpire(key, fieldMap4, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.unixTimestamp(futureTimestamp, TimeUnit.SECONDS));
+		Boolean result4 = hashOps.putAndExpire(key, fieldMap4, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.unixTimestamp(futureTimestamp, TimeUnit.SECONDS));
 		assertThat(result4).isTrue();
 		assertThat(hashOps.hasKey(key, key4)).isTrue();
 		assertThat(hashOps.get(key, key4)).isEqualTo(val4);
@@ -728,7 +736,8 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		hashOps.expire(key, Duration.ofMinutes(4), Arrays.asList(key5)); // Set initial TTL
 
 		Map<HK, HV> fieldMap5 = Map.of(key5, val5);
-		Boolean result5 = hashOps.putAndExpire(key, fieldMap5, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.keepTtl());
+		Boolean result5 = hashOps.putAndExpire(key, fieldMap5, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.keepTtl());
 		assertThat(result5).isTrue();
 		assertThat(hashOps.hasKey(key, key5)).isTrue();
 		assertThat(hashOps.get(key, key5)).isEqualTo(val5);

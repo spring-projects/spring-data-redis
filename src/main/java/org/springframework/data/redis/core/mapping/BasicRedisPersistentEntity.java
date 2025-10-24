@@ -63,7 +63,8 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	}
 
 	@Override
-	protected @Nullable RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
+	protected @Nullable RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(
+			RedisPersistentProperty property) {
 
 		Assert.notNull(property, "Property must not be null");
 

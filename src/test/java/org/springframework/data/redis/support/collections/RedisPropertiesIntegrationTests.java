@@ -194,11 +194,9 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 
 		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
-		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(
-				String.class);
+		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(String.class);
 		JacksonJsonRedisSerializer<Person> jackson3JsonSerializer = new JacksonJsonRedisSerializer<>(Person.class);
-		JacksonJsonRedisSerializer<String> jackson3JsonStringSerializer = new JacksonJsonRedisSerializer<>(
-			String.class);
+		JacksonJsonRedisSerializer<String> jackson3JsonStringSerializer = new JacksonJsonRedisSerializer<>(String.class);
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -253,15 +251,15 @@ public class RedisPropertiesIntegrationTests extends RedisMapIntegrationTests {
 				{ stringFactory, stringFactory, xstreamGenericTemplate }, //
 				{ stringFactory, stringFactory, jackson2JsonPersonTemplate }, //
 
-						// lettuce
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, doubleFactory, genericTemplateLtc }, //
-						{ stringFactory, longFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, xGenericTemplateLtc }, //
-						{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc } });
+				// lettuce
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, doubleFactory, genericTemplateLtc }, //
+				{ stringFactory, longFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, xGenericTemplateLtc }, //
+				{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc } });
 	}
 
 }

@@ -81,17 +81,17 @@ public interface HashOperations<H, HK, HV> {
 	 */
 	List<HV> multiGet(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
 
-    /**
-     * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
-     * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-     *
-     * @param key must not be {@literal null}.
-     * @param hashKeys must not be {@literal null}.
+	/**
+	 * Get and remove the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of the
+	 * requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param hashKeys must not be {@literal null}.
 	 * @return list of values for the given fields or {@literal null} when used in pipeline / transaction.
-     * @since 4.0
+	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
-     */
-    List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
+	 */
+	List<HV> getAndDelete(@NonNull H key, @NonNull Collection<@NonNull HK> hashKeys);
 
 	/**
 	 * Get and optionally expire the value for given {@code hashKeys} from hash at {@code key}. Values are in the order of
@@ -107,7 +107,8 @@ public interface HashOperations<H, HK, HV> {
 	List<HV> getAndExpire(@NonNull H key, @Nullable Expiration expiration, @NonNull Collection<@NonNull HK> hashKeys);
 
 	/**
-	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and expiration.
+	 * Set multiple hash fields to multiple values using data provided in {@code m} with optional condition and
+	 * expiration.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param m must not be {@literal null}.
@@ -115,7 +116,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @param expiration is optional.
 	 * @return whether all fields were set or {@literal null} when used in pipeline / transaction.
 	 * @since 4.0
-	 *@see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
+	 * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>
 	 */
 	Boolean putAndExpire(@NonNull H key, @NonNull Map<? extends @NonNull HK, ? extends HV> m,
 			RedisHashCommands.@NonNull HashFieldSetOption condition, @Nullable Expiration expiration);
@@ -158,7 +159,7 @@ public interface HashOperations<H, HK, HV> {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	Map. Entry<@NonNull HK, HV> randomEntry(@NonNull H key);
+	Map.Entry<@NonNull HK, HV> randomEntry(@NonNull H key);
 
 	/**
 	 * Return random hash keys from the hash stored at {@code key}. If the provided {@code count} argument is positive,
@@ -391,8 +392,6 @@ public interface HashOperations<H, HK, HV> {
 			@NonNull Collection<@NonNull HK> hashFields) {
 		return new DefaultBoundHashFieldExpirationOperations<>(this, key, () -> hashFields);
 	}
-
-
 
 	/**
 	 * @return the underlying {@link RedisOperations} used to execute commands.

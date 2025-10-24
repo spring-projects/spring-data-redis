@@ -304,8 +304,8 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		RedisClusterNode nodeToUse = this.topologyProvider.getTopology().lookup(master);
 
-		LettuceClusterCommandCallback<Set<RedisClusterNode>> command = client ->
-			LettuceConverters.toSetOfRedisClusterNodes(client.clusterReplicas(nodeToUse.getId()));
+		LettuceClusterCommandCallback<Set<RedisClusterNode>> command = client -> LettuceConverters
+				.toSetOfRedisClusterNodes(client.clusterReplicas(nodeToUse.getId()));
 
 		return this.clusterCommandExecutor.executeCommandOnSingleNode(command, master).getRequiredValue();
 	}
@@ -315,11 +315,11 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		Set<RedisClusterNode> activeMasterNodes = this.topologyProvider.getTopology().getActiveMasterNodes();
 
-		LettuceClusterCommandCallback<Collection<RedisClusterNode>> command = client ->
-			Converters.toSetOfRedisClusterNodes(client.clusterReplicas(client.clusterMyId()));
+		LettuceClusterCommandCallback<Collection<RedisClusterNode>> command = client -> Converters
+				.toSetOfRedisClusterNodes(client.clusterReplicas(client.clusterMyId()));
 
-		List<NodeResult<Collection<RedisClusterNode>>> nodeResults =
-			this.clusterCommandExecutor.executeCommandAsyncOnNodes(command,activeMasterNodes).getResults();
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = this.clusterCommandExecutor
+				.executeCommandAsyncOnNodes(command, activeMasterNodes).getResults();
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<>();
 
@@ -334,7 +334,6 @@ public class LettuceClusterConnection extends LettuceConnection
 	public Integer clusterGetSlotForKey(byte[] key) {
 		return SlotHash.getSlot(key);
 	}
-
 
 	@Override
 	public @Nullable RedisClusterNode clusterGetNodeForSlot(int slot) {
@@ -352,8 +351,8 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public @Nullable ClusterInfo clusterGetClusterInfo() {
 
-		LettuceClusterCommandCallback<ClusterInfo> command = client ->
-				new ClusterInfo(LettuceConverters.toProperties(client.clusterInfo()));
+		LettuceClusterCommandCallback<ClusterInfo> command = client -> new ClusterInfo(
+				LettuceConverters.toProperties(client.clusterInfo()));
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
 	}

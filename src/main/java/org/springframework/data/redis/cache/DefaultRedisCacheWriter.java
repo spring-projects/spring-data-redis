@@ -143,7 +143,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@SuppressWarnings("NullAway")
-	private byte @Nullable[] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
+	private byte @Nullable [] doGet(RedisConnection connection, String name, byte[] key, @Nullable Duration ttl) {
 
 		RedisStringCommands commands = connection.stringCommands();
 		byte[] result = shouldExpireWithin(ttl) ? commands.getEx(key, Expiration.from(ttl)) : commands.get(key);

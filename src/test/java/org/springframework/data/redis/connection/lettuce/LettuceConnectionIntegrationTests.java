@@ -115,8 +115,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			// can't do blocking ops after closing
 			connection.bLPop(1, "what".getBytes());
 			fail("Expected exception using a closed conn for dedicated ops");
-		} catch (RedisSystemException expected) {
-		}
+		} catch (RedisSystemException expected) {}
 	}
 
 	@Test
@@ -135,10 +134,9 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		try {
 			connection.set("foo".getBytes(), "bar".getBytes());
 			fail("Exception should be thrown trying to use a closed connection");
-		} catch (RedisSystemException expected) {
-		} finally {
+		} catch (RedisSystemException expected) {} finally {
 
-		factory2.destroy();
+			factory2.destroy();
 		}
 	}
 
@@ -181,8 +179,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 		assertThat(
 				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()))
-						.isInstanceOf(List.class)
-						.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
+				.isInstanceOf(List.class)
+				.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
 	}
 
 	@Test // GH-2473

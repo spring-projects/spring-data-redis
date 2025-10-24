@@ -57,8 +57,8 @@ import org.springframework.util.ReflectionUtils;
 @SuppressWarnings("unused")
 public class RedisCache extends AbstractValueAdaptingCache {
 
-	@SuppressWarnings("NullAway")
-	static final byte[] BINARY_NULL_VALUE = RedisSerializer.java().serialize(NullValue.INSTANCE);
+	@SuppressWarnings("NullAway") static final byte[] BINARY_NULL_VALUE = RedisSerializer.java()
+			.serialize(NullValue.INSTANCE);
 
 	static final String CACHE_RETRIEVAL_UNSUPPORTED_OPERATION_EXCEPTION_MESSAGE = "The Redis driver configured with RedisCache through RedisCacheWriter does not support CompletableFuture-based retrieval";
 
@@ -271,7 +271,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	}
 
 	@Override
-	@SuppressWarnings({"unchecked", "NullAway"})
+	@SuppressWarnings({ "unchecked", "NullAway" })
 	public <T> CompletableFuture<T> retrieve(Object key, Supplier<CompletableFuture<T>> valueLoader) {
 
 		return retrieve(key).thenCompose(wrapper -> {
@@ -427,7 +427,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 				.thenApply(this::toValueWrapper);
 	}
 
-	private @Nullable Object nullSafeDeserializedStoreValue(byte @Nullable[] value) {
+	private @Nullable Object nullSafeDeserializedStoreValue(byte @Nullable [] value) {
 		return value != null ? fromStoreValue(deserializeCacheValue(value)) : null;
 	}
 

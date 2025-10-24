@@ -96,8 +96,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		}
 
 		return (long) connection.getClusterCommandExecutor()
-				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) Jedis::del,
-						Arrays.asList(keys))
+				.executeMultiKeyCommand((JedisMultiKeyClusterCommandCallback<Long>) Jedis::del, Arrays.asList(keys))
 				.resultsAsList().size();
 	}
 
@@ -222,8 +221,7 @@ class JedisClusterKeyCommands implements RedisKeyCommands {
 		Assert.notNull(node, "RedisClusterNode must not be null");
 
 		return connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) Jedis::randomBinaryKey, node)
-				.getValue();
+				.executeCommandOnSingleNode((JedisClusterCommandCallback<byte[]>) Jedis::randomBinaryKey, node).getValue();
 	}
 
 	@Override

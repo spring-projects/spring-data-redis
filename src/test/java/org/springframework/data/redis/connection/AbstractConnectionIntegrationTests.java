@@ -3734,24 +3734,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.hSet("hash-hgetdel", "field-3", "value-3");
 
 		// hgetdel first 2 fields
-		assertThat(connection.hGetDel("hash-hgetdel", "field-1", "field-2"))
-				.containsExactly("value-1", "value-2");
+		assertThat(connection.hGetDel("hash-hgetdel", "field-1", "field-2")).containsExactly("value-1", "value-2");
 		assertThat(connection.hExists("hash-hgetdel", "field-1")).isFalse();
 		assertThat(connection.hExists("hash-hgetdel", "field-2")).isFalse();
 
 		// hgetdel non-existent field returns null
-		assertThat(connection.hGetDel("hash-hgetdel", "field-1"))
-				.containsExactly(null);
+		assertThat(connection.hGetDel("hash-hgetdel", "field-1")).containsExactly(null);
 
 		// hgetdel last field
-		assertThat(connection.hGetDel("hash-hgetdel", "field-3"))
-				.containsExactly("value-3");
+		assertThat(connection.hGetDel("hash-hgetdel", "field-3")).containsExactly("value-3");
 		assertThat(connection.hExists("hash-hgetdel", "field-3")).isFalse();
 		assertThat(connection.exists("hash-hgetdel")).isFalse();
 
 		// hgetdel non-existent hash returns null
-		assertThat(connection.hGetDel("hash-hgetdel", "field-1"))
-				.containsExactly(null);
+		assertThat(connection.hGetDel("hash-hgetdel", "field-1")).containsExactly(null);
 	}
 
 	@Test // GH-3211
@@ -3763,8 +3759,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.hSet("hash-hgetex", "field-2", "value-2");
 		connection.hSet("hash-hgetex", "field-3", "value-3");
 
-		assertThat(connection.hGetEx("hash-hgetex", Expiration.seconds(2), "field-1", "field-2"))
-						.containsExactly("value-1", "value-2");
+		assertThat(connection.hGetEx("hash-hgetex", Expiration.seconds(2), "field-1", "field-2")).containsExactly("value-1",
+				"value-2");
 
 		// non-existent field returns null
 		assertThat(connection.hGetEx("hash-hgetex", null, "no-such-field")).containsExactly(null);
@@ -3772,8 +3768,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		// non-existent hash returns null
 		assertThat(connection.hGetEx("no-such-key", null, "field-1")).containsExactly(null);
 
-		await().atMost(Duration.ofMillis(3000L)).until(() ->
-				!connection.hExists("hash-getex", "field-1") &&  !connection.hExists("hash-getex", "field-2"));
+		await().atMost(Duration.ofMillis(3000L))
+				.until(() -> !connection.hExists("hash-getex", "field-1") && !connection.hExists("hash-getex", "field-2"));
 	}
 
 	@Test // GH-3211
@@ -3782,13 +3778,13 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void hSetExWorksAsExpected() {
 
 		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
-		assertThat(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(), Expiration.seconds(2)))
-				.isTrue();
+		assertThat(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(),
+				Expiration.seconds(2))).isTrue();
 		assertThat(connection.hGet("hash-hsetex", "field-1")).isEqualTo("value-1");
 		assertThat(connection.hGet("hash-hsetex", "field-2")).isEqualTo("value-2");
 
-		await().atMost(Duration.ofMillis(3000L)).until(() ->
-				!connection.hExists("hash-getex", "field-1") &&  !connection.hExists("hash-getex", "field-2"));
+		await().atMost(Duration.ofMillis(3000L))
+				.until(() -> !connection.hExists("hash-getex", "field-1") && !connection.hExists("hash-getex", "field-2"));
 	}
 
 	@Test // GH-3211
@@ -3796,7 +3792,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
 
 		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
-		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60)));
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(),
+				Expiration.seconds(60)));
 		actual.add(connection.hExists("hash-hsetex", "field-1"));
 		actual.add(connection.hExists("hash-hsetex", "field-2"));
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
@@ -3811,7 +3808,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
 		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
-		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(), Expiration.seconds(60)));
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(),
+				Expiration.seconds(60)));
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
 		actual.add(connection.hExists("hash-hsetex", "field-2"));
 
@@ -3825,7 +3823,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hSet("hash-hsetex", "field-1", "old-value-1"));
 		actual.add(connection.hSet("hash-hsetex", "field-2", "old-value-2"));
 		Map<String, String> fieldMap = Map.of("field-1", "new-value-1", "field-2", "new-value-2");
-		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60)));
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(),
+				Expiration.seconds(60)));
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
 		actual.add(connection.hGet("hash-hsetex", "field-2"));
 
@@ -3838,7 +3837,8 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
 		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
-		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(), Expiration.seconds(60)));
+		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(),
+				Expiration.seconds(60)));
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
 		actual.add(connection.hExists("hash-hsetex", "field-2"));
 

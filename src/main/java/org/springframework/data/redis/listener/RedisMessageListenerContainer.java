@@ -169,8 +169,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private @Nullable Subscriber subscriber;
 
-    private int phase = Integer.MAX_VALUE;
-    private boolean autoStartup = true;
+	private int phase = Integer.MAX_VALUE;
+	private boolean autoStartup = true;
 
 	/**
 	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown while processing a Message. By default,
@@ -622,10 +622,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		removeMessageListener(listener, Collections.emptySet());
 	}
 
-    @Override
-    public int getPhase() {
-        return this.phase;
-    }
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
 
 	/**
 	 * Configure the lifecycle phase that this listener container is supposed to run in. The default is
@@ -634,14 +634,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @see org.springframework.context.SmartLifecycle#getPhase()
 	 * @since 4.0
 	 */
-    public void setPhase(int phase) {
-        this.phase = phase;
-    }
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
 
-    @Override
-    public boolean isAutoStartup() {
-        return this.autoStartup;
-    }
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
 
 	/**
 	 * Configure if this listener container should get started automatically at the time that the containing
@@ -650,9 +650,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * @see org.springframework.context.SmartLifecycle#isAutoStartup()
 	 * @since 4.0
 	 */
-    public void setAutoStartup(boolean autoStartup) {
-        this.autoStartup = autoStartup;
-    }
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
 
 	private void initMapping(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
 
@@ -804,7 +804,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	private void remove(@Nullable MessageListener listener, Topic topic, ByteArrayWrapper holder,
-						Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
 		if (CollectionUtils.isEmpty(listeners)) {
@@ -1002,7 +1002,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	private void dispatchMessage(Collection<MessageListener> listeners, Message message, byte @Nullable[] pattern) {
+	private void dispatchMessage(Collection<MessageListener> listeners, Message message, byte @Nullable [] pattern) {
 
 		byte[] source = (pattern != null ? pattern.clone() : message.getChannel());
 		Executor executor = getRequiredTaskExecutor();
@@ -1031,7 +1031,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return this.taskExecutor;
 	}
 
-	@SuppressWarnings({"ConstantConditions", "NullAway"})
+	@SuppressWarnings({ "ConstantConditions", "NullAway" })
 	private byte[] serialize(Topic topic) {
 		return serializer.serialize(topic.getTopic());
 	}
@@ -1180,7 +1180,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private class DispatchMessageListener implements MessageListener, SubscriptionListener {
 
 		@Override
-		public void onMessage(Message message, byte @Nullable[] pattern) {
+		public void onMessage(Message message, byte @Nullable [] pattern) {
 
 			Collection<MessageListener> listeners = null;
 

@@ -251,8 +251,8 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	RedisOperations<H, ?> getOperations();
 
 	/**
-	 * Get and remove the value for given {@code hashFields} from the hash at the bound key. Values are in the order of the
-	 * requested hash fields. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 * Get and remove the value for given {@code hashFields} from the hash at the bound key. Values are in the order of
+	 * the requested hash fields. Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 *
 	 * @param hashFields must not be {@literal null}.
 	 * @return {@literal null} when used in pipeline / transaction.
@@ -262,8 +262,9 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	List<HV> getAndDelete(@NonNull Collection<@NonNull HK> hashFields);
 
 	/**
-	 * Get and optionally expire the value for given {@code hashFields} from the hash at the bound key. Values are in the order of the
-	 * requested hash fields. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 * Get and optionally expire the value for given {@code hashFields} from the hash at the bound key. Values are in the
+	 * order of the requested hash fields. Absent field values are represented using {@literal null} in the resulting
+	 * {@link List}.
 	 *
 	 * @param expiration is optional.
 	 * @param hashFields must not be {@literal null}.
@@ -278,10 +279,10 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * expiration time or time-to-live (TTL). The {@code condition} determines whether the fields are set.
 	 *
 	 * @param m must not be {@literal null}.
-	 * @param condition must not be {@literal null}. Use {@link RedisHashCommands.HashFieldSetOption#IF_NONE_EXIST} (FNX) to only set the fields if
-	 * none of them already exist, {@link RedisHashCommands.HashFieldSetOption#IF_ALL_EXIST} (FXX) to only set the
-	 * fields if all of them already exist, or {@link RedisHashCommands.HashFieldSetOption#UPSERT} to set the fields
-	 * unconditionally.
+	 * @param condition must not be {@literal null}. Use {@link RedisHashCommands.HashFieldSetOption#IF_NONE_EXIST} (FNX)
+	 *          to only set the fields if none of them already exist,
+	 *          {@link RedisHashCommands.HashFieldSetOption#IF_ALL_EXIST} (FXX) to only set the fields if all of them
+	 *          already exist, or {@link RedisHashCommands.HashFieldSetOption#UPSERT} to set the fields unconditionally.
 	 * @param expiration is optional.
 	 * @since 4.0
 	 * @see <a href="https://redis.io/commands/hsetex">Redis Documentation: HSETEX</a>

@@ -32,33 +32,27 @@ class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnectionTrans
 
 	@Test
 	@Disabled("Different exception")
-	public void testEvalShaNotFound() {
-	}
+	public void testEvalShaNotFound() {}
 
 	@Test
 	@Disabled("Different exception")
-	public void testEvalReturnSingleError() {
-	}
+	public void testEvalReturnSingleError() {}
 
 	@Test
 	@Disabled("Different exception")
-	public void testRestoreBadData() {
-	}
+	public void testRestoreBadData() {}
 
 	@Test
 	@Disabled("Different exception")
-	public void testRestoreExistingKey() {
-	}
+	public void testRestoreExistingKey() {}
 
 	@Test
 	@Disabled("Different exception")
-	public void testEvalArrayScriptError() {
-	}
+	public void testEvalArrayScriptError() {}
 
 	@Test
 	@Disabled("Different exception")
-	public void testEvalShaArrayError() {
-	}
+	public void testEvalShaArrayError() {}
 
 	protected void initConnection() {
 		connection.openPipeline();

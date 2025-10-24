@@ -156,9 +156,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	/**
 	 * Creates new {@link Jackson2HashMapper} with a default {@link ObjectMapper}.
 	 *
-	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties
-	 * will be un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure
-	 * created by Jackson.
+	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties will be un/flattened
+	 *          using {@literal dot notation}, or whether to retain the hierarchical node structure created by Jackson.
 	 */
 	public Jackson2HashMapper(boolean flatten) {
 
@@ -190,11 +189,11 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 			}
 		}.findAndRegisterModules(), flatten);
 
-		this.typingMapper.activateDefaultTyping(this.typingMapper.getPolymorphicTypeValidator(),
-				DefaultTyping.EVERYTHING, As.PROPERTY);
+		this.typingMapper.activateDefaultTyping(this.typingMapper.getPolymorphicTypeValidator(), DefaultTyping.EVERYTHING,
+				As.PROPERTY);
 		this.typingMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 
-		if(flatten) {
+		if (flatten) {
 			this.typingMapper.disable(MapperFeature.REQUIRE_TYPE_ID_FOR_SUBTYPES);
 		}
 
@@ -208,11 +207,10 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 	/**
 	 * Creates new {@link Jackson2HashMapper} initialized with a custom Jackson {@link ObjectMapper}.
 	 *
-	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects};
-	 * must not be {@literal null}.
-	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties
-	 * will be un/flattened using {@literal dot notation}, or whether to retain the hierarchical node structure
-	 * created by Jackson.
+	 * @param mapper Jackson {@link ObjectMapper} used to de/serialize hashed {@link Object objects}; must not be
+	 *          {@literal null}.
+	 * @param flatten boolean used to configure whether JSON de/serialized {@link Object} properties will be un/flattened
+	 *          using {@literal dot notation}, or whether to retain the hierarchical node structure created by Jackson.
 	 */
 	public Jackson2HashMapper(ObjectMapper mapper, boolean flatten) {
 
@@ -245,8 +243,7 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 
 				Map<String, Object> unflattenedHash = FlatEric.unflatten(hash);
 				byte[] unflattenedHashedBytes = this.untypedMapper.writeValueAsBytes(unflattenedHash);
-				Object hashedObject = this.typingMapper.reader().forType(Object.class)
-						.readValue(unflattenedHashedBytes);
+				Object hashedObject = this.typingMapper.reader().forType(Object.class).readValue(unflattenedHashedBytes);
 
 				return hashedObject;
 			}
@@ -309,8 +306,8 @@ public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
 		private final UntypedDateDeserializer dateDeserializer = new UntypedDateDeserializer();
 
 		@Override
-		public @Nullable Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer)
-				throws IOException {
+		public @Nullable Object deserializeWithType(JsonParser p, DeserializationContext ctxt,
+				TypeDeserializer typeDeserializer) throws IOException {
 			return deserialize(p, ctxt);
 		}
 

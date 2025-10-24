@@ -106,8 +106,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		try {
 			setOps.randomMembers(keyFactory.instance(), -1);
 			fail("IllegalArgumentException should be thrown");
-		} catch (IllegalArgumentException expected) {
-		}
+		} catch (IllegalArgumentException expected) {}
 	}
 
 	@Test
@@ -116,8 +115,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		try {
 			setOps.distinctRandomMembers(keyFactory.instance(), -2);
 			fail("IllegalArgumentException should be thrown");
-		} catch (IllegalArgumentException expected) {
-		}
+		} catch (IllegalArgumentException expected) {}
 	}
 
 	@SuppressWarnings("unchecked")

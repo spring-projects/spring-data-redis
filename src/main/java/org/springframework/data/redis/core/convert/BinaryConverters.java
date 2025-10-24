@@ -291,13 +291,11 @@ final class BinaryConverters {
 			String value = toString(source);
 			try {
 				return new Date(NumberUtils.parseNumber(value, Long.class));
-			} catch (NumberFormatException ignore) {
-			}
+			} catch (NumberFormatException ignore) {}
 
 			try {
 				return DateFormat.getInstance().parse(value);
-			} catch (ParseException ignore) {
-			}
+			} catch (ParseException ignore) {}
 
 			throw new IllegalArgumentException("Cannot parse date out of %s".formatted(Arrays.toString(source)));
 		}

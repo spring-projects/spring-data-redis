@@ -46,8 +46,7 @@ class ReadOffsetStrategyUnitTests {
 		ReadOffset offset = ReadOffset.lastConsumed();
 
 		assertThat(ReadOffsetStrategy.LastConsumed.getFirst(offset, null)).isEqualTo(ReadOffset.latest());
-		assertThat(ReadOffsetStrategy.LastConsumed.getNext(offset, null, "42"))
-				.isEqualTo(ReadOffset.from("42"));
+		assertThat(ReadOffsetStrategy.LastConsumed.getNext(offset, null, "42")).isEqualTo(ReadOffset.from("42"));
 	}
 
 	@Test // DATAREDIS-864

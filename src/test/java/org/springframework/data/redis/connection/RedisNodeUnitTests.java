@@ -89,8 +89,7 @@ class RedisNodeUnitTests {
 	@Test // GH-2928
 	void shouldThrowExceptionForInvalidPort() {
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> RedisNode.fromString("127.0.0.1:invalidPort"));
+		assertThatIllegalArgumentException().isThrownBy(() -> RedisNode.fromString("127.0.0.1:invalidPort"));
 	}
 
 	@Test // GH-2928
@@ -103,4 +102,3 @@ class RedisNodeUnitTests {
 	}
 
 }
-

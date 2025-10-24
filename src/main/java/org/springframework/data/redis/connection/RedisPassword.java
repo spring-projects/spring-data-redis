@@ -56,11 +56,11 @@ public class RedisPassword {
 	 */
 	public static RedisPassword of(@Nullable String passwordAsString) {
 
-        if (!StringUtils.hasText(passwordAsString)) {
-            return none();
-        }
+		if (!StringUtils.hasText(passwordAsString)) {
+			return none();
+		}
 
-        return new RedisPassword(passwordAsString.toCharArray());
+		return new RedisPassword(passwordAsString.toCharArray());
 	}
 
 	/**
@@ -69,13 +69,13 @@ public class RedisPassword {
 	 * @param passwordAsChars the password as char array.
 	 * @return the {@link RedisPassword} for {@code passwordAsChars}.
 	 */
-	public static RedisPassword of(char @Nullable[] passwordAsChars) {
+	public static RedisPassword of(char @Nullable [] passwordAsChars) {
 
-        if (ObjectUtils.isEmpty(passwordAsChars)) {
-            return none();
-        }
+		if (ObjectUtils.isEmpty(passwordAsChars)) {
+			return none();
+		}
 
-        return new RedisPassword(Arrays.copyOf(passwordAsChars, passwordAsChars.length));
+		return new RedisPassword(Arrays.copyOf(passwordAsChars, passwordAsChars.length));
 	}
 
 	/**

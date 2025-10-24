@@ -324,7 +324,7 @@ public abstract class AbstractRedisSetIntegrationTests<T> extends AbstractRedisC
 	@Test // GH-2049
 	void randMemberReturnsSomething() {
 
-		Object[] valuesArray = new Object[]{getT(), getT(), getT()};
+		Object[] valuesArray = new Object[] { getT(), getT(), getT() };
 
 		collection.addAll((List<T>) Arrays.asList(valuesArray));
 

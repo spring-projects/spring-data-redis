@@ -163,8 +163,7 @@ class StreamRecordsUnitTests {
 	@Test // GH-3204
 	void ofBytesWithNullStreamKey() {
 
-		ByteRecord record = StreamRecords.newRecord()
-				.withId(RECORD_ID)
+		ByteRecord record = StreamRecords.newRecord().withId(RECORD_ID)
 				.ofBytes(Collections.singletonMap(SERIALIZED_STRING_MAP_KEY, SERIALIZED_STRING_VAL));
 
 		assertThat(record.getId()).isEqualTo(RECORD_ID);

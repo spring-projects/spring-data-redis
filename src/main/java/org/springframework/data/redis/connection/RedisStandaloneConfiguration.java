@@ -23,8 +23,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Configuration class used to set up a {@link RedisConnection} with {@link RedisConnectionFactory} for connecting
- * to a single node <a href="https://redis.io/">Redis</a> instance.
+ * Configuration class used to set up a {@link RedisConnection} with {@link RedisConnectionFactory} for connecting to a
+ * single node <a href="https://redis.io/">Redis</a> instance.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

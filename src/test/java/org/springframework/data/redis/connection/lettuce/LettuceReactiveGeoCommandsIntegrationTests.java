@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.data.Offset.*;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
@@ -105,7 +104,7 @@ public class LettuceReactiveGeoCommandsIntegrationTests extends LettuceReactiveC
 
 		assertThat(
 				connection.geoCommands().geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), CATANIA.getName())).block())
-						.containsExactly("sqc8b49rny0", "sqdtr74hyu0");
+				.containsExactly("sqc8b49rny0", "sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-525
@@ -116,7 +115,7 @@ public class LettuceReactiveGeoCommandsIntegrationTests extends LettuceReactiveC
 
 		assertThat(connection.geoCommands()
 				.geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName())).block())
-						.containsExactly("sqc8b49rny0", null, "sqdtr74hyu0");
+				.containsExactly("sqc8b49rny0", null, "sqdtr74hyu0");
 	}
 
 	@Test // DATAREDIS-525

@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * <p>
  * Usage example:
  * <p>
+ *
  * <pre class="code">
  * JedisInvoker invoker = …;
  *
@@ -107,7 +108,8 @@ class JedisInvoker {
 	 * @param pipelineFunction must not be {@literal null}.
 	 * @param t1 first argument.
 	 */
-	<R, T1> @Nullable R just(ConnectionFunction1<T1, @Nullable R> function, PipelineFunction1<T1, @Nullable R> pipelineFunction, T1 t1) {
+	<R, T1> @Nullable R just(ConnectionFunction1<T1, @Nullable R> function,
+			PipelineFunction1<T1, @Nullable R> pipelineFunction, T1 t1) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
@@ -123,8 +125,8 @@ class JedisInvoker {
 	 * @param t1 first argument.
 	 * @param t2 second argument.
 	 */
-	<R, T1, T2> @Nullable R just(ConnectionFunction2<T1, T2, @Nullable R> function, PipelineFunction2<T1, T2, @Nullable R> pipelineFunction, T1 t1,
-			T2 t2) {
+	<R, T1, T2> @Nullable R just(ConnectionFunction2<T1, T2, @Nullable R> function,
+			PipelineFunction2<T1, T2, @Nullable R> pipelineFunction, T1 t1, T2 t2) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
@@ -141,8 +143,8 @@ class JedisInvoker {
 	 * @param t2 second argument.
 	 * @param t3 third argument.
 	 */
-	<R, T1, T2, T3> @Nullable R just(ConnectionFunction3<T1, T2, T3, @Nullable R> function, PipelineFunction3<T1, T2, T3, @Nullable R> pipelineFunction,
-			T1 t1, T2 t2, T3 t3) {
+	<R, T1, T2, T3> @Nullable R just(ConnectionFunction3<T1, T2, T3, @Nullable R> function,
+			PipelineFunction3<T1, T2, T3, @Nullable R> pipelineFunction, T1 t1, T2 t2, T3 t3) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
@@ -204,7 +206,8 @@ class JedisInvoker {
 	 * @param t6 sixth argument.
 	 */
 	<R, T1, T2, T3, T4, T5, T6> @Nullable R just(ConnectionFunction6<T1, T2, T3, T4, T5, T6, @Nullable R> function,
-			PipelineFunction6<T1, T2, T3, T4, T5, T6, @Nullable R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) {
+			PipelineFunction6<T1, T2, T3, T4, T5, T6, @Nullable R> pipelineFunction, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5,
+			T6 t6) {
 
 		Assert.notNull(function, "ConnectionFunction must not be null");
 		Assert.notNull(pipelineFunction, "PipelineFunction must not be null");
@@ -1017,8 +1020,9 @@ class JedisInvoker {
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		default <I, T> @Nullable T invoke(Function<Jedis, I> callFunction, Function<ResponseCommands, Response<I>> pipelineFunction,
-				Converter<I, @Nullable T> converter, Supplier<@Nullable T> nullDefault) {
+		default <I, T> @Nullable T invoke(Function<Jedis, I> callFunction,
+				Function<ResponseCommands, Response<I>> pipelineFunction, Converter<I, @Nullable T> converter,
+				Supplier<@Nullable T> nullDefault) {
 
 			return (T) doInvoke((Function) callFunction, (Function) pipelineFunction, (Converter<Object, Object>) converter,
 					(Supplier<Object>) nullDefault);

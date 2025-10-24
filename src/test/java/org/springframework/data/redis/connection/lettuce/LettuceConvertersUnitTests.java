@@ -267,10 +267,8 @@ class LettuceConvertersUnitTests {
 		RedisPassword dataPassword = RedisPassword.of("data-secret");
 		RedisPassword sentinelPassword = RedisPassword.of("sentinel-secret");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379)
-				.sentinel("127.0.0.1", 26380);
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(dataPassword);
 
@@ -293,10 +291,8 @@ class LettuceConvertersUnitTests {
 
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379)
-				.sentinel("127.0.0.1", 26380);
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(password);
 		sentinelConfiguration.setSentinelPassword(password);
@@ -306,7 +302,7 @@ class LettuceConvertersUnitTests {
 		assertThat(redisURI.getUsername()).isEqualTo("app");
 
 		redisURI.getSentinels().forEach(sentinel -> {
- 			assertThat(sentinel.getUsername()).isNull();
+			assertThat(sentinel.getUsername()).isNull();
 			assertThat(sentinel.getPassword()).isNotNull();
 		});
 	}
@@ -316,10 +312,8 @@ class LettuceConvertersUnitTests {
 
 		RedisPassword password = RedisPassword.of("88888888-8x8-getting-creative-now");
 
-		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration()
-				.master(MASTER_NAME)
-				.sentinel("127.0.0.1", 26379)
-				.sentinel("127.0.0.1", 26380);
+		RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration().master(MASTER_NAME)
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 		sentinelConfiguration.setUsername("app");
 		sentinelConfiguration.setPassword(password);
 		sentinelConfiguration.setSentinelUsername("admin");
@@ -361,9 +355,9 @@ class LettuceConvertersUnitTests {
 		void setPxAtForExpirationWithMillisUnixTimestamp() {
 
 			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
-			assertThat(LettuceConverters.toHGetExArgs(
-					Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS))).extracting("pxAt")
-					.isEqualTo(fourHoursFromNowMillis);
+			assertThat(
+					LettuceConverters.toHGetExArgs(Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS)))
+					.extracting("pxAt").isEqualTo(fourHoursFromNowMillis);
 		}
 
 		@Test
@@ -376,56 +370,54 @@ class LettuceConvertersUnitTests {
 		void setExAtForExpirationWithNonMillisUnixTimestamp() {
 
 			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
-			assertThat(
-					LettuceConverters.toHGetExArgs(Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS))).extracting(
-					"exAt").isEqualTo(fourHoursFromNowSecs);
+			assertThat(LettuceConverters.toHGetExArgs(Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS)))
+					.extracting("exAt").isEqualTo(fourHoursFromNowSecs);
 		}
 	}
-	
+
 	@Nested
 	class ToHSetExArgsShould {
 
 		@Test
 		void setFnxForNoneExistCondition() {
 
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.IF_NONE_EXIST, null)).extracting(
-					"fnx").isEqualTo(Boolean.TRUE);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.IF_NONE_EXIST, null))
+					.extracting("fnx").isEqualTo(Boolean.TRUE);
 		}
 
 		@Test
 		void setFxxForAllExistCondition() {
 
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.IF_ALL_EXIST, null)).extracting(
-					"fxx").isEqualTo(Boolean.TRUE);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.IF_ALL_EXIST, null))
+					.extracting("fxx").isEqualTo(Boolean.TRUE);
 		}
 
 		@Test
 		void notSetFnxNorFxxForUpsertCondition() {
 
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, null)).extracting("fnx",
-					"fxx").containsExactly(Boolean.FALSE, Boolean.FALSE);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, null))
+					.extracting("fnx", "fxx").containsExactly(Boolean.FALSE, Boolean.FALSE);
 		}
 
 		@Test
 		void notSetAnyTimeFieldsForNullExpiration() {
 
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, null)).extracting("ex",
-					"exAt", "px", "pxAt").containsExactly(null, null, null, null);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, null))
+					.extracting("ex", "exAt", "px", "pxAt").containsExactly(null, null, null, null);
 		}
 
 		@Test
 		void notSetAnyTimeFieldsForNonExpiringExpiration() {
 
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT,
-					Expiration.persistent())).extracting("ex", "exAt", "px", "pxAt").containsExactly(null, null, null, null);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, Expiration.persistent()))
+					.extracting("ex", "exAt", "px", "pxAt").containsExactly(null, null, null, null);
 		}
 
 		@Test
 		void setKeepTtlForKeepTtlExpiration() {
 
-			assertThat(
-					LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, Expiration.keepTtl())).extracting(
-					"keepttl").isEqualTo(Boolean.TRUE);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, Expiration.keepTtl()))
+					.extracting("keepttl").isEqualTo(Boolean.TRUE);
 		}
 
 		@Test
@@ -440,8 +432,8 @@ class LettuceConvertersUnitTests {
 
 			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
 			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS);
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration)).extracting(
-					"pxAt").isEqualTo(fourHoursFromNowMillis);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration))
+					.extracting("pxAt").isEqualTo(fourHoursFromNowMillis);
 		}
 
 		@Test
@@ -456,8 +448,8 @@ class LettuceConvertersUnitTests {
 
 			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
 			Expiration expiration = Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS);
-			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration)).extracting(
-					"exAt").isEqualTo(fourHoursFromNowSecs);
+			assertThat(LettuceConverters.toHSetExArgs(RedisHashCommands.HashFieldSetOption.UPSERT, expiration))
+					.extracting("exAt").isEqualTo(fourHoursFromNowSecs);
 		}
 	}
 }

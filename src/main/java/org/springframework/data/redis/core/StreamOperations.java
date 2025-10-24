@@ -365,7 +365,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 4.0
 	 */
-	PendingMessages pending(@NonNull K key, @NonNull String group, @NonNull Range<?> range, long count, @NonNull Duration minIdleTime);
+	PendingMessages pending(@NonNull K key, @NonNull String group, @NonNull Range<?> range, long count,
+			@NonNull Duration minIdleTime);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} for a given {@link Range} and
@@ -394,7 +395,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 3.5
 	 */
-	PendingMessages pending(@NonNull K key, @NonNull Consumer consumer, @NonNull Range<?> range, long count, @NonNull Duration minIdleTime);
+	PendingMessages pending(@NonNull K key, @NonNull Consumer consumer, @NonNull Range<?> range, long count,
+			@NonNull Duration minIdleTime);
 
 	/**
 	 * Get the length of a stream.

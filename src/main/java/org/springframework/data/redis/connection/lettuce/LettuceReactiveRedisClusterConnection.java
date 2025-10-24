@@ -286,7 +286,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 				case IMPORTING -> commands.clusterSetSlotImporting(slot, nodeId);
 				case NODE -> commands.clusterSetSlotNode(slot, nodeId);
 				case STABLE -> commands.clusterSetSlotStable(slot);
-      		};
+			};
 		}).then();
 	}
 
@@ -359,7 +359,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 
 		return getConnection()
 				.flatMap(it -> Mono.fromCompletionStage(it.getConnectionAsync(node.getRequiredHost(), node.getRequiredPort()))
-				.map(StatefulRedisConnection::reactive));
+						.map(StatefulRedisConnection::reactive));
 	}
 
 	/**

@@ -83,7 +83,7 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 			return sUnion(Mono.just(SUnionCommand.keys(command.getKeys()))).next().flatMap(values -> {
 
 				Flux<ByteBuffer> output = values.getOutput();
-				Mono<Long> result =  output != null ? output.collectList().flatMap(it -> {
+				Mono<Long> result = output != null ? output.collectList().flatMap(it -> {
 
 					ByteBuffer[] members = it.toArray(new ByteBuffer[0]);
 					return cmd.sadd(command.getKey(), members);
@@ -119,8 +119,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 						for (List<ByteBuffer> intersecting : intersectings) {
 							source.retainAll(intersecting);
 						}
-				return source;
-			});
+						return source;
+					});
 
 			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
 		}));
@@ -181,8 +181,8 @@ class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands imple
 							source.removeAll(intersecting);
 						}
 
-				return source;
-			});
+						return source;
+					});
 
 			return Mono.just(new CommandResponse<>(command, result.concatMap(v -> Flux.fromStream(v.stream()))));
 		}));

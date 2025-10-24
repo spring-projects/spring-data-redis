@@ -381,7 +381,8 @@ class FlatEric {
 
 		Collection<Map.Entry<String, JsonNodeAdapter>> properties();
 
-		@Nullable Object getDirectValue();
+		@Nullable
+		Object getDirectValue();
 	}
 
 }

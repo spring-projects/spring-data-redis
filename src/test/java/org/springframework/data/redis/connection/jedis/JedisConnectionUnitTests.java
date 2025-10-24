@@ -68,8 +68,7 @@ class JedisConnectionUnitTests {
 
 			try {
 				connection.shutdown(null);
-			} catch (InvalidDataAccessApiUsageException ignore) {
-			}
+			} catch (InvalidDataAccessApiUsageException ignore) {}
 
 			verify(jedisSpy).shutdown();
 		}
@@ -267,8 +266,8 @@ class JedisConnectionUnitTests {
 
 			String cursorId = "9286422431637962824";
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-			doReturn(new ScanResult<>(cursorId, List.of(new redis.clients.jedis.resps.Tuple("spring", 1D)))).when(jedisSpy).zscan(any(byte[].class),
-					any(byte[].class), any(ScanParams.class));
+			doReturn(new ScanResult<>(cursorId, List.of(new redis.clients.jedis.resps.Tuple("spring", 1D)))).when(jedisSpy)
+					.zscan(any(byte[].class), any(byte[].class), any(ScanParams.class));
 
 			Cursor<Tuple> cursor = connection.zSetCommands().zScan("spring".getBytes(), ScanOptions.NONE);
 			cursor.next(); // initial value
@@ -307,8 +306,8 @@ class JedisConnectionUnitTests {
 
 			String cursorId = "9286422431637962824";
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-			doReturn(new ScanResult<>(cursorId, List.of(Map.entry("spring".getBytes(), "data".getBytes())))).when(jedisSpy).hscan(any(byte[].class),
-					any(byte[].class), any(ScanParams.class));
+			doReturn(new ScanResult<>(cursorId, List.of(Map.entry("spring".getBytes(), "data".getBytes())))).when(jedisSpy)
+					.hscan(any(byte[].class), any(byte[].class), any(ScanParams.class));
 
 			Cursor<Entry<byte[], byte[]>> cursor = connection.hashCommands().hScan("spring".getBytes(), ScanOptions.NONE);
 			cursor.next(); // initial value

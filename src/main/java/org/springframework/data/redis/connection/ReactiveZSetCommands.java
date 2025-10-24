@@ -1440,7 +1440,7 @@ public interface ReactiveZSetCommands {
 
 		return zRangeByScore(
 				Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key).limitTo(limit)))
-						.flatMap(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -2821,7 +2821,7 @@ public interface ReactiveZSetCommands {
 
 		return zInterWithScores(
 				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
-						.flatMap(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -2840,7 +2840,7 @@ public interface ReactiveZSetCommands {
 
 		return zInterWithScores(
 				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
-						.flatMap(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -2990,7 +2990,7 @@ public interface ReactiveZSetCommands {
 
 		return zInterStore(Mono.just(
 				ZInterStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
-						.next().map(NumericResponse::getOutput);
+				.next().map(NumericResponse::getOutput);
 	}
 
 	/**
@@ -3013,7 +3013,7 @@ public interface ReactiveZSetCommands {
 
 		return zInterStore(Mono.just(
 				ZInterStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
-						.next().map(NumericResponse::getOutput);
+				.next().map(NumericResponse::getOutput);
 	}
 
 	/**
@@ -3096,7 +3096,7 @@ public interface ReactiveZSetCommands {
 
 		return zUnionWithScores(
 				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
-						.flatMap(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -3115,7 +3115,7 @@ public interface ReactiveZSetCommands {
 
 		return zUnionWithScores(
 				Mono.just(ZAggregateCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights)))
-						.flatMap(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -3297,7 +3297,7 @@ public interface ReactiveZSetCommands {
 
 		return zUnionStore(Mono.just(
 				ZUnionStoreCommand.sets(sets).aggregateUsing(aggregateFunction).applyWeights(weights).storeAs(destinationKey)))
-						.next().map(NumericResponse::getOutput);
+				.next().map(NumericResponse::getOutput);
 	}
 
 	/**

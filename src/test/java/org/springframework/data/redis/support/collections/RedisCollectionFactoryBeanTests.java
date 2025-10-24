@@ -188,7 +188,7 @@ public class RedisCollectionFactoryBeanTests {
 
 		assertThat(fb.getObject()).satisfies(value -> {
 			assertThat(value).isInstanceOf(RedisMap.class);
-			assertThat((RedisMap)value).containsEntry("k", "v");
+			assertThat((RedisMap) value).containsEntry("k", "v");
 		});
 	}
 }

@@ -68,8 +68,8 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 
 	private boolean running = false;
 
-    private int phase = Integer.MAX_VALUE;
-    private boolean autoStartup;
+	private int phase = Integer.MAX_VALUE;
+	private boolean autoStartup;
 
 	/**
 	 * Create a new {@link DefaultStreamMessageListenerContainer}.
@@ -95,13 +95,13 @@ class DefaultStreamMessageListenerContainer<K, V extends Record<K, ?>> implement
 			this.streamOperations = this.template.opsForStream();
 		}
 
-        if (containerOptions.isAutoStartup().isPresent()) {
-            this.autoStartup = containerOptions.isAutoStartup().get();
-        }
+		if (containerOptions.isAutoStartup().isPresent()) {
+			this.autoStartup = containerOptions.isAutoStartup().get();
+		}
 
-        if (containerOptions.getPhase().isPresent()) {
-            this.phase = containerOptions.getPhase().getAsInt();
-        }
+		if (containerOptions.getPhase().isPresent()) {
+			this.phase = containerOptions.getPhase().getAsInt();
+		}
 	}
 
 	private static StreamReadOptions getStreamReadOptions(StreamMessageListenerContainerOptions<?, ?> options) {

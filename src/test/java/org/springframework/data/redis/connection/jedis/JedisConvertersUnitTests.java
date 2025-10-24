@@ -16,13 +16,8 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
@@ -39,9 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.connection.RedisServer;
@@ -205,7 +202,7 @@ class JedisConvertersUnitTests {
 
 		assertThat(
 				JedisConverters.boundaryToBytesForZRange(org.springframework.data.domain.Range.Bound.exclusive(1L), null))
-						.isEqualTo(JedisConverters.toBytes("(1"));
+				.isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
 	@Test // DATAREDIS-352
@@ -437,8 +434,8 @@ class JedisConvertersUnitTests {
 		void setPxAtForExpirationWithMillisUnixTimestamp() {
 
 			long fourHoursFromNowMillis = Instant.now().plus(4L, ChronoUnit.HOURS).toEpochMilli();
-			HGetExParams params = JedisConverters.toHGetExParams(
-					Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS));
+			HGetExParams params = JedisConverters
+					.toHGetExParams(Expiration.unixTimestamp(fourHoursFromNowMillis, TimeUnit.MILLISECONDS));
 			assertThatParamsHasExpiration(params, Protocol.Keyword.PXAT, fourHoursFromNowMillis);
 		}
 
@@ -453,8 +450,8 @@ class JedisConvertersUnitTests {
 		void setExAtForExpirationWithNonMillisUnixTimestamp() {
 
 			long fourHoursFromNowSecs = Instant.now().plus(4L, ChronoUnit.HOURS).getEpochSecond();
-			HGetExParams params = JedisConverters.toHGetExParams(
-					Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS));
+			HGetExParams params = JedisConverters
+					.toHGetExParams(Expiration.unixTimestamp(fourHoursFromNowSecs, TimeUnit.SECONDS));
 			assertThatParamsHasExpiration(params, Protocol.Keyword.EXAT, fourHoursFromNowSecs);
 		}
 
@@ -463,7 +460,7 @@ class JedisConvertersUnitTests {
 			assertThat(params).extracting("expiration", "expirationValue").containsExactly(expirationType, expirationValue);
 		}
 	}
-	
+
 	@Nested
 	class ToHSetExParamsShould {
 

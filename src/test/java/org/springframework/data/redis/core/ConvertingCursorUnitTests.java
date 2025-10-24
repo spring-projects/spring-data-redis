@@ -48,10 +48,8 @@ class ConvertingCursorUnitTests {
 
 		Cursor<Object> mockCursor = mock(Cursor.class);
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new ConvertingCursor<>(mockCursor, null))
-			.withMessage("Converter must not be null")
-			.withNoCause();
+		assertThatIllegalArgumentException().isThrownBy(() -> new ConvertingCursor<>(mockCursor, null))
+				.withMessage("Converter must not be null").withNoCause();
 
 		verifyNoInteractions(mockCursor);
 	}
@@ -62,10 +60,8 @@ class ConvertingCursorUnitTests {
 
 		Converter<Object, Object> mockConverter = mock(Converter.class);
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new ConvertingCursor<>(null, mockConverter))
-			.withMessage("Cursor must not be null")
-			.withNoCause();
+		assertThatIllegalArgumentException().isThrownBy(() -> new ConvertingCursor<>(null, mockConverter))
+				.withMessage("Cursor must not be null").withNoCause();
 
 		verifyNoInteractions(mockConverter);
 	}

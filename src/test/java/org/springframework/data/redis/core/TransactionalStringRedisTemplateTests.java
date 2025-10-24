@@ -68,7 +68,7 @@ class TransactionalStringRedisTemplateTests {
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@BeforeEach
 	void beforeEach() {
 
@@ -138,27 +138,23 @@ class TransactionalStringRedisTemplateTests {
 			Map<String, Object> ops = new LinkedHashMap<>();
 
 			// Query data added outside transaction (should execute immediately)
-			ops.put("rangeWithScores_outside",
-				stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
-			ops.put("reverseRangeWithScores_outside",
-				stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
+			ops.put("rangeWithScores_outside", stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
+			ops.put("reverseRangeWithScores_outside", stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
 			ops.put("rangeByScoreWithScores_outside",
-				stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 2.0));
+					stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 2.0));
 			ops.put("reverseRangeByScoreWithScores_outside",
-				stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 2.0));
+					stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 2.0));
 
 			// Add inside transaction (goes into multi/exec queue)
 			ops.put("add_inside", stringTemplate.opsForZSet().add("testzset", "inside", 3.0));
 
 			// Changes made inside transaction should not be visible yet (read executes immediately)
-			ops.put("rangeWithScores_inside",
-				stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
-			ops.put("reverseRangeWithScores_inside",
-				stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
+			ops.put("rangeWithScores_inside", stringTemplate.opsForZSet().rangeWithScores("testzset", 0, -1));
+			ops.put("reverseRangeWithScores_inside", stringTemplate.opsForZSet().reverseRangeWithScores("testzset", 0, -1));
 			ops.put("rangeByScoreWithScores_inside",
-				stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 3.0));
+					stringTemplate.opsForZSet().rangeByScoreWithScores("testzset", 1.0, 3.0));
 			ops.put("reverseRangeByScoreWithScores_inside",
-				stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 3.0));
+					stringTemplate.opsForZSet().reverseRangeByScoreWithScores("testzset", 1.0, 3.0));
 
 			return ops;
 		});
@@ -170,8 +166,9 @@ class TransactionalStringRedisTemplateTests {
 		assertThatResultForOperationContainsExactly(result, "rangeWithScores_outside", "outside1", "outside2");
 		assertThatResultForOperationContainsExactly(result, "reverseRangeWithScores_outside", "outside2", "outside1");
 		assertThatResultForOperationContainsExactly(result, "rangeByScoreWithScores_outside", "outside1", "outside2");
-		assertThatResultForOperationContainsExactly(result, "reverseRangeByScoreWithScores_outside", "outside2", "outside1");
-		
+		assertThatResultForOperationContainsExactly(result, "reverseRangeByScoreWithScores_outside", "outside2",
+				"outside1");
+
 		// changes made inside transaction are not visible (i.e. a 3rd element was added but not detected in range op)
 		assertThatResultForOperationContainsExactly(result, "rangeWithScores_inside", "outside1", "outside2");
 		assertThatResultForOperationContainsExactly(result, "reverseRangeWithScores_inside", "outside2", "outside1");
@@ -179,14 +176,12 @@ class TransactionalStringRedisTemplateTests {
 		assertThatResultForOperationContainsExactly(result, "reverseRangeByScoreWithScores_inside", "outside2", "outside1");
 	}
 
-	private void assertThatResultForOperationContainsExactly(Map<String, Object> result, String operation, String... expectedValues) {
-		assertThat(result.get(operation))
-				.asInstanceOf(InstanceOfAssertFactories.set(TypedTuple.class))
-				.hasSize(expectedValues.length)
-				.extracting(TypedTuple::getValue)
-				.containsExactly(expectedValues);
+	private void assertThatResultForOperationContainsExactly(Map<String, Object> result, String operation,
+			String... expectedValues) {
+		assertThat(result.get(operation)).asInstanceOf(InstanceOfAssertFactories.set(TypedTuple.class))
+				.hasSize(expectedValues.length).extracting(TypedTuple::getValue).containsExactly(expectedValues);
 	}
-	
+
 	static Stream<Arguments> argumentsStream() {
 
 		LettuceConnectionFactory lcf = new LettuceConnectionFactory(SettingsUtils.standaloneConfiguration());

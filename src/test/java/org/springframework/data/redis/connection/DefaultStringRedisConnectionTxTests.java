@@ -1768,7 +1768,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).exec();
+				.when(nativeConnection).exec();
 		super.xRangeShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1777,7 +1777,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).exec();
+				.when(nativeConnection).exec();
 		super.xReadShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1786,7 +1786,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).exec();
+				.when(nativeConnection).exec();
 		super.xReadGroupShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1795,7 +1795,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).exec();
+				.when(nativeConnection).exec();
 		super.xRevRangeShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1812,7 +1812,6 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
 		super.xTrimApproximateShouldDelegateAndConvertCorrectly();
 	}
-
 
 	protected List<Object> getResults() {
 		return connection.exec();

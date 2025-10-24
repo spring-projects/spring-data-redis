@@ -127,7 +127,7 @@ public interface RedisClusterCommands {
 	 * @param slots
 	 * @see <a href="https://redis.io/commands/cluster-delslots">Redis Documentation: CLUSTER DELSLOTS</a>
 	 */
-	void clusterDeleteSlots( @NonNull RedisClusterNode node, int @NonNull ... slots);
+	void clusterDeleteSlots(@NonNull RedisClusterNode node, int @NonNull... slots);
 
 	/**
 	 * Removes {@link SlotRange#getSlotsArray()} from given {@link RedisClusterNode}.

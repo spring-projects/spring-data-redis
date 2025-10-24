@@ -37,8 +37,7 @@ public class KeyScanOptions extends ScanOptions {
 
 	private final @Nullable String type;
 
-	KeyScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable[] bytePattern,
-			@Nullable String type) {
+	KeyScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable [] bytePattern, @Nullable String type) {
 
 		super(count, pattern, bytePattern);
 		this.type = type;

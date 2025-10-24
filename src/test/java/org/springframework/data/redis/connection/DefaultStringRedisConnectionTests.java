@@ -592,20 +592,15 @@ public class DefaultStringRedisConnectionTests {
 		Expiration expiration = Expiration.persistent();
 		RedisHashCommands.HashFieldSetOption setOption = RedisHashCommands.HashFieldSetOption.upsert();
 		Map<String, String> stringMap = Map.of(bar, bar2);
-		doReturn(Boolean.TRUE).when(nativeConnection).hSetEx(
-				eq(fooBytes),
-				argThat(fieldMap -> isFieldMap(fieldMap, stringMap)),
-				eq(setOption), eq(expiration));
+		doReturn(Boolean.TRUE).when(nativeConnection).hSetEx(eq(fooBytes),
+				argThat(fieldMap -> isFieldMap(fieldMap, stringMap)), eq(setOption), eq(expiration));
 		actual.add(connection.hSetEx(foo, stringMap, setOption, expiration));
 		verifyResults(Collections.singletonList(true));
 	}
 
 	private boolean isFieldMap(Map<byte[], byte[]> fieldMap, Map<String, String> stringMap) {
 		Map<String, String> fieldMapAsStringMap = fieldMap.entrySet().stream()
-				.collect(Collectors.toMap(
-						entry -> new String(entry.getKey()),
-						entry -> new String(entry.getValue())
-				));
+				.collect(Collectors.toMap(entry -> new String(entry.getKey()), entry -> new String(entry.getValue())));
 		return fieldMapAsStringMap.equals(stringMap);
 	}
 

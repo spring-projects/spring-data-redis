@@ -526,7 +526,7 @@ public abstract class LettuceConverters extends Converters {
 
 	private static Set<Flag> parseFlags(@Nullable Set<NodeFlag> source) {
 
-		if(source == null) {
+		if (source == null) {
 			return Collections.emptySet();
 		}
 
@@ -644,21 +644,25 @@ public abstract class LettuceConverters extends Converters {
 	/**
 	 * Convert {@link RedisHashCommands.HashFieldSetOption} and {@link Expiration} to {@link HSetExArgs} for the Redis
 	 * {@code HSETEX} command.
-	 * <p>Condition mapping:</p>
+	 * <p>
+	 * Condition mapping:
+	 * </p>
 	 * <ul>
-	 *   <li>{@code IF_NONE_EXIST} {@code FNX}</li>
-	 *   <li>{@code IF_ALL_EXIST} {@code FXX}</li>
-	 *   <li>{@code UPSERT} no condition flag</li>
+	 * <li>{@code IF_NONE_EXIST} {@code FNX}</li>
+	 * <li>{@code IF_ALL_EXIST} {@code FXX}</li>
+	 * <li>{@code UPSERT} no condition flag</li>
 	 * </ul>
-	 * <p>Expiration mapping:</p>
+	 * <p>
+	 * Expiration mapping:
+	 * </p>
 	 * <ul>
-	 *   <li>{@link Expiration#keepTtl()}  {@code KEEPTTL}</li>
-	 *   <li>Unix timestamp {@code EXAT}/{@code PXAT} depending on time unit</li>
-	 *   <li>Relative expiration {@code EX}/{@code PX} depending on time unit</li>
-	 *   <li>{@code null} expiration no TTL argument</li>
+	 * <li>{@link Expiration#keepTtl()} {@code KEEPTTL}</li>
+	 * <li>Unix timestamp {@code EXAT}/{@code PXAT} depending on time unit</li>
+	 * <li>Relative expiration {@code EX}/{@code PX} depending on time unit</li>
+	 * <li>{@code null} expiration no TTL argument</li>
 	 * </ul>
 	 *
-	 * @param condition  must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
+	 * @param condition must not be {@literal null}; use {@code UPSERT} to omit FNX/FXX.
 	 * @param expiration can be {@literal null} to omit TTL.
 	 * @return never {@literal null}.
 	 * @since 4.0
@@ -767,7 +771,7 @@ public abstract class LettuceConverters extends Converters {
 	public static BitFieldArgs toBitFieldArgs(@Nullable BitFieldSubCommands subCommands) {
 
 		BitFieldArgs args = new BitFieldArgs();
-		if(subCommands == null) {
+		if (subCommands == null) {
 			return args;
 		}
 

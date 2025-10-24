@@ -76,18 +76,17 @@ public class Expiration {
 	 *
 	 * @param expirationTime {@link Long length of time} for the {@link Expiration}.
 	 * @param timeUnit {@link TimeUnit} used to measure the {@link Long expiration time}; can be {@literal null}.
-	 * Defaulted to {@link TimeUnit#SECONDS}
+	 *          Defaulted to {@link TimeUnit#SECONDS}
 	 * @return a new {@link Expiration} configured with the given {@link Long length of time} in {@link TimeUnit}.
 	 */
 	public static Expiration from(long expirationTime, @Nullable TimeUnit timeUnit) {
 
-		if(timeUnit == null) {
+		if (timeUnit == null) {
 			return new Expiration(expirationTime, TimeUnit.SECONDS);
 		}
 
-		if (TimeUnit.NANOSECONDS.equals(timeUnit)
-			|| TimeUnit.MICROSECONDS.equals(timeUnit)
-			|| TimeUnit.MILLISECONDS.equals(timeUnit)) {
+		if (TimeUnit.NANOSECONDS.equals(timeUnit) || TimeUnit.MICROSECONDS.equals(timeUnit)
+				|| TimeUnit.MILLISECONDS.equals(timeUnit)) {
 
 			return new Expiration(timeUnit.toMillis(expirationTime), TimeUnit.MILLISECONDS);
 		}

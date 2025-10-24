@@ -577,8 +577,8 @@ public class BitFieldSubCommands implements Iterable<BitFieldSubCommand> {
 	@NullUnmarked
 	public static abstract class AbstractBitFieldSubCommand implements BitFieldSubCommand {
 
-		 BitFieldType type;
-		 Offset offset;
+		BitFieldType type;
+		Offset offset;
 
 		@Override
 		public BitFieldType getType() {

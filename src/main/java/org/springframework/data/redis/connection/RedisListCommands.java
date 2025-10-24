@@ -106,7 +106,7 @@ public interface RedisListCommands {
 	 * @see <a href="https://redis.io/commands/lpos">Redis Documentation: LPOS</a>
 	 * @since 2.4
 	 */
-	List<Long> lPos(byte @NonNull [] key, byte @NonNull[] element, @Nullable Integer rank, @Nullable Integer count);
+	List<Long> lPos(byte @NonNull [] key, byte @NonNull [] element, @Nullable Integer rank, @Nullable Integer count);
 
 	/**
 	 * Prepend {@code values} to {@code key}.

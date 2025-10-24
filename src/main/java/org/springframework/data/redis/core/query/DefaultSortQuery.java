@@ -36,7 +36,8 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 	private final @Nullable String by;
 	private final List<String> getPattern;
 
-	DefaultSortQuery(K key, @Nullable Order order, @Nullable Boolean alpha, @Nullable Range limit, @Nullable String by, List<String> getPattern) {
+	DefaultSortQuery(K key, @Nullable Order order, @Nullable Boolean alpha, @Nullable Range limit, @Nullable String by,
+			List<String> getPattern) {
 		this.key = key;
 		this.order = order;
 		this.alpha = alpha;

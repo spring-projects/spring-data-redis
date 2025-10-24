@@ -66,12 +66,13 @@ class RedisCacheConfigurationUnitTests {
 
 		Duration sixtySeconds = Duration.ofSeconds(60);
 
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-			.entryTtl(sixtySeconds);
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().entryTtl(sixtySeconds);
 
 		assertThat(cacheConfiguration).isNotNull();
 		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualByComparingTo(sixtySeconds);
-		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualByComparingTo(sixtySeconds); // does not change!
+		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualByComparingTo(sixtySeconds); // does
+																																																										// not
+																																																										// change!
 	}
 
 	@Test // GH-2628
@@ -84,8 +85,7 @@ class RedisCacheConfigurationUnitTests {
 
 		doReturn(thirtyMinutes).doReturn(twoHours).when(mockTtlFunction).getTimeToLive(any(), any());
 
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-				.entryTtl(mockTtlFunction);
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().entryTtl(mockTtlFunction);
 
 		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualTo(thirtyMinutes);
 		assertThat(cacheConfiguration.getTtlFunction().getTimeToLive("foo", null)).isEqualTo(twoHours);

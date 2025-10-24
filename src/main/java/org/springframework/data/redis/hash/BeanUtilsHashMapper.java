@@ -45,7 +45,7 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 	@Override
 	public @Nullable T fromHash(@Nullable Map<String, String> hash) {
 
-		if(hash == null) {
+		if (hash == null) {
 			return null;
 		}
 

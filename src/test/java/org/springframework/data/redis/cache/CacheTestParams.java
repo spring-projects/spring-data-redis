@@ -69,14 +69,12 @@ class CacheTestParams {
 			// Jedis Cluster
 			JedisConnectionFactory jedisClusterConnectionFactory = JedisConnectionFactoryExtension
 					.getConnectionFactory(RedisCluster.class);
-			factoryList
-					.add(jedisClusterConnectionFactory);
+			factoryList.add(jedisClusterConnectionFactory);
 
 			// Lettuce Cluster
 			LettuceConnectionFactory lettuceClusterConnectionFactory = LettuceConnectionFactoryExtension
 					.getConnectionFactory(RedisCluster.class);
-			factoryList
-					.add(lettuceClusterConnectionFactory);
+			factoryList.add(lettuceClusterConnectionFactory);
 		}
 
 		return factoryList;
@@ -91,7 +89,7 @@ class CacheTestParams {
 		OxmSerializer oxmSerializer = XstreamOxmSerializerSingleton.getInstance();
 		GenericJackson2JsonRedisSerializer jackson2Serializer = new GenericJackson2JsonRedisSerializer();
 		GenericJacksonJsonRedisSerializer jacksonSerializer = GenericJacksonJsonRedisSerializer
-            .create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
+				.create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
 		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
 
 		return connectionFactories().stream().flatMap(factory -> Arrays.asList( //
@@ -116,7 +114,7 @@ class CacheTestParams {
 		}
 
 		@Override
-		public @Nullable Object deserialize(byte @Nullable[] bytes) throws SerializationException {
+		public @Nullable Object deserialize(byte @Nullable [] bytes) throws SerializationException {
 			return serializer.deserialize(bytes);
 		}
 

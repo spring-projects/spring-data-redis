@@ -34,5 +34,5 @@ public interface MessageListener {
 	 * @param message message must not be {@literal null}.
 	 * @param pattern pattern matching the channel (if specified) - can be {@literal null}.
 	 */
-	void onMessage(Message message, byte @Nullable[] pattern);
+	void onMessage(Message message, byte @Nullable [] pattern);
 }

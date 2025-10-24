@@ -15,18 +15,9 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 
@@ -35,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -51,14 +43,11 @@ import org.springframework.data.redis.core.types.Expiration;
 @ExtendWith(MockitoExtension.class)
 class DefaultRedisCacheWriterUnitTests {
 
-	@Mock
-	private CacheStatisticsCollector mockCacheStatisticsCollector = mock(CacheStatisticsCollector.class);
+	@Mock private CacheStatisticsCollector mockCacheStatisticsCollector = mock(CacheStatisticsCollector.class);
 
-	@Mock
-	private RedisConnection mockConnection;
+	@Mock private RedisConnection mockConnection;
 
-	@Mock(strictness = Mock.Strictness.LENIENT)
-	private RedisConnectionFactory mockConnectionFactory;
+	@Mock(strictness = Mock.Strictness.LENIENT) private RedisConnectionFactory mockConnectionFactory;
 
 	@BeforeEach
 	void setup() {
@@ -126,8 +115,8 @@ class DefaultRedisCacheWriterUnitTests {
 
 		doReturn(mockStringCommands).when(this.mockConnection).stringCommands();
 		doReturn(mockKeyCommands).when(this.mockConnection).keyCommands();
-		doThrow(new PessimisticLockingFailureException("you-shall-not-pass")).when(mockStringCommands).set(any(byte[].class),
-				any(byte[].class), any(), any());
+		doThrow(new PessimisticLockingFailureException("you-shall-not-pass")).when(mockStringCommands)
+				.set(any(byte[].class), any(byte[].class), any(), any());
 
 		RedisCacheWriter cacheWriter = spy(
 				new DefaultRedisCacheWriter(this.mockConnectionFactory, Duration.ofMillis(10), mock(BatchStrategy.class))

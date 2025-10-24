@@ -587,7 +587,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
 	 */
 	@SuppressWarnings("NullAway")
-	public byte [] toBytes(Object source) {
+	public byte[] toBytes(Object source) {
 		return source instanceof byte[] bytes ? bytes : getConverter().getConversionService().convert(source, byte[].class);
 	}
 

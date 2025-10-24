@@ -53,7 +53,7 @@ public abstract class AbstractSubscription implements Subscription {
 	 * @param channels can be {@literal null}.
 	 * @param patterns can be {@literal null}.
 	 */
-	protected AbstractSubscription(MessageListener listener, byte @Nullable[][] channels, byte @Nullable[][] patterns) {
+	protected AbstractSubscription(MessageListener listener, byte @Nullable [][] channels, byte @Nullable [][] patterns) {
 
 		Assert.notNull(listener, "MessageListener must not be null");
 
@@ -175,7 +175,7 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	@Override
-	public void pUnsubscribe(byte @Nullable[]... patts) {
+	public void pUnsubscribe(byte @Nullable []... patts) {
 		if (!isAlive()) {
 			return;
 		}
@@ -203,7 +203,7 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	@Override
-	public void unsubscribe(byte @Nullable[]... chans) {
+	public void unsubscribe(byte @Nullable []... chans) {
 		if (!isAlive()) {
 			return;
 		}
@@ -255,7 +255,7 @@ public abstract class AbstractSubscription implements Subscription {
 		return list;
 	}
 
-	private static void add(Collection<ByteArrayWrapper> col, byte @Nullable[]... bytes) {
+	private static void add(Collection<ByteArrayWrapper> col, byte @Nullable []... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {
 			for (byte[] bs : bytes) {
 				col.add(new ByteArrayWrapper(bs));
@@ -263,7 +263,7 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
-	private static void remove(Collection<ByteArrayWrapper> col, byte @Nullable[]... bytes) {
+	private static void remove(Collection<ByteArrayWrapper> col, byte @Nullable []... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {
 			for (byte[] bs : bytes) {
 				col.remove(new ByteArrayWrapper(bs));

@@ -28,12 +28,13 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
-import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.stream.ByteBufferRecord;
 import org.springframework.data.redis.connection.stream.Consumer;
@@ -409,8 +410,7 @@ public interface ReactiveStreamCommands {
 		Assert.notNull(xAddOptions, "XAddOptions must not be null");
 
 		AddStreamRecord addStreamRecord = AddStreamRecord.of(record)
-			.approximateTrimming(xAddOptions.isApproximateTrimming())
-			.makeNoStream(xAddOptions.isNoMkStream());
+				.approximateTrimming(xAddOptions.isApproximateTrimming()).makeNoStream(xAddOptions.isNoMkStream());
 
 		if (xAddOptions.hasMaxlen()) {
 			addStreamRecord = addStreamRecord.maxlen(xAddOptions.getMaxlen());
@@ -893,7 +893,7 @@ public interface ReactiveStreamCommands {
 			Assert.notNull(range, "Range must not be null");
 			Assert.isTrue(count > -1, "Count must not be negative");
 
-            return new PendingRecordsCommand(getKey(), groupName, options.withRange(range, count));
+			return new PendingRecordsCommand(getKey(), groupName, options.withRange(range, count));
 		}
 
 		/**
@@ -903,7 +903,7 @@ public interface ReactiveStreamCommands {
 		 * @return new instance of {@link PendingRecordsCommand}.
 		 */
 		public PendingRecordsCommand consumer(String consumerName) {
-            return new PendingRecordsCommand(getKey(), groupName, options.consumer(consumerName));
+			return new PendingRecordsCommand(getKey(), groupName, options.consumer(consumerName));
 		}
 
 		/**

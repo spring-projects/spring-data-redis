@@ -224,13 +224,11 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 
 			connection.serverCommands().setConfig("notify-keyspace-events", "") //
 					.as(StepVerifier::create) //
-					.expectNext("OK")
-					.verifyComplete();
+					.expectNext("OK").verifyComplete();
 
 			connection.serverCommands().setConfig("notify-keyspace-events", "KEA") //
 					.as(StepVerifier::create) //
-					.expectNext("OK")
-					.verifyComplete();
+					.expectNext("OK").verifyComplete();
 		}
 	}
 

@@ -327,7 +327,7 @@ public class StreamReceiverIntegrationTests {
 			}
 
 			return Objects.equals(this.getFirstName(), that.getFirstName())
-				&& Objects.equals(this.getLastName(), that.getLastName());
+					&& Objects.equals(this.getLastName(), that.getLastName());
 		}
 
 		@Override
@@ -338,10 +338,7 @@ public class StreamReceiverIntegrationTests {
 		@Override
 		public String toString() {
 
-			return "LoginEvent{" +
-				"firstname='" + firstName + '\'' +
-				", lastname='" + lastName + '\'' +
-				'}';
+			return "LoginEvent{" + "firstname='" + firstName + '\'' + ", lastname='" + lastName + '\'' + '}';
 		}
 	}
 }

@@ -383,9 +383,9 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 	@Test // DATAREDIS-864
 	void reverseRangeShouldConvertSimpleMessages() {
 
-        assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
-            && !(serializer instanceof GenericJackson2JsonRedisSerializer)
-            && !(serializer instanceof GenericJacksonJsonRedisSerializer));
+		assumeTrue(!(serializer instanceof Jackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJackson2JsonRedisSerializer)
+				&& !(serializer instanceof GenericJacksonJsonRedisSerializer));
 
 		K key = keyFactory.instance();
 		HK hashKey = hashKeyFactory.instance();

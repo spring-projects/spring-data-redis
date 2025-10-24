@@ -40,12 +40,10 @@ class DefaultBoundKeyExpirationOperations<K> implements BoundKeyExpirationOperat
 		this.key = key;
 	}
 
-
 	@Override
 	public ExpireChanges.@Nullable ExpiryChangeState expire(Expiration expiration, ExpirationOptions options) {
 		return operations.expire(key, expiration, options);
 	}
-
 
 	@Override
 	public ExpireChanges.@Nullable ExpiryChangeState expire(Duration timeout) {
@@ -55,18 +53,15 @@ class DefaultBoundKeyExpirationOperations<K> implements BoundKeyExpirationOperat
 		return toExpiryChangeState(expire);
 	}
 
-
 	@Override
 	public ExpireChanges.@Nullable ExpiryChangeState expireAt(Instant expireAt) {
 		return toExpiryChangeState(operations.expireAt(key, expireAt));
 	}
 
-
 	@Override
 	public ExpireChanges.@Nullable ExpiryChangeState persist() {
 		return toExpiryChangeState(operations.persist(key));
 	}
-
 
 	@Override
 	public Expirations.@Nullable TimeToLive getTimeToLive() {
@@ -76,7 +71,6 @@ class DefaultBoundKeyExpirationOperations<K> implements BoundKeyExpirationOperat
 		return expire == null ? null : Expirations.TimeToLive.of(expire, TimeUnit.SECONDS);
 	}
 
-
 	@Override
 	public Expirations.@Nullable TimeToLive getTimeToLive(TimeUnit timeUnit) {
 
@@ -85,7 +79,6 @@ class DefaultBoundKeyExpirationOperations<K> implements BoundKeyExpirationOperat
 		return expire == null ? null : Expirations.TimeToLive.of(expire, timeUnit);
 
 	}
-
 
 	private static ExpireChanges.@Nullable ExpiryChangeState toExpiryChangeState(@Nullable Boolean result) {
 

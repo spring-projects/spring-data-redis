@@ -20,9 +20,7 @@ package org.springframework.data.redis.listener.adapter;
  */
 public class RedisMDP {
 
-	public void handleMessage(String message) {
-	}
+	public void handleMessage(String message) {}
 
-	public void anotherHandle(String message) {
-	}
+	public void anotherHandle(String message) {}
 }

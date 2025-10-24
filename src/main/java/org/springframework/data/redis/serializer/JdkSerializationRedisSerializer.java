@@ -26,11 +26,11 @@ import org.springframework.util.Assert;
 /**
  * Java Serialization {@link RedisSerializer}.
  * <p>
- * Delegates to the default (Java-based) {@link DefaultSerializer serializer}
- * and {@link DefaultDeserializer deserializer}.
+ * Delegates to the default (Java-based) {@link DefaultSerializer serializer} and {@link DefaultDeserializer
+ * deserializer}.
  * <p>
- * This {@link RedisSerializer serializer} can be constructed with either a custom {@link ClassLoader}
- * or custom {@link Converter converters}.
+ * This {@link RedisSerializer serializer} can be constructed with either a custom {@link ClassLoader} or custom
+ * {@link Converter converters}.
  *
  * @author Mark Pollack
  * @author Costin Leau
@@ -51,11 +51,11 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	}
 
 	/**
-	 * Creates a new {@link JdkSerializationRedisSerializer} with the given {@link ClassLoader} used to
-	 * resolve {@link Class types} during deserialization.
+	 * Creates a new {@link JdkSerializationRedisSerializer} with the given {@link ClassLoader} used to resolve
+	 * {@link Class types} during deserialization.
 	 *
-	 * @param classLoader {@link ClassLoader} used to resolve {@link Class types} for deserialization;
-	 * can be {@literal null}.
+	 * @param classLoader {@link ClassLoader} used to resolve {@link Class types} for deserialization; can be
+	 *          {@literal null}.
 	 * @since 1.7
 	 */
 	public JdkSerializationRedisSerializer(@Nullable ClassLoader classLoader) {
@@ -74,8 +74,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 *           {@literal null}.
 	 * @since 1.7
 	 */
-	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer,
-			Converter<byte[], Object> deserializer) {
+	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer, Converter<byte[], Object> deserializer) {
 
 		Assert.notNull(serializer, "Serializer must not be null");
 		Assert.notNull(deserializer, "Deserializer must not be null");
@@ -83,7 +82,6 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		this.serializer = serializer;
 		this.deserializer = deserializer;
 	}
-
 
 	@Override
 	public byte[] serialize(@Nullable Object value) {
@@ -102,7 +100,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 	@Nullable
 	@Override
-	public Object deserialize(byte @Nullable[] bytes) {
+	public Object deserialize(byte @Nullable [] bytes) {
 
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;

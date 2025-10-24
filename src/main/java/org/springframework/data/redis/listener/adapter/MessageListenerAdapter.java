@@ -231,7 +231,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 * @see #handleListenerException
 	 */
 	@Override
-	public void onMessage(Message message, byte @Nullable[] pattern) {
+	public void onMessage(Message message, byte @Nullable [] pattern) {
 		try {
 			// Check whether the delegate is a MessageListener impl itself.
 			// In that case, the adapter will simply act as a pass-through.
@@ -400,11 +400,11 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 				// check out the argument numbers
 				Class<?>[] parameterTypes = method.getParameterTypes();
 
-					return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
-				}
-
-				return false;
+				return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
 			}
+
+			return false;
+		}
 
 	}
 

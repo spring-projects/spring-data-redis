@@ -83,7 +83,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 
 		assertThat(
 				connection.hyperLogLogCommands().pfMerge(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block())
-						.isTrue();
+				.isTrue();
 
 		assertThat(nativeCommands.pfcount(KEY_3)).isEqualTo(3L);
 	}

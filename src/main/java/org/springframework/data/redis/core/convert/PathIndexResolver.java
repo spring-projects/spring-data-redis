@@ -95,8 +95,8 @@ public class PathIndexResolver implements IndexResolver {
 	}
 
 	@SuppressWarnings("NullAway")
-	private Set<IndexedData> doResolveIndexesFor(String keyspace, String path,
-			TypeInformation<?> typeInformation, @Nullable PersistentProperty<?> fallback, @Nullable Object value) {
+	private Set<IndexedData> doResolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
+			@Nullable PersistentProperty<?> fallback, @Nullable Object value) {
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
 
@@ -231,7 +231,7 @@ public class PathIndexResolver implements IndexResolver {
 			indexConfiguration.addIndexDefinition(indexDefinition);
 
 			data.add(indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value));
-		} else if (property != null &&  value != null && property.isAnnotationPresent(GeoIndexed.class)) {
+		} else if (property != null && value != null && property.isAnnotationPresent(GeoIndexed.class)) {
 
 			GeoIndexDefinition indexDefinition = new GeoIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);

@@ -38,8 +38,7 @@ public class BoundingBox implements Shape {
 	private final Distance height;
 
 	/**
-	 * Creates a new {@link BoundingBox} from the given width and height. Both distances must use the same
-	 * {@link Metric}.
+	 * Creates a new {@link BoundingBox} from the given width and height. Both distances must use the same {@link Metric}.
 	 *
 	 * @param width must not be {@literal null}.
 	 * @param height must not be {@literal null}.

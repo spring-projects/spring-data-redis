@@ -191,8 +191,8 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 	}
 
 	@Override
-	public GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference,
-			GeoShape geoPredicate, RedisGeoCommands.GeoSearchCommandArgs args) {
+	public GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, GeoShape geoPredicate,
+			RedisGeoCommands.GeoSearchCommandArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		GeoReference<byte[]> rawMember = getGeoReference(reference);
@@ -204,8 +204,8 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 	}
 
 	@Override
-	public Long searchAndStore(K key, K destKey, GeoReference<M> reference,
-			GeoShape geoPredicate, RedisGeoCommands.GeoSearchStoreCommandArgs args) {
+	public Long searchAndStore(K key, K destKey, GeoReference<M> reference, GeoShape geoPredicate,
+			RedisGeoCommands.GeoSearchStoreCommandArgs args) {
 
 		byte[] rawKey = rawKey(key);
 		byte[] rawDestKey = rawKey(destKey);
@@ -217,8 +217,7 @@ class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements Geo
 	@SuppressWarnings("unchecked")
 	private GeoReference<byte[]> getGeoReference(GeoReference<M> reference) {
 		return reference instanceof GeoReference.GeoMemberReference
-				? GeoReference
-						.fromMember(rawValue(((GeoMemberReference<M>) reference).getMember()))
+				? GeoReference.fromMember(rawValue(((GeoMemberReference<M>) reference).getMember()))
 				: (GeoReference<byte[]>) reference;
 	}
 }

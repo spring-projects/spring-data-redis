@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -40,16 +40,13 @@ public class Jackson2HashMapperNonFlatteningUnitTests extends Jackson2HashMapper
 	@Test // GH-2593
 	void timestampHandledCorrectly() {
 
-		Map<String, Object> hash = Map.of(
-			"@class", Session.class.getName(),
-			"lastAccessed", Arrays.asList(LocalDateTime.class.getName(), "2023-06-05T18:36:30")
-		);
+		Map<String, Object> hash = Map.of("@class", Session.class.getName(), "lastAccessed",
+				Arrays.asList(LocalDateTime.class.getName(), "2023-06-05T18:36:30"));
 
 		Session session = (Session) getMapper().fromHash(hash);
 
 		assertThat(session).isNotNull();
-		assertThat(session.lastAccessed).isEqualTo(LocalDateTime.of(2023, Month.JUNE, 5,
-			18, 36, 30));
+		assertThat(session.lastAccessed).isEqualTo(LocalDateTime.of(2023, Month.JUNE, 5, 18, 36, 30));
 	}
 
 	private static class Session {

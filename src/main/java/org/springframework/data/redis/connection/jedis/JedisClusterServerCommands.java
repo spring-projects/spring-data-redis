@@ -415,8 +415,7 @@ class JedisClusterServerCommands implements RedisClusterServerCommands {
 				target.getRequiredPort());
 
 		executeCommandOnSingleNode(
-				client -> client.migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse),
-				node);
+				client -> client.migrate(target.getRequiredHost(), target.getRequiredPort(), key, dbIndex, timeoutToUse), node);
 	}
 
 	private Long convertListOfStringToTime(List<@NonNull String> serverTimeInformation, TimeUnit timeUnit) {

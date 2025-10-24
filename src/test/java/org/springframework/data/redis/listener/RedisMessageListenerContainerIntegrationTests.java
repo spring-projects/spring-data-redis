@@ -99,7 +99,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 
 			}
 
@@ -139,7 +139,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 
 			}
 
@@ -178,7 +178,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener1 = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				received.countDown();
 			}
 
@@ -190,7 +190,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener2 = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				received.countDown();
 			}
 
@@ -226,7 +226,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener1 = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				received.countDown();
 			}
 
@@ -238,7 +238,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener2 = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				received.countDown();
 			}
 
@@ -273,7 +273,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener1 = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				received.countDown();
 			}
 
@@ -308,7 +308,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener patternListener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				if (message.toString().contains("pattern")) {
 					received.countDown();
 				}
@@ -322,7 +322,7 @@ class RedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener channelListener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 				if (message.toString().contains("channel")) {
 					received.countDown();
 				}

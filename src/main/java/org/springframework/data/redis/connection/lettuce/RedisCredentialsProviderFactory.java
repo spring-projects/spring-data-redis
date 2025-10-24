@@ -95,7 +95,7 @@ public interface RedisCredentialsProviderFactory {
 		}
 
 		@Override
-		public char @Nullable[] getPassword() {
+		public char @Nullable [] getPassword() {
 			return null;
 		}
 

@@ -446,8 +446,7 @@ public class GenericJacksonJsonRedisSerializer implements RedisSerializer<Object
 						typeValidator, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY, JsonTypeInfo.Id.CLASS, typePropertyName);
 
 				mapperBuilder.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false)
-						.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-						.setDefaultTyping(resolver);
+						.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setDefaultTyping(resolver);
 			}
 
 			mapperBuilderCustomizer.accept(mapperBuilder);

@@ -89,8 +89,7 @@ public class RedisKeyValueAdapterTests {
 			return null;
 		});
 
-		try (RedisConnection connection = template.getConnectionFactory()
-				.getConnection()) {
+		try (RedisConnection connection = template.getConnectionFactory().getConnection()) {
 			connection.setConfig("notify-keyspace-events", "");
 			connection.setConfig("notify-keyspace-events", "KEA");
 		}
@@ -101,8 +100,7 @@ public class RedisKeyValueAdapterTests {
 
 		try {
 			adapter.destroy();
-		} catch (Exception ignore) {
-		}
+		} catch (Exception ignore) {}
 	}
 
 	@Test // DATAREDIS-425

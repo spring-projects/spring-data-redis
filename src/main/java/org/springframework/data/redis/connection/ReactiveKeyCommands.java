@@ -59,7 +59,8 @@ public interface ReactiveKeyCommands {
 		private final boolean replace;
 		private final @Nullable Integer database;
 
-		public CopyCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer target, boolean replace, @Nullable Integer database) {
+		public CopyCommand(@Nullable ByteBuffer key, @Nullable ByteBuffer target, boolean replace,
+				@Nullable Integer database) {
 			super(key);
 			this.target = target;
 			this.replace = replace;

@@ -18,7 +18,8 @@ package org.springframework.data.redis.core.convert;
 import org.springframework.data.redis.core.index.IndexDefinition;
 
 /**
- * {@link RemoveIndexedData} represents a removed index entry from a secondary index for a property path in a given keyspace.
+ * {@link RemoveIndexedData} represents a removed index entry from a secondary index for a property path in a given
+ * keyspace.
  *
  * @author Christoph Strobl
  * @author Mark Paluch

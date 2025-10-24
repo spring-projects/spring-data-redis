@@ -494,7 +494,8 @@ public abstract class Converters {
 			 * @return never {@literal null}.
 			 */
 			DistanceConverter(@Nullable Metric metric) {
-				this.metric = (metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric)) ? DistanceUnit.METERS : metric;
+				this.metric = (metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric)) ? DistanceUnit.METERS
+						: metric;
 			}
 
 			@Override
@@ -543,14 +544,11 @@ public abstract class Converters {
 		 * <ul>
 		 * <li>{@code %s:%i} (Redis 3)</li>
 		 * <li>{@code %s:%i@%i} (Redis 4, with bus port)</li>
-		 * <li>{@code %s:%i@%i,%s} (Redis 7, with announced hostname)</li>
-		 *
-		 * The output of the {@code CLUSTER NODES } command is just a space-separated CSV string, where each
-		 * line represents a node in the cluster. The following is an example of output on Redis 7.2.0.
-		 * You can check the latest <a href="https://redis.io/docs/latest/commands/cluster-nodes/">here</a>.
-		 *
+		 * <li>{@code %s:%i@%i,%s} (Redis 7, with announced hostname)</li> The output of the {@code CLUSTER NODES } command
+		 * is just a space-separated CSV string, where each line represents a node in the cluster. The following is an
+		 * example of output on Redis 7.2.0. You can check the latest
+		 * <a href="https://redis.io/docs/latest/commands/cluster-nodes/">here</a>.
 		 * {@code <id> <ip:port@cport[,hostname]> <flags> <master> <ping-sent> <pong-recv> <config-epoch> <link-state> <slot> <slot> ... <slot>}
-		 *
 		 * </ul>
 		 */
 		private static final Map<String, Flag> flagLookupMap;

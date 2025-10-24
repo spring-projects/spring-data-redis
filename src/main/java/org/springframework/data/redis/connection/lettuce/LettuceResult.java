@@ -54,7 +54,6 @@ class LettuceResult<T, R> extends FutureResult<CompletableFuture<T>> {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public @Nullable T get() {

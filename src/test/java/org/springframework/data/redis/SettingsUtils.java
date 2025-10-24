@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -91,7 +89,6 @@ public abstract class SettingsUtils {
 	public static int getClusterPort() {
 		return Integer.parseInt(SETTINGS.getProperty("clusterPort"));
 	}
-
 
 	/**
 	 * @return path to the unix domain socket.

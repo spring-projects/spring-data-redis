@@ -40,9 +40,9 @@ public class ScanOptions {
 
 	private final @Nullable Long count;
 	private final @Nullable String pattern;
-	private final byte @Nullable[] bytePattern;
+	private final byte @Nullable [] bytePattern;
 
-	ScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable[] bytePattern) {
+	ScanOptions(@Nullable Long count, @Nullable String pattern, byte @Nullable [] bytePattern) {
 
 		this.count = count;
 		this.pattern = pattern;
@@ -71,8 +71,7 @@ public class ScanOptions {
 		return pattern;
 	}
 
-
-	public byte @Nullable[] getBytePattern() {
+	public byte @Nullable [] getBytePattern() {
 
 		if (bytePattern == null && pattern != null) {
 			return pattern.getBytes();
@@ -110,7 +109,7 @@ public class ScanOptions {
 
 		@Nullable Long count;
 		@Nullable String pattern;
-		byte @Nullable[] bytePattern;
+		byte @Nullable [] bytePattern;
 		@Nullable DataType type;
 
 		ScanOptionsBuilder() {}

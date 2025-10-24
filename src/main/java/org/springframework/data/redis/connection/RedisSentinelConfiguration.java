@@ -70,8 +70,7 @@ public class RedisSentinelConfiguration implements RedisConfiguration, SentinelC
 	/**
 	 * Creates a new, default {@code RedisSentinelConfiguration}.
 	 */
-	public RedisSentinelConfiguration() {
-	}
+	public RedisSentinelConfiguration() {}
 
 	/**
 	 * Creates a new {@code RedisSentinelConfiguration} for given {@link String hostPort} combinations.

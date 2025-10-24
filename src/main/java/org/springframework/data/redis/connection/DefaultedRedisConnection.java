@@ -1555,8 +1555,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	/** @deprecated in favor of {@link RedisConnection#hashCommands()}}. */
 	@Override
 	@Deprecated
-	default List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition,
-			byte[]... fields) {
+	default List<Long> hExpireAt(byte[] key, long unixTime, ExpirationOptions.Condition condition, byte[]... fields) {
 		return hashCommands().hExpireAt(key, unixTime, condition, fields);
 	}
 
@@ -1629,8 +1628,7 @@ public interface DefaultedRedisConnection extends RedisCommands, RedisCommandsPr
 	@Override
 	@Deprecated
 	default @Nullable List<Long> applyHashFieldExpiration(byte[] key,
-			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options,
-			byte[]... fields) {
+			org.springframework.data.redis.core.types.Expiration expiration, ExpirationOptions options, byte[]... fields) {
 		return hashCommands().applyHashFieldExpiration(key, expiration, options, fields);
 	}
 

@@ -126,8 +126,8 @@ public interface RedisSerializationContext<K, V> {
 	 * Creates a new {@link RedisSerializationContext} using a {@link JdkSerializationRedisSerializer} with given
 	 * {@link ClassLoader} to resolves {@link Class type} of the keys and values stored in Redis.
 	 *
-	 * @param classLoader {@link ClassLoader} used to resolve {@link Class types} of keys and value stored in Redis
-	 * during deserialization; can be {@literal null}.
+	 * @param classLoader {@link ClassLoader} used to resolve {@link Class types} of keys and value stored in Redis during
+	 *          deserialization; can be {@literal null}.
 	 * @return a new {@link RedisSerializationContext} using JDK Serializaton.
 	 * @since 2.1
 	 */
@@ -148,8 +148,8 @@ public interface RedisSerializationContext<K, V> {
 	 * Creates a new {@link RedisSerializationContext} using the given {@link RedisSerializer}.
 	 *
 	 * @param <T> {@link Class Type} of {@link Object} being de/serialized by the {@link RedisSerializer}.
-	 * @param serializer {@link RedisSerializer} used to de/serialize keys and value stored in Redis;
-	 * must not be {@literal null}.
+	 * @param serializer {@link RedisSerializer} used to de/serialize keys and value stored in Redis; must not be
+	 *          {@literal null}.
 	 * @return a new {@link RedisSerializationContext} using the given {@link RedisSerializer}.
 	 */
 	static <T> RedisSerializationContext<T, T> fromSerializer(RedisSerializer<T> serializer) {
@@ -160,8 +160,8 @@ public interface RedisSerializationContext<K, V> {
 	 * Creates a new {@link RedisSerializationContext} using the given {@link SerializationPair}.
 	 *
 	 * @param <T> {@link Class Type} of {@link Object} de/serialized by the {@link SerializationPair}.
-	 * @param serializationPair {@link SerializationPair} used to de/serialize keys and values stored in Redis;
-	 * must not be {@literal null}.
+	 * @param serializationPair {@link SerializationPair} used to de/serialize keys and values stored in Redis; must not
+	 *          be {@literal null}.
 	 * @return a new {@link RedisSerializationContext} using the given {@link SerializationPair}.
 	 */
 	static <T> RedisSerializationContext<T, T> just(SerializationPair<T> serializationPair) {
@@ -385,8 +385,7 @@ public interface RedisSerializationContext<K, V> {
 		 * @param writer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default RedisSerializationContextBuilder<K, V> hashKey(RedisElementReader<?> reader,
-				RedisElementWriter<?> writer) {
+		default RedisSerializationContextBuilder<K, V> hashKey(RedisElementReader<?> reader, RedisElementWriter<?> writer) {
 
 			hashKey(SerializationPair.just(reader, writer));
 

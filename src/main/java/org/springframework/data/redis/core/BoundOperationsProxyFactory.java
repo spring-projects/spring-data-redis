@@ -150,7 +150,8 @@ class BoundOperationsProxyFactory {
 			};
 		}
 
-		private @Nullable Object doInvoke(MethodInvocation invocation, Method method, Object target, boolean considerKeyArgument) {
+		private @Nullable Object doInvoke(MethodInvocation invocation, Method method, Object target,
+				boolean considerKeyArgument) {
 
 			Method backingMethod = lookupRequiredMethod(method, target.getClass(), considerKeyArgument);
 

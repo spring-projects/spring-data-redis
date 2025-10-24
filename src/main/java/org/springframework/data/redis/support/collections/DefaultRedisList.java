@@ -239,8 +239,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		// insert collection in reverse
 		if (index == 0) {
-			CollectionUtils.reverse(collection)
-					.forEach(this::addFirst);
+			CollectionUtils.reverse(collection).forEach(this::addFirst);
 			return true;
 		}
 
@@ -619,8 +618,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		@SuppressWarnings("all")
 		public void remove() {
 
-			Assert.state(this.lastReturnedElement != null,
-				"Next must be called before remove");
+			Assert.state(this.lastReturnedElement != null, "Next must be called before remove");
 
 			if (!DefaultRedisList.this.remove(this.lastReturnedElement)) {
 				throw new ConcurrentModificationException();
@@ -685,8 +683,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		public void set(E element) {
 
-			Assert.state(this.lastReturnedElement != null,
-				"next() or previous() must be called before set(:E)");
+			Assert.state(this.lastReturnedElement != null, "next() or previous() must be called before set(:E)");
 
 			try {
 				DefaultRedisList.this.set(this.lastReturnedElementIndex, element);

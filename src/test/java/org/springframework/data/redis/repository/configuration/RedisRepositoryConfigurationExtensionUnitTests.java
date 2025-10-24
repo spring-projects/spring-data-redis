@@ -158,8 +158,8 @@ class RedisRepositoryConfigurationExtensionUnitTests {
 	}
 
 	private Object getEnableKeyspaceEvents(BeanDefinitionRegistry bdr) {
-		return bdr.getBeanDefinition("redisKeyValueAdapter").getPropertyValues()
-				.getPropertyValue("enableKeyspaceEvents").getValue();
+		return bdr.getBeanDefinition("redisKeyValueAdapter").getPropertyValues().getPropertyValue("enableKeyspaceEvents")
+				.getValue();
 	}
 
 	private Object getKeyspaceNotificationsConfigParameter(BeanDefinitionRegistry bdr) {

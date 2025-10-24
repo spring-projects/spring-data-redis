@@ -104,14 +104,14 @@ abstract public class ReactiveOperationsTestParams {
 
 		JacksonJsonRedisSerializer<Person> jackson3JsonSerializer = new JacksonJsonRedisSerializer<>(Person.class);
 		ReactiveRedisTemplate<String, Person> jackson3JsonPersonTemplate = new ReactiveRedisTemplate(
-			lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson3JsonSerializer));
+				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson3JsonSerializer));
 
 		GenericJackson2JsonRedisSerializer genericJackson2JsonSerializer = new GenericJackson2JsonRedisSerializer();
 		ReactiveRedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new ReactiveRedisTemplate(
 				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(genericJackson2JsonSerializer));
 
 		GenericJacksonJsonRedisSerializer genericJacksonJsonSerializer = GenericJacksonJsonRedisSerializer
-            .create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
+				.create(it -> it.enableSpringCacheNullValueSupport().enableUnsafeDefaultTyping());
 		ReactiveRedisTemplate<String, Person> genericJacksonJsonPersonTemplate = new ReactiveRedisTemplate(
 				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(genericJacksonJsonSerializer));
 

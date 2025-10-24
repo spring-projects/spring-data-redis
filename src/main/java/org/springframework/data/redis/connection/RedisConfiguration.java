@@ -235,7 +235,7 @@ public interface RedisConfiguration {
 		 *
 		 * @param password can be {@literal null}.
 		 */
-		default void setPassword(char @Nullable[] password) {
+		default void setPassword(char @Nullable [] password) {
 			setPassword(RedisPassword.of(password));
 		}
 
@@ -475,7 +475,7 @@ public interface RedisConfiguration {
 		 * @param password can be {@literal null}.
 		 * @since 2.2.2
 		 */
-		default void setSentinelPassword(char @Nullable[] password) {
+		default void setSentinelPassword(char @Nullable [] password) {
 			setSentinelPassword(RedisPassword.of(password));
 		}
 

@@ -117,9 +117,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		return Flux.defer(() -> {
 
 			PollState pollState = PollState.standalone(streamOffset.getOffset());
-			return Flux.create(
-					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
-							receiverOptions.getResumeFunction()).arm());
+			return Flux.create(sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
+					receiverOptions.getResumeFunction()).arm());
 		});
 	}
 
@@ -133,13 +132,11 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 		Function<ReadOffset, Flux<ByteBufferRecord>> readFunction = getConsumeReadFunction(streamOffset.getKey(), consumer,
 				this.readOptions.autoAcknowledge());
 
-
 		return Flux.defer(() -> {
 
 			PollState pollState = PollState.consumer(consumer, streamOffset.getOffset());
-			return Flux.create(
-					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
-							receiverOptions.getResumeFunction()).arm());
+			return Flux.create(sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
+					receiverOptions.getResumeFunction()).arm());
 		});
 	}
 
@@ -155,9 +152,8 @@ class DefaultStreamReceiver<K, V extends Record<K, ?>> implements StreamReceiver
 
 		return Flux.defer(() -> {
 			PollState pollState = PollState.consumer(consumer, streamOffset.getOffset());
-			return Flux.create(
-					sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
-							receiverOptions.getResumeFunction()).arm());
+			return Flux.create(sink -> new StreamSubscription(sink, streamOffset.getKey(), pollState, readFunction,
+					receiverOptions.getResumeFunction()).arm());
 		});
 	}
 

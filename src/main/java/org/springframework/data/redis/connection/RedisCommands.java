@@ -33,8 +33,8 @@ public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, Re
 	/**
 	 * {@literal Native} or {@literal raw} execution of the given Redis command along with the given arguments.
 	 * <p>
-	 * The command is executed as is, with as little interpretation as possible - it is up to the caller to take care
-	 * of any processing of arguments or the result.
+	 * The command is executed as is, with as little interpretation as possible - it is up to the caller to take care of
+	 * any processing of arguments or the result.
 	 *
 	 * @param command Redis {@link String command} to execute; must not be {@literal null}.
 	 * @param args optional array of command arguments; may be empty;

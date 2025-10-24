@@ -76,7 +76,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	}
 
 	@Override
-	public void onMessage(Message message, byte @Nullable[] pattern) {
+	public void onMessage(Message message, byte @Nullable [] pattern) {
 
 		if (ObjectUtils.isEmpty(message.getChannel()) || ObjectUtils.isEmpty(message.getBody())) {
 			return;

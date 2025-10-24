@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
-import static org.assertj.core.data.Offset.*;
 import static org.assertj.core.data.Offset.offset;
 
 import java.io.IOException;
@@ -604,8 +603,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key1, value1, 4.0);
 		zSetOps.add(key2, value1, 3.0);
 
-		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX,
-				Weights.of(1, 2));
+		zSetOps.intersectAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX, Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
 	}
@@ -659,8 +657,7 @@ public class DefaultZSetOperationsIntegrationTests<K, V> {
 		zSetOps.add(key1, value1, 4.0);
 		zSetOps.add(key2, value1, 3.0);
 
-		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX,
-				Weights.of(1, 2));
+		zSetOps.unionAndStore(key1, Collections.singletonList(key2), key1, Aggregate.MAX, Weights.of(1, 2));
 
 		assertThat(zSetOps.score(key1, value1)).isCloseTo(6.0, offset(0.1));
 	}

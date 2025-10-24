@@ -293,7 +293,7 @@ public class RedisKeyValueTemplateTests {
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "complexValue.name".getBytes()))
-							.isEqualTo("Portal Stone".getBytes());
+					.isEqualTo("Portal Stone".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
 					"complexValue.dimension.height".getBytes())).isEqualTo("350".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
@@ -333,7 +333,7 @@ public class RedisKeyValueTemplateTests {
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue._class".getBytes()))
-							.isEqualTo(Item.class.getName().getBytes());
+					.isEqualTo(Item.class.getName().getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "objectValue.name".getBytes()))
 					.isEqualTo("Portal Stone".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
@@ -367,7 +367,7 @@ public class RedisKeyValueTemplateTests {
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedMap.[spring]".getBytes()))
-							.isEqualTo("data".getBytes());
+					.isEqualTo("data".getBytes());
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
 					"simpleTypedMap.[key-1]".getBytes())).isFalse();
 			assertThat(connection.hExists(("template-test-type-mapping:" + source.id).getBytes(),
@@ -489,7 +489,7 @@ public class RedisKeyValueTemplateTests {
 					"untypedMap.[spring]._class".getBytes())).isEqualTo("java.lang.String".getBytes());
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedMap.[spring]".getBytes()))
-							.isEqualTo("data".getBytes());
+					.isEqualTo("data".getBytes());
 
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
 					"untypedMap.[some-number]._class".getBytes())).isEqualTo("java.lang.Long".getBytes());
@@ -533,16 +533,16 @@ public class RedisKeyValueTemplateTests {
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[0]".getBytes()))
-							.isEqualTo("spring".getBytes());
+					.isEqualTo("spring".getBytes());
 			assertThat(
 					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[1]".getBytes()))
-							.isFalse();
+					.isFalse();
 			assertThat(
 					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[2]".getBytes()))
-							.isFalse();
+					.isFalse();
 			assertThat(
 					connection.hExists(("template-test-type-mapping:" + source.id).getBytes(), "simpleTypedList.[3]".getBytes()))
-							.isFalse();
+					.isFalse();
 			return null;
 		});
 	}
@@ -642,13 +642,13 @@ public class RedisKeyValueTemplateTests {
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]._class".getBytes()))
-							.isEqualTo("java.lang.String".getBytes());
+					.isEqualTo("java.lang.String".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[0]".getBytes()))
 					.isEqualTo("spring".getBytes());
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[1].name".getBytes()))
-							.isEqualTo("Horn of Valere".getBytes());
+					.isEqualTo("Horn of Valere".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
 					"untypedList.[1].dimension.height".getBytes())).isEqualTo("70".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(),
@@ -656,7 +656,7 @@ public class RedisKeyValueTemplateTests {
 
 			assertThat(
 					connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]._class".getBytes()))
-							.isEqualTo("java.lang.Long".getBytes());
+					.isEqualTo("java.lang.Long".getBytes());
 			assertThat(connection.hGet(("template-test-type-mapping:" + source.id).getBytes(), "untypedList.[2]".getBytes()))
 					.isEqualTo("100".getBytes());
 
@@ -838,25 +838,23 @@ public class RedisKeyValueTemplateTests {
 				return false;
 			}
 
-			return Objects.equals(this.id, that.id)
-				&& Objects.equals(this.stringValue, that.stringValue)
-				&& Objects.equals(this.integerValue, that.integerValue)
-				&& Objects.equals(this.complexValue, that.complexValue)
-				&& Objects.equals(this.objectValue, that.objectValue)
-				&& Objects.equals(this.simpleTypedList, that.simpleTypedList)
-				&& Objects.equals(this.complexTypedList, that.complexTypedList)
-				&& Objects.equals(this.untypedList, that.untypedList)
-				&& Objects.equals(this.simpleTypedMap, that.simpleTypedMap)
-				&& Objects.equals(this.complexTypedMap, that.complexTypedMap)
-				&& Objects.equals(this.untypedMap, that.untypedMap);
+			return Objects.equals(this.id, that.id) && Objects.equals(this.stringValue, that.stringValue)
+					&& Objects.equals(this.integerValue, that.integerValue)
+					&& Objects.equals(this.complexValue, that.complexValue) && Objects.equals(this.objectValue, that.objectValue)
+					&& Objects.equals(this.simpleTypedList, that.simpleTypedList)
+					&& Objects.equals(this.complexTypedList, that.complexTypedList)
+					&& Objects.equals(this.untypedList, that.untypedList)
+					&& Objects.equals(this.simpleTypedMap, that.simpleTypedMap)
+					&& Objects.equals(this.complexTypedMap, that.complexTypedMap)
+					&& Objects.equals(this.untypedMap, that.untypedMap);
 		}
 
 		@Override
 		public int hashCode() {
 
 			return Objects.hash(this.id, this.stringValue, this.integerValue, this.complexValue, this.objectValue,
-				this.simpleTypedList, this.complexTypedList, this.untypedList, this.simpleTypedMap,
-				this.complexTypedMap, this.untypedMap);
+					this.simpleTypedList, this.complexTypedList, this.untypedList, this.simpleTypedMap, this.complexTypedMap,
+					this.untypedMap);
 		}
 	}
 
@@ -911,11 +909,9 @@ public class RedisKeyValueTemplateTests {
 				return false;
 			}
 
-			return Objects.equals(this.id, that.id)
-				&& Objects.equals(this.firstname, that.firstname)
-				&& Objects.equals(this.lastname, that.lastname)
-				&& Objects.equals(this.age, that.age)
-				&& Objects.equals(this.nicknames, that.nicknames);
+			return Objects.equals(this.id, that.id) && Objects.equals(this.firstname, that.firstname)
+					&& Objects.equals(this.lastname, that.lastname) && Objects.equals(this.age, that.age)
+					&& Objects.equals(this.nicknames, that.nicknames);
 		}
 
 		@Override
@@ -972,9 +968,8 @@ public class RedisKeyValueTemplateTests {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getTtl(), that.getTtl())
-				&& Objects.equals(this.getValue(), that.getValue());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getTtl(), that.getTtl())
+					&& Objects.equals(this.getValue(), that.getValue());
 		}
 
 		@Override
@@ -1024,9 +1019,8 @@ public class RedisKeyValueTemplateTests {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getTtl(), that.getTtl())
-				&& Objects.equals(this.getValue(), that.getValue());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getTtl(), that.getTtl())
+					&& Objects.equals(this.getValue(), that.getValue());
 		}
 
 		@Override
@@ -1076,9 +1070,8 @@ public class RedisKeyValueTemplateTests {
 				return false;
 			}
 
-			return Objects.equals(this.getId(), that.getId())
-				&& Objects.equals(this.getTtl(), that.getTtl())
-				&& Objects.equals(this.getValue(), that.getValue());
+			return Objects.equals(this.getId(), that.getId()) && Objects.equals(this.getTtl(), that.getTtl())
+					&& Objects.equals(this.getValue(), that.getValue());
 		}
 
 		@Override
@@ -1089,9 +1082,8 @@ public class RedisKeyValueTemplateTests {
 		@Override
 		public String toString() {
 
-			return "RedisKeyValueTemplateTests.ImmutableObject(id=" + this.getId()
-				+ ", value=" + this.getValue()
-				+ ", ttl=" + this.getTtl() + ")";
+			return "RedisKeyValueTemplateTests.ImmutableObject(id=" + this.getId() + ", value=" + this.getValue() + ", ttl="
+					+ this.getTtl() + ")";
 		}
 
 		public ImmutableObject withId(String id) {

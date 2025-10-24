@@ -2574,7 +2574,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hmget">Redis Documentation: HMGET</a>
 	 * @see RedisHashCommands#hMGet(byte[], byte[]...)
 	 */
-	List<String> hGetDel(@NonNull String key, @NonNull String @NonNull ... fields);
+	List<String> hGetDel(@NonNull String key, @NonNull String @NonNull... fields);
 
 	/**
 	 * Get the value of one or more {@code fields} from hash at {@code key} and optionally set expiration time or
@@ -2586,7 +2586,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
 	 * @see RedisHashCommands#hGetEx(byte[], Expiration, byte[]...)
 	 */
-	List<String> hGetEx(@NonNull String key, Expiration expiration, @NonNull String @NonNull ... fields);
+	List<String> hGetEx(@NonNull String key, Expiration expiration, @NonNull String @NonNull... fields);
 
 	/**
 	 * Set field-value pairs in hash at {@literal key} with optional condition and expiration.
@@ -3268,8 +3268,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 4.0
 	 */
-	default PendingMessages xPending(@NonNull String key, @NonNull Consumer consumer, org.springframework.data.domain.@NonNull Range<String> range,
-		@NonNull Long count) {
+	default PendingMessages xPending(@NonNull String key, @NonNull Consumer consumer,
+			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count);
 	}
 
@@ -3287,8 +3287,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 4.0
 	 */
-	default PendingMessages xPending(@NonNull String key, @NonNull Consumer consumer, org.springframework.data.domain.@NonNull Range<String> range,
-		@NonNull Long count, @NonNull Duration minIdleTime) {
+	default PendingMessages xPending(@NonNull String key, @NonNull Consumer consumer,
+			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count,
+			@NonNull Duration minIdleTime) {
 		return xPending(key, consumer.getGroup(), consumer.getName(), range, count, minIdleTime);
 	}
 
@@ -3323,8 +3324,8 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="https://redis.io/commands/xpending">Redis Documentation: xpending</a>
 	 * @since 4.0
 	 */
-	PendingMessages xPending(@NonNull String key, @NonNull String groupName, org.springframework.data.domain.@NonNull Range<String> range,
-		@NonNull Long count, @NonNull Duration minIdleTime);
+	PendingMessages xPending(@NonNull String key, @NonNull String groupName,
+			org.springframework.data.domain.@NonNull Range<String> range, @NonNull Long count, @NonNull Duration minIdleTime);
 
 	/**
 	 * Obtain detailed information about pending {@link PendingMessage messages} applying given {@link XPendingOptions

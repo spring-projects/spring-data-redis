@@ -148,7 +148,6 @@ public class RedisTestData implements AssertProvider<RedisTestData.RedisBucketAs
 
 	}
 
-
 	private static Map<String, String> toStringMap(Map<String, byte[]> source) {
 
 		Map<String, String> converted = new LinkedHashMap<>();

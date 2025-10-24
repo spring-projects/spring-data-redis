@@ -186,7 +186,7 @@ public interface RedisStringCommands {
 	 * @return {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/msetnx">Redis Documentation: MSETNX</a>
 	 */
-	Boolean mSetNX( @NonNull Map<byte @NonNull [], byte @NonNull []> tuple);
+	Boolean mSetNX(@NonNull Map<byte @NonNull [], byte @NonNull []> tuple);
 
 	/**
 	 * Increment an integer value stored as string value of {@code key} by 1.

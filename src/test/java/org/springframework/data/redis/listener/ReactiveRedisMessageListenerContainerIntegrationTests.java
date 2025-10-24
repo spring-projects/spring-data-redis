@@ -136,7 +136,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 
 			}
 
@@ -203,7 +203,7 @@ public class ReactiveRedisMessageListenerContainerIntegrationTests {
 
 		CompositeListener listener = new CompositeListener() {
 			@Override
-			public void onMessage(Message message, byte @Nullable[] pattern) {
+			public void onMessage(Message message, byte @Nullable [] pattern) {
 
 			}
 

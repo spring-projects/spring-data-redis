@@ -148,9 +148,8 @@ class JedisClusterHashCommands implements RedisHashCommands {
 		}
 	}
 
-
 	@Override
-	public byte @Nullable[] hRandField(byte[] key) {
+	public byte @Nullable [] hRandField(byte[] key) {
 
 		Assert.notNull(key, "Key must not be null");
 

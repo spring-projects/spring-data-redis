@@ -219,7 +219,7 @@ public interface RedisHashCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/hrandfield">Redis Documentation: HRANDFIELD</a>
 	 */
-	List<Map. @NonNull Entry<byte @NonNull [], byte @NonNull []>> hRandFieldWithValues(byte @NonNull [] key, long count);
+	List<Map.@NonNull Entry<byte @NonNull [], byte @NonNull []>> hRandFieldWithValues(byte @NonNull [] key, long count);
 
 	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
@@ -230,7 +230,7 @@ public interface RedisHashCommands {
 	 * @since 1.4
 	 * @see <a href="https://redis.io/commands/hscan">Redis Documentation: HSCAN</a>
 	 */
-	Cursor<Map. @NonNull Entry<byte @NonNull [], byte @NonNull []>> hScan(byte @NonNull [] key, ScanOptions options);
+	Cursor<Map.@NonNull Entry<byte @NonNull [], byte @NonNull []>> hScan(byte @NonNull [] key, ScanOptions options);
 
 	/**
 	 * Returns the length of the value associated with {@code field} in the hash stored at {@code key}. If the {@code key}
@@ -547,17 +547,17 @@ public interface RedisHashCommands {
 	List<@NonNull Long> hpTtl(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
-	 * Get and delete the value of one or more {@code fields} from hash at {@code key}. Values are returned in the order of
-	 * the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
+	 * Get and delete the value of one or more {@code fields} from hash at {@code key}. Values are returned in the order
+	 * of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
 	 * When the last field is deleted, the key will also be deleted.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
-	 * @return list of values for deleted {@code fields} ({@literal null} for fields that does not exist) or an
-	 * empty {@link List} if key does not exist or {@literal null} when used in pipeline / transaction.
+	 * @return list of values for deleted {@code fields} ({@literal null} for fields that does not exist) or an empty
+	 *         {@link List} if key does not exist or {@literal null} when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hgetdel">Redis Documentation: HGETDEL</a>
 	 */
-	List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull ... fields);
+	List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Get the value of one or more {@code fields} from hash at {@code key} and optionally set expiration time or
@@ -566,12 +566,11 @@ public interface RedisHashCommands {
 	 * @param key must not be {@literal null}.
 	 * @param expiration the optional expiration to apply.
 	 * @param fields must not be {@literal null}.
-	 * @return list of values for given {@code fields} or an empty {@link List} if key does not
-	 * exist or {@literal null} when used in pipeline / transaction.
+	 * @return list of values for given {@code fields} or an empty {@link List} if key does not exist or {@literal null}
+	 *         when used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/hgetex">Redis Documentation: HGETEX</a>
 	 */
-	List<byte[]> hGetEx(byte @NonNull [] key, @Nullable Expiration expiration,
-			byte @NonNull [] @NonNull ... fields);
+	List<byte[]> hGetEx(byte @NonNull [] key, @Nullable Expiration expiration, byte @NonNull [] @NonNull... fields);
 
 	/**
 	 * Set field-value pairs in hash at {@literal key} with optional condition and expiration.

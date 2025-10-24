@@ -61,7 +61,8 @@ class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	void shouldApplyPasswordToNodes() {
 
-		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
+		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost")
+				.node("other-host", 6479);
 
 		multiHost.setPassword(RedisPassword.of("foobar"));
 		multiHost.node("third", 1234);
@@ -73,7 +74,8 @@ class RedisElastiCacheConfigurationUnitTests {
 	@Test // DATAREDIS-762
 	void shouldApplyDatabaseToNodes() {
 
-		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
+		RedisStaticMasterReplicaConfiguration multiHost = new RedisStaticMasterReplicaConfiguration("localhost")
+				.node("other-host", 6479);
 
 		multiHost.setDatabase(4);
 		multiHost.node("third", 1234);

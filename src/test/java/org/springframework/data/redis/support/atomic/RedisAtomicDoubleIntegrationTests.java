@@ -179,7 +179,6 @@ public class RedisAtomicDoubleIntegrationTests {
 	@Test // DATAREDIS-317
 	void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoValueSerializer() {
 
-
 		RedisTemplate<String, Double> template = new RedisTemplate<>();
 		template.setKeySerializer(StringRedisSerializer.UTF_8);
 

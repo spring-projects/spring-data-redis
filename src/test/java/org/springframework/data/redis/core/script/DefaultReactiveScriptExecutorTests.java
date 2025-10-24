@@ -223,14 +223,14 @@ public class DefaultReactiveScriptExecutorTests {
 
 		assertThat(stringTemplate.execute(
 				(RedisCallback<List<Boolean>>) connection -> connection.scriptingCommands().scriptExists(script.getSha1())))
-						.containsExactly(false);
+				.containsExactly(false);
 
 		stringScriptExecutor.execute(script, Collections.emptyList()).as(StepVerifier::create).expectNext("HELLO")
 				.verifyComplete();
 
 		assertThat(stringTemplate.execute(
 				(RedisCallback<List<Boolean>>) connection -> connection.scriptingCommands().scriptExists(script.getSha1())))
-						.containsExactly(true);
+				.containsExactly(true);
 
 		stringScriptExecutor.execute(script, Collections.emptyList()).as(StepVerifier::create).expectNext("HELLO")
 				.verifyComplete();

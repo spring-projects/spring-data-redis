@@ -384,43 +384,41 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-    @Test // GH-3208
-    void defaultPhaseShouldBeMaxValue() {
-        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-                .create(connectionFactory, containerOptions);
+	@Test // GH-3208
+	void defaultPhaseShouldBeMaxValue() {
+		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+				.create(connectionFactory, containerOptions);
 
-        assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
-    }
+		assertThat(container.getPhase()).isEqualTo(Integer.MAX_VALUE);
+	}
 
-    @Test // GH-3208
-    void shouldApplyConfiguredPhase() {
-        StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions.builder()
-                .phase(3208)
-                .build();
-        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-                .create(connectionFactory, options);
+	@Test // GH-3208
+	void shouldApplyConfiguredPhase() {
+		StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions
+				.builder().phase(3208).build();
+		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+				.create(connectionFactory, options);
 
-        assertThat(container.getPhase()).isEqualTo(3208);
-    }
+		assertThat(container.getPhase()).isEqualTo(3208);
+	}
 
-    @Test // GH-3208
-    void defaultAutoStartupShouldBeFalse() {
-        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-                .create(connectionFactory, containerOptions);
+	@Test // GH-3208
+	void defaultAutoStartupShouldBeFalse() {
+		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+				.create(connectionFactory, containerOptions);
 
-        assertThat(container.isAutoStartup()).isEqualTo(false);
-    }
+		assertThat(container.isAutoStartup()).isEqualTo(false);
+	}
 
-    @Test // GH-3208
-    void shouldApplyConfiguredAutoStartup() {
-        StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions.builder()
-                .autoStartup(true)
-                .build();
-        StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-                .create(connectionFactory, options);
+	@Test // GH-3208
+	void shouldApplyConfiguredAutoStartup() {
+		StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options = StreamMessageListenerContainerOptions
+				.builder().autoStartup(true).build();
+		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
+				.create(connectionFactory, options);
 
-        assertThat(container.isAutoStartup()).isEqualTo(true);
-    }
+		assertThat(container.isAutoStartup()).isEqualTo(true);
+	}
 
 	private static void cancelAwait(Subscription subscription) {
 
@@ -435,9 +433,8 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 
 		if (connection instanceof LettuceConnection lettuce) {
 
-			String value = ((List) lettuce.execute("XPENDING",
-					new NestedMultiOutput<>(StringCodec.UTF8), new byte[][] { stream.getBytes(), group.getBytes() })).get(0)
-							.toString();
+			String value = ((List) lettuce.execute("XPENDING", new NestedMultiOutput<>(StringCodec.UTF8),
+					new byte[][] { stream.getBytes(), group.getBytes() })).get(0).toString();
 			return NumberUtils.parseNumber(value, Integer.class);
 		}
 
@@ -483,7 +480,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 			}
 
 			return Objects.equals(this.getFirstName(), that.getFirstName())
-				&& Objects.equals(this.getLastName(), that.getLastName());
+					&& Objects.equals(this.getLastName(), that.getLastName());
 		}
 
 		@Override
@@ -494,10 +491,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		@Override
 		public String toString() {
 
-			return "LoginEvent{" +
-				"firstname='" + firstName + '\'' +
-				", lastname='" + lastName + '\'' +
-				'}';
+			return "LoginEvent{" + "firstname='" + firstName + '\'' + ", lastname='" + lastName + '\'' + '}';
 		}
 	}
 }

@@ -18,8 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.assertj.core.api.Assertions.*;
 
 import io.lettuce.core.XReadArgs;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedClass;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -28,6 +26,9 @@ import java.util.Collections;
 
 import org.assertj.core.data.Offset;
 import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.Limit;

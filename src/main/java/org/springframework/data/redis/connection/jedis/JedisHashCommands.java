@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import org.springframework.data.redis.core.types.Expiration;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.commands.PipelineBinaryCommands;
@@ -32,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
@@ -41,6 +41,7 @@ import org.springframework.data.redis.core.Cursor.CursorId;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.util.Assert;
 
 /**
@@ -334,7 +335,7 @@ class JedisHashCommands implements RedisHashCommands {
 	}
 
 	@Override
-	public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull ... fields) {
+	public List<byte[]> hGetDel(byte @NonNull [] key, byte @NonNull [] @NonNull... fields) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
@@ -344,13 +345,13 @@ class JedisHashCommands implements RedisHashCommands {
 
 	@Override
 	public List<byte[]> hGetEx(byte @NonNull [] key, @Nullable Expiration expiration,
-			byte @NonNull [] @NonNull ... fields) {
+			byte @NonNull [] @NonNull... fields) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(fields, "Fields must not be null");
 
-		return connection.invoke()
-				.just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key, JedisConverters.toHGetExParams(expiration), fields);
+		return connection.invoke().just(Jedis::hgetex, PipelineBinaryCommands::hgetex, key,
+				JedisConverters.toHGetExParams(expiration), fields);
 	}
 
 	@Override
@@ -361,9 +362,8 @@ class JedisHashCommands implements RedisHashCommands {
 		Assert.notNull(hashes, "Hashes must not be null");
 		Assert.notNull(condition, "Condition must not be null");
 
-		return connection.invoke()
-				.from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key, JedisConverters.toHSetExParams(condition, expiration),
-						hashes).get(Converters::toBoolean);
+		return connection.invoke().from(Jedis::hsetex, PipelineBinaryCommands::hsetex, key,
+				JedisConverters.toHSetExParams(condition, expiration), hashes).get(Converters::toBoolean);
 	}
 
 	@Nullable

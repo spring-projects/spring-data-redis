@@ -82,8 +82,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> List<T> execute(@Nullable RedisOperationChain criteria, @Nullable Comparator<?> sort, long offset, int rows, String keyspace,
-			Class<T> type) {
+	public <T> List<T> execute(@Nullable RedisOperationChain criteria, @Nullable Comparator<?> sort, long offset,
+			int rows, String keyspace, Class<T> type) {
 		List<T> result = doFind(criteria, offset, rows, keyspace, type);
 
 		if (sort != null) {
@@ -94,7 +94,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	}
 
 	@SuppressWarnings("NullAway")
-	private <T> List<T> doFind(@Nullable RedisOperationChain criteria, long offset, int rows, String keyspace, Class<T> type) {
+	private <T> List<T> doFind(@Nullable RedisOperationChain criteria, long offset, int rows, String keyspace,
+			Class<T> type) {
 
 		if (criteria == null
 				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
@@ -202,7 +203,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	}
 
 	@Override
-	public List<?> execute(@Nullable RedisOperationChain criteria, @Nullable Comparator<?> sort, long offset, int rows, String keyspace) {
+	public List<?> execute(@Nullable RedisOperationChain criteria, @Nullable Comparator<?> sort, long offset, int rows,
+			String keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 

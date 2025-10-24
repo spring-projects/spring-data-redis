@@ -975,7 +975,7 @@ public interface RedisZSetCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zdiff">Redis Documentation: ZDIFF</a>
 	 */
-	Set<byte[]> zDiff(byte @NonNull [] @NonNull ... sets);
+	Set<byte[]> zDiff(byte @NonNull [] @NonNull... sets);
 
 	/**
 	 * Diff sorted {@code sets}.
@@ -1130,7 +1130,8 @@ public interface RedisZSetCommands {
 	 * @since 2.6
 	 * @see <a href="https://redis.io/commands/zunion">Redis Documentation: ZUNION</a>
 	 */
-	Set<@NonNull Tuple> zUnionWithScores( @NonNull Aggregate aggregate,  @NonNull Weights weights, byte @NonNull [] @NonNull... sets);
+	Set<@NonNull Tuple> zUnionWithScores(@NonNull Aggregate aggregate, @NonNull Weights weights,
+			byte @NonNull [] @NonNull... sets);
 
 	/**
 	 * Union sorted {@code sets}.

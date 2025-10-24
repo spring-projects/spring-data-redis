@@ -86,11 +86,10 @@ class ConnectionSplittingInterceptorUnitTests {
 	@Test // DATAREDIS-73
 	void interceptorShouldNotWrapException() {
 
-		when(freshConnectionMock.keys(any(byte[].class))).thenThrow(
-				InvalidDataAccessApiUsageException.class);
+		when(freshConnectionMock.keys(any(byte[].class))).thenThrow(InvalidDataAccessApiUsageException.class);
 
-		Assertions.assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(
-				() -> interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }));
+		Assertions.assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }));
 	}
 
 }

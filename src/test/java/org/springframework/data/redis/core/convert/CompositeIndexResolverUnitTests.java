@@ -52,10 +52,10 @@ class CompositeIndexResolverUnitTests {
 	@Test // DATAREDIS-425
 	void shouldCollectionIndexesFromResolvers() {
 
-		when(resolver1.resolveIndexesFor(any(TypeInformation.class), any())).thenReturn(
-				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("spring", "data", "redis")));
-		when(resolver2.resolveIndexesFor(any(TypeInformation.class), any())).thenReturn(
-				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("redis", "data", "spring")));
+		when(resolver1.resolveIndexesFor(any(TypeInformation.class), any()))
+				.thenReturn(Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("spring", "data", "redis")));
+		when(resolver2.resolveIndexesFor(any(TypeInformation.class), any()))
+				.thenReturn(Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("redis", "data", "spring")));
 
 		CompositeIndexResolver resolver = new CompositeIndexResolver(Arrays.asList(resolver1, resolver2));
 

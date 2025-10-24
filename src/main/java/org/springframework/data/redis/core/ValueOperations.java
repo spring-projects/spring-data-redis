@@ -62,7 +62,8 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	@Nullable V setGet(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
+	@Nullable
+	V setGet(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}. Return the old string stored at key, or
@@ -76,7 +77,8 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 * @since 3.5
 	 */
-	@Nullable V setGet(@NonNull K key, @NonNull V value, @NonNull Duration duration);
+	@Nullable
+	V setGet(@NonNull K key, @NonNull V value, @NonNull Duration duration);
 
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
@@ -228,7 +230,8 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/get">Redis Documentation: GET</a>
 	 */
-	@Nullable V get(Object key);
+	@Nullable
+	V get(Object key);
 
 	/**
 	 * Return the value at {@code key} and delete the key.
@@ -238,7 +241,8 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getdel">Redis Documentation: GETDEL</a>
 	 * @since 2.6
 	 */
-	@Nullable V getAndDelete(@NonNull K key);
+	@Nullable
+	V getAndDelete(@NonNull K key);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
@@ -250,7 +254,8 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable V getAndExpire(@NonNull K key, long timeout, @NonNull TimeUnit unit);
+	@Nullable
+	V getAndExpire(@NonNull K key, long timeout, @NonNull TimeUnit unit);
 
 	/**
 	 * Return the value at {@code key} and expire the key by applying {@code timeout}.
@@ -261,7 +266,8 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable V getAndExpire(@NonNull K key, @NonNull Duration timeout);
+	@Nullable
+	V getAndExpire(@NonNull K key, @NonNull Duration timeout);
 
 	/**
 	 * Return the value at {@code key} and persist the key. This operation removes any TTL that is associated with
@@ -272,7 +278,8 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/getex">Redis Documentation: GETEX</a>
 	 * @since 2.6
 	 */
-	@Nullable V getAndPersist(@NonNull K key);
+	@Nullable
+	V getAndPersist(@NonNull K key);
 
 	/**
 	 * Set {@code value} of {@code key} and return its old value.
@@ -281,7 +288,8 @@ public interface ValueOperations<K, V> {
 	 * @return {@literal null} when key does not exist or used in pipeline / transaction.
 	 * @see <a href="https://redis.io/commands/getset">Redis Documentation: GETSET</a>
 	 */
-	@Nullable V getAndSet(@NonNull K key, @NonNull V value);
+	@Nullable
+	V getAndSet(@NonNull K key, @NonNull V value);
 
 	/**
 	 * Get multiple {@code keys}. Values are in the order of the requested keys Absent field values are represented using

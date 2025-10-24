@@ -981,7 +981,6 @@ public class LettuceConnectionFactory implements RedisConnectionFactory, Reactiv
 		state.set(State.STOPPED);
 	}
 
-
 	@Override
 	public boolean isRunning() {
 		return State.STARTED.equals(this.state.get());

@@ -306,8 +306,7 @@ public class LegacyRedisCacheTests {
 
 		try {
 			cache.put(key, null);
-		} catch (IllegalArgumentException expected) {
-		}
+		} catch (IllegalArgumentException expected) {}
 
 		assertThat(cache.get(key).get()).isEqualTo(value);
 	}

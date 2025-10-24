@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import redis.clients.jedis.params.XPendingParams;
 
@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 
 /**

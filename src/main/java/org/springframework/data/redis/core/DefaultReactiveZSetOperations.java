@@ -15,8 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.NullUnmarked;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
@@ -58,7 +58,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final RedisSerializationContext<K, V> serializationContext;
 
-	public DefaultReactiveZSetOperations( @NonNull ReactiveRedisTemplate<?, ?> template,
+	public DefaultReactiveZSetOperations(@NonNull ReactiveRedisTemplate<?, ?> template,
 			RedisSerializationContext<K, V> serializationContext) {
 
 		this.template = template;
@@ -66,7 +66,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Mono<Boolean> add( @NonNull K key,  @NonNull V value, double score) {
+	public Mono<Boolean> add(@NonNull K key, @NonNull V value, double score) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -74,7 +74,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Mono<Long> addAll( @NonNull K key,  @NonNull Collection<? extends TypedTuple<V>> tuples) {
+	public Mono<Long> addAll(@NonNull K key, @NonNull Collection<? extends TypedTuple<V>> tuples) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(tuples, "Key must not be null");
@@ -87,7 +87,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Long> remove( @NonNull K key,  @NonNull Object @NonNull ... values) {
+	public Mono<Long> remove(@NonNull K key, @NonNull Object @NonNull... values) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(values, "Values must not be null");
@@ -103,7 +103,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Mono<Double> incrementScore( @NonNull K key,  @NonNull V value, double delta) {
+	public Mono<Double> incrementScore(@NonNull K key, @NonNull V value, double delta) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -111,7 +111,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Mono<V> randomMember( @NonNull K key) {
+	public Mono<V> randomMember(@NonNull K key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -119,7 +119,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<V> distinctRandomMembers( @NonNull K key, long count) {
+	public Flux<V> distinctRandomMembers(@NonNull K key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.isTrue(count > 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
@@ -128,7 +128,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<V> randomMembers( @NonNull K key, long count) {
+	public Flux<V> randomMembers(@NonNull K key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.isTrue(count > 0, "Use a positive number for count; This method is already allowing duplicate elements");
@@ -137,7 +137,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Mono<TypedTuple<V>> randomMemberWithScore( @NonNull K key) {
+	public Mono<TypedTuple<V>> randomMemberWithScore(@NonNull K key) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -145,7 +145,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> distinctRandomMembersWithScore( @NonNull K key, long count) {
+	public Flux<TypedTuple<V>> distinctRandomMembersWithScore(@NonNull K key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.isTrue(count > 0, "Negative count not supported; Use randomMembers to allow duplicate elements");
@@ -154,7 +154,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> randomMembersWithScore( @NonNull K key, long count) {
+	public Flux<TypedTuple<V>> randomMembersWithScore(@NonNull K key, long count) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.isTrue(count > 0, "Use a positive number for count; This method is already allowing duplicate elements");
@@ -164,7 +164,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Long> rank( @NonNull K key,  @NonNull Object o) {
+	public Mono<Long> rank(@NonNull K key, @NonNull Object o) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -173,7 +173,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Long> reverseRank( @NonNull K key,  @NonNull Object o) {
+	public Mono<Long> reverseRank(@NonNull K key, @NonNull Object o) {
 
 		Assert.notNull(key, "Key must not be null");
 
@@ -181,7 +181,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<V> range( @NonNull K key,  @NonNull Range<Long> range) {
+	public Flux<V> range(@NonNull K key, @NonNull Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -190,7 +190,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> rangeWithScores( @NonNull K key,  @NonNull Range<Long> range) {
+	public Flux<TypedTuple<V>> rangeWithScores(@NonNull K key, @NonNull Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -199,7 +199,7 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<V> rangeByScore( @NonNull K key,  @NonNull Range<Double> range) {
+	public Flux<V> rangeByScore(@NonNull K key, @NonNull Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -208,38 +208,39 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> rangeByScoreWithScores( @NonNull K key,  @NonNull Range<Double> range) {
+	public Flux<TypedTuple<V>> rangeByScoreWithScores(@NonNull K key, @NonNull Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	@Override
-	public Flux<V> rangeByScore( @NonNull K key,  @NonNull Range<Double> range,  @NonNull Limit limit) {
+	public Flux<V> rangeByScore(@NonNull K key, @NonNull Range<Double> range, @NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRangeByScore(rawKey(key), range, limit)
-				.map(this::readRequiredValue));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRangeByScore(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> rangeByScoreWithScores( @NonNull K key, @NonNull  Range<Double> range,  @NonNull Limit limit) {
+	public Flux<TypedTuple<V>> rangeByScoreWithScores(@NonNull K key, @NonNull Range<Double> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
 	}
 
 	@Override
-	public Flux<V> reverseRange( @NonNull K key,  @NonNull Range<Long> range) {
+	public Flux<V> reverseRange(@NonNull K key, @NonNull Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
@@ -248,58 +249,58 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> reverseRangeWithScores( @NonNull K key,  @NonNull Range<Long> range) {
+	public Flux<TypedTuple<V>> reverseRangeWithScores(@NonNull K key, @NonNull Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRevRangeWithScores(rawKey(key), range).map(this::readTypedTuple));
+		return createFlux(zSetCommands -> zSetCommands.zRevRangeWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	@Override
-	public Flux<V> reverseRangeByScore( @NonNull K key,  @NonNull Range<Double> range) {
+	public Flux<V> reverseRangeByScore(@NonNull K key, @NonNull Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range)
-				.map(this::readRequiredValue));
+		return createFlux(zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range).map(this::readRequiredValue));
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> reverseRangeByScoreWithScores( @NonNull K key,  @NonNull Range<Double> range) {
+	public Flux<TypedTuple<V>> reverseRangeByScoreWithScores(@NonNull K key, @NonNull Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	@Override
-	public Flux<V> reverseRangeByScore( @NonNull K key,  @NonNull Range<Double> range, @NonNull  Limit limit) {
+	public Flux<V> reverseRangeByScore(@NonNull K key, @NonNull Range<Double> range, @NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range, limit)
-				.map(this::readRequiredValue));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByScore(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> reverseRangeByScoreWithScores( @NonNull K key,  @NonNull Range<Double> range, @NonNull  Limit limit) {
+	public Flux<TypedTuple<V>> reverseRangeByScoreWithScores(@NonNull K key, @NonNull Range<Double> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
 	}
 
 	@Override
-	public Mono<Long> rangeAndStoreByLex( @NonNull K srcKey,  @NonNull K dstKey,  @NonNull Range<String> range,  @NonNull Limit limit) {
+	public Mono<Long> rangeAndStoreByLex(@NonNull K srcKey, @NonNull K dstKey, @NonNull Range<String> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
@@ -310,49 +311,48 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 	}
 
 	@Override
-	public Mono<Long> reverseRangeAndStoreByLex( @NonNull K srcKey,  @NonNull K dstKey,  @NonNull Range<String> range,  @NonNull Limit limit) {
+	public Mono<Long> reverseRangeAndStoreByLex(@NonNull K srcKey, @NonNull K dstKey, @NonNull Range<String> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createMono(zSetCommands ->
-				zSetCommands.zRangeStoreRevByLex(rawKey(srcKey), rawKey(dstKey), range, limit));
+		return createMono(zSetCommands -> zSetCommands.zRangeStoreRevByLex(rawKey(srcKey), rawKey(dstKey), range, limit));
 	}
 
 	@Override
-	public Mono<Long> rangeAndStoreByScore( @NonNull K srcKey, @NonNull  K dstKey,  @NonNull Range<Double> range,  @NonNull Limit limit) {
+	public Mono<Long> rangeAndStoreByScore(@NonNull K srcKey, @NonNull K dstKey, @NonNull Range<Double> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createMono(zSetCommands ->
-				zSetCommands.zRangeStoreByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
+		return createMono(zSetCommands -> zSetCommands.zRangeStoreByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
 	}
 
 	@Override
-	public Mono<Long> reverseRangeAndStoreByScore( @NonNull K srcKey,  @NonNull K dstKey,  @NonNull Range<Double> range,  @NonNull Limit limit) {
+	public Mono<Long> reverseRangeAndStoreByScore(@NonNull K srcKey, @NonNull K dstKey, @NonNull Range<Double> range,
+			@NonNull Limit limit) {
 
 		Assert.notNull(srcKey, "Source key must not be null");
 		Assert.notNull(dstKey, "Destination key must not be null");
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createMono(zSetCommands ->
-				zSetCommands.zRangeStoreRevByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
+		return createMono(zSetCommands -> zSetCommands.zRangeStoreRevByScore(rawKey(srcKey), rawKey(dstKey), range, limit));
 	}
 
 	@Override
-	public Flux<TypedTuple<V>> scan( @NonNull K key, @Nullable ScanOptions options) {
+	public Flux<TypedTuple<V>> scan(@NonNull K key, @Nullable ScanOptions options) {
 
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(options, "ScanOptions must not be null");
 
-		return createFlux(zSetCommands ->
-				zSetCommands.zScan(rawKey(key), options ).map(this::readTypedTuple));
+		return createFlux(zSetCommands -> zSetCommands.zScan(rawKey(key), options).map(this::readTypedTuple));
 	}
 
 	@Override
@@ -697,8 +697,8 @@ class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V
 		Assert.notNull(range, "Range must not be null");
 		Assert.notNull(limit, "Limit must not be null");
 
-		return createFlux(zSetCommands -> zSetCommands.zRevRangeByLex(rawKey(key), range, limit)
-				.map(this::readRequiredValue));
+		return createFlux(
+				zSetCommands -> zSetCommands.zRevRangeByLex(rawKey(key), range, limit).map(this::readRequiredValue));
 	}
 
 	@Override

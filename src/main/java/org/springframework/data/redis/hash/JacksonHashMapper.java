@@ -295,7 +295,6 @@ public class JacksonHashMapper implements HashMapper<Object, String, Object> {
 		}
 	}
 
-
 	/**
 	 * Builder to create a {@link JacksonHashMapper} instance.
 	 *
@@ -565,7 +564,6 @@ public class JacksonHashMapper implements HashMapper<Object, String, Object> {
 	private enum JacksonAdapterFactory implements FlatEric.JsonNodeAdapterFactory {
 
 		INSTANCE;
-
 
 		@Override
 		public FlatEric.JsonNodeAdapter adapt(Object node) {

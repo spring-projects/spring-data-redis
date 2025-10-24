@@ -59,7 +59,7 @@ public interface ReactiveHashCommands {
 	 *
 	 * @author Christoph Strobl
 	 * @author Tihomir Mateev
-     * @author Viktoriya Kutsarova
+	 * @author Viktoriya Kutsarova
 	 */
 	class HashFieldsCommand extends KeyCommand {
 
@@ -1257,7 +1257,6 @@ public interface ReactiveHashCommands {
 	 */
 	Flux<NumericResponse<HashFieldsCommand, Long>> hpTtl(Publisher<HashFieldsCommand> commands);
 
-
 	/**
 	 * {@literal HGETDEL} {@link Command}.
 	 *
@@ -1311,11 +1310,10 @@ public interface ReactiveHashCommands {
 		}
 	}
 
-
 	/**
 	 * Get and delete the value of one or more {@literal fields} from hash at {@literal key}. Values are returned in the
-	 * order of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-	 * When the last field is deleted, the key will also be deleted.
+	 * order of the requested keys. Absent field values are represented using {@literal null} in the resulting
+	 * {@link List}. When the last field is deleted, the key will also be deleted.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param fields must not be {@literal null}.
@@ -1333,8 +1331,8 @@ public interface ReactiveHashCommands {
 
 	/**
 	 * Get and delete the value of one or more {@literal fields} from hash at {@literal key}. Values are returned in the
-	 * order of the requested keys. Absent field values are represented using {@literal null} in the resulting {@link List}.
-	 * When the last field is deleted, the key will also be deleted.
+	 * order of the requested keys. Absent field values are represented using {@literal null} in the resulting
+	 * {@link List}. When the last field is deleted, the key will also be deleted.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return never {@literal null}.
@@ -1508,9 +1506,9 @@ public interface ReactiveHashCommands {
 		Assert.notNull(fieldValueMap, "Field-value map must not be null");
 		Assert.notNull(condition, "Condition must not be null");
 
-		return hSetEx(Mono.just(HSetExCommand.setWithConditionAndExpiration(fieldValueMap, condition, expiration)
-				.from(key)))
-				.next().map(CommandResponse::getOutput);
+		return hSetEx(
+				Mono.just(HSetExCommand.setWithConditionAndExpiration(fieldValueMap, condition, expiration).from(key))).next()
+				.map(CommandResponse::getOutput);
 	}
 
 	/**

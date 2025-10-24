@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.condition.OS.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldType.*;
-import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.Offset.offset;
 
 import reactor.test.StepVerifier;
@@ -409,17 +408,13 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(1L)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(1L)).verifyComplete();
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(2L)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(2L)).verifyComplete();
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(3L)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(3L)).verifyComplete();
 		valueOperations.bitField(key, create().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L))
-				.as(StepVerifier::create)
-				.expectNext(Collections.singletonList(null)).verifyComplete();
+				.as(StepVerifier::create).expectNext(Collections.singletonList(null)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

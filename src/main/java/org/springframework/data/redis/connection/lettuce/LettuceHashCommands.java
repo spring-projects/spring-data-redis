@@ -296,8 +296,8 @@ class LettuceHashCommands implements RedisHashCommands {
 		Assert.notNull(condition, "Condition must not be null");
 
 		return connection.invoke()
-				.from(RedisHashAsyncCommands::hsetex, key, LettuceConverters.toHSetExArgs(condition, expiration),
-						hashes).get(LettuceConverters.longToBooleanConverter());
+				.from(RedisHashAsyncCommands::hsetex, key, LettuceConverters.toHSetExArgs(condition, expiration), hashes)
+				.get(LettuceConverters.longToBooleanConverter());
 	}
 
 	/**

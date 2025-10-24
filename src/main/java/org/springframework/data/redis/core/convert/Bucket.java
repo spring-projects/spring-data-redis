@@ -56,8 +56,7 @@ public class Bucket {
 	/**
 	 * The Redis data as {@link Map} sorted by the keys.
 	 */
-	private final NavigableMap<String, byte[]> data = new TreeMap<>(
-			COMPARATOR);
+	private final NavigableMap<String, byte[]> data = new TreeMap<>(COMPARATOR);
 
 	/**
 	 * Creates a new empty bucket.
@@ -76,7 +75,7 @@ public class Bucket {
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @param value can be {@literal null}.
 	 */
-	public void put(String path, byte @Nullable[] value) {
+	public void put(String path, byte @Nullable [] value) {
 
 		Assert.hasText(path, "Path to property must not be null or empty");
 		data.put(path, value);
@@ -93,14 +92,13 @@ public class Bucket {
 		data.remove(path);
 	}
 
-
 	/**
 	 * Get value assigned with path.
 	 *
 	 * @param path must not be {@literal null} or {@link String#isEmpty()}.
 	 * @return {@literal null} if not set.
 	 */
-	public byte @Nullable[] get(String path) {
+	public byte @Nullable [] get(String path) {
 
 		Assert.hasText(path, "Path to property must not be null or empty");
 		return data.get(path);
@@ -304,8 +302,7 @@ public class Bucket {
 
 		try {
 			return new String(raw, CHARSET);
-		} catch (Exception ignore) {
-		}
+		} catch (Exception ignore) {}
 
 		return null;
 	}
@@ -352,14 +349,13 @@ public class Bucket {
 			return new BucketPropertyPath(bucket, prefix);
 		}
 
-
 		/**
 		 * Retrieve a value at {@code key} considering top-level/nesting.
 		 *
 		 * @param key must not be {@literal null} or empty.
 		 * @return the resulting value, may be {@literal null}.
 		 */
-		public byte @Nullable[] get(String key) {
+		public byte @Nullable [] get(String key) {
 			return bucket.get(getPath(key));
 		}
 

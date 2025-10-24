@@ -59,7 +59,7 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 	}
 
 	@Override
-	public void onMessage(Message message, byte @Nullable[] pattern) {
+	public void onMessage(Message message, byte @Nullable [] pattern) {
 		messageListener.onMessage(message, pattern);
 	}
 
@@ -132,16 +132,14 @@ class SynchronizingMessageListener implements MessageListener, SubscriptionListe
 				this.remainingPatterns = Collections.emptySet();
 			} else {
 				this.remainingPatterns = ConcurrentHashMap.newKeySet(remainingPatterns.size());
-				this.remainingPatterns
-						.addAll(remainingPatterns.stream().map(ByteArrayWrapper::new).toList());
+				this.remainingPatterns.addAll(remainingPatterns.stream().map(ByteArrayWrapper::new).toList());
 			}
 
 			if (remainingChannels.isEmpty()) {
 				this.remainingChannels = Collections.emptySet();
 			} else {
 				this.remainingChannels = ConcurrentHashMap.newKeySet(remainingChannels.size());
-				this.remainingChannels
-						.addAll(remainingChannels.stream().map(ByteArrayWrapper::new).toList());
+				this.remainingChannels.addAll(remainingChannels.stream().map(ByteArrayWrapper::new).toList());
 			}
 
 			this.doneCallback = doneCallback;
