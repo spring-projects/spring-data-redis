@@ -132,7 +132,7 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected RedisSerializer keySerializer() {
+	protected @Nullable RedisSerializer keySerializer() {
 		return template.getKeySerializer();
 	}
 

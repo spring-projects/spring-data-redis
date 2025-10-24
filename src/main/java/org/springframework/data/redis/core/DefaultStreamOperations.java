@@ -340,7 +340,7 @@ class DefaultStreamOperations<K, HK, HV> extends AbstractOperations<K, Object> i
 	}
 
 	protected byte[] serializeHashValueIfRequires(HV value) {
-		return hashValueSerializerPresent() ? serialize(value, hashValueSerializer())
+		return hashValueSerializerPresent() ? serialize(value, requiredHashValueSerializer())
 				: objectMapper.getConversionService().convert(value, byte[].class);
 	}
 

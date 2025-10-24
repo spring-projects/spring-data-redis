@@ -51,6 +51,7 @@ import org.springframework.util.CollectionUtils;
  * @author Denis Zavedeev
  */
 @NullUnmarked
+@SuppressWarnings("rawtypes")
 abstract class AbstractOperations<K, V> {
 
 	// utility methods for the template internal methods
@@ -93,20 +94,68 @@ abstract class AbstractOperations<K, V> {
 		return new FunctionalValueDeserializingRedisCallback(key, function);
 	}
 
+	@Nullable
 	RedisSerializer keySerializer() {
 		return template.getKeySerializer();
 	}
 
+	RedisSerializer requiredKeySerializer() {
+
+		RedisSerializer serializer = keySerializer();
+
+		if (serializer == null) {
+			throw new IllegalStateException("No key serializer configured");
+		}
+
+		return serializer;
+	}
+
+	@Nullable
 	RedisSerializer valueSerializer() {
 		return template.getValueSerializer();
 	}
 
+	RedisSerializer requiredValueSerializer() {
+
+		RedisSerializer serializer = valueSerializer();
+
+		if (serializer == null) {
+			throw new IllegalStateException("No value serializer configured");
+		}
+
+		return serializer;
+	}
+
+	@Nullable
 	RedisSerializer hashKeySerializer() {
 		return template.getHashKeySerializer();
 	}
 
+	RedisSerializer requiredHashKeySerializer() {
+
+		RedisSerializer serializer = hashKeySerializer();
+
+		if (serializer == null) {
+			throw new IllegalStateException("No hash key serializer configured");
+		}
+
+		return serializer;
+	}
+
+	@Nullable
 	RedisSerializer hashValueSerializer() {
 		return template.getHashValueSerializer();
+	}
+
+	RedisSerializer requiredHashValueSerializer() {
+
+		RedisSerializer serializer = hashValueSerializer();
+
+		if (serializer == null) {
+			throw new IllegalStateException("No hash value serializer configured");
+		}
+
+		return serializer;
 	}
 
 	RedisSerializer stringSerializer() {
@@ -130,7 +179,7 @@ abstract class AbstractOperations<K, V> {
 			return bytes;
 		}
 
-		return keySerializer().serialize(key);
+		return requiredKeySerializer().serialize(key);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -145,7 +194,7 @@ abstract class AbstractOperations<K, V> {
 			return bytes;
 		}
 
-		return valueSerializer().serialize(value);
+		return requiredValueSerializer().serialize(value);
 	}
 
 	byte[][] rawValues(Object... values) {
@@ -309,7 +358,7 @@ abstract class AbstractOperations<K, V> {
 		if (hashKeySerializer() == null) {
 			return (Set<T>) rawKeys;
 		}
-		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
+		return SerializationUtils.deserialize(rawKeys, requiredHashKeySerializer());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -317,7 +366,7 @@ abstract class AbstractOperations<K, V> {
 		if (hashKeySerializer() == null) {
 			return (List<T>) rawKeys;
 		}
-		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
+		return SerializationUtils.deserialize(rawKeys, requiredHashKeySerializer());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -325,7 +374,7 @@ abstract class AbstractOperations<K, V> {
 		if (hashValueSerializer() == null) {
 			return (List<T>) rawValues;
 		}
-		return SerializationUtils.deserialize(rawValues, hashValueSerializer());
+		return SerializationUtils.deserialize(rawValues, requiredHashValueSerializer());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -350,7 +399,7 @@ abstract class AbstractOperations<K, V> {
 		if (keySerializer() == null) {
 			return (K) value;
 		}
-		return (K) keySerializer().deserialize(value);
+		return (K) requiredKeySerializer().deserialize(value);
 	}
 
 	/**
@@ -375,7 +424,7 @@ abstract class AbstractOperations<K, V> {
 		if (valueSerializer() == null) {
 			return (V) value;
 		}
-		return (V) valueSerializer().deserialize(value);
+		return (V) requiredValueSerializer().deserialize(value);
 	}
 
 	String deserializeString(byte[] value) {
@@ -387,7 +436,7 @@ abstract class AbstractOperations<K, V> {
 		if (hashKeySerializer() == null) {
 			return (HK) value;
 		}
-		return (HK) hashKeySerializer().deserialize(value);
+		return (HK) requiredHashKeySerializer().deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -395,7 +444,7 @@ abstract class AbstractOperations<K, V> {
 		if (hashValueSerializer() == null) {
 			return (HV) value;
 		}
-		return (HV) hashValueSerializer().deserialize(value);
+		return (HV) requiredHashValueSerializer().deserialize(value);
 	}
 
 	/**

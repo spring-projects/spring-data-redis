@@ -154,7 +154,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value - 5);
 	}
 
-	@Test
+	@Test // GH-3223
 	void testMultiGet() {
 
 		K key1 = keyFactory.instance();

@@ -27,6 +27,8 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.CollectionFactory;
 import org.springframework.lang.Contract;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Utility class with various serialization-related methods.
@@ -46,9 +48,11 @@ public abstract class SerializationUtils {
 	static <T extends Collection<?>> T deserializeValues(@Nullable Collection<byte[]> rawValues, Class<T> type,
 			@Nullable RedisSerializer<?> redisSerializer) {
 		// connection in pipeline/multi mode
-		if (rawValues == null) {
+		if (CollectionUtils.isEmpty(rawValues)) {
 			return (T) CollectionFactory.createCollection(type, 0);
 		}
+
+		Assert.notNull(redisSerializer, "RedisSerializer must not be null");
 
 		Collection<Object> values = (List.class.isAssignableFrom(type) ? new ArrayList<>(rawValues.size())
 				: new LinkedHashSet<>(rawValues.size()));
@@ -79,9 +83,12 @@ public abstract class SerializationUtils {
 	public static <T> Map<T, @Nullable T> deserialize(@Nullable Map<byte[], byte[]> rawValues,
 			RedisSerializer<T> redisSerializer) {
 
-		if (rawValues == null) {
+		if (CollectionUtils.isEmpty(rawValues)) {
 			return Collections.emptyMap();
 		}
+
+		Assert.notNull(redisSerializer, "RedisSerializer must not be null");
+
 		Map<T, @Nullable T> ret = new LinkedHashMap<>(rawValues.size());
 		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
 			ret.put(redisSerializer.deserialize(entry.getKey()), redisSerializer.deserialize(entry.getValue()));
@@ -92,7 +99,7 @@ public abstract class SerializationUtils {
 	public static <HK, HV> Map<HK, HV> deserialize(@Nullable Map<byte[], byte[]> rawValues,
 			@Nullable RedisSerializer<HK> hashKeySerializer, @Nullable RedisSerializer<HV> hashValueSerializer) {
 
-		if (rawValues == null) {
+		if (CollectionUtils.isEmpty(rawValues)) {
 			return Collections.emptyMap();
 		}
 

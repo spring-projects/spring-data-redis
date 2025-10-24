@@ -785,25 +785,25 @@ public interface RedisOperations<K, V> {
 	/**
 	 * @return the key {@link RedisSerializer}.
 	 */
-	@NonNull
+	@Nullable
 	RedisSerializer<?> getKeySerializer();
 
 	/**
 	 * @return the value {@link RedisSerializer}.
 	 */
-	@NonNull
+	@Nullable
 	RedisSerializer<?> getValueSerializer();
 
 	/**
 	 * @return the hash key {@link RedisSerializer}.
 	 */
-	@NonNull
+	@Nullable
 	RedisSerializer<?> getHashKeySerializer();
 
 	/**
 	 * @return the hash value {@link RedisSerializer}.
 	 */
-	@NonNull
+	@Nullable
 	RedisSerializer<?> getHashValueSerializer();
 
 }
