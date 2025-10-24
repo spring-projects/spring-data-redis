@@ -17,6 +17,7 @@ package org.springframework.data.redis.cache;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
@@ -41,7 +42,21 @@ import org.springframework.util.Assert;
 public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
-	 * Create new {@link RedisCacheWriter} without locking behavior.
+	 * Create new {@link RedisCacheWriter} configure it through {@link RedisCacheWriterConfigurer}. The cache writer
+	 * defaults does not lock the cache by default using {@link BatchStrategies#keys()}.
+	 *
+	 * @param connectionFactory the connection factory to use.
+	 * @param configurerConsumer a configuration function that configures {@link RedisCacheWriterConfigurer}.
+	 * @return new instance of {@link DefaultRedisCacheWriter}.
+	 * @since 4.0
+	 */
+	static RedisCacheWriter create(RedisConnectionFactory connectionFactory,
+			Consumer<RedisCacheWriterConfigurer> configurerConsumer) {
+		return DefaultRedisCacheWriter.create(connectionFactory, configurerConsumer);
+	}
+
+	/**
+	 * Create new {@link RedisCacheWriter} without locking behavior using {@link BatchStrategies#keys()}.
 	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
@@ -60,15 +75,11 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 */
 	static RedisCacheWriter nonLockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
-
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-		Assert.notNull(batchStrategy, "BatchStrategy must not be null");
-
-		return new DefaultRedisCacheWriter(connectionFactory, batchStrategy);
+		return create(connectionFactory, config -> config.batchStrategy(batchStrategy));
 	}
 
 	/**
-	 * Create new {@link RedisCacheWriter} with locking behavior.
+	 * Create new {@link RedisCacheWriter} with locking behavior using {@link BatchStrategies#keys()}.
 	 *
 	 * @param connectionFactory must not be {@literal null}.
 	 * @return new instance of {@link DefaultRedisCacheWriter}.
@@ -88,7 +99,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory,
 			BatchStrategy batchStrategy) {
 
-		return lockingRedisCacheWriter(connectionFactory, Duration.ofMillis(50), TtlFunction.persistent(), batchStrategy);
+		return create(connectionFactory,
+				it -> it.batchStrategy(batchStrategy).cacheLocking(CacheLockingConfigurer::enable));
 	}
 
 	/**
@@ -105,10 +117,8 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	static RedisCacheWriter lockingRedisCacheWriter(RedisConnectionFactory connectionFactory, Duration sleepTime,
 			TtlFunction lockTtlFunction, BatchStrategy batchStrategy) {
 
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-
-		return new DefaultRedisCacheWriter(connectionFactory, sleepTime, lockTtlFunction, CacheStatisticsCollector.none(),
-				batchStrategy);
+		return create(connectionFactory, it -> it.batchStrategy(batchStrategy)
+				.enableLocking(locking -> locking.sleepTime(sleepTime).lockTimeout(lockTtlFunction)));
 	}
 
 	/**
@@ -244,6 +254,9 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 	/**
 	 * Remove the given key from Redis.
+	 * <p>
+	 * Actual eviction may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entry.
 	 *
 	 * @param name cache name must not be {@literal null}.
 	 * @param key key for the cache entry. Must not be {@literal null}.
@@ -251,12 +264,43 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	void remove(String name, byte[] key);
 
 	/**
+	 * Remove the given key from Redis if it is present, expecting the key to be immediately invisible for subsequent
+	 * lookups.
+	 *
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @return {@code true} if the cache was known to have a mapping for this key before, {@code false} if it did not (or
+	 *         if prior presence could not be determined).
+	 */
+	default boolean removeIfPresent(String name, byte[] key) {
+		remove(name, key);
+		return false;
+	}
+
+	/**
 	 * Remove all keys following the given pattern.
+	 * <p>
+	 * Actual clearing may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entries.
 	 *
 	 * @param name cache name must not be {@literal null}.
 	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
 	 */
 	void clean(String name, byte[] pattern);
+
+	/**
+	 * Remove all keys following the given pattern expecting all entries to be immediately invisible for subsequent
+	 * lookups.
+	 *
+	 * @param name cache name must not be {@literal null}.
+	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
+	 * @return {@code true} if the cache was known to have mappings before, {@code false} if it did not (or if prior
+	 *         presence of entries could not be determined).
+	 */
+	default boolean invalidate(String name, byte[] pattern) {
+		clean(name, pattern);
+		return false;
+	}
 
 	/**
 	 * Reset all statistics counters and gauges for this cache.
@@ -272,6 +316,156 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @return new instance of {@link RedisCacheWriter}.
 	 */
 	RedisCacheWriter withStatisticsCollector(CacheStatisticsCollector cacheStatisticsCollector);
+
+	/**
+	 * Interface that allows for configuring a {@link RedisCacheWriter}.
+	 *
+	 * @author Mark Paluch
+	 * @since 4.0
+	 */
+	interface RedisCacheWriterConfigurer {
+
+		/**
+		 * Configure the {@link CacheStatisticsCollector} to use. This is useful for plugging in and/or customizing
+		 * statistics collection.
+		 */
+		default RedisCacheWriterConfigurer collectStatistics() {
+			return collectStatistics(CacheStatisticsCollector.create());
+		}
+
+		/**
+		 * Configure the {@link CacheStatisticsCollector} to use. This is useful for plugging in and/or customizing
+		 * statistics collection.
+		 * <p>
+		 * If no statistics collector is specified, no statistics will be recorded. Statistics collection can be
+		 * reconfigured on the built RedisCacheWriter by invoking
+		 * {@code RedisCacheWriter#withStatisticsCollector(CacheStatisticsCollector)}.
+		 *
+		 * @param cacheStatisticsCollector the statistics collector to use.
+		 */
+		RedisCacheWriterConfigurer collectStatistics(CacheStatisticsCollector cacheStatisticsCollector);
+
+		/**
+		 * Configure the {@link BatchStrategy} when clearing the cache (i.e. bulk removal of cache keys).
+		 * <p>
+		 * If no batch strategy is specified, the RedisCacheWriter uses {@link BatchStrategies#keys()};
+		 *
+		 * @param batchStrategy the batch strategy to use.
+		 */
+		RedisCacheWriterConfigurer batchStrategy(BatchStrategy batchStrategy);
+
+		/**
+		 * Enable cache locking to synchronize cache access across multiple cache instances.
+		 */
+		default RedisCacheWriterConfigurer enableLocking() {
+			return cacheLocking(it -> it.enable(config -> {}));
+		}
+
+		/**
+		 * Enable cache locking to synchronize cache access across multiple cache instances.
+		 *
+		 * @param configurerConsumer a configuration function that configures {@link CacheLockingConfiguration}.
+		 */
+		default RedisCacheWriterConfigurer enableLocking(Consumer<CacheLockingConfiguration> configurerConsumer) {
+			return cacheLocking(it -> it.enable(configurerConsumer));
+		}
+
+		/**
+		 * Configure cache locking to synchronize cache access across multiple cache instances.
+		 *
+		 * @param configurerConsumer a configuration function that configures {@link CacheLockingConfigurer}.
+		 */
+		RedisCacheWriterConfigurer cacheLocking(Consumer<CacheLockingConfigurer> configurerConsumer);
+
+		/**
+		 * Use immediate writes (i.e. write operations such as
+		 * {@link RedisCacheWriter#put(String, byte[], byte[], Duration)} or {@link #clean(String, byte[])}) shall apply
+		 * immediately.
+		 * <p>
+		 * Several {@link org.springframework.cache.Cache} operations can be performed asynchronously or deferred and this
+		 * is the default behavior for {@link RedisCacheWriter}. Enable immediate writes in case a particular cache requires
+		 * stronger consistency (i.e. Cache writes must be visible immediately).
+		 * <p>
+		 * When using a {@link org.springframework.data.redis.connection.ReactiveRedisConnectionFactory reactive Redis
+		 * driver}, immediate writes lead to blocking.
+		 */
+		default RedisCacheWriterConfigurer immediateWrites() {
+			return immediateWrites(true);
+		}
+
+		/**
+		 * Configure whether to use immediate writes (i.e. write operations such as
+		 * {@link RedisCacheWriter#put(String, byte[], byte[], Duration)} or {@link #clean(String, byte[])}) shall apply
+		 * immediately.
+		 * <p>
+		 * Several {@link org.springframework.cache.Cache} operations can be performed asynchronously or deferred and this
+		 * is the default behavior for {@link RedisCacheWriter}. Enable immediate writes in case a particular cache requires
+		 * stronger consistency (i.e. Cache writes must be visible immediately).
+		 * <p>
+		 * When using a {@link org.springframework.data.redis.connection.ReactiveRedisConnectionFactory reactive Redis
+		 * driver}, immediate writes lead to blocking.
+		 *
+		 * @param enableImmediateWrites whether write operations must be visible immediately.
+		 */
+		RedisCacheWriterConfigurer immediateWrites(boolean enableImmediateWrites);
+
+	}
+
+	/**
+	 * Interface that allows for configuring cache locking.
+	 *
+	 * @author Mark Paluch
+	 * @since 4.0
+	 */
+	interface CacheLockingConfigurer {
+
+		/**
+		 * Disable cache locking (default).
+		 */
+		void disable();
+
+		/**
+		 * Enable cache locking with a default sleep time of {@code 50 milliseconds} and persistent lock keys.
+		 */
+		default void enable() {
+			enable(it -> {});
+		}
+
+		/**
+		 * Enable cache locking.
+		 */
+		void enable(Consumer<CacheLockingConfiguration> configurationConsumer);
+
+	}
+
+	/**
+	 * Interface that allows for configuring cache locking options.
+	 *
+	 * @author Mark Paluch
+	 * @since 4.0
+	 */
+	interface CacheLockingConfiguration {
+
+		/**
+		 * Configure the sleep time between cache lock checks. Sleep time is applied to reattempt lock checks if a cache key
+		 * is locked.
+		 *
+		 * @param sleepTime the sleep time, must not be {@literal null} and must be greater {@link Duration#ZERO}.
+		 */
+		CacheLockingConfiguration sleepTime(Duration sleepTime);
+
+		/**
+		 * Configure a {@link TtlFunction} to compute the lock timeout.
+		 * <p>
+		 * If no TTL function is specified, the RedisCacheWriter persistent lock keys. Persistent lock keys need to be
+		 * removed in case of failures (e.g. Redis crashes before a lock key is removed). Expiring lock keys can become
+		 * subject to GC timing if lock keys expire while a garbage collection halts the JVM.
+		 *
+		 * @param ttlFunction the lock timeout function.
+		 */
+		CacheLockingConfiguration lockTimeout(TtlFunction ttlFunction);
+
+	}
 
 	/**
 	 * Function to compute the time to live from the cache {@code key} and {@code value}.
@@ -323,4 +517,5 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 		Duration getTimeToLive(Object key, @Nullable Object value);
 
 	}
+
 }

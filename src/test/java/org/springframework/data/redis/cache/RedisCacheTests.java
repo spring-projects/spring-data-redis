@@ -30,10 +30,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.assertj.core.api.ThrowingConsumer;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,8 +102,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-481
 	void putShouldAddEntry() {
 
-		cache.put("key-1", sample);
-
+		cache.put(key, sample);
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
 
@@ -133,7 +132,7 @@ public class RedisCacheTests {
 	// DATAREDIS-481
 	void putNullShouldAddEntryForNullValue() {
 
-		cache.put("key-1", null);
+		cache.put(key, null);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -144,7 +143,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-481
 	void putIfAbsentShouldAddEntryIfNotExists() {
 
-		cache.putIfAbsent("key-1", sample);
+		cache.putIfAbsent(key, sample);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -155,7 +154,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-481
 	void putIfAbsentWithNullShouldAddNullValueEntryIfNotExists() {
 
-		assertThat(cache.putIfAbsent("key-1", null)).isNull();
+		assertThat(cache.putIfAbsent(key, null)).isNull();
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -295,6 +294,23 @@ public class RedisCacheTests {
 		});
 	}
 
+	@Test // GH-3236
+	void evictShouldRemoveKeyIfPresent() {
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
+		});
+
+		assertThat(cache.evictIfPresent(key)).isTrue();
+		assertThat(cache.evictIfPresent(key)).isFalse();
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
+		});
+	}
+
 	@Test // GH-2028
 	void clearShouldClearCache() {
 
@@ -311,12 +327,28 @@ public class RedisCacheTests {
 		});
 	}
 
+	@Test // GH-2028
+	void clearShouldInvalidateCache() {
+
+		doWithConnection(connection -> {
+			connection.set(binaryCacheKey, binaryNullValue);
+			connection.set("other".getBytes(), "value".getBytes());
+		});
+
+		assertThat(cache.invalidate()).isTrue();
+
+		doWithConnection(connection -> {
+			assertThat(connection.exists(binaryCacheKey)).isFalse();
+			assertThat(connection.exists("other".getBytes())).isTrue();
+		});
+	}
+
 	@Test // GH-1721
 	@EnabledOnRedisDriver(RedisDriver.LETTUCE) // SCAN not supported via Jedis Cluster.
 	void clearWithScanShouldClearCache() {
 
 		RedisCache cache = new RedisCache("cache",
-				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory, BatchStrategies.scan(25)),
+				RedisCacheWriter.create(connectionFactory, it -> it.immediateWrites().batchStrategy(BatchStrategies.scan(25))),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer)));
 
 		doWithConnection(connection -> {
@@ -364,11 +396,11 @@ public class RedisCacheTests {
 	void computePrefixCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
-				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+				RedisCacheWriter.create(connectionFactory, RedisCacheWriter.RedisCacheWriterConfigurer::immediateWrites),
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
 						.computePrefixWith(cacheName -> "_" + cacheName + "_"));
 
-		cacheWithCustomPrefix.put("key-1", sample);
+		cacheWithCustomPrefix.put(key, sample);
 
 		doWithConnection(
 				connection -> assertThat(connection.stringCommands().get("_cache_key-1".getBytes(StandardCharsets.UTF_8)))
@@ -379,10 +411,11 @@ public class RedisCacheTests {
 	void prefixCacheNameCreatesCacheKeyCorrectly() {
 
 		RedisCache cacheWithCustomPrefix = new RedisCache("cache",
-				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory), RedisCacheConfiguration.defaultCacheConfig()
+				RedisCacheWriter.create(connectionFactory, RedisCacheWriter.RedisCacheWriterConfigurer::immediateWrites),
+				RedisCacheConfiguration.defaultCacheConfig()
 						.serializeValuesWith(SerializationPair.fromSerializer(serializer)).prefixCacheNameWith("redis::"));
 
-		cacheWithCustomPrefix.put("key-1", sample);
+		cacheWithCustomPrefix.put(key, sample);
 
 		doWithConnection(connection -> assertThat(
 				connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
@@ -688,16 +721,18 @@ public class RedisCacheTests {
 	}
 
 	private RedisCacheWriter usingLockingRedisCacheWriter() {
-		return RedisCacheWriter.lockingRedisCacheWriter(this.connectionFactory);
+		return usingLockingRedisCacheWriter(Duration.ofMillis(50L));
 	}
 
 	private RedisCacheWriter usingLockingRedisCacheWriter(Duration sleepTime) {
-		return RedisCacheWriter.lockingRedisCacheWriter(this.connectionFactory, sleepTime,
-				RedisCacheWriter.TtlFunction.persistent(), BatchStrategies.keys());
+		return RedisCacheWriter.create(this.connectionFactory, config -> {
+			config.immediateWrites().enableLocking(it -> it.sleepTime(sleepTime)).batchStrategy(BatchStrategies.keys());
+		});
 	}
 
 	private RedisCacheWriter usingNonLockingRedisCacheWriter() {
-		return RedisCacheWriter.nonLockingRedisCacheWriter(this.connectionFactory);
+		return RedisCacheWriter.create(this.connectionFactory,
+				config -> config.immediateWrites().batchStrategy(BatchStrategies.keys()));
 	}
 
 	private @Nullable Object unwrap(@Nullable Object value) {
@@ -712,7 +747,7 @@ public class RedisCacheTests {
 		return entryTtlFunction.andThen(RedisCacheConfiguration::enableTimeToIdle);
 	}
 
-	void doWithConnection(Consumer<RedisConnection> callback) {
+	void doWithConnection(ThrowingConsumer<RedisConnection> callback) {
 		try (RedisConnection connection = connectionFactory.getConnection()) {
 			callback.accept(connection);
 		}
