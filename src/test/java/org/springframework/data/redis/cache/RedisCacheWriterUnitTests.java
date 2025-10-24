@@ -15,17 +15,9 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -70,8 +62,7 @@ class RedisCacheWriterUnitTests {
 		doCallRealMethod().when(cacheWriter).retrieve(anyString(), any());
 		doReturn(CompletableFuture.completedFuture(value)).when(cacheWriter).retrieve(anyString(), any(), any());
 
-		assertThat(cacheWriter.retrieve("TestCacheName", key).thenApply(String::new).get())
-				.isEqualTo("TestValue");
+		assertThat(cacheWriter.retrieve("TestCacheName", key).thenApply(String::new).get()).isEqualTo("TestValue");
 
 		verify(cacheWriter, times(1)).retrieve(eq("TestCacheName"), eq(key));
 		verify(cacheWriter, times(1)).retrieve(eq("TestCacheName"), eq(key), isNull());

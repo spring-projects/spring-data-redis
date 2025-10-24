@@ -81,8 +81,8 @@ class EnabledOnRedisDriverCondition implements ExecutionCondition {
 			}
 
 			if (!foundMatch) {
-				return disabled("Driver %s not supported; Supported driver(s): %s"
-						.formatted(formatUnsupportedDriver(value), Arrays.toString(annotation.value())));
+				return disabled("Driver %s not supported; Supported driver(s): %s".formatted(formatUnsupportedDriver(value),
+						Arrays.toString(annotation.value())));
 			}
 		}
 

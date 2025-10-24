@@ -283,8 +283,7 @@ public interface GeoOperations<K, M> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	default GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference,
-			BoundingBox boundingBox) {
+	default GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, BoundingBox boundingBox) {
 		return search(key, reference, boundingBox, GeoSearchCommandArgs.newGeoSearchArgs());
 	}
 
@@ -319,8 +318,7 @@ public interface GeoOperations<K, M> {
 	 * @see <a href="https://redis.io/commands/geosearch">Redis Documentation: GEOSEARCH</a>
 	 */
 	@Nullable
-	GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference,
-			GeoShape geoPredicate, GeoSearchCommandArgs args);
+	GeoResults<GeoLocation<M>> search(K key, GeoReference<M> reference, GeoShape geoPredicate, GeoSearchCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} and store results at {@code destKey}.

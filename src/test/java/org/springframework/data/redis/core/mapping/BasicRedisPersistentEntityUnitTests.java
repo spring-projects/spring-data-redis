@@ -55,7 +55,6 @@ class BasicRedisPersistentEntityUnitTests<T> {
 	@Test // DATAREDIS-425
 	void addingMultipleIdPropertiesWithoutAnExplicitOneThrowsException() {
 
-
 		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);
 
@@ -65,8 +64,7 @@ class BasicRedisPersistentEntityUnitTests<T> {
 		entity.addPersistentProperty(property1);
 
 		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> entity.addPersistentProperty(property2))
-				.withMessageContaining("Attempt to add id property")
-				.withMessageContaining("but already have a property");
+				.withMessageContaining("Attempt to add id property").withMessageContaining("but already have a property");
 	}
 
 	@Test // DATAREDIS-425

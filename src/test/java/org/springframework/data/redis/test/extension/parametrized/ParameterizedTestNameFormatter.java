@@ -15,11 +15,8 @@
  */
 package org.springframework.data.redis.test.extension.parametrized;
 
-import static java.util.stream.Collectors.joining;
-import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_PLACEHOLDER;
-import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER;
-import static org.junit.jupiter.params.ParameterizedTest.DISPLAY_NAME_PLACEHOLDER;
-import static org.junit.jupiter.params.ParameterizedTest.INDEX_PLACEHOLDER;
+import static java.util.stream.Collectors.*;
+import static org.junit.jupiter.params.ParameterizedTest.*;
 
 import java.text.Format;
 import java.text.MessageFormat;

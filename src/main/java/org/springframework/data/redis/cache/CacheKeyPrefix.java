@@ -18,8 +18,8 @@ package org.springframework.data.redis.cache;
 import org.springframework.util.Assert;
 
 /**
- * {@link CacheKeyPrefix} is a callback hook for creating custom prefixes prepended to the actual {@literal key}
- * stored in Redis.
+ * {@link CacheKeyPrefix} is a callback hook for creating custom prefixes prepended to the actual {@literal key} stored
+ * in Redis.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -39,18 +39,15 @@ public interface CacheKeyPrefix {
 	/**
 	 * Compute the {@link String prefix} for the actual {@literal cache key} stored in Redis.
 	 *
-	 * @param cacheName {@link String name} of the cache in which the key is stored;
-	 * will never be {@literal null}.
-	 * @return the computed {@link String prefix} of the {@literal cache key} stored in Redis;
-	 * never {@literal null}.
+	 * @param cacheName {@link String name} of the cache in which the key is stored; will never be {@literal null}.
+	 * @return the computed {@link String prefix} of the {@literal cache key} stored in Redis; never {@literal null}.
 	 */
 	String compute(String cacheName);
 
 	/**
-	 * Creates a default {@link CacheKeyPrefix} scheme that prefixes cache keys with the {@link String name}
-	 * of the cache followed by double colons.
-	 *
-	 * For example, a cache named {@literal myCache} will prefix all cache keys with {@literal myCache::}.
+	 * Creates a default {@link CacheKeyPrefix} scheme that prefixes cache keys with the {@link String name} of the cache
+	 * followed by double colons. For example, a cache named {@literal myCache} will prefix all cache keys with
+	 * {@literal myCache::}.
 	 *
 	 * @return the default {@link CacheKeyPrefix} scheme.
 	 */
@@ -59,12 +56,9 @@ public interface CacheKeyPrefix {
 	}
 
 	/**
-	 * Creates a {@link CacheKeyPrefix} scheme that prefixes cache keys with the given {@link String prefix}.
-	 *
-	 * The {@link String prefix} is prepended to the {@link String cacheName} followed by double colons.
-	 *
-	 * For example, a prefix {@literal redis-} with a cache named {@literal  myCache}
-	 * results in {@literal  redis-myCache::}.
+	 * Creates a {@link CacheKeyPrefix} scheme that prefixes cache keys with the given {@link String prefix}. The
+	 * {@link String prefix} is prepended to the {@link String cacheName} followed by double colons. For example, a prefix
+	 * {@literal redis-} with a cache named {@literal  myCache} results in {@literal  redis-myCache::}.
 	 *
 	 * @param prefix must not be {@literal null}.
 	 * @return the default {@link CacheKeyPrefix} scheme.

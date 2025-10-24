@@ -24,24 +24,13 @@ import java.util.Map;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
-import org.springframework.data.redis.connection.stream.ByteRecord;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.ObjectRecord;
-import org.springframework.data.redis.connection.stream.PendingMessage;
-import org.springframework.data.redis.connection.stream.PendingMessages;
-import org.springframework.data.redis.connection.stream.PendingMessagesSummary;
-import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.Record;
-import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -129,8 +118,8 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	}
 
 	/**
-	 * Append the record, backed by the given value, to the stream with the specified options.
-	 * The value will be hashed and serialized.
+	 * Append the record, backed by the given value, to the stream with the specified options. The value will be hashed
+	 * and serialized.
 	 *
 	 * @param record must not be {@literal null}.
 	 * @param xAddOptions parameters for the {@literal XADD} call. Must not be {@literal null}.
@@ -184,9 +173,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	RecordId add(Record<K, ?> record);
 
 	/**
-	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
-	 * the command argument.
-	 *
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as the command argument.
 	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
 	 * specified when calling {@literal XCLAIM}.
 	 *
@@ -208,9 +195,7 @@ public interface StreamOperations<K, HK, HV> extends HashMapperProvider<HK, HV> 
 	}
 
 	/**
-	 * Changes the ownership of a pending message so that the new owner is the consumer specified as
-	 * the command argument.
-	 *
+	 * Changes the ownership of a pending message so that the new owner is the consumer specified as the command argument.
 	 * The message is claimed only if its idle time (ms) is greater than the given {@link Duration minimum idle time}
 	 * specified when calling {@literal XCLAIM}.
 	 *

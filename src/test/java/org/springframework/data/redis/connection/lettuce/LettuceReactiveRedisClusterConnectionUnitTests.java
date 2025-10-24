@@ -66,7 +66,8 @@ public class LettuceReactiveRedisClusterConnectionUnitTests {
 	public void before() {
 
 		when(connectionProvider.getConnectionAsync(any())).thenReturn(CompletableFuture.completedFuture(sharedConnection));
-		when(sharedConnection.getConnectionAsync(anyString(), anyInt())).thenReturn(CompletableFuture.completedFuture(nodeConnection));
+		when(sharedConnection.getConnectionAsync(anyString(), anyInt()))
+				.thenReturn(CompletableFuture.completedFuture(nodeConnection));
 		when(nodeConnection.reactive()).thenReturn(reactiveNodeCommands);
 	}
 

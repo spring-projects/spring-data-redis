@@ -100,7 +100,7 @@ public class LettuceReactiveGeoCommandsIntegrationTests extends LettuceReactiveC
 
 		assertThat(
 				connection.geoCommands().geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), CATANIA.getName())).block())
-						.containsExactly("sqc8b49rny0", "sqdtr74hyu0");
+				.containsExactly("sqc8b49rny0", "sqdtr74hyu0");
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -111,7 +111,7 @@ public class LettuceReactiveGeoCommandsIntegrationTests extends LettuceReactiveC
 
 		assertThat(connection.geoCommands()
 				.geoHash(KEY_1_BBUFFER, Arrays.asList(PALERMO.getName(), ARIGENTO.getName(), CATANIA.getName())).block())
-						.containsExactly("sqc8b49rny0", null, "sqdtr74hyu0");
+				.containsExactly("sqc8b49rny0", null, "sqdtr74hyu0");
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525

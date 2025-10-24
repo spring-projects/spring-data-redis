@@ -66,8 +66,7 @@ public class RedisMapIntegrationTests extends AbstractRedisMapIntegrationTests<O
 
 		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
-		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(
-				String.class);
+		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<>(String.class);
 		StringRedisSerializer stringSerializer = StringRedisSerializer.UTF_8;
 
 		// create Jedis Factory

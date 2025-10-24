@@ -172,12 +172,8 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 
 				StreamOffset offset = StreamOffset.from(command.getKey(), command.getReadOffset().getOffset());
 
-				return cmd.xgroupCreate(offset,
-							ByteUtils.getByteBuffer(command.getGroupName()),
-						XGroupCreateArgs.Builder.mkstream(command.isMkStream()))
-						.map(it ->
-								new CommandResponse<>(command, it)
-						);
+				return cmd.xgroupCreate(offset, ByteUtils.getByteBuffer(command.getGroupName()),
+						XGroupCreateArgs.Builder.mkstream(command.isMkStream())).map(it -> new CommandResponse<>(command, it));
 			}
 
 			if (command.getAction().equals(GroupCommandAction.DELETE_CONSUMER)) {
@@ -361,7 +357,8 @@ class LettuceReactiveStreamCommands implements ReactiveStreamCommands {
 			Assert.notNull(command.getKey(), "Key must not be null");
 			Assert.notNull(command.getCount(), "Count must not be null");
 
-			return cmd.xtrim(command.getKey(), command.isApproximateTrimming(), command.getCount()).map(value -> new NumericResponse<>(command, value));
+			return cmd.xtrim(command.getKey(), command.isApproximateTrimming(), command.getCount())
+					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 

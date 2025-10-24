@@ -75,8 +75,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		try {
 			connection.close();
-		} catch (Exception ignore) {
-		}
+		} catch (Exception ignore) {}
 
 		connection = null;
 	}
@@ -338,8 +337,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		try (RedisConnection conn = factory2.getConnection()) {
 			conn.get(null);
-		} catch (Exception ignore) {
-		} finally {
+		} catch (Exception ignore) {} finally {
 			// Make sure we don't end up with broken connection
 			factory2.getConnection().dbSize();
 			factory2.destroy();
@@ -378,8 +376,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		assertThat(
 				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()))
-						.isInstanceOf(List.class)
-						.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
+				.isInstanceOf(List.class)
+				.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
 	}
 
 	@Test // DATAREDIS-286, DATAREDIS-564
@@ -404,8 +402,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		long ttl = connection.pTtl("pexpireKey");
 
 		assertThat(millis - ttl < 20L)
-				.describedAs("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s",
-						millis, ttl, millis - ttl)
+				.describedAs("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s", millis, ttl,
+						millis - ttl)
 				.isTrue();
 	}
 

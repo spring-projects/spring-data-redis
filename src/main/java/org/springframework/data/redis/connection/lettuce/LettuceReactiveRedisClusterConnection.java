@@ -286,7 +286,7 @@ class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnecti
 				case IMPORTING -> commands.clusterSetSlotImporting(slot, nodeId);
 				case NODE -> commands.clusterSetSlotNode(slot, nodeId);
 				case STABLE -> commands.clusterSetSlotStable(slot);
-      		};
+			};
 		}).then();
 	}
 

@@ -20,7 +20,6 @@ import static org.springframework.data.redis.connection.RedisGeoCommands.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 
-import org.springframework.data.redis.domain.geo.GeoReference;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
@@ -39,6 +39,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveOperationsTestParams.Fixture;
+import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.data.redis.domain.geo.GeoShape;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
 import org.springframework.data.redis.test.extension.parametrized.MethodSource;

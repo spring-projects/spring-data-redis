@@ -23,7 +23,6 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @since 2.6
- *
  */
 public class BoxShape implements GeoShape {
 

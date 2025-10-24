@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core.types;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;

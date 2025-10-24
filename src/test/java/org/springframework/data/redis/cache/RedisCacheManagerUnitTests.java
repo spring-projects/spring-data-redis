@@ -15,15 +15,8 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -98,8 +91,7 @@ class RedisCacheManagerUnitTests {
 	@Test // DATAREDIS-481
 	void transactionAwareCacheManagerShouldDecoracteCache() {
 
-		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build()
-				.getCache("decoracted-cache");
+		Cache cache = RedisCacheManager.builder(cacheWriter).transactionAware().build().getCache("decoracted-cache");
 
 		assertThat(cache).isInstanceOfAny(TransactionAwareCacheDecorator.class);
 		assertThat(ReflectionTestUtils.getField(cache, "targetCache")).isInstanceOf(RedisCache.class);
@@ -209,16 +201,14 @@ class RedisCacheManagerUnitTests {
 		RedisCacheManagerBuilder cacheManagerBuilder = RedisCacheManager.builder().cacheDefaults(defaultCacheConfiguration);
 
 		RedisCacheConfiguration customCacheConfiguration = cacheManagerBuilder.cacheDefaults()
-				.entryTtl(Duration.ofSeconds(10))
-				.disableKeyPrefix();
+				.entryTtl(Duration.ofSeconds(10)).disableKeyPrefix();
 
 		assertThat(customCacheConfiguration).isNotSameAs(defaultCacheConfiguration);
 		assertThat(cacheManagerBuilder.cacheDefaults(customCacheConfiguration)).isSameAs(cacheManagerBuilder);
 		assertThat(cacheManagerBuilder.cacheDefaults().usePrefix()).isFalse();
 		assertThat(cacheManagerBuilder.cacheDefaults().getTtlFunction().getTimeToLive(null, null))
-			.isEqualTo(Duration.ofSeconds(10));
+				.isEqualTo(Duration.ofSeconds(10));
 		assertThat(defaultCacheConfiguration.usePrefix()).isTrue();
-		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(null, null))
-			.isEqualTo(Duration.ofMinutes(30));
+		assertThat(defaultCacheConfiguration.getTtlFunction().getTimeToLive(null, null)).isEqualTo(Duration.ofMinutes(30));
 	}
 }

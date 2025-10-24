@@ -277,7 +277,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	@Override
 	public Expirations<HK> getTimeToLive(K key, TimeUnit timeUnit, Collection<HK> hashKeys) {
 
-		if(timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
+		if (timeUnit.compareTo(TimeUnit.MILLISECONDS) < 0) {
 			throw new IllegalArgumentException("%s precision is not supported must be >= MILLISECONDS".formatted(timeUnit));
 		}
 

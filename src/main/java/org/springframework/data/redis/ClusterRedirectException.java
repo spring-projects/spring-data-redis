@@ -29,8 +29,7 @@ import org.springframework.dao.DataRetrievalFailureException;
  */
 public class ClusterRedirectException extends DataRetrievalFailureException {
 
-	@Serial
-	private static final long serialVersionUID = -857075813794333965L;
+	@Serial private static final long serialVersionUID = -857075813794333965L;
 
 	private final int slot;
 	private final String host;

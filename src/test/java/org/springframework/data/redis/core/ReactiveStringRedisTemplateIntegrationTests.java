@@ -70,7 +70,7 @@ public class ReactiveStringRedisTemplateIntegrationTests {
 		RedisElementWriter<String> writer = RedisElementWriter.from(StringRedisSerializer.UTF_8);
 
 		RedisSerializationContext<String, String> nullReadingContext = RedisSerializationContext
-				.<String, String>newSerializationContext(StringRedisSerializer.UTF_8).key(buffer -> {
+				.<String, String> newSerializationContext(StringRedisSerializer.UTF_8).key(buffer -> {
 
 					String read = reader.read(buffer);
 

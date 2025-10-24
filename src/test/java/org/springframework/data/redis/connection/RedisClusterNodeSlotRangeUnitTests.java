@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,8 +39,7 @@ public class RedisClusterNodeSlotRangeUnitTests {
 
 		RedisClusterNode.SlotRange slotRange = new RedisClusterNode.SlotRange(25, 75);
 
-		IntStream.range(0, 100).forEach(slot ->
-			assertThat(slotRange.contains(slot)).isEqualTo(slot >= 25 && slot <= 75));
+		IntStream.range(0, 100).forEach(slot -> assertThat(slotRange.contains(slot)).isEqualTo(slot >= 25 && slot <= 75));
 	}
 
 	@Test // GH-2525
@@ -50,8 +49,7 @@ public class RedisClusterNodeSlotRangeUnitTests {
 
 		RedisClusterNode.SlotRange slotRange = new RedisClusterNode.SlotRange(slots);
 
-		IntStream.range(0, 100).forEach(slot ->
-			assertThat(slotRange.contains(slot)).isEqualTo(slots.contains(slot)));
+		IntStream.range(0, 100).forEach(slot -> assertThat(slotRange.contains(slot)).isEqualTo(slots.contains(slot)));
 	}
 
 	@Test // GH-2525
@@ -67,26 +65,23 @@ public class RedisClusterNodeSlotRangeUnitTests {
 	@Test // GH-2525
 	public void slotRangeSlotsAreCorrect() {
 
-		assertThat(new RedisClusterNode.SlotRange(4, 6).getSlots())
-			.containsExactlyInAnyOrder(4, 5, 6);
+		assertThat(new RedisClusterNode.SlotRange(4, 6).getSlots()).containsExactlyInAnyOrder(4, 5, 6);
 
-		assertThat(new RedisClusterNode.SlotRange(Arrays.asList(1, 2, 3, 5, 7)).getSlots())
-			.containsExactlyInAnyOrder(1, 2, 3, 5, 7);
+		assertThat(new RedisClusterNode.SlotRange(Arrays.asList(1, 2, 3, 5, 7)).getSlots()).containsExactlyInAnyOrder(1, 2,
+				3, 5, 7);
 	}
 
 	@Test // GH-2525
 	public void slotRangeSlotsArrayIsCorrectIsCorrect() {
 
-		assertThat(new RedisClusterNode.SlotRange(4, 6).getSlotsArray())
-			.containsExactly(4, 5, 6);
+		assertThat(new RedisClusterNode.SlotRange(4, 6).getSlotsArray()).containsExactly(4, 5, 6);
 
-		assertThat(new RedisClusterNode.SlotRange(Arrays.asList(1, 2, 3, 5, 7)).getSlotsArray())
-			.containsExactly(1, 2, 3, 5, 7);
+		assertThat(new RedisClusterNode.SlotRange(Arrays.asList(1, 2, 3, 5, 7)).getSlotsArray()).containsExactly(1, 2, 3, 5,
+				7);
 	}
 
 	@Test // GH-2525
 	public void toStringListsSlots() {
-		assertThat(new RedisClusterNode.SlotRange(List.of(1, 2, 4, 8, 16, 32, 64)))
-			.hasToString("[1, 2, 4, 8, 16, 32, 64]");
+		assertThat(new RedisClusterNode.SlotRange(List.of(1, 2, 4, 8, 16, 32, 64))).hasToString("[1, 2, 4, 8, 16, 32, 64]");
 	}
 }

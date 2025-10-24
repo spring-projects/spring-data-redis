@@ -45,8 +45,8 @@ class IndexConfigurationUnitTests {
 	void redisIndexSettingIndexNameUsedInEquals() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
-		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
-				+ "other");
+		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path",
+				setting1.getIndexName() + "other");
 
 		assertThat(setting1).isNotEqualTo(setting2);
 	}
@@ -55,8 +55,8 @@ class IndexConfigurationUnitTests {
 	void redisIndexSettingIndexNameUsedInHashCode() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
-		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
-				+ "other");
+		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path",
+				setting1.getIndexName() + "other");
 
 		assertThat(setting1.hashCode()).isNotEqualTo(setting2.hashCode());
 	}

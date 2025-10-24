@@ -307,11 +307,11 @@ public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque
 	/**
 	 * Returns a reverse-ordered view of this collection.
 	 * <p>
-	 * The encounter order of elements returned by the view is the inverse of the encounter order of the elements
-	 * stored in this collection. The reverse ordering affects all order-sensitive operations, including any operations
-	 * on further views of the returned view. If the collection implementation permits modifications to this view,
-	 * the modifications "write-through" to the underlying collection. Changes to the underlying collection might
-	 * or might not be visible in this reversed view, depending upon the implementation.
+	 * The encounter order of elements returned by the view is the inverse of the encounter order of the elements stored
+	 * in this collection. The reverse ordering affects all order-sensitive operations, including any operations on
+	 * further views of the returned view. If the collection implementation permits modifications to this view, the
+	 * modifications "write-through" to the underlying collection. Changes to the underlying collection might or might not
+	 * be visible in this reversed view, depending upon the implementation.
 	 * <p>
 	 * This method is forward-compatible with Java 21 {@literal SequencedCollections}.
 	 *

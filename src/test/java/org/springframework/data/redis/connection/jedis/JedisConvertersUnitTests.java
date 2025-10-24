@@ -16,13 +16,8 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.params.GetExParams;
@@ -201,7 +196,7 @@ class JedisConvertersUnitTests {
 
 		assertThat(
 				JedisConverters.boundaryToBytesForZRange(org.springframework.data.domain.Range.Bound.exclusive(1L), null))
-						.isEqualTo(JedisConverters.toBytes("(1"));
+				.isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
 	@Test // DATAREDIS-352

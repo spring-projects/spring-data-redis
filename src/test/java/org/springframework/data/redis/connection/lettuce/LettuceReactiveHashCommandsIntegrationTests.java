@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import reactor.test.StepVerifier;
 

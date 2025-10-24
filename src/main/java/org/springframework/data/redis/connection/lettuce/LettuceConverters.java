@@ -101,8 +101,7 @@ public abstract class LettuceConverters extends Converters {
 
 	public static Point geoCoordinatesToPoint(@Nullable GeoCoordinates geoCoordinate) {
 
-		return geoCoordinate != null
-				? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
+		return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue())
 				: null;
 	}
 
@@ -172,8 +171,7 @@ public abstract class LettuceConverters extends Converters {
 
 	public static Tuple toTuple(@Nullable ScoredValue<byte[]> source) {
 
-		return source != null && source.hasValue()
-				? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
+		return source != null && source.hasValue() ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore()))
 				: null;
 	}
 
@@ -635,8 +633,8 @@ public abstract class LettuceConverters extends Converters {
 	 */
 	public static GeoArgs.Unit toGeoArgsUnit(Metric metric) {
 
-		Metric metricToUse = metric == null
-				|| ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric;
+		Metric metricToUse = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
+				: metric;
 
 		return ObjectUtils.caseInsensitiveValueOf(GeoArgs.Unit.values(), metricToUse.getAbbreviation());
 	}
@@ -716,7 +714,7 @@ public abstract class LettuceConverters extends Converters {
 						case SAT -> BitFieldArgs.OverflowType.SAT;
 						case FAIL -> BitFieldArgs.OverflowType.FAIL;
 						case WRAP -> BitFieldArgs.OverflowType.WRAP;
-          			};
+					};
 
 					args = args.overflow(type);
 				}
@@ -897,7 +895,7 @@ public abstract class LettuceConverters extends Converters {
 		return switch (option) {
 			case ASYNC -> FlushMode.ASYNC;
 			case SYNC -> FlushMode.SYNC;
-    	};
+		};
 	}
 
 	/**
@@ -909,8 +907,8 @@ public abstract class LettuceConverters extends Converters {
 		INSTANCE;
 
 		Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
-			return new GeoResultsConverter(metric == null
-					|| ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+			return new GeoResultsConverter(
+					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
 		}
 
 		private static class GeoResultsConverter

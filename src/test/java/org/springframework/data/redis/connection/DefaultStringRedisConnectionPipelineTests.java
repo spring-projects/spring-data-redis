@@ -1742,7 +1742,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xRangeShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1751,7 +1751,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xReadShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1760,7 +1760,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xReadGroupShouldDelegateAndConvertCorrectly();
 	}
 
@@ -1769,7 +1769,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 		doReturn(Collections.singletonList(
 				Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap))))
-						.when(nativeConnection).closePipeline();
+				.when(nativeConnection).closePipeline();
 		super.xRevRangeShouldDelegateAndConvertCorrectly();
 	}
 

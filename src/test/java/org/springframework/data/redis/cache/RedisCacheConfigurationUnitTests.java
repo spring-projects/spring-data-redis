@@ -15,14 +15,9 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 
@@ -72,8 +67,7 @@ class RedisCacheConfigurationUnitTests {
 
 		Duration sixtySeconds = Duration.ofSeconds(60);
 
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-			.entryTtl(sixtySeconds);
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().entryTtl(sixtySeconds);
 
 		assertThat(cacheConfiguration).isNotNull();
 		assertThat(cacheConfiguration.getTtl()).isEqualByComparingTo(sixtySeconds);
@@ -91,8 +85,7 @@ class RedisCacheConfigurationUnitTests {
 
 		doReturn(thirtyMinutes).doReturn(twoHours).when(mockTtlFunction).getTimeToLive(any(), any());
 
-		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-				.entryTtl(mockTtlFunction);
+		RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig().entryTtl(mockTtlFunction);
 
 		assertThat(cacheConfiguration.getTtl()).isEqualTo(thirtyMinutes);
 		assertThat(cacheConfiguration.getTtl()).isEqualTo(twoHours);

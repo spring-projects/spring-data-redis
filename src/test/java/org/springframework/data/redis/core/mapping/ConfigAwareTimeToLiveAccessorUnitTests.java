@@ -148,8 +148,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 	@Test // DATAREDIS-471
 	void getTimeToLiveShouldReturnDefaultValue() {
 
-		Long ttl = accessor
-				.getTimeToLive(new PartialUpdate<>("123", new TypeWithRedisHashAnnotation()));
+		Long ttl = accessor.getTimeToLive(new PartialUpdate<>("123", new TypeWithRedisHashAnnotation()));
 
 		assertThat(ttl).isEqualTo(5L);
 	}
@@ -158,8 +157,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 	void getTimeToLiveShouldReturnValueWhenUpdateModifiesTtlProperty() {
 
 		Long ttl = accessor
-				.getTimeToLive(new PartialUpdate<>("123", new SimpleTypeWithTTLProperty())
-						.set("ttl", 100).refreshTtl(true));
+				.getTimeToLive(new PartialUpdate<>("123", new SimpleTypeWithTTLProperty()).set("ttl", 100).refreshTtl(true));
 
 		assertThat(ttl).isEqualTo(100L);
 	}
@@ -168,8 +166,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 	void getTimeToLiveShouldReturnPropertyValueWhenUpdateModifiesTtlProperty() {
 
 		Long ttl = accessor.getTimeToLive(
-				new PartialUpdate<>("123",
-				new TypeWithRedisHashAnnotationAndTTLProperty()).set("ttl", 100).refreshTtl(true));
+				new PartialUpdate<>("123", new TypeWithRedisHashAnnotationAndTTLProperty()).set("ttl", 100).refreshTtl(true));
 
 		assertThat(ttl).isEqualTo(100L);
 	}
@@ -178,8 +175,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 	void getTimeToLiveShouldReturnDefaultValueWhenUpdateDoesNotModifyTtlProperty() {
 
 		Long ttl = accessor
-				.getTimeToLive(new PartialUpdate<>("123",
-				new TypeWithRedisHashAnnotationAndTTLProperty()).refreshTtl(true));
+				.getTimeToLive(new PartialUpdate<>("123", new TypeWithRedisHashAnnotationAndTTLProperty()).refreshTtl(true));
 
 		assertThat(ttl).isEqualTo(10L);
 	}

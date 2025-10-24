@@ -61,8 +61,8 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 		ParameterizedTestContext methodContext = new ParameterizedTestContext(testMethod);
 		ParameterizedTestContext constructorContext = new ParameterizedTestContext(declaredConstructor);
 
-		Preconditions.condition(methodContext.hasPotentiallyValidSignature(), () ->
-				("@ParameterizedRedisTest method [%s] declares formal parameters in an invalid order: "
+		Preconditions.condition(methodContext.hasPotentiallyValidSignature(),
+				() -> ("@ParameterizedRedisTest method [%s] declares formal parameters in an invalid order: "
 						+ "argument aggregators must be declared after any indexed arguments "
 						+ "and before any arguments resolved by another ParameterResolver.")
 						.formatted(testMethod.toGenericString()));
@@ -98,9 +98,10 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 		}
 
 		// @formatter:off
-		return hierarchy.stream().flatMap(it -> findRepeatableAnnotations(it, ArgumentsSource.class).stream()
-				.map(ArgumentsSource::value).map(this::instantiateArgumentsProvider)
-				.map(provider -> AnnotationConsumerInitializer.initialize(it, provider)))
+		return hierarchy.stream()
+				.flatMap(it -> findRepeatableAnnotations(it, ArgumentsSource.class).stream().map(ArgumentsSource::value)
+						.map(this::instantiateArgumentsProvider)
+						.map(provider -> AnnotationConsumerInitializer.initialize(it, provider)))
 				.flatMap(provider -> arguments(provider, extensionContext)).map(Arguments::get)
 				.map(arguments -> consumedArguments(arguments, methodContext))
 				.map(arguments -> createInvocationContext(formatter, constructorContext, methodContext, arguments))
@@ -138,8 +139,8 @@ class ParameterizedRedisTestExtension implements TestTemplateInvocationContextPr
 
 		ParameterizedRedisTest parameterizedTest = findAnnotation(templateMethod, ParameterizedRedisTest.class).get();
 
-		String pattern = Preconditions.notBlank(parameterizedTest.name().trim(), () ->
-				"Configuration error: @ParameterizedRedisTest on method [%s] must be declared with a non-empty name"
+		String pattern = Preconditions.notBlank(parameterizedTest.name().trim(),
+				() -> "Configuration error: @ParameterizedRedisTest on method [%s] must be declared with a non-empty name"
 						.formatted(templateMethod));
 
 		return new ParameterizedTestNameFormatter(pattern, displayName, methodContext, argumentMaxLength);

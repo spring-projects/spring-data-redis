@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +27,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.core.RedisTemplate;

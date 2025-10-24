@@ -369,7 +369,8 @@ public class StreamRecords {
 	static class ByteBufferMapBackedRecord extends MapBackedRecord<ByteBuffer, ByteBuffer, ByteBuffer>
 			implements ByteBufferRecord {
 
-		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, @Nullable RecordId recordId, Map<ByteBuffer, ByteBuffer> map) {
+		ByteBufferMapBackedRecord(@Nullable ByteBuffer stream, @Nullable RecordId recordId,
+				Map<ByteBuffer, ByteBuffer> map) {
 			super(stream, recordId, map);
 		}
 

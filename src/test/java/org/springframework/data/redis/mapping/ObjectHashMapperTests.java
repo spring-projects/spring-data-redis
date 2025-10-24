@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
 import java.util.Map;

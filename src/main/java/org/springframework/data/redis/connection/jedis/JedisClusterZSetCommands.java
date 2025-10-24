@@ -59,8 +59,8 @@ import org.springframework.util.Assert;
  */
 class JedisClusterZSetCommands implements RedisZSetCommands {
 
-	private static final SetConverter<redis.clients.jedis.resps.Tuple, Tuple> TUPLE_SET_CONVERTER =
-			new SetConverter<>(JedisConverters::toTuple);
+	private static final SetConverter<redis.clients.jedis.resps.Tuple, Tuple> TUPLE_SET_CONVERTER = new SetConverter<>(
+			JedisConverters::toTuple);
 
 	private final JedisClusterConnection connection;
 
@@ -893,8 +893,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
-						.zinterWithScores(new ZParams(), sets)));
+				return JedisConverters
+						.toSet(JedisConverters.toTupleList(connection.getCluster().zinterWithScores(new ZParams(), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -915,8 +915,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
-						.zinterWithScores(toZParams(aggregate, weights), sets)));
+				return JedisConverters.toSet(
+						JedisConverters.toTupleList(connection.getCluster().zinterWithScores(toZParams(aggregate, weights), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -994,8 +994,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
-						.zunionWithScores(new ZParams(), sets)));
+				return JedisConverters
+						.toSet(JedisConverters.toTupleList(connection.getCluster().zunionWithScores(new ZParams(), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 			}
@@ -1016,8 +1016,8 @@ class JedisClusterZSetCommands implements RedisZSetCommands {
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(sets)) {
 
 			try {
-				return JedisConverters.toSet(JedisConverters.toTupleList(connection.getCluster()
-						.zunionWithScores(toZParams(aggregate, weights), sets)));
+				return JedisConverters.toSet(
+						JedisConverters.toTupleList(connection.getCluster().zunionWithScores(toZParams(aggregate, weights), sets)));
 			} catch (Exception ex) {
 				throw convertJedisAccessException(ex);
 

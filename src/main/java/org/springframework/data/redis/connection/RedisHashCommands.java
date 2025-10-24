@@ -500,8 +500,7 @@ public interface RedisHashCommands {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition,
-			byte[]... fields);
+	List<Long> hpExpireAt(byte[] key, long unixTimeInMillis, ExpirationOptions.Condition condition, byte[]... fields);
 
 	/**
 	 * Remove the expiration from given {@code field}.

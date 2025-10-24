@@ -158,7 +158,6 @@ public class RedisClusterTemplateIntegrationTests<K, V> extends RedisTemplateInt
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
-
 		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
 

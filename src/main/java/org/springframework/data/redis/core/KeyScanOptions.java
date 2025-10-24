@@ -37,8 +37,7 @@ public class KeyScanOptions extends ScanOptions {
 
 	private final @Nullable String type;
 
-	KeyScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern,
-			@Nullable String type) {
+	KeyScanOptions(@Nullable Long count, @Nullable String pattern, @Nullable byte[] bytePattern, @Nullable String type) {
 
 		super(count, pattern, bytePattern);
 		this.type = type;
@@ -47,7 +46,7 @@ public class KeyScanOptions extends ScanOptions {
 	/**
 	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
 	 *
-	 * @param type 
+	 * @param type
 	 * @return
 	 */
 	public static ScanOptionsBuilder scanOptions(DataType type) {

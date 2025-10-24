@@ -785,7 +785,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 
 		assertThat(connection.zSetCommands()
 				.zInterStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
-						.isEqualTo(2L);
+				.isEqualTo(2L);
 	}
 
 	@ParameterizedRedisTest // GH-2042
@@ -828,7 +828,7 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 
 		assertThat(connection.zSetCommands()
 				.zUnionStore(KEY_3_BBUFFER, Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER), Arrays.asList(2D, 3D)).block())
-						.isEqualTo(3L);
+				.isEqualTo(3L);
 	}
 
 	@ParameterizedRedisTest // DATAREDIS-525
@@ -875,8 +875,8 @@ public class LettuceReactiveZSetCommandsIntegrationTests extends LettuceReactive
 
 		assertThat(
 				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, Range.rightOpen("aaa", "g")).collectList().block())
-						.containsExactly(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
-								ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()));
+				.containsExactly(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
+						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()));
 	}
 
 }

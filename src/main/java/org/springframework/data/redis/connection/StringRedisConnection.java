@@ -2534,8 +2534,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 3.5
 	 */
 	@Nullable
-	List<Long> hpExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition,
-			String... fields);
+	List<Long> hpExpireAt(String key, long unixTimeInMillis, ExpirationOptions.Condition condition, String... fields);
 
 	/**
 	 * Remove the expiration from given {@code field}.

@@ -49,8 +49,7 @@ import org.springframework.util.Assert;
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
 
-	@Serial
-	private static final long serialVersionUID = 1L;
+	@Serial private static final long serialVersionUID = 1L;
 
 	private volatile String key;
 

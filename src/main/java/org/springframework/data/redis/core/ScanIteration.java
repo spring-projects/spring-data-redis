@@ -65,7 +65,7 @@ public class ScanIteration<T> implements Iterable<T> {
 	 * @return
 	 * @deprecated since 3.3.0, use {@link #getId()} instead as the cursorId can exceed {@link Long#MAX_VALUE}.
 	 */
-	@Deprecated(since="3.3.3")
+	@Deprecated(since = "3.3.3")
 	public long getCursorId() {
 		return Long.parseLong(getId().getCursorId());
 	}

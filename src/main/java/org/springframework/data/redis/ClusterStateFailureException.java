@@ -30,8 +30,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
  */
 public class ClusterStateFailureException extends DataAccessResourceFailureException {
 
-	@Serial
-	private static final long serialVersionUID = 333399051713240852L;
+	@Serial private static final long serialVersionUID = 333399051713240852L;
 
 	/**
 	 * Creates new {@link ClusterStateFailureException}.

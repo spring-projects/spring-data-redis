@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -76,8 +76,7 @@ class SimpleRedisSerializerTests {
 				return false;
 			}
 
-			return Objects.equals(this.a, that.a)
-				&& Objects.equals(this.name, that.name);
+			return Objects.equals(this.a, that.a) && Objects.equals(this.name, that.name);
 		}
 
 		@Override

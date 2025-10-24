@@ -160,8 +160,7 @@ class StandaloneConnectionProvider implements LettuceConnectionProvider, TargetA
 			ReadFrom readFrom) {
 
 		CompletableFuture<? extends StatefulRedisMasterReplicaConnection<?, ?>> connection = MasterReplica
-				.connectAsync(client,
-				codec, redisUri);
+				.connectAsync(client, codec, redisUri);
 
 		return connection.thenApply(conn -> {
 

@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.data.Offset.*;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.*;
 import static org.springframework.data.redis.connection.BitFieldSubCommands.BitFieldIncrBy.Overflow.*;

@@ -119,8 +119,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(listCommands ->
-				listCommands.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
+		return createMono(
+				listCommands -> listCommands.lInsert(rawKey(key), Position.BEFORE, rawValue(pivot), rawValue(value)));
 	}
 
 	@Override
@@ -162,8 +162,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(listCommands ->
-				listCommands.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
+		return createMono(
+				listCommands -> listCommands.lInsert(rawKey(key), Position.AFTER, rawValue(pivot), rawValue(value)));
 	}
 
 	@Override
@@ -229,8 +229,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 
 		Assert.notNull(key, "Key must not be null");
 
-		return createMono(listCommands ->
-				listCommands.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
+		return createMono(
+				listCommands -> listCommands.lPos(LPosCommand.lPosOf(rawValue(value)).from(rawKey(key)).rank(-1)));
 	}
 
 	@Override
@@ -294,8 +294,8 @@ class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V
 		Assert.notNull(sourceKey, "Source key must not be null");
 		Assert.notNull(destinationKey, "Destination key must not be null");
 
-		return createMono(connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey))
-				.map(this::readRequiredValue));
+		return createMono(
+				connection -> connection.rPopLPush(rawKey(sourceKey), rawKey(destinationKey)).map(this::readRequiredValue));
 	}
 
 	@Override

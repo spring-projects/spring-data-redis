@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * <p>
  * Usage example:
  * <p>
+ *
  * <pre class="code">
  * JedisInvoker invoker = …;
  *

@@ -90,8 +90,8 @@ class ReactiveRedisMessageListenerContainerUnitTests {
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
 		container = createContainer();
 
-		container.receive(Topic.pattern("foo*"), Topic.pattern("bar*")).as(StepVerifier::create).thenRequest(1)
-				.thenAwait().thenCancel().verify();
+		container.receive(Topic.pattern("foo*"), Topic.pattern("bar*")).as(StepVerifier::create).thenRequest(1).thenAwait()
+				.thenCancel().verify();
 
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*"));
 	}

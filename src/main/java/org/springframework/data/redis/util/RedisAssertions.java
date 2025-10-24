@@ -60,13 +60,13 @@ public abstract class RedisAssertions {
 	}
 
 	/**
-	 * Asserts the given {@link Object} is not {@literal null} throwing the given {@link RuntimeException}
-	 * if {@link Object} is {@literal null}.
+	 * Asserts the given {@link Object} is not {@literal null} throwing the given {@link RuntimeException} if
+	 * {@link Object} is {@literal null}.
 	 *
 	 * @param <T> {@link Class type} of {@link Object} being asserted.
 	 * @param target {@link Object} to evaluate.
-	 * @param cause {@link Supplier} of a {@link RuntimeException} to throw
-	 * if the given {@link Object} is {@literal null}.
+	 * @param cause {@link Supplier} of a {@link RuntimeException} to throw if the given {@link Object} is
+	 *          {@literal null}.
 	 * @return the given {@link Object}.
 	 */
 	public static <T> T requireNonNull(@Nullable T target, RuntimeExceptionSupplier cause) {
@@ -107,6 +107,6 @@ public abstract class RedisAssertions {
 		return target;
 	}
 
-	public interface RuntimeExceptionSupplier extends Supplier<RuntimeException> { }
+	public interface RuntimeExceptionSupplier extends Supplier<RuntimeException> {}
 
 }

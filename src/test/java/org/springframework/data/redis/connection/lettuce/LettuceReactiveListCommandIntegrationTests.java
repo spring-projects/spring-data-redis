@@ -187,7 +187,7 @@ public class LettuceReactiveListCommandIntegrationTests extends LettuceReactiveC
 
 		assertThat(
 				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.BEFORE, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block())
-						.isEqualTo(3L);
+				.isEqualTo(3L);
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_3, VALUE_2);
 	}
 
@@ -198,7 +198,7 @@ public class LettuceReactiveListCommandIntegrationTests extends LettuceReactiveC
 
 		assertThat(
 				connection.listCommands().lInsert(KEY_1_BBUFFER, Position.AFTER, VALUE_2_BBUFFER, VALUE_3_BBUFFER).block())
-						.isEqualTo(3L);
+				.isEqualTo(3L);
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_1, VALUE_2, VALUE_3);
 	}
 
@@ -280,7 +280,8 @@ public class LettuceReactiveListCommandIntegrationTests extends LettuceReactiveC
 		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER).block()).isEqualTo(VALUE_1_BBUFFER);
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).containsExactly(VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER, 2).collectList().block()).isEqualTo(Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		assertThat(connection.listCommands().lPop(KEY_1_BBUFFER, 2).collectList().block())
+				.isEqualTo(Arrays.asList(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1)).isEmpty();
 	}
 

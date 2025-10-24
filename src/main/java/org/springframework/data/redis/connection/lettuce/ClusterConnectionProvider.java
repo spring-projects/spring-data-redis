@@ -47,8 +47,7 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 
 	private final Lock lock = new ReentrantLock();
 
-	@Nullable
-	private final ReadFrom readFrom;
+	@Nullable private final ReadFrom readFrom;
 
 	private final RedisClusterClient client;
 
@@ -115,9 +114,9 @@ class ClusterConnectionProvider implements LettuceConnectionProvider, RedisClien
 				|| connectionType.equals(StatefulConnection.class)) {
 
 			return client.connectAsync(codec).thenApply(connection -> {
-						getReadFrom().ifPresent(connection::setReadFrom);
-						return connectionType.cast(connection);
-					});
+				getReadFrom().ifPresent(connection::setReadFrom);
+				return connectionType.cast(connection);
+			});
 		}
 
 		return LettuceFutureUtils

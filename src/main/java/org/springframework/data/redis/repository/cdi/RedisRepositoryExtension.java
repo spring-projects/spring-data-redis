@@ -43,9 +43,9 @@ import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
 /**
  * CDI extension to export Redis repositories. This extension enables Redis
- * {@link org.springframework.data.repository.Repository} support. It requires either a {@link RedisKeyValueTemplate} or a
- * {@link RedisOperations} bean. If no {@link RedisKeyValueTemplate} or {@link RedisKeyValueAdapter} are provided by the
- * user, the extension creates own managed beans.
+ * {@link org.springframework.data.repository.Repository} support. It requires either a {@link RedisKeyValueTemplate} or
+ * a {@link RedisOperations} bean. If no {@link RedisKeyValueTemplate} or {@link RedisKeyValueAdapter} are provided by
+ * the user, the extension creates own managed beans.
  *
  * @author Mark Paluch
  */
@@ -101,8 +101,7 @@ public class RedisRepositoryExtension extends CdiRepositoryExtensionSupport {
 			if (beanType instanceof Class<?> && RedisOperations.class.isAssignableFrom((Class<?>) beanType)) {
 				if (log.isDebugEnabled()) {
 					log.debug(
-							"Discovered %s with qualifiers %s.".formatted(RedisOperations.class.getName(),
-							bean.getQualifiers()));
+							"Discovered %s with qualifiers %s.".formatted(RedisOperations.class.getName(), bean.getQualifiers()));
 				}
 
 				// Store the RedisOperations bean using its qualifiers.

@@ -826,7 +826,7 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * @return  can be {@literal null}.
+		 * @return can be {@literal null}.
 		 */
 		@Nullable
 		public Point getPoint() {
@@ -1159,7 +1159,7 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * @return  can be {@literal null}.
+		 * @return can be {@literal null}.
 		 */
 		@Nullable
 		public ByteBuffer getMember() {
@@ -1229,7 +1229,7 @@ public interface ReactiveGeoCommands {
 
 		return geoRadiusByMember(
 				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs)))
-						.flatMap(CommandResponse::getOutput);
+				.flatMap(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1484,7 +1484,7 @@ public interface ReactiveGeoCommands {
 			GeoShape shape, GeoSearchStoreCommandArgs args) {
 		return geoSearchStore(
 				Mono.just(GeoSearchStoreCommand.within(shape).in(key).storeAt(destKey).at(reference).with(args))).next()
-						.map(CommandResponse::getOutput);
+				.map(CommandResponse::getOutput);
 	}
 
 	/**

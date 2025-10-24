@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.connection;
 
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 import java.util.List;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl

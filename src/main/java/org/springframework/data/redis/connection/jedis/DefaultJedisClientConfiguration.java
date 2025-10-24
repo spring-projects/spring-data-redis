@@ -46,10 +46,9 @@ class DefaultJedisClientConfiguration implements JedisClientConfiguration {
 	private final Duration connectTimeout;
 
 	DefaultJedisClientConfiguration(@Nullable JedisClientConfigBuilderCustomizer customizer, boolean useSsl,
-			@Nullable SSLSocketFactory sslSocketFactory,
-			@Nullable SSLParameters sslParameters, @Nullable HostnameVerifier hostnameVerifier, boolean usePooling,
-			@Nullable GenericObjectPoolConfig poolConfig, @Nullable String clientName, Duration readTimeout,
-			Duration connectTimeout) {
+			@Nullable SSLSocketFactory sslSocketFactory, @Nullable SSLParameters sslParameters,
+			@Nullable HostnameVerifier hostnameVerifier, boolean usePooling, @Nullable GenericObjectPoolConfig poolConfig,
+			@Nullable String clientName, Duration readTimeout, Duration connectTimeout) {
 
 		this.customizer = Optional.ofNullable(customizer);
 		this.useSsl = useSsl;

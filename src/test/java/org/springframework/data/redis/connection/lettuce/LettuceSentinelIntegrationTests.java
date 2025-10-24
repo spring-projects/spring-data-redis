@@ -121,7 +121,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 
-		try(RedisConnection directConnection = connectionFactory.getConnection()) {
+		try (RedisConnection directConnection = connectionFactory.getConnection()) {
 
 			assertThat(directConnection.exists("foo".getBytes())).isFalse();
 			directConnection.select(0);
@@ -130,7 +130,6 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		} finally {
 			connectionFactory.destroy();
 		}
-
 
 	}
 
@@ -150,7 +149,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.start();
 
-		try(LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection()) {
+		try (LettuceReactiveRedisConnection reactiveConnection = connectionFactory.getReactiveConnection()) {
 
 			reactiveConnection.keyCommands().exists(ByteBuffer.wrap("foo".getBytes())) //
 					.as(StepVerifier::create) //
@@ -262,7 +261,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		factory.afterPropertiesSet();
 		factory.start();
 
-		try(RedisConnection connection = factory.getConnection()) {
+		try (RedisConnection connection = factory.getConnection()) {
 
 			assertThat(connection.ping()).isEqualTo("PONG");
 			assertThat(connection.info().getProperty("role")).isEqualTo("slave");

@@ -305,8 +305,8 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		RedisClusterNode nodeToUse = this.topologyProvider.getTopology().lookup(master);
 
-		LettuceClusterCommandCallback<Set<RedisClusterNode>> command = client ->
-			LettuceConverters.toSetOfRedisClusterNodes(client.clusterSlaves(nodeToUse.getId()));
+		LettuceClusterCommandCallback<Set<RedisClusterNode>> command = client -> LettuceConverters
+				.toSetOfRedisClusterNodes(client.clusterSlaves(nodeToUse.getId()));
 
 		return this.clusterCommandExecutor.executeCommandOnSingleNode(command, master).getValue();
 	}
@@ -316,11 +316,11 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		Set<RedisClusterNode> activeMasterNodes = this.topologyProvider.getTopology().getActiveMasterNodes();
 
-		LettuceClusterCommandCallback<Collection<RedisClusterNode>> command = client ->
-			Converters.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId()));
+		LettuceClusterCommandCallback<Collection<RedisClusterNode>> command = client -> Converters
+				.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId()));
 
-		List<NodeResult<Collection<RedisClusterNode>>> nodeResults =
-			this.clusterCommandExecutor.executeCommandAsyncOnNodes(command,activeMasterNodes).getResults();
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = this.clusterCommandExecutor
+				.executeCommandAsyncOnNodes(command, activeMasterNodes).getResults();
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<>();
 
@@ -353,8 +353,8 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public ClusterInfo clusterGetClusterInfo() {
 
-		LettuceClusterCommandCallback<ClusterInfo> command = client ->
-				new ClusterInfo(LettuceConverters.toProperties(client.clusterInfo()));
+		LettuceClusterCommandCallback<ClusterInfo> command = client -> new ClusterInfo(
+				LettuceConverters.toProperties(client.clusterInfo()));
 
 		return this.clusterCommandExecutor.executeCommandOnArbitraryNode(command).getValue();
 	}
