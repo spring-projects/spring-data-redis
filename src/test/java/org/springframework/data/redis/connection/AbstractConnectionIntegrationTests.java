@@ -154,7 +154,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 
 		byteConnection = connectionFactory.getConnection();
 		connection = new DefaultStringRedisConnection(byteConnection);
@@ -270,7 +270,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testScriptLoadEvalSha() {
+	void testScriptLoadEvalSha() {
 		getResults();
 		String sha1 = connection.scriptLoad("return KEYS[1]");
 		initConnection();
@@ -280,7 +280,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testEvalShaArrayStrings() {
+	void testEvalShaArrayStrings() {
 		getResults();
 		String sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}");
 		initConnection();
@@ -321,20 +321,20 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testEvalReturnString() {
+	void testEvalReturnString() {
 		actual.add(connection.eval("return KEYS[1]", ReturnType.VALUE, 1, "foo"));
 		byte[] result = (byte[]) getResults().get(0);
 		assertThat(new String(result)).isEqualTo("foo");
 	}
 
 	@Test
-	public void testEvalReturnNumber() {
+	void testEvalReturnNumber() {
 		actual.add(connection.eval("return 10", ReturnType.INTEGER, 0));
 		verifyResults(Arrays.asList(new Object[] { 10L }));
 	}
 
 	@Test
-	public void testEvalReturnSingleOK() {
+	void testEvalReturnSingleOK() {
 		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
 		assertThat(getResults()).isEqualTo(Arrays.asList("OK"));
 	}
@@ -348,20 +348,20 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testEvalReturnFalse() {
+	void testEvalReturnFalse() {
 		actual.add(connection.eval("return false", ReturnType.BOOLEAN, 0));
 		verifyResults(Arrays.asList(new Object[] { false }));
 	}
 
 	@Test
-	public void testEvalReturnTrue() {
+	void testEvalReturnTrue() {
 		actual.add(connection.eval("return true", ReturnType.BOOLEAN, 0));
 		verifyResults(Arrays.asList(new Object[] { true }));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testEvalReturnArrayStrings() {
+	void testEvalReturnArrayStrings() {
 		actual.add(connection.eval("return {KEYS[1],ARGV[1]}", ReturnType.MULTI, 1, "foo", "bar"));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
 		assertThat(Arrays.asList(new String(result.get(0)), new String(result.get(1))))
@@ -369,7 +369,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testEvalReturnArrayNumbers() {
+	void testEvalReturnArrayNumbers() {
 		actual.add(connection.eval("return {1,2}", ReturnType.MULTI, 1, "foo", "bar"));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(1L, 2L) }));
 	}
@@ -385,7 +385,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testEvalReturnArrayOKs() {
+	void testEvalReturnArrayOKs() {
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
@@ -394,19 +394,19 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testEvalReturnArrayFalses() {
+	void testEvalReturnArrayFalses() {
 		actual.add(connection.eval("return { false, false}", ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(null, null) }));
 	}
 
 	@Test
-	public void testEvalReturnArrayTrues() {
+	void testEvalReturnArrayTrues() {
 		actual.add(connection.eval("return { true, true}", ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(1L, 1L) }));
 	}
 
 	@Test
-	public void testScriptExists() {
+	void testScriptExists() {
 		getResults();
 		String sha1 = connection.scriptLoad("return 'foo'");
 		initConnection();
@@ -415,7 +415,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testScriptFlush() {
+	void testScriptFlush() {
 		getResults();
 		String sha1 = connection.scriptLoad("return KEYS[1]");
 		connection.scriptFlush();
@@ -573,7 +573,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	@EnabledOnCommand("COPY")
-	public void testCopy() {
+	void testCopy() {
 
 		actual.add(connection.set("foo", "bar"));
 		actual.add(connection.copy("foo", "baz", false));
@@ -3512,7 +3512,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
-	public void hExpireReturnsSuccessAndSetsTTL() {
+	void hExpireReturnsSuccessAndSetsTTL() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
@@ -3526,7 +3526,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
-	public void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+	void hExpireReturnsMinusTwoWhenFieldDoesNotExist() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "missking-field"));
@@ -3537,7 +3537,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIRE")
-	public void hExpireReturnsTwoWhenZeroProvided() {
+	void hExpireReturnsTwoWhenZeroProvided() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 0, "key-2"));
@@ -3547,7 +3547,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIRE")
-	public void hpExpireReturnsSuccessAndSetsTTL() {
+	void hpExpireReturnsSuccessAndSetsTTL() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hpExpire("hash-hexpire", 5000L, "key-2"));
@@ -3561,7 +3561,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIRE")
-	public void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
+	void hpExpireReturnsMinusTwoWhenFieldDoesNotExist() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hpExpire("hash-hexpire", 5L, "missing-field"));
@@ -3572,7 +3572,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIRE")
-	public void hpExpireReturnsTwoWhenZeroProvided() {
+	void hpExpireReturnsTwoWhenZeroProvided() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hpExpire("hash-hexpire", 0, "key-2"));
@@ -3582,7 +3582,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
-	public void hExpireAtReturnsSuccessAndSetsTTL() {
+	void hExpireAtReturnsSuccessAndSetsTTL() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
@@ -3598,7 +3598,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
-	public void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+	void hExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).getEpochSecond();
@@ -3611,7 +3611,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
-	public void hExpireAtReturnsTwoWhenZeroProvided() {
+	void hExpireAtReturnsTwoWhenZeroProvided() {
 
 		long fiveSecondsAgo = Instant.now().minusSeconds(5L).getEpochSecond();
 
@@ -3623,7 +3623,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
-	public void hpExpireAtReturnsSuccessAndSetsTTL() {
+	void hpExpireAtReturnsSuccessAndSetsTTL() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
@@ -3639,7 +3639,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HEXPIREAT")
-	public void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
+	void hpExpireAtReturnsMinusTwoWhenFieldDoesNotExist() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		long inFiveSeconds = Instant.now().plusSeconds(5L).toEpochMilli();
@@ -3652,7 +3652,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPEXPIREAT")
-	public void hpExpireAdReturnsTwoWhenZeroProvided() {
+	void hpExpireAdReturnsTwoWhenZeroProvided() {
 
 		long fiveSecondsAgo = Instant.now().minusSeconds(5L).getEpochSecond();
 
@@ -3664,7 +3664,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPERSIST")
-	public void hPersistReturnsSuccessAndPersistsField() {
+	void hPersistReturnsSuccessAndPersistsField() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hExpire("hash-hexpire", 5L, "key-2"));
@@ -3676,7 +3676,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPERSIST")
-	public void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
+	void hPersistReturnsMinusOneWhenFieldDoesNotHaveExpiration() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hPersist("hash-hexpire", "key-2"));
@@ -3686,7 +3686,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HPERSIST")
-	public void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
+	void hPersistReturnsMinusTwoWhenFieldOrKeyMissing() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hPersist("hash-hexpire", "missing-field"));
@@ -3697,7 +3697,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HTTL")
-	public void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
+	void hTtlReturnsMinusOneWhenFieldHasNoExpiration() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hTtl("hash-hexpire", "key-2"));
@@ -3707,7 +3707,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HTTL")
-	public void hTtlReturnsMinusIndependendOfTimeUnitOneWhenFieldHasNoExpiration() {
+	void hTtlReturnsMinusIndependendOfTimeUnitOneWhenFieldHasNoExpiration() {
 
 		actual.add(connection.hSet("hash-hexpire", "key-2", "value-2"));
 		actual.add(connection.hTtl("hash-hexpire", TimeUnit.HOURS, "key-2"));
@@ -3717,7 +3717,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3054
 	@EnabledOnCommand("HTTL")
-	public void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
+	void hTtlReturnsMinusTwoWhenFieldOrKeyMissing() {
 
 		actual.add(connection.hTtl("hash-hexpire", "missing-field"));
 		actual.add(connection.hTtl("missing-key", "key-2"));
@@ -3727,50 +3727,39 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3211
 	@EnabledOnCommand("HGETDEL")
-	public void hGetDelWorksAsExpected() {
+	void hGetDelWorksAsExpected() {
 
 		actual.add(connection.hSet("hash-hgetdel", "field-1", "value-1"));
 		actual.add(connection.hSet("hash-hgetdel", "field-2", "value-2"));
 		actual.add(connection.hSet("hash-hgetdel", "field-3", "value-3"));
 
+		actual.add(connection.hGetDel("hash-hgetdel", "absent"));
 		actual.add(connection.hGetDel("hash-hgetdel", "field-1", "field-2"));
 		actual.add(connection.hExists("hash-hgetdel", "field-1"));
 		actual.add(connection.hExists("hash-hgetdel", "field-2"));
 
-		actual.add(connection.hGetDel("hash-hgetdel", "field-1"));
-
-		actual.add(connection.hGetDel("hash-hgetdel", "field-3"));
-		actual.add(connection.hExists("hash-hgetdel", "field-3"));
-		actual.add(connection.exists("hash-hgetdel"));
-
-		actual.add(connection.hGetDel("hash-hgetdel", "field-1"));
-
 		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
-				Arrays.asList("value-1", "value-2"), Boolean.FALSE, Boolean.FALSE,
-				Collections.singletonList(null), Arrays.asList("value-3"), Boolean.FALSE, Boolean.FALSE,
-				Collections.singletonList(null)));
+				Collections.singletonList(null), Arrays.asList("value-1", "value-2"), Boolean.FALSE, Boolean.FALSE));
 	}
 
 	@Test // GH-3211
 	@EnabledOnCommand("HGETEX")
-	public void hGetExWorksAsExpected() {
+	void hGetExWorksAsExpected() {
 
 		actual.add(connection.hSet("hash-hgetex", "field-1", "value-1"));
 		actual.add(connection.hSet("hash-hgetex", "field-2", "value-2"));
 		actual.add(connection.hSet("hash-hgetex", "field-3", "value-3"));
-
-		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(2), "field-1", "field-2"));
-
+		actual.add(connection.hGetEx("hash-hgetex", Expiration.seconds(30), "field-1", "field-2"));
 		actual.add(connection.hGetEx("hash-hgetex", null, "no-such-field"));
-
 		actual.add(connection.hGetEx("no-such-key", null, "field-1"));
 
-		verifyResults(Arrays.asList(Boolean.TRUE, "value-1", "value-2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, List.of("value-1", "value-2"),
+				Collections.singletonList(null), Collections.singletonList(null)));
 	}
 
 	@Test // GH-3211
 	@EnabledOnCommand("HSETEX")
-	public void hSetExWorksAsExpected() {
+	void hSetExWorksAsExpected() {
 
 		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
 		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(),
@@ -3778,30 +3767,28 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
 		actual.add(connection.hGet("hash-hsetex", "field-2"));
 
-		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
-				Arrays.asList("value-1", "value-2"), Collections.singletonList(null), Collections.singletonList(null)));
+		verifyResults(Arrays.asList(Boolean.TRUE, "value-1", "value-2"));
 	}
 
 	@Test // GH-3211
 	@EnabledOnCommand("HSETEX")
-	public void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
+	void hSetExIfNoneExistConditionSucceedsWhenNoFieldsExist() {
 
 		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
 		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(),
 				Expiration.seconds(60)));
-		actual.add(connection.hExists("hash-hsetex", "field-1"));
-		actual.add(connection.hExists("hash-hsetex", "field-2"));
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
 		actual.add(connection.hGet("hash-hsetex", "field-2"));
 
-		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, "value-1", "value-2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, "value-1", "value-2"));
 	}
 
 	@Test // GH-3211
 	@EnabledOnCommand("HSETEX")
-	public void hSetExIfNoneExistConditionFailsWhenSomeFieldsExist() {
+	void hSetExIfNoneExistConditionFailsWhenSomeFieldsExist() {
 
 		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
+
 		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
 		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifNoneExist(),
 				Expiration.seconds(60)));
@@ -3813,10 +3800,11 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3211
 	@EnabledOnCommand("HSETEX")
-	public void hSetExIfAllExistConditionSucceedsWhenAllFieldsExist() {
+	void hSetExIfAllExistConditionSucceedsWhenAllFieldsExist() {
 
 		actual.add(connection.hSet("hash-hsetex", "field-1", "old-value-1"));
 		actual.add(connection.hSet("hash-hsetex", "field-2", "old-value-2"));
+
 		Map<String, String> fieldMap = Map.of("field-1", "new-value-1", "field-2", "new-value-2");
 		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(),
 				Expiration.seconds(60)));
@@ -3828,9 +3816,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // GH-3211
 	@EnabledOnCommand("HSETEX")
-	public void hSetExIfAllExistConditionFailsWhenSomeFieldsMissing() {
+	void hSetExIfAllExistConditionFailsWhenSomeFieldsMissing() {
 
 		actual.add(connection.hSet("hash-hsetex", "field-1", "existing-value"));
+
 		Map<String, String> fieldMap = Map.of("field-1", "new-value", "field-2", "value-2");
 		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.ifAllExist(),
 				Expiration.seconds(60)));
@@ -4073,7 +4062,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
-	public void xReadShouldReadMessage() {
+	void xReadShouldReadMessage() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xReadAsString(StreamOffset.create(KEY_1, ReadOffset.from("0"))));
@@ -4088,7 +4077,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
-	public void xReadGroupShouldReadMessage() {
+	void xReadGroupShouldReadMessage() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
@@ -4109,7 +4098,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
-	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
+	void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
 
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group", true));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
@@ -4151,7 +4140,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
-	public void xRevRangeShouldReportMessages() {
+	void xRevRangeShouldReportMessages() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4172,7 +4161,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1207
 	@EnabledOnCommand("XADD")
-	public void xRevRangeShouldWorkWithBoundedRange() {
+	void xRevRangeShouldWorkWithBoundedRange() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4312,7 +4301,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
-	public void xPendingShouldLoadPendingMessagesForConsumerNameWithRange() {
+	void xPendingShouldLoadPendingMessagesForConsumerNameWithRange() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
@@ -4335,7 +4324,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
-	public void xPendingShouldLoadEmptyPendingMessagesForNonExistingConsumerNameWithRange() {
+	void xPendingShouldLoadEmptyPendingMessagesForNonExistingConsumerNameWithRange() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
@@ -4486,7 +4475,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1207
 	@EnabledOnCommand("XADD")
-	public void xPendingShouldWorkWithBoundedRange() {
+	void xPendingShouldWorkWithBoundedRange() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
@@ -4508,7 +4497,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
-	public void xPendingShouldLoadPendingMessagesForGroupNameWithRange() {
+	void xPendingShouldLoadPendingMessagesForGroupNameWithRange() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group"));
@@ -4609,7 +4598,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfo() {
+	void xinfo() {
 
 		actual.add(connection.xGroupCreate(KEY_1, ReadOffset.from("0"), "my-group-without-stream", true));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
@@ -4637,7 +4626,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfoNoGroup() {
+	void xinfoNoGroup() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4661,7 +4650,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfoGroups() {
+	void xinfoGroups() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4685,7 +4674,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfoGroupsNoGroup() {
+	void xinfoGroupsNoGroup() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4701,7 +4690,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfoGroupsNoConsumer() {
+	void xinfoGroupsNoConsumer() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4723,7 +4712,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfoConsumers() {
+	void xinfoConsumers() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4746,7 +4735,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
-	public void xinfoConsumersNoConsumer() {
+	void xinfoConsumersNoConsumer() {
 
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2)));
 		actual.add(connection.xAdd(KEY_1, Collections.singletonMap(KEY_3, VALUE_3)));
@@ -4761,7 +4750,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-2345
-	public void zRangeStoreByScoreStoresKeys() {
+	void zRangeStoreByScoreStoresKeys() {
 		String dstKey = KEY_2;
 		String srcKey = KEY_1;
 		actual.add(connection.zAdd(srcKey, 1, VALUE_1));
@@ -4780,7 +4769,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-2345
-	public void zRangeStoreRevByScoreStoresKeys() {
+	void zRangeStoreRevByScoreStoresKeys() {
 		String dstKey = KEY_2;
 		String srcKey = KEY_1;
 		actual.add(connection.zAdd(srcKey, 1, VALUE_1));
@@ -4799,7 +4788,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-2345
-	public void zRangeStoreByLexStoresKeys() {
+	void zRangeStoreByLexStoresKeys() {
 		String dstKey = KEY_2;
 		String srcKey = KEY_1;
 		actual.add(connection.zAdd(srcKey, 0, VALUE_3));
@@ -4818,7 +4807,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test // GH-2345
-	public void zRangeStoreRevByLexStoresKeys() {
+	void zRangeStoreRevByLexStoresKeys() {
 		String dstKey = KEY_2;
 		String srcKey = KEY_1;
 		actual.add(connection.zAdd(srcKey, 0, VALUE_3));
