@@ -3774,7 +3774,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Map<String, String> fieldMap = Map.of("field-1", "value-1", "field-2", "value-2");
 		actual.add(connection.hSetEx("hash-hsetex", fieldMap, RedisHashCommands.HashFieldSetOption.upsert(),
-				Expiration.seconds(2)));
+				Expiration.seconds(30)));
 		actual.add(connection.hGet("hash-hsetex", "field-1"));
 		actual.add(connection.hGet("hash-hsetex", "field-2"));
 
