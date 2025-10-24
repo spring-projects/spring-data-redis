@@ -38,6 +38,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * @author Christoph Strobl
  * @author Jiahe Cai
  * @author Ehsan Alemzadeh
+ * @author Chris Bono
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
@@ -46,37 +47,33 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
-	public V get(Object key) {
+	public @Nullable V get(Object key) {
 		return execute(valueCallbackFor(key, DefaultedRedisConnection::get));
 	}
 
-	@Nullable
 	@Override
-	public V getAndDelete(K key) {
+	public @Nullable V getAndDelete(K key) {
 		return execute(valueCallbackFor(key, DefaultedRedisConnection::getDel));
 	}
 
-	@Nullable
 	@Override
-	public V getAndExpire(K key, long timeout, TimeUnit unit) {
+	public @Nullable V getAndExpire(K key, long timeout, TimeUnit unit) {
 		return execute(
 				valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.from(timeout, unit))));
 	}
 
-	@Nullable
 	@Override
-	public V getAndExpire(K key, Duration timeout) {
+	public @Nullable V getAndExpire(K key, Duration timeout) {
 		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.from(timeout))));
 	}
 
-	@Nullable
 	@Override
-	public V getAndPersist(K key) {
+	public @Nullable V getAndPersist(K key) {
 		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getEx(rawKey, Expiration.persistent())));
 	}
 
 	@Override
-	public V getAndSet(K key, V newValue) {
+	public @Nullable V getAndSet(K key, V newValue) {
 
 		byte[] rawValue = rawValue(newValue);
 		return execute(valueCallbackFor(key, (connection, rawKey) -> connection.getSet(rawKey, rawValue)));
@@ -139,7 +136,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
-	public List<V> multiGet(Collection<K> keys) {
+	public List<@Nullable V> multiGet(Collection<K> keys) {
 
 		if (keys.isEmpty()) {
 			return Collections.emptyList();
@@ -212,16 +209,16 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
-	public V setGet(K key, V value, long timeout, TimeUnit unit) {
+	public @Nullable V setGet(K key, V value, long timeout, TimeUnit unit) {
 		return doSetGet(key, value, Expiration.from(timeout, unit));
 	}
 
 	@Override
-	public V setGet(K key, V value, Duration duration) {
+	public @Nullable V setGet(K key, V value, Duration duration) {
 		return doSetGet(key, value, Expiration.from(duration));
 	}
 
-	private V doSetGet(K key, V value, Expiration duration) {
+	private @Nullable V doSetGet(K key, V value, Expiration duration) {
 
 		byte[] rawValue = rawValue(value);
 		return execute(new ValueDeserializingRedisCallback(key) {
