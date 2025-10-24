@@ -493,7 +493,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		throw new IllegalArgumentException("Cannot convert cache key [%s] to String".formatted(key));
 	}
 
-	private byte[] createAndConvertCacheKey(Object key) {
+	byte[] createAndConvertCacheKey(Object key) {
 		return serializeCacheKey(createCacheKey(key));
 	}
 

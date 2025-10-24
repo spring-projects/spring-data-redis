@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 
 import org.assertj.core.api.ThrowingConsumer;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionFactory;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,6 @@ import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnection;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.condition.EnabledOnCommand;
@@ -68,6 +68,8 @@ import org.springframework.data.redis.test.condition.RedisDriver;
 @ParameterizedClass
 @MethodSource("testParams")
 public class RedisCacheTests {
+
+	static ConditionFactory await = Awaitility.with().pollDelay(Duration.ZERO).pollInSameThread();
 
 	private String key = "key-1";
 	private String cacheKey = "cache::" + key;
@@ -104,33 +106,31 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-481
 	void putShouldAddEntry() {
 
-		cache.put("key-1", sample);
-
+		putNow(key, sample);
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
 
 	@Test // GH-2379
 	void cacheShouldBeClearedByPattern() {
 
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		String keyPattern = "*" + key.substring(1);
 		cache.clear(keyPattern);
 
-		maybeWaitForNonBlockingClean();
-
+		if (cache.getCacheWriter().supportsAsyncRetrieve()) {
+			doWithConnection(connection -> await.until(() -> !connection.exists(binaryCacheKey)));
+		}
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 	}
 
 	@Test // GH-2379
 	void cacheShouldNotBeClearedIfNoPatternMatch() {
 
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		String keyPattern = "*" + key.substring(1) + "tail";
 		cache.clear(keyPattern);
-
-		maybeWaitForNonBlockingClean();
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
@@ -139,7 +139,7 @@ public class RedisCacheTests {
 	// DATAREDIS-481
 	void putNullShouldAddEntryForNullValue() {
 
-		cache.put("key-1", null);
+		putNow(key, null);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -150,7 +150,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-481
 	void putIfAbsentShouldAddEntryIfNotExists() {
 
-		cache.putIfAbsent("key-1", sample);
+		cache.putIfAbsent(key, sample);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -161,7 +161,7 @@ public class RedisCacheTests {
 	@Test // DATAREDIS-481
 	void putIfAbsentWithNullShouldAddNullValueEntryIfNotExists() {
 
-		assertThat(cache.putIfAbsent("key-1", null)).isNull();
+		assertThat(cache.putIfAbsent(key, null)).isNull();
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -210,7 +210,7 @@ public class RedisCacheTests {
 
 		SimpleKey key = new SimpleKey("param-1", "param-2");
 
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		ValueWrapper result = cache.get(key);
 		assertThat(result).isNotNull();
@@ -230,7 +230,7 @@ public class RedisCacheTests {
 
 		ComplexKey key = new ComplexKey(sample.getFirstname(), sample.getBirthdate());
 
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		ValueWrapper result = cache.get(key);
 
@@ -295,7 +295,9 @@ public class RedisCacheTests {
 
 		cache.evict(key);
 
-		Awaitility.await().until(() -> cache.get(key) == null);
+		if (cache.getCacheWriter().supportsAsyncRetrieve()) {
+			await.until(() -> cache.get(key) == null);
+		}
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -330,7 +332,9 @@ public class RedisCacheTests {
 
 		cache.clear();
 
-		maybeWaitForNonBlockingClean();
+		if (cache.getCacheWriter().supportsAsyncRetrieve()) {
+			doWithConnection(connection -> await.until(() -> !connection.exists(binaryCacheKey)));
+		}
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -370,9 +374,12 @@ public class RedisCacheTests {
 
 		cache.clear();
 
-		maybeWaitForNonBlockingClean();
-
 		doWithConnection(connection -> {
+
+			if (cache.getCacheWriter().supportsAsyncRetrieve()) {
+				await.until(() -> !connection.exists(binaryCacheKey));
+			}
+
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
 			assertThat(connection.exists("cache::foo".getBytes())).isFalse();
 			assertThat(connection.exists("other".getBytes())).isTrue();
@@ -413,7 +420,7 @@ public class RedisCacheTests {
 				RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(SerializationPair.fromSerializer(serializer))
 						.computePrefixWith(cacheName -> "_" + cacheName + "_"));
 
-		cacheWithCustomPrefix.put("key-1", sample);
+		putNow(cacheWithCustomPrefix, key, sample);
 
 		doWithConnection(
 				connection -> assertThat(connection.stringCommands().get("_cache_key-1".getBytes(StandardCharsets.UTF_8)))
@@ -427,7 +434,7 @@ public class RedisCacheTests {
 				RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory), RedisCacheConfiguration.defaultCacheConfig()
 						.serializeValuesWith(SerializationPair.fromSerializer(serializer)).prefixCacheNameWith("redis::"));
 
-		cacheWithCustomPrefix.put("key-1", sample);
+		putNow(cacheWithCustomPrefix, key, sample);
 
 		doWithConnection(connection -> assertThat(
 				connection.stringCommands().get("redis::cache::key-1".getBytes(StandardCharsets.UTF_8)))
@@ -454,7 +461,7 @@ public class RedisCacheTests {
 	void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		ValueWrapper target = cache
 				.get(SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list")));
@@ -466,7 +473,7 @@ public class RedisCacheTests {
 	void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey("my-cache-key-in-an-array");
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		ValueWrapper target = cache.get(SimpleKeyGenerator.generateKey("my-cache-key-in-an-array"));
 
@@ -478,7 +485,7 @@ public class RedisCacheTests {
 
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstname(), sample.getBirthdate())));
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		ValueWrapper target = cache.get(SimpleKeyGenerator
 				.generateKey(Collections.singletonList(new ComplexKey(sample.getFirstname(), sample.getBirthdate()))));
@@ -491,7 +498,7 @@ public class RedisCacheTests {
 
 		Object key = SimpleKeyGenerator
 				.generateKey(Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate())));
-		cache.put(key, sample);
+		putNow(key, sample);
 
 		ValueWrapper target = cache.get(SimpleKeyGenerator.generateKey(
 				Collections.singletonMap("map-key", new ComplexKey(sample.getFirstname(), sample.getBirthdate()))));
@@ -763,14 +770,18 @@ public class RedisCacheTests {
 		}
 	}
 
-	private void maybeWaitForNonBlockingClean() {
-		doWithConnection(redisConnection -> {
-			// Cache interface specifies non-blocking behavior, so we've need to wait for Lettuce async to avoid races between
-			// the process and our assertion here.
-			if (redisConnection instanceof LettuceConnection) {
-				Thread.sleep(250);
-			}
-		});
+	private void putNow(Object key, Object value) {
+		putNow(cache, key, value);
+	}
+
+	private void putNow(RedisCache cache, Object key, Object value) {
+
+		byte[] cacheKey = cache.createAndConvertCacheKey(key);
+		cache.put(key, value);
+
+		if (cache.getCacheWriter().supportsAsyncRetrieve()) {
+			doWithConnection(connection -> await.until(() -> connection.exists(cacheKey)));
+		}
 	}
 
 	static class Person implements Serializable {

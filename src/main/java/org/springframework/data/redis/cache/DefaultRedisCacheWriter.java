@@ -238,11 +238,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		Assert.notNull(key, "Key must not be null");
 		Assert.notNull(value, "Value must not be null");
 
-		execute(name, connection -> {
-			doPut(connection, name, key, value, ttl);
-			return "OK";
-		});
-
+		if (supportsAsyncRetrieve()) {
+			asyncCacheWriter.store(name, key, value, ttl).thenRun(() -> statistics.incPuts(name));
+		} else {
+			execute(name, connection -> {
+				doPut(connection, name, key, value, ttl);
+				return "OK";
+			});
+		}
 	}
 
 	@SuppressWarnings("NullAway")
@@ -620,7 +623,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 				Mono<ByteBuffer> get = shouldExpireWithin(ttl) ? stringCommands.getEx(wrappedKey, Expiration.from(ttl))
 						: stringCommands.get(wrappedKey);
 
-				return cacheLockCheck.then(get).map(ByteUtils::getBytes).toFuture();
+				return cacheLockCheck.then(get).map(ByteUtils::getBytes);
 			});
 		}
 
@@ -631,7 +634,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 
 				Mono<?> mono = doWithLocking(name, key, value, connection, () -> doStore(key, value, ttl, connection));
 
-				return mono.then().toFuture();
+				return mono.then();
 			});
 		}
 
@@ -654,10 +657,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		public CompletableFuture<Void> remove(String name, byte[] key) {
 
 			return doWithConnection(connection -> {
-
-				Mono<?> mono = doWithLocking(name, key, null, connection, () -> doRemove(key, connection));
-
-				return mono.then().toFuture();
+				return doWithLocking(name, key, null, connection, () -> doRemove(key, connection)).then();
 			});
 		}
 
@@ -665,10 +665,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		public CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy) {
 
 			return doWithConnection(connection -> {
-
-				Mono<Long> mono = doWithLocking(name, pattern, null, connection, () -> doClean(pattern, connection));
-
-				return mono.toFuture();
+				return doWithLocking(name, pattern, null, connection, () -> doClean(pattern, connection));
 			});
 		}
 
@@ -741,12 +738,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		private <T> CompletableFuture<T> doWithConnection(
-				Function<ReactiveRedisConnection, CompletableFuture<T>> callback) {
+				Function<ReactiveRedisConnection, Mono<T>> callback) {
 
 			ReactiveRedisConnectionFactory cf = (ReactiveRedisConnectionFactory) connectionFactory;
 
 			return Mono.usingWhen(Mono.fromSupplier(cf::getReactiveConnection), //
-					it -> Mono.fromCompletionStage(callback.apply(it)), //
+					callback::apply, //
 					ReactiveRedisConnection::closeLater) //
 					.toFuture();
 		}

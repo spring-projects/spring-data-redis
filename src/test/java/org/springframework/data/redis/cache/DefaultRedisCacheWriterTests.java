@@ -32,7 +32,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionFactory;
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,6 +61,8 @@ import org.springframework.data.redis.test.condition.RedisDriver;
 public class DefaultRedisCacheWriterTests {
 
 	private static final String CACHE_NAME = "default-redis-cache-writer-tests";
+
+	static ConditionFactory await = Awaitility.with().pollDelay(Duration.ZERO).pollInSameThread();
 
 	private String key = "key-1";
 	private String cacheKey = CACHE_NAME + "::" + key;
@@ -88,7 +92,7 @@ public class DefaultRedisCacheWriterTests {
 		RedisCacheWriter writer = nonLockingRedisCacheWriter(connectionFactory)
 				.withStatisticsCollector(CacheStatisticsCollector.create());
 
-		writer.put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		writer.putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
@@ -102,7 +106,7 @@ public class DefaultRedisCacheWriterTests {
 	@Test // DATAREDIS-481
 	void putShouldAddExpiringEntry() {
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
+		nonLockingRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
 				Duration.ofSeconds(1));
 
 		doWithConnection(connection -> {
@@ -119,6 +123,9 @@ public class DefaultRedisCacheWriterTests {
 		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
 
 		doWithConnection(connection -> {
+
+			await.until(() -> connection.ttl(binaryCacheKey) == -1);
+
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
 			assertThat(connection.ttl(binaryCacheKey)).isEqualTo(-1);
 		});
@@ -134,6 +141,7 @@ public class DefaultRedisCacheWriterTests {
 				Duration.ofSeconds(5));
 
 		doWithConnection(connection -> {
+			await.until(() -> connection.ttl(binaryCacheKey) < 50);
 			assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryCacheValue);
 			assertThat(connection.ttl(binaryCacheKey)).isGreaterThan(3).isLessThan(6);
 		});
@@ -274,7 +282,7 @@ public class DefaultRedisCacheWriterTests {
 
 		if (writer.supportsAsyncRetrieve()) {
 			doWithConnection(connection -> {
-				Awaitility.await().until(() -> !connection.exists(binaryCacheKey));
+				await.until(() -> !connection.exists(binaryCacheKey));
 			});
 		}
 
@@ -313,7 +321,7 @@ public class DefaultRedisCacheWriterTests {
 
 		if (writer.supportsAsyncRetrieve()) {
 			doWithConnection(connection -> {
-				Awaitility.await().until(() -> !connection.exists(binaryCacheKey));
+				await.until(() -> !connection.exists(binaryCacheKey));
 			});
 		}
 
@@ -351,7 +359,8 @@ public class DefaultRedisCacheWriterTests {
 
 		((DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory)).lock(CACHE_NAME);
 
-		nonLockingRedisCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue, Duration.ZERO);
+		nonLockingRedisCacheWriter(connectionFactory).putIfAbsent(CACHE_NAME, binaryCacheKey, binaryCacheValue,
+				Duration.ZERO);
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
@@ -367,6 +376,7 @@ public class DefaultRedisCacheWriterTests {
 				Duration.ZERO);
 
 		doWithConnection(connection -> {
+			await.until(() -> connection.exists(binaryCacheKey));
 			assertThat(connection.exists(binaryCacheKey)).isTrue();
 		});
 	}
@@ -393,8 +403,6 @@ public class DefaultRedisCacheWriterTests {
 
 			beforeWrite.await();
 
-			Thread.sleep(200);
-
 			doWithConnection(connection -> {
 				assertThat(connection.exists(binaryCacheKey)).isFalse();
 			});
@@ -403,6 +411,7 @@ public class DefaultRedisCacheWriterTests {
 			afterWrite.await();
 
 			doWithConnection(connection -> {
+				await.until(() -> connection.exists(binaryCacheKey));
 				assertThat(connection.exists(binaryCacheKey)).isTrue();
 			});
 
@@ -418,6 +427,8 @@ public class DefaultRedisCacheWriterTests {
 
 		DefaultRedisCacheWriter cw = (DefaultRedisCacheWriter) lockingRedisCacheWriter(connectionFactory);
 		cw.lock(CACHE_NAME);
+
+		Assumptions.assumeFalse(cw.supportsAsyncRetrieve());
 
 		CountDownLatch beforeWrite = new CountDownLatch(1);
 		CountDownLatch afterWrite = new CountDownLatch(1);
