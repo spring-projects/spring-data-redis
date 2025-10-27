@@ -216,6 +216,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 					"Lock sleep time must not be null zero or negative");
 
 			this.lockSleepTime = sleepTime;
+
 			return this;
 		}
 
@@ -223,8 +224,8 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		public CacheLockingConfiguration lockTimeout(TtlFunction ttlFunction) {
 
 			Assert.notNull(ttlFunction, "TTL function must not be null");
-
 			this.lockTtlFunction = ttlFunction;
+
 			return this;
 		}
 
