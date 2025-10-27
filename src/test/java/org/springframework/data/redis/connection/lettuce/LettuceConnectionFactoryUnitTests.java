@@ -21,9 +21,11 @@ import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.RedisConfiguration.*;
 import static org.springframework.data.redis.test.extension.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
+import static org.springframework.data.redis.connection.lettuce.LettuceConverters.getRedisCredential;
 
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.SslVerifyMode;
@@ -78,6 +80,7 @@ import org.springframework.data.redis.test.extension.LettuceTestClientResources;
  * @author Chris Bono
  * @author John Blum
  * @author Zhian Chen
+ * @author Mingyuan Wu
  */
 class LettuceConnectionFactoryUnitTests {
 
@@ -186,7 +189,9 @@ class LettuceConnectionFactoryUnitTests {
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+            RedisCredentials credential = getRedisCredential(uri);
+            assertThat(credential).isNotNull();
+			assertThat(credential.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 		}
 	}
 
@@ -257,10 +262,14 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+        RedisCredentials credential = getRedisCredential(redisUri);
+        assertThat(credential).isNotNull();
+        assertThat(credential.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isNull();
+            RedisCredentials sentinelCredential = getRedisCredential(sentinel);
+            assertThat(sentinelCredential).isNotNull();
+            assertThat(sentinelCredential.getPassword()).isNull();
 		}
 	}
 
@@ -281,10 +290,14 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
+        RedisCredentials credential = getRedisCredential(redisUri);
+        assertThat(credential).isNotNull();
+        assertThat(credential.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+            RedisCredentials sentinelCredentials = getRedisCredential(sentinel);
+            assertThat(sentinelCredentials).isNotNull();
+            assertThat(sentinelCredentials.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
 		}
 	}
 
@@ -338,10 +351,14 @@ class LettuceConnectionFactoryUnitTests {
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getPassword()).isNull();
+        RedisCredentials credential = getRedisCredential(redisUri);
+        assertThat(credential).isNotNull();
+        assertThat(credential.getPassword()).isNull();
 
 		for (RedisURI sentinel : redisUri.getSentinels()) {
-			assertThat(sentinel.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
+            RedisCredentials sentinelCredentials = getRedisCredential(sentinel);
+            assertThat(sentinelCredentials).isNotNull();
+			assertThat(sentinelCredentials.getPassword()).isEqualTo("sentinel-pwd".toCharArray());
 		}
 	}
 
@@ -1224,7 +1241,7 @@ class LettuceConnectionFactoryUnitTests {
 				.create("redis-sentinel://fooUser:fooPass@myserver1:111,myserver2:222/7?sentinelMasterId=5150");
 		// Set the passwords directly on the sentinels so that it gets picked up by converter
 		char[] sentinelPass = "changeme".toCharArray();
-		redisURI.getSentinels().forEach(sentinelRedisUri -> sentinelRedisUri.setPassword(sentinelPass));
+		redisURI.getSentinels().forEach(sentinelRedisUri -> sentinelRedisUri.setAuthentication(sentinelPass));
 
 		RedisSentinelConfiguration expected = new RedisSentinelConfiguration();
 		expected.setMaster("5150");

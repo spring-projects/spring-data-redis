@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Mingyuan Wu
  * @since 2.0
  */
 @NullUnmarked
@@ -108,7 +109,7 @@ class LettuceClusterKeyCommands extends LettuceKeyCommands {
 		Assert.notNull(pattern, "Pattern must not be null");
 
 		return LettuceConverters.toBytesSet(connection.getClusterCommandExecutor()
-				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keys(pattern), node)
+				.executeCommandOnSingleNode((LettuceClusterCommandCallback<List<byte[]>>) client -> client.keysLegacy(pattern), node)
 				.getValue());
 	}
 

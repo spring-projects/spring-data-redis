@@ -50,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author ihaohong
+ * @author Mingyuan Wu
  * @since 2.0
  */
 @NullUnmarked
@@ -126,7 +127,7 @@ class LettuceKeyCommands implements RedisKeyCommands {
 
 		Assert.notNull(pattern, "Pattern must not be null");
 
-		return connection.invoke().fromMany(RedisKeyAsyncCommands::keys, pattern).toSet();
+		return connection.invoke().fromMany(RedisKeyAsyncCommands::keysLegacy, pattern).toSet();
 	}
 
 	/**
