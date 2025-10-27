@@ -19,6 +19,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+
+import reactor.core.publisher.Mono;
+
+import java.nio.ByteBuffer;
 import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.mockito.quality.Strictness;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisKeyCommands;
@@ -126,5 +133,63 @@ class DefaultRedisCacheWriterUnitTests {
 				.isThrownBy(() -> cacheWriter.get("TestCache", key, () -> value, Duration.ofMillis(10), false));
 
 		verify(mockKeyCommands, never()).del(any());
+	}
+
+	@Test // GH-3236
+	void usesAsyncPutIfPossible() {
+
+		byte[] key = "TestKey".getBytes();
+		byte[] value = "TestValue".getBytes();
+
+		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class,
+				withSettings().extraInterfaces(ReactiveRedisConnectionFactory.class));
+		ReactiveRedisConnection mockConnection = mock(ReactiveRedisConnection.class);
+		ReactiveStringCommands mockStringCommands = mock(ReactiveStringCommands.class);
+
+		doReturn(mockConnection).when((ReactiveRedisConnectionFactory) connectionFactory).getReactiveConnection();
+		doReturn(mockStringCommands).when(mockConnection).stringCommands();
+		doReturn(Mono.just(value)).when(mockStringCommands).set(any(), any(), any(), any());
+
+		RedisCacheWriter cacheWriter = RedisCacheWriter.create(connectionFactory, cfg -> {
+			cfg.immediateWrites(false);
+		});
+
+		cacheWriter.put("TestCache", key, value, null);
+
+		verify(mockConnection, times(1)).stringCommands();
+		verify(mockStringCommands, times(1)).set(eq(ByteBuffer.wrap(key)), any());
+	}
+
+	@Test // GH-3236
+	void usesBlockingWritesIfConfiguredWithImmediateWritesEnabled() {
+
+		byte[] key = "TestKey".getBytes();
+		byte[] value = "TestValue".getBytes();
+
+		RedisConnectionFactory connectionFactory = mock(RedisConnectionFactory.class,
+				withSettings().strictness(Strictness.LENIENT).extraInterfaces(ReactiveRedisConnectionFactory.class));
+		ReactiveRedisConnection reactiveMockConnection = mock(ReactiveRedisConnection.class,
+				withSettings().strictness(Strictness.LENIENT));
+		ReactiveStringCommands reactiveMockStringCommands = mock(ReactiveStringCommands.class,
+				withSettings().strictness(Strictness.LENIENT));
+
+		doReturn(reactiveMockConnection).when((ReactiveRedisConnectionFactory) connectionFactory).getReactiveConnection();
+		doReturn(reactiveMockStringCommands).when(reactiveMockConnection).stringCommands();
+
+		RedisStringCommands mockStringCommands = mock(RedisStringCommands.class);
+
+		doReturn(mockStringCommands).when(this.mockConnection).stringCommands();
+		doReturn(this.mockConnection).when(connectionFactory).getConnection();
+
+		RedisCacheWriter cacheWriter = RedisCacheWriter.create(connectionFactory, cfg -> {
+			cfg.immediateWrites(true);
+		});
+
+		cacheWriter.put("TestCache", key, value, null);
+
+		verify(this.mockConnection, times(1)).stringCommands();
+		verify(mockStringCommands, times(1)).set(eq(key), any());
+		verify(reactiveMockConnection, never()).stringCommands();
+		verify(reactiveMockStringCommands, never()).set(eq(ByteBuffer.wrap(key)), any());
 	}
 }

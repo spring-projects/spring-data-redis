@@ -132,7 +132,16 @@ public abstract class BatchStrategies {
 	 *
 	 * @param <T>
 	 */
-	record PartitionIterator<T>(Iterator<T> iterator, int size) implements Iterator<List<T>> {
+	static class PartitionIterator<T> implements Iterator<List<T>> {
+
+		private final Iterator<T> iterator;
+		private final int size;
+
+		PartitionIterator(Iterator<T> iterator, int size) {
+
+			this.iterator = iterator;
+			this.size = size;
+		}
 
 		@Override
 		public boolean hasNext() {

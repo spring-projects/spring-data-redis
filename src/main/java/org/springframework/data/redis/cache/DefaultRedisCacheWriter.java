@@ -416,7 +416,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public void remove(String name, byte[] key) {
+	public void evict(String name, byte[] key) {
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
@@ -424,12 +424,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		if (writeAsynchronously()) {
 			asyncCacheWriter.remove(name, key).thenRun(() -> statistics.incDeletes(name));
 		} else {
-			removeIfPresent(name, key);
+			evictIfPresent(name, key);
 		}
 	}
 
 	@Override
-	public boolean removeIfPresent(String name, byte[] key) {
+	public boolean evictIfPresent(String name, byte[] key) {
 
 		Long removals = execute(name, connection -> connection.keyCommands().del(key));
 		statistics.incDeletes(name);
@@ -438,13 +438,13 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public void clean(String name, byte[] pattern) {
+	public void clear(String name, byte[] pattern) {
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(pattern, "Pattern must not be null");
 
 		if (writeAsynchronously()) {
-			asyncCacheWriter.clean(name, pattern, batchStrategy)
+			asyncCacheWriter.clear(name, pattern, batchStrategy)
 					.thenAccept(deleteCount -> statistics.incDeletesBy(name, deleteCount.intValue()));
 			return;
 		}
@@ -651,8 +651,9 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		 * @param pattern {@link String pattern} used to match Redis keys to clear.
 		 * @param batchStrategy strategy to use.
 		 * @return a future that signals completion emitting the number of removed keys.
+		 * @since 4.0
 		 */
-		CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy);
+		CompletableFuture<Long> clear(String name, byte[] pattern, BatchStrategy batchStrategy);
 
 	}
 
@@ -686,7 +687,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		@Override
-		public CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy) {
+		public CompletableFuture<Long> clear(String name, byte[] pattern, BatchStrategy batchStrategy) {
 			throw new UnsupportedOperationException("async clean not supported");
 		}
 
@@ -701,10 +702,10 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	class AsynchronousCacheWriterDelegate implements AsyncCacheWriter {
 
 		private static final int DEFAULT_SCAN_BATCH_SIZE = 64;
-		private final int cleanBatchSize;
+		private final int clearBatchSize;
 
 		public AsynchronousCacheWriterDelegate() {
-			this.cleanBatchSize = batchStrategy instanceof BatchStrategies.Scan scan ? scan.batchSize()
+			this.clearBatchSize = batchStrategy instanceof BatchStrategies.Scan scan ? scan.batchSize()
 					: DEFAULT_SCAN_BATCH_SIZE;
 		}
 
@@ -765,14 +766,14 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		}
 
 		@Override
-		public CompletableFuture<Long> clean(String name, byte[] pattern, BatchStrategy batchStrategy) {
+		public CompletableFuture<Long> clear(String name, byte[] pattern, BatchStrategy batchStrategy) {
 
 			return doWithConnection(connection -> {
-				return doWithLocking(name, pattern, null, connection, () -> doClean(pattern, connection));
+				return doWithLocking(name, pattern, null, connection, () -> doClear(pattern, connection));
 			});
 		}
 
-		private Mono<Long> doClean(byte[] pattern, ReactiveRedisConnection connection) {
+		private Mono<Long> doClear(byte[] pattern, ReactiveRedisConnection connection) {
 
 			ReactiveKeyCommands commands = connection.keyCommands();
 
@@ -781,11 +782,11 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 			if (batchStrategy instanceof BatchStrategies.Keys) {
 				keys = commands.keys(ByteBuffer.wrap(pattern)).flatMapMany(Flux::fromIterable);
 			} else {
-				keys = commands.scan(ScanOptions.scanOptions().count(cleanBatchSize).match(pattern).build());
+				keys = commands.scan(ScanOptions.scanOptions().count(clearBatchSize).match(pattern).build());
 			}
 
 			return keys
-					.buffer(cleanBatchSize) //
+					.buffer(clearBatchSize) //
 					.flatMap(commands::mUnlink) //
 					.collect(Collectors.summingLong(Long::longValue));
 		}
