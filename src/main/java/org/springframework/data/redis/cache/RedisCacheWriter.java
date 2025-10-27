@@ -285,8 +285,24 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 *
 	 * @param name cache name must not be {@literal null}.
 	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
+	 * @deprecated since 4.0 in favor of {@link #clear(String, byte[])}
 	 */
-	void clean(String name, byte[] pattern);
+	@Deprecated(since = "4.0", forRemoval = true)
+	default void clean(String name, byte[] pattern) {
+		clear(name, pattern);
+	}
+
+	/**
+	 * Remove all keys following the given pattern.
+	 * <p>
+	 * Actual clearing may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entries.
+	 *
+	 * @param name cache name must not be {@literal null}.
+	 * @param pattern pattern for the keys to remove. Must not be {@literal null}.
+	 * @since 4.0
+	 */
+	void clear(String name, byte[] pattern);
 
 	/**
 	 * Remove all keys following the given pattern expecting all entries to be immediately invisible for subsequent
@@ -298,7 +314,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 *         presence of entries could not be determined).
 	 */
 	default boolean invalidate(String name, byte[] pattern) {
-		clean(name, pattern);
+		clear(name, pattern);
 		return false;
 	}
 
@@ -379,7 +395,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 		/**
 		 * Use immediate writes (i.e. write operations such as
-		 * {@link RedisCacheWriter#put(String, byte[], byte[], Duration)} or {@link #clean(String, byte[])}) shall apply
+		 * {@link RedisCacheWriter#put(String, byte[], byte[], Duration)} or {@link #clear(String, byte[])}) shall apply
 		 * immediately.
 		 * <p>
 		 * Several {@link org.springframework.cache.Cache} operations can be performed asynchronously or deferred and this
@@ -395,7 +411,7 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 
 		/**
 		 * Configure whether to use immediate writes (i.e. write operations such as
-		 * {@link RedisCacheWriter#put(String, byte[], byte[], Duration)} or {@link #clean(String, byte[])}) shall apply
+		 * {@link RedisCacheWriter#put(String, byte[], byte[], Duration)} or {@link #clear(String, byte[])}) shall apply
 		 * immediately.
 		 * <p>
 		 * Several {@link org.springframework.cache.Cache} operations can be performed asynchronously or deferred and this
