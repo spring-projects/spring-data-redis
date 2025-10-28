@@ -62,8 +62,11 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.ZAddArgs;
@@ -4027,7 +4030,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@EnabledOnCommand("XADD")
 	void xAddShouldTrimStreamExactly() {
 
-		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(1);
+		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.maxLen(1));
 		actual.add(
 				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
 		actual.add(
@@ -4046,7 +4049,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@EnabledOnCommand("XADD")
 	void xAddShouldTrimStreamApprox() {
 
-		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(1).approximateTrimming(true);
+		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.maxLen(1).approximate());
 		actual.add(
 				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
 		actual.add(
@@ -4079,7 +4082,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim using MINID - keep only entries with ID >= id2
-		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.minId(id2);
+		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.minId(id2));
 		actual.add(
 				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
 		actual.add(connection.xLen(KEY_1));
@@ -4104,8 +4107,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Use LIMIT to control trimming effort
-		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(50)
-				.approximateTrimming(true).withLimit(10);
+		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.maxLen(50).approximate().limit(10));
 		actual.add(
 				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
 		actual.add(connection.xLen(KEY_1));
@@ -4120,7 +4122,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@EnabledOnCommand("XADD")
 	void xAddShouldHonorExactTrimming() {
 
-		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(2).withExactTrimming(true);
+		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.maxLen(2));
 		actual.add(
 				connection.xAdd(StringRecord.of(Collections.singletonMap(KEY_2, VALUE_2)).withStreamKey(KEY_1), xAddOptions));
 		actual.add(
@@ -4140,9 +4142,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@EnabledOnRedisVersion("8.2") // Deletion policy requires Redis 8.2+
 	void xAddShouldHonorDeletionPolicy() {
 
-		RedisStreamCommands.XAddOptions xAddOptions = RedisStreamCommands.XAddOptions.maxlen(5)
-				.approximateTrimming(true)
-				.withDeletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES);
+		XAddOptions xAddOptions = XAddOptions.trim(TrimOptions.maxLen(5).approximate()
+				.pendingReferences(StreamDeletionPolicy.delete()));
 
 		// Add multiple entries with deletion policy
 		actual.add(
@@ -4172,7 +4173,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim to 5 entries using MAXLEN
-		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5)));
+		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.maxLen(5))));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
@@ -4198,7 +4199,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim using MINID - keep only entries with ID >= id3
-		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.minId(id3)));
+		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.minId(id3))));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
@@ -4220,7 +4221,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim with approximate trimming
-		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(50).approximateTrimming(true)));
+		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.maxLen(50).approximate())));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
@@ -4242,7 +4243,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim with exact trimming
-		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5).exactTrimming(true)));
+		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.maxLen(5))));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
@@ -4264,8 +4265,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim with LIMIT to control trimming effort
-		actual.add(connection.xTrim(KEY_1,
-				RedisStreamCommands.XTrimOptions.maxlen(50).approximateTrimming(true).limit(10)));
+		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.maxLen(50).approximate().limit(10))));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();
@@ -4288,8 +4288,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		initConnection();
 
 		// Trim with deletion policy
-		actual.add(connection.xTrim(KEY_1, RedisStreamCommands.XTrimOptions.maxlen(5).approximateTrimming(true)
-				.deletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES)));
+		actual.add(connection.xTrim(KEY_1, XTrimOptions.trim(TrimOptions.maxLen(5).approximate()
+				.pendingReferences(StreamDeletionPolicy.delete()))));
 		actual.add(connection.xLen(KEY_1));
 
 		List<Object> results = getResults();

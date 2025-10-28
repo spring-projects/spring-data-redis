@@ -676,7 +676,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.expectNext(2L) //
 				.verifyComplete();
 
-		XDelOptions options = XDelOptions.defaultOptions();
+		XDelOptions options = XDelOptions.defaults();
 
 		connection.streamCommands().xDelEx(KEY_1_BBUFFER, options, messageId1, messageId2) //
 				.as(StepVerifier::create) //
@@ -698,7 +698,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		RecordId messageId2 = connection.streamCommands()
 				.xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)).block();
 
-		XDelOptions options = XDelOptions.defaultOptions();
+		XDelOptions options = XDelOptions.defaults();
 
 		connection.streamCommands().xDelEx(KEY_1_BBUFFER, options, messageId1.getValue(), messageId2.getValue()) //
 				.as(StepVerifier::create) //
@@ -731,7 +731,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.expectNextCount(2) //
 				.verifyComplete();
 
-		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.ACKNOWLEDGED);
+		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());
 
 		connection.streamCommands().xAckDel(KEY_1_BBUFFER, "my-group", options, messageId1, messageId2) //
 				.as(StepVerifier::create) //
@@ -760,7 +760,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.expectNextCount(2) //
 				.verifyComplete();
 
-		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.ACKNOWLEDGED);
+		XDelOptions options = XDelOptions.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.removeAcknowledged());
 
 		connection.streamCommands().xAckDel(KEY_1_BBUFFER, "my-group", options, messageId1.getValue(),
 				messageId2.getValue()) //

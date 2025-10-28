@@ -44,6 +44,11 @@ import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperator;
+import org.springframework.data.redis.connection.RedisStreamCommands.MaxLenTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.MinIdTrimStrategy;
+
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamEntryDeletionResult;
 import org.springframework.data.redis.connection.stream.ByteRecord;
@@ -221,32 +226,32 @@ class StreamConverters {
 		XAddParams params = new XAddParams();
 		params.id(toStreamEntryId(recordId.getValue()));
 
-		if (options.hasMaxlen()) {
-			params.maxLen(options.getMaxlen());
-		}
-
-		if (options.hasMinId()) {
-			params.minId(options.getMinId().getValue());
-		}
-
 		if (options.isNoMkStream()) {
 			params.noMkStream();
 		}
 
-		if (options.isApproximateTrimming()) {
-			params.approximateTrimming();
-		}
+		if (options.hasTrimOptions()) {
+			TrimOptions trim = options.getTrimOptions();
+			var strategy = trim.getTrimStrategy();
+			if (strategy instanceof MaxLenTrimStrategy max) {
+				params.maxLen(max.threshold());
+			} else if (strategy instanceof MinIdTrimStrategy min) {
+				params.minId(min.threshold().getValue());
+			}
 
-		if (options.isExactTrimming()) {
-			params.exactTrimming();
-		}
+			if (trim.getTrimOperator() == TrimOperator.APPROXIMATE) {
+				params.approximateTrimming();
+			} else {
+				params.exactTrimming();
+			}
 
-		if (options.hasLimit()) {
-			params.limit(options.getLimit());
-		}
+			if (trim.hasLimit()) {
+				params.limit(trim.getLimit());
+			}
 
-		if (options.hasDeletionPolicy()) {
-			params.trimmingMode(toStreamDeletionPolicy(options.getDeletionPolicy()));
+			if (trim.hasDeletionPolicy()) {
+				params.trimmingMode(toStreamDeletionPolicy(trim.getPendingReferences()));
+			}
 		}
 
 		return params;
@@ -256,28 +261,26 @@ class StreamConverters {
 
 		XTrimParams params = new XTrimParams();
 
-		if (options.hasMaxlen()) {
-			params.maxLen(options.getMaxlen());
+		TrimOptions trim = options.getTrimOptions();
+		var strategy = trim.getTrimStrategy();
+		if (strategy instanceof MaxLenTrimStrategy max) {
+			params.maxLen(max.threshold());
+		} else if (strategy instanceof MinIdTrimStrategy min) {
+			params.minId(min.threshold().getValue());
 		}
 
-		if (options.hasMinId()) {
-			params.minId(options.getMinId().getValue());
-		}
-
-		if (options.isApproximateTrimming()) {
+		if (trim.getTrimOperator() == TrimOperator.APPROXIMATE) {
 			params.approximateTrimming();
-		}
-
-		if (options.isExactTrimming()) {
+		} else {
 			params.exactTrimming();
 		}
 
-		if (options.hasLimit()) {
-			params.limit(options.getLimit());
+		if (trim.hasLimit()) {
+			params.limit(trim.getLimit());
 		}
 
-		if (options.hasDeletionPolicy()) {
-			params.trimmingMode(toStreamDeletionPolicy(options.getDeletionPolicy()));
+		if (trim.hasDeletionPolicy()) {
+			params.trimmingMode(toStreamDeletionPolicy(trim.getPendingReferences()));
 		}
 
 		return params;
@@ -383,7 +386,7 @@ class StreamConverters {
 	}
 
 	public static StreamDeletionPolicy toStreamDeletionPolicy(XDelOptions options) {
-		return toStreamDeletionPolicy(options.getDeletionPolicy());
+		return toStreamDeletionPolicy(options.getPendingReferences());
 	}
 
 	/**

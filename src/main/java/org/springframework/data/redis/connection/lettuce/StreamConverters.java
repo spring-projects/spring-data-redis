@@ -30,6 +30,11 @@ import java.util.List;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.MaxLenTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.MinIdTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperator;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimStrategy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
@@ -89,7 +94,7 @@ class StreamConverters {
 	}
 
 	static StreamDeletionPolicy toXDelArgs(XDelOptions options) {
-		return toStreamDeletionPolicy(options.getDeletionPolicy());
+		return toStreamDeletionPolicy(options.getPendingReferences());
 	}
 
 	static Converter<StreamMessage<byte[], byte[]>, ByteRecord> byteRecordConverter() {
@@ -209,21 +214,32 @@ class StreamConverters {
 
 			XAddArgs args = new XAddArgs();
 
-			if (source.hasMaxlen()) {
-				args.maxlen(source.getMaxlen());
+			if (source.isNoMkStream()) {
+				args.nomkstream();
 			}
-			if (source.hasMinId()) {
-				args.minId(source.getMinId().getValue());
-			}
-			args.nomkstream(source.isNoMkStream());
-			args.exactTrimming(source.isExactTrimming());
-			args.approximateTrimming(source.isApproximateTrimming());
 
-			if (source.hasLimit()) {
-				args.limit(source.getLimit());
+			if (!source.hasTrimOptions()) {
+				return args;
 			}
-			if (source.hasDeletionPolicy()) {
-				args.trimmingMode(toStreamDeletionPolicy(source.getDeletionPolicy()));
+
+			TrimOptions trimOptions = source.getTrimOptions();
+			TrimStrategy trimStrategy = trimOptions.getTrimStrategy();
+			if (trimStrategy instanceof MaxLenTrimStrategy maxLenTrimStrategy) {
+				args.maxlen(maxLenTrimStrategy.threshold());
+			}
+			else if (trimStrategy instanceof MinIdTrimStrategy minIdTrimStrategy) {
+				args.minId(minIdTrimStrategy.threshold().getValue());
+			}
+
+			if (trimOptions.hasLimit()) {
+				args.limit(trimOptions.getLimit());
+			}
+
+			args.exactTrimming(trimOptions.getTrimOperator() == TrimOperator.EXACT);
+			args.approximateTrimming(trimOptions.getTrimOperator() == TrimOperator.APPROXIMATE);
+
+			if (trimOptions.hasDeletionPolicy()) {
+				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getPendingReferences()));
 			}
 
 			return args;
@@ -238,21 +254,24 @@ class StreamConverters {
 
 			XTrimArgs args = new XTrimArgs();
 
-			if (source.hasMaxlen()) {
-				args.maxlen(source.getMaxlen());
+			TrimOptions trimOptions = source.getTrimOptions();
+			TrimStrategy trimStrategy = trimOptions.getTrimStrategy();
+			if (trimStrategy instanceof MaxLenTrimStrategy maxLenTrimStrategy) {
+				args.maxlen(maxLenTrimStrategy.threshold());
+			}
+			else if (trimStrategy instanceof MinIdTrimStrategy minIdTrimStrategy) {
+				args.minId(minIdTrimStrategy.threshold().getValue());
 			}
 
-			if (source.hasMinId()) {
-				args.minId(source.getMinId().getValue());
+			if (trimOptions.hasLimit()) {
+				args.limit(trimOptions.getLimit());
 			}
-			if (source.hasLimit()) {
-				args.limit(source.getLimit());
-			}
-			args.exactTrimming(source.isExactTrimming());
-			args.approximateTrimming(source.isApproximateTrimming());
 
-			if (source.hasDeletionPolicy()) {
-				args.trimmingMode(toStreamDeletionPolicy(source.getDeletionPolicy()));
+			args.exactTrimming(trimOptions.getTrimOperator() == TrimOperator.EXACT);
+			args.approximateTrimming(trimOptions.getTrimOperator() == TrimOperator.APPROXIMATE);
+
+			if (trimOptions.hasDeletionPolicy()) {
+				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getPendingReferences()));
 			}
 
 			return args;
