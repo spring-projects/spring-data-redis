@@ -576,6 +576,42 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	void testBitOpDiff() {
+
+		actual.add(connection.set("key1", "foobar"));
+		actual.add(connection.set("key2", "abcdef"));
+		actual.add(connection.bitOp(BitOperation.DIFF, "key3", "key1", "key2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 6L));
+	}
+
+	@Test
+	void testBitOpDiff1() {
+
+		actual.add(connection.set("key1", "foobar"));
+		actual.add(connection.set("key2", "abcdef"));
+		actual.add(connection.bitOp(BitOperation.DIFF1, "key3", "key1", "key2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 6L));
+	}
+
+	@Test
+	void testBitOpAndor() {
+
+		actual.add(connection.set("key1", "foo"));
+		actual.add(connection.set("key2", "bar"));
+		actual.add(connection.bitOp(BitOperation.ANDOR, "key3", "key1", "key2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 3L));
+	}
+
+	@Test
+	void testBitOpOne() {
+
+		actual.add(connection.set("key1", "foo"));
+		actual.add(connection.set("key2", "bar"));
+		actual.add(connection.bitOp(BitOperation.ONE, "key3", "key1", "key2"));
+		verifyResults(Arrays.asList(Boolean.TRUE, Boolean.TRUE, 3L));
+	}
+
+	@Test
 	@EnabledOnCommand("COPY")
 	void testCopy() {
 

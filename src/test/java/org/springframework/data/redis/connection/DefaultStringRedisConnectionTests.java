@@ -1267,6 +1267,104 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testBitOpOrBytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.OR, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.OR, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpOr() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.OR, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.OR, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpXorBytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.XOR, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.XOR, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpXor() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.XOR, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.XOR, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpNotBytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.NOT, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.NOT, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpNot() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.NOT, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.NOT, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpDiffBytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.DIFF, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpDiff() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.DIFF, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpDiff1Bytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF1, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.DIFF1, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpDiff1() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.DIFF1, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.DIFF1, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpAndorBytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ANDOR, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.ANDOR, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpAndor() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ANDOR, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.ANDOR, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpOneBytes() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ONE, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.ONE, fooBytes, barBytes));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
+	public void testBitOpOne() {
+		doReturn(5L).when(nativeConnection).bitOp(BitOperation.ONE, fooBytes, barBytes);
+		actual.add(connection.bitOp(BitOperation.ONE, foo, bar));
+		verifyResults(Collections.singletonList(5L));
+	}
+
+	@Test
 	public void testSUnionBytes() {
 		doReturn(bytesSet).when(nativeConnection).sUnion(fooBytes, barBytes);
 		actual.add(connection.sUnion(fooBytes, barBytes));
