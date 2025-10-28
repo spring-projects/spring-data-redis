@@ -130,26 +130,26 @@ public interface RedisStreamCommands {
 	}
 
 	@NullMarked
-	class XTrimOptions {
+	class TrimOptions {
 
 		private final TrimStrategy<?> trimStrategy;
 		private final TrimOperator trimOperator;
 		private final @Nullable Long limit;
 		private final @Nullable StreamDeletionPolicy deletionPolicy;
 
-		private XTrimOptions(TrimStrategy<?> trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
+		private TrimOptions(TrimStrategy<?> trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
 			this.trimStrategy = trimStrategy;
 			this.trimOperator = trimOperator;
 			this.limit = limit;
 			this.deletionPolicy = deletionPolicy;
 		}
 
-		public static XTrimOptions maxLen(Long maxLen) {
-			return new XTrimOptions(new MaxLenTrimStrategy(maxLen), TrimOperator.EXACT, null, null);
+		public static TrimOptions maxLen(Long maxLen) {
+			return new TrimOptions(new MaxLenTrimStrategy(maxLen), TrimOperator.EXACT, null, null);
 		}
 
-		public static XTrimOptions minId(RecordId minId) {
-			return new XTrimOptions(new MinIdTrimStrategy(minId), TrimOperator.EXACT, null, null);
+		public static TrimOptions minId(RecordId minId) {
+			return new TrimOptions(new MinIdTrimStrategy(minId), TrimOperator.EXACT, null, null);
 		}
 
 		/**
@@ -160,8 +160,8 @@ public interface RedisStreamCommands {
 		 * @param trimOperator the operator to use when trimming
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public XTrimOptions withTrimOperator(TrimOperator trimOperator) {
-			return new XTrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
+		public TrimOptions withTrimOperator(TrimOperator trimOperator) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
 		}
 
 		/**
@@ -172,8 +172,8 @@ public interface RedisStreamCommands {
 		 * @param limit the maximum number of entries to examine for trimming.
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public XTrimOptions withLimit(long limit) {
-			return new XTrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
+		public TrimOptions withLimit(long limit) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
 		}
 
 		/**
@@ -184,8 +184,8 @@ public interface RedisStreamCommands {
 		 * @param deletionPolicy the deletion policy to apply.
 		 * @return new instance of {@link XTrimOptions}.
 		 */
-		public XTrimOptions withDeletionPolicy(StreamDeletionPolicy deletionPolicy) {
-			return new XTrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
+		public TrimOptions withDeletionPolicy(StreamDeletionPolicy deletionPolicy) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, deletionPolicy);
 		}
 
 		public TrimStrategy<?> getTrimStrategy() {
@@ -236,7 +236,7 @@ public interface RedisStreamCommands {
 			if (this == o) {
 				return true;
 			}
-			if (!(o instanceof XTrimOptions that)) {
+			if (!(o instanceof TrimOptions that)) {
 				return false;
 			}
 			if (this.trimStrategy.equals(that.trimStrategy)) {
@@ -258,6 +258,14 @@ public interface RedisStreamCommands {
 		}
 	}
 
+	@NullMarked
+	record XTrimOptions(TrimOptions trimOptions) {
+
+		public static XTrimOptions of(TrimOptions trimOptions) {
+			return new XTrimOptions(trimOptions);
+		}
+	}
+
 	/**
 	 * Additional options applicable for {@literal XADD} command.
 	 *
@@ -270,9 +278,9 @@ public interface RedisStreamCommands {
 	class XAddOptions {
 
 		private final boolean nomkstream;
-		private final @Nullable XTrimOptions trimOptions;
+		private final @Nullable TrimOptions trimOptions;
 
-		private XAddOptions(boolean nomkstream, @Nullable XTrimOptions trimOptions) {
+		private XAddOptions(boolean nomkstream, @Nullable TrimOptions trimOptions) {
 			this.nomkstream = nomkstream;
 			this.trimOptions = trimOptions;
 		}
@@ -291,7 +299,7 @@ public interface RedisStreamCommands {
 			return new XAddOptions(nomkstream, trimOptions);
 		}
 
-		public XAddOptions withTrimOptions(@Nullable XTrimOptions trimOptions) {
+		public XAddOptions withTrimOptions(@Nullable TrimOptions trimOptions) {
 			return new XAddOptions(nomkstream, trimOptions);
 		}
 
@@ -307,7 +315,7 @@ public interface RedisStreamCommands {
 			return trimOptions != null;
 		}
 
-		public @Nullable XTrimOptions getTrimOptions() {
+		public @Nullable TrimOptions getTrimOptions() {
 			return trimOptions;
 		}
 
@@ -751,7 +759,7 @@ public interface RedisStreamCommands {
 	 * are deleted concerning consumer groups.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
 	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -770,7 +778,7 @@ public interface RedisStreamCommands {
 	 * are deleted concerning consumer groups.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
 	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -788,7 +796,7 @@ public interface RedisStreamCommands {
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to acknowledge and remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
 	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -808,7 +816,7 @@ public interface RedisStreamCommands {
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to acknowledge and remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
 	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
