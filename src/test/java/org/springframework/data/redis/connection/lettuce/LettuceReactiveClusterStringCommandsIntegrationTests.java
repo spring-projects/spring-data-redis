@@ -83,11 +83,76 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo(VALUE_3);
 	}
 
+	@Test
+	void bitOpXorShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				RedisStringCommands.BitOperation.XOR, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpNotShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER),
+				RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
 	@Test // DATAREDIS-525
 	void bitNotShouldThrowExceptionWhenMoreThanOnSourceKeyAndKeysMapToSameSlot() {
 		assertThatIllegalArgumentException().isThrownBy(
 				() -> connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
 						RedisStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block());
+	}
+
+	@Test
+	void bitOpDiffShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, "foobar");
+		nativeCommands.set(SAME_SLOT_KEY_2, "abcdef");
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				RedisStringCommands.BitOperation.DIFF, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(6L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpDiff1ShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, "foobar");
+		nativeCommands.set(SAME_SLOT_KEY_2, "abcdef");
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				RedisStringCommands.BitOperation.DIFF1, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(6L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpAndorShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				RedisStringCommands.BitOperation.ANDOR, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpOneShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				RedisStringCommands.BitOperation.ONE, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
 }

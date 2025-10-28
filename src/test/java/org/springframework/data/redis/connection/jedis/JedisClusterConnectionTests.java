@@ -78,6 +78,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Pavel Khokhlov
  * @author Dennis Neufeld
  * @author Tihomir Mateev
+ * @author Viktoriya Kutsarova
  */
 @EnabledOnRedisClusterAvailable
 @ExtendWith(JedisExtension.class)
@@ -189,6 +190,82 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.bitOp(BitOperation.AND, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
 
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo("bab");
+	}
+
+	@Test
+	void bitOpOrShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
+		nativeConnection.set(SAME_SLOT_KEY_2, "ugh");
+
+		clusterConnection.bitOp(BitOperation.OR, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo("woo");
+	}
+
+	@Test
+	void bitOpXorShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "aaa");
+		nativeConnection.set(SAME_SLOT_KEY_2, "___");
+
+		clusterConnection.bitOp(BitOperation.XOR, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo(">>>");
+	}
+
+	@Test
+	void bitOpNotShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
+
+		clusterConnection.bitOp(BitOperation.NOT, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpDiffShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
+		nativeConnection.set(SAME_SLOT_KEY_2, "abcdef");
+
+		clusterConnection.bitOp(BitOperation.DIFF, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpDiff1ShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "foobar");
+		nativeConnection.set(SAME_SLOT_KEY_2, "abcdef");
+
+		clusterConnection.bitOp(BitOperation.DIFF1, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpAndorShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
+		nativeConnection.set(SAME_SLOT_KEY_2, "bar");
+
+		clusterConnection.bitOp(BitOperation.ANDOR, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
+	}
+
+	@Test
+	void bitOpOneShouldWorkCorrectly() {
+
+		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
+		nativeConnection.set(SAME_SLOT_KEY_2, "bar");
+
+		clusterConnection.bitOp(BitOperation.ONE, SAME_SLOT_KEY_3_BYTES, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
+
+		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isNotNull();
 	}
 
 	@Test // DATAREDIS-315
