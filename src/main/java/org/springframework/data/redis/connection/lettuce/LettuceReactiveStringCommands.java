@@ -22,6 +22,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -368,7 +369,10 @@ class LettuceReactiveStringCommands implements ReactiveStringCommands {
 					Assert.isTrue(sourceKeys.length == 1, "BITOP NOT does not allow more than 1 source key.");
 					yield reactiveCommands.bitopNot(destinationKey, sourceKeys[0]);
 				}
-				default -> throw new IllegalArgumentException("Unknown BITOP '%s'".formatted(command.getBitOp()));
+				case DIFF -> reactiveCommands.bitopDiff(destinationKey, sourceKeys[0], Arrays.copyOfRange(sourceKeys, 1, sourceKeys.length));
+				case DIFF1 -> reactiveCommands.bitopDiff1(destinationKey, sourceKeys[0], Arrays.copyOfRange(sourceKeys, 1, sourceKeys.length));
+				case ANDOR -> reactiveCommands.bitopAndor(destinationKey, sourceKeys[0], Arrays.copyOfRange(sourceKeys, 1, sourceKeys.length));
+				case ONE -> reactiveCommands.bitopOne(destinationKey, sourceKeys);
 			};
 
 			return result.map(value -> new NumericResponse<>(command, value));

@@ -1011,6 +1011,90 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
+	public void testBitOpOrBytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpOrBytes();
+	}
+
+	@Test
+	public void testBitOpOr() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpOr();
+	}
+
+	@Test
+	public void testBitOpXorBytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpXorBytes();
+	}
+
+	@Test
+	public void testBitOpXor() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpXor();
+	}
+
+	@Test
+	public void testBitOpNotBytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpNotBytes();
+	}
+
+	@Test
+	public void testBitOpNot() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpNot();
+	}
+
+	@Test
+	public void testBitOpDiffBytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpDiffBytes();
+	}
+
+	@Test
+	public void testBitOpDiff() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpDiff();
+	}
+
+	@Test
+	public void testBitOpDiff1Bytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpDiff1Bytes();
+	}
+
+	@Test
+	public void testBitOpDiff1() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpDiff1();
+	}
+
+	@Test
+	public void testBitOpAndorBytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpAndorBytes();
+	}
+
+	@Test
+	public void testBitOpAndor() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpAndor();
+	}
+
+	@Test
+	public void testBitOpOneBytes() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpOneBytes();
+	}
+
+	@Test
+	public void testBitOpOne() {
+		doReturn(Collections.singletonList(5L)).when(nativeConnection).closePipeline();
+		super.testBitOpOne();
+	}
+
+	@Test
 	public void testSUnionBytes() {
 		doReturn(Collections.singletonList(bytesSet)).when(nativeConnection).closePipeline();
 		super.testSUnionBytes();

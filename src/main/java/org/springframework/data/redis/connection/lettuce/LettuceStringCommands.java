@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import io.lettuce.core.BitFieldArgs;
 import io.lettuce.core.api.async.RedisStringAsyncCommands;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -307,6 +308,10 @@ class LettuceStringCommands implements RedisStringCommands {
 				}
 				yield it.bitopNot(destination, keys[0]);
 			}
+			case DIFF -> it.bitopDiff(destination, keys[0], Arrays.copyOfRange(keys, 1, keys.length));
+			case DIFF1 -> it.bitopDiff1(destination, keys[0], Arrays.copyOfRange(keys, 1, keys.length));
+			case ANDOR -> it.bitopAndor(destination, keys[0], Arrays.copyOfRange(keys, 1, keys.length));
+			case ONE -> it.bitopOne(destination, keys);
 		});
 	}
 
