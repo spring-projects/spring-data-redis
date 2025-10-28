@@ -260,8 +260,24 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 *
 	 * @param name cache name must not be {@literal null}.
 	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @deprecated since 4.0 in favor of {@link #evict(String, byte[])}
 	 */
-	void remove(String name, byte[] key);
+	@Deprecated(since = "4.0", forRemoval = true)
+	default void remove(String name, byte[] key) {
+		evict(name, key);
+	}
+
+	/**
+	 * Remove the given key from Redis.
+	 * <p>
+	 * Actual eviction may be performed in an asynchronous or deferred fashion, with subsequent lookups possibly still
+	 * seeing the entry.
+	 *
+	 * @param name cache name must not be {@literal null}.
+	 * @param key key for the cache entry. Must not be {@literal null}.
+	 * @since 4.0
+	 */
+	void evict(String name, byte[] key);
 
 	/**
 	 * Remove the given key from Redis if it is present, expecting the key to be immediately invisible for subsequent
@@ -271,9 +287,10 @@ public interface RedisCacheWriter extends CacheStatisticsProvider {
 	 * @param key key for the cache entry. Must not be {@literal null}.
 	 * @return {@code true} if the cache was known to have a mapping for this key before, {@code false} if it did not (or
 	 *         if prior presence could not be determined).
+	 * @since 4.0
 	 */
-	default boolean removeIfPresent(String name, byte[] key) {
-		remove(name, key);
+	default boolean evictIfPresent(String name, byte[] key) {
+		evict(name, key);
 		return false;
 	}
 

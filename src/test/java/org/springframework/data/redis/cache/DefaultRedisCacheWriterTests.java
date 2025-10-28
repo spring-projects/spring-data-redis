@@ -286,14 +286,14 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@Test // DATAREDIS-481, DATAREDIS-1082
-	void removeShouldDeleteEntry() {
+	void evictShouldDeleteEntry() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
 		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory,
 				config -> config.collectStatistics().immediateWrites());
 
-		writer.remove(CACHE_NAME, binaryCacheKey);
+		writer.evict(CACHE_NAME, binaryCacheKey);
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 
@@ -301,12 +301,12 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@Test // GH-3236
-	void removeShouldNonblockingDeleteEntry() {
+	void evictShouldNonblockingDeleteEntry() {
 
 		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory, RedisCacheWriterConfigurer::collectStatistics);
 		assumeTrue(writer.supportsAsyncRetrieve());
 
-		writer.remove(CACHE_NAME, binaryCacheKey);
+		writer.evict(CACHE_NAME, binaryCacheKey);
 
 		doWithConnection(connection -> {
 			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(() -> !connection.exists(binaryCacheKey));
@@ -317,13 +317,13 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@Test // GH-3236
-	void removeShouldDeleteEntryIfExists() {
+	void evictIfPresentShouldDeleteEntryIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
 
 		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory, RedisCacheWriterConfigurer::collectStatistics);
 
-		assertThat(writer.removeIfPresent(CACHE_NAME, binaryCacheKey)).isTrue();
+		assertThat(writer.evictIfPresent(CACHE_NAME, binaryCacheKey)).isTrue();
 
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isFalse());
 
@@ -331,7 +331,7 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@Test // DATAREDIS-418, DATAREDIS-1082
-	void cleanShouldRemoveAllKeysByPattern() {
+	void clearShouldRemoveAllKeysByPattern() {
 
 		doWithConnection(connection -> {
 			connection.set(binaryCacheKey, binaryCacheValue);
@@ -341,7 +341,7 @@ public class DefaultRedisCacheWriterTests {
 		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory,
 				config -> config.collectStatistics().immediateWrites());
 
-		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
+		writer.clear(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
 
 		doWithConnection(connection -> {
 			assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -352,7 +352,7 @@ public class DefaultRedisCacheWriterTests {
 	}
 
 	@Test // GH-3236
-	void nonBlockingCleanShouldRemoveAllKeysByPattern() {
+	void nonBlockingClearShouldRemoveAllKeysByPattern() {
 
 		RedisCacheWriter writer = RedisCacheWriter.create(connectionFactory, RedisCacheWriterConfigurer::collectStatistics);
 		assumeTrue(writer.supportsAsyncRetrieve());
@@ -362,7 +362,7 @@ public class DefaultRedisCacheWriterTests {
 			connection.set("foo".getBytes(), "bar".getBytes());
 		});
 
-		writer.clean(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
+		writer.clear(CACHE_NAME, (CACHE_NAME + "::*").getBytes(StandardCharsets.UTF_8));
 
 		doWithConnection(connection -> {
 			Awaitility.await().pollInSameThread().pollDelay(Duration.ZERO).until(() -> !connection.exists(binaryCacheKey));

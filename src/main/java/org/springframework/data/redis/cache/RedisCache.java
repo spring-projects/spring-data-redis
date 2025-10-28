@@ -265,12 +265,12 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	@Override
 	public void evict(Object key) {
-		getCacheWriter().remove(getName(), createAndConvertCacheKey(key));
+		getCacheWriter().evict(getName(), createAndConvertCacheKey(key));
 	}
 
 	@Override
 	public boolean evictIfPresent(Object key) {
-		return getCacheWriter().removeIfPresent(getName(), createAndConvertCacheKey(key));
+		return getCacheWriter().evictIfPresent(getName(), createAndConvertCacheKey(key));
 	}
 
 	@Override

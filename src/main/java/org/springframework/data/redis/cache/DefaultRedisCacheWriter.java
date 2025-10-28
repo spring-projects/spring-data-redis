@@ -416,7 +416,7 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 	}
 
 	@Override
-	public void remove(String name, byte[] key) {
+	public void evict(String name, byte[] key) {
 
 		Assert.notNull(name, "Name must not be null");
 		Assert.notNull(key, "Key must not be null");
@@ -424,12 +424,12 @@ class DefaultRedisCacheWriter implements RedisCacheWriter {
 		if (writeAsynchronously()) {
 			asyncCacheWriter.remove(name, key).thenRun(() -> statistics.incDeletes(name));
 		} else {
-			removeIfPresent(name, key);
+			evictIfPresent(name, key);
 		}
 	}
 
 	@Override
-	public boolean removeIfPresent(String name, byte[] key) {
+	public boolean evictIfPresent(String name, byte[] key) {
 
 		Long removals = execute(name, connection -> connection.keyCommands().del(key));
 		statistics.incDeletes(name);
