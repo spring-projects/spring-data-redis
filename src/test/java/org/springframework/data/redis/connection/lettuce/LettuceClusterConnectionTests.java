@@ -1400,6 +1400,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isPositive();
 	}
 
 	@Test // GH-3211
@@ -1412,6 +1413,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0)).isNull();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isEqualTo(-1L);
 	}
 
 	@Test // GH-3211
@@ -1421,6 +1423,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		List<byte[]> result = clusterConnection.hashCommands().hGetEx(KEY_1_BYTES, Expiration.seconds(60), KEY_2_BYTES);
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0)).isNull();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isEqualTo(-2L);
 	}
 
 	@Test // GH-3211
@@ -1440,6 +1443,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, "field3".getBytes())).isTrue();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isPositive();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_3_BYTES).get(0)).isPositive();
 	}
 
 	@Test // GH-3211
@@ -1455,6 +1460,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.get(0)).isEqualTo(VALUE_1_BYTES);
 		assertThat(result.get(1)).isNull();
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES)).isTrue();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isPositive();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_3_BYTES).get(0)).isEqualTo(-2L);
 	}
 
 	@Test // GH-3211
@@ -1470,6 +1477,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(VALUE_2_BYTES);
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isPositive();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_3_BYTES).get(0)).isPositive();
 	}
 
 	@Test // GH-3211
@@ -1485,6 +1494,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(VALUE_2_BYTES);
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isPositive();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_3_BYTES).get(0)).isPositive();
 	}
 
 	@Test // GH-3211
@@ -1500,6 +1511,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).isFalse();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse(); // not set
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isEqualTo(-1L);
 	}
 
 	@Test // GH-3211
@@ -1516,6 +1528,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).isTrue();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo("new-value-1".getBytes()); // updated
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo("new-value-2".getBytes()); // updated
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isPositive();
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_3_BYTES).get(0)).isPositive();
 	}
 
 	@Test // GH-3211
@@ -1531,6 +1545,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).isFalse();
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES); // unchanged
 		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES)).isFalse(); // not set
+		assertThat(clusterConnection.hashCommands().hTtl(KEY_1_BYTES, KEY_2_BYTES).get(0)).isEqualTo(-1L);
 	}
 
 	@Test // DATAREDIS-315
