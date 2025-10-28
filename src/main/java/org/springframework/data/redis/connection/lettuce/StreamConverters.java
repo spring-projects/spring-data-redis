@@ -209,21 +209,26 @@ class StreamConverters {
 
 			XAddArgs args = new XAddArgs();
 
-			if (source.hasMaxlen()) {
-				args.maxlen(source.getMaxlen());
-			}
-			if (source.hasMinId()) {
-				args.minId(source.getMinId().getValue());
-			}
 			args.nomkstream(source.isNoMkStream());
-			args.exactTrimming(source.isExactTrimming());
-			args.approximateTrimming(source.isApproximateTrimming());
 
-			if (source.hasLimit()) {
-				args.limit(source.getLimit());
+			XTrimOptions trimOptions = source.getTrimOptions();
+			RedisStreamCommands.TrimStrategy<?> trimStrategy = trimOptions.getTrimStrategy();
+			if (trimStrategy instanceof RedisStreamCommands.MaxLenTrimStrategy maxLenTrimStrategy) {
+				args.maxlen(maxLenTrimStrategy.threshold());
 			}
-			if (source.hasDeletionPolicy()) {
-				args.trimmingMode(toStreamDeletionPolicy(source.getDeletionPolicy()));
+			else if (trimStrategy instanceof RedisStreamCommands.MinIdTrimStrategy minIdTrimStrategy) {
+				args.minId(minIdTrimStrategy.threshold().getValue());
+			}
+
+			if (trimOptions.hasLimit()) {
+				args.limit(trimOptions.getLimit());
+			}
+
+			args.exactTrimming(trimOptions.getTrimOperator() == RedisStreamCommands.TrimOperator.EXACT);
+			args.approximateTrimming(trimOptions.getTrimOperator() == RedisStreamCommands.TrimOperator.APPROXIMATE);
+
+			if (trimOptions.hasDeletionPolicy()) {
+				args.trimmingMode(toStreamDeletionPolicy(trimOptions.getDeletionPolicy()));
 			}
 
 			return args;
@@ -238,18 +243,20 @@ class StreamConverters {
 
 			XTrimArgs args = new XTrimArgs();
 
-			if (source.hasMaxlen()) {
-				args.maxlen(source.getMaxlen());
+			RedisStreamCommands.TrimStrategy<?> trimStrategy = source.getTrimStrategy();
+			if (trimStrategy instanceof RedisStreamCommands.MaxLenTrimStrategy maxLenTrimStrategy) {
+				args.maxlen(maxLenTrimStrategy.threshold());
+			}
+			else if (trimStrategy instanceof RedisStreamCommands.MinIdTrimStrategy minIdTrimStrategy) {
+				args.minId(minIdTrimStrategy.threshold().getValue());
 			}
 
-			if (source.hasMinId()) {
-				args.minId(source.getMinId().getValue());
-			}
 			if (source.hasLimit()) {
 				args.limit(source.getLimit());
 			}
-			args.exactTrimming(source.isExactTrimming());
-			args.approximateTrimming(source.isApproximateTrimming());
+
+			args.exactTrimming(source.getTrimOperator() == RedisStreamCommands.TrimOperator.EXACT);
+			args.approximateTrimming(source.getTrimOperator() == RedisStreamCommands.TrimOperator.APPROXIMATE);
 
 			if (source.hasDeletionPolicy()) {
 				args.trimmingMode(toStreamDeletionPolicy(source.getDeletionPolicy()));
