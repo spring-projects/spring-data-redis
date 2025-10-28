@@ -51,8 +51,10 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisStreamCommands;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.XTrimOptions;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.zset.Tuple;
@@ -267,7 +269,7 @@ class LettuceConnectionUnitTests {
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
 
 			XAddOptions options = XAddOptions.none();
-			connection.streamCommands().xAdd(record, options.withMinId(RecordId.of("1234567890-0")));
+			connection.streamCommands().xAdd(record, options.minId(RecordId.of("1234567890-0")));
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
 			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
@@ -279,7 +281,7 @@ class LettuceConnectionUnitTests {
 
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
 
-			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50));
+			connection.streamCommands().xAdd(record, XAddOptions.trim(TrimOptions.maxLen(100).approximate().limit(50)));
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
 			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
@@ -291,7 +293,7 @@ class LettuceConnectionUnitTests {
 
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
 
-			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100).withExactTrimming(true));
+			connection.streamCommands().xAdd(record, XAddOptions.trim(TrimOptions.maxLen(100).exact()));
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
 			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
@@ -316,7 +318,7 @@ class LettuceConnectionUnitTests {
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
 
 			connection.streamCommands().xAdd(record,
-					XAddOptions.maxlen(100).withDeletionPolicy(RedisStreamCommands.StreamDeletionPolicy.KEEP_REFERENCES));
+					XAddOptions.trim(TrimOptions.maxLen(100).pendingReferences(RedisStreamCommands.StreamDeletionPolicy.keep())));
 			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
 			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
 
@@ -326,7 +328,7 @@ class LettuceConnectionUnitTests {
 		@Test // GH-3232
 		void xtrimShouldHonorMaxlen() {
 
-			connection.streamCommands().xTrim("key".getBytes(), RedisStreamCommands.XTrimOptions.maxlen(100));
+			connection.streamCommands().xTrim("key".getBytes(), XTrimOptions.trim(TrimOptions.maxLen(100)));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 
@@ -337,7 +339,7 @@ class LettuceConnectionUnitTests {
 		void xtrimShouldHonorMinId() {
 
 			connection.streamCommands().xTrim("key".getBytes(),
-					RedisStreamCommands.XTrimOptions.minId(RecordId.of("1234567890-0")));
+					XTrimOptions.trim(TrimOptions.minId(RecordId.of("1234567890-0"))));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 
@@ -348,7 +350,7 @@ class LettuceConnectionUnitTests {
 		void xtrimShouldHonorApproximateTrimming() {
 
 			connection.streamCommands().xTrim("key".getBytes(),
-					RedisStreamCommands.XTrimOptions.maxlen(100).approximateTrimming(true));
+					XTrimOptions.trim(TrimOptions.maxLen(100).approximate()));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 
@@ -359,7 +361,7 @@ class LettuceConnectionUnitTests {
 		void xtrimShouldHonorExactTrimming() {
 
 			connection.streamCommands().xTrim("key".getBytes(),
-					RedisStreamCommands.XTrimOptions.maxlen(100).exactTrimming(true));
+					XTrimOptions.trim(TrimOptions.maxLen(100).exact()));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 
@@ -370,7 +372,7 @@ class LettuceConnectionUnitTests {
 		void xtrimShouldHonorLimit() {
 
 			connection.streamCommands().xTrim("key".getBytes(),
-					RedisStreamCommands.XTrimOptions.maxlen(100).approximateTrimming(true).limit(50));
+					XTrimOptions.trim(TrimOptions.maxLen(100).approximate().limit(50)));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 
@@ -380,8 +382,8 @@ class LettuceConnectionUnitTests {
 		@Test // GH-3232
 		void xtrimShouldHonorDeletionPolicy() {
 
-			connection.streamCommands().xTrim("key".getBytes(), RedisStreamCommands.XTrimOptions.maxlen(100)
-					.deletionPolicy(RedisStreamCommands.StreamDeletionPolicy.KEEP_REFERENCES));
+			connection.streamCommands().xTrim("key".getBytes(), XTrimOptions.trim(TrimOptions.maxLen(100)
+					.pendingReferences(RedisStreamCommands.StreamDeletionPolicy.keep())));
 			ArgumentCaptor<XTrimArgs> args = ArgumentCaptor.forClass(XTrimArgs.class);
 			verify(asyncCommandsMock).xtrim(any(), args.capture());
 

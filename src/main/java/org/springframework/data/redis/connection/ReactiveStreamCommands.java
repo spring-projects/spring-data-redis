@@ -33,6 +33,10 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
+import org.springframework.data.redis.connection.RedisStreamCommands.MaxLenTrimStrategy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOperator;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimStrategy;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XClaimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
@@ -639,7 +643,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new DeleteExCommand(key, Collections.emptyList(), XDelOptions.defaultOptions());
+			return new DeleteExCommand(key, Collections.emptyList(), XDelOptions.defaults());
 		}
 
 		/**
@@ -726,7 +730,7 @@ public interface ReactiveStreamCommands {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new AcknowledgeDeleteCommand(key, null, Collections.emptyList(), XDelOptions.defaultOptions());
+			return new AcknowledgeDeleteCommand(key, null, Collections.emptyList(), XDelOptions.defaults());
 		}
 
 		/**
@@ -1895,23 +1899,43 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @param key must not be {@literal null}.
 		 * @return a new {@link TrimCommand} for {@link ByteBuffer key}.
+		 * @since 4.0
+		 * @deprecated since 4.0, prefer {@link #stream(ByteBuffer, XTrimOptions)} instead.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public static TrimCommand stream(ByteBuffer key) {
 
 			Assert.notNull(key, "Key must not be null");
 
-			return new TrimCommand(key, XTrimOptions.none());
+			return new TrimCommand(key, XTrimOptions.trim(TrimOptions.maxLen(0)));
 		}
 
 		/**
-		 * Applies the numeric {@literal limit}. Constructs a new command instance with all previously configured
+		 * Creates a new {@link TrimCommand} given a {@link ByteBuffer key} and {@link XTrimOptions}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @param options must not be {@literal null}.
+		 * @return a new {@link TrimCommand} for {@link ByteBuffer key}.
+		 * @since 4.0
+		 */
+		public static TrimCommand stream(ByteBuffer key, XTrimOptions options) {
+			return new TrimCommand(key, options);
+		}
+
+		/**
+		 * Applies the numeric {@literal threshold}. Constructs a new command instance with all previously configured
 		 * properties.
 		 *
-		 * @param limit
-		 * @return a new {@link TrimCommand} with {@literal limit} applied.
+		 * @param threshold
+		 * @return a new {@link TrimCommand} with {@literal threshold} applied.
+		 * @deprecated since 4.0: specify a concrete trim strategy (MAXLEN or MINID) via {@link XTrimOptions}
+		 * and {@link TrimOptions} instead of using this method. Prefer
+		 * {@code options(XTrimOptions.trim(TrimOptions.maxLen(threshold)))} or construct with
+		 * {@code stream(key, XTrimOptions.trim(TrimOptions.maxLen(threshold)))}.
 		 */
-		public TrimCommand to(long limit) {
-			return new TrimCommand(getKey(), options.limit(limit));
+		@Deprecated(since = "4.0", forRemoval = false)
+		public TrimCommand to(long threshold) {
+			return new TrimCommand(getKey(), XTrimOptions.trim(TrimOptions.maxLen(threshold)));
 		}
 
 		/**
@@ -1919,7 +1943,11 @@ public interface ReactiveStreamCommands {
 		 *
 		 * @return a new {@link TrimCommand} with {@literal approximateTrimming} applied.
 		 * @since 2.4
+		 * @deprecated since 4.0: do not toggle the trim operator in isolation. Specify a concrete trim
+		 * strategy (MAXLEN or MINID) and operator via {@link XTrimOptions} and {@link TrimOptions}, e.g.
+		 * {@code options(XTrimOptions.trim(TrimOptions.maxLen(n).approximate()))}.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public TrimCommand approximate() {
 			return approximate(true);
 		}
@@ -1930,37 +1958,55 @@ public interface ReactiveStreamCommands {
 		 * @param approximateTrimming
 		 * @return a new {@link TrimCommand} with {@literal approximateTrimming} applied.
 		 * @since 2.4
+		 * @deprecated since 4.0: do not toggle the trim operator in isolation. Specify a concrete trim
+		 * strategy (MAXLEN or MINID) and operator via {@link XTrimOptions} and {@link TrimOptions}, e.g.
+		 * {@code options(XTrimOptions.trim(TrimOptions.maxLen(n).approximate()))} or
+		 * {@code options(XTrimOptions.trim(TrimOptions.minId(id).exact()))}.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public TrimCommand approximate(boolean approximateTrimming) {
-			return new TrimCommand(getKey(), options.approximateTrimming(approximateTrimming));
+			if (approximateTrimming) {
+				return new TrimCommand(getKey(), XTrimOptions.trim(options.getTrimOptions().approximate()));
+			}
+			return new TrimCommand(getKey(), XTrimOptions.trim(options.getTrimOptions().exact()));
 		}
 
 		/**
 		 * Apply the given {@link XTrimOptions} to configure the {@literal XTRIM} command.
 		 * <p>
 		 * This method allows setting all XTRIM options at once, including trimming strategies
-		 * ({@literal MAXLEN}, {@literal MINID}), stream creation behavior ({@literal NOMKSTREAM}),
-		 * and other parameters. Constructs a new command instance with all previously configured
-		 * properties except the options, which are replaced by the provided {@link XTrimOptions}.
+		 * ({@literal MAXLEN}, {@literal MINID}) and other parameters. Constructs a new command instance with all
+		 * previously configured properties except the options, which are replaced by the provided {@link XTrimOptions}.
 		 *
 		 * @param options the {@link XTrimOptions} to apply. Must not be {@literal null}.
 		 * @return a new {@link TrimCommand} with the specified options applied.
 		 * @since 4.0
 		 */
-		public TrimCommand withOptions(XTrimOptions options) {
+		public TrimCommand options(XTrimOptions options) {
 			return new TrimCommand(getKey(), options);
 		}
 
 		/**
+		 * Returns the MAXLEN threshold if the active trim strategy is {@literal MAXLEN}; otherwise {@literal null}.
+		 *
 		 * @return can be {@literal null}.
+		 * @deprecated since 4.0: Inspect {@link #getOptions()} -> {@link XTrimOptions#getTrimOptions()} ->
+		 * {@link TrimOptions#getTrimStrategy()} and obtain the threshold from the concrete strategy instead. For example:
+		 * {@code if (strategy instanceof MaxLenTrimStrategy m) { m.threshold(); }} or
+		 * {@code if (strategy instanceof MinIdTrimStrategy i) { i.threshold(); }}.
 		 */
+		@Deprecated(since = "4.0", forRemoval = false)
 		public @Nullable Long getCount() {
-			return options.getLimit();
+			TrimStrategy strategy = options.getTrimOptions().getTrimStrategy();
+			if (strategy instanceof MaxLenTrimStrategy maxLen) {
+				return maxLen.threshold();
+			}
+			return null;
 		}
 
 
 		public boolean isApproximateTrimming() {
-			return options.isApproximateTrimming();
+			return options.getTrimOptions().getTrimOperator() == TrimOperator.APPROXIMATE;
 		}
 
 		public XTrimOptions getOptions() {
@@ -2002,7 +2048,7 @@ public interface ReactiveStreamCommands {
 
 		Assert.notNull(key, "Key must not be null");
 
-		return xTrim(Mono.just(TrimCommand.stream(key).withOptions(options))).next()
+		return xTrim(Mono.just(TrimCommand.stream(key).options(options))).next()
 				.map(NumericResponse::getOutput);
 	}
 

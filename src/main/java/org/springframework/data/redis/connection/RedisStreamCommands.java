@@ -106,252 +106,161 @@ public interface RedisStreamCommands {
 	 * assignment over server generated ones make sure to provide an id via {@code Record#withId}.
 	 *
 	 * @param record the {@link MapRecord record} to append.
-	 * @param options additional options (eg. {@literal MAXLEN}). Must not be {@literal null}, use
+	 * @param options additional options (e.g. {@literal MAXLEN}). Must not be {@literal null}, use
 	 *          {@link XAddOptions#none()} instead.
 	 * @return the {@link RecordId id} after save. {@literal null} when used in pipeline / transaction.
 	 * @since 2.3
 	 */
 	RecordId xAdd(MapRecord<byte[], byte[], byte[]> record, @NonNull XAddOptions options);
 
-	/**
-	 * Additional options applicable for {@literal XADD} command.
-	 *
-	 * @author Christoph Strobl
-	 * @author Mark John Moreno
-	 * @author Liming Deng
-	 * @since 2.3
-	 */
+
+	sealed interface TrimStrategy permits MaxLenTrimStrategy, MinIdTrimStrategy {
+	}
+
+	final class MaxLenTrimStrategy implements TrimStrategy {
+		private final long threshold;
+
+		private MaxLenTrimStrategy(long threshold) {
+			this.threshold = threshold;
+		}
+
+		public long threshold() {
+			return threshold;
+		}
+
+	}
+
+	final class MinIdTrimStrategy implements TrimStrategy {
+		private final RecordId threshold;
+
+		private MinIdTrimStrategy(RecordId threshold) {
+			this.threshold = threshold;
+		}
+
+		public RecordId threshold() {
+			return threshold;
+		}
+	}
+
+	enum TrimOperator {
+		EXACT,
+		APPROXIMATE
+	}
+
 	@NullMarked
-	class XAddOptions {
+	class TrimOptions {
 
-		private static final XAddOptions NONE = new XAddOptions(null, null, false, false,
-				true, null, null);
-
-		private final @Nullable Long maxlen;
-		private final boolean nomkstream;
-		private final boolean approximateTrimming;
-		private final boolean exactTrimming;
-		private final @Nullable RecordId minId;
+		private final TrimStrategy trimStrategy;
+		private final TrimOperator trimOperator;
 		private final @Nullable Long limit;
-		private final @Nullable StreamDeletionPolicy deletionPolicy;
+		private final @Nullable StreamDeletionPolicy pendingReferences;
 
-		private XAddOptions(@Nullable Long maxlen, @Nullable RecordId minId, boolean nomkstream, boolean approximateTrimming,
-							boolean exactTrimming, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
-			this.maxlen = maxlen;
-			this.minId = minId;
-			this.nomkstream = nomkstream;
-			this.approximateTrimming = approximateTrimming;
-			this.exactTrimming = exactTrimming;
+		private TrimOptions(TrimStrategy trimStrategy, TrimOperator trimOperator, @Nullable Long limit, @Nullable StreamDeletionPolicy pendingReferences) {
+			Assert.notNull(trimStrategy, "Trim strategy must not be null");
+			this.trimStrategy = trimStrategy;
+			this.trimOperator = trimOperator;
 			this.limit = limit;
-			this.deletionPolicy = deletionPolicy;
+			this.pendingReferences = pendingReferences;
 		}
 
+
 		/**
-		 * Create an {@link XAddOptions} instance with no additional options set.
+		 * Create trim options using the MAXLEN strategy with the given threshold.
 		 * <p>
-		 * This returns the default options for the {@literal XADD} command without any trimming strategy,
-		 * stream creation restrictions, or other modifications.
+		 * Produces {@link TrimOptions} with the exact ("=") operator by default; call {@link #approximate()} to use
+		 * approximate ("~") trimming.
 		 *
-		 * @return a default {@link XAddOptions} instance with no options configured.
-		 */
-		public static XAddOptions none() {
-			return NONE;
-		}
-
-		/**
-		 * Disable creation of stream if it does not already exist.
-		 *
-		 * @return new instance of {@link XAddOptions}.
-		 * @since 2.6
-		 */
-		public static XAddOptions makeNoStream() {
-			return new XAddOptions(null, null, true, false, true, null,  null);
-		}
-
-		/**
-		 * Disable creation of stream if it does not already exist.
-		 *
-		 * @param makeNoStream {@code true} to not create a stream if it does not already exist.
-		 * @return new instance of {@link XAddOptions}.
-		 * @since 2.6
-		 */
-		public static XAddOptions makeNoStream(boolean makeNoStream) {
-			return new XAddOptions(null, null, makeNoStream, false, true, null, null);
-		}
-
-		/**
-		 * Limit the size of the stream to the given maximum number of elements.
-		 *
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public static XAddOptions maxlen(long maxlen) {
-			return new XAddOptions(maxlen, null, false, false, true, null, null);
-		}
-
-		/**
-		 * Limit the amount of work done by the trimming operation.
-		 *
-		 * @param limit the maximum number of entries to examine for trimming.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public static XAddOptions limit(long limit) {
-			return new XAddOptions(null, null, false, false, true, limit, null);
-		}
-
-		/**
-		 * Apply exact trimming using the {@code =} flag.
-		 *
-		 * @param exactTrimming {@code true} to enable exact trimming.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public static XAddOptions exactTrimming(boolean exactTrimming) {
-			return new XAddOptions(null, null, false, !exactTrimming, exactTrimming, null, null);
-		}
-
-		/**
-		 * Set the deletion policy for trimming.
-		 *
-		 * @param deletionPolicy the deletion policy to apply.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public static XAddOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
-			return new XAddOptions(null, null, false, false, true, null, deletionPolicy);
-		}
-
-		/**
-		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
-		 *
-		 * @param minId the minimum record Id to retain.
-		 * @return new instance of {@link XAddOptions}.
-		 * @since 2.7
-		 */
-		public static XAddOptions minId(RecordId minId) {
-			return new XAddOptions(null, minId, false, false, true, null, null);
-		}
-
-		/**
-		 * Limit the size of the stream to the given maximum number of elements.
-		 * <p>
-		 * This is a member method that preserves all other options.
-		 *
-		 * @param maxlen the maximum number of elements.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public XAddOptions withMaxlen(long maxlen) {
-			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Limit the amount of work done by the trimming operation.
-		 * <p>
-		 * This is a member method that preserves all other options.
-		 *
-		 * @param limit the maximum number of entries to examine for trimming.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public XAddOptions withLimit(long limit) {
-			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Apply exact trimming using the {@code =} flag.
-		 * <p>
-		 * This is a member method that preserves all other options.
-		 *
-		 * @param exactTrimming {@code true} to enable exact trimming.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public XAddOptions withExactTrimming(boolean exactTrimming) {
-			return new XAddOptions(maxlen, minId, nomkstream, !exactTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Set the deletion policy for trimming.
-		 * <p>
-		 * This is a member method that preserves all other options.
-		 *
-		 * @param deletionPolicy the deletion policy to apply.
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public XAddOptions withDeletionPolicy(StreamDeletionPolicy deletionPolicy) {
-			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
-		 * <p>
-		 * This is a member method that preserves all other options.
-		 *
-		 * @param minId the minimum record Id to retain.
-		 * @return new instance of {@link XAddOptions}.
-		 * @since 2.7
-		 */
-		public XAddOptions withMinId(RecordId minId) {
-			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Apply efficient trimming for capped streams using the {@code ~} flag.
-		 *
-		 * @return new instance of {@link XAddOptions}.
-		 */
-		public XAddOptions approximateTrimming(boolean approximateTrimming) {
-			return new XAddOptions(maxlen, minId, nomkstream, approximateTrimming, !approximateTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * @return {@literal true} if {@literal NOMKSTREAM} is set.
-		 * @since 2.6
-		 */
-		public boolean isNoMkStream() {
-			return nomkstream;
-		}
-
-		/**
-		 * Limit the size of the stream to the given maximum number of elements.
-		 *
-		 * @return can be {@literal null}.
-		 */
-		public @Nullable Long getMaxlen() {
-			return maxlen;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal MAXLEN} is set.
-		 */
-		public boolean hasMaxlen() {
-			return maxlen != null;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal approximateTrimming} is set.
-		 */
-		public boolean isApproximateTrimming() {
-			return approximateTrimming;
-		}
-
-		/**
-		 * @return the minimum record Id to retain during trimming.
-		 * @since 2.7
-		 */
-		public @Nullable RecordId getMinId() {
-			return minId;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal MINID} is set.
-		 * @since 2.7
-		 */
-		public boolean hasMinId() {
-			return minId != null;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal EXACT} is set.
+		 * @param maxLen maximum number of entries to retain in the stream
+		 * @return new {@link TrimOptions} configured with the MAXLEN strategy
 		 * @since 4.0
 		 */
-		public boolean isExactTrimming() {
-			return exactTrimming;
+		public static TrimOptions maxLen(long maxLen) {
+			return new TrimOptions(new MaxLenTrimStrategy(maxLen), TrimOperator.EXACT, null, null);
+		}
+
+
+		/**
+		 * Create trim options using the MINID strategy with the given minimum id.
+		 * <p>
+		 * Produces {@link TrimOptions} with the exact ("=") operator by default; call {@link #approximate()} to use
+		 * approximate ("~") trimming.
+		 *
+		 * @param minId minimum id; entries with an id lower than this value are eligible for trimming
+		 * @return new {@link TrimOptions} configured with the MINID strategy
+		 * @since 4.0
+		 */
+		public static TrimOptions minId(RecordId minId) {
+			return new TrimOptions(new MinIdTrimStrategy(minId), TrimOperator.EXACT, null, null);
+		}
+
+		/**
+		 * Apply specified trim operator.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param trimOperator the operator to use when trimming
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public TrimOptions trim(TrimOperator trimOperator) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
+		}
+
+		/**
+		 * Use approximate trimming ("~").
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @return new instance of {@link TrimOptions} with {@link TrimOperator#APPROXIMATE}.
+		 */
+		public TrimOptions approximate() {
+			return new TrimOptions(trimStrategy, TrimOperator.APPROXIMATE, limit, pendingReferences);
+		}
+
+		/**
+		 * Use exact trimming ("=").
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @return new instance of {@link TrimOptions} with {@link TrimOperator#EXACT}.
+		 */
+		public TrimOptions exact() {
+			return new TrimOptions(trimStrategy, TrimOperator.EXACT, limit, pendingReferences);
+		}
+
+
+		/**
+		 * Limit the maximum number of entries considered when trimming.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param limit the maximum number of entries to examine for trimming.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public TrimOptions limit(long limit) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
+		}
+
+		/**
+		 * Set the deletion policy for trimming.
+		 * <p>
+		 * This is a member method that preserves all other options.
+		 *
+		 * @param pendingReferences the deletion policy to apply.
+		 * @return new instance of {@link XTrimOptions}.
+		 */
+		public TrimOptions pendingReferences(StreamDeletionPolicy pendingReferences) {
+			return new TrimOptions(trimStrategy, trimOperator, limit, pendingReferences);
+		}
+
+		public TrimStrategy getTrimStrategy() {
+			return trimStrategy;
+		}
+
+		/**
+		 * @return strategy to use when trimming entries
+		 */
+		public TrimOperator getTrimOperator() {
+			return trimOperator;
 		}
 
 		/**
@@ -374,8 +283,8 @@ public interface RedisStreamCommands {
 		 * @return the deletion policy.
 		 * @since 4.0
 		 */
-		public @Nullable StreamDeletionPolicy getDeletionPolicy() {
-			return deletionPolicy;
+		public @Nullable StreamDeletionPolicy getPendingReferences() {
+			return pendingReferences;
 		}
 
 		/**
@@ -383,7 +292,221 @@ public interface RedisStreamCommands {
 		 * @since 4.0
 		 */
 		public boolean hasDeletionPolicy() {
-			return deletionPolicy != null;
+			return pendingReferences != null;
+		}
+
+		@Override
+		public boolean equals(@Nullable Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof TrimOptions that)) {
+				return false;
+			}
+			if (this.trimStrategy.equals(that.trimStrategy)) {
+				return false;
+			}
+			if (this.trimOperator.equals(that.trimOperator)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(pendingReferences, that.pendingReferences);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = trimStrategy.hashCode();
+			result = 31 * result + trimOperator.hashCode();
+			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
+			result = 31 * result + ObjectUtils.nullSafeHashCode(pendingReferences);
+			return result;
+		}
+	}
+
+	@NullMarked
+	class XTrimOptions {
+
+		private final TrimOptions trimOptions;
+
+		private XTrimOptions(TrimOptions trimOptions) {
+			this.trimOptions = trimOptions;
+		}
+
+		public static XTrimOptions trim(TrimOptions trimOptions) {
+			return new XTrimOptions(trimOptions);
+		}
+
+		/**
+		 * Backward-compatible factory alias for creating {@link XTrimOptions} from {@link TrimOptions}.
+		 *
+		 * @param trimOptions the trim options to apply for XTRIM
+		 * @return new {@link XTrimOptions}
+		 * @since 4.0
+		 */
+		public static XTrimOptions of(TrimOptions trimOptions) {
+			return trim(trimOptions);
+		}
+
+
+		public TrimOptions getTrimOptions() {
+			return trimOptions;
+		}
+	}
+
+	/**
+	 * Additional options applicable for {@literal XADD} command.
+	 *
+	 * @author Christoph Strobl
+	 * @author Mark John Moreno
+	 * @author Liming Deng
+	 * @since 2.3
+	 */
+	@NullMarked
+	class XAddOptions {
+
+		public static XAddOptions NONE = new XAddOptions(false, null);
+
+		private final boolean nomkstream;
+		private final @Nullable TrimOptions trimOptions;
+
+		private XAddOptions(boolean nomkstream, @Nullable TrimOptions trimOptions) {
+			this.nomkstream = nomkstream;
+			this.trimOptions = trimOptions;
+		}
+
+		/**
+		 * Create default add options.
+		 *
+		 * @return new instance of {@link XAddOptions} with default values
+		 * @since 2.6
+		 */
+		public static XAddOptions none() {
+			return NONE;
+		}
+
+		public static XAddOptions trim(@Nullable TrimOptions trimOptions) {
+			return new XAddOptions(false, trimOptions);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.6
+		 */
+		public static XAddOptions makeNoStream() {
+			return new XAddOptions(true, null);
+		}
+
+		/**
+		 * Disable creation of stream if it does not already exist.
+		 *
+		 * @param makeNoStream {@code true} to not create a stream if it does not already exist.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.6
+		 */
+		public static XAddOptions makeNoStream(boolean makeNoStream) {
+			return new XAddOptions(makeNoStream, null);
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 */
+		public static XAddOptions maxlen(long maxlen) {
+			return new XAddOptions(false, TrimOptions.maxLen(maxlen));
+		}
+
+		/**
+		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
+		 *
+		 * @param minId the minimum record Id to retain.
+		 * @return new instance of {@link XAddOptions}.
+		 * @since 2.7
+		 */
+		public XAddOptions minId(RecordId minId) {
+			return new XAddOptions(nomkstream, TrimOptions.minId(minId));
+		}
+
+		/**
+		 * Apply efficient trimming for capped streams using the {@code ~} flag.
+		 *
+		 * @return new instance of {@link XAddOptions}.
+		 * @deprecated since 4.0: callers must specify a concrete trim strategy (MAXLEN or MINID)
+		 * via {@link TrimOptions}; do not use this method to only toggle approximate/exact.
+		 * Prefer {@code XAddOptions.trim(TrimOptions.maxLen(n).approximate())} or
+		 * {@code XAddOptions.trim(TrimOptions.minId(id).exact())}.
+		 */
+		@Deprecated(since = "4.0", forRemoval = false)
+		public XAddOptions approximateTrimming(boolean approximateTrimming) {
+			TrimOptions trimOptions = this.trimOptions != null ? this.trimOptions : TrimOptions.maxLen(0);
+			if (approximateTrimming) {
+				return new XAddOptions(nomkstream, trimOptions.approximate());
+			} else {
+				return new XAddOptions(nomkstream, trimOptions.exact());
+			}
+		}
+
+		/**
+		 * @return {@literal true} if {@literal NOMKSTREAM} is set.
+		 * @since 2.6
+		 */
+		public boolean isNoMkStream() {
+			return nomkstream;
+		}
+
+		/**
+		 * Limit the size of the stream to the given maximum number of elements.
+		 *
+		 * @return can be {@literal null}.
+		 */
+		public @Nullable Long getMaxlen() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MaxLenTrimStrategy maxLenTrimStrategy
+					? maxLenTrimStrategy.threshold() : null;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MAXLEN} is set.
+		 */
+		public boolean hasMaxlen() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MaxLenTrimStrategy;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal approximateTrimming} is set.
+		 */
+		public boolean isApproximateTrimming() {
+			return trimOptions != null && trimOptions.getTrimOperator() == TrimOperator.APPROXIMATE;
+		}
+
+		/**
+		 * @return the minimum record id to retain during trimming.
+		 * @since 2.7
+		 */
+		public @Nullable RecordId getMinId() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MinIdTrimStrategy minIdTrimStrategy
+					? minIdTrimStrategy.threshold() : null;
+		}
+
+		/**
+		 * @return {@literal true} if {@literal MINID} is set.
+		 * @since 2.7
+		 */
+		public boolean hasMinId() {
+			return trimOptions != null && trimOptions.getTrimStrategy() instanceof MinIdTrimStrategy;
+		}
+
+		public XAddOptions nomkstream(boolean nomkstream) {
+			return new XAddOptions(nomkstream, trimOptions);
+		}
+
+
+		public boolean hasTrimOptions() {
+			return trimOptions != null;
+		}
+
+		public @Nullable TrimOptions getTrimOptions() {
+			return trimOptions;
 		}
 
 		@Override
@@ -394,36 +517,16 @@ public interface RedisStreamCommands {
 			if (!(o instanceof XAddOptions that)) {
 				return false;
 			}
-			if (nomkstream != that.nomkstream) {
+			if (!(ObjectUtils.nullSafeEquals(this.trimOptions, that.trimOptions))) {
 				return false;
 			}
-			if (approximateTrimming != that.approximateTrimming) {
-				return false;
-			}
-			if (exactTrimming != that.exactTrimming) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(maxlen, that.maxlen)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(limit, that.limit)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy)) {
-				return false;
-			}
-			return ObjectUtils.nullSafeEquals(minId, that.minId);
+			return nomkstream == that.nomkstream;
 		}
 
 		@Override
 		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(maxlen);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(minId);
+			int result = ObjectUtils.nullSafeHashCode(this.trimOptions);
 			result = 31 * result + (nomkstream ? 1 : 0);
-			result = 31 * result + (approximateTrimming ? 1 : 0);
-			result = 31 * result + (exactTrimming ? 1 : 0);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(deletionPolicy);
 			return result;
 		}
 	}
@@ -446,7 +549,22 @@ public interface RedisStreamCommands {
 		/**
 		 * Remove entries that are read and acknowledged and remove references.
 		 */
-		ACKNOWLEDGED
+		ACKNOWLEDGED;
+
+		/**
+		 * Factory method for {@link #KEEP_REFERENCES}.
+		 */
+		public static StreamDeletionPolicy keep() { return KEEP_REFERENCES; }
+
+		/**
+		 * Factory method for {@link #DELETE_REFERENCES}.
+		 */
+		public static StreamDeletionPolicy delete() { return DELETE_REFERENCES; }
+
+		/**
+		 * Factory method for {@link #ACKNOWLEDGED}.
+		 */
+		public static StreamDeletionPolicy removeAcknowledged() { return ACKNOWLEDGED; }
 	}
 
 	/**
@@ -495,6 +613,7 @@ public interface RedisStreamCommands {
 		 */
 		public static StreamEntryDeletionResult fromCode(long code) {
 			return switch ((int) code) {
+				case -2 -> UNKNOWN;
 				case -1 -> NOT_FOUND;
 				case 1 -> DELETED;
 				case 2 -> NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED;
@@ -782,12 +901,12 @@ public interface RedisStreamCommands {
 	 */
 	class XDelOptions {
 
-		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.KEEP_REFERENCES);
+		private static final XDelOptions DEFAULT = new XDelOptions(StreamDeletionPolicy.keep());
 
-		private final @NonNull StreamDeletionPolicy deletionPolicy;
+		private final @NonNull StreamDeletionPolicy pendingReferences;
 
-		private XDelOptions(@NonNull StreamDeletionPolicy deletionPolicy) {
-			this.deletionPolicy = deletionPolicy;
+		private XDelOptions(@NonNull StreamDeletionPolicy pendingReferences) {
+			this.pendingReferences = pendingReferences;
 		}
 
 		/**
@@ -799,7 +918,7 @@ public interface RedisStreamCommands {
 		 *
 		 * @return a default {@link XDelOptions} instance with {@link StreamDeletionPolicy#KEEP_REFERENCES}.
 		 */
-		public static XDelOptions defaultOptions() {
+		public static XDelOptions defaults() {
 			return DEFAULT;
 		}
 
@@ -817,8 +936,8 @@ public interface RedisStreamCommands {
 		 * @return the deletion policy.
 		 */
 		@NonNull
-		public StreamDeletionPolicy getDeletionPolicy() {
-			return deletionPolicy;
+		public StreamDeletionPolicy getPendingReferences() {
+			return pendingReferences;
 		}
 
 		@Override
@@ -829,12 +948,12 @@ public interface RedisStreamCommands {
 			if (!(o instanceof XDelOptions that)) {
 				return false;
 			}
-			return ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy);
+			return pendingReferences.equals(that.pendingReferences);
 		}
 
 		@Override
 		public int hashCode() {
-			return ObjectUtils.nullSafeHashCode(deletionPolicy);
+			return pendingReferences.hashCode();
 		}
 	}
 
@@ -845,7 +964,7 @@ public interface RedisStreamCommands {
 	 * are deleted concerning consumer groups.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
 	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -864,7 +983,7 @@ public interface RedisStreamCommands {
 	 * are deleted concerning consumer groups.
 	 *
 	 * @param key the {@literal key} the stream is stored at.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists,
 	 *         {@link StreamEntryDeletionResult#DELETED} if the entry was deleted, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -882,7 +1001,7 @@ public interface RedisStreamCommands {
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to acknowledge and remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
 	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -902,7 +1021,7 @@ public interface RedisStreamCommands {
 	 *
 	 * @param key the {@literal key} the stream is stored at.
 	 * @param group name of the consumer group.
-	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaultOptions()} for default behavior.
+	 * @param options the {@link XDelOptions} specifying deletion policy. Use {@link XDelOptions#defaults()} ()} for default behavior.
 	 * @param recordIds the id's of the records to acknowledge and remove.
 	 * @return list of {@link StreamEntryDeletionResult} for each ID: {@link StreamEntryDeletionResult#DELETED} if the entry was acknowledged and deleted,
 	 *         {@link StreamEntryDeletionResult#NOT_FOUND} if no such ID exists, {@link StreamEntryDeletionResult#NOT_DELETED_UNACKNOWLEDGED_OR_STILL_REFERENCED}
@@ -1407,232 +1526,6 @@ public interface RedisStreamCommands {
 	 */
 	List<@NonNull ByteRecord> xRevRange(byte @NonNull [] key, @NonNull Range<@NonNull String> range,
 			@NonNull Limit limit);
-
-	/**
-	 * Additional options applicable for {@literal XTRIM} command.
-	 *
-	 * @author Viktoriya Kutsarova
-	 * @since 4.0
-	 */
-	@NullMarked
-	class XTrimOptions {
-
-		private static final XTrimOptions NONE = new XTrimOptions(null, null, false, true, null, null);
-
-		private final @Nullable Long maxlen;
-		private final @Nullable RecordId minId;
-		private final boolean approximateTrimming;
-		private final boolean exactTrimming;
-		private final @Nullable Long limit;
-		private final @Nullable StreamDeletionPolicy deletionPolicy;
-
-		private XTrimOptions(@Nullable Long maxlen, @Nullable RecordId minId, boolean approximateTrimming,
-				boolean exactTrimming, @Nullable Long limit, @Nullable StreamDeletionPolicy deletionPolicy) {
-			this.maxlen = maxlen;
-			this.minId = minId;
-			this.approximateTrimming = approximateTrimming;
-			this.exactTrimming = exactTrimming;
-			this.limit = limit;
-			this.deletionPolicy = deletionPolicy;
-		}
-
-		/**
-		 * Create an {@link XTrimOptions} instance with no additional options set.
-		 * <p>
-		 * This returns the default options for the {@literal XTRIM} command without any trimming strategy
-		 * or other modifications.
-		 *
-		 * @return a default {@link XTrimOptions} instance with no options configured.
-		 */
-		public static XTrimOptions none() {
-			return NONE;
-		}
-
-		/**
-		 * Limit the size of the stream to the given maximum number of elements.
-		 *
-		 * @param maxlen the maximum number of elements to retain.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public static XTrimOptions maxlen(long maxlen) {
-			return new XTrimOptions(maxlen, null, false, true, null, null);
-		}
-
-		/**
-		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
-		 *
-		 * @param minId the minimum record Id to retain.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public static XTrimOptions minId(RecordId minId) {
-			return new XTrimOptions(null, minId, false, true, null, null);
-		}
-
-		/**
-		 * Apply {@code MINID} trimming strategy, that evicts entries with IDs lower than the one specified.
-		 *
-		 * @param minId the minimum record Id to retain.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public XTrimOptions minId(String minId) {
-			return new XTrimOptions(maxlen, RecordId.of(minId), approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Apply efficient trimming for capped streams using the {@code ~} flag.
-		 *
-		 * @param approximateTrimming {@code true} to enable approximate trimming.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public XTrimOptions approximateTrimming(boolean approximateTrimming) {
-			return new XTrimOptions(maxlen, minId, approximateTrimming, !approximateTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Apply exact trimming using the {@code =} flag.
-		 *
-		 * @param exactTrimming {@code true} to enable exact trimming.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public XTrimOptions exactTrimming(boolean exactTrimming) {
-			return new XTrimOptions(maxlen, minId, !exactTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Limit the amount of work done by the trimming operation.
-		 *
-		 * @param limit the maximum number of entries to examine for trimming.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public XTrimOptions limit(long limit) {
-			return new XTrimOptions(maxlen, minId, approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Set the deletion policy for trimming.
-		 *
-		 * @param deletionPolicy the deletion policy to apply.
-		 * @return new instance of {@link XTrimOptions}.
-		 */
-		public XTrimOptions deletionPolicy(StreamDeletionPolicy deletionPolicy) {
-			return new XTrimOptions(maxlen, minId, approximateTrimming, exactTrimming, limit, deletionPolicy);
-		}
-
-		/**
-		 * Get the maximum length for the stream.
-		 *
-		 * @return can be {@literal null}.
-		 */
-		public @Nullable Long getMaxlen() {
-			return maxlen;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal MAXLEN} is set.
-		 */
-		public boolean hasMaxlen() {
-			return maxlen != null;
-		}
-
-		/**
-		 * Get the minimum record Id to retain during trimming.
-		 *
-		 * @return can be {@literal null}.
-		 */
-		public @Nullable RecordId getMinId() {
-			return minId;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal MINID} is set.
-		 */
-		public boolean hasMinId() {
-			return minId != null;
-		}
-
-		/**
-		 * @return {@literal true} if approximate trimming is enabled.
-		 */
-		public boolean isApproximateTrimming() {
-			return approximateTrimming;
-		}
-
-		/**
-		 * @return {@literal true} if exact trimming is enabled.
-		 */
-		public boolean isExactTrimming() {
-			return exactTrimming;
-		}
-
-		/**
-		 * Get the limit for trimming operations.
-		 *
-		 * @return can be {@literal null}.
-		 */
-		public @Nullable Long getLimit() {
-			return limit;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal LIMIT} is set.
-		 */
-		public boolean hasLimit() {
-			return limit != null;
-		}
-
-		/**
-		 * Get the deletion policy.
-		 *
-		 * @return can be {@literal null}.
-		 */
-		public @Nullable StreamDeletionPolicy getDeletionPolicy() {
-			return deletionPolicy;
-		}
-
-		/**
-		 * @return {@literal true} if {@literal DELETION_POLICY} is set.
-		 */
-		public boolean hasDeletionPolicy() {
-			return deletionPolicy != null;
-		}
-
-		@Override
-		public boolean equals(@Nullable Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (!(o instanceof XTrimOptions that)) {
-				return false;
-			}
-			if (approximateTrimming != that.approximateTrimming) {
-				return false;
-			}
-			if (exactTrimming != that.exactTrimming) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(maxlen, that.maxlen)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(limit, that.limit)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(deletionPolicy, that.deletionPolicy)) {
-				return false;
-			}
-			return ObjectUtils.nullSafeEquals(minId, that.minId);
-		}
-
-		@Override
-		public int hashCode() {
-			int result = ObjectUtils.nullSafeHashCode(maxlen);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(minId);
-			result = 31 * result + (approximateTrimming ? 1 : 0);
-			result = 31 * result + (exactTrimming ? 1 : 0);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(limit);
-			result = 31 * result + ObjectUtils.nullSafeHashCode(deletionPolicy);
-			return result;
-		}
-	}
 
 	/**
 	 * Trims the stream to {@code count} elements.

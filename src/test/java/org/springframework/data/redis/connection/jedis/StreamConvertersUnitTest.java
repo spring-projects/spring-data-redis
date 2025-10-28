@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.RedisStreamCommands.StreamDeletionPolicy;
+import org.springframework.data.redis.connection.RedisStreamCommands.TrimOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XDelOptions;
 import org.springframework.data.redis.connection.RedisStreamCommands.XPendingOptions;
@@ -58,7 +59,7 @@ class StreamConvertersUnitTest {
 		void convertXAddOptionsWithMaxlen() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100));
 
 			XAddParams params = StreamConverters.toXAddParams(recordId, options);
 
@@ -69,7 +70,7 @@ class StreamConvertersUnitTest {
 		void convertXAddOptionsWithMinId() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.minId(RecordId.of("1234567890-0"));
+			XAddOptions options = XAddOptions.trim(TrimOptions.minId(RecordId.of("1234567890-0")));
 
 			XAddParams params = StreamConverters.toXAddParams(recordId, options);
 
@@ -80,7 +81,7 @@ class StreamConvertersUnitTest {
 		void convertXAddOptionsWithApproximateTrimming() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).approximate());
 
 			XAddParams params = StreamConverters.toXAddParams(recordId, options);
 
@@ -91,7 +92,7 @@ class StreamConvertersUnitTest {
 		void convertXAddOptionsWithExactTrimming() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).withExactTrimming(true);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).exact());
 
 			XAddParams params = StreamConverters.toXAddParams(recordId, options);
 
@@ -102,7 +103,7 @@ class StreamConvertersUnitTest {
 		void convertXAddOptionsWithLimit() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).approximateTrimming(true).withLimit(50);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).approximate().limit(50));
 
 			XAddParams params = StreamConverters.toXAddParams(recordId, options);
 
@@ -113,7 +114,7 @@ class StreamConvertersUnitTest {
 		void convertXAddOptionsWithDeletionPolicy() {
 
 			RecordId recordId = RecordId.autoGenerate();
-			XAddOptions options = XAddOptions.maxlen(100).withDeletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+			XAddOptions options = XAddOptions.trim(TrimOptions.maxLen(100).pendingReferences(StreamDeletionPolicy.keep()));
 
 			XAddParams params = StreamConverters.toXAddParams(recordId, options);
 
@@ -134,7 +135,7 @@ class StreamConvertersUnitTest {
 			assertThat(params).hasFieldOrPropertyWithValue("limit", null);
 			assertThat(params).hasFieldOrPropertyWithValue("trimMode", null);
 			assertThat(params).hasFieldOrPropertyWithValue("nomkstream", false);
-			assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", true);
+			assertThat(params).hasFieldOrPropertyWithValue("exactTrimming", false);
 			assertThat(params).hasFieldOrPropertyWithValue("approximateTrimming", false);
 		}
 	}
@@ -145,7 +146,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertXTrimOptionsWithMaxlen() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100));
 
 			XTrimParams params = StreamConverters.toXTrimParams(options);
 
@@ -155,7 +156,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertXTrimOptionsWithMinId() {
 
-			XTrimOptions options = XTrimOptions.minId(RecordId.of("1234567890-0"));
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.minId(RecordId.of("1234567890-0")));
 
 			XTrimParams params = StreamConverters.toXTrimParams(options);
 
@@ -165,7 +166,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertXTrimOptionsWithApproximateTrimming() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).approximate());
 
 			XTrimParams params = StreamConverters.toXTrimParams(options);
 
@@ -175,7 +176,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertXTrimOptionsWithExactTrimming() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).exactTrimming(true);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).exact());
 
 			XTrimParams params = StreamConverters.toXTrimParams(options);
 
@@ -185,7 +186,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertXTrimOptionsWithLimit() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).approximateTrimming(true).limit(50);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).approximate().limit(50));
 
 			XTrimParams params = StreamConverters.toXTrimParams(options);
 
@@ -195,7 +196,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertXTrimOptionsWithDeletionPolicy() {
 
-			XTrimOptions options = XTrimOptions.maxlen(100).deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+			XTrimOptions options = XTrimOptions.trim(TrimOptions.maxLen(100).pendingReferences(StreamDeletionPolicy.keep()));
 
 			XTrimParams params = StreamConverters.toXTrimParams(options);
 
@@ -210,7 +211,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertDefaultOptions() {
 
-			XDelOptions options = XDelOptions.defaultOptions();
+			XDelOptions options = XDelOptions.defaults();
 
 			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
@@ -220,7 +221,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertKeepReferencesPolicy() {
 
-			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.KEEP_REFERENCES);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.keep());
 
 			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
@@ -230,7 +231,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertDeleteReferencesPolicy() {
 
-			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.DELETE_REFERENCES);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.delete());
 
 			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 
@@ -240,7 +241,7 @@ class StreamConvertersUnitTest {
 		@Test
 		void convertAcknowledgedPolicy() {
 
-			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.ACKNOWLEDGED);
+			XDelOptions options = XDelOptions.deletionPolicy(StreamDeletionPolicy.removeAcknowledged());
 
 			redis.clients.jedis.args.StreamDeletionPolicy policy = StreamConverters.toStreamDeletionPolicy(options);
 

@@ -186,7 +186,7 @@ public class ClusterTopology {
 	}
 
 	/**
-	 * Get the {@link RedisClusterNode} matching matching either {@link RedisClusterNode#getHost() host} and
+	 * Get the {@link RedisClusterNode} matching either {@link RedisClusterNode#getHost() host} and
 	 * {@link RedisClusterNode#getPort() port} or {@link RedisClusterNode#getId() nodeId}
 	 *
 	 * @param node must not be {@literal null}
